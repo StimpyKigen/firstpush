@@ -1,0 +1,789 @@
+import { useState, useMemo } from 'react';
+import {
+  Search, Dices, Layers, Plus, Check, Trash2, Send,
+  Sparkles, X, Trophy, DollarSign, Edit3, ChevronDown, ChevronUp, Link2
+} from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
+import {
+  getCombinedBuilderFixtures,
+  generateOddsForFixture,
+  type BuilderFixture
+} from '../lib/builderFixtures';
+import { useBetSlipStore, type BuiltSlipLeg } from '../lib/betSlipStore';
+import { useCurrentUser } from '../lib/authStore';
+import { showToast } from '../lib/notificationStore';
+import ModerationWarningBox from './ModerationWarningBox';
+import { moderateText } from '../lib/contentModeration';
+import { useAutoCollapse } from '../lib/useAutoCollapse';
+
+interface BetBuilderProps {
+  onPublished?: () => void;
+}
+
+const LEAGUES = ['All Leagues', 'English Premier League', 'Spanish LALIGA', 'Italian Serie A', 'German Bundesliga', 'Kenyan Premier League'];
+const TAG_PRESETS = ['Bet Builder', 'Value Pick', 'Multibet', 'EPL', 'Weekend Parlay', 'High Confidence'];
+const BOOKMAKER_OPTIONS = ['SportPesa', 'Betika', '22Bet', '1xBet', 'MozzartBet', 'PariPesa', 'Shabiki', 'Odibets', 'Betway', 'Other'];
+
+export default function BetBuilder({ onPublished }: BetBuilderProps) {
+  const currentUser = useCurrentUser();
+  const addPost = useBetSlipStore((s) => s.addPost);
+  const cartLegs = useBetSlipStore((s) => s.builderLegs);
+  const toggleBuilderLeg = useBetSlipStore((s) => s.toggleBuilderLeg);
+  const removeBuilderLeg = useBetSlipStore((s) => s.removeBuilderLeg);
+  const clearBuilderLegs = useBetSlipStore((s) => s.clearBuilderLegs);
+
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedLeague, setSelectedLeague] = useState('All Leagues');
+  const [expandedFixtureId, setExpandedFixtureId] = useState<string | null>(null);
+
+  const [simulatedStake, setSimulatedStake] = useState<number>(500);
+  const [isSlipExpanded, setIsSlipExpanded] = useState<boolean>(false);
+
+  // Publish Modal State
+  const [showPublishModal, setShowPublishModal] = useState(false);
+  const [publishNote, setPublishNote] = useState('');
+  const [selectedTags, setSelectedTags] = useState<string[]>(['Bet Builder']);
+  const [selectedBookmaker, setSelectedBookmaker] = useState('SportPesa');
+  const [bookieCode, setBookieCode] = useState('');
+  const [bookieLink, setBookieLink] = useState('');
+
+  const fixtures = useMemo(() => getCombinedBuilderFixtures(), []);
+
+  // Filter fixtures
+  const filteredFixtures = useMemo(() => {
+    return fixtures.filter((f) => {
+      const matchesLeague = selectedLeague === 'All Leagues' || f.competition === selectedLeague;
+      const q = searchQuery.toLowerCase().trim();
+      const matchesSearch = !q || f.homeTeam.toLowerCase().includes(q) || f.awayTeam.toLowerCase().includes(q) || f.competition.toLowerCase().includes(q);
+      return matchesLeague && matchesSearch;
+    });
+  }, [fixtures, selectedLeague, searchQuery]);
+
+  // Calculate total odds
+  const totalOdds = useMemo(() => {
+    if (cartLegs.length === 0) return 0;
+    return cartLegs.reduce((acc, leg) => acc * leg.odds, 1);
+  }, [cartLegs]);
+
+  const estimatedReturn = useMemo(() => {
+    return Math.round(simulatedStake * totalOdds);
+  }, [simulatedStake, totalOdds]);
+
+  // Moderation for publish note
+  const modResult = useMemo(() => moderateText(`${publishNote} ${bookieCode} ${bookieLink}`), [publishNote, bookieCode, bookieLink]);
+
+  function toggleLeg(fixture: BuilderFixture, market: string, pick: string, odds: number, collapseExpanded = false) {
+    const legId = `${fixture.id}-${market}-${pick}`;
+
+    toggleBuilderLeg({
+      id: legId,
+      matchId: fixture.id,
+      homeTeam: fixture.homeTeam,
+      awayTeam: fixture.awayTeam,
+      competition: fixture.competition,
+      kickoff: fixture.kickoff,
+      market,
+      pick,
+      odds,
+      status: 'pending',
+    });
+
+    if (collapseExpanded && expandedFixtureId === fixture.id) {
+      setExpandedFixtureId(null);
+      showToast({ title: 'Pick Selected', message: 'Markets collapsed for clean view', type: 'info' });
+    }
+  }
+
+  function removeLeg(legId: string) {
+    removeBuilderLeg(legId);
+  }
+
+  function isLegSelected(matchId: string, market: string, pick: string) {
+    return cartLegs.some((l) => l.matchId === matchId && l.market === market && l.pick === pick);
+  }
+
+  function handlePublish() {
+    if (cartLegs.length === 0) return;
+    if (!currentUser) {
+      showToast({ type: 'warning', title: 'Sign in required', message: 'Log in to publish your built bet slip.' });
+      return;
+    }
+
+    if (!modResult.isAllowed) {
+      showToast({ type: 'error', title: 'Content Flagged', message: modResult.reason ?? 'Note contains prohibited words.' });
+      return;
+    }
+
+    const finalCode = bookieCode.trim();
+    const finalLink = bookieLink.trim();
+    const primaryUrl = finalLink || finalCode || `built-slip-${Date.now()}`;
+
+    addPost({
+      postedBy: currentUser.username,
+      postedByAvatarSeed: currentUser.phone.length,
+      url: primaryUrl,
+      bookmaker: selectedBookmaker,
+      isCode: !finalLink && Boolean(finalCode),
+      note: publishNote.trim() || `Compiled ${cartLegs.length}-leg accumulator @ ${totalOdds.toFixed(2)}x total odds.`,
+      tags: selectedTags,
+      builtSlip: {
+        legs: cartLegs,
+        totalOdds,
+        stake: simulatedStake,
+        estimatedReturn,
+        bookieCode: finalCode || undefined,
+        bookieLink: finalLink || undefined,
+        bookmaker: selectedBookmaker,
+        status: 'pending',
+      },
+    });
+
+    clearBuilderLegs();
+    setShowPublishModal(false);
+    setPublishNote('');
+    setBookieCode('');
+    setBookieLink('');
+    showToast({ type: 'success', title: 'Bet Slip Published!', message: 'Your custom built slip is live in the community feed.' });
+    onPublished?.();
+  }
+
+  function toggleTag(tag: string) {
+    setSelectedTags((prev) =>
+      prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]
+    );
+  }
+
+  return (
+    <div className="space-y-5">
+      {/* Header Banner */}
+      <div className="bg-gradient-to-r from-panel via-panel-2 to-panel border border-gold/30 rounded-2xl p-4 sm:p-5 shadow-lg relative overflow-hidden">
+        <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <div className="inline-flex items-center gap-1.5 bg-gold/10 border border-gold/30 text-gold text-xs font-bold px-3 py-1 rounded-full mb-1">
+              <Dices size={13} /> Custom Bet Builder Engine
+            </div>
+            <h2 className="font-display font-black text-xl sm:text-2xl text-cream">
+              Build Custom Accumulators
+            </h2>
+            <p className="text-xs text-cream-dim mt-1 max-w-lg leading-relaxed">
+              Search teams, combine match result, over/under, double chance & BTTS markets into a clean custom slip, then publish to community or attach your official bookie code!
+            </p>
+          </div>
+
+          <div className="flex items-center gap-2 shrink-0">
+            <span className="text-xs font-bold text-cream-dim bg-ink px-3 py-1.5 rounded-xl border border-line flex items-center gap-1.5">
+              <Layers size={13} className="text-gold" />
+              <strong className="text-gold font-mono text-sm">{cartLegs.length}</strong> Legs Selected
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {/* Search & League Selector */}
+      <div className="space-y-3">
+        <div className="relative">
+          <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gold" />
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search teams or leagues (e.g. Arsenal, Real Madrid, Gor Mahia, EPL)..."
+            className="w-full bg-panel border border-line focus:border-gold rounded-2xl pl-10 pr-10 py-3 text-sm text-cream placeholder:text-cream-dim/50 focus:outline-none shadow-sm"
+          />
+          {searchQuery && (
+            <button
+              onClick={() => setSearchQuery('')}
+              className="absolute right-3.5 top-1/2 -translate-y-1/2 text-cream-dim hover:text-cream"
+            >
+              <X size={15} />
+            </button>
+          )}
+        </div>
+
+        {/* League Chips */}
+        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none">
+          {LEAGUES.map((league) => (
+            <button
+              key={league}
+              onClick={() => setSelectedLeague(league)}
+              className={`text-xs font-bold px-3 py-1.5 rounded-full border shrink-0 transition-all ${
+                selectedLeague === league
+                  ? 'bg-gold text-ink border-gold font-extrabold shadow'
+                  : 'bg-panel border-line text-cream-dim hover:text-cream hover:border-gold/30'
+              }`}
+            >
+              {league}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Fixtures List */}
+      <div className="space-y-3">
+        {filteredFixtures.length === 0 ? (
+          <div className="bg-panel border border-dashed border-line rounded-2xl p-8 text-center">
+            <Trophy size={32} className="mx-auto text-cream-dim/30 mb-2" />
+            <p className="text-sm font-bold text-cream">No matching fixtures found</p>
+            <p className="text-xs text-cream-dim mt-1">Try a different team name or clear league filters.</p>
+          </div>
+        ) : (
+          filteredFixtures.map((fixture) => (
+            <BuilderFixtureItem
+              key={fixture.id}
+              fixture={fixture}
+              isExpanded={expandedFixtureId === fixture.id}
+              onToggleExpand={setExpandedFixtureId}
+              cartLegs={cartLegs}
+              isLegSelected={isLegSelected}
+              toggleLeg={toggleLeg}
+            />
+          ))
+        )}
+      </div>
+
+      {/* STICKY BUILDER CART FLOATING ICON / OVERLAY */}
+      <AnimatePresence>
+        {cartLegs.length > 0 && !isSlipExpanded && (
+          <motion.div
+            key="collapsed-slip-icon"
+            initial={{ scale: 0.8, opacity: 0, y: 15 }}
+            animate={{ scale: 1, opacity: 1, y: 0 }}
+            exit={{ scale: 0.8, opacity: 0, y: 15 }}
+            className="fixed bottom-[128px] sm:bottom-20 right-3.5 sm:right-6 z-40"
+          >
+            <button
+              onClick={() => setIsSlipExpanded(true)}
+              className="relative flex items-center gap-2 bg-panel border-2 border-gold/90 hover:border-gold rounded-2xl px-3 py-2.5 sm:px-3.5 sm:py-2.5 shadow-2xl shadow-gold/20 hover:scale-105 active:scale-95 transition-all text-gold group cursor-pointer touch-manipulation backdrop-blur-md"
+              title="Open Bet Builder Slip"
+              aria-label="Expand Bet Builder Slip"
+            >
+              <div className="relative flex items-center justify-center">
+                <Dices size={22} className="text-gold transition-transform group-hover:rotate-12" />
+                <span className="absolute -top-3 -right-3 bg-gold text-ink font-black text-[11px] h-5 min-w-[20px] px-1 rounded-full flex items-center justify-center border-2 border-panel shadow-lg animate-pulse">
+                  {cartLegs.length}
+                </span>
+              </div>
+              <div className="text-left leading-tight hidden xs:block">
+                <span className="text-[10px] font-extrabold uppercase tracking-wider text-cream-dim block">
+                  Slip ({cartLegs.length})
+                </span>
+                <span className="text-xs font-black text-gold font-mono">
+                  @{totalOdds.toFixed(2)}x
+                </span>
+              </div>
+            </button>
+          </motion.div>
+        )}
+
+        {cartLegs.length > 0 && isSlipExpanded && (
+          <motion.div
+            key="expanded-slip-card"
+            initial={{ y: 50, opacity: 0, scale: 0.95 }}
+            animate={{ y: 0, opacity: 1, scale: 1 }}
+            exit={{ y: 50, opacity: 0, scale: 0.95 }}
+            className="fixed bottom-16 sm:bottom-6 left-3 right-3 sm:left-auto sm:right-6 sm:w-96 z-50 bg-panel border-2 border-gold rounded-2xl p-4 shadow-2xl space-y-3 backdrop-blur-xl"
+          >
+            {/* Cart Header */}
+            <div className="flex items-center justify-between pb-2 border-b border-line">
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setIsSlipExpanded(false)}
+                  className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-ink-2 border border-line hover:border-gold/50 text-cream-dim hover:text-cream text-xs font-bold transition-all active:scale-95 touch-manipulation"
+                  title="Collapse slip"
+                  aria-label="Collapse Bet Builder Slip"
+                >
+                  <ChevronDown size={16} className="text-gold" />
+                  <span className="text-[11px]">Back</span>
+                </button>
+
+                <div className="flex items-center gap-2 ml-1">
+                  <div className="w-6 h-6 rounded-lg bg-gold/20 flex items-center justify-center text-gold font-black text-xs">
+                    {cartLegs.length}
+                  </div>
+                  <div>
+                    <h4 className="font-display font-extrabold text-xs sm:text-sm text-cream leading-tight">
+                      {cartLegs.length}-Fold Accumulator
+                    </h4>
+                    <p className="text-[10px] text-cream-dim">Custom Bet Builder Slip</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => {
+                    clearBuilderLegs();
+                    setIsSlipExpanded(false);
+                  }}
+                  className="text-[10px] font-bold text-rose-400 hover:underline px-2 py-1"
+                >
+                  Clear All
+                </button>
+              </div>
+            </div>
+
+            {/* Selected Legs Preview List (Collapsible / Scrollable) */}
+            <div className="max-h-36 overflow-y-auto space-y-1.5 pr-1 text-xs scroll-touch">
+              {cartLegs.map((leg) => (
+                <div
+                  key={leg.id}
+                  className="flex items-center justify-between gap-2 bg-ink border border-line rounded-xl px-2.5 py-1.5"
+                >
+                  <div className="min-w-0">
+                    <p className="font-bold text-cream truncate text-[11px]">
+                      {leg.homeTeam} vs {leg.awayTeam}
+                    </p>
+                    <p className="text-[10px] text-gold font-semibold">
+                      {leg.pick} <span className="text-cream-dim">({leg.market})</span>
+                    </p>
+                  </div>
+
+                  <div className="flex items-center gap-2 shrink-0">
+                    <span className="font-mono font-bold text-cream text-[11px]">
+                      {leg.odds.toFixed(2)}
+                    </span>
+                    <button
+                      onClick={() => removeLeg(leg.id)}
+                      className="text-cream-dim hover:text-rose-400 p-1"
+                      aria-label="Remove leg"
+                    >
+                      <Trash2 size={12} />
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Stake & Total Odds Summary */}
+            <div className="bg-ink-2 rounded-xl p-2.5 border border-line space-y-2 text-xs">
+              <div className="flex items-center justify-between">
+                <span className="text-cream-dim">Total Multiplier Odds:</span>
+                <span className="font-mono font-black text-gold text-base">
+                  @{totalOdds.toFixed(2)}x
+                </span>
+              </div>
+
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-cream-dim font-medium">Est. Stake (Ksh):</span>
+                <input
+                  type="number"
+                  value={simulatedStake}
+                  onChange={(e) => setSimulatedStake(Math.max(10, +e.target.value))}
+                  className="w-24 bg-ink border border-line rounded-lg px-2 py-1 text-right font-mono font-bold text-cream focus:outline-none focus:border-gold"
+                />
+              </div>
+
+              <div className="flex items-center justify-between pt-1 border-t border-line/60">
+                <span className="text-cream-dim font-bold">Estimated Payout:</span>
+                <span className="font-mono font-black text-emerald-300 text-sm">
+                  {estimatedReturn.toLocaleString()} Ksh
+                </span>
+              </div>
+            </div>
+
+            {/* Publish Action Button */}
+            <button
+              onClick={() => setShowPublishModal(true)}
+              className="w-full bg-gold hover:bg-gold-2 text-ink font-extrabold text-sm py-2.5 rounded-xl shadow transition-all flex items-center justify-center gap-2 active:scale-[0.98] touch-manipulation"
+            >
+              <Send size={15} />
+              Publish Built Slip to Feed
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* PUBLISH BUILT SLIP MODAL */}
+      {showPublishModal && (
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+          <motion.div
+            initial={{ scale: 0.95, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            className="bg-panel border border-line rounded-2xl w-full max-w-lg p-5 space-y-4 shadow-2xl relative"
+          >
+            <div className="flex items-center justify-between pb-3 border-b border-line">
+              <h3 className="font-display font-extrabold text-lg text-cream flex items-center gap-2">
+                <Sparkles size={18} className="text-gold" />
+                Publish Built Bet Slip
+              </h3>
+              <button
+                onClick={() => setShowPublishModal(false)}
+                className="text-cream-dim hover:text-cream p-1 rounded-lg"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            {/* Slip Summary Header */}
+            <div className="bg-ink border border-gold/40 rounded-xl p-3 flex items-center justify-between">
+              <div>
+                <span className="text-[10px] font-extrabold uppercase text-gold">Compiled Multi-Leg Bet</span>
+                <p className="font-bold text-cream text-sm">
+                  {cartLegs.length} Matches Combined
+                </p>
+              </div>
+              <div className="text-right">
+                <span className="font-mono font-black text-gold text-lg">@{totalOdds.toFixed(2)}x</span>
+                <p className="text-[10px] text-cream-dim">Est Return: {estimatedReturn.toLocaleString()} Ksh</p>
+              </div>
+            </div>
+
+            {/* Optional Analysis Note */}
+            <div>
+              <label className="text-xs font-bold text-cream block mb-1">
+                Analysis / Strategy Note (Optional)
+              </label>
+              <textarea
+                value={publishNote}
+                onChange={(e) => setPublishNote(e.target.value)}
+                placeholder="Explain why you picked these games (e.g., High probability double chances, Arsenal in hot home form)..."
+                rows={2}
+                className="w-full bg-ink border border-line rounded-xl p-2.5 text-sm text-cream placeholder:text-cream-dim/50 focus:outline-none focus:border-gold resize-none"
+              />
+            </div>
+
+            {/* Moderation Warning */}
+            <ModerationWarningBox result={modResult} text={`${publishNote} ${bookieCode} ${bookieLink}`} />
+
+            {/* Tags Preset */}
+            <div>
+              <label className="text-xs font-bold text-cream block mb-1">Tags</label>
+              <div className="flex flex-wrap gap-1.5">
+                {TAG_PRESETS.map((tag) => (
+                  <button
+                    key={tag}
+                    type="button"
+                    onClick={() => toggleTag(tag)}
+                    className={`text-[11px] font-bold px-2.5 py-1 rounded-full border transition-colors ${
+                      selectedTags.includes(tag)
+                        ? 'bg-gold border-gold text-ink font-extrabold'
+                        : 'border-line text-cream-dim hover:border-gold/50'
+                    }`}
+                  >
+                    #{tag}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Official Sportsbook Code or Link Attachment */}
+            <div className="bg-ink-2 border border-line rounded-xl p-3 space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-cream flex items-center gap-1.5">
+                  <Link2 size={14} className="text-gold" />
+                  Attach Official Bookie Code or Link (Optional)
+                </span>
+                <span className="text-[10px] text-cream-dim">Can add now or later</span>
+              </div>
+
+              <div>
+                <label className="text-[11px] text-cream-dim block mb-1">Bookmaker Site</label>
+                <div className="grid grid-cols-3 gap-1">
+                  {BOOKMAKER_OPTIONS.map((b) => (
+                    <button
+                      key={b}
+                      type="button"
+                      onClick={() => setSelectedBookmaker(b)}
+                      className={`text-[11px] font-bold py-1 px-1.5 rounded-lg border text-center transition-all ${
+                        selectedBookmaker === b
+                          ? 'bg-gold text-ink border-gold font-extrabold'
+                          : 'bg-panel border-line text-cream-dim hover:text-cream'
+                      }`}
+                    >
+                      {b}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="grid sm:grid-cols-2 gap-2">
+                <div>
+                  <label className="text-[11px] text-cream-dim block mb-1">Booking Code</label>
+                  <input
+                    type="text"
+                    value={bookieCode}
+                    onChange={(e) => setBookieCode(e.target.value)}
+                    placeholder="e.g. SP-99120"
+                    className="w-full bg-ink border border-line rounded-xl px-2.5 py-1.5 text-xs text-cream placeholder:text-cream-dim/50 focus:outline-none focus:border-gold font-mono"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-[11px] text-cream-dim block mb-1">Slip Share URL</label>
+                  <input
+                    type="text"
+                    value={bookieLink}
+                    onChange={(e) => setBookieLink(e.target.value)}
+                    placeholder="https://..."
+                    className="w-full bg-ink border border-line rounded-xl px-2.5 py-1.5 text-xs text-cream placeholder:text-cream-dim/50 focus:outline-none focus:border-gold"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Actions */}
+            <div className="flex items-center justify-end gap-2 pt-2 border-t border-line">
+              <button
+                type="button"
+                onClick={() => setShowPublishModal(false)}
+                className="px-4 py-2 text-xs font-bold text-cream-dim hover:text-cream rounded-xl"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handlePublish}
+                disabled={!modResult.isAllowed}
+                className="px-5 py-2.5 text-xs font-bold bg-gold hover:bg-gold-2 disabled:opacity-40 text-ink rounded-xl shadow flex items-center gap-1.5"
+              >
+                <Send size={14} />
+                Publish to Community
+              </button>
+            </div>
+          </motion.div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+interface BuilderFixtureItemProps {
+  fixture: BuilderFixture;
+  isExpanded: boolean;
+  onToggleExpand: (id: string | null) => void;
+  cartLegs: BuiltSlipLeg[];
+  isLegSelected: (matchId: string, market: string, pick: string) => boolean;
+  toggleLeg: (fixture: BuilderFixture, market: string, pick: string, odds: number, collapseExpanded?: boolean) => void;
+}
+
+function BuilderFixtureItem({
+  fixture,
+  isExpanded,
+  onToggleExpand,
+  cartLegs,
+  isLegSelected,
+  toggleLeg,
+}: BuilderFixtureItemProps) {
+  // Auto-collapse when user scrolls outside/away (>70px) or clicks outside the open markets container
+  const containerRef = useAutoCollapse<HTMLDivElement>(isExpanded, () => {
+    onToggleExpand(null);
+  }, 70);
+
+  const oddsData = generateOddsForFixture(fixture);
+  const legsInThisMatch = cartLegs.filter((l) => l.matchId === fixture.id);
+
+  return (
+    <div
+      ref={containerRef}
+      className={`bg-panel border rounded-2xl transition-all shadow-sm overflow-hidden ${
+        legsInThisMatch.length > 0 ? 'border-gold/60 bg-gold/5' : 'border-line hover:border-gold/30'
+      }`}
+    >
+      {/* Match Header Row */}
+      <div className="p-3.5 sm:p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div className="min-w-0">
+          <div className="flex items-center gap-2 text-[10px] uppercase font-bold text-cream-dim">
+            <span className="text-gold">{fixture.competition}</span>
+            <span>•</span>
+            <span>{fixture.kickoff}</span>
+            {legsInThisMatch.length > 0 && (
+              <span className="bg-gold text-ink font-extrabold text-[9px] px-2 py-0.5 rounded-full ml-1">
+                {legsInThisMatch.length} Pick{legsInThisMatch.length > 1 ? 's' : ''} Added
+              </span>
+            )}
+          </div>
+          <div className="font-display font-extrabold text-base text-cream mt-0.5 flex items-center gap-2">
+            <span>{fixture.homeTeam}</span>
+            <span className="text-cream-dim text-xs font-normal">vs</span>
+            <span>{fixture.awayTeam}</span>
+          </div>
+        </div>
+
+        {/* Quick 1X2 Market Buttons */}
+        <div className="flex items-center gap-1.5 shrink-0">
+          {oddsData.matchResult.map((m) => {
+            const selected = isLegSelected(fixture.id, 'Match Result (1X2)', m.label);
+            return (
+              <button
+                key={m.code}
+                onClick={() => toggleLeg(fixture, 'Match Result (1X2)', m.label, m.odds, false)}
+                className={`flex-1 sm:flex-none font-mono font-bold text-xs px-3 py-2 rounded-xl border transition-all flex flex-col items-center justify-center min-w-[62px] ${
+                  selected
+                    ? 'bg-gold text-ink border-gold shadow font-black scale-105'
+                    : 'bg-ink border-line text-cream hover:border-gold/50'
+                }`}
+              >
+                <span className="text-[10px] text-cream-dim uppercase">{m.code}</span>
+                <span className={selected ? 'text-ink' : 'text-gold'}>{m.odds.toFixed(2)}</span>
+              </button>
+            );
+          })}
+
+          {/* Expand More Markets */}
+          <button
+            onClick={() => onToggleExpand(isExpanded ? null : fixture.id)}
+            className={`px-3 py-2 rounded-xl border text-xs font-bold transition-all flex items-center gap-1 ${
+              isExpanded ? 'bg-gold/20 text-gold border-gold' : 'bg-ink-2 border-line text-cream-dim hover:text-cream'
+            }`}
+            title="More Markets"
+          >
+            <span>Markets</span>
+            {isExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+          </button>
+        </div>
+      </div>
+
+      {/* Expanded Markets Accordion */}
+      <AnimatePresence>
+        {isExpanded && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            className="border-t border-line/60 bg-ink/60 p-3.5 sm:p-4 space-y-3"
+          >
+            {/* Double Chance */}
+            <div>
+              <span className="text-[10px] font-extrabold uppercase text-cream-dim tracking-wider block mb-1.5">
+                Double Chance
+              </span>
+              <div className="grid grid-cols-3 gap-1.5">
+                {oddsData.doubleChance.map((dc) => {
+                  const selected = isLegSelected(fixture.id, 'Double Chance', dc.label);
+                  return (
+                    <button
+                      key={dc.code}
+                      onClick={() => toggleLeg(fixture, 'Double Chance', dc.label, dc.odds, true)}
+                      className={`p-2 rounded-xl border text-center transition-all flex flex-col items-center justify-center ${
+                        selected ? 'bg-gold text-ink border-gold font-bold shadow' : 'bg-panel border-line text-cream hover:border-gold/40'
+                      }`}
+                    >
+                      <span className="text-[10px] truncate">{dc.label}</span>
+                      <span className={`font-mono text-xs font-extrabold ${selected ? 'text-ink' : 'text-gold'}`}>
+                        {dc.odds.toFixed(2)}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Over / Under Goals */}
+            <div>
+              <span className="text-[10px] font-extrabold uppercase text-cream-dim tracking-wider block mb-1.5">
+                Over / Under Total Goals
+              </span>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5">
+                {oddsData.overUnderGoals.map((ou) => {
+                  const selected = isLegSelected(fixture.id, 'Over / Under', ou.label);
+                  return (
+                    <button
+                      key={ou.code}
+                      onClick={() => toggleLeg(fixture, 'Over / Under', ou.label, ou.odds, true)}
+                      className={`p-2 rounded-xl border text-center transition-all flex items-center justify-between px-3 ${
+                        selected ? 'bg-gold text-ink border-gold font-bold shadow' : 'bg-panel border-line text-cream hover:border-gold/40'
+                      }`}
+                    >
+                      <span className="text-xs">{ou.label}</span>
+                      <span className={`font-mono text-xs font-extrabold ${selected ? 'text-ink' : 'text-gold'}`}>
+                        {ou.odds.toFixed(2)}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* BTTS / GG/NG */}
+            <div>
+              <span className="text-[10px] font-extrabold uppercase text-cream-dim tracking-wider block mb-1.5">
+                Both Teams To Score (BTTS)
+              </span>
+              <div className="grid grid-cols-2 gap-1.5">
+                {oddsData.btts.map((b) => {
+                  const selected = isLegSelected(fixture.id, 'BTTS', b.label);
+                  return (
+                    <button
+                      key={b.code}
+                      onClick={() => toggleLeg(fixture, 'BTTS', b.label, b.odds, true)}
+                      className={`p-2.5 rounded-xl border text-center transition-all flex items-center justify-between px-4 ${
+                        selected ? 'bg-gold text-ink border-gold font-bold shadow' : 'bg-panel border-line text-cream hover:border-gold/40'
+                      }`}
+                    >
+                      <span className="text-xs font-bold">{b.label}</span>
+                      <span className={`font-mono text-xs font-extrabold ${selected ? 'text-ink' : 'text-gold'}`}>
+                        {b.odds.toFixed(2)}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Handicap & Correct Score quick options */}
+            <div className="grid sm:grid-cols-2 gap-3">
+              <div>
+                <span className="text-[10px] font-extrabold uppercase text-cream-dim tracking-wider block mb-1.5">
+                  Handicap Lines
+                </span>
+                <div className="grid grid-cols-2 gap-1.5">
+                  {oddsData.handicap.map((h) => {
+                    const selected = isLegSelected(fixture.id, 'Handicap', h.label);
+                    return (
+                      <button
+                        key={h.code}
+                        onClick={() => toggleLeg(fixture, 'Handicap', h.label, h.odds, true)}
+                        className={`p-1.5 rounded-xl border text-center transition-all flex flex-col items-center ${
+                          selected ? 'bg-gold text-ink border-gold font-bold shadow' : 'bg-panel border-line text-cream hover:border-gold/40'
+                        }`}
+                      >
+                        <span className="text-[10px] truncate">{h.label}</span>
+                        <span className={`font-mono text-xs font-bold ${selected ? 'text-ink' : 'text-gold'}`}>{h.odds.toFixed(2)}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div>
+                <span className="text-[10px] font-extrabold uppercase text-cream-dim tracking-wider block mb-1.5">
+                  Correct Score
+                </span>
+                <div className="grid grid-cols-3 gap-1.5">
+                  {oddsData.correctScore.slice(0, 6).map((cs) => {
+                    const selected = isLegSelected(fixture.id, 'Correct Score', cs.label);
+                    return (
+                      <button
+                        key={cs.code}
+                        onClick={() => toggleLeg(fixture, 'Correct Score', cs.label, cs.odds, true)}
+                        className={`p-1.5 rounded-xl border text-center transition-all flex flex-col items-center ${
+                          selected ? 'bg-gold text-ink border-gold font-bold shadow' : 'bg-panel border-line text-cream hover:border-gold/40'
+                        }`}
+                      >
+                        <span className="text-[11px] font-mono font-bold">{cs.label}</span>
+                        <span className={`font-mono text-[10px] ${selected ? 'text-ink' : 'text-gold'}`}>{cs.odds.toFixed(2)}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+
+            {/* Bottom bar: Done button & auto-collapse hint */}
+            <div className="flex items-center justify-between pt-2 border-t border-line/40 text-[10px] text-cream-dim font-mono">
+              <span className="text-cream-dim/60">Auto-collapses on scroll outside or pick selection</span>
+              <button
+                type="button"
+                onClick={() => onToggleExpand(null)}
+                className="px-3 py-1 rounded-lg bg-ink-2 hover:bg-ink border border-line text-xs font-bold text-cream hover:text-gold transition-colors flex items-center gap-1"
+              >
+                <span>Done</span>
+                <ChevronUp size={12} />
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}

@@ -1,0 +1,350 @@
+@import "tailwindcss";
+
+@theme {
+  --breakpoint-xs: 380px;
+
+  --font-display: "Bricolage Grotesque", "Manrope", sans-serif;
+  --font-body: "Manrope", sans-serif;
+  --font-mono: "JetBrains Mono", monospace;
+
+  --color-ink: #06110d;
+  --color-ink-2: #0b1c15;
+  --color-panel: #0f241b;
+  --color-panel-2: #14301f;
+  --color-line: #1f4331;
+  --color-gold: #f2b705;
+  --color-gold-2: #ffd23f;
+  --color-emerald: #1fae6f;
+  --color-emerald-2: #29d38f;
+  --color-cream: #f4ecd8;
+  --color-cream-dim: #cdbf9e;
+  --color-danger: #ef5b5b;
+}
+
+html {
+  scroll-behavior: smooth;
+  overscroll-behavior-y: none;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  background-color: var(--color-ink);
+  color: var(--color-cream);
+  font-family: var(--font-body);
+  background-image:
+    radial-gradient(ellipse 80% 60% at 15% -10%, rgba(31, 174, 111, 0.16), transparent),
+    radial-gradient(ellipse 60% 50% at 100% 0%, rgba(242, 183, 5, 0.10), transparent),
+    repeating-linear-gradient(135deg, rgba(255,255,255,0.012) 0px, rgba(255,255,255,0.012) 1px, transparent 1px, transparent 26px);
+  transition: background-color 0.25s ease, color 0.25s ease;
+  overscroll-behavior-y: none;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+
+/* Allow text selection in editable or text-heavy regions */
+input,
+textarea,
+select,
+[contenteditable="true"],
+.select-text {
+  -webkit-user-select: text;
+  user-select: text;
+}
+
+/* Safe area inset padding helpers for notched mobile displays */
+.pb-safe {
+  padding-bottom: max(0.5rem, env(safe-area-inset-bottom, 0px));
+}
+
+.pt-safe {
+  padding-top: max(0.5rem, env(safe-area-inset-top, 0px));
+}
+
+/* Native inertia scrolling container */
+.scroll-touch {
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-y: contain;
+}
+
+::selection {
+  background: var(--color-gold);
+  color: #0b1c15;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: var(--color-ink);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-line);
+  border-radius: 999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-emerald);
+}
+
+/* ---------------------------------------------------------------------- */
+/* ---------------------------------------------------------------------- */
+/* LIGHT MODE                                                              */
+/* Dark (above @theme block) remains the default look. Adding the `.light` */
+/* class to <html> (see lib/themeStore.ts) re-points every semantic color   */
+/* variable to a light-mode value. Because every utility (bg-ink,           */
+/* text-cream, border-line, etc.) already compiles to `var(--color-*)`,    */
+/* no component code needs to change: the whole app re-themes instantly.  */
+/* ---------------------------------------------------------------------- */
+.light {
+  --color-ink: #f8f6f0;        /* Warm parchment canvas background */
+  --color-ink-2: #ffffff;      /* Clean crisp white surface for elevated containers */
+  --color-panel: #ffffff;      /* Pure white main card/panel surface */
+  --color-panel-2: #f3edd8;    /* Muted warm off-white surface for active/interactive sub-panels & hover states */
+  --color-line: #e2d7be;       /* Refined crisp border color with paper tactile contrast */
+  --color-gold: #9e6600;       /* High-contrast warm golden amber for text & icons */
+  --color-gold-2: #7c4f00;     /* Deeper golden amber for text hover & active emphasis */
+  --color-emerald: #087042;    /* WCAG AA compliant deep sports green for text & icons */
+  --color-emerald-2: #055431;  /* Deep rich green for text hover & success emphasis */
+  --color-cream: #0c1812;      /* High-contrast deep dark forest primary text */
+  --color-cream-dim: #3a4c41;  /* Rich readable secondary text */
+  --color-danger: #b91c1c;     /* Deep crimson red for errors & warnings */
+
+  /* Elevation & Ambient Soft Shadow Tokens for Light Mode */
+  --shadow-sm: 0 1px 3px rgba(12, 24, 18, 0.05), 0 1px 2px rgba(12, 24, 18, 0.03);
+  --shadow-md: 0 4px 12px -2px rgba(12, 24, 18, 0.07), 0 2px 4px -1px rgba(12, 24, 18, 0.04);
+  --shadow-lg: 0 10px 24px -4px rgba(12, 24, 18, 0.09), 0 4px 8px -2px rgba(12, 24, 18, 0.04);
+  --shadow-xl: 0 20px 32px -6px rgba(12, 24, 18, 0.12), 0 8px 12px -4px rgba(12, 24, 18, 0.05);
+}
+
+.light body {
+  color: var(--color-cream);
+  background-color: var(--color-ink);
+  background-image:
+    radial-gradient(ellipse 80% 60% at 15% -10%, rgba(8, 112, 66, 0.06), transparent),
+    radial-gradient(ellipse 60% 50% at 100% 0%, rgba(158, 102, 0, 0.05), transparent),
+    repeating-linear-gradient(135deg, rgba(12, 24, 18, 0.012) 0px, rgba(12, 24, 18, 0.012) 1px, transparent 1px, transparent 26px);
+}
+
+.light ::placeholder {
+  color: #58695d !important;
+  opacity: 0.9 !important;
+}
+
+.light input,
+.light textarea,
+.light select {
+  background-color: #ffffff !important;
+  color: #0c1812 !important;
+  border-color: #e2d7be !important;
+  box-shadow: inset 0 1px 2px rgba(12, 24, 18, 0.03);
+}
+
+.light input:focus,
+.light textarea:focus,
+.light select:focus {
+  border-color: #9e6600 !important;
+  outline: none !important;
+}
+
+/* Light mode card surface elevation & paper separation */
+.light .bg-panel,
+.light .bg-panel-2,
+.light .bg-ink-2 {
+  box-shadow: var(--shadow-sm);
+}
+
+.light .bg-panel:hover,
+.light .bg-panel-2:hover {
+  box-shadow: var(--shadow-md);
+}
+
+.light header,
+.light .sticky {
+  box-shadow: 0 2px 10px rgba(12, 24, 18, 0.04);
+}
+
+/* Primary Brand CTAs retain vibrant pop in both themes */
+.light .bg-gold {
+  background-color: #f2b705 !important;
+  color: #0c1812 !important;
+}
+
+.light .bg-gold:hover {
+  background-color: #e0a700 !important;
+  color: #0c1812 !important;
+}
+
+.light .bg-emerald {
+  background-color: #1fae6f !important;
+  color: #0c1812 !important;
+}
+
+.light .bg-emerald:hover {
+  background-color: #18985f !important;
+  color: #0c1812 !important;
+}
+
+/* Light mode high-contrast text overrides for fixed neon utility classes */
+.light .text-emerald-2 {
+  color: #087042 !important;
+}
+
+.light .text-emerald-300,
+.light .text-emerald-400 {
+  color: #055431 !important;
+}
+
+.light .text-amber-300,
+.light .text-amber-400 {
+  color: #8e5b00 !important;
+}
+
+.light .text-rose-400,
+.light .text-rose-300 {
+  color: #b91c1c !important;
+}
+
+.light .text-cream {
+  color: #0c1812 !important;
+}
+
+.light .text-cream-dim {
+  color: #3a4c41 !important;
+}
+
+/* Badges, Chips & Semi-transparent Status Tints */
+.light .bg-gold\/20,
+.light .bg-gold\/10,
+.light .bg-gold\/15 {
+  background-color: rgba(158, 102, 0, 0.12) !important;
+  color: #7c4f00 !important;
+}
+
+.light .bg-emerald\/20,
+.light .bg-emerald\/10,
+.light .bg-emerald\/15,
+.light .bg-emerald-500\/10,
+.light .bg-emerald-500\/20,
+.light .bg-emerald-950\/20 {
+  background-color: rgba(8, 112, 66, 0.12) !important;
+  color: #055431 !important;
+}
+
+.light .bg-rose-500\/10,
+.light .bg-rose-500\/20,
+.light .bg-rose-500\/15,
+.light .bg-rose-950\/20,
+.light .bg-rose-950\/10 {
+  background-color: rgba(185, 28, 28, 0.10) !important;
+  color: #991b1b !important;
+}
+
+.light .bg-amber-500\/10,
+.light .bg-amber-500\/20,
+.light .bg-amber-500\/15 {
+  background-color: rgba(158, 102, 0, 0.12) !important;
+  color: #7c4f00 !important;
+}
+
+/* Modal Backdrops & Overlays */
+.light .fixed.inset-0.bg-black\/60,
+.light .fixed.inset-0.bg-black\/70,
+.light .fixed.inset-0.bg-black\/80 {
+  background-color: rgba(12, 24, 18, 0.45) !important;
+  backdrop-filter: blur(4px);
+}
+
+.light ::selection {
+  background: #f2b705;
+  color: #0c1812;
+}
+
+.light ::-webkit-scrollbar-track {
+  background: var(--color-ink);
+}
+.light ::-webkit-scrollbar-thumb {
+  background: var(--color-line);
+}
+.light ::-webkit-scrollbar-thumb:hover {
+  background: var(--color-emerald);
+}
+
+.light .ticket-notch::before,
+.light .ticket-notch::after {
+  background: var(--color-ink);
+}
+
+.ticket-notch {
+  position: relative;
+}
+.ticket-notch::before,
+.ticket-notch::after {
+  content: "";
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  background: var(--color-ink);
+  border-radius: 999px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+.ticket-notch::before { left: -9px; }
+.ticket-notch::after { right: -9px; }
+
+.perforation {
+  background-image: repeating-linear-gradient(to bottom, var(--color-line) 0 6px, transparent 6px 14px);
+  width: 1px;
+}
+
+.text-stroke-gold {
+  -webkit-text-stroke: 1px var(--color-gold);
+}
+
+/* Scrollable-but-invisible-scrollbar utility: used by the desktop nav so
+   that if the viewport is too narrow to fit every link at once, the links
+   remain reachable via horizontal scroll instead of being silently clipped
+   by overflow-hidden. */
+.no-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+@keyframes float-slow {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  50% { transform: translateY(-14px) rotate(1.2deg); }
+}
+.animate-float-slow {
+  animation: float-slow 7s ease-in-out infinite;
+}
+
+@keyframes marquee {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+.animate-marquee {
+  animation: marquee 28s linear infinite;
+}
+
+@keyframes pulse-ring {
+  0% { box-shadow: 0 0 0 0 rgba(242, 183, 5, 0.45); }
+  100% { box-shadow: 0 0 0 14px rgba(242, 183, 5, 0); }
+}
+.animate-pulse-ring {
+  animation: pulse-ring 1.8s ease-out infinite;
+}
+
+@keyframes rise-in {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.animate-rise {
+  animation: rise-in 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+}

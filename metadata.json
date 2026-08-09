@@ -1,0 +1,6 @@
+{
+  "name": "Mshindi Projo",
+  "description": "Mshindi Room - Kenyan peer-to-peer betting, slip consensus engine, jackpots, and free match prediction room.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

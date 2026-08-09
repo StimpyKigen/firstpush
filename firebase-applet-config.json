@@ -1,0 +1,12 @@
+{
+  "projectId": "mshindiroom-production",
+  "appId": "1:31480688378:web:9f8d0bd5ff526b6acc6343",
+  "apiKey": "AIzaSyApRSqG1sMFmXYS8yM80s0TsUkWX65qsy8",
+  "authDomain": "mshindiroom-production.firebaseapp.com",
+  "firestoreDatabaseId": "(default)",
+  "storageBucket": "mshindiroom-production.firebasestorage.app",
+  "messagingSenderId": "31480688378",
+  "measurementId": "G-KJ3X84XLXX",
+  "oAuthClientId": "",
+  "recaptchaSiteKey": ""
+}

@@ -1,0 +1,75 @@
+{
+  "entities": {
+    "picks": {
+      "title": "User Pick",
+      "description": "Gambler picks, predictions, and reasoning for jackpot legs and free matches",
+      "type": "object",
+      "properties": {
+        "roomId": { "type": "string" },
+        "matchId": { "type": "string" },
+        "userId": { "type": "string" },
+        "username": { "type": "string" },
+        "pick": { "type": "string" },
+        "reasoning": { "type": "string" },
+        "conviction": { "type": "string" },
+        "editCount": { "type": "number" },
+        "likes": { "type": "number" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["roomId", "matchId", "username", "pick", "reasoning"]
+    },
+    "users": {
+      "title": "User Profile",
+      "description": "Platform registered user profiles",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "username": { "type": "string" },
+        "phone": { "type": "string" },
+        "avatarId": { "type": "string" },
+        "balance": { "type": "number" }
+      },
+      "required": ["username", "phone"]
+    },
+    "playerRatings": {
+      "title": "Player Rating & Profile",
+      "description": "Master rating profile including hidden RP, MMR, public stars, and detailed accuracy stats",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "username": { "type": "string" },
+        "rp": { "type": "number" },
+        "mmr": { "type": "number" },
+        "stars": { "type": "number" },
+        "tierName": { "type": "string" },
+        "totalJackpotsPlayed": { "type": "number" },
+        "jackpotsWon": { "type": "number" },
+        "top3Finishes": { "type": "number" },
+        "perfectSlips": { "type": "number" },
+        "accuracyPct": { "type": "number" },
+        "currentStreak": { "type": "number" },
+        "longestStreak": { "type": "number" },
+        "averageCorrectPicks": { "type": "number" },
+        "last10Accuracy": { "type": "number" },
+        "last25Accuracy": { "type": "number" },
+        "last50Accuracy": { "type": "number" },
+        "lastActiveTimestamp": { "type": "number" }
+      },
+      "required": ["userId", "username", "rp", "stars"]
+    }
+  },
+  "firestore": {
+    "/picks/{pickId}": {
+      "schema": "picks",
+      "description": "Shared user picks"
+    },
+    "/users/{userId}": {
+      "schema": "users",
+      "description": "Platform users"
+    },
+    "/playerRatings/{userId}": {
+      "schema": "playerRatings",
+      "description": "Player rating profiles"
+    }
+  }
+}

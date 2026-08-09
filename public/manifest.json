@@ -1,0 +1,67 @@
+{
+  "name": "MshindiRoom",
+  "short_name": "MshindiRoom",
+  "description": "Kenya's Premier Jackpot Consensus & P2P Betting Platform",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#06110d",
+  "theme_color": "#0f241b",
+  "categories": ["sports", "entertainment", "social"],
+  "icons": [
+    {
+      "src": "/pwa-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/pwa-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/pwa-maskable.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Jackpot Rooms",
+      "short_name": "Jackpots",
+      "description": "View live consensus jackpot rooms",
+      "url": "/?room=jackpots",
+      "icons": [{ "src": "/pwa-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Wallet & M-Pesa",
+      "short_name": "Wallet",
+      "description": "Manage funds & M-Pesa deposits",
+      "url": "/?room=wallet",
+      "icons": [{ "src": "/pwa-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "P2P Bet Slips",
+      "short_name": "BetSlips",
+      "description": "Share & challenge punter slip consensus",
+      "url": "/?room=slips",
+      "icons": [{ "src": "/pwa-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "My Profile",
+      "short_name": "Profile",
+      "description": "View stats & account preferences",
+      "url": "/?room=profile",
+      "icons": [{ "src": "/pwa-192.png", "sizes": "192x192" }]
+    }
+  ]
+}

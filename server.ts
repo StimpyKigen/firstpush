@@ -1,0 +1,599 @@
+import express, { Request, Response, NextFunction } from 'express';
+import path from 'path';
+import { createServer as createViteServer } from 'vite';
+import { GoogleGenAI } from '@google/genai';
+import { fetchSportpesaMegaMirror, fetchBetikaMidweekMirror } from './src/lib/jackpotMirrorService';
+import {
+  createAdChallenge,
+  verifyAndGrantRewardToken,
+  authorizeRoomAccess,
+  getAuditLogs,
+  getRewardedAccessRecords,
+  logAuditEvent,
+} from './src/lib/adSystem/adServerDb';
+
+// Lightweight in-memory rate limiter for high concurrency protection
+interface RateLimitBucket {
+  count: number;
+  resetTime: number;
+}
+
+function createRateLimiter(windowMs: number, maxRequests: number) {
+  const hits = new Map<string, RateLimitBucket>();
+
+  // Cleanup expired buckets every 5 minutes to prevent memory leaks
+  setInterval(() => {
+    const now = Date.now();
+    for (const [ip, bucket] of hits.entries()) {
+      if (now > bucket.resetTime) {
+        hits.delete(ip);
+      }
+    }
+  }, 300_000);
+
+  return (req: Request, res: Response, next: NextFunction) => {
+    const ip = (req.headers['x-forwarded-for'] as string) || req.socket.remoteAddress || 'unknown';
+    const now = Date.now();
+    let bucket = hits.get(ip);
+
+    if (!bucket || now > bucket.resetTime) {
+      bucket = { count: 1, resetTime: now + windowMs };
+      hits.set(ip, bucket);
+      return next();
+    }
+
+    bucket.count += 1;
+    if (bucket.count > maxRequests) {
+      return res.status(429).json({
+        error: 'Too many requests. Please wait a moment before trying again.',
+        retryAfterMs: bucket.resetTime - now,
+      });
+    }
+
+    next();
+  };
+}
+
+async function startServer() {
+  const app = express();
+  const PORT = 3000;
+
+  // Security Headers Middleware
+  app.use((req, res, next) => {
+    res.setHeader('X-Content-Type-Options', 'nosniff');
+    res.setHeader('X-Frame-Options', 'SAMEORIGIN');
+    res.setHeader('X-XSS-Protection', '1; mode=block');
+    res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+    res.setHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
+    next();
+  });
+
+  // Json body parser with strict limit
+  app.use(express.json({ limit: '1mb' }));
+
+  // Rate Limiting Rules
+  const generalApiLimiter = createRateLimiter(60_000, 120); // 120 reqs / min
+  const geminiAiLimiter = createRateLimiter(60_000, 20);    // 20 AI reqs / min
+  const adSecurityLimiter = createRateLimiter(60_000, 30);  // 30 reqs / min for ad security endpoints
+
+  app.use('/api/', generalApiLimiter);
+  app.use('/api/gemini/', geminiAiLimiter);
+  app.use('/api/rewarded-ads/', adSecurityLimiter);
+
+  // Health check API
+  app.get('/api/health', (req, res) => {
+    res.json({ status: 'ok', name: 'Mshindi Projo Backend', timestamp: new Date().toISOString() });
+  });
+
+  // =========================================================================
+  // SECURE REWARDED AD ACCESS SYSTEM API ENDPOINTS
+  // =========================================================================
+
+  /**
+   * 1. Request an Ad Challenge (Single-Use Nonce & Session)
+   */
+  app.post('/api/rewarded-ads/challenge', (req: Request, res: Response) => {
+    try {
+      const { userId, roomId, adProvider } = req.body || {};
+      const clientIp = (req.headers['x-forwarded-for'] as string) || req.socket.remoteAddress || 'unknown_ip';
+      const userAgent = req.headers['user-agent'] || 'unknown_agent';
+
+      if (!userId || !roomId) {
+        return res.status(400).json({ error: 'User ID and Room ID are required parameters.' });
+      }
+
+      const result = createAdChallenge(userId, roomId, adProvider || 'google_admob', clientIp, userAgent);
+      if (!result.success) {
+        return res.status(429).json({ error: result.error });
+      }
+
+      return res.json({
+        success: true,
+        challengeId: result.challengeId,
+        nonce: result.nonce,
+        signature: result.signature,
+        minWatchDurationSeconds: result.minWatchDurationSeconds,
+        timestamp: Date.now(),
+      });
+    } catch (err: any) {
+      console.error('Ad Challenge Error:', err);
+      return res.status(500).json({ error: 'Internal server error while initializing ad challenge.' });
+    }
+  });
+
+  /**
+   * 2. Verify Completed Rewarded Ad & Grant 15-Minute Access Token
+   */
+  app.post('/api/rewarded-ads/verify', (req: Request, res: Response) => {
+    try {
+      const { userId, roomId, challengeId, watchDurationSeconds, adProvider, clientSignature } = req.body || {};
+      const clientIp = (req.headers['x-forwarded-for'] as string) || req.socket.remoteAddress || 'unknown_ip';
+      const userAgent = req.headers['user-agent'] || 'unknown_agent';
+
+      if (!userId || !roomId || !challengeId) {
+        return res.status(400).json({ error: 'Missing required validation fields: userId, roomId, challengeId.' });
+      }
+
+      const result = verifyAndGrantRewardToken(
+        userId,
+        roomId,
+        challengeId,
+        Number(watchDurationSeconds) || 0,
+        adProvider || 'google_admob',
+        clientSignature,
+        clientIp,
+        userAgent
+      );
+
+      if (!result.success) {
+        return res.status(400).json({
+          success: false,
+          error: result.error,
+          code: result.code,
+        });
+      }
+
+      return res.json({
+        success: true,
+        token: result.token,
+        tokenPayload: result.tokenPayload,
+        message: 'Reward verified successfully. 15-minute access token granted.',
+      });
+    } catch (err: any) {
+      console.error('Ad Verify Error:', err);
+      return res.status(500).json({ error: 'Internal server error during ad reward verification.' });
+    }
+  });
+
+  /**
+   * 3. Authorization Middleware Endpoint for Premium Room Access
+   */
+  app.post('/api/rewarded-ads/verify-room-access', (req: Request, res: Response) => {
+    try {
+      const { userId, roomId, token, isPremiumSubscriber } = req.body || {};
+      const clientIp = (req.headers['x-forwarded-for'] as string) || req.socket.remoteAddress || 'unknown_ip';
+
+      if (!userId || !roomId) {
+        return res.status(400).json({ error: 'User ID and Room ID are required for room access check.' });
+      }
+
+      const result = authorizeRoomAccess(userId, roomId, token, Boolean(isPremiumSubscriber), clientIp);
+
+      if (!result.allowed) {
+        return res.status(403).json({
+          allowed: false,
+          reason: result.reason,
+          error: result.error,
+        });
+      }
+
+      return res.json({
+        allowed: true,
+        reason: result.reason,
+        expiresAt: result.expiresAt,
+        remainingSeconds: result.remainingSeconds,
+      });
+    } catch (err: any) {
+      console.error('Room Access Check Error:', err);
+      return res.status(500).json({ error: 'Internal server error validating room access authorization.' });
+    }
+  });
+
+  /**
+   * 4. Server-Side Verification Callback (Google AdMob / Unity SSV Webhook)
+   */
+  app.get('/api/rewarded-ads/ssv-callback', (req: Request, res: Response) => {
+    try {
+      const { ad_network, user_id, custom_data, key_id, signature } = req.query || {};
+      const clientIp = (req.headers['x-forwarded-for'] as string) || req.socket.remoteAddress || 'unknown_ip';
+
+      logAuditEvent(
+        'REWARD_VERIFIED',
+        String(user_id || 'unknown'),
+        'ssv_callback',
+        `SSV Callback received from ${ad_network || 'Google AdMob'}`,
+        clientIp,
+        { query: req.query }
+      );
+
+      return res.status(200).send('OK');
+    } catch (err: any) {
+      return res.status(500).send('SSV Error');
+    }
+  });
+
+  /**
+   * 5. Audit Logs for Fraud Investigation
+   */
+  app.get('/api/rewarded-ads/audit-logs', (req: Request, res: Response) => {
+    try {
+      const userId = req.query.userId as string;
+      const logs = getAuditLogs(userId);
+      return res.json({ success: true, count: logs.length, logs });
+    } catch (err: any) {
+      return res.status(500).json({ error: 'Failed to retrieve audit logs.' });
+    }
+  });
+
+  /**
+   * 6. Rewarded Access Records Database Query
+   */
+  app.get('/api/rewarded-ads/records', (req: Request, res: Response) => {
+    try {
+      const userId = req.query.userId as string;
+      const records = getRewardedAccessRecords(userId);
+      return res.json({ success: true, count: records.length, records });
+    } catch (err: any) {
+      return res.status(500).json({ error: 'Failed to retrieve access records.' });
+    }
+  });
+
+  // Live Mirrored Jackpot API
+  app.get('/api/jackpots/mirror', async (req, res) => {
+    try {
+      const [sportpesaMega, betikaMidweek] = await Promise.all([
+        fetchSportpesaMegaMirror(),
+        fetchBetikaMidweekMirror(),
+      ]);
+
+      res.json({
+        success: true,
+        timestamp: new Date().toISOString(),
+        jackpots: {
+          sportpesaMega,
+          betikaMidweek,
+        },
+      });
+    } catch (err: any) {
+      console.error('Jackpot Mirror API Error:', err);
+      res.status(500).json({ error: err?.message || 'Failed to fetch mirrored jackpot data' });
+    }
+  });
+
+  // Gemini AI Ava 24/7 Support Specialist API
+  app.post('/api/gemini/support-chat', async (req, res) => {
+    try {
+      const apiKey = process.env.GEMINI_API_KEY;
+      if (!apiKey) {
+        return res.status(400).json({
+          error: 'GEMINI_API_KEY is missing. Please set it in secrets.'
+        });
+      }
+
+      const { message, history } = req.body;
+      if (!message || typeof message !== 'string' || !message.trim()) {
+        return res.status(400).json({ error: 'Message text is required.' });
+      }
+
+      const ai = new GoogleGenAI({
+        apiKey,
+        httpOptions: {
+          headers: {
+            'User-Agent': 'aistudio-build',
+          },
+        },
+      });
+
+      const systemInstruction = `You are Ava, the friendly, smart, and ultra-helpful 24/7 AI Customer Support Specialist & Site Guide for MshindiRoom (Kenya's #1 Bet Slip Consensus & Punter Wager Platform).
+
+Key Platform Details about MshindiRoom:
+- What is MshindiRoom?: Kenya's premier punter community where sports fans analyze football bet slips, form consensus on 17-leg jackpots (SportPesa Mega Jackpot, Betika Midweek, MozzartBet 16, Odibets, etc.), play P2P wagers, build custom bet slips, rate punters, and view live gameweek leaderboards.
+- Bookie Relationship: MshindiRoom is an analytical consensus community, NOT a licensed gambling operator. Punters place real bets directly on their bookies (SportPesa, Betika, etc.). MshindiRoom helps punters compare picks and pool knowledge.
+- Jackpot Consensus Rooms vs Bet Builder (Key Differences):
+  1. **Jackpot Rooms**: Fixed 13-17 match pools provided by bookmakers (SportPesa Mega Jackpot, Betika Midweek, MozzartBet, etc.) where all punters analyze the same fixed match list. Unlocking a room (flat rate of KSh 10 via M-Pesa or ad token) reveals live community consensus percentages across all legs, 17-leg slip generators, verified punter chat, and qualifies your submitted slip for the Gameweek Leaderboard crown and Rating Points (RP).
+  2. **Bet Builder**: A 100% FREE interactive custom accumulator tool. Instead of pre-set jackpot pools, you select individual daily matches, pick your outcomes (1X2, Over/Under 2.5, Both Teams To Score, Double Chance), aggregate odds in real-time, generate copyable bookie slip codes (SportPesa, Betika, Mozzart, 22Bet, Odibets), or share your custom multi-leg slip in the community slip feed.
+- Gameweek Leaderboard & Crown: The eligible punter whose slip comes closest to the official winning jackpot outcome takes the #1 Leaderboard Crown! Equal scores are tied and settled by earliest slip submission time.
+- 5-Star Punter Rating: Ratings range from 1.0 to 5.0 stars in half-star steps. They increase as slip accuracy improves over time and gain a bonus when crowned #1 in a jackpot.
+- P2P Bets: Custom 1v1 wagers where punters challenge friends or community members on specific matches using M-Pesa escrow or room tokens.
+- M-Pesa Deposits & Withdrawals: Automated M-Pesa Express (STK Push) for instant wallet top-ups, room unlocks, and withdrawals.
+- Mobile PWA App: Users can install MshindiRoom to their home screen on Android or iPhone from the Profile page or footer for full offline access and consensus push alerts.
+- Support Email: support@mshindiroom.co.ke
+
+Strict Rules for Ava:
+- STRICT UNLOCK FEE: The flat fee rate for Jackpot Rooms is strictly **KSh 10** for every punter. Bet Builder is **100% FREE** to use. NEVER mention KSh 20, KSh 50, or any other price.
+- CLEAR FEATURE COMPARISON: When asked about Bet Builder or Jackpot Rooms, clearly explain that Jackpot Rooms are fixed bookmaker pools (SportPesa, Betika) for the Leaderboard Crown (KSh 10 unlock), whereas Bet Builder is a free custom multi-match accumulator tool for daily fixtures.
+- STRICT FACTUAL RESTRAINT: When explaining jackpot analysis, consensus data, or prizes, NEVER add foreign or external information, fake bookmaker bonuses, or unverified claims. Stick strictly to MshindiRoom's platform rules and features.
+- Respond in a warm, polite, encouraging Kenyan customer support style.
+- Use clear bullet points or bold formatting for step-by-step instructions.
+- Keep answers concise, clear, and direct (max 2-3 short paragraphs).
+- Always end with a helpful invitation for follow-up questions if needed.`;
+
+      // Construct conversation context if history is supplied
+      let formattedContents: any = message.trim();
+      if (Array.isArray(history) && history.length > 0) {
+        const recentHistory = history.slice(-6).map((item: any) => ({
+          role: item.sender === 'user' ? 'user' : 'model',
+          parts: [{ text: item.text }]
+        }));
+        recentHistory.push({
+          role: 'user',
+          parts: [{ text: message.trim() }]
+        });
+        formattedContents = recentHistory;
+      }
+
+      const response = await ai.models.generateContent({
+        model: 'gemini-3.6-flash',
+        contents: formattedContents,
+        config: {
+          systemInstruction,
+          temperature: 0.6,
+        },
+      });
+
+      res.json({
+        success: true,
+        text: response.text || "I'm Ava, your MshindiRoom support assistant! How else can I help you today?",
+      });
+    } catch (err: any) {
+      console.error('Ava Support API Error:', err);
+      res.status(500).json({ error: err?.message || 'Failed to process support message' });
+    }
+  });
+
+  // Gemini AI Mshindi Advisor API
+  app.post('/api/gemini/advisor', async (req, res) => {
+    try {
+      const apiKey = process.env.GEMINI_API_KEY;
+      if (!apiKey) {
+        return res.status(400).json({
+          error: 'GEMINI_API_KEY is missing. Please set it in secrets.'
+        });
+      }
+
+      const { prompt, mode } = req.body;
+      const ai = new GoogleGenAI({
+        apiKey,
+        httpOptions: {
+          headers: {
+            'User-Agent': 'aistudio-build',
+          },
+        },
+      });
+
+      let systemInstruction = "You are 'Mshindi AI Advisor', an expert AI sports analyst, trivia creator, and competition guide for Mshindi Projo platform in Kenya / East Africa.";
+      if (mode === 'trivia') {
+        systemInstruction += " Generate 3 exciting, multiple-choice trivia questions with 4 options and 1 correct answer index about sports, history, or general knowledge. Format clearly.";
+      } else if (mode === 'prediction') {
+        systemInstruction += " Provide insightful sports statistics, head-to-head analysis, and probable score predictions with key match highlights.";
+      }
+
+      const response = await ai.models.generateContent({
+        model: 'gemini-3.6-flash',
+        contents: prompt || 'Provide a daily sports highlight tip and trivia fact for Mshindi champions!',
+        config: {
+          systemInstruction,
+          temperature: 0.7,
+        }
+      });
+
+      res.json({
+        success: true,
+        text: response.text || 'Keep playing and winning on Mshindi Projo!'
+      });
+    } catch (err: any) {
+      console.error('Gemini API Error:', err);
+      res.status(500).json({ error: err?.message || 'Failed to generate AI response' });
+    }
+  });
+
+  // Gemini AI Jackpot Webpage Parser API (Admin Extension)
+  app.post('/api/gemini/parse-jackpot-text', async (req, res) => {
+    try {
+      const apiKey = process.env.GEMINI_API_KEY;
+      if (!apiKey) {
+        return res.status(400).json({
+          error: 'GEMINI_API_KEY is missing. Please set it in secrets.'
+        });
+      }
+
+      const { rawText, bookie, legCount } = req.body;
+      if (!rawText || !rawText.trim()) {
+        return res.status(400).json({ error: 'Raw webpage text is required for parsing.' });
+      }
+
+      const targetLegs = Number(legCount) || 15;
+      const ai = new GoogleGenAI({
+        apiKey,
+        httpOptions: {
+          headers: {
+            'User-Agent': 'aistudio-build',
+          },
+        },
+      });
+
+      const systemInstruction = `You are an expert sports betting jackpot fixture parser for Kenyan betting sites (SportPesa, Betika, MozzartBet, Odibets, Shabiki, BangBet, PariPesa, 22Bet, 1xBet, BetAfriq).
+Given raw text copied and pasted from a betting jackpot webpage, extract exactly ${targetLegs} football match fixtures sequentially in the jackpot order.
+For each fixture extract:
+- home: Home team name
+- away: Away team name
+- competition: League or country (e.g., 'English Premier League', 'Spanish LALIGA', 'Serie A', 'CAF Champions League', 'UEFA Champions League', etc.)
+- kickoff: Kickoff time formatted nicely (e.g. 'Sat 15 Aug · 17:00 EAT')
+- homePct: estimated win probability integer (20 to 75)
+- drawPct: estimated draw probability integer (20 to 40)
+- awayPct: estimated away win probability integer (20 to 75)
+
+Return valid JSON with key 'matches' containing exactly ${targetLegs} items.`;
+
+      const prompt = `Bookmaker: ${bookie || 'Kenyan Sportsbook'}\nTarget number of games/legs: ${targetLegs}\n\nRaw Webpage Content:\n${rawText.slice(0, 8000)}`;
+
+      const response = await ai.models.generateContent({
+        model: 'gemini-3.6-flash',
+        contents: prompt,
+        config: {
+          systemInstruction,
+          temperature: 0.2,
+          responseMimeType: 'application/json',
+        },
+      });
+
+      let parsed: any = { matches: [] };
+      try {
+        parsed = JSON.parse(response.text || '{}');
+      } catch {
+        console.warn('Failed to parse Gemini output as JSON directly, raw response text:', response.text);
+      }
+
+      const matches = Array.isArray(parsed?.matches) ? parsed.matches : [];
+
+      res.json({
+        success: true,
+        bookie,
+        legCount: matches.length,
+        matches,
+      });
+    } catch (err: any) {
+      console.error('Gemini Jackpot Parser Error:', err);
+      res.status(500).json({ error: err?.message || 'Failed to parse jackpot webpage text' });
+    }
+  });
+
+  // Dynamic SEO Endpoints: Robots.txt & Sitemap.xml
+  app.get('/robots.txt', (req: Request, res: Response) => {
+    res.type('text/plain');
+    res.send(`User-agent: *
+Allow: /
+Allow: /free
+Allow: /free/
+Allow: /room/
+Allow: /leaderboard
+Allow: /how-it-works
+Allow: /slips
+Allow: /privacy
+Allow: /terms
+Allow: /p2p
+
+Disallow: /wallet
+Disallow: /profile
+Disallow: /auth
+Disallow: /api/
+
+Sitemap: https://mshindi.co.ke/sitemap.xml
+`);
+  });
+
+  app.get('/sitemap.xml', (req: Request, res: Response) => {
+    res.type('application/xml');
+    const today = new Date().toISOString().split('T')[0];
+    res.send(`<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>https://mshindi.co.ke/</loc>
+    <lastmod>${today}</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>1.0</priority>
+  </url>
+  <url>
+    <loc>https://mshindi.co.ke/free</loc>
+    <lastmod>${today}</lastmod>
+    <changefreq>hourly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://mshindi.co.ke/leaderboard</loc>
+    <lastmod>${today}</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://mshindi.co.ke/how-it-works</loc>
+    <lastmod>${today}</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://mshindi.co.ke/slips</loc>
+    <lastmod>${today}</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://mshindi.co.ke/p2p</loc>
+    <lastmod>${today}</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://mshindi.co.ke/room/sportpesa-mega</loc>
+    <lastmod>${today}</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://mshindi.co.ke/room/betika-midweek</loc>
+    <lastmod>${today}</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://mshindi.co.ke/room/mozzart-daily</loc>
+    <lastmod>${today}</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://mshindi.co.ke/privacy</loc>
+    <lastmod>${today}</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.4</priority>
+  </url>
+  <url>
+    <loc>https://mshindi.co.ke/terms</loc>
+    <lastmod>${today}</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.4</priority>
+  </url>
+</urlset>`);
+  });
+
+  // Global Error Handler Middleware
+  app.use((err: any, req: Request, res: Response, next: NextFunction) => {
+    console.error('Unhandled Server Error:', err);
+    res.status(500).json({ error: 'Internal Server Error' });
+  });
+
+  // Vite development middleware vs Static Production
+  if (process.env.NODE_ENV !== 'production') {
+    const vite = await createViteServer({
+      server: { middlewareMode: true },
+      appType: 'spa',
+    });
+    app.use(vite.middlewares);
+  } else {
+    const distPath = path.join(process.cwd(), 'dist');
+    app.use(express.static(distPath, {
+      maxAge: '1y',
+      immutable: true,
+      index: false,
+    }));
+    app.get('*', (req, res) => {
+      res.sendFile(path.join(distPath, 'index.html'));
+    });
+  }
+
+  app.listen(PORT, '0.0.0.0', () => {
+    console.log(`Mshindi Projo Server running on http://0.0.0.0:${PORT}`);
+  });
+}
+
+startServer();

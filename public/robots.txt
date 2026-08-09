@@ -1,0 +1,18 @@
+User-agent: *
+Allow: /
+Allow: /free
+Allow: /free/
+Allow: /room/
+Allow: /leaderboard
+Allow: /how-it-works
+Allow: /slips
+Allow: /privacy
+Allow: /terms
+Allow: /p2p
+
+Disallow: /wallet
+Disallow: /profile
+Disallow: /auth
+Disallow: /api/
+
+Sitemap: https://mshindi.co.ke/sitemap.xml
