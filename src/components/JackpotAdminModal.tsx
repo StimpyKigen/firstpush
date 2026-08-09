@@ -6,6 +6,7 @@ import { createAdminJackpotRoom, deleteAdminJackpot, clearAllJackpots, subscribe
 import { showToast } from '../lib/notificationStore';
 import { useAuth, isAdminUser, useCurrentUser } from '../lib/authStore';
 import type { Bookie, Outcome } from '../lib/types';
+import Modal from './ui/Modal';
 
 export const KENYAN_BETTING_SITES = [
   'SportPesa',
@@ -72,11 +73,9 @@ export default function JackpotAdminModal({ isOpen, onClose }: JackpotAdminModal
   const currentUser = useCurrentUser();
   const isAuthorized = isAdminUser(currentUser);
 
-  if (!isOpen) return null;
-
   if (!isAuthorized) {
     return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in">
+      <Modal isOpen={isOpen} overlayClassName="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in">
         <div className="bg-ink border border-rose-500/40 rounded-2xl max-w-md w-full p-6 text-center space-y-4 shadow-2xl">
           <div className="w-12 h-12 rounded-full bg-rose-500/15 border border-rose-500/30 text-rose-400 flex items-center justify-center mx-auto">
             <Lock size={24} />
@@ -106,7 +105,7 @@ export default function JackpotAdminModal({ isOpen, onClose }: JackpotAdminModal
             Close Window
           </button>
         </div>
-      </div>
+      </Modal>
     );
   }
 
@@ -277,7 +276,7 @@ export default function JackpotAdminModal({ isOpen, onClose }: JackpotAdminModal
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-ink/80 backdrop-blur-md overflow-y-auto">
+    <Modal isOpen={isOpen} overlayClassName="fixed inset-0 z-50 flex items-center justify-center p-4 bg-ink/80 backdrop-blur-md overflow-y-auto">
       <div className="relative w-full max-w-4xl bg-panel border border-line rounded-2xl shadow-2xl overflow-hidden my-8 animate-rise">
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-line bg-ink-2">
@@ -820,6 +819,6 @@ export default function JackpotAdminModal({ isOpen, onClose }: JackpotAdminModal
           </div>
         )}
       </div>
-    </div>
+    </Modal>
   );
 }

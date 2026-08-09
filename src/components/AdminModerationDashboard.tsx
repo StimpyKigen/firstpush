@@ -39,6 +39,7 @@ import {
 } from '../lib/moderationStore';
 import { useReportsStore } from '../lib/reportsStore';
 import { showToast } from '../lib/notificationStore';
+import Modal from './ui/Modal';
 
 const ALL_CATEGORIES: ModerationCategory[] = [
   'English Profanity',
@@ -715,7 +716,7 @@ export default function AdminModerationDashboard() {
 
       {/* Add / Edit Entry Modal */}
       {isEditModalOpen && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4 animate-fadeIn">
+        <Modal isOpen={true} overlayClassName="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4 animate-fadeIn">
           <div className="bg-panel border border-gold/40 rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl p-6 space-y-5 animate-scaleUp">
             <div className="flex items-center justify-between border-b border-line pb-3">
               <div className="flex items-center gap-2">
@@ -843,12 +844,12 @@ export default function AdminModerationDashboard() {
               </div>
             </form>
           </div>
-        </div>
+        </Modal>
       )}
 
       {/* Import JSON Modal */}
       {isImportModalOpen && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4 animate-fadeIn">
+        <Modal isOpen={true} overlayClassName="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4 animate-fadeIn">
           <div className="bg-panel border border-gold/40 rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl p-6 space-y-4 animate-scaleUp">
             <div className="flex items-center justify-between border-b border-line pb-3">
               <div className="flex items-center gap-2">
@@ -911,7 +912,7 @@ export default function AdminModerationDashboard() {
               </button>
             </div>
           </div>
-        </div>
+        </Modal>
       )}
     </div>
   );

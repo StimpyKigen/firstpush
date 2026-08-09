@@ -15,6 +15,7 @@ import { showToast } from '../lib/notificationStore';
 import ModerationWarningBox from './ModerationWarningBox';
 import { moderateText } from '../lib/contentModeration';
 import { useAutoCollapse } from '../lib/useAutoCollapse';
+import Modal from './ui/Modal';
 
 interface BetBuilderProps {
   onPublished?: () => void;
@@ -395,7 +396,7 @@ export default function BetBuilder({ onPublished }: BetBuilderProps) {
 
       {/* PUBLISH BUILT SLIP MODAL */}
       {showPublishModal && (
-        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+        <Modal isOpen={true} overlayClassName="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
           <motion.div
             initial={{ scale: 0.95, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
@@ -541,7 +542,7 @@ export default function BetBuilder({ onPublished }: BetBuilderProps) {
               </button>
             </div>
           </motion.div>
-        </div>
+        </Modal>
       )}
     </div>
   );

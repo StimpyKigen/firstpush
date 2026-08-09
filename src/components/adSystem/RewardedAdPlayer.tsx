@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Volume2, VolumeX, X, ExternalLink, CheckCircle2, ShieldCheck, Play, Pause, AlertTriangle } from 'lucide-react';
 import { AdMedia } from '../../lib/adSystem/types';
+import Modal from '../ui/Modal';
 
 interface RewardedAdPlayerProps {
   adMedia: AdMedia;
@@ -60,7 +61,7 @@ export default function RewardedAdPlayer({ adMedia, onComplete, onSkipped }: Rew
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/95 backdrop-blur-xl animate-fade-in">
+    <Modal isOpen={true} overlayClassName="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/95 backdrop-blur-xl animate-fade-in">
       <div className="relative w-full max-w-2xl bg-ink border border-gold/40 rounded-3xl overflow-hidden shadow-2xl flex flex-col">
         {/* Top Header Bar */}
         <div className="flex items-center justify-between px-5 py-3 bg-panel/80 border-b border-line text-xs">
@@ -227,6 +228,6 @@ export default function RewardedAdPlayer({ adMedia, onComplete, onSkipped }: Rew
           </div>
         )}
       </div>
-    </div>
+    </Modal>
   );
 }

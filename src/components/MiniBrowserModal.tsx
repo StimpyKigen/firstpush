@@ -3,6 +3,7 @@ import {
   X, ExternalLink, RefreshCw, Lock, Copy, Check, AlertCircle,
 } from 'lucide-react';
 import { motion } from 'motion/react';
+import Modal from './ui/Modal';
 
 interface MiniBrowserModalProps {
   url: string;
@@ -32,10 +33,12 @@ export default function MiniBrowserModal({
   }
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-2 sm:p-4 animate-fade-in">
-      {/* Backdrop click to close */}
-      <div className="absolute inset-0" onClick={onClose} />
-
+    <Modal
+      isOpen={true}
+      onClose={onClose}
+      closeOnOverlayClick={true}
+      overlayClassName="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-2 sm:p-4 animate-fade-in"
+    >
       <motion.div
         initial={{ opacity: 0, scale: 0.96, y: 10 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -134,6 +137,6 @@ export default function MiniBrowserModal({
           </div>
         </div>
       </motion.div>
-    </div>
+    </Modal>
   );
 }

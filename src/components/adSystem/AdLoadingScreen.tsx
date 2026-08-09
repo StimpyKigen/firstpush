@@ -1,4 +1,5 @@
 import { Loader2, Sparkles, Tv } from 'lucide-react';
+import Modal from '../ui/Modal';
 
 interface AdLoadingScreenProps {
   sponsorName?: string;
@@ -7,7 +8,7 @@ interface AdLoadingScreenProps {
 
 export default function AdLoadingScreen({ sponsorName = 'Ad Network Partner', onCancel }: AdLoadingScreenProps) {
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-ink/90 backdrop-blur-md animate-fade-in">
+    <Modal isOpen={true} overlayClassName="fixed inset-0 z-50 flex items-center justify-center p-4 bg-ink/90 backdrop-blur-md animate-fade-in">
       <div className="bg-panel border border-line rounded-2xl max-w-sm w-full p-6 text-center space-y-4 shadow-2xl relative overflow-hidden">
         <div className="absolute -top-10 -right-10 w-32 h-32 bg-gold/10 rounded-full blur-2xl pointer-events-none" />
 
@@ -43,6 +44,6 @@ export default function AdLoadingScreen({ sponsorName = 'Ad Network Partner', on
           </button>
         )}
       </div>
-    </div>
+    </Modal>
   );
 }

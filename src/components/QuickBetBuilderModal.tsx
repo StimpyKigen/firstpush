@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { useBetSlipStore, type BuiltSlipLeg } from '../lib/betSlipStore';
 import { generateOddsForFixture, type BuilderFixture } from '../lib/builderFixtures';
 import { showToast } from '../lib/notificationStore';
+import Modal from './ui/Modal';
 
 export interface MatchForBuilder {
   id: string;
@@ -98,7 +99,7 @@ export default function QuickBetBuilderModal({
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-2.5 sm:p-4 bg-black/80 backdrop-blur-sm overflow-y-auto">
+      <Modal isOpen={true} overlayClassName="fixed inset-0 z-50 flex items-center justify-center p-2.5 sm:p-4 bg-black/80 backdrop-blur-sm overflow-y-auto">
         <motion.div
           initial={{ opacity: 0, scale: 0.95, y: 10 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -276,7 +277,7 @@ export default function QuickBetBuilderModal({
             </div>
           </div>
         </motion.div>
-      </div>
+      </Modal>
     </AnimatePresence>
   );
 }

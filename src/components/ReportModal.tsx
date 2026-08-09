@@ -4,6 +4,7 @@ import { Flag, X, ShieldAlert, CheckCircle2, AlertTriangle } from 'lucide-react'
 import { useReportsStore } from '../lib/reportsStore';
 import { useAuth, useCurrentUser } from '../lib/authStore';
 import { showToast } from '../lib/notificationStore';
+import Modal from './ui/Modal';
 
 interface ReportModalProps {
   isOpen: boolean;
@@ -35,8 +36,6 @@ export default function ReportModal({
   const [description, setDescription] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
-
-  if (!isOpen) return null;
 
   const handleModalClose = () => {
     setDescription('');
@@ -94,7 +93,7 @@ export default function ReportModal({
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-ink/80 backdrop-blur-sm">
+      <Modal isOpen={isOpen} overlayClassName="fixed inset-0 z-50 flex items-center justify-center p-4 bg-ink/80 backdrop-blur-sm">
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -211,7 +210,7 @@ export default function ReportModal({
             </form>
           )}
         </motion.div>
-      </div>
+      </Modal>
     </AnimatePresence>
   );
 }

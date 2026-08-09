@@ -10,6 +10,7 @@ import ReportModal from './ReportModal';
 import { useBetSlipStore, type BetSlipPost } from '../lib/betSlipStore';
 import { useCurrentUser } from '../lib/authStore';
 import { showToast } from '../lib/notificationStore';
+import Modal from './ui/Modal';
 
 interface BetSlipCardProps {
   key?: any;
@@ -352,7 +353,7 @@ export default function BetSlipCard({ post, index, onOpenProfile }: BetSlipCardP
 
       {/* Attach Booking Details Modal */}
       {showAttachModal && (
-        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
+        <Modal isOpen={true} overlayClassName="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
           <motion.div
             initial={{ scale: 0.95, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
@@ -436,7 +437,7 @@ export default function BetSlipCard({ post, index, onOpenProfile }: BetSlipCardP
               </button>
             </div>
           </motion.div>
-        </div>
+        </Modal>
       )}
 
       <AnimatePresence>

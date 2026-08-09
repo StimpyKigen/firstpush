@@ -3,6 +3,7 @@ import { Tv, Settings, BarChart3, ShieldCheck, Check, Save, RotateCcw, X, Layers
 import { adStore, DEFAULT_AD_CONFIG, useAdStore } from '../../lib/adSystem/adStore';
 import { AdProviderId } from '../../lib/adSystem/types';
 import { showToast } from '../../lib/notificationStore';
+import Modal from '../ui/Modal';
 
 interface AdminAdSettingsModalProps {
   isOpen: boolean;
@@ -24,8 +25,6 @@ export default function AdminAdSettingsModal({ isOpen, onClose }: AdminAdSetting
   const [tokenDurationMinutes, setTokenDurationMinutes] = useState(config.tokenDurationMinutes);
   const [fallbackProvider, setFallbackProvider] = useState<AdProviderId>(config.fallbackProvider);
   const [houseAdPriority, setHouseAdPriority] = useState(config.houseAdPriority);
-
-  if (!isOpen) return null;
 
   function handleSaveSettings() {
     adStore.updateConfig({
@@ -67,7 +66,7 @@ export default function AdminAdSettingsModal({ isOpen, onClose }: AdminAdSetting
   const completionRate = analytics.served > 0 ? Math.round((analytics.completed / analytics.served) * 100) : 100;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-ink/80 backdrop-blur-md overflow-y-auto">
+    <Modal isOpen={isOpen} overlayClassName="fixed inset-0 z-50 flex items-center justify-center p-4 bg-ink/80 backdrop-blur-md overflow-y-auto">
       <div className="relative w-full max-w-3xl bg-panel border border-line rounded-2xl shadow-2xl overflow-hidden my-8 animate-rise">
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-line bg-ink-2">
@@ -359,6 +358,6 @@ export default function AdminAdSettingsModal({ isOpen, onClose }: AdminAdSetting
           )}
         </div>
       </div>
-    </div>
+    </Modal>
   );
 }

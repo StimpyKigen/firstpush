@@ -3,6 +3,7 @@ import { X, UserPlus, Copy, Check, MessageCircle, Sparkles, Send, Coins, Users }
 import { useCurrentUser } from '../lib/authStore';
 import { useWallet } from '../lib/store';
 import { showToast } from '../lib/notificationStore';
+import Modal from './ui/Modal';
 
 interface InviteModalProps {
   isOpen: boolean;
@@ -14,8 +15,6 @@ export default function InviteModal({ isOpen, onClose }: InviteModalProps) {
   const mshindiTokens = useWallet((s) => s.mshindiTokens);
   const totalReferrals = useWallet((s) => s.totalReferrals);
   const [copied, setCopied] = useState(false);
-
-  if (!isOpen) return null;
 
   const inviterName = currentUser?.username || 'Punter';
   const inviteUrl = `${window.location.origin}/auth?ref=${encodeURIComponent(inviterName)}`;
@@ -38,7 +37,7 @@ export default function InviteModal({ isOpen, onClose }: InviteModalProps) {
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in">
+    <Modal isOpen={isOpen} overlayClassName="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in">
       <div className="bg-ink border border-gold/40 rounded-2xl max-w-md w-full p-6 space-y-5 shadow-2xl relative">
         <button
           onClick={onClose}
@@ -115,6 +114,6 @@ export default function InviteModal({ isOpen, onClose }: InviteModalProps) {
           <span>Tokens are credited automatically to your Mshindi Tokens balance as soon as your referral signs up.</span>
         </div>
       </div>
-    </div>
+    </Modal>
   );
 }
