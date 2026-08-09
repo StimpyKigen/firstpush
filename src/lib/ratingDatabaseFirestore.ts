@@ -3,7 +3,7 @@
  */
 
 import { doc, getDoc, setDoc } from 'firebase/firestore';
-import { db } from './firebase';
+import { db } from '../firebase';
 import {
   PlayerRatingProfile,
   JackpotSettlementUserSubmission,
