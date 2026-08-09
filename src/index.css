@@ -184,13 +184,13 @@ select,
   --color-panel: #ffffff;      /* Pure white main card/panel surface */
   --color-panel-2: #f3edd8;    /* Muted warm off-white surface for active/interactive sub-panels & hover states */
   --color-line: #e2d7be;       /* Refined crisp border color with paper tactile contrast */
-  --color-gold: #9e6600;       /* High-contrast warm golden amber for text & icons */
-  --color-gold-2: #7c4f00;     /* Deeper golden amber for text hover & active emphasis */
-  --color-emerald: #087042;    /* WCAG AA compliant deep sports green for text & icons */
-  --color-emerald-2: #055431;  /* Deep rich green for text hover & success emphasis */
+  --color-gold: #a16800;       /* Vibrant warm golden amber for text & icons - brightened as far as WCAG AA (4.5:1) allows on white/parchment */
+  --color-gold-2: #8a5700;     /* Deeper golden amber for text hover & active emphasis */
+  --color-emerald: #007f50;    /* Vibrant sports green for text & icons - has more contrast headroom than gold, brightened further */
+  --color-emerald-2: #006b48;  /* Deep rich green for text hover & success emphasis */
   --color-cream: #0c1812;      /* High-contrast deep dark forest primary text */
   --color-cream-dim: #3a4c41;  /* Rich readable secondary text */
-  --color-danger: #b91c1c;     /* Deep crimson red for errors & warnings */
+  --color-danger: #cc1f1f;     /* Vibrant crimson red for errors & warnings */
 
   /* Elevation & Ambient Soft Shadow Tokens for Light Mode */
   --shadow-sm: 0 1px 3px rgba(12, 24, 18, 0.05), 0 1px 2px rgba(12, 24, 18, 0.03);
@@ -203,8 +203,8 @@ select,
   color: var(--color-cream);
   background-color: var(--color-ink);
   background-image:
-    radial-gradient(ellipse 80% 60% at 15% -10%, rgba(8, 112, 66, 0.06), transparent),
-    radial-gradient(ellipse 60% 50% at 100% 0%, rgba(158, 102, 0, 0.05), transparent),
+    radial-gradient(ellipse 80% 60% at 15% -10%, rgba(0, 168, 120, 0.07), transparent),
+    radial-gradient(ellipse 60% 50% at 100% 0%, rgba(245, 184, 0, 0.06), transparent),
     repeating-linear-gradient(135deg, rgba(12, 24, 18, 0.012) 0px, rgba(12, 24, 18, 0.012) 1px, transparent 1px, transparent 26px);
 }
 
@@ -225,7 +225,7 @@ select,
 .light input:focus,
 .light textarea:focus,
 .light select:focus {
-  border-color: #9e6600 !important;
+  border-color: #a16800 !important;
   outline: none !important;
 }
 
@@ -246,45 +246,47 @@ select,
   box-shadow: 0 2px 10px rgba(12, 24, 18, 0.04);
 }
 
-/* Primary Brand CTAs retain vibrant pop in both themes */
+/* Primary Brand CTAs: identical vibrancy to dark mode. Safe to match exactly
+   here because contrast is measured against the dark ink text placed ON TOP
+   of these buttons, not against the page background - no visibility risk. */
 .light .bg-gold {
-  background-color: #f2b705 !important;
+  background-color: #f5b800 !important;
   color: #0c1812 !important;
 }
 
 .light .bg-gold:hover {
-  background-color: #e0a700 !important;
+  background-color: #ffcc2e !important;
   color: #0c1812 !important;
 }
 
 .light .bg-emerald {
-  background-color: #1fae6f !important;
+  background-color: #00a878 !important;
   color: #0c1812 !important;
 }
 
 .light .bg-emerald:hover {
-  background-color: #18985f !important;
+  background-color: #1dd39a !important;
   color: #0c1812 !important;
 }
 
 /* Light mode high-contrast text overrides for fixed neon utility classes */
 .light .text-emerald-2 {
-  color: #087042 !important;
+  color: #007f50 !important;
 }
 
 .light .text-emerald-300,
 .light .text-emerald-400 {
-  color: #055431 !important;
+  color: #006b48 !important;
 }
 
 .light .text-amber-300,
 .light .text-amber-400 {
-  color: #8e5b00 !important;
+  color: #9a6400 !important;
 }
 
 .light .text-rose-400,
 .light .text-rose-300 {
-  color: #b91c1c !important;
+  color: #a81e1e !important;
 }
 
 .light .text-cream {
@@ -295,12 +297,15 @@ select,
   color: #3a4c41 !important;
 }
 
-/* Badges, Chips & Semi-transparent Status Tints */
+/* Badges, Chips & Semi-transparent Status Tints. Backgrounds use the vibrant
+   dark-mode base colors (low opacity keeps them a subtle tint regardless);
+   text stays on the WCAG-safe tokens above since that's what actually needs
+   to stay readable. */
 .light .bg-gold\/20,
 .light .bg-gold\/10,
 .light .bg-gold\/15 {
-  background-color: rgba(158, 102, 0, 0.12) !important;
-  color: #7c4f00 !important;
+  background-color: rgba(245, 184, 0, 0.14) !important;
+  color: #8a5700 !important;
 }
 
 .light .bg-emerald\/20,
@@ -309,8 +314,8 @@ select,
 .light .bg-emerald-500\/10,
 .light .bg-emerald-500\/20,
 .light .bg-emerald-950\/20 {
-  background-color: rgba(8, 112, 66, 0.12) !important;
-  color: #055431 !important;
+  background-color: rgba(0, 168, 120, 0.14) !important;
+  color: #006b48 !important;
 }
 
 .light .bg-rose-500\/10,
@@ -318,15 +323,15 @@ select,
 .light .bg-rose-500\/15,
 .light .bg-rose-950\/20,
 .light .bg-rose-950\/10 {
-  background-color: rgba(185, 28, 28, 0.10) !important;
-  color: #991b1b !important;
+  background-color: rgba(204, 31, 31, 0.12) !important;
+  color: #a81e1e !important;
 }
 
 .light .bg-amber-500\/10,
 .light .bg-amber-500\/20,
 .light .bg-amber-500\/15 {
-  background-color: rgba(158, 102, 0, 0.12) !important;
-  color: #7c4f00 !important;
+  background-color: rgba(245, 184, 0, 0.14) !important;
+  color: #8a5700 !important;
 }
 
 /* Modal Backdrops & Overlays */
@@ -338,7 +343,7 @@ select,
 }
 
 .light ::selection {
-  background: #f2b705;
+  background: #f5b800;
   color: #0c1812;
 }
 
