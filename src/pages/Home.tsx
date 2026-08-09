@@ -76,7 +76,7 @@ export default function Home() {
         </div>
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 pt-16 pb-14 sm:pt-24 sm:pb-20">
           <div className="max-w-2xl animate-rise">
-            <span className="inline-flex items-center gap-1.5 bg-panel border border-gold/30 text-gold text-xs font-bold px-3 py-1.5 rounded-full mb-5">
+            <span className="inline-flex items-center gap-1.5 bg-ink/70 backdrop-blur-sm border border-gold/25 text-gold text-xs font-semibold tracking-wide px-3.5 py-1.5 rounded-full mb-5">
               <Sparkles size={13} /> Jackpots are paid · Weekly matches are free
             </span>
             <h1 className="font-display font-extrabold text-3xl xs:text-4xl sm:text-5xl md:text-6xl leading-[1.08] sm:leading-[1.05] text-cream">
@@ -91,10 +91,10 @@ export default function Home() {
               <a href="#rooms" className="inline-flex items-center justify-center h-12 px-6 rounded-full bg-gold hover:bg-gold-2 text-ink font-bold text-sm text-center transition-colors whitespace-nowrap">
                 Browse Jackpot Rooms
               </a>
-              <Link to="/free" className="inline-flex items-center justify-center gap-2 h-12 px-6 rounded-full text-cream font-semibold text-sm border border-emerald-2/40 hover:border-emerald-2 transition-colors whitespace-nowrap">
+              <Link to="/free" className="inline-flex items-center justify-center gap-2 h-12 px-6 rounded-full bg-emerald-2/10 text-cream font-semibold text-sm border border-emerald-2/30 hover:border-emerald-2/60 hover:bg-emerald-2/15 transition-colors whitespace-nowrap">
                 <Unlock size={16} className="text-emerald-2" /> Free Matches
               </Link>
-              <Link to="/slips" className="inline-flex items-center justify-center gap-2 h-12 px-6 rounded-full text-cream font-semibold text-sm border border-gold/30 hover:border-gold transition-colors whitespace-nowrap">
+              <Link to="/slips" className="inline-flex items-center justify-center gap-2 h-12 px-6 rounded-full bg-gold/10 text-cream font-semibold text-sm border border-gold/25 hover:border-gold/50 hover:bg-gold/15 transition-colors whitespace-nowrap">
                 <Search size={16} className="text-gold" /> Parse Slip
               </Link>
             </div>

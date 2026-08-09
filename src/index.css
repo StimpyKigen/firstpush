@@ -7,18 +7,25 @@
   --font-body: "Manrope", sans-serif;
   --font-mono: "JetBrains Mono", monospace;
 
-  --color-ink: #06110d;
-  --color-ink-2: #0b1c15;
-  --color-panel: #0f241b;
-  --color-panel-2: #14301f;
+  --color-ink: #050f0b;
+  --color-ink-2: #0a1a14;
+  --color-panel: #0e2118;
+  --color-panel-2: #132c1e;
   --color-line: #1f4331;
-  --color-gold: #f2b705;
-  --color-gold-2: #ffd23f;
-  --color-emerald: #1fae6f;
-  --color-emerald-2: #29d38f;
-  --color-cream: #f4ecd8;
-  --color-cream-dim: #cdbf9e;
+  --color-gold: #f5b800;
+  --color-gold-2: #ffcc2e;
+  --color-emerald: #00a878;
+  --color-emerald-2: #1dd39a;
+  --color-cream: #f4f0e6;
+  --color-cream-dim: #c9c0a8;
   --color-danger: #ef5b5b;
+
+  /* Elevation tokens: dark surfaces need grounded, low-alpha black shadows
+     rather than colored glow to read as "premium" instead of "gaming". */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.30), 0 1px 1px rgba(0, 0, 0, 0.20);
+  --shadow-md: 0 6px 16px -4px rgba(0, 0, 0, 0.40), 0 2px 6px -2px rgba(0, 0, 0, 0.28);
+  --shadow-lg: 0 16px 32px -8px rgba(0, 0, 0, 0.50), 0 6px 12px -6px rgba(0, 0, 0, 0.32);
+  --shadow-gold: 0 8px 20px -6px rgba(245, 184, 0, 0.28), 0 2px 8px -2px rgba(245, 184, 0, 0.16);
 }
 
 html {
@@ -34,8 +41,8 @@ body {
   color: var(--color-cream);
   font-family: var(--font-body);
   background-image:
-    radial-gradient(ellipse 80% 60% at 15% -10%, rgba(31, 174, 111, 0.16), transparent),
-    radial-gradient(ellipse 60% 50% at 100% 0%, rgba(242, 183, 5, 0.10), transparent),
+    radial-gradient(ellipse 80% 55% at 18% -12%, rgba(0, 168, 120, 0.14), transparent),
+    radial-gradient(ellipse 55% 45% at 100% 0%, rgba(245, 184, 0, 0.09), transparent),
     repeating-linear-gradient(135deg, rgba(255,255,255,0.012) 0px, rgba(255,255,255,0.012) 1px, transparent 1px, transparent 26px);
   transition: background-color 0.25s ease, color 0.25s ease;
   overscroll-behavior-y: none;
@@ -89,6 +96,77 @@ select,
 }
 ::-webkit-scrollbar-thumb:hover {
   background: var(--color-emerald);
+}
+
+/* ---------------------------------------------------------------------- */
+/* PREMIUM POLISH: global micro-interactions & elevation                   */
+/* Token-level so every existing button/card picks it up automatically -   */
+/* no per-component markup changes needed.                                 */
+/* ---------------------------------------------------------------------- */
+
+/* Wrapped in Tailwind's own "components" layer (declared by `@import
+   "tailwindcss"` above) so these act as sensible DEFAULTS only: any element
+   that already carries an explicit Tailwind utility (shadow-xl, transition-
+   colors, etc. - all in the "utilities" layer) keeps winning the cascade,
+   regardless of selector order/specificity. Without this, e.g. a plain
+   `.bg-panel { box-shadow }` rule here would silently clobber every
+   component's own `shadow-xl`/`shadow-2xl` utility classes. */
+@layer components {
+  /* Restrained, consistent press/hover feel across every interactive element */
+  button, a, [role="button"] {
+    transition: transform 180ms cubic-bezier(0.16, 1, 0.3, 1),
+                filter 180ms ease,
+                box-shadow 180ms ease,
+                background-color 180ms ease,
+                border-color 180ms ease,
+                color 180ms ease;
+  }
+  button:active, [role="button"]:active {
+    transform: translateY(1px) scale(0.985);
+  }
+  @media (hover: hover) {
+    button:not(:disabled):hover, [role="button"]:not(:disabled):hover {
+      filter: brightness(1.04);
+    }
+  }
+  button:disabled, [role="button"][aria-disabled="true"] {
+    transform: none !important;
+  }
+
+  /* Accessible, on-brand focus ring (keyboard navigation only) */
+  button:focus-visible,
+  a:focus-visible,
+  input:focus-visible,
+  select:focus-visible,
+  textarea:focus-visible,
+  [role="button"]:focus-visible,
+  [tabindex]:focus-visible {
+    outline: 2px solid var(--color-gold);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+
+  /* Solid gold CTAs get a grounded gold-tinted shadow instead of a flat fill,
+     the difference between "expensive" and "flat sticker button". */
+  .bg-gold {
+    box-shadow: var(--shadow-gold);
+  }
+  @media (hover: hover) {
+    .bg-gold:hover {
+      box-shadow: 0 10px 24px -6px rgba(245, 184, 0, 0.35), 0 3px 10px -2px rgba(245, 184, 0, 0.20);
+    }
+  }
+
+  /* Elevated surfaces (cards, panels, dropdowns) get a soft grounding shadow;
+     subtle lift on hover, desktop (fine-pointer) only so touch UIs stay flat. */
+  .bg-panel, .bg-panel-2 {
+    box-shadow: var(--shadow-sm);
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .bg-panel:hover, .bg-panel-2:hover {
+      box-shadow: var(--shadow-md);
+    }
+  }
 }
 
 /* ---------------------------------------------------------------------- */

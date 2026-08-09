@@ -21,9 +21,9 @@ export default function MobileBottomNav({ pathname, builderLegsCount, currentUse
         }`}
       >
         {pathname === '/' && (
-          <span className="absolute -top-1.5 left-1/2 -translate-x-1/2 w-5 h-1 bg-gold rounded-full shadow-[0_0_8px_#F59E0B]" />
+          <span className="absolute -top-1.5 left-1/2 -translate-x-1/2 w-5 h-1 bg-gold rounded-full" />
         )}
-        <Home size={20} className={pathname === '/' ? 'text-gold drop-shadow-[0_2px_6px_rgba(245,158,11,0.4)]' : ''} />
+        <Home size={20} className={pathname === '/' ? 'text-gold' : ''} />
         <span className="text-[10px] tracking-tight font-semibold">Home</span>
       </Link>
 
@@ -36,9 +36,9 @@ export default function MobileBottomNav({ pathname, builderLegsCount, currentUse
         }`}
       >
         {pathname.startsWith('/free') && (
-          <span className="absolute -top-1.5 left-1/2 -translate-x-1/2 w-5 h-1 bg-gold rounded-full shadow-[0_0_8px_#F59E0B]" />
+          <span className="absolute -top-1.5 left-1/2 -translate-x-1/2 w-5 h-1 bg-gold rounded-full" />
         )}
-        <Unlock size={20} className={pathname.startsWith('/free') ? 'text-gold drop-shadow-[0_2px_6px_rgba(245,158,11,0.4)]' : ''} />
+        <Unlock size={20} className={pathname.startsWith('/free') ? 'text-gold' : ''} />
         <span className="text-[10px] tracking-tight font-semibold">Free</span>
       </Link>
 
@@ -51,14 +51,14 @@ export default function MobileBottomNav({ pathname, builderLegsCount, currentUse
         }`}
       >
         {pathname === '/slips' && (
-          <span className="absolute -top-1.5 left-1/2 -translate-x-1/2 w-5 h-1 bg-gold rounded-full shadow-[0_0_8px_#F59E0B]" />
+          <span className="absolute -top-1.5 left-1/2 -translate-x-1/2 w-5 h-1 bg-gold rounded-full" />
         )}
         {builderLegsCount > 0 && (
           <span className="absolute top-1 right-2.5 bg-gold text-ink font-black text-[9px] h-4 min-w-[16px] px-1 rounded-full flex items-center justify-center shadow-md border border-ink">
             {builderLegsCount}
           </span>
         )}
-        <Dices size={20} className={pathname === '/slips' ? 'text-gold drop-shadow-[0_2px_6px_rgba(245,158,11,0.4)]' : ''} />
+        <Dices size={20} className={pathname === '/slips' ? 'text-gold' : ''} />
         <span className="text-[10px] tracking-tight font-semibold">Builder</span>
       </Link>
 
@@ -71,9 +71,9 @@ export default function MobileBottomNav({ pathname, builderLegsCount, currentUse
         }`}
       >
         {pathname === '/leaderboard' && (
-          <span className="absolute -top-1.5 left-1/2 -translate-x-1/2 w-5 h-1 bg-gold rounded-full shadow-[0_0_8px_#F59E0B]" />
+          <span className="absolute -top-1.5 left-1/2 -translate-x-1/2 w-5 h-1 bg-gold rounded-full" />
         )}
-        <Trophy size={20} className={pathname === '/leaderboard' ? 'text-gold drop-shadow-[0_2px_6px_rgba(245,158,11,0.4)]' : ''} />
+        <Trophy size={20} className={pathname === '/leaderboard' ? 'text-gold' : ''} />
         <span className="text-[10px] tracking-tight font-semibold">Ranks</span>
       </Link>
 
@@ -86,9 +86,9 @@ export default function MobileBottomNav({ pathname, builderLegsCount, currentUse
         }`}
       >
         {(pathname === '/profile' || pathname === '/auth') && (
-          <span className="absolute -top-1.5 left-1/2 -translate-x-1/2 w-5 h-1 bg-gold rounded-full shadow-[0_0_8px_#F59E0B]" />
+          <span className="absolute -top-1.5 left-1/2 -translate-x-1/2 w-5 h-1 bg-gold rounded-full" />
         )}
-        <User size={20} className={pathname === '/profile' || pathname === '/auth' ? 'text-gold drop-shadow-[0_2px_6px_rgba(245,158,11,0.4)]' : ''} />
+        <User size={20} className={pathname === '/profile' || pathname === '/auth' ? 'text-gold' : ''} />
         <span className="text-[10px] tracking-tight font-semibold">{currentUser ? 'Profile' : 'Log In'}</span>
       </Link>
     </nav>

@@ -211,9 +211,8 @@ export default function AvaChatSupport() {
           >
             <AvaLogo className="w-7 h-7 sm:w-8 sm:h-8 transition-transform group-hover:scale-110" />
             
-            {/* Online Green Pulsing Badge */}
+            {/* Online status indicator */}
             <span className="absolute -top-1 -right-1 flex h-3.5 w-3.5">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
               <span className="relative inline-flex rounded-full h-3.5 w-3.5 bg-emerald-500 border-2 border-panel"></span>
             </span>
 
