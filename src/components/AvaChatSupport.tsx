@@ -202,7 +202,7 @@ export default function AvaChatSupport() {
     <>
       {/* Floating Toggle Button (Sleek, Compact, Futuristic AI Logo, No Hover Text) */}
       {!isOpen && (
-        <div className="fixed bottom-18 lg:bottom-6 right-3.5 sm:right-6 z-50 flex items-center">
+        <div className="fixed bottom-[calc(4.5rem+env(safe-area-inset-bottom))] lg:bottom-6 right-3.5 sm:right-6 z-50 flex items-center">
           <button
             onClick={() => setIsOpen(true)}
             className="relative w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-panel border-2 border-gold/60 shadow-xl shadow-gold/10 hover:border-gold hover:scale-105 active:scale-95 transition-all flex items-center justify-center p-1.5 group overflow-visible"
@@ -228,7 +228,7 @@ export default function AvaChatSupport() {
 
       {/* Floating Support Window Widget (Optimized Mobile Sizing) */}
       {isOpen && (
-        <div className="fixed z-50 bottom-2.5 sm:bottom-6 right-2 left-2 sm:left-auto sm:right-6 w-auto sm:w-[370px] h-[510px] max-h-[82vh] bg-panel border border-gold/30 rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-200">
+        <div className="fixed z-50 bottom-[calc(0.625rem+env(safe-area-inset-bottom))] sm:bottom-6 right-2 left-2 sm:left-auto sm:right-6 w-auto sm:w-[370px] h-[510px] max-h-[82vh] bg-panel border border-gold/30 rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-200">
           {/* Header */}
           <div className="p-3 sm:p-3.5 bg-panel-2 border-b border-line flex items-center justify-between shrink-0">
             <div className="flex items-center gap-2.5">

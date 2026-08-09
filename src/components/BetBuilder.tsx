@@ -250,7 +250,7 @@ export default function BetBuilder({ onPublished }: BetBuilderProps) {
             initial={{ scale: 0.8, opacity: 0, y: 15 }}
             animate={{ scale: 1, opacity: 1, y: 0 }}
             exit={{ scale: 0.8, opacity: 0, y: 15 }}
-            className="fixed bottom-[128px] sm:bottom-20 right-3.5 sm:right-6 z-40"
+            className="fixed bottom-[calc(128px+env(safe-area-inset-bottom))] sm:bottom-20 right-3.5 sm:right-6 z-40"
           >
             <button
               onClick={() => setIsSlipExpanded(true)}
@@ -282,7 +282,7 @@ export default function BetBuilder({ onPublished }: BetBuilderProps) {
             initial={{ y: 50, opacity: 0, scale: 0.95 }}
             animate={{ y: 0, opacity: 1, scale: 1 }}
             exit={{ y: 50, opacity: 0, scale: 0.95 }}
-            className="fixed bottom-16 sm:bottom-6 left-3 right-3 sm:left-auto sm:right-6 sm:w-96 z-50 bg-panel border-2 border-gold rounded-2xl p-4 shadow-2xl space-y-3 backdrop-blur-xl"
+            className="fixed bottom-[calc(4rem+env(safe-area-inset-bottom))] sm:bottom-6 left-3 right-3 sm:left-auto sm:right-6 sm:w-96 z-50 bg-panel border-2 border-gold rounded-2xl p-4 shadow-2xl space-y-3 backdrop-blur-xl"
           >
             {/* Cart Header */}
             <div className="flex items-center justify-between pb-2 border-b border-line">

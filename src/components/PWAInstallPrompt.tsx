@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Download, X, Share, PlusSquare, Smartphone, CheckCircle2, Sparkles, ShieldCheck } from 'lucide-react';
+import Modal from './ui/Modal';
 
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>;
@@ -94,7 +95,7 @@ export default function PWAInstallPrompt() {
       {showAndroidBanner && (
         <div
           id="pwa-android-install-banner"
-          className="fixed bottom-16 left-4 right-4 md:bottom-6 md:left-auto md:right-6 md:w-96 z-50 bg-panel-2 border-2 border-gold/60 rounded-2xl p-4 shadow-2xl backdrop-blur-xl animate-rise"
+          className="fixed bottom-[calc(4rem+env(safe-area-inset-bottom))] left-4 right-4 md:bottom-6 md:left-auto md:right-6 md:w-96 z-50 bg-panel-2 border-2 border-gold/60 rounded-2xl p-4 shadow-2xl backdrop-blur-xl animate-rise"
         >
           <button
             onClick={handleDismissAndroid}
@@ -140,11 +141,11 @@ export default function PWAInstallPrompt() {
 
       {/* iOS Safari Custom Guide Modal */}
       {showIOSModal && (
-        <div
-          id="pwa-ios-install-modal"
-          className="fixed inset-0 z-50 bg-ink/80 backdrop-blur-md flex items-end sm:items-center justify-center p-4 animate-fadeIn"
+        <Modal
+          isOpen={true}
+          overlayClassName="fixed inset-0 z-50 bg-ink/80 backdrop-blur-md flex items-end sm:items-center justify-center p-4 animate-fadeIn"
         >
-          <div className="bg-panel-2 border border-gold/50 rounded-3xl p-6 max-w-md w-full shadow-2xl space-y-5 animate-rise relative">
+          <div id="pwa-ios-install-modal" className="bg-panel-2 border border-gold/50 rounded-3xl p-6 max-w-md w-full shadow-2xl space-y-5 animate-rise relative">
             <button
               onClick={handleDismissIOS}
               className="absolute top-4 right-4 text-cream-dim hover:text-cream p-1.5 rounded-full bg-ink-2/60 border border-line transition-all"
@@ -206,7 +207,7 @@ export default function PWAInstallPrompt() {
               </button>
             </div>
           </div>
-        </div>
+        </Modal>
       )}
     </>
   );
