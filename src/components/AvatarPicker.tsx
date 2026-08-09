@@ -516,7 +516,7 @@ export default function AvatarPicker({ selected, onSelect, userStats }: AvatarPi
                 <Upload size={18} className="text-emerald-400" />
                 Upload Custom Vector Avatar
               </h3>
-              <button onClick={() => setShowAdminModal(false)} className="text-cream-dim hover:text-cream">
+              <button onClick={() => setShowAdminModal(false)} aria-label="Close" className="text-cream-dim hover:text-cream">
                 <X size={18} />
               </button>
             </div>

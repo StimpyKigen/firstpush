@@ -94,6 +94,7 @@ export default function BetBuilder({ onPublished }: BetBuilderProps) {
           {searchQuery && (
             <button
               onClick={() => setSearchQuery('')}
+              aria-label="Clear search"
               className="absolute right-3.5 top-1/2 -translate-y-1/2 text-cream-dim hover:text-cream"
             >
               <X size={15} />
@@ -309,6 +310,7 @@ export default function BetBuilder({ onPublished }: BetBuilderProps) {
               </h3>
               <button
                 onClick={() => setShowPublishModal(false)}
+                aria-label="Close"
                 className="text-cream-dim hover:text-cream p-1 rounded-lg"
               >
                 <X size={18} />

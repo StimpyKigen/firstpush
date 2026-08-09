@@ -19,7 +19,7 @@ export default function SupportPanel({ onClose }: SupportPanelProps) {
         <h2 className="font-display font-bold text-lg text-cream flex items-center gap-2">
           <LifeBuoy size={18} className="text-[#3b82f6]" /> Customer Support
         </h2>
-        <button onClick={onClose} className="text-cream-dim hover:text-cream"><X size={18} /></button>
+        <button onClick={onClose} aria-label="Close" className="text-cream-dim hover:text-cream"><X size={18} /></button>
       </div>
 
       <div className="grid sm:grid-cols-3 gap-3 mb-6">

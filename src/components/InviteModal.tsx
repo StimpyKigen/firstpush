@@ -41,6 +41,7 @@ export default function InviteModal({ isOpen, onClose }: InviteModalProps) {
       <div className="bg-ink border border-gold/40 rounded-2xl max-w-md w-full p-6 space-y-5 shadow-2xl relative">
         <button
           onClick={onClose}
+          aria-label="Close"
           className="absolute top-4 right-4 p-2 rounded-full text-cream-dim hover:text-cream bg-panel hover:bg-panel-2 transition-colors"
         >
           <X size={18} />

@@ -83,6 +83,7 @@ export default function DictionaryPanel({
             {searchQuery && (
               <button
                 onClick={() => setSearchQuery('')}
+                aria-label="Clear search"
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-cream-dim hover:text-cream"
               >
                 <X size={13} />

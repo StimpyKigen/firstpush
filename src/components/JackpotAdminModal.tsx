@@ -104,6 +104,7 @@ export default function JackpotAdminModal({ isOpen, onClose }: JackpotAdminModal
 
             <button
               onClick={onClose}
+              aria-label="Close"
               className="w-8 h-8 rounded-full flex items-center justify-center text-cream-dim hover:text-cream hover:bg-panel-2 transition-colors"
             >
               <X size={18} />

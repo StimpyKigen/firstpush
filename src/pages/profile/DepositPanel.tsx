@@ -40,7 +40,7 @@ export default function DepositPanel({
         <h2 className="font-display font-bold text-lg text-cream flex items-center gap-2">
           <ArrowDownLeft size={18} className="text-emerald-2" /> Deposit via M-Pesa
         </h2>
-        <button onClick={onClose} className="text-cream-dim hover:text-cream"><X size={18} /></button>
+        <button onClick={onClose} aria-label="Close" className="text-cream-dim hover:text-cream"><X size={18} /></button>
       </div>
 
       <div className="grid grid-cols-3 xs:grid-cols-5 gap-2 mb-4">

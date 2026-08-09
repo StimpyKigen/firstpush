@@ -16,7 +16,7 @@ export default function AvatarPanel({ pendingAvatarId, setPendingAvatarId, avata
         <h2 className="font-display font-bold text-lg text-cream flex items-center gap-2">
           <ImageIcon size={18} className="text-gold" /> Choose Your Avatar
         </h2>
-        <button onClick={onClose} className="text-cream-dim hover:text-cream"><X size={18} /></button>
+        <button onClick={onClose} aria-label="Close" className="text-cream-dim hover:text-cream"><X size={18} /></button>
       </div>
       <p className="text-xs text-cream-dim mb-4">Pick a football-themed profile picture for your account.</p>
       <AvatarPicker selected={pendingAvatarId} onSelect={setPendingAvatarId} />

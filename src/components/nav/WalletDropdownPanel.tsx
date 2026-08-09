@@ -29,6 +29,7 @@ export default function WalletDropdownPanel({
           </span>
           <button
             onClick={onClose}
+            aria-label="Close"
             className="text-cream-dim hover:text-cream text-xs font-bold p-1 rounded-lg hover:bg-line/50 transition-colors"
           >
             <X size={15} />

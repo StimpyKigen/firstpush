@@ -113,6 +113,7 @@ export default function ReportModal({
             </div>
             <button
               onClick={handleModalClose}
+              aria-label="Close"
               className="text-cream-dim hover:text-cream p-1.5 rounded-lg hover:bg-panel transition-colors"
             >
               <X size={18} />

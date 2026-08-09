@@ -31,7 +31,7 @@ export default function WithdrawPanel({
         <h2 className="font-display font-bold text-lg text-cream flex items-center gap-2">
           <ArrowUpRight size={18} className="text-gold" /> Withdraw to M-Pesa
         </h2>
-        <button onClick={onClose} className="text-cream-dim hover:text-cream"><X size={18} /></button>
+        <button onClick={onClose} aria-label="Close" className="text-cream-dim hover:text-cream"><X size={18} /></button>
       </div>
 
       <p className="text-xs text-cream-dim mb-4">Available to withdraw: <span className="font-bold text-cream">Ksh {balance.toLocaleString()}</span></p>

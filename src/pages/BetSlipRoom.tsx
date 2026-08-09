@@ -338,6 +338,7 @@ export default function BetSlipRoom() {
                           setInputUrl('');
                           setSelectedBookmaker(null);
                         }}
+                        aria-label="Clear input"
                         className="p-1.5 rounded-lg text-cream-dim hover:text-cream hover:bg-panel transition-colors"
                       >
                         <X size={13} />
@@ -544,6 +545,7 @@ export default function BetSlipRoom() {
             {punterSearchQuery && (
               <button
                 onClick={() => setPunterSearchQuery('')}
+                aria-label="Clear search"
                 className="absolute right-3.5 top-1/2 -translate-y-1/2 text-cream-dim hover:text-cream"
               >
                 <X size={16} />

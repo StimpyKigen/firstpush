@@ -72,6 +72,7 @@ export default function PunterProfileModal({ username, onClose }: PunterProfileM
       <div className="bg-ink border border-line rounded-2xl max-w-lg w-full p-5 sm:p-6 my-8 space-y-5 shadow-2xl relative">
         <button
           onClick={onClose}
+          aria-label="Close"
           className="absolute top-4 right-4 p-2 rounded-full text-cream-dim hover:text-cream bg-panel hover:bg-panel-2 transition-colors"
         >
           <X size={18} />

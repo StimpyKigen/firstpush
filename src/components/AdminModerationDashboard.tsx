@@ -175,6 +175,7 @@ export default function AdminModerationDashboard() {
               </div>
               <button
                 onClick={() => setIsEditModalOpen(false)}
+                aria-label="Close"
                 className="text-cream-dim hover:text-cream p-1 rounded-lg"
               >
                 <X size={18} />
@@ -306,6 +307,7 @@ export default function AdminModerationDashboard() {
               </div>
               <button
                 onClick={() => setIsImportModalOpen(false)}
+                aria-label="Close"
                 className="text-cream-dim hover:text-cream p-1 rounded-lg"
               >
                 <X size={18} />

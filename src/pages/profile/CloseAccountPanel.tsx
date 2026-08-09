@@ -31,7 +31,7 @@ export default function CloseAccountPanel({
         <h2 className="font-display font-bold text-lg text-cream flex items-center gap-2">
           <ShieldAlert size={18} className="text-danger" /> Close Your Account
         </h2>
-        <button onClick={onClose} className="text-cream-dim hover:text-cream"><X size={18} /></button>
+        <button onClick={onClose} aria-label="Close" className="text-cream-dim hover:text-cream"><X size={18} /></button>
       </div>
 
       <div className="bg-danger/10 border border-danger/30 rounded-lg p-4 mb-5 flex gap-3">

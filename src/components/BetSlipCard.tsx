@@ -366,6 +366,7 @@ export default function BetSlipCard({ post, index, onOpenProfile }: BetSlipCardP
               </h3>
               <button
                 onClick={() => setShowAttachModal(false)}
+                aria-label="Close"
                 className="text-cream-dim hover:text-cream p-1 rounded-lg"
               >
                 <X size={18} />
