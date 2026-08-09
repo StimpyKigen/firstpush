@@ -289,6 +289,16 @@ select,
   color: #a81e1e !important;
 }
 
+.light .text-blue-300,
+.light .text-blue-400 {
+  color: #1d4ed8 !important;
+}
+
+.light .text-yellow-300,
+.light .text-yellow-400 {
+  color: #8a6300 !important;
+}
+
 .light .text-cream {
   color: #0c1812 !important;
 }
@@ -332,6 +342,30 @@ select,
 .light .bg-amber-500\/15 {
   background-color: rgba(245, 184, 0, 0.14) !important;
   color: #8a5700 !important;
+}
+
+/* Bookie brand badges (Leaderboard.tsx's BOOKIE_BADGE_STYLE map): each uses
+   a `bg-{color}-900/40` + `text-{color}-300` pair tuned for dark mode (a
+   dark tint behind light text). Neither half was themed for light mode, so
+   `-900` at 40% opacity over white rendered as a washed-out pale tint with
+   equally pale `-300` text on top of it - unreadable. Same fix pattern as
+   the gold/emerald tokens above: dark, saturated, readable text + a light
+   tint of that same hue for the background. Kept each bookie's hue
+   distinct so the badges are still tellable apart at a glance. */
+.light .bg-blue-900\/40 {
+  background-color: rgba(29, 78, 216, 0.12) !important;
+}
+.light .bg-emerald-900\/40 {
+  background-color: rgba(0, 168, 120, 0.14) !important;
+}
+.light .bg-amber-900\/40 {
+  background-color: rgba(180, 83, 9, 0.14) !important;
+}
+.light .bg-rose-900\/40 {
+  background-color: rgba(204, 31, 31, 0.12) !important;
+}
+.light .bg-yellow-900\/40 {
+  background-color: rgba(138, 99, 0, 0.14) !important;
 }
 
 /* Modal Backdrops & Overlays */
