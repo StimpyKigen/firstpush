@@ -87,7 +87,7 @@ export default function Home() {
               backing it, and battle it out for who lands closest to the winning slip. Midweek's big matches? Always free
               to discuss, no paywall attached.
             </p>
-            <div className="flex flex-col xs:flex-row items-stretch xs:items-center gap-3 sm:gap-4 mt-7 sm:mt-8">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4 mt-7 sm:mt-8">
               <a href="#rooms" className="inline-flex items-center justify-center h-12 px-6 rounded-full bg-gold hover:bg-gold-2 text-ink font-bold text-sm text-center transition-colors whitespace-nowrap">
                 Browse Jackpot Rooms
               </a>
