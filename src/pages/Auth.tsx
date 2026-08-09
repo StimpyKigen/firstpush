@@ -1,202 +1,51 @@
-import { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { Smartphone, KeyRound, User, AlertCircle, CheckCircle2, ArrowRight, LogIn as LogInIcon, UserPlus, ImageIcon, ShieldCheck, Loader2, RefreshCw, Gift } from 'lucide-react';
 import SeoHead from '../components/SeoHead';
-import { useAuth, isValidPhone, isValidUsername } from '../lib/authStore';
-import { useWallet } from '../lib/store';
 import PinInput from '../components/PinInput';
 import OtpInput from '../components/OtpInput';
 import AvatarPicker from '../components/AvatarPicker';
 import Logo from '../components/Logo';
-import { AVATAR_CATALOG } from '../lib/avatarCatalog';
-import { sendFirebasePhoneOtp, verifyFirebaseOtpCode, saveUserProfileToFirestore, formatE164Phone } from '../lib/firebasePhoneAuth';
-import { validateUsername } from '../lib/contentModeration';
-import type { ConfirmationResult } from 'firebase/auth';
-
-type Mode = 'signup' | 'login';
+import { formatE164Phone } from '../lib/firebasePhoneAuth';
+import { isValidUsername } from '../lib/authStore';
+import { useAuthFlow } from '../lib/useAuthFlow';
 
 export default function Auth() {
-  const navigate = useNavigate();
-  const signUp = useAuth((s) => s.signUp);
-  const logIn = useAuth((s) => s.logIn);
-  const isUsernameTaken = useAuth((s) => s.isUsernameTaken);
-  const isPhoneRegistered = useAuth((s) => s.isPhoneRegistered);
-
-  const [mode, setMode] = useState<Mode>('signup');
-  const [phone, setPhone] = useState('');
-  const [pin, setPin] = useState('');
-  const [confirmPin, setConfirmPin] = useState('');
-  const [username, setUsername] = useState('');
-  const [avatarId, setAvatarId] = useState(AVATAR_CATALOG[0].id);
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
-  const [step, setStep] = useState<1 | 'otp' | 2 | 3>(1);
-  const [referredBy, setReferredBy] = useState<string | null>(null);
-
-  // Firebase Phone Auth states
-  const [sendingOtp, setSendingOtp] = useState(false);
-  const [verifyingOtp, setVerifyingOtp] = useState(false);
-  const [otpCode, setOtpCode] = useState('');
-  const [confirmationResult, setConfirmationResult] = useState<ConfirmationResult | null>(null);
-  const [phoneVerified, setPhoneVerified] = useState(false);
-  const [formattedE164, setFormattedE164] = useState('');
-
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const ref = params.get('ref');
-    if (ref) {
-      localStorage.setItem('mshindi_ref_code', ref);
-      setReferredBy(ref);
-    } else {
-      const stored = localStorage.getItem('mshindi_ref_code');
-      if (stored) setReferredBy(stored);
-    }
-  }, []);
-
-  const phoneValid = phone.length === 0 ? null : isValidPhone(phone);
-  const usernameValid = username.length === 0 ? null : isValidUsername(username);
-  const usernameTaken = Boolean(username.length > 0 && usernameValid && isUsernameTaken(username));
-  const phoneTaken = Boolean(mode === 'signup' && phone.length > 0 && phoneValid && isPhoneRegistered(phone));
-
-  function resetAll() {
-    setPhone('');
-    setPin('');
-    setConfirmPin('');
-    setUsername('');
-    setAvatarId(AVATAR_CATALOG[0].id);
-    setError('');
-    setSuccess('');
-    setStep(1);
-    setOtpCode('');
-    setConfirmationResult(null);
-    setPhoneVerified(false);
-    setFormattedE164('');
-  }
-
-  function switchMode(m: Mode) {
-    setMode(m);
-    resetAll();
-  }
-
-  async function startPhoneVerification() {
-    setError('');
-    if (!isValidPhone(phone)) {
-      setError('Enter a valid phone number (e.g. 0743 304 579 or +254 743 304 579).');
-      return;
-    }
-    if (mode === 'signup' && isPhoneRegistered(phone)) {
-      setError('This phone number already has an account. Switch to Log In.');
-      return;
-    }
-    if (mode === 'login' && !isPhoneRegistered(phone)) {
-      setError('No account found for that number. Switch to Sign Up.');
-      return;
-    }
-
-    setSendingOtp(true);
-    const res = await sendFirebasePhoneOtp(phone, 'recaptcha-container');
-    setSendingOtp(false);
-
-    if (res.ok && res.confirmationResult) {
-      setConfirmationResult(res.confirmationResult);
-      setFormattedE164(res.formattedPhone);
-      setStep('otp');
-      setSuccess(`Firebase SMS code sent to ${res.formattedPhone}`);
-      setTimeout(() => setSuccess(''), 4000);
-    } else {
-      setError(res.error || 'Failed to send SMS code. Please try again.');
-    }
-  }
-
-  async function handleVerifyOtpCode() {
-    setError('');
-    if (otpCode.length !== 6) {
-      setError('Please enter the full 6-digit SMS verification code.');
-      return;
-    }
-
-    setVerifyingOtp(true);
-    const res = await verifyFirebaseOtpCode(confirmationResult, otpCode);
-    setVerifyingOtp(false);
-
-    if (res.ok) {
-      setPhoneVerified(true);
-      setSuccess('Phone number verified successfully with Firebase Auth!');
-      setTimeout(() => {
-        setSuccess('');
-        setStep(2);
-      }, 1000);
-    } else {
-      setError(res.error || 'Invalid verification code. Please check your SMS inbox.');
-    }
-  }
-
-  function bypassOtpForTesting() {
-    setPhoneVerified(true);
-    setStep(2);
-  }
-
-  function handleLogin() {
-    setError('');
-    if (pin.length !== 4) {
-      setError('Enter your 4-digit PIN.');
-      return;
-    }
-    const res = logIn(phone, pin);
-    if (!res.ok) {
-      setError(res.error ?? 'Login failed.');
-      return;
-    }
-    setSuccess('Logged in! Redirecting…');
-    saveUserProfileToFirestore(phone, username || 'Punter');
-    setTimeout(() => navigate('/'), 900);
-  }
-
-  function goToAvatarStep() {
-    setError('');
-    if (pin.length !== 4) {
-      setError('Choose a 4-digit PIN.');
-      return;
-    }
-    if (pin !== confirmPin) {
-      setError('PINs do not match.');
-      return;
-    }
-    if (!isValidUsername(username)) {
-      setError('Username must be 3-16 characters, letters and numbers only.');
-      return;
-    }
-    const modResult = validateUsername(username);
-    if (!modResult.isAllowed) {
-      setError(modResult.reason ?? 'Username contains forbidden profanity or offensive language.');
-      return;
-    }
-    if (isUsernameTaken(username)) {
-      setError('That username is already taken.');
-      return;
-    }
-    setStep(3);
-  }
-
-  function handleSignup() {
-    setError('');
-    const res = signUp(phone, pin, username, avatarId);
-    if (!res.ok) {
-      setError(res.error ?? 'Sign up failed.');
-      return;
-    }
-    saveUserProfileToFirestore(phone, username, avatarId);
-
-    // Credit referral Mshindi Tokens to inviter
-    const refCode = localStorage.getItem('mshindi_ref_code');
-    if (refCode) {
-      useWallet.getState().creditReferralTokens(refCode, username);
-      localStorage.removeItem('mshindi_ref_code');
-    }
-
-    setSuccess('Account created! Welcome to MshindiRoom.');
-    setTimeout(() => navigate('/'), 900);
-  }
+  const {
+    mode,
+    switchMode,
+    phone,
+    setPhone,
+    pin,
+    setPin,
+    confirmPin,
+    setConfirmPin,
+    username,
+    setUsername,
+    avatarId,
+    setAvatarId,
+    error,
+    success,
+    step,
+    setStep,
+    referredBy,
+    sendingOtp,
+    verifyingOtp,
+    otpCode,
+    setOtpCode,
+    phoneVerified,
+    formattedE164,
+    phoneValid,
+    usernameValid,
+    usernameTaken,
+    phoneTaken,
+    isPhoneRegistered,
+    startPhoneVerification,
+    handleVerifyOtpCode,
+    bypassOtpForTesting,
+    handleLogin,
+    goToAvatarStep,
+    handleSignup,
+  } = useAuthFlow();
 
   return (
     <div className="max-w-md mx-auto px-4 sm:px-6 py-12">
@@ -253,10 +102,7 @@ export default function Auth() {
               </label>
               <input
                 value={phone}
-                onChange={(e) => {
-                  setPhone(e.target.value);
-                  setError('');
-                }}
+                onChange={(e) => setPhone(e.target.value)}
                 placeholder="07XX XXX XXX or +254 7XX..."
                 inputMode="tel"
                 className={`w-full bg-ink border rounded-lg px-3 py-3 text-sm font-mono text-cream placeholder:text-cream-dim/50 focus:outline-none transition-colors ${
@@ -348,7 +194,7 @@ export default function Auth() {
               </p>
             </div>
 
-            <OtpInput value={otpCode} onChange={(v) => { setOtpCode(v); setError(''); }} />
+            <OtpInput value={otpCode} onChange={setOtpCode} />
 
             {error && (
               <p className="flex items-center justify-center gap-1.5 text-xs text-danger font-semibold text-center">
@@ -410,7 +256,7 @@ export default function Auth() {
               <p className="text-xs font-semibold text-cream-dim uppercase tracking-wide flex items-center justify-center gap-1.5 mb-3">
                 <KeyRound size={13} /> Enter your 4-digit PIN
               </p>
-              <PinInput value={pin} onChange={(v) => { setPin(v); setError(''); }} />
+              <PinInput value={pin} onChange={setPin} />
             </div>
 
             {error && (
@@ -450,13 +296,13 @@ export default function Auth() {
               <p className="text-xs font-semibold text-cream-dim uppercase tracking-wide flex items-center justify-center gap-1.5 mb-3">
                 <KeyRound size={13} /> Choose a 4-digit PIN
               </p>
-              <PinInput value={pin} onChange={(v) => { setPin(v); setError(''); }} />
+              <PinInput value={pin} onChange={setPin} />
             </div>
             <div>
               <p className="text-xs font-semibold text-cream-dim uppercase tracking-wide flex items-center justify-center gap-1.5 mb-3">
                 Confirm PIN
               </p>
-              <PinInput value={confirmPin} onChange={(v) => { setConfirmPin(v); setError(''); }} />
+              <PinInput value={confirmPin} onChange={setConfirmPin} />
             </div>
 
             <div>
@@ -465,7 +311,7 @@ export default function Auth() {
               </label>
               <input
                 value={username}
-                onChange={(e) => { setUsername(e.target.value.replace(/[^A-Za-z0-9]/g, '')); setError(''); }}
+                onChange={(e) => setUsername(e.target.value)}
                 placeholder="e.g. BankerOnly254"
                 maxLength={16}
                 className={`w-full bg-ink border rounded-lg px-3 py-3 text-sm font-mono text-cream placeholder:text-cream-dim/50 focus:outline-none transition-colors ${
