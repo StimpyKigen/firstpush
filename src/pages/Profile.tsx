@@ -1,32 +1,26 @@
 import { useState } from 'react';
 import { useNavigate, Navigate, Link } from 'react-router-dom';
 import {
-  Wallet as WalletIcon, ArrowDownLeft, ArrowUpRight, ShieldAlert, LifeBuoy, Loader2, Check, Copy,
-  KeyRound, AlertCircle, CheckCircle2, Smartphone, X, MessageCircle, Mail, Phone as PhoneIcon,
-  ChevronRight, LogOut, Trash2, ImageIcon, Pencil, UserPlus, Share2, Target, Trophy as TrophyIcon, Coins
+  Wallet as WalletIcon, ArrowDownLeft, ArrowUpRight, ShieldAlert, LifeBuoy,
+  ImageIcon, Pencil, UserPlus, Share2, Target, Trophy as TrophyIcon, Coins, LogOut
 } from 'lucide-react';
 import SeoHead from '../components/SeoHead';
 import { useAuth, useCurrentUser } from '../lib/authStore';
 import { useWallet } from '../lib/store';
 import { useFollowStore } from '../lib/followStore';
-import { RECEIVER_MPESA_NUMBER, RECEIVER_NAME, isValidMpesaCode, normalizeCode } from '../lib/mpesa';
+import { RECEIVER_MPESA_NUMBER, isValidMpesaCode, normalizeCode } from '../lib/mpesa';
 import Avatar from '../components/Avatar';
-import PinInput from '../components/PinInput';
-import AvatarPicker from '../components/AvatarPicker';
 import StarRating from '../components/StarRating';
 import InviteModal from '../components/InviteModal';
 import PunterProfileModal from '../components/PunterProfileModal';
 import { getPunterStats } from '../lib/punterRatings';
+import AvatarPanel from './profile/AvatarPanel';
+import DepositPanel from './profile/DepositPanel';
+import WithdrawPanel from './profile/WithdrawPanel';
+import SupportPanel from './profile/SupportPanel';
+import CloseAccountPanel from './profile/CloseAccountPanel';
 
 type Panel = 'none' | 'deposit' | 'withdraw' | 'close' | 'support' | 'avatar';
-
-const depositPresets = [50, 100, 250, 500, 1000];
-
-const faqEntries = [
-  { q: 'How long does a withdrawal take?', a: 'Withdrawals are processed instantly in this demo and reflected on your balance right away. In production, M-Pesa B2C payouts typically land within a few minutes.' },
-  { q: 'I sent money but my code was rejected', a: 'Double check you copied the exact confirmation code from your M-Pesa SMS (10-12 characters, letters and numbers). Codes can only be redeemed once.' },
-  { q: 'Can I recover a closed account?', a: 'Closing your account is permanent and immediately frees up your username and phone number for a new registration. Make sure to withdraw your balance first.' },
-];
 
 export default function Profile() {
   const navigate = useNavigate();
@@ -55,26 +49,51 @@ export default function Profile() {
   // Deposit state
   const [depositAmount, setDepositAmount] = useState(100);
   const [depositStage, setDepositStage] = useState<'send' | 'verify'>('send');
-  const [code, setCode] = useState('');
+  const [code, setCodeRaw] = useState('');
   const [copied, setCopied] = useState(false);
   const [checking, setChecking] = useState(false);
   const [depositError, setDepositError] = useState('');
   const [depositDone, setDepositDone] = useState(false);
 
   // Withdraw state
-  const [withdrawAmount, setWithdrawAmount] = useState(50);
-  const [withdrawPhone, setWithdrawPhone] = useState('');
+  const [withdrawAmount, setWithdrawAmountRaw] = useState(50);
+  const [withdrawPhone, setWithdrawPhoneRaw] = useState('');
   const [withdrawError, setWithdrawError] = useState('');
   const [withdrawProcessing, setWithdrawProcessing] = useState(false);
   const [withdrawDone, setWithdrawDone] = useState(false);
 
   // Close account state
-  const [closePin, setClosePin] = useState('');
-  const [closeConfirmText, setCloseConfirmText] = useState('');
+  const [closePin, setClosePinRaw] = useState('');
+  const [closeConfirmText, setCloseConfirmTextRaw] = useState('');
   const [closeError, setCloseError] = useState('');
   const [closeProcessing, setCloseProcessing] = useState(false);
 
   if (!currentUser) return <Navigate to="/auth" replace />;
+
+  function setCode(v: string) {
+    setCodeRaw(v);
+    setDepositError('');
+  }
+
+  function setWithdrawAmount(v: number) {
+    setWithdrawAmountRaw(v);
+    setWithdrawError('');
+  }
+
+  function setWithdrawPhone(v: string) {
+    setWithdrawPhoneRaw(v);
+    setWithdrawError('');
+  }
+
+  function setCloseConfirmText(v: string) {
+    setCloseConfirmTextRaw(v);
+    setCloseError('');
+  }
+
+  function setClosePin(v: string) {
+    setClosePinRaw(v);
+    setCloseError('');
+  }
 
   function saveAvatar() {
     if (!pendingAvatarId) return;
@@ -105,7 +124,7 @@ export default function Profile() {
       topUpWithCode(clean, depositAmount);
       setChecking(false);
       setDepositDone(true);
-      setCode('');
+      setCodeRaw('');
       setDepositStage('send');
       setTimeout(() => { setDepositDone(false); setPanel('none'); }, 1800);
     }, 1500);
@@ -318,271 +337,63 @@ export default function Profile() {
         </button>
       </div>
 
-      {/* AVATAR PANEL */}
       {panel === 'avatar' && (
-        <div className="bg-panel border border-gold/30 rounded-2xl p-6 sm:p-7 mb-6 animate-rise">
-          <div className="flex items-center justify-between mb-5">
-            <h2 className="font-display font-bold text-lg text-cream flex items-center gap-2">
-              <ImageIcon size={18} className="text-gold" /> Choose Your Avatar
-            </h2>
-            <button onClick={() => setPanel('none')} className="text-cream-dim hover:text-cream"><X size={18} /></button>
-          </div>
-          <p className="text-xs text-cream-dim mb-4">Pick a football-themed profile picture for your account.</p>
-          <AvatarPicker selected={pendingAvatarId} onSelect={setPendingAvatarId} />
-          {avatarSaved && (
-            <p className="flex items-center gap-1.5 text-xs text-emerald-2 font-semibold mt-4 animate-rise">
-              <CheckCircle2 size={13} /> Avatar updated!
-            </p>
-          )}
-          <button
-            onClick={saveAvatar}
-            disabled={!pendingAvatarId}
-            className="w-full flex items-center justify-center gap-2 bg-gold hover:bg-gold-2 disabled:opacity-40 text-ink font-bold text-sm py-3 rounded-lg transition-colors mt-5"
-          >
-            Save Avatar
-          </button>
-        </div>
+        <AvatarPanel
+          pendingAvatarId={pendingAvatarId}
+          setPendingAvatarId={setPendingAvatarId}
+          avatarSaved={avatarSaved}
+          onSave={saveAvatar}
+          onClose={() => setPanel('none')}
+        />
       )}
 
-      {/* DEPOSIT PANEL */}
       {panel === 'deposit' && (
-        <div className="bg-panel border border-emerald-2/30 rounded-2xl p-6 sm:p-7 mb-6 animate-rise">
-          <div className="flex items-center justify-between mb-5">
-            <h2 className="font-display font-bold text-lg text-cream flex items-center gap-2">
-              <ArrowDownLeft size={18} className="text-emerald-2" /> Deposit via M-Pesa
-            </h2>
-            <button onClick={() => setPanel('none')} className="text-cream-dim hover:text-cream"><X size={18} /></button>
-          </div>
-
-          <div className="grid grid-cols-3 xs:grid-cols-5 gap-2 mb-4">
-            {depositPresets.map((p) => (
-              <button
-                key={p}
-                onClick={() => setDepositAmount(p)}
-                className={`py-2.5 rounded-lg text-xs xs:text-sm font-bold border transition-colors ${
-                  depositAmount === p ? 'bg-emerald-2 border-emerald-2 text-ink' : 'border-line text-cream-dim hover:border-emerald-2/50'
-                }`}
-              >
-                {p}
-              </button>
-            ))}
-          </div>
-          <div className="mb-5">
-            <label className="text-xs font-semibold text-cream-dim uppercase tracking-wide">Custom Amount (Ksh)</label>
-            <input
-              type="number"
-              value={depositAmount}
-              onChange={(e) => setDepositAmount(Number(e.target.value))}
-              className="w-full mt-1 bg-ink border border-line rounded-lg px-3 py-2.5 text-sm font-mono text-cream focus:outline-none focus:border-emerald-2"
-            />
-          </div>
-
-          {depositStage === 'send' ? (
-            <div className="flex flex-col gap-3">
-              <p className="text-xs font-semibold text-cream-dim uppercase tracking-wide flex items-center gap-1.5">
-                <Smartphone size={13} /> Step 1: Send Money on M-Pesa
-              </p>
-              <div className="bg-ink-2 border border-emerald-2/40 rounded-lg p-4 flex flex-col gap-2.5">
-                <div className="flex items-center justify-between">
-                  <span className="text-[11px] text-cream-dim">Send To</span>
-                  <span className="text-[11px] text-cream-dim">{RECEIVER_NAME}</span>
-                </div>
-                <div className="flex items-center justify-between gap-2">
-                  <span className="font-mono font-bold text-lg text-emerald-2 tracking-wide">{RECEIVER_MPESA_NUMBER}</span>
-                  <button
-                    onClick={copyNumber}
-                    className="flex items-center gap-1 text-xs font-semibold text-cream-dim hover:text-cream bg-panel-2 border border-line rounded-md px-2 py-1.5 shrink-0"
-                  >
-                    {copied ? <Check size={12} className="text-emerald-2" /> : <Copy size={12} />}
-                    {copied ? 'Copied' : 'Copy'}
-                  </button>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-[11px] text-cream-dim">Amount</span>
-                  <span className="font-mono font-bold text-sm text-gold">Ksh {depositAmount}</span>
-                </div>
-              </div>
-              <button
-                onClick={() => setDepositStage('verify')}
-                className="flex items-center justify-center gap-2 bg-gold hover:bg-gold-2 text-ink font-bold text-sm py-3 rounded-lg transition-colors"
-              >
-                I've sent the money →
-              </button>
-            </div>
-          ) : (
-            <div className="flex flex-col gap-3 animate-rise">
-              <p className="text-xs font-semibold text-cream-dim uppercase tracking-wide flex items-center gap-1.5">
-                <KeyRound size={13} /> Step 2: Confirm your payment
-              </p>
-              <input
-                value={code}
-                onChange={(e) => { setCode(e.target.value.toUpperCase()); setDepositError(''); }}
-                placeholder="e.g. QFT7K9L2M1"
-                maxLength={12}
-                className="bg-ink border border-line rounded-lg px-3 py-2.5 text-sm font-mono tracking-widest text-cream placeholder:text-cream-dim/50 focus:outline-none focus:border-gold uppercase"
-              />
-              {depositError && (
-                <p className="flex items-center gap-1.5 text-xs text-danger font-semibold"><AlertCircle size={13} /> {depositError}</p>
-              )}
-              <button
-                onClick={verifyDeposit}
-                disabled={checking || !code.trim()}
-                className="flex items-center justify-center gap-2 bg-gold hover:bg-gold-2 disabled:opacity-70 text-ink font-bold text-sm py-3 rounded-lg transition-colors"
-              >
-                {checking ? (<><Loader2 size={16} className="animate-spin" /> Verifying with M-Pesa…</>) : (`Verify & Credit Ksh ${depositAmount}`)}
-              </button>
-              <button onClick={() => setDepositStage('send')} className="text-xs text-cream-dim hover:text-cream text-center">Back</button>
-            </div>
-          )}
-
-          {depositDone && (
-            <p className="text-xs text-emerald-2 font-semibold mt-3 flex items-center gap-1.5 animate-rise">
-              <CheckCircle2 size={13} /> Deposit successful! Balance updated.
-            </p>
-          )}
-        </div>
+        <DepositPanel
+          depositAmount={depositAmount}
+          setDepositAmount={setDepositAmount}
+          depositStage={depositStage}
+          setDepositStage={setDepositStage}
+          code={code}
+          setCode={setCode}
+          copied={copied}
+          checking={checking}
+          depositError={depositError}
+          depositDone={depositDone}
+          onCopyNumber={copyNumber}
+          onVerify={verifyDeposit}
+          onClose={() => setPanel('none')}
+        />
       )}
 
-      {/* WITHDRAW PANEL */}
       {panel === 'withdraw' && (
-        <div className="bg-panel border border-gold/30 rounded-2xl p-6 sm:p-7 mb-6 animate-rise">
-          <div className="flex items-center justify-between mb-5">
-            <h2 className="font-display font-bold text-lg text-cream flex items-center gap-2">
-              <ArrowUpRight size={18} className="text-gold" /> Withdraw to M-Pesa
-            </h2>
-            <button onClick={() => setPanel('none')} className="text-cream-dim hover:text-cream"><X size={18} /></button>
-          </div>
-
-          <p className="text-xs text-cream-dim mb-4">Available to withdraw: <span className="font-bold text-cream">Ksh {balance.toLocaleString()}</span></p>
-
-          <div className="mb-4">
-            <label className="text-xs font-semibold text-cream-dim uppercase tracking-wide">Amount (Ksh)</label>
-            <input
-              type="number"
-              value={withdrawAmount}
-              onChange={(e) => { setWithdrawAmount(Number(e.target.value)); setWithdrawError(''); }}
-              className="w-full mt-1 bg-ink border border-line rounded-lg px-3 py-2.5 text-sm font-mono text-cream focus:outline-none focus:border-gold"
-            />
-          </div>
-          <div className="mb-4">
-            <label className="text-xs font-semibold text-cream-dim uppercase tracking-wide">M-Pesa Number to Receive Funds</label>
-            <input
-              value={withdrawPhone}
-              onChange={(e) => { setWithdrawPhone(e.target.value); setWithdrawError(''); }}
-              placeholder="07XX XXX XXX"
-              className="w-full mt-1 bg-ink border border-line rounded-lg px-3 py-2.5 text-sm font-mono text-cream placeholder:text-cream-dim/50 focus:outline-none focus:border-gold"
-            />
-          </div>
-
-          {withdrawError && (
-            <p className="flex items-center gap-1.5 text-xs text-danger font-semibold mb-3"><AlertCircle size={13} /> {withdrawError}</p>
-          )}
-          {withdrawDone && (
-            <p className="flex items-center gap-1.5 text-xs text-emerald-2 font-semibold mb-3 animate-rise"><CheckCircle2 size={13} /> Withdrawal sent! Funds are on the way to your M-Pesa.</p>
-          )}
-
-          <button
-            onClick={submitWithdraw}
-            disabled={withdrawProcessing}
-            className="w-full flex items-center justify-center gap-2 bg-gold hover:bg-gold-2 disabled:opacity-70 text-ink font-bold text-sm py-3 rounded-lg transition-colors"
-          >
-            {withdrawProcessing ? (<><Loader2 size={16} className="animate-spin" /> Processing withdrawal…</>) : (`Withdraw Ksh ${withdrawAmount}`)}
-          </button>
-        </div>
+        <WithdrawPanel
+          balance={balance}
+          withdrawAmount={withdrawAmount}
+          setWithdrawAmount={setWithdrawAmount}
+          withdrawPhone={withdrawPhone}
+          setWithdrawPhone={setWithdrawPhone}
+          withdrawError={withdrawError}
+          withdrawProcessing={withdrawProcessing}
+          withdrawDone={withdrawDone}
+          onSubmit={submitWithdraw}
+          onClose={() => setPanel('none')}
+        />
       )}
 
-      {/* SUPPORT PANEL */}
-      {panel === 'support' && (
-        <div className="bg-panel border border-blue-400/30 rounded-2xl p-6 sm:p-7 mb-6 animate-rise">
-          <div className="flex items-center justify-between mb-5">
-            <h2 className="font-display font-bold text-lg text-cream flex items-center gap-2">
-              <LifeBuoy size={18} className="text-[#3b82f6]" /> Customer Support
-            </h2>
-            <button onClick={() => setPanel('none')} className="text-cream-dim hover:text-cream"><X size={18} /></button>
-          </div>
+      {panel === 'support' && <SupportPanel onClose={() => setPanel('none')} />}
 
-          <div className="grid sm:grid-cols-3 gap-3 mb-6">
-            <a href="https://wa.me/254743304579" target="_blank" rel="noreferrer" className="flex flex-col items-center gap-2 p-4 rounded-xl bg-ink-2 border border-line hover:border-emerald-2/40 transition-colors text-center">
-              <MessageCircle size={20} className="text-emerald-2" />
-              <span className="text-xs font-bold text-cream">WhatsApp Chat</span>
-              <span className="text-[11px] text-cream-dim font-mono">{RECEIVER_MPESA_NUMBER}</span>
-            </a>
-            <a href="mailto:support@mshindiroom.co.ke" className="flex flex-col items-center gap-2 p-4 rounded-xl bg-ink-2 border border-line hover:border-gold/40 transition-colors text-center">
-              <Mail size={20} className="text-gold" />
-              <span className="text-xs font-bold text-cream">Email Us</span>
-              <span className="text-[11px] text-cream-dim">support@mshindiroom.co.ke</span>
-            </a>
-            <a href="tel:+254743304579" className="flex flex-col items-center gap-2 p-4 rounded-xl bg-ink-2 border border-line hover:border-blue-400/40 transition-colors text-center">
-              <PhoneIcon size={20} className="text-[#3b82f6]" />
-              <span className="text-xs font-bold text-cream">Call Us</span>
-              <span className="text-[11px] text-cream-dim font-mono">{RECEIVER_MPESA_NUMBER}</span>
-            </a>
-          </div>
-
-          <p className="text-xs font-bold text-cream-dim uppercase tracking-wide mb-3">Frequently Asked</p>
-          <div className="flex flex-col divide-y divide-line">
-            {faqEntries.map((f) => (
-              <details key={f.q} className="py-3 group">
-                <summary className="flex items-center justify-between cursor-pointer text-sm font-semibold text-cream list-none">
-                  {f.q}
-                  <ChevronRight size={15} className="text-cream-dim transition-transform group-open:rotate-90" />
-                </summary>
-                <p className="text-sm text-cream-dim leading-relaxed mt-2">{f.a}</p>
-              </details>
-            ))}
-          </div>
-          <Link to="/how-it-works" className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-2 hover:underline mt-4">
-            View full How It Works & FAQ page <ChevronRight size={13} />
-          </Link>
-        </div>
-      )}
-
-      {/* CLOSE ACCOUNT PANEL */}
       {panel === 'close' && (
-        <div className="bg-panel border border-danger/30 rounded-2xl p-6 sm:p-7 mb-6 animate-rise">
-          <div className="flex items-center justify-between mb-5">
-            <h2 className="font-display font-bold text-lg text-cream flex items-center gap-2">
-              <ShieldAlert size={18} className="text-danger" /> Close Your Account
-            </h2>
-            <button onClick={() => setPanel('none')} className="text-cream-dim hover:text-cream"><X size={18} /></button>
-          </div>
-
-          <div className="bg-danger/10 border border-danger/30 rounded-lg p-4 mb-5 flex gap-3">
-            <AlertCircle size={18} className="text-danger shrink-0 mt-0.5" />
-            <p className="text-xs text-cream-dim leading-relaxed">
-              This is permanent. Your username <span className="text-cream font-semibold">{currentUser.username}</span> and phone
-              number will be freed up immediately, your wallet balance will be forfeited, and you'll lose access to all
-              unlocked rooms. Withdraw your balance first if you don't want to lose it.
-            </p>
-          </div>
-
-          <div className="mb-4">
-            <label className="text-xs font-semibold text-cream-dim uppercase tracking-wide">Type <span className="font-mono text-danger">CLOSE</span> to confirm</label>
-            <input
-              value={closeConfirmText}
-              onChange={(e) => { setCloseConfirmText(e.target.value); setCloseError(''); }}
-              placeholder="CLOSE"
-              className="w-full mt-1 bg-ink border border-line rounded-lg px-3 py-2.5 text-sm font-mono text-cream placeholder:text-cream-dim/50 focus:outline-none focus:border-danger uppercase"
-            />
-          </div>
-
-          <div className="mb-4">
-            <p className="text-xs font-semibold text-cream-dim uppercase tracking-wide mb-3 text-center">Enter your PIN to confirm</p>
-            <PinInput value={closePin} onChange={(v) => { setClosePin(v); setCloseError(''); }} />
-          </div>
-
-          {closeError && (
-            <p className="flex items-center justify-center gap-1.5 text-xs text-danger font-semibold mb-3"><AlertCircle size={13} /> {closeError}</p>
-          )}
-
-          <button
-            onClick={submitCloseAccount}
-            disabled={closeProcessing}
-            className="w-full flex items-center justify-center gap-2 bg-danger hover:bg-danger/90 disabled:opacity-70 text-white font-bold text-sm py-3 rounded-lg transition-colors"
-          >
-            {closeProcessing ? (<><Loader2 size={16} className="animate-spin" /> Closing account…</>) : (<><Trash2 size={15} /> Permanently Close Account</>)}
-          </button>
-        </div>
+        <CloseAccountPanel
+          currentUser={currentUser}
+          closePin={closePin}
+          setClosePin={setClosePin}
+          closeConfirmText={closeConfirmText}
+          setCloseConfirmText={setCloseConfirmText}
+          closeError={closeError}
+          closeProcessing={closeProcessing}
+          onSubmit={submitCloseAccount}
+          onClose={() => setPanel('none')}
+        />
       )}
 
       {/* Transaction history */}
