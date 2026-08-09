@@ -24,7 +24,7 @@ export default function MobileBottomNav({ pathname, builderLegsCount, currentUse
           <span className="absolute -top-1.5 left-1/2 -translate-x-1/2 w-5 h-1 bg-gold rounded-full shadow-[0_0_8px_#F59E0B]" />
         )}
         <Home size={20} className={pathname === '/' ? 'text-gold drop-shadow-[0_2px_6px_rgba(245,158,11,0.4)]' : ''} />
-        <span className="text-[10px] tracking-tight font-semibold">Jackpots</span>
+        <span className="text-[10px] tracking-tight font-semibold">Home</span>
       </Link>
 
       <Link
