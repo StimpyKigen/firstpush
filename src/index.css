@@ -1,11 +1,13 @@
 @import "tailwindcss";
+@import "./fonts.css";
 
 @theme {
   --breakpoint-xs: 380px;
 
-  --font-display: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Bricolage Grotesque", "Manrope", sans-serif;
-  --font-body: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro", "Manrope", sans-serif;
-  --font-mono: SFMono-Regular, Menlo, Monaco, "JetBrains Mono", monospace;
+  --font-display: "SF Pro Display", "SF Pro", "San Francisco", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-body: "SF Pro Text", "SF Pro", "San Francisco", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-sans: "SF Pro Text", "SF Pro", "San Francisco", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 
   --color-ink: #050f0b;
   --color-ink-2: #0a1a14;
@@ -30,6 +32,51 @@
   --shadow-gold: 0 8px 24px -6px rgba(245, 184, 0, 0.32), 0 2px 8px -2px rgba(245, 184, 0, 0.18);
   --shadow-ios-card: 0 10px 30px -5px rgba(0, 0, 0, 0.45), 0 2px 8px -2px rgba(0, 0, 0, 0.35);
   --shadow-ios-popover: 0 24px 48px -12px rgba(0, 0, 0, 0.65), 0 4px 16px -4px rgba(0, 0, 0, 0.4);
+}
+
+/* ==========================================================================
+   Universal iOS Typography Enforcement
+   Ensures every single bit of text, heading, button, input and label renders
+   in authentic Apple San Francisco (SF Pro) across all browsers and devices.
+   ========================================================================== */
+*,
+*::before,
+*::after {
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+html,
+body,
+#root {
+  font-family: var(--font-body);
+  letter-spacing: -0.011em;
+}
+
+/* Headings and display text use SF Pro Display with Apple's iconic tight kerning */
+h1, h2, h3, h4, h5, h6,
+.font-display {
+  font-family: var(--font-display) !important;
+  letter-spacing: -0.024em;
+}
+
+/* Native form elements explicitly inherit iOS typography */
+button,
+input,
+optgroup,
+select,
+textarea {
+  font-family: inherit;
+}
+
+/* Monospace elements use Apple SF Mono stack */
+code,
+kbd,
+samp,
+pre,
+.font-mono {
+  font-family: var(--font-mono) !important;
 }
 
 html {
