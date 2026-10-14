@@ -30,7 +30,7 @@ export default function Navbar() {
   return (
     <>
       <header className="sticky top-0 z-50 border-b border-line/60 bg-ink/85 backdrop-blur-md">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 flex items-center justify-between gap-2 h-16">
+        <div className="max-w-full mx-auto px-4 sm:px-6 flex items-center justify-between gap-2 h-16">
           <Link to="/" className="flex items-center gap-2 shrink-0 group">
             <span className="font-display font-extrabold text-lg xl:text-xl tracking-tight text-cream whitespace-nowrap">
               Mshindi<span className="text-gold">Room</span>
@@ -55,8 +55,6 @@ export default function Navbar() {
           />
 
           <MobileHeaderControls
-            theme={theme}
-            toggleTheme={toggleTheme}
             walletOpen={walletOpen}
             setWalletOpen={setWalletOpen}
             balance={balance}
@@ -72,6 +70,8 @@ export default function Navbar() {
             pathname={location.pathname}
             currentUser={currentUser}
             balance={balance}
+            theme={theme}
+            toggleTheme={toggleTheme}
             onNavigate={() => setOpen(false)}
             onOpenAdminModal={() => setAdminModalOpen(true)}
             onLogout={handleLogout}

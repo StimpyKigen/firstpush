@@ -38,6 +38,7 @@ export interface BetSlipPost {
   tags: string[];
   likes: number;
   likedByMe?: boolean;
+  savedByMe?: boolean;
   createdAt: string;
   parsed?: ParsedSlip | null;
   parseError?: string;
@@ -68,6 +69,7 @@ interface BetSlipStoreState {
   ) => void;
   setParsed: (postId: string, parsed: ParsedSlip | null, parseError?: string) => void;
   toggleLike: (postId: string) => void;
+  toggleSave: (postId: string) => void;
   addComment: (postId: string, user: string, text: string) => void;
 }
 
@@ -277,6 +279,15 @@ export const useBetSlipStore = create<BetSlipStoreState>((set) => ({
           likedByMe,
           likes: likedByMe ? p.likes + 1 : p.likes - 1,
         };
+      }),
+    }));
+  },
+
+  toggleSave: (postId) => {
+    set((state) => ({
+      posts: state.posts.map((p) => {
+        if (p.id !== postId) return p;
+        return { ...p, savedByMe: !p.savedByMe };
       }),
     }));
   },

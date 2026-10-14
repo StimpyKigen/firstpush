@@ -33,6 +33,10 @@ export default defineConfig(() => {
     server: {
       hmr: process.env.DISABLE_HMR !== 'true',
       watch: process.env.DISABLE_HMR === 'true' ? null : {},
+      // Allow any tunnel / proxy host (Cloudflare, ngrok, etc.) during local dev.
+      // This does not expose the server to the network on its own — the tunnel
+      // is the only thing forwarding external traffic to localhost:3000.
+      allowedHosts: true as const,
     },
     build: {
       target: 'esnext',

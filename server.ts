@@ -575,7 +575,12 @@ Sitemap: https://mshindi.co.ke/sitemap.xml
   // Vite development middleware vs Static Production
   if (process.env.NODE_ENV !== 'production') {
     const vite = await createViteServer({
-      server: { middlewareMode: true },
+      server: {
+        middlewareMode: true,
+        // Allow any tunnel / proxy hostname (Cloudflare, ngrok, etc.)
+        // Must be `true` (boolean) in Vite 6 — the string 'all' is not valid.
+        allowedHosts: true,
+      },
       appType: 'spa',
     });
     app.use(vite.middlewares);

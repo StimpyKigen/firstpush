@@ -1,13 +1,11 @@
 import { Link } from 'react-router-dom';
-import { Wallet, Sun, Moon, Menu, X, UserCircle2, ShieldCheck, LogOut } from 'lucide-react';
+import { Wallet, Sun, Moon, Menu, X, UserCircle2, ShieldCheck, LogOut, Settings, UserCog, Bell } from 'lucide-react';
 import { isAdminUser, type Account } from '../../lib/authStore';
 import Avatar from '../Avatar';
 import WalletDropdownPanel from './WalletDropdownPanel';
 import type { NavLinkItem } from './useNavData';
 
 interface MobileHeaderControlsProps {
-  theme: 'dark' | 'light';
-  toggleTheme: () => void;
   walletOpen: boolean;
   setWalletOpen: (open: boolean) => void;
   balance: number;
@@ -16,10 +14,8 @@ interface MobileHeaderControlsProps {
   setOpen: (open: boolean) => void;
 }
 
-/** The compact icon row (wallet, theme, hamburger) that sits inline in the header bar below `lg`. */
+/** The compact icon row (wallet + hamburger) that sits inline in the header bar below `lg`. */
 export function MobileHeaderControls({
-  theme,
-  toggleTheme,
   walletOpen,
   setWalletOpen,
   balance,
@@ -58,13 +54,6 @@ export function MobileHeaderControls({
         )}
       </div>
 
-      <button
-        onClick={toggleTheme}
-        aria-label="Toggle light/dark mode"
-        className="flex items-center justify-center w-10 h-10 rounded-full bg-panel border border-line text-cream-dim hover:text-gold active:scale-95 transition-all shrink-0 touch-manipulation"
-      >
-        {theme === 'dark' ? <Sun size={17} /> : <Moon size={17} />}
-      </button>
 
       <button
         className="text-cream shrink-0 p-2 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-xl active:bg-panel transition-colors touch-manipulation"
@@ -82,6 +71,8 @@ interface MobileMenuPanelProps {
   pathname: string;
   currentUser: Account | null;
   balance: number;
+  theme: 'dark' | 'light';
+  toggleTheme: () => void;
   onNavigate: () => void;
   onOpenAdminModal: () => void;
   onLogout: () => void;
@@ -92,12 +83,14 @@ export function MobileMenuPanel({
   links,
   currentUser,
   balance,
+  theme,
+  toggleTheme,
   onNavigate,
   onOpenAdminModal,
   onLogout,
 }: MobileMenuPanelProps) {
   return (
-    <div className="lg:hidden border-t border-line bg-ink-2 px-4 py-3 flex flex-col gap-1 max-h-[calc(100vh-4rem)] overflow-y-auto scroll-touch animate-rise">
+    <div className="lg:hidden border-t border-line bg-ink-2 px-4 py-3 flex flex-col gap-1 max-h-[calc(100dvh-4rem)] overflow-y-auto scroll-touch animate-rise">
       {links.map((l) => (
         <Link
           key={l.to}
@@ -156,6 +149,58 @@ export function MobileMenuPanel({
         <Link to="/wallet" onClick={onNavigate} className="bg-gold text-ink font-bold text-xs px-3 py-1.5 rounded-full shrink-0 whitespace-nowrap">
           Top Up
         </Link>
+      </div>
+
+      {/* ── Settings Section ── */}
+      <div className="mt-3 pt-3 border-t border-line/40">
+        <p className="flex items-center gap-1.5 px-3 mb-1 text-[10px] font-extrabold uppercase tracking-widest text-cream-dim/60">
+          <Settings size={11} />
+          Settings
+        </p>
+
+        {/* Theme toggle */}
+        <div className="flex items-center justify-between gap-2 px-3.5 py-3 rounded-xl hover:bg-panel transition-all min-h-[44px]">
+          <span className="flex items-center gap-2.5 text-sm font-semibold text-cream-dim">
+            {theme === 'dark' ? <Moon size={17} className="shrink-0" /> : <Sun size={17} className="shrink-0" />}
+            {theme === 'dark' ? 'Dark Mode' : 'Light Mode'}
+          </span>
+          <button
+            onClick={toggleTheme}
+            aria-label="Toggle light/dark mode"
+            className={`relative inline-flex w-11 h-6 rounded-full border transition-all shrink-0 touch-manipulation ${
+              theme === 'dark'
+                ? 'bg-panel-2 border-line'
+                : 'bg-gold/80 border-gold/60'
+            }`}
+          >
+            <span
+              className={`absolute top-0.5 w-5 h-5 rounded-full shadow transition-all ${
+                theme === 'dark'
+                  ? 'left-0.5 bg-cream-dim'
+                  : 'left-[22px] bg-ink'
+              }`}
+            />
+          </button>
+        </div>
+
+        {/* Profile Settings — only when logged in */}
+        {currentUser && (
+          <Link
+            to="/profile"
+            onClick={onNavigate}
+            className="flex items-center gap-2.5 px-3.5 py-3 rounded-xl text-cream-dim hover:text-cream hover:bg-panel active:bg-panel font-semibold text-sm transition-all touch-manipulation min-h-[44px]"
+          >
+            <UserCog size={17} className="shrink-0" />
+            <span>Edit Profile</span>
+          </Link>
+        )}
+
+        {/* Notification Preferences — always visible */}
+        <div className="flex items-center gap-2.5 px-3.5 py-3 rounded-xl text-cream-dim hover:text-cream hover:bg-panel transition-all cursor-default min-h-[44px]">
+          <Bell size={17} className="shrink-0" />
+          <span className="text-sm font-semibold">Notifications</span>
+          <span className="ml-auto text-[9px] font-extrabold uppercase tracking-wide bg-gold/20 text-gold px-1.5 py-0.5 rounded-full shrink-0">Soon</span>
+        </div>
       </div>
     </div>
   );

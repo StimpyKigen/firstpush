@@ -105,12 +105,25 @@ function App() {
         <OfflineBar />
         <PWAInstallPrompt />
         <AvaChatSupport />
-        <div className="min-h-screen flex flex-col font-body bg-ink text-cream antialiased selection:bg-gold/30">
-          <Navbar />
-          <main className="flex-1 flex flex-col w-full pb-20 lg:pb-0 overflow-x-hidden">
-            <AnimatedRoutes />
-          </main>
-          <Footer />
+        {/*
+          Outer frame: fills the full viewport with the dark emerald-tinted
+          background that acts as the "surround" on larger screens.
+          On small phones this is invisible (app-shell is 100% wide).
+        */}
+        <div className="min-h-dvh flex flex-col items-center font-body text-cream antialiased selection:bg-gold/30">
+          {/*
+            App shell: the responsive centered container.
+            Grows fluidly — full-width on phones, progressively narrower
+            on tablets and desktop where the frame background becomes visible.
+            flex flex-col + flex-1 on main ensure footer is pushed to bottom.
+          */}
+          <div className="app-shell flex flex-col">
+            <Navbar />
+            <main className="flex-1 flex flex-col w-full pb-20 lg:pb-0 overflow-x-hidden">
+              <AnimatedRoutes />
+            </main>
+            <Footer />
+          </div>
         </div>
       </BrowserRouter>
     </ErrorBoundary>
