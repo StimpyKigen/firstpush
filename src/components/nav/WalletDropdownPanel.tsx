@@ -24,45 +24,48 @@ export default function WalletDropdownPanel({
       <div className={backdropClassName} onClick={onClose} />
       <div className={panelClassName}>
         <div className={headerClassName}>
-          <span className="text-xs font-bold text-cream uppercase tracking-wider flex items-center gap-1.5">
-            <Wallet size={15} className="text-emerald-2" /> Wallet &amp; Rewards
+          <span className="text-xs font-bold text-cream uppercase tracking-wider flex items-center gap-2">
+            <span className="w-6 h-6 rounded-full bg-emerald-2/15 flex items-center justify-center text-emerald-2">
+              <Wallet size={13} />
+            </span>
+            Wallet &amp; Rewards
           </span>
           <button
             onClick={onClose}
             aria-label="Close"
-            className="text-cream-dim hover:text-cream text-xs font-bold p-1 rounded-lg hover:bg-line/50 transition-colors"
+            className="text-cream-dim hover:text-cream text-xs font-bold w-7 h-7 rounded-full flex items-center justify-center hover:bg-white/10 active:scale-95 transition-all"
           >
             <X size={15} />
           </button>
         </div>
 
         {/* Cash Balance */}
-        <div className="bg-ink/80 border border-line/80 rounded-xl p-3 flex items-center justify-between gap-3">
+        <div className="bg-ink-2/90 border border-line/70 rounded-2xl p-3.5 flex items-center justify-between gap-3 shadow-sm">
           <div>
-            <span className="text-[10px] text-cream-dim font-bold uppercase tracking-wide">M-Pesa Cash Balance</span>
-            <p className="font-display font-extrabold text-xl text-emerald-2">Ksh {balance.toLocaleString()}</p>
+            <span className="text-[10px] text-cream-dim font-bold uppercase tracking-wider">M-Pesa Cash Balance</span>
+            <p className="font-display font-extrabold text-2xl text-emerald-2 tracking-tight">Ksh {balance.toLocaleString()}</p>
           </div>
           <Link
             to="/wallet"
             onClick={onClose}
-            className="bg-emerald-2/15 hover:bg-emerald-2/25 text-emerald-2 border border-emerald-2/40 px-3 py-1.5 rounded-lg text-xs font-bold transition-all shrink-0"
+            className="bg-emerald-2/15 hover:bg-emerald-2/25 text-emerald-2 border border-emerald-2/40 px-3.5 py-1.5 rounded-full text-xs font-bold active:scale-95 transition-all shrink-0 shadow-sm"
           >
             Top Up
           </Link>
         </div>
 
         {/* Tokens */}
-        <div className="bg-ink/80 border border-line/80 rounded-xl p-3 flex items-center justify-between gap-3">
+        <div className="bg-ink-2/90 border border-line/70 rounded-2xl p-3.5 flex items-center justify-between gap-3 shadow-sm">
           <div>
-            <span className="text-[10px] text-gold font-bold uppercase tracking-wide flex items-center gap-1">
+            <span className="text-[10px] text-gold font-bold uppercase tracking-wider flex items-center gap-1.5">
               <Coins size={12} /> Mshindi Tokens
             </span>
-            <p className="font-display font-extrabold text-xl text-gold">{mshindiTokens} <span className="text-xs font-normal text-cream-dim">MT</span></p>
+            <p className="font-display font-extrabold text-2xl text-gold tracking-tight">{mshindiTokens} <span className="text-xs font-normal text-cream-dim">MT</span></p>
           </div>
           <Link
             to="/wallet"
             onClick={onClose}
-            className="bg-gold/15 hover:bg-gold/25 text-gold border border-gold/40 px-3 py-1.5 rounded-lg text-xs font-bold transition-all shrink-0"
+            className="bg-gold/15 hover:bg-gold/25 text-gold border border-gold/40 px-3.5 py-1.5 rounded-full text-xs font-bold active:scale-95 transition-all shrink-0 shadow-sm"
           >
             Earn / Redeem
           </Link>
@@ -71,13 +74,13 @@ export default function WalletDropdownPanel({
         <Link
           to="/wallet"
           onClick={onClose}
-          className="w-full inline-flex items-center justify-center gap-2 bg-gold hover:bg-gold-2 text-ink font-bold text-xs py-2.5 rounded-xl transition-all shadow-md"
+          className="w-full inline-flex items-center justify-center gap-2 bg-gold hover:bg-gold-2 text-ink font-bold text-xs py-3 rounded-full transition-all shadow-md active:scale-95"
         >
           <span>Open Full Wallet &amp; Top Up</span>
           <ArrowUpRight size={14} />
         </Link>
 
-        <p className="text-[10px] text-cream-dim text-center leading-tight">
+        <p className="text-[10px] text-cream-dim/80 text-center leading-tight">
           ⚡ Earn +4 MT cashback on every 100 Ksh top up &amp; referral invite!
         </p>
       </div>

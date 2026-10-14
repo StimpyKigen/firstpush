@@ -11,12 +11,12 @@ interface MobileBottomNavProps {
 /** Fixed native-app-style bottom tab bar shown below `lg`. Already handles safe-area correctly. */
 export default function MobileBottomNav({ pathname, builderLegsCount, currentUser }: MobileBottomNavProps) {
   return (
-    <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-ink/95 backdrop-blur-xl border-t border-line/80 px-1 pt-1.5 pb-[max(0.375rem,env(safe-area-inset-bottom))] flex items-center justify-around shadow-[0_-8px_24px_-4px_rgba(0,0,0,0.6)] select-none">
+    <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-ink/85 dark:bg-ink/85 light:bg-white/90 backdrop-blur-2xl border-t border-white/10 dark:border-white/10 light:border-black/8 px-2 pt-1.5 pb-[max(0.5rem,env(safe-area-inset-bottom))] flex items-center justify-around shadow-[0_-8px_30px_rgba(0,0,0,0.4)] select-none">
       <Link
         to="/"
-        className={`relative flex flex-col items-center justify-center gap-0.5 py-1 px-3 rounded-2xl transition-all duration-150 active:scale-95 min-h-[48px] min-w-[56px] touch-manipulation ${
+        className={`relative flex flex-col items-center justify-center gap-0.5 py-1.5 px-3 rounded-2xl transition-all duration-150 active:scale-95 min-h-[48px] min-w-[56px] touch-manipulation ${
           pathname === '/'
-            ? 'text-gold font-bold bg-gold/10'
+            ? 'text-gold font-bold bg-gold/15'
             : 'text-cream-dim/75 hover:text-cream'
         }`}
       >

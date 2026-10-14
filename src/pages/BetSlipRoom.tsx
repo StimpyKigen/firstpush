@@ -53,83 +53,83 @@ export default function BetSlipRoom() {
   }
 
   return (
-    <div className="max-w-2xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
+    <div className="max-w-4xl lg:max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
       <SeoHead
         title="Community Bet Slips & Code Parser"
         description="Share, parse, and analyze community bet slips for SportPesa, Betika, Mozzart, 22Bet & Odibets. Build multi-leg slips with Kenya's top punters."
         canonicalUrl="https://mshindi.co.ke/slips"
       />
       {/* Header Navigation */}
-      <div className="flex items-center justify-between gap-3 mb-5">
-        <Link to="/" className="inline-flex items-center gap-1.5 text-sm text-cream-dim hover:text-cream transition-colors">
-          <ArrowLeft size={15} /> Back home
+      <div className="flex items-center justify-between gap-3 mb-6">
+        <Link to="/" className="inline-flex items-center gap-2 text-xs sm:text-sm font-semibold text-cream-dim hover:text-cream transition-colors">
+          <ArrowLeft size={16} /> Back home
         </Link>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2.5">
           {currentUser && (
             <button
               onClick={() => setSelectedProfileUser(currentUser.username)}
-              className="inline-flex items-center gap-1.5 text-xs font-bold text-cream-dim hover:text-gold bg-panel border border-line hover:border-gold/30 px-3 py-1.5 rounded-full transition-colors"
+              className="ios-pill-btn bg-white/6 hover:bg-white/12 border border-white/10 text-xs font-bold text-cream px-3.5 py-1.5 active:scale-95"
             >
               <Share2 size={13} /> My Profile Link
             </button>
           )}
           <button
             onClick={() => setShowInviteModal(true)}
-            className="inline-flex items-center gap-1.5 text-xs font-bold text-ink bg-gold hover:bg-gold-2 px-3 py-1.5 rounded-full shadow transition-all"
+            className="ios-pill-btn bg-gold hover:bg-gold-2 text-ink text-xs font-bold px-4 py-1.5 shadow-sm active:scale-95"
           >
             <UserPlus size={13} /> Invite Friends
           </button>
         </div>
       </div>
 
-      <div className="mb-6">
-        <div className="flex items-center gap-2 mb-1">
-          <span className="inline-flex items-center gap-1.5 bg-gold/10 border border-gold/30 text-gold text-xs font-bold px-3 py-1.5 rounded-full">
+      <div className="mb-8">
+        <div className="flex items-center gap-2 mb-2">
+          <span className="inline-flex items-center gap-1.5 bg-gold/15 border border-gold/30 text-gold text-xs font-bold px-3.5 py-1.5 rounded-full shadow-sm">
             <Sparkles size={13} /> Bet Builder & Slip Hub
           </span>
         </div>
-        <h1 className="font-display font-extrabold text-2xl sm:text-3xl text-cream">
+        <h1 className="font-display font-black text-2xl sm:text-4xl text-cream tracking-tight">
           Bet Builder & Slip Room
         </h1>
-        <p className="text-sm text-cream-dim mt-1 leading-relaxed">
+        <p className="text-sm text-cream-dim mt-2 leading-relaxed max-w-2xl font-normal">
           Build multi-leg bet slips with choosable markets (1X2, Over/Under, Double Chance, BTTS, Handicap), attach official bookie codes/links, and follow top community punters.
         </p>
       </div>
 
-      {/* Main Mode Tabs */}
-      <div className="flex items-center gap-1.5 p-1.5 bg-panel border border-line rounded-2xl mb-6">
+      {/* Main Mode Tabs (iOS Segmented Control) */}
+      <div className="flex items-center gap-1.5 p-1.5 ios-segmented-control w-full mb-8 shadow-sm">
         <button
           onClick={() => setActiveTab('builder')}
-          className={`flex-1 py-2.5 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
+          className={`flex-1 py-2.5 px-4 rounded-full text-xs sm:text-sm font-bold transition-all flex items-center justify-center gap-2 active:scale-95 ${
             activeTab === 'builder'
-              ? 'bg-gold text-ink shadow font-extrabold'
+              ? 'bg-gold text-ink shadow-sm font-extrabold'
               : 'text-cream-dim hover:text-cream'
           }`}
         >
-          <Dices size={15} />
+          <Dices size={16} />
           Bet Builder
         </button>
         <button
           onClick={() => setActiveTab('slips')}
-          className={`flex-1 py-2.5 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
+          className={`flex-1 py-2.5 px-4 rounded-full text-xs sm:text-sm font-bold transition-all flex items-center justify-center gap-2 active:scale-95 ${
             activeTab === 'slips'
-              ? 'bg-gold text-ink shadow font-extrabold'
+              ? 'bg-gold text-ink shadow-sm font-extrabold'
               : 'text-cream-dim hover:text-cream'
           }`}
         >
-          <Clapperboard size={15} />
+          <Clapperboard size={16} />
           SlipFeed
         </button>
         <button
           onClick={() => setActiveTab('punters')}
-          className={`flex-1 py-2.5 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
+          className={`flex-1 py-2.5 px-4 rounded-full text-xs sm:text-sm font-bold transition-all flex items-center justify-center gap-2 active:scale-95 ${
             activeTab === 'punters'
-              ? 'bg-gold text-ink shadow font-extrabold'
+              ? 'bg-gold text-ink shadow-sm font-extrabold'
               : 'text-cream-dim hover:text-cream'
           }`}
         >
-          <Search size={15} />
+          <Search size={16} />
           Find Punters
         </button>
       </div>

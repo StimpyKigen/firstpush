@@ -8,25 +8,27 @@ export default function Footer() {
   }
 
   return (
-    <footer className="border-t border-line mt-16 bg-ink-2/30">
-      <div className="max-w-full mx-auto px-4 sm:px-6 py-8 flex flex-col md:flex-row items-center justify-between gap-6">
-        <div className="flex flex-wrap items-center gap-3">
+    <footer className="border-t border-white/[0.08] dark:border-white/[0.08] light:border-black/[0.06] mt-20 bg-ink-2/40 backdrop-blur-xl">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 flex flex-col md:flex-row items-center justify-between gap-6">
+        <div className="flex flex-wrap items-center gap-4">
           <div className="flex items-center gap-2 pr-1">
-            <span className="font-display font-extrabold text-cream text-base">Mshindi<span className="text-gold">Room</span></span>
+            <span className="font-display font-black text-cream text-lg tracking-tight">
+              mshindi<span className="text-gold text-xl leading-none">.</span>
+            </span>
           </div>
 
-          {/* Social Links Group (Optimized for space - Icon Logos with embedded URLs) */}
+          {/* Social Links Group (iOS Rounded-Full Pills) */}
           <div className="flex items-center gap-2">
             {/* Instagram */}
             <a
               href="https://www.instagram.com/mshindiroom?igsh=MWhxZ3B0c2UweWswaw%3D%3D&utm_source=qr"
               target="_blank"
               rel="noopener noreferrer"
-              className="w-8 h-8 rounded-xl bg-gradient-to-tr from-purple-600/20 via-pink-600/20 to-amber-500/20 border border-pink-500/30 text-pink-400 hover:text-white hover:bg-pink-600 hover:border-pink-500 transition-all flex items-center justify-center shrink-0"
+              className="w-9 h-9 rounded-full bg-white/6 hover:bg-white/12 border border-white/10 dark:border-white/10 light:border-black/10 text-cream-dim hover:text-pink-400 active:scale-95 transition-all flex items-center justify-center shrink-0"
               title="Follow @mshindiroom on Instagram"
               aria-label="Instagram"
             >
-              <Instagram size={16} />
+              <Instagram size={15} />
             </a>
 
             {/* X (Twitter) */}
@@ -34,7 +36,7 @@ export default function Footer() {
               href="https://x.com/mshindiroom?s=21"
               target="_blank"
               rel="noopener noreferrer"
-              className="w-8 h-8 rounded-xl bg-panel-2/80 border border-line text-cream-dim hover:text-cream hover:bg-black hover:border-cream/40 transition-all flex items-center justify-center shrink-0"
+              className="w-9 h-9 rounded-full bg-white/6 hover:bg-white/12 border border-white/10 dark:border-white/10 light:border-black/10 text-cream-dim hover:text-white active:scale-95 transition-all flex items-center justify-center shrink-0"
               title="Follow @mshindiroom on X"
               aria-label="X (Twitter)"
             >
@@ -48,7 +50,7 @@ export default function Footer() {
               href="https://www.tiktok.com/@mshindiroom"
               target="_blank"
               rel="noopener noreferrer"
-              className="w-8 h-8 rounded-xl bg-panel-2/80 border border-line text-cream-dim hover:text-white hover:bg-black hover:border-pink-500/50 transition-all flex items-center justify-center shrink-0"
+              className="w-9 h-9 rounded-full bg-white/6 hover:bg-white/12 border border-white/10 dark:border-white/10 light:border-black/10 text-cream-dim hover:text-white active:scale-95 transition-all flex items-center justify-center shrink-0"
               title="Follow @mshindiroom on TikTok"
               aria-label="TikTok"
             >
@@ -62,35 +64,35 @@ export default function Footer() {
               href="https://www.facebook.com/share/18zCYvkaYQ/?mibextid=wwXIfr"
               target="_blank"
               rel="noopener noreferrer"
-              className="w-8 h-8 rounded-xl bg-panel-2/80 border border-line text-cream-dim hover:text-blue-400 hover:bg-blue-600/20 hover:border-blue-500/50 transition-all flex items-center justify-center shrink-0"
+              className="w-9 h-9 rounded-full bg-white/6 hover:bg-white/12 border border-white/10 dark:border-white/10 light:border-black/10 text-cream-dim hover:text-blue-400 active:scale-95 transition-all flex items-center justify-center shrink-0"
               title="Follow @mshindiroom on Facebook"
               aria-label="Facebook"
             >
-              <Facebook size={16} />
+              <Facebook size={15} />
             </a>
           </div>
 
           <button
             onClick={handleTriggerInstall}
-            className="px-2.5 py-1.5 rounded-xl bg-gold/15 border border-gold/40 text-gold hover:bg-gold hover:text-ink-2 transition-all flex items-center gap-1.5 text-xs font-extrabold ml-1"
+            className="ios-pill-btn bg-gold hover:bg-gold-2 text-ink text-xs px-3.5 py-1.5 shadow-sm active:scale-95"
             title="Install MshindiRoom App on Mobile or Desktop"
           >
-            <Smartphone size={14} />
+            <Smartphone size={13} />
             <span>Install App</span>
           </button>
         </div>
 
-        <p className="text-xs text-cream-dim text-center max-w-md">
-          MshindiRoom is a punter discussion community, not a licensed betting operator. Please gamble responsibly. 18+.
+        <p className="text-xs text-cream-dim/75 text-center max-w-md">
+          MshindiRoom is a punter consensus community, not a licensed betting operator. Gamble responsibly. 18+.
         </p>
 
-        <nav className="flex flex-wrap justify-center gap-4 sm:gap-5 text-xs text-cream-dim font-semibold">
+        <nav className="flex flex-wrap justify-center gap-4 sm:gap-6 text-xs text-cream-dim font-medium">
           <Link to="/free" className="hover:text-cream transition-colors">Free Matches</Link>
           <Link to="/p2p" className="hover:text-cream transition-colors">P2P Bets</Link>
           <Link to="/how-it-works" className="hover:text-cream transition-colors">How it works</Link>
           <Link to="/leaderboard" className="hover:text-cream transition-colors">Leaderboards</Link>
-          <Link to="/privacy" className="hover:text-cream transition-colors">Privacy Policy</Link>
-          <Link to="/terms" className="hover:text-cream transition-colors">Terms of Service</Link>
+          <Link to="/privacy" className="hover:text-cream transition-colors">Privacy</Link>
+          <Link to="/terms" className="hover:text-cream transition-colors">Terms</Link>
         </nav>
       </div>
     </footer>

@@ -64,13 +64,13 @@ export default function FreeMatches() {
   ).slice(0, 6);
 
   return (
-    <div className="max-w-6xl mx-auto px-3.5 sm:px-6 py-6 sm:py-10">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
       <SeoHead
         title="Free Football Matches & Live Discussion Rooms"
         description="Free discussion rooms for UEFA Champions League, Premier League, Europa League & top derbies. See community consensus, crowd splits & expert punter picks."
         canonicalUrl="https://mshindi.co.ke/free"
       />
-      <div className="text-center mb-6 sm:mb-8">
+      <div className="text-center mb-8 sm:mb-10">
         <div className="flex items-center justify-center gap-1.5 sm:gap-2 flex-wrap mb-3 sm:mb-4">
           <span className="inline-flex items-center gap-1.5 bg-panel border border-emerald-2/30 text-emerald-2 text-[11px] sm:text-xs font-bold px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-full">
             <Unlock size={12} className="sm:w-3.2 sm:h-3.2" /> Always free: no paywall
@@ -179,7 +179,7 @@ export default function FreeMatches() {
           </button>
         </div>
       ) : (
-        <div className="grid sm:grid-cols-2 gap-3.5 sm:gap-5">
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
           {filteredMatches.map((m, i) => {
             const consensus = consensusMap[m.id] || { homePct: 33, drawPct: 34, awayPct: 33, totalVotes: 0 };
             const majority = Math.max(consensus.homePct, consensus.drawPct, consensus.awayPct);
@@ -225,123 +225,123 @@ export default function FreeMatches() {
             return (
               <div
                 key={m.id}
-                className="animate-rise group bg-panel border border-line rounded-xl sm:rounded-2xl p-3 sm:p-5 flex flex-col gap-2 sm:gap-4 hover:border-gold/50 transition-all hover:-translate-y-0.5 hover:shadow-[0_20px_50px_-15px_rgba(242,183,5,0.2)]"
-                style={{ animationDelay: `${i * 70}ms` }}
+                className="animate-rise group ios-card p-5 sm:p-6 flex flex-col gap-3 sm:gap-4 hover:border-gold/50 transition-all hover:-translate-y-1"
+                style={{ animationDelay: `${i * 60}ms` }}
               >
-                <div className="flex items-center justify-between gap-1.5 sm:gap-2">
-                  <div className="flex items-center gap-1 sm:gap-1.5 flex-wrap">
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-1.5 flex-wrap">
                     {i === 0 && (
-                      <span className="inline-flex items-center gap-1 text-[9px] sm:text-[10px] font-extrabold uppercase tracking-wide px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-full bg-amber-500/20 text-amber-400 border border-amber-500/40">
-                        <Flame size={10} /> #1 Discussed
+                      <span className="inline-flex items-center gap-1 text-[10px] font-extrabold uppercase tracking-wide px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-400 border border-amber-500/40 shadow-sm">
+                        <Flame size={11} /> #1 Discussed
                       </span>
                     )}
                     <span
-                      className="text-[9px] sm:text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-full border"
+                      className="text-[10px] font-bold uppercase tracking-wide px-2.5 py-0.5 rounded-full border shadow-sm"
                       style={{ color: tierColor[m.tier], borderColor: `${tierColor[m.tier]}55`, backgroundColor: `${tierColor[m.tier]}18` }}
                     >
                       {TIER_LABEL[m.tier]}
                     </span>
                   </div>
-                  <span className="inline-flex items-center gap-1 text-[9px] sm:text-[10px] font-bold text-emerald-2 shrink-0">
-                    <RadioTower size={10} className="animate-pulse" /> Pre-Match
+                  <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-2 shrink-0">
+                    <RadioTower size={11} className="animate-pulse" /> Pre-Match
                   </span>
                 </div>
 
                 <Link to={`/free/${m.id}`} className="block group-hover:text-gold transition-colors">
-                  <h3 className="font-display font-bold text-sm sm:text-xl text-cream leading-snug flex items-center gap-1.5 sm:gap-2 flex-wrap">
-                    {m.homeLogo && <img src={m.homeLogo} alt="" loading="lazy" decoding="async" referrerPolicy="no-referrer" className="w-4 h-4 sm:w-5 sm:h-5 object-contain inline shrink-0" />}
+                  <h3 className="font-display font-extrabold text-base sm:text-lg text-cream leading-snug flex items-center gap-2 flex-wrap">
+                    {m.homeLogo && <img src={m.homeLogo} alt="" loading="lazy" decoding="async" referrerPolicy="no-referrer" className="w-5 h-5 object-contain inline shrink-0" />}
                     <span>{m.home}</span>
-                    <span className="text-cream-dim text-[11px] sm:text-sm font-normal px-0.5">vs</span>
-                    {m.awayLogo && <img src={m.awayLogo} alt="" loading="lazy" decoding="async" referrerPolicy="no-referrer" className="w-4 h-4 sm:w-5 sm:h-5 object-contain inline shrink-0" />}
+                    <span className="text-cream-dim/60 text-xs font-normal">vs</span>
+                    {m.awayLogo && <img src={m.awayLogo} alt="" loading="lazy" decoding="async" referrerPolicy="no-referrer" className="w-5 h-5 object-contain inline shrink-0" />}
                     <span>{m.away}</span>
                   </h3>
-                  <p className="text-[10px] sm:text-xs text-cream-dim mt-0.5">{m.competition}</p>
+                  <p className="text-[11px] text-cream-dim mt-0.5 font-medium">{m.competition}</p>
                 </Link>
 
-                <p className="text-[11px] sm:text-sm text-cream-dim leading-snug line-clamp-1 sm:line-clamp-none">{m.blurb}</p>
+                <p className="text-xs text-cream-dim leading-relaxed line-clamp-2">{m.blurb}</p>
 
-                <div className="flex items-center justify-between text-[10px] sm:text-xs text-cream-dim pt-1.5 border-t border-line/70">
-                  <span className="flex items-center gap-1"><Clock size={11} /> {m.kickoff}</span>
-                  <span className="flex items-center gap-1 font-semibold text-amber-400/90"><Flame size={11} className="text-amber-400 shrink-0" /> {consensus.totalVotes.toLocaleString()} discussing</span>
+                <div className="flex items-center justify-between text-xs text-cream-dim pt-2 border-t border-line/60">
+                  <span className="flex items-center gap-1.5 font-medium"><Clock size={12} /> {m.kickoff}</span>
+                  <span className="flex items-center gap-1 font-semibold text-amber-400"><Flame size={12} className="text-amber-400 shrink-0" /> {consensus.totalVotes.toLocaleString()} discussing</span>
                 </div>
 
                 {/* Quick Interactive Odds Grid */}
                 <div>
-                  <span className="text-[8px] sm:text-[10px] font-extrabold uppercase tracking-wider text-cream-dim/70 block mb-1">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-cream-dim/70 block mb-1.5">
                     Match Result (1X2):
                   </span>
-                  <div className="grid grid-cols-3 gap-1 sm:gap-2 text-center font-mono">
+                  <div className="grid grid-cols-3 gap-2 text-center font-mono">
                     <button
                       onClick={(e) => handleQuickToggleOdd('Match Result (1X2)', `${m.home} Win (1)`, hOdds, e)}
-                      className={`rounded-lg sm:rounded-xl py-1 sm:py-2 px-1 sm:px-2 border transition-all duration-200 active:scale-95 touch-manipulation min-h-[36px] sm:min-h-[44px] flex flex-col items-center justify-center gap-0.5 ${
+                      className={`rounded-2xl py-2 px-1.5 border transition-all duration-200 active:scale-95 touch-manipulation min-h-[44px] flex flex-col items-center justify-center gap-0.5 shadow-sm ${
                         isHomeSelected
                           ? 'bg-gold text-ink font-black border-gold shadow-md'
-                          : 'bg-ink-2/90 text-cream border-line hover:border-gold/50'
+                          : 'bg-white/6 hover:bg-white/10 text-cream border-line/70 hover:border-gold/50'
                       }`}
                     >
-                      <span className={`text-[8px] sm:text-[9px] font-extrabold uppercase tracking-wider block leading-none ${isHomeSelected ? 'text-ink' : 'text-cream-dim'}`}>1 (HOME)</span>
-                      <span className={`font-extrabold text-[11px] sm:text-sm ${isHomeSelected ? 'text-ink' : 'text-emerald-400'}`}>{hOdds.toFixed(2)}</span>
+                      <span className={`text-[9px] font-extrabold uppercase tracking-wider block leading-none ${isHomeSelected ? 'text-ink' : 'text-cream-dim'}`}>1 (HOME)</span>
+                      <span className={`font-extrabold text-xs sm:text-sm ${isHomeSelected ? 'text-ink' : 'text-emerald-400'}`}>{hOdds.toFixed(2)}</span>
                     </button>
 
                     <button
                       onClick={(e) => handleQuickToggleOdd('Match Result (1X2)', 'Draw (X)', dOdds, e)}
-                      className={`rounded-lg sm:rounded-xl py-1 sm:py-2 px-1 sm:px-2 border transition-all duration-200 active:scale-95 touch-manipulation min-h-[36px] sm:min-h-[44px] flex flex-col items-center justify-center gap-0.5 ${
+                      className={`rounded-2xl py-2 px-1.5 border transition-all duration-200 active:scale-95 touch-manipulation min-h-[44px] flex flex-col items-center justify-center gap-0.5 shadow-sm ${
                         isDrawSelected
                           ? 'bg-gold text-ink font-black border-gold shadow-md'
-                          : 'bg-ink-2/90 text-cream border-line hover:border-gold/50'
+                          : 'bg-white/6 hover:bg-white/10 text-cream border-line/70 hover:border-gold/50'
                       }`}
                     >
-                      <span className={`text-[8px] sm:text-[9px] font-extrabold uppercase tracking-wider block leading-none ${isDrawSelected ? 'text-ink' : 'text-cream-dim'}`}>X (DRAW)</span>
-                      <span className={`font-extrabold text-[11px] sm:text-sm ${isDrawSelected ? 'text-ink' : 'text-gold'}`}>{dOdds.toFixed(2)}</span>
+                      <span className={`text-[9px] font-extrabold uppercase tracking-wider block leading-none ${isDrawSelected ? 'text-ink' : 'text-cream-dim'}`}>X (DRAW)</span>
+                      <span className={`font-extrabold text-xs sm:text-sm ${isDrawSelected ? 'text-ink' : 'text-gold'}`}>{dOdds.toFixed(2)}</span>
                     </button>
 
                     <button
                       onClick={(e) => handleQuickToggleOdd('Match Result (1X2)', `${m.away} Win (2)`, aOdds, e)}
-                      className={`rounded-lg sm:rounded-xl py-1 sm:py-2 px-1 sm:px-2 border transition-all duration-200 active:scale-95 touch-manipulation min-h-[36px] sm:min-h-[44px] flex flex-col items-center justify-center gap-0.5 ${
+                      className={`rounded-2xl py-2 px-1.5 border transition-all duration-200 active:scale-95 touch-manipulation min-h-[44px] flex flex-col items-center justify-center gap-0.5 shadow-sm ${
                         isAwaySelected
                           ? 'bg-gold text-ink font-black border-gold shadow-md'
-                          : 'bg-ink-2/90 text-cream border-line hover:border-gold/50'
+                          : 'bg-white/6 hover:bg-white/10 text-cream border-line/70 hover:border-gold/50'
                       }`}
                     >
-                      <span className={`text-[8px] sm:text-[9px] font-extrabold uppercase tracking-wider block leading-none ${isAwaySelected ? 'text-ink' : 'text-cream-dim'}`}>2 (AWAY)</span>
-                      <span className={`font-extrabold text-[11px] sm:text-sm ${isAwaySelected ? 'text-ink' : 'text-red-400'}`}>{aOdds.toFixed(2)}</span>
+                      <span className={`text-[9px] font-extrabold uppercase tracking-wider block leading-none ${isAwaySelected ? 'text-ink' : 'text-cream-dim'}`}>2 (AWAY)</span>
+                      <span className={`font-extrabold text-xs sm:text-sm ${isAwaySelected ? 'text-ink' : 'text-red-400'}`}>{aOdds.toFixed(2)}</span>
                     </button>
                   </div>
                 </div>
 
-                <div className="flex items-center justify-between rounded-lg bg-ink-2 border border-line px-2 py-1 sm:px-3 sm:py-2">
-                  <span className="text-[10px] sm:text-xs font-semibold text-cream-dim">Punters Mass Pick</span>
-                  <span className="font-display font-extrabold text-gold text-[11px] sm:text-sm">{majLabel} · {majority}%</span>
+                <div className="flex items-center justify-between rounded-2xl bg-ink-2/80 border border-line/70 px-3.5 py-2">
+                  <span className="text-xs font-semibold text-cream-dim">Punters Mass Pick</span>
+                  <span className="font-display font-extrabold text-gold text-xs sm:text-sm font-mono">{majLabel} · {majority}%</span>
                 </div>
 
                 {/* Dual Action Buttons: Discuss Picks + Add to Bet Builder */}
-                <div className="grid grid-cols-2 gap-1.5 pt-0.5">
+                <div className="grid grid-cols-2 gap-2 pt-1">
                   <Link
                     to={`/free/${m.id}`}
-                    className="flex items-center justify-center gap-1 sm:gap-2 rounded-lg sm:rounded-xl py-1.5 sm:py-2.5 px-1.5 sm:px-3 min-h-[36px] sm:min-h-[44px] text-[10px] sm:text-xs md:text-sm font-extrabold bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 hover:bg-emerald-500 hover:text-ink hover:border-emerald-500 active:scale-[0.98] transition-all duration-200 touch-manipulation shadow-sm leading-tight text-center group"
+                    className="ios-pill-btn py-2.5 px-3 min-h-[42px] text-xs font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 hover:bg-emerald-500 hover:text-ink hover:border-emerald-500 active:scale-95 transition-all shadow-sm text-center"
                   >
-                    <Sparkles size={13} className="shrink-0 text-emerald-400 group-hover:text-ink transition-colors" />
-                    <span className="tracking-tight sm:tracking-wide">Discuss</span>
+                    <Sparkles size={14} className="shrink-0" />
+                    <span>Discuss</span>
                   </Link>
 
                   <button
                     type="button"
                     onClick={() => setSelectedMatchForBuilder(m)}
-                    className={`flex items-center justify-center gap-1 sm:gap-2 rounded-lg sm:rounded-xl py-1.5 sm:py-2.5 px-1.5 sm:px-3 min-h-[36px] sm:min-h-[44px] text-[10px] sm:text-xs md:text-sm font-extrabold transition-all duration-200 active:scale-[0.98] touch-manipulation shadow-sm leading-tight text-center ${
+                    className={`ios-pill-btn py-2.5 px-3 min-h-[42px] text-xs font-bold transition-all active:scale-95 shadow-sm text-center ${
                       matchLegs.length > 0
-                        ? 'bg-gradient-to-r from-amber-400 via-gold to-amber-500 text-ink border border-gold shadow-md font-black'
-                        : 'bg-gold/10 text-gold border border-gold/30 hover:bg-gold hover:text-ink hover:border-gold'
+                        ? 'bg-gold text-ink shadow-md font-black'
+                        : 'bg-gold/15 text-gold border border-gold/30 hover:bg-gold hover:text-ink'
                     }`}
                   >
                     {matchLegs.length > 0 ? (
                       <>
-                        <Check size={13} className="shrink-0 stroke-[2.5]" />
-                        <span className="tracking-tight sm:tracking-wide">In Builder ({matchLegs.length})</span>
+                        <Check size={14} className="shrink-0 stroke-[2.5]" />
+                        <span>Builder ({matchLegs.length})</span>
                       </>
                     ) : (
                       <>
-                        <Dices size={13} className="shrink-0" />
-                        <span className="tracking-tight sm:tracking-wide">+ Builder</span>
+                        <Dices size={14} className="shrink-0" />
+                        <span>+ Builder</span>
                       </>
                     )}
                   </button>

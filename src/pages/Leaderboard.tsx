@@ -101,7 +101,7 @@ export default function Leaderboard() {
   }
 
   return (
-    <div className="max-w-5xl mx-auto px-3 sm:px-5 py-5 space-y-4">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10 space-y-6">
       <SeoHead
         title="Top Punters Leaderboard & Gameweek Standings"
         description="View live jackpot room rankings, accuracy ratings, and top punters for SportPesa, Betika & Mozzart jackpots on MshindiRoom."
@@ -112,31 +112,33 @@ export default function Leaderboard() {
         onClose={() => setSelectedUserForModal(null)}
       />
 
-      {/* Compact Space-Friendly Header */}
-      <div className="bg-panel border border-line rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-sm">
+      {/* iOS Styled Header */}
+      <div className="ios-card p-6 sm:p-7 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-5">
         <div>
-          <div className="flex items-center gap-2">
-            <Trophy size={18} className="text-gold" />
-            <h1 className="font-display font-extrabold text-xl text-cream">Room Leaderboards</h1>
+          <div className="flex items-center gap-2.5">
+            <div className="w-10 h-10 rounded-2xl bg-gold/15 border border-gold/30 flex items-center justify-center text-gold shadow-sm">
+              <Trophy size={20} />
+            </div>
+            <h1 className="font-display font-black text-2xl sm:text-3xl text-cream tracking-tight">Room Leaderboards</h1>
           </div>
-          <p className="text-xs text-cream-dim mt-0.5">
-            Independent standings per room. Select any room to expand its rankings & live leg hits.
+          <p className="text-xs sm:text-sm text-cream-dim mt-2 max-w-xl leading-relaxed">
+            Independent standings per jackpot room. Select any room to expand its rankings, participant slips & live leg hits.
           </p>
         </div>
 
         {/* Compact User Stats Pill */}
-        <div className="flex items-center gap-2 bg-panel-2 border border-line/80 px-3 py-1.5 rounded-xl text-xs shrink-0 self-stretch sm:self-auto justify-between">
+        <div className="flex items-center gap-3 bg-white/6 border border-white/10 px-4 py-2.5 rounded-full text-xs shrink-0 self-stretch sm:self-auto justify-between shadow-sm">
           <div className="flex items-center gap-1.5">
-            <Target size={13} className="text-gold" />
+            <Target size={14} className="text-gold" />
             <span className="text-cream-dim">Rooms:</span>
             <strong className="text-cream font-bold">{totalRoomsJoined}</strong>
           </div>
-          <div className="w-px h-3.5 bg-line" />
+          <div className="w-px h-4 bg-line/80" />
           <div className="flex items-center gap-1.5">
             <span className="text-cream-dim">Hits Acc:</span>
             <strong className="text-emerald-300 font-bold">{overallAccuracy}%</strong>
           </div>
-          <div className="w-px h-3.5 bg-line" />
+          <div className="w-px h-4 bg-line/80" />
           <div className="flex items-center gap-1 text-gold font-bold">
             {userStats.stars}★
           </div>
@@ -144,16 +146,16 @@ export default function Leaderboard() {
       </div>
 
       {/* Filter Tabs & Search Bar */}
-      <div className="bg-panel border border-line rounded-2xl p-2.5 sm:p-3 space-y-2.5">
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5">
-          {/* Main Status Category Tabs with the 3 exact room statuses */}
-          <div className="flex items-center gap-1 overflow-x-auto pb-1 sm:pb-0 scrollbar-none text-xs font-bold">
+      <div className="ios-card p-3 sm:p-4 space-y-3">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+          {/* Main Status Category Tabs with iOS Segmented Control */}
+          <div className="ios-segmented-control p-1 overflow-x-auto scrollbar-none text-xs font-bold w-full sm:w-auto">
             <button
               onClick={() => setFilterTab('all')}
-              className={`px-3 py-1.5 rounded-xl transition-all flex items-center gap-1.5 whitespace-nowrap ${
+              className={`px-3.5 py-2 rounded-full transition-all flex items-center gap-1.5 whitespace-nowrap active:scale-95 ${
                 filterTab === 'all'
-                  ? 'bg-gold text-ink-2 shadow-sm'
-                  : 'bg-panel-2 text-cream-dim hover:text-cream'
+                  ? 'bg-gold text-ink shadow-sm font-extrabold'
+                  : 'text-cream-dim hover:text-cream'
               }`}
             >
               <Layers size={13} /> All ({allJackpots.length})
@@ -161,10 +163,10 @@ export default function Leaderboard() {
 
             <button
               onClick={() => setFilterTab('my')}
-              className={`px-3 py-1.5 rounded-xl transition-all flex items-center gap-1.5 whitespace-nowrap ${
+              className={`px-3.5 py-2 rounded-full transition-all flex items-center gap-1.5 whitespace-nowrap active:scale-95 ${
                 filterTab === 'my'
-                  ? 'bg-gold text-ink-2 shadow-sm'
-                  : 'bg-panel-2 text-cream-dim hover:text-cream'
+                  ? 'bg-gold text-ink shadow-sm font-extrabold'
+                  : 'text-cream-dim hover:text-cream'
               }`}
             >
               <Target size={13} /> My Rooms ({totalRoomsJoined})

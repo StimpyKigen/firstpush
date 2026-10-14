@@ -29,11 +29,12 @@ export default function Navbar() {
 
   return (
     <>
-      <header className="sticky top-0 z-50 border-b border-line/60 bg-ink/85 backdrop-blur-md">
-        <div className="max-w-full mx-auto px-4 sm:px-6 flex items-center justify-between gap-2 h-16">
-          <Link to="/" className="flex items-center gap-2 shrink-0 group">
-            <span className="font-display font-extrabold text-lg xl:text-xl tracking-tight text-cream whitespace-nowrap">
-              Mshindi<span className="text-gold">Room</span>
+      <header className="sticky top-0 z-50 border-b border-white/[0.08] dark:border-white/[0.08] light:border-black/[0.06] bg-ink/75 backdrop-blur-2xl transition-colors">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between gap-4 h-16">
+          <Link to="/" className="flex items-center gap-2 shrink-0 group active:scale-95 transition-transform">
+            <span className="font-display font-black text-xl tracking-tight text-cream whitespace-nowrap flex items-center">
+              mshindi<span className="text-gold text-2xl leading-none">.</span>
+              <span className="ml-1.5 text-[9px] tracking-widest uppercase font-mono font-bold px-2 py-0.5 rounded-full bg-emerald-2/15 text-emerald-2 border border-emerald-2/30">ROOM</span>
             </span>
           </Link>
 

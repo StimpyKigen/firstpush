@@ -69,47 +69,102 @@ export default function Home() {
         }}
       />
       {/* Hero */}
-      <section className="relative overflow-hidden border-b border-line">
-        <div className="absolute inset-0">
-          <img src="/hero-stadium.svg" alt="" className="w-full h-full object-cover opacity-20" />
-          <div className="absolute inset-0 bg-gradient-to-b from-ink/40 via-ink to-ink" />
+      <section className="relative overflow-hidden border-b border-white/[0.08] dark:border-white/[0.08] light:border-black/[0.06] bg-gradient-to-b from-ink via-ink/95 to-ink-2/90">
+        <div className="absolute inset-0 pointer-events-none">
+          <div className="absolute -top-40 right-10 w-[550px] h-[550px] bg-emerald-500/10 rounded-full blur-[120px]" />
+          <div className="absolute top-20 left-10 w-[450px] h-[450px] bg-gold/8 rounded-full blur-[100px]" />
         </div>
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 pt-16 pb-14 sm:pt-24 sm:pb-20">
-          <div className="max-w-2xl animate-rise">
-            <span className="inline-flex items-center gap-1.5 bg-ink/70 backdrop-blur-sm border border-gold/25 text-gold text-xs font-semibold tracking-wide px-3.5 py-1.5 rounded-full mb-5">
-              <Sparkles size={13} /> Jackpots are paid · Weekly matches are free
-            </span>
-            <h1 className="font-display font-extrabold text-3xl xs:text-4xl sm:text-5xl md:text-6xl leading-[1.08] sm:leading-[1.05] text-cream">
+
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 pb-14 sm:pt-20 sm:pb-20">
+          <div className="max-w-3xl animate-rise">
+            <div className="inline-flex items-center gap-2 bg-white/6 hover:bg-white/10 backdrop-blur-xl border border-white/12 text-gold text-xs font-bold tracking-wide px-4 py-1.5 rounded-full mb-6 shadow-sm">
+              <Sparkles size={13} className="text-gold" />
+              <span>Jackpots are paid · Weekly matches are free</span>
+            </div>
+
+            <h1 className="font-display font-black text-3xl xs:text-5xl sm:text-6xl md:text-7xl leading-[1.03] text-cream tracking-tight">
               Never punt the <span className="text-gold">jackpot</span> alone again.
             </h1>
-            <p className="text-cream-dim text-sm xs:text-base sm:text-lg mt-4 sm:mt-5 leading-relaxed max-w-xl">
-              Pool a few bob to unlock any bookie's jackpot room: see the mass pick on every leg, read why the crowd is
-              backing it, and battle it out for who lands closest to the winning slip. Midweek's big matches? Always free
-              to discuss, no paywall attached.
+
+            <p className="text-cream-dim text-sm xs:text-base sm:text-lg mt-5 leading-relaxed max-w-2xl font-normal">
+              Pool a few bob to unlock any bookie's jackpot room: see the mass pick across all 17 legs, read verified rationale, and battle it out for who lands closest to the winning slip. Midweek matches are 100% free to discuss.
             </p>
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4 mt-7 sm:mt-8">
-              <a href="#rooms" className="inline-flex items-center justify-center h-12 px-6 rounded-full bg-gold hover:bg-gold-2 text-ink font-bold text-sm text-center transition-colors whitespace-nowrap">
-                Browse Jackpot Rooms
+
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3.5 mt-8 sm:mt-9">
+              <a
+                href="#rooms"
+                className="ios-pill-btn bg-[#00a878] hover:bg-[#1dd39a] text-white text-sm sm:text-base px-8 h-13 shadow-[0_10px_25px_-5px_rgba(0,168,120,0.45)] whitespace-nowrap active:scale-96"
+              >
+                <span>Browse Jackpot Rooms</span>
+                <ArrowRight size={16} />
               </a>
-              <Link to="/free" className="inline-flex items-center justify-center gap-2 h-12 px-6 rounded-full bg-emerald-2/10 text-cream font-semibold text-sm border border-emerald-2/30 hover:border-emerald-2/60 hover:bg-emerald-2/15 transition-colors whitespace-nowrap">
-                <Unlock size={16} className="text-emerald-2" /> Free Matches
+              <Link
+                to="/free"
+                className="ios-pill-btn bg-white/8 hover:bg-white/14 border border-white/15 text-cream text-sm sm:text-base px-6 h-13 backdrop-blur-md whitespace-nowrap active:scale-96"
+              >
+                <Unlock size={16} className="text-emerald-2" />
+                <span>Free Matches</span>
               </Link>
-              <Link to="/slips" className="inline-flex items-center justify-center gap-2 h-12 px-6 rounded-full bg-gold/10 text-cream font-semibold text-sm border border-gold/25 hover:border-gold/50 hover:bg-gold/15 transition-colors whitespace-nowrap">
-                <Search size={16} className="text-gold" /> Parse Slip
+              <Link
+                to="/slips"
+                className="ios-pill-btn bg-white/8 hover:bg-white/14 border border-white/15 text-cream text-sm sm:text-base px-6 h-13 backdrop-blur-md whitespace-nowrap active:scale-96"
+              >
+                <Search size={16} className="text-gold" />
+                <span>Parse Slip</span>
               </Link>
             </div>
-            <div className="flex flex-wrap gap-x-6 gap-y-2 mt-8 sm:mt-10 text-xs sm:text-sm">
-              <div className="flex items-center gap-2 text-cream-dim">
-                <Users size={16} className="text-emerald-2 shrink-0" />
-                <span className="font-mono font-semibold text-cream">{totalPunters.toLocaleString()}</span> active punters
+
+            <div className="flex flex-wrap gap-x-6 gap-y-2.5 mt-9 text-xs sm:text-sm font-medium">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-cream-dim">
+                <Users size={15} className="text-emerald-2 shrink-0" />
+                <span className="font-mono font-bold text-cream">{totalPunters.toLocaleString()}</span> active punters
               </div>
-              <div className="flex items-center gap-2 text-cream-dim">
-                <TrendingUp size={16} className="text-gold shrink-0" />
-                <span className="font-mono font-semibold text-cream">{activeRooms.length}</span> active jackpot rooms
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-cream-dim">
+                <TrendingUp size={15} className="text-gold shrink-0" />
+                <span className="font-mono font-bold text-cream">{activeRooms.length}</span> active jackpot rooms
               </div>
-              <div className="flex items-center gap-2 text-cream-dim">
-                <Archive size={16} className="text-cream-dim shrink-0" />
-                <span className="font-mono font-semibold text-cream">{archivedRooms.length}</span> archived rooms
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-cream-dim">
+                <Archive size={15} className="text-cream-dim shrink-0" />
+                <span className="font-mono font-bold text-cream">{archivedRooms.length}</span> archives
+              </div>
+            </div>
+          </div>
+
+          {/* iOS 3-Feature Trio (Directly inspired by reference layout: Feeding · Light · Care) */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-10 sm:pt-14 mt-12 sm:mt-16 border-t border-white/[0.08] dark:border-white/[0.08] light:border-black/[0.06]">
+            <div className="flex items-start gap-4">
+              <div className="w-12 h-12 rounded-2xl bg-emerald-2/15 border border-emerald-2/30 flex items-center justify-center text-emerald-2 shrink-0 shadow-sm">
+                <Users size={22} />
+              </div>
+              <div>
+                <h3 className="font-display font-bold text-base text-cream">Crowd Consensus</h3>
+                <p className="text-xs sm:text-sm text-cream-dim mt-1 leading-relaxed">
+                  Real-time consensus splits on 1X2, double chance, and banker picks across all legs before lock.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-start gap-4">
+              <div className="w-12 h-12 rounded-2xl bg-gold/15 border border-gold/30 flex items-center justify-center text-gold shrink-0 shadow-sm">
+                <Sparkles size={22} />
+              </div>
+              <div>
+                <h3 className="font-display font-bold text-base text-cream">Verified Leaderboards</h3>
+                <p className="text-xs sm:text-sm text-cream-dim mt-1 leading-relaxed">
+                  Track genuine strike rates, close slips, and gameweek standings for Kenya's sharpest punters.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-start gap-4">
+              <div className="w-12 h-12 rounded-2xl bg-blue-500/15 border border-blue-500/30 flex items-center justify-center text-blue-400 shrink-0 shadow-sm">
+                <Unlock size={22} />
+              </div>
+              <div>
+                <h3 className="font-display font-bold text-base text-cream">Free Weekly Matches</h3>
+                <p className="text-xs sm:text-sm text-cream-dim mt-1 leading-relaxed">
+                  Champions League, Premier League, and derby discussion rooms are always open with zero paywalls.
+                </p>
               </div>
             </div>
           </div>
@@ -117,32 +172,36 @@ export default function Home() {
       </section>
 
       {/* Free vs Paid explainer strip */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 py-10">
-        <div className="grid sm:grid-cols-2 gap-5">
-          <div className="bg-panel border border-emerald-2/30 rounded-2xl p-6 flex flex-col gap-3 relative overflow-hidden">
-            <div className="absolute -right-6 -top-6 w-32 h-32 bg-emerald-2/10 rounded-full blur-2xl pointer-events-none" />
-            <span className="w-10 h-10 rounded-xl bg-emerald-2/15 border border-emerald-2/30 flex items-center justify-center relative">
-              <Unlock size={18} className="text-emerald-2" />
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-14">
+        <div className="grid sm:grid-cols-2 gap-6">
+          <div className="ios-card p-6 sm:p-8 flex flex-col gap-4 relative overflow-hidden">
+            <div className="absolute -right-8 -top-8 w-40 h-40 bg-emerald-2/15 rounded-full blur-3xl pointer-events-none" />
+            <span className="w-12 h-12 rounded-2xl bg-emerald-2/15 border border-emerald-2/30 flex items-center justify-center text-emerald-2 shrink-0">
+              <Unlock size={20} />
             </span>
-            <h3 className="font-display font-bold text-lg text-cream">Free Matches: always open</h3>
-            <p className="text-sm text-cream-dim leading-relaxed">
-              UEFA Champions League, Europa League, Conference League, and highlights from football's top-flight leagues (Premier League, La Liga, Serie A, Bundesliga & more) are 100% free to discuss. See the crowd split, read reasoning, post your own pick: no fee, ever.
-            </p>
-            <Link to="/free" className="mt-1 inline-flex items-center gap-1.5 text-sm font-bold text-emerald-2 hover:gap-2.5 transition-all">
+            <div>
+              <h3 className="font-display font-extrabold text-xl text-cream">Free Matches: always open</h3>
+              <p className="text-sm text-cream-dim mt-2 leading-relaxed">
+                UEFA Champions League, Europa League, Conference League, and highlights from top-flight football (Premier League, La Liga, Serie A & Bundesliga) are 100% free to discuss. See the crowd split, read reasoning, post your own pick.
+              </p>
+            </div>
+            <Link to="/free" className="mt-auto ios-pill-btn bg-emerald-2/15 hover:bg-emerald-2/25 border border-emerald-2/40 text-emerald-2 text-xs font-bold py-2.5 px-4 w-fit active:scale-95">
               Explore free matches <ArrowRight size={14} />
             </Link>
           </div>
-          <div className="bg-panel border border-gold/30 rounded-2xl p-6 flex flex-col gap-3 relative overflow-hidden">
-            <div className="absolute -right-6 -top-6 w-32 h-32 bg-gold/10 rounded-full blur-2xl pointer-events-none" />
-            <span className="w-10 h-10 rounded-xl bg-gold/15 border border-gold/30 flex items-center justify-center relative">
-              <Lock size={18} className="text-gold" />
+
+          <div className="ios-card p-6 sm:p-8 flex flex-col gap-4 relative overflow-hidden">
+            <div className="absolute -right-8 -top-8 w-40 h-40 bg-gold/15 rounded-full blur-3xl pointer-events-none" />
+            <span className="w-12 h-12 rounded-2xl bg-gold/15 border border-gold/30 flex items-center justify-center text-gold shrink-0">
+              <Lock size={20} />
             </span>
-            <h3 className="font-display font-bold text-lg text-cream">Jackpot Rooms: paid, exclusive</h3>
-            <p className="text-sm text-cream-dim leading-relaxed">
-              Real bookie jackpot slips (SportPesa, Betika & more) live behind one flat entry fee: just Ksh 10  - 
-              where punters compete for top spot on the verified gameweek leaderboard.
-            </p>
-            <a href="#rooms" className="mt-1 inline-flex items-center gap-1.5 text-sm font-bold text-gold hover:gap-2.5 transition-all">
+            <div>
+              <h3 className="font-display font-extrabold text-xl text-cream">Jackpot Rooms: paid, exclusive</h3>
+              <p className="text-sm text-cream-dim mt-2 leading-relaxed">
+                Real bookie jackpot slips (SportPesa, Betika & more) live behind one flat entry fee: just Ksh 10 — where punters compete for top spot on the verified gameweek leaderboard with pooled picks.
+              </p>
+            </div>
+            <a href="#rooms" className="mt-auto ios-pill-btn bg-gold hover:bg-gold-2 text-ink text-xs font-bold py-2.5 px-4 w-fit shadow-md active:scale-95">
               Browse jackpot rooms <ArrowRight size={14} />
             </a>
           </div>
@@ -150,30 +209,29 @@ export default function Home() {
       </section>
 
       {/* P2P Bets promo */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
-        <div className="bg-gradient-to-br from-panel via-panel to-ink-2 border border-line rounded-2xl p-5 sm:p-8 relative overflow-hidden">
-          <div className="absolute -left-10 -bottom-10 w-56 h-56 bg-emerald-2/10 rounded-full blur-3xl pointer-events-none" />
-          <div className="absolute -right-10 -top-10 w-56 h-56 bg-gold/10 rounded-full blur-3xl pointer-events-none" />
-          <div className="relative flex flex-col lg:flex-row lg:items-center gap-5 sm:gap-6">
-            <div className="flex-1 min-w-0">
-              <span className="inline-flex items-center gap-1.5 bg-ink-2 border border-gold/30 text-gold text-xs font-bold px-3 py-1.5 rounded-full mb-3">
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
+        <div className="ios-card p-6 sm:p-10 relative overflow-hidden">
+          <div className="absolute -left-12 -bottom-12 w-64 h-64 bg-emerald-2/15 rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute -right-12 -top-12 w-64 h-64 bg-gold/15 rounded-full blur-3xl pointer-events-none" />
+          <div className="relative flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+            <div className="flex-1 min-w-0 max-w-2xl">
+              <span className="inline-flex items-center gap-1.5 bg-gold/15 border border-gold/30 text-gold text-xs font-bold px-3.5 py-1.5 rounded-full mb-3 shadow-sm">
                 <Swords size={13} /> Coming Soon: Peer-to-Peer Bets
               </span>
-              <h2 className="font-display font-bold text-xl xs:text-2xl sm:text-3xl text-cream leading-tight">
+              <h2 className="font-display font-black text-2xl sm:text-3xl lg:text-4xl text-cream leading-tight">
                 Bet your friends directly. <span className="text-gold">You set the terms.</span>
               </h2>
-              <p className="text-sm text-cream-dim mt-2 max-w-xl leading-relaxed">
-                No pre-built markets: just you and someone else agreeing on what's being bet, the stake, and the odds.
-                We'll securely hold both stakes in escrow until you both confirm who won.
+              <p className="text-sm text-cream-dim mt-2.5 leading-relaxed">
+                No pre-built bookie margins: just you and someone else agreeing on what's being bet, the stake, and the odds. We securely hold both stakes in escrow until both parties confirm the outcome.
               </p>
-              <div className="flex flex-wrap gap-x-4 gap-y-2 mt-4 text-xs text-cream-dim">
-                <span className="flex items-center gap-1.5"><Scale size={13} className="text-gold shrink-0" /> You define the odds</span>
-                <span className="flex items-center gap-1.5"><ShieldCheck size={13} className="text-emerald-2 shrink-0" /> Funds held in escrow</span>
-                <span className="flex items-center gap-1.5"><Users size={13} className="text-[#3b82f6] shrink-0" /> Mutual settlement</span>
+              <div className="flex flex-wrap gap-x-5 gap-y-2.5 mt-5 text-xs text-cream-dim font-medium">
+                <span className="flex items-center gap-1.5"><Scale size={14} className="text-gold shrink-0" /> Custom odds</span>
+                <span className="flex items-center gap-1.5"><ShieldCheck size={14} className="text-emerald-2 shrink-0" /> Escrow secured</span>
+                <span className="flex items-center gap-1.5"><Users size={14} className="text-[#3b82f6] shrink-0" /> Mutual settlement</span>
               </div>
             </div>
-            <div className="flex flex-col sm:flex-row gap-3 shrink-0">
-              <Link to="/p2p" className="inline-flex items-center justify-center h-12 px-6 rounded-full bg-gold hover:bg-gold-2 text-ink font-bold text-sm text-center transition-colors">
+            <div className="shrink-0">
+              <Link to="/p2p" className="ios-pill-btn bg-gold hover:bg-gold-2 text-ink font-bold text-sm px-7 py-3.5 shadow-md active:scale-96">
                 Get Notified
               </Link>
             </div>
@@ -182,14 +240,16 @@ export default function Home() {
       </section>
 
       {/* Free matches preview */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
-        <div className="flex items-center justify-between mb-5">
-          <h2 className="font-display font-bold text-2xl text-cream flex items-center gap-2">
-            <Unlock size={20} className="text-emerald-2" /> This Week's Free Matches
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10">
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="font-display font-extrabold text-2xl sm:text-3xl text-cream flex items-center gap-2.5">
+            <Unlock size={22} className="text-emerald-2" /> This Week's Free Matches
           </h2>
-          <Link to="/free" className="text-sm font-bold text-emerald-2 hover:underline">See all →</Link>
+          <Link to="/free" className="text-sm font-bold text-emerald-2 hover:underline flex items-center gap-1">
+            See all <ArrowRight size={14} />
+          </Link>
         </div>
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
           {matches.slice(0, 3).map((m) => {
             const consensus = consensusMap[m.id];
             const majority = Math.max(consensus.homePct, consensus.drawPct, consensus.awayPct);
@@ -198,13 +258,15 @@ export default function Home() {
               <Link
                 key={m.id}
                 to={`/free/${m.id}`}
-                className="bg-panel border border-line rounded-xl p-4 hover:border-emerald-2/50 transition-colors flex flex-col gap-2"
+                className="ios-card p-5 hover:border-emerald-2/50 transition-all flex flex-col gap-3 group active:scale-[0.985]"
               >
-                <p className="text-xs text-cream-dim">{m.competition}</p>
-                <p className="font-display font-bold text-cream leading-tight">{m.home} <span className="text-cream-dim">vs</span> {m.away}</p>
-                <div className="flex items-center justify-between text-xs pt-1">
-                  <span className="text-cream-dim">{m.kickoff}</span>
-                  <span className="font-bold text-gold">{majLabel} · {majority}%</span>
+                <p className="text-[11px] text-cream-dim uppercase font-bold tracking-wider">{m.competition}</p>
+                <p className="font-display font-extrabold text-cream text-lg leading-tight group-hover:text-emerald-2 transition-colors">
+                  {m.home} <span className="text-cream-dim/60 font-normal">vs</span> {m.away}
+                </p>
+                <div className="flex items-center justify-between text-xs pt-2 border-t border-line/60">
+                  <span className="text-cream-dim font-medium">{m.kickoff}</span>
+                  <span className="font-bold text-gold px-2.5 py-0.5 rounded-full bg-gold/10 border border-gold/25 font-mono">{majLabel} · {majority}%</span>
                 </div>
               </Link>
             );
@@ -213,13 +275,13 @@ export default function Home() {
       </section>
 
       {/* Filters + list */}
-      <section id="rooms" className="max-w-7xl mx-auto px-4 sm:px-6 py-10 sm:py-14">
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-4">
+      <section id="rooms" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-14">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-6">
           <div>
-            <h2 className="font-display font-bold text-2xl text-cream flex items-center gap-2">
-              <Lock size={18} className="text-gold" /> Jackpot Rooms
+            <h2 className="font-display font-black text-2xl sm:text-3xl text-cream flex items-center gap-2.5">
+              <Lock size={20} className="text-gold" /> Jackpot Rooms
             </h2>
-            <p className="text-xs text-cream-dim mt-1">
+            <p className="text-xs sm:text-sm text-cream-dim mt-1">
               {viewTab === 'active'
                 ? 'Showing unplayed and ongoing jackpot rooms. Settled rooms are automatically archived.'
                 : 'Jackpot Archives: Review completed rooms, final winning slips, and historical leaderboards.'}
@@ -229,40 +291,40 @@ export default function Home() {
             {isAuthorizedAdmin && (
               <button
                 onClick={() => setIsAdminModalOpen(true)}
-                className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-full bg-gold/15 hover:bg-gold/25 border border-gold/40 text-gold text-xs font-bold transition-all"
+                className="ios-pill-btn bg-gold/15 hover:bg-gold/25 border border-gold/40 text-gold text-xs font-bold px-4 py-2.5 active:scale-95"
               >
                 <SlidersHorizontal size={14} />
                 Jackpot Admin Console
               </button>
             )}
             <div className="relative">
-              <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-cream-dim" />
+              <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-cream-dim" />
               <input
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder="Search rooms..."
-                className="bg-panel border border-line rounded-full pl-9 pr-4 py-2.5 text-sm text-cream placeholder:text-cream-dim/70 focus:outline-none focus:border-emerald-2 w-full sm:w-56"
+                className="bg-white/6 border border-white/10 dark:border-white/10 light:border-black/10 rounded-full pl-9 pr-4 py-2.5 text-sm text-cream placeholder:text-cream-dim/60 focus:outline-none focus:border-gold w-full sm:w-64 transition-all"
               />
             </div>
           </div>
         </div>
 
-        {/* Main View Mode Navigation Tabs */}
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 mb-6 bg-ink-2/80 p-1.5 rounded-2xl border border-line">
+        {/* Main View Mode Navigation Tabs (iOS Segmented Control) */}
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 mb-6 ios-segmented-control w-full sm:w-auto p-1.5 shadow-sm">
           <div className="flex items-center gap-1.5 min-w-0">
             <button
               onClick={() => {
                 setViewTab('active');
                 setStatus('All');
               }}
-              className={`flex-1 sm:flex-none px-4 py-2.5 rounded-xl font-display font-bold text-xs sm:text-sm flex items-center justify-center sm:justify-start gap-2 transition-all ${
+              className={`flex-1 sm:flex-none px-4 sm:px-5 py-2 rounded-full font-display font-bold text-xs sm:text-sm flex items-center justify-center sm:justify-start gap-2 transition-all active:scale-95 ${
                 viewTab === 'active'
-                  ? 'bg-gold text-ink shadow-md font-extrabold scale-[1.01]'
-                  : 'text-cream-dim hover:text-cream hover:bg-panel'
+                  ? 'bg-gold text-ink shadow-sm font-extrabold'
+                  : 'text-cream-dim hover:text-cream hover:bg-white/6'
               }`}
             >
-              <Flame size={16} className={viewTab === 'active' ? 'text-ink' : 'text-gold'} />
-              <span>Active Jackpot Rooms</span>
+              <Flame size={15} className={viewTab === 'active' ? 'text-ink' : 'text-gold'} />
+              <span>Active Rooms</span>
               <span className={`text-[10px] px-2 py-0.5 rounded-full font-mono font-extrabold ${
                 viewTab === 'active' ? 'bg-ink text-gold' : 'bg-panel-2 text-cream-dim border border-line'
               }`}>
@@ -275,14 +337,14 @@ export default function Home() {
                 setViewTab('archive');
                 setStatus('All');
               }}
-              className={`flex-1 sm:flex-none px-4 py-2.5 rounded-xl font-display font-bold text-xs sm:text-sm flex items-center justify-center sm:justify-start gap-2 transition-all ${
+              className={`flex-1 sm:flex-none px-4 sm:px-5 py-2 rounded-full font-display font-bold text-xs sm:text-sm flex items-center justify-center sm:justify-start gap-2 transition-all active:scale-95 ${
                 viewTab === 'archive'
-                  ? 'bg-gold text-ink shadow-md font-extrabold scale-[1.01]'
-                  : 'text-cream-dim hover:text-cream hover:bg-panel'
+                  ? 'bg-gold text-ink shadow-sm font-extrabold'
+                  : 'text-cream-dim hover:text-cream hover:bg-white/6'
               }`}
             >
-              <Archive size={16} className={viewTab === 'archive' ? 'text-ink' : 'text-gold'} />
-              <span>Jackpot Archives</span>
+              <Archive size={15} className={viewTab === 'archive' ? 'text-ink' : 'text-gold'} />
+              <span>Archives</span>
               <span className={`text-[10px] px-2 py-0.5 rounded-full font-mono font-extrabold ${
                 viewTab === 'archive' ? 'bg-ink text-gold' : 'bg-panel-2 text-cream-dim border border-line'
               }`}>
@@ -307,13 +369,13 @@ export default function Home() {
         </div>
 
         {/* Bookie Filter Pills */}
-        <div className="flex items-center gap-2 mb-3 overflow-x-auto no-scrollbar pb-1 -mx-4 px-4 sm:mx-0 sm:px-0 flex-nowrap sm:flex-wrap">
+        <div className="flex items-center gap-2 mb-3.5 overflow-x-auto no-scrollbar pb-1 -mx-4 px-4 sm:mx-0 sm:px-0 flex-nowrap sm:flex-wrap">
           {bookies.map((b) => (
             <button
               key={b}
               onClick={() => setBookie(b)}
-              className={`px-4 py-2 rounded-full text-xs font-bold border transition-colors shrink-0 whitespace-nowrap active:scale-95 ${
-                bookie === b ? 'bg-emerald-2 border-emerald-2 text-ink shadow-sm' : 'border-line text-cream-dim bg-panel/60 hover:border-emerald-2/50'
+              className={`px-4 py-2 rounded-full text-xs font-bold border transition-all shrink-0 whitespace-nowrap active:scale-95 ${
+                bookie === b ? 'bg-emerald-2 border-emerald-2 text-ink shadow-sm font-extrabold' : 'border-line/70 text-cream-dim bg-white/4 hover:border-emerald-2/50 hover:bg-white/8'
               }`}
             >
               {b}
@@ -322,13 +384,13 @@ export default function Home() {
         </div>
 
         {/* Status Filter Pills */}
-        <div className="flex items-center gap-2 mb-6 overflow-x-auto no-scrollbar pb-1 -mx-4 px-4 sm:mx-0 sm:px-0 flex-nowrap sm:flex-wrap">
+        <div className="flex items-center gap-2 mb-7 overflow-x-auto no-scrollbar pb-1 -mx-4 px-4 sm:mx-0 sm:px-0 flex-nowrap sm:flex-wrap">
           {statusOptions.map((s) => (
             <button
               key={s}
               onClick={() => setStatus(s)}
-              className={`px-4 py-2 rounded-full text-xs font-bold border capitalize transition-colors shrink-0 whitespace-nowrap active:scale-95 ${
-                status === s ? 'bg-gold border-gold text-ink shadow-sm' : 'border-line text-cream-dim bg-panel/60 hover:border-gold/50'
+              className={`px-4 py-2 rounded-full text-xs font-bold border capitalize transition-all shrink-0 whitespace-nowrap active:scale-95 ${
+                status === s ? 'bg-gold border-gold text-ink shadow-sm font-extrabold' : 'border-line/70 text-cream-dim bg-white/4 hover:border-gold/50 hover:bg-white/8'
               }`}
             >
               {s === 'All' ? (viewTab === 'active' ? 'All Active' : 'All Settled') : s}

@@ -3,9 +3,9 @@
 @theme {
   --breakpoint-xs: 380px;
 
-  --font-display: "Bricolage Grotesque", "Manrope", sans-serif;
-  --font-body: "Manrope", sans-serif;
-  --font-mono: "JetBrains Mono", monospace;
+  --font-display: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Bricolage Grotesque", "Manrope", sans-serif;
+  --font-body: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro", "Manrope", sans-serif;
+  --font-mono: SFMono-Regular, Menlo, Monaco, "JetBrains Mono", monospace;
 
   --color-ink: #050f0b;
   --color-ink-2: #0a1a14;
@@ -20,17 +20,16 @@
   --color-cream-dim: #c9c0a8;
   --color-danger: #ef5b5b;
 
-  /* Frame background: the surround visible outside the app shell on larger screens.
-     A near-black emerald-tinted shade — noticeably darker than --color-ink
-     so the app surface reads as elevated, but never competing with the UI. */
-  --color-frame-bg: #020a06;
+  /* Frame background: the surround visible outside the app shell on larger screens */
+  --color-frame-bg: #030c08;
 
-  /* Elevation tokens: dark surfaces need grounded, low-alpha black shadows
-     rather than colored glow to read as "premium" instead of "gaming". */
+  /* iOS elevation tokens */
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.30), 0 1px 1px rgba(0, 0, 0, 0.20);
   --shadow-md: 0 6px 16px -4px rgba(0, 0, 0, 0.40), 0 2px 6px -2px rgba(0, 0, 0, 0.28);
   --shadow-lg: 0 16px 32px -8px rgba(0, 0, 0, 0.50), 0 6px 12px -6px rgba(0, 0, 0, 0.32);
-  --shadow-gold: 0 8px 20px -6px rgba(245, 184, 0, 0.28), 0 2px 8px -2px rgba(245, 184, 0, 0.16);
+  --shadow-gold: 0 8px 24px -6px rgba(245, 184, 0, 0.32), 0 2px 8px -2px rgba(245, 184, 0, 0.18);
+  --shadow-ios-card: 0 10px 30px -5px rgba(0, 0, 0, 0.45), 0 2px 8px -2px rgba(0, 0, 0, 0.35);
+  --shadow-ios-popover: 0 24px 48px -12px rgba(0, 0, 0, 0.65), 0 4px 16px -4px rgba(0, 0, 0, 0.4);
 }
 
 html {
@@ -118,28 +117,28 @@ select,
    `.bg-panel { box-shadow }` rule here would silently clobber every
    component's own `shadow-xl`/`shadow-2xl` utility classes. */
 @layer components {
-  /* Restrained, consistent press/hover feel across every interactive element */
+  /* iOS responsive spring press feedback across buttons & touch targets */
   button, a, [role="button"] {
-    transition: transform 180ms cubic-bezier(0.16, 1, 0.3, 1),
-                filter 180ms ease,
+    transition: transform 160ms cubic-bezier(0.2, 0.8, 0.2, 1),
+                filter 160ms ease,
                 box-shadow 180ms ease,
-                background-color 180ms ease,
-                border-color 180ms ease,
-                color 180ms ease;
+                background-color 160ms ease,
+                border-color 160ms ease,
+                color 160ms ease;
   }
   button:active, [role="button"]:active {
-    transform: translateY(1px) scale(0.985);
+    transform: scale(0.965) translateY(1px);
   }
   @media (hover: hover) {
     button:not(:disabled):hover, [role="button"]:not(:disabled):hover {
-      filter: brightness(1.04);
+      filter: brightness(1.05);
     }
   }
   button:disabled, [role="button"][aria-disabled="true"] {
     transform: none !important;
   }
 
-  /* Accessible, on-brand focus ring (keyboard navigation only) */
+  /* Accessible focus ring with smooth pill curvature */
   button:focus-visible,
   a:focus-visible,
   input:focus-visible,
@@ -149,22 +148,79 @@ select,
   [tabindex]:focus-visible {
     outline: 2px solid var(--color-gold);
     outline-offset: 2px;
-    border-radius: 4px;
+    border-radius: 9999px;
   }
 
-  /* Solid gold CTAs get a grounded gold-tinted shadow instead of a flat fill,
-     the difference between "expensive" and "flat sticker button". */
+  /* iOS Frosted Glass Material */
+  .ios-glass {
+    background: rgba(14, 33, 24, 0.75);
+    backdrop-filter: blur(24px) saturate(190%);
+    -webkit-backdrop-filter: blur(24px) saturate(190%);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+  }
+
+  /* iOS Card Container (Continuous squircle curves with soft elevation) */
+  .ios-card {
+    border-radius: 26px;
+    background: var(--color-panel);
+    border: 1px solid var(--color-line);
+    box-shadow: var(--shadow-ios-card);
+    transition: transform 220ms cubic-bezier(0.16, 1, 0.3, 1), box-shadow 220ms ease, border-color 220ms ease;
+  }
+  @media (hover: hover) {
+    .ios-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 18px 40px -8px rgba(0, 0, 0, 0.55);
+      border-color: rgba(245, 184, 0, 0.35);
+    }
+  }
+
+  /* iOS Pill Button (Directly inspired by the reference image's 'Discover >' button) */
+  .ios-pill-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    border-radius: 9999px;
+    font-weight: 700;
+    transition: all 180ms cubic-bezier(0.2, 0.8, 0.2, 1);
+    box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.22), 0 6px 20px -3px rgba(0, 0, 0, 0.35);
+  }
+  .ios-pill-btn:active {
+    transform: scale(0.96);
+  }
+
+  /* iOS Native Segmented Control Container */
+  .ios-segmented-control {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px;
+    border-radius: 9999px;
+    background: var(--color-ink-2);
+    border: 1px solid var(--color-line);
+  }
+
+  /* iOS Popover / Dropdown Menu */
+  .ios-dropdown {
+    border-radius: 24px;
+    background: rgba(14, 33, 24, 0.92);
+    backdrop-filter: blur(28px) saturate(200%);
+    -webkit-backdrop-filter: blur(28px) saturate(200%);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    box-shadow: var(--shadow-ios-popover);
+  }
+
+  /* Solid gold CTAs get a grounded gold-tinted shadow */
   .bg-gold {
     box-shadow: var(--shadow-gold);
   }
   @media (hover: hover) {
     .bg-gold:hover {
-      box-shadow: 0 10px 24px -6px rgba(245, 184, 0, 0.35), 0 3px 10px -2px rgba(245, 184, 0, 0.20);
+      box-shadow: 0 10px 24px -6px rgba(245, 184, 0, 0.40), 0 3px 10px -2px rgba(245, 184, 0, 0.25);
     }
   }
 
-  /* Elevated surfaces (cards, panels, dropdowns) get a soft grounding shadow;
-     subtle lift on hover, desktop (fine-pointer) only so touch UIs stay flat. */
+  /* Elevated surfaces */
   .bg-panel, .bg-panel-2 {
     box-shadow: var(--shadow-sm);
   }
@@ -219,25 +275,33 @@ select,
 .light .app-shell {
   background-color: var(--color-ink);
   background-image:
-    radial-gradient(ellipse 80% 60% at 15% -10%, rgba(0, 168, 120, 0.07), transparent),
-    radial-gradient(ellipse 60% 50% at 100% 0%, rgba(245, 184, 0, 0.06), transparent),
-    repeating-linear-gradient(135deg, rgba(12, 24, 18, 0.012) 0px, rgba(12, 24, 18, 0.012) 1px, transparent 1px, transparent 26px);
+    radial-gradient(ellipse 70% 50% at 15% -10%, rgba(0, 168, 120, 0.08), transparent 70%),
+    radial-gradient(ellipse 60% 40% at 85% 0%, rgba(245, 184, 0, 0.06), transparent 60%);
 }
 
-@media (min-width: 640px) {
-  .light .app-shell {
-    box-shadow:
-      0 0 0 1px rgba(12, 24, 18, 0.08),
-      0 4px 32px -4px rgba(12, 24, 18, 0.12);
+.light .ios-glass {
+  background: rgba(255, 255, 255, 0.82);
+  backdrop-filter: blur(24px) saturate(190%);
+  -webkit-backdrop-filter: blur(24px) saturate(190%);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.light .ios-card {
+  background: #ffffff;
+  border-color: rgba(0, 0, 0, 0.08);
+  box-shadow: 0 10px 30px -4px rgba(0, 0, 0, 0.05), 0 2px 6px rgba(0, 0, 0, 0.02);
+}
+@media (hover: hover) {
+  .light .ios-card:hover {
+    box-shadow: 0 16px 36px -4px rgba(0, 0, 0, 0.09);
+    border-color: rgba(161, 104, 0, 0.3);
   }
 }
 
-@media (min-width: 1024px) {
-  .light .app-shell {
-    box-shadow:
-      0 0 0 1px rgba(12, 24, 18, 0.10),
-      0 8px 48px -6px rgba(12, 24, 18, 0.15);
-  }
+.light .ios-dropdown {
+  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.12);
 }
 
 .light ::placeholder {
@@ -467,63 +531,24 @@ select,
 }
 
 /* ---------------------------------------------------------------------- */
-/* APP SHELL — Responsive centered container                               */
-/*                                                                         */
-/* The shell sits on the frame background (--color-frame-bg) and is the   */
-/* actual visible app surface. Width is fully fluid via clamp() so:        */
-/*   small phones  → 100% width  (frame invisible, pure immersive mobile)  */
-/*   large phones  → 100% width  (still full-bleed, very slight gap)       */
-/*   tablets       → ~85 vw, max 660px  (gentle frame margins show)        */
-/*   desktop       → clamp between 660–720px  (clear premium frame)        */
-/*                                                                         */
-/* No fixed heights — the shell grows with its content naturally.          */
-/* min-height: 100dvh ensures the app surface always fills the screen      */
-/* even on short pages so the frame background never shows at the bottom.  */
+/* ---------------------------------------------------------------------- */
+/* APP SHELL — Expansive responsive canvas                                 */
+/* Unlocks full desktop widths with elegant Apple-inspired spacing,       */
+/* while keeping mobile devices 100% immersive.                           */
 /* ---------------------------------------------------------------------- */
 .app-shell {
   position: relative;
-  /* Phone: full width — the frame background is invisible */
   width: 100%;
   max-width: 100%;
   min-height: 100dvh;
   margin-inline: auto;
 
-  /* App surface background with the full ambient gradient */
+  /* App surface background with ambient depth */
   background-color: var(--color-ink);
   background-image:
-    radial-gradient(ellipse 80% 55% at 18% -12%, rgba(0, 168, 120, 0.14), transparent),
-    radial-gradient(ellipse 55% 45% at 100% 0%, rgba(245, 184, 0, 0.09), transparent),
-    repeating-linear-gradient(135deg, rgba(255,255,255,0.012) 0px, rgba(255,255,255,0.012) 1px, transparent 1px, transparent 26px);
-}
-
-/* Tablet: gentle frame margins, app surface visually separated */
-@media (min-width: 640px) {
-  .app-shell {
-    max-width: clamp(540px, 88vw, 660px);
-    /* Soft elevation shadow to lift the app off the frame */
-    box-shadow:
-      0 0 0 1px rgba(255, 255, 255, 0.045),
-      0 4px 32px -4px rgba(0, 0, 0, 0.55),
-      0 0 80px -20px rgba(0, 168, 120, 0.08);
-  }
-}
-
-/* Desktop: clear framing, comfortable side margins */
-@media (min-width: 1024px) {
-  .app-shell {
-    max-width: clamp(660px, 72vw, 720px);
-    box-shadow:
-      0 0 0 1px rgba(255, 255, 255, 0.05),
-      0 8px 48px -6px rgba(0, 0, 0, 0.65),
-      0 0 120px -30px rgba(0, 168, 120, 0.10);
-  }
-}
-
-/* Wide desktop: slightly more generous */
-@media (min-width: 1280px) {
-  .app-shell {
-    max-width: clamp(680px, 60vw, 760px);
-  }
+    radial-gradient(ellipse 70% 50% at 20% -10%, rgba(0, 168, 120, 0.12), transparent 70%),
+    radial-gradient(ellipse 50% 40% at 85% 5%, rgba(245, 184, 0, 0.08), transparent 60%),
+    radial-gradient(ellipse 60% 50% at 50% 100%, rgba(0, 168, 120, 0.05), transparent 70%);
 }
 
 @keyframes float-slow {

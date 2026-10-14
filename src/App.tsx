@@ -110,16 +110,14 @@ function App() {
           background that acts as the "surround" on larger screens.
           On small phones this is invisible (app-shell is 100% wide).
         */}
-        <div className="min-h-dvh flex flex-col items-center font-body text-cream antialiased selection:bg-gold/30">
+        <div className="min-h-dvh w-full flex flex-col font-body text-cream antialiased selection:bg-gold/30">
           {/*
-            App shell: the responsive centered container.
-            Grows fluidly — full-width on phones, progressively narrower
-            on tablets and desktop where the frame background becomes visible.
-            flex flex-col + flex-1 on main ensure footer is pushed to bottom.
+            App shell: full responsive container spanning edge-to-edge on phones,
+            and expansive desktop canvas on larger displays.
           */}
-          <div className="app-shell flex flex-col">
+          <div className="app-shell w-full flex-1 flex flex-col">
             <Navbar />
-            <main className="flex-1 flex flex-col w-full pb-20 lg:pb-0 overflow-x-hidden">
+            <main className="flex-1 flex flex-col w-full pb-24 lg:pb-12 overflow-x-hidden">
               <AnimatedRoutes />
             </main>
             <Footer />
