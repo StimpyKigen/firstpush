@@ -112,18 +112,18 @@ export default function FreeMatchRoom() {
       </Link>
 
       <div className="bg-white border border-slate-200 rounded-2xl p-6 sm:p-8 mb-6 shadow-xs">
-        <div className="flex flex-wrap items-center gap-2 mb-4">
-          <span
-            className="text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full border"
-            style={{ color: tierColor[match.tier], borderColor: `${tierColor[match.tier]}55`, backgroundColor: `${tierColor[match.tier]}18` }}
-          >
+        {/* Clean Text Informational Metadata (No Generic Pills) */}
+        <div className="flex flex-wrap items-center gap-2.5 mb-3 text-xs font-bold uppercase tracking-wider">
+          <span style={{ color: tierColor[match.tier] }} className="font-black">
             {TIER_LABEL[match.tier]}
           </span>
-          <span className="inline-flex items-center gap-1.5 text-[11px] font-bold text-slate-700 bg-slate-100 border border-slate-200 px-3 py-1 rounded-full">
-            <Unlock size={11} className="text-[#d81e1e]" /> Free room · Open discussion
+          <span className="text-slate-300 font-normal">·</span>
+          <span className="text-slate-600 inline-flex items-center gap-1.5 font-bold">
+            <Unlock size={13} className="text-[#d81e1e]" /> Free Match Room · Open Discussion
           </span>
-          <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-slate-500">
-            <RadioTower size={11} className="animate-pulse text-[#d81e1e]" /> Synced {match.syncedAt}
+          <span className="text-slate-300 font-normal">·</span>
+          <span className="text-slate-400 font-semibold inline-flex items-center gap-1.5">
+            <RadioTower size={12} className="animate-pulse text-[#d81e1e]" /> Synced {match.syncedAt}
           </span>
         </div>
 
@@ -135,36 +135,38 @@ export default function FreeMatchRoom() {
             <p className="text-sm font-semibold text-slate-500 mt-1">{match.competition}</p>
           </div>
 
-          <div className="flex items-center gap-2 flex-wrap self-start sm:self-auto">
+          <div className="flex items-center gap-2.5 flex-wrap self-start sm:self-auto">
             {myPickRecord && (
-              <span
-                className="inline-flex items-center gap-1.5 text-xs font-black uppercase tracking-wider px-3.5 py-1.5 rounded-full shadow-2xs"
+              <div
+                className="inline-flex items-center gap-1.5 text-xs font-black uppercase tracking-wider px-3 py-1.5 rounded-md"
                 style={{
-                  backgroundColor: `${outcomeColor}22`,
+                  backgroundColor: `${outcomeColor}18`,
                   color: outcomeColor,
-                  border: `1px solid ${outcomeColor}66`,
+                  border: `1px solid ${outcomeColor}44`,
                 }}
               >
                 <CheckCircle2 size={14} />
                 YOUR PICK: {myPickRecord.pick}
-              </span>
+              </div>
             )}
 
             <button
               onClick={() => setShowBuilderModal(true)}
-              className={`inline-flex items-center gap-1.5 text-xs font-black uppercase tracking-wider px-4 py-2 rounded-full transition-all shadow-xs touch-manipulation active:scale-95 ${
+              className={`h-10 px-4 rounded-md font-extrabold uppercase tracking-wider text-xs transition-all active:scale-[0.98] shadow-2xs flex items-center justify-center gap-2 cursor-pointer ${
                 builderLegs.some((l) => l.matchId === match.id)
-                  ? 'bg-[#d81e1e] text-white shadow-xs'
-                  : 'bg-slate-900 hover:bg-slate-800 text-white'
+                  ? 'bg-[#d81e1e] hover:bg-[#b91515] text-white border border-[#b91515]'
+                  : 'bg-slate-900 hover:bg-slate-800 text-white border border-slate-900'
               }`}
             >
               {builderLegs.some((l) => l.matchId === match.id) ? (
                 <>
-                  <Check size={14} /> In Bet Builder ({builderLegs.filter((l) => l.matchId === match.id).length})
+                  <Check size={14} className="shrink-0 stroke-[3]" />
+                  <span>In Bet Builder ({builderLegs.filter((l) => l.matchId === match.id).length})</span>
                 </>
               ) : (
                 <>
-                  <Dices size={14} /> Add to Bet Builder
+                  <Dices size={14} className="shrink-0" />
+                  <span>Add to Bet Builder</span>
                 </>
               )}
             </button>

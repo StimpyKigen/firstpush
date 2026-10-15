@@ -11,9 +11,9 @@ export default function JackpotCard({ jackpot, index }: { jackpot: Jackpot; inde
   const totalSharedPicks = getTotalSharedPicksCount(jackpot);
 
   const statusBadge = {
-    open: { label: 'Open', color: 'text-emerald-700 bg-emerald-50 border-emerald-200' },
-    locked: { label: 'Locked · Awaiting KO', color: 'text-amber-800 bg-amber-50 border-amber-200' },
-    settled: { label: 'Settled · Archived', color: 'text-slate-600 bg-slate-100 border-slate-200' },
+    open: { label: 'Open', textColor: 'text-emerald-700', dotColor: 'bg-emerald-500' },
+    locked: { label: 'Locked · Awaiting KO', textColor: 'text-amber-700', dotColor: 'bg-amber-500' },
+    settled: { label: 'Settled · Archived', textColor: 'text-slate-500', dotColor: 'bg-slate-400' },
   }[jackpot.status];
 
   return (
@@ -30,7 +30,7 @@ export default function JackpotCard({ jackpot, index }: { jackpot: Jackpot; inde
         <div className="flex items-start justify-between gap-3">
           <div className="flex items-center gap-3">
             <div
-              className="w-11 h-11 rounded-xl flex items-center justify-center font-display font-black text-sm shrink-0 shadow-xs"
+              className="w-11 h-11 rounded-lg flex items-center justify-center font-display font-black text-sm shrink-0 shadow-xs"
               style={{ background: theme.bg, color: theme.text }}
             >
               {jackpot.bookie.slice(0, 2).toUpperCase()}
@@ -40,31 +40,35 @@ export default function JackpotCard({ jackpot, index }: { jackpot: Jackpot; inde
               <h3 className="font-display font-black text-lg leading-tight text-slate-900 group-hover:text-[#d81e1e] transition-colors">{jackpot.name}</h3>
             </div>
           </div>
-          <span className={`text-[11px] font-bold px-3 py-1 rounded-full border whitespace-nowrap shadow-xs ${statusBadge.color}`}>
+          {/* Clean Informational Text Status Label (No Generic Pill) */}
+          <span className={`text-[11px] font-black uppercase tracking-wider inline-flex items-center gap-1.5 whitespace-nowrap shrink-0 ${statusBadge.textColor}`}>
+            <span className={`w-1.5 h-1.5 rounded-full ${statusBadge.dotColor}`} />
             {statusBadge.label}
           </span>
         </div>
 
-        {/* Shared Picks Prior to Closure Highlight Badge */}
-        <div className="bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 flex items-center justify-between text-xs font-semibold text-slate-700">
+        {/* Shared Picks Prior to Closure Strip */}
+        <div className="bg-slate-50 border border-slate-200 rounded-lg px-3.5 py-2 flex items-center justify-between text-xs font-semibold text-slate-700">
           <span className="flex items-center gap-1.5">
             <MessageSquarePlus size={13} className="text-[#d81e1e]" />
             Shared Picks Before Closure:
           </span>
-          <span className="font-bold text-slate-900 bg-white px-2.5 py-0.5 rounded-full border border-slate-200 font-mono text-[11px] shadow-xs">
+          <span className="font-mono font-black text-xs text-slate-900">
             {totalSharedPicks.toLocaleString()}
           </span>
         </div>
 
-        <div className="flex items-center gap-2 text-xs text-slate-500 font-mono flex-wrap">
-          <span className="bg-slate-100 px-2.5 py-1 rounded-full border border-slate-200 font-bold text-slate-700">{jackpot.gameweek}</span>
+        {/* Clean Typographic Gameweek & Match Count (No Pill Container) */}
+        <div className="flex items-center gap-2 text-xs text-slate-500 flex-wrap">
+          <span className="font-black text-slate-800 uppercase tracking-wider">{jackpot.gameweek}</span>
           <span className="text-slate-300">·</span>
-          <span>{jackpot.matches.length} matches</span>
+          <span className="font-semibold text-slate-600">{jackpot.matches.length} matches</span>
         </div>
 
+        {/* Clean Live Sync Text Label */}
         {jackpot.syncedAt && (
-          <span className="inline-flex w-fit items-center gap-1.5 text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-full -mt-1">
-            <RadioTower size={11} className="animate-pulse text-emerald-600" /> Live synced from {jackpot.bookie}
+          <span className="inline-flex w-fit items-center gap-1.5 text-[11px] font-bold text-emerald-700 uppercase tracking-wider -mt-1">
+            <RadioTower size={12} className="text-emerald-600 shrink-0" /> Live synced from {jackpot.bookie}
           </span>
         )}
 
@@ -100,11 +104,12 @@ export default function JackpotCard({ jackpot, index }: { jackpot: Jackpot; inde
           )}
         </div>
 
+        {/* Custom Athletic CTA Button */}
         <div
-          className={`mt-auto w-full min-h-[44px] py-2.5 px-4 text-xs sm:text-sm font-bold transition-all shrink-0 rounded-full inline-flex items-center justify-center gap-2 ${
+          className={`mt-auto w-full h-11 px-4 text-xs sm:text-sm font-black uppercase tracking-wider transition-all shrink-0 rounded-md inline-flex items-center justify-center gap-2 cursor-pointer shadow-xs ${
             unlocked
-              ? 'bg-emerald-50 text-emerald-700 border border-emerald-300 hover:bg-emerald-100 shadow-xs'
-              : 'bg-[#d81e1e] hover:bg-[#b91515] text-white shadow-xs group-hover:shadow-md'
+              ? 'bg-white text-emerald-700 border border-emerald-400 hover:bg-emerald-50'
+              : 'bg-[#d81e1e] hover:bg-[#b91515] text-white border border-[#b91515] group-hover:shadow-md'
           }`}
         >
           {unlocked ? (

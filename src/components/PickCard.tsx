@@ -56,13 +56,13 @@ export default function PickCard({ pick, isCurrentUser, editCount, onEdit, onLik
             <div className="flex items-center gap-1.5 flex-wrap">
               <p className="font-semibold text-sm text-cream leading-tight truncate">{pick.username}</p>
               {isCurrentUser && (
-                <span className="text-[10px] font-extrabold uppercase bg-emerald-2/20 text-emerald-2 px-1.5 py-0.5 rounded-full shrink-0">
-                  You
+                <span className="text-[10px] font-black uppercase text-emerald-400 shrink-0">
+                  (You)
                 </span>
               )}
               {starRating >= 4.0 && !isCurrentUser && (
-                <span className="inline-flex items-center gap-0.5 text-[9px] font-extrabold uppercase bg-gold/20 text-gold px-1.5 py-0.5 rounded-full shrink-0">
-                  <Sparkles size={10} /> Top Punter
+                <span className="inline-flex items-center gap-0.5 text-[10px] font-black uppercase text-amber-400 shrink-0">
+                  <Sparkles size={11} /> Top Punter
                 </span>
               )}
             </div>
@@ -88,7 +88,7 @@ export default function PickCard({ pick, isCurrentUser, editCount, onEdit, onLik
             <ConvIcon size={12} /> {pick.conviction}
           </span>
           {typeof editCount === 'number' && (
-            <span className="text-[10px] font-medium text-cream-dim bg-panel px-2 py-0.5 rounded-full">
+            <span className="text-[10px] font-mono font-bold text-cream-dim">
               Edited {editCount}/2
             </span>
           )}
@@ -99,7 +99,7 @@ export default function PickCard({ pick, isCurrentUser, editCount, onEdit, onLik
             <button
               onClick={onEdit}
               disabled={editCount !== undefined && editCount >= 2}
-              className={`inline-flex items-center justify-center gap-1 text-xs font-semibold px-2.5 h-7 rounded-full border transition-all ${
+              className={`inline-flex items-center justify-center gap-1 text-xs font-bold px-2.5 h-8 rounded-md border transition-all ${
                 editCount !== undefined && editCount >= 2
                   ? 'opacity-40 cursor-not-allowed border-line text-cream-dim'
                   : 'border-gold/40 text-gold hover:bg-gold/10'
@@ -111,7 +111,7 @@ export default function PickCard({ pick, isCurrentUser, editCount, onEdit, onLik
 
           <button
             onClick={handleLike}
-            className={`inline-flex items-center justify-center gap-1.5 text-xs font-semibold px-2.5 h-7 rounded-full border transition-colors shrink-0 ${
+            className={`inline-flex items-center justify-center gap-1.5 text-xs font-bold px-2.5 h-8 rounded-md border transition-colors shrink-0 ${
               liked ? 'text-gold border-gold/40 bg-gold/10' : 'text-cream-dim border-line hover:border-gold/30 hover:text-gold'
             }`}
           >
@@ -121,7 +121,7 @@ export default function PickCard({ pick, isCurrentUser, editCount, onEdit, onLik
           {!isCurrentUser && (
             <button
               onClick={() => setShowReportModal(true)}
-              className="inline-flex items-center justify-center gap-1 text-xs font-semibold text-cream-dim/60 hover:text-rose-400 hover:bg-rose-500/10 px-2.5 h-7 rounded-full border border-transparent hover:border-rose-500/30 transition-all shrink-0"
+              className="inline-flex items-center justify-center gap-1 text-xs font-bold text-cream-dim/60 hover:text-rose-400 hover:bg-rose-500/10 px-2.5 h-8 rounded-md border border-transparent hover:border-rose-500/30 transition-all shrink-0"
               title="Report post"
             >
               <Flag size={11} /> Report

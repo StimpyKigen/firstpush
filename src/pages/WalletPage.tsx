@@ -157,7 +157,7 @@ export default function WalletPage() {
                 <button
                   key={p}
                   onClick={() => setAmount(p)}
-                  className={`inline-flex items-center justify-center h-10 rounded-full text-xs xs:text-sm font-black uppercase tracking-wider border transition-all ${
+                  className={`inline-flex items-center justify-center h-10 rounded-md text-xs xs:text-sm font-black uppercase tracking-wider border transition-all cursor-pointer ${
                     amount === p ? 'bg-[#d81e1e] border-[#d81e1e] text-white shadow-xs' : 'border-slate-200 text-slate-700 hover:border-[#d81e1e] hover:text-[#d81e1e]'
                   }`}
                 >
@@ -189,7 +189,7 @@ export default function WalletPage() {
                     <span className="font-mono font-black text-lg text-slate-900 tracking-wider">{RECEIVER_MPESA_NUMBER}</span>
                     <button
                       onClick={copyNumber}
-                      className="flex items-center gap-1 text-xs font-bold uppercase tracking-wider text-slate-700 hover:text-slate-900 bg-white border border-slate-300 rounded-full px-3 py-1 shrink-0 shadow-2xs active:scale-95 transition-all"
+                      className="flex items-center gap-1 text-xs font-black uppercase tracking-wider text-slate-700 hover:text-slate-900 bg-white border border-slate-300 rounded-md px-3 py-1.5 shrink-0 shadow-2xs active:scale-95 transition-all cursor-pointer"
                     >
                       {copied ? <Check size={12} className="text-[#d81e1e]" /> : <Copy size={12} />}
                       {copied ? 'Copied' : 'Copy'}
@@ -202,7 +202,7 @@ export default function WalletPage() {
                 </div>
                 <button
                   onClick={() => setStage('verify')}
-                  className="inline-flex items-center justify-center gap-2 bg-[#d81e1e] hover:bg-[#b51717] text-white font-bold uppercase tracking-wider text-xs h-12 rounded-full transition-all shadow-xs active:scale-95"
+                  className="inline-flex items-center justify-center gap-2 bg-[#d81e1e] hover:bg-[#b51717] text-white font-black uppercase tracking-wider text-xs h-12 rounded-md transition-all shadow-xs active:scale-95 cursor-pointer"
                 >
                   I&apos;ve sent the money →
                 </button>
@@ -230,7 +230,7 @@ export default function WalletPage() {
                 <button
                   onClick={verifyAndTopUp}
                   disabled={checking || !code.trim()}
-                  className="inline-flex items-center justify-center gap-2 bg-[#d81e1e] hover:bg-[#b51717] disabled:opacity-50 text-white font-bold uppercase tracking-wider text-xs h-12 rounded-full transition-all shadow-xs"
+                  className="inline-flex items-center justify-center gap-2 bg-[#d81e1e] hover:bg-[#b51717] disabled:opacity-50 text-white font-black uppercase tracking-wider text-xs h-12 rounded-md transition-all shadow-xs cursor-pointer"
                 >
                   {checking ? (
                     <>

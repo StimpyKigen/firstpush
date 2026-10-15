@@ -122,20 +122,21 @@ export default function BetSlipCard({ post, index, onOpenProfile }: BetSlipCardP
             </div>
           </button>
 
-          {/* Bookmaker Badge & Tags */}
-          <div className="flex flex-wrap gap-1 items-center justify-end">
+          {/* Bookmaker Badge & Tags (Clean Text Directly on Card) */}
+          <div className="flex flex-wrap gap-2 items-center justify-end text-xs">
             {hasBuiltSlip && (
-              <span className="text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-gold/15 text-gold border border-gold/30 flex items-center gap-1">
-                <Dices size={11} /> Bet Builder
+              <span className="text-[11px] font-black uppercase tracking-wider text-[#d81e1e] flex items-center gap-1">
+                <Dices size={12} /> Bet Builder
               </span>
             )}
-            <span className="text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">
+            {hasBuiltSlip && <span className="text-slate-300">·</span>}
+            <span className="text-[11px] font-black uppercase tracking-wider text-slate-700">
               {bookmakerName}
             </span>
             {post.tags.map((tag) => (
               <span
                 key={tag}
-                className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-ink/70 text-cream-dim border border-line"
+                className="text-[11px] font-semibold text-slate-400"
               >
                 #{tag}
               </span>

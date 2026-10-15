@@ -154,8 +154,8 @@ export default function CompactPickRow({ pick, isTopPick, onEdit }: CompactPickR
           />
           <span className="text-[11px] text-cream-dim/70">{pick.timeAgo}</span>
           {isTopPick && (
-            <span className="inline-flex items-center gap-1 text-[10px] font-bold text-gold bg-gold/10 border border-gold/30 px-1.5 py-0.5 rounded-full">
-              <Crown size={9} /> Top Pick
+            <span className="inline-flex items-center gap-1 text-[10px] font-black uppercase text-amber-400">
+              <Crown size={10} /> Top Pick
             </span>
           )}
         </div>

@@ -208,66 +208,226 @@ select,
     }
   }
 
-  /* Red Action Pill Buttons */
+  /* ==========================================================================
+     Custom Athletic Sports Button System
+     Distinctive geometry (rounded-md/6px), intentional icon-text alignment,
+     consistent heights, athletic font tracking, and clear hierarchy.
+     ========================================================================== */
+
+  .btn-primary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    height: 2.5rem; /* 40px */
+    padding: 0 1.125rem;
+    border-radius: 6px;
+    background-color: #d81e1e;
+    color: #ffffff;
+    border: 1px solid #b91515;
+    font-size: 0.8125rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+    transition: background-color 150ms ease, border-color 150ms ease, transform 100ms ease, box-shadow 150ms ease;
+    touch-action: manipulation;
+    cursor: pointer;
+  }
+  .btn-primary:hover {
+    background-color: #b91515;
+    border-color: #991b1b;
+    box-shadow: 0 2px 6px rgba(216, 30, 30, 0.25);
+  }
+  .btn-primary:active {
+    transform: scale(0.985);
+  }
+  .btn-primary:focus-visible {
+    outline: 2px solid #d81e1e;
+    outline-offset: 2px;
+  }
+
+  .btn-secondary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    height: 2.5rem;
+    padding: 0 1.125rem;
+    border-radius: 6px;
+    background-color: #ffffff;
+    color: #1e293b;
+    border: 1px solid #cbd5e1;
+    font-size: 0.8125rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+    transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease, transform 100ms ease;
+    touch-action: manipulation;
+    cursor: pointer;
+  }
+  .btn-secondary:hover {
+    background-color: #f8fafc;
+    border-color: #64748b;
+    color: #0f172a;
+  }
+  .btn-secondary:active {
+    transform: scale(0.985);
+    background-color: #f1f5f9;
+  }
+  .btn-secondary:focus-visible {
+    outline: 2px solid #64748b;
+    outline-offset: 2px;
+  }
+
+  .btn-dark {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    height: 2.5rem;
+    padding: 0 1.125rem;
+    border-radius: 6px;
+    background-color: #0f172a;
+    color: #ffffff;
+    border: 1px solid #020617;
+    font-size: 0.8125rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+    transition: background-color 150ms ease, transform 100ms ease;
+    touch-action: manipulation;
+    cursor: pointer;
+  }
+  .btn-dark:hover {
+    background-color: #1e293b;
+  }
+  .btn-dark:active {
+    transform: scale(0.985);
+  }
+  .btn-dark:focus-visible {
+    outline: 2px solid #0f172a;
+    outline-offset: 2px;
+  }
+
+  .btn-outline-red {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    height: 2.5rem;
+    padding: 0 1.125rem;
+    border-radius: 6px;
+    background-color: transparent;
+    color: #d81e1e;
+    border: 1.5px solid #d81e1e;
+    font-size: 0.8125rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    transition: background-color 150ms ease, color 150ms ease, transform 100ms ease;
+    touch-action: manipulation;
+    cursor: pointer;
+  }
+  .btn-outline-red:hover {
+    background-color: #d81e1e;
+    color: #ffffff;
+  }
+  .btn-outline-red:active {
+    transform: scale(0.985);
+  }
+
+  .btn-outline-white {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    height: 2.5rem;
+    padding: 0 1.125rem;
+    border-radius: 6px;
+    background-color: transparent;
+    color: #ffffff;
+    border: 1.5px solid rgba(255, 255, 255, 0.9);
+    font-size: 0.8125rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    transition: background-color 150ms ease, color 150ms ease, transform 100ms ease;
+    touch-action: manipulation;
+    cursor: pointer;
+  }
+  .btn-outline-white:hover {
+    background-color: #ffffff;
+    color: #d81e1e;
+  }
+  .btn-outline-white:active {
+    transform: scale(0.985);
+  }
+
+  /* Legacy adapters refined with custom athletic 6px radius */
   .espn-pill-btn-red,
   .ios-pill-btn {
     display: inline-flex;
     align-items: center;
     justify-content: center;
     gap: 0.5rem;
-    border-radius: 9999px;
+    border-radius: 6px;
     font-weight: 700;
-    transition: all 180ms ease;
+    transition: all 150ms ease;
   }
 
-  /* Red Outline Button (As seen in the ESPN reference Hero: 'Read More') */
   .espn-pill-btn-outline {
     display: inline-flex;
     align-items: center;
     justify-content: center;
     gap: 0.5rem;
-    border: 2px solid #d81e1e;
+    border: 1.5px solid #d81e1e;
     color: #d81e1e;
     background-color: transparent;
-    border-radius: 9999px;
-    font-weight: 700;
+    border-radius: 6px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
     padding: 0.5rem 1.25rem;
-    transition: all 160ms ease;
+    transition: all 150ms ease;
   }
   .espn-pill-btn-outline:hover {
     background-color: #d81e1e;
     color: #ffffff;
   }
 
-  /* White Outline Button (On Red Section: 'More' / 'View All') */
   .espn-pill-btn-white-outline {
     display: inline-flex;
     align-items: center;
     justify-content: center;
     gap: 0.5rem;
-    border: 2px solid rgba(255, 255, 255, 0.85);
+    border: 1.5px solid rgba(255, 255, 255, 0.9);
     color: #ffffff;
     background-color: transparent;
-    border-radius: 9999px;
-    font-weight: 700;
+    border-radius: 6px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
     padding: 0.5rem 1.25rem;
-    transition: all 160ms ease;
+    transition: all 150ms ease;
   }
   .espn-pill-btn-white-outline:hover {
     background-color: #ffffff;
     color: #d81e1e;
   }
 
-  /* ESPN Red Pill Badge ('HOT', 'TRENDING') */
+  /* ESPN Red Minimal Tag ('HOT', 'TRENDING') */
   .espn-badge-hot {
     background-color: #d81e1e;
     color: #ffffff;
-    font-size: 0.6875rem;
+    font-size: 0.65rem;
     font-weight: 900;
     text-transform: uppercase;
     letter-spacing: 0.05em;
-    padding: 0.2rem 0.65rem;
-    border-radius: 9999px;
+    padding: 0.15rem 0.5rem;
+    border-radius: 4px;
     display: inline-flex;
     align-items: center;
     line-height: 1.2;

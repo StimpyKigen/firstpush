@@ -134,7 +134,7 @@ export default function Home() {
                 
                 {/* Overlay match badge */}
                 <div className="absolute top-4 left-4">
-                  <span className="bg-[#d81e1e] text-white text-[11px] font-black uppercase tracking-wider px-3 py-1 rounded-full shadow-md">
+                  <span className="bg-[#d81e1e] text-white text-[11px] font-black uppercase tracking-wider px-3 py-1 rounded-md shadow-md">
                     FEATURED MATCH
                   </span>
                 </div>
@@ -183,13 +183,13 @@ export default function Home() {
               <div className="flex flex-wrap items-center gap-4 mt-6">
                 <a
                   href="#match-schedule"
-                  className="espn-pill-btn-outline text-sm"
+                  className="espn-pill-btn-outline text-xs sm:text-sm"
                 >
                   <span>Read More</span>
                 </a>
                 <a
                   href="#rooms"
-                  className="bg-[#d81e1e] hover:bg-[#b91515] text-white font-bold text-sm px-6 py-2.5 rounded-full shadow-xs active:scale-95 transition-all inline-flex items-center gap-2"
+                  className="h-11 px-6 rounded-md bg-[#d81e1e] hover:bg-[#b91515] text-white font-black uppercase tracking-wider text-xs sm:text-sm shadow-xs active:scale-95 transition-all inline-flex items-center gap-2"
                 >
                   <span>Jackpot Rooms</span>
                   <ArrowRight size={15} />
@@ -595,9 +595,9 @@ export default function Home() {
             {isAuthorizedAdmin && (
               <button
                 onClick={() => setIsAdminModalOpen(true)}
-                className="bg-red-50 hover:bg-red-100 border border-red-200 text-[#d81e1e] text-xs font-bold px-4 py-2.5 rounded-full inline-flex items-center gap-2 active:scale-95 transition-all shadow-xs"
+                className="h-10 px-4 rounded-md bg-white hover:bg-slate-50 border border-slate-300 text-slate-800 text-xs font-black uppercase tracking-wider inline-flex items-center gap-2 active:scale-95 transition-all shadow-2xs cursor-pointer"
               >
-                <SlidersHorizontal size={14} />
+                <SlidersHorizontal size={14} className="text-[#d81e1e]" />
                 <span>Jackpot Admin Console</span>
               </button>
             )}

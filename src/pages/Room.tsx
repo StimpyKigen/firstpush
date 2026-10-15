@@ -150,8 +150,8 @@ export default function Room() {
         </div>
 
         {jackpot.syncedAt && (
-          <span className="inline-flex w-fit items-center gap-1.5 text-[11px] font-bold text-slate-700 bg-slate-100 border border-slate-200 px-3 py-1 rounded-full mt-4">
-            <RadioTower size={12} className="animate-pulse text-[#d81e1e]" /> Live synced from {jackpot.bookie}
+          <span className="inline-flex w-fit items-center gap-1.5 text-xs font-bold text-slate-600 uppercase tracking-wider mt-4">
+            <RadioTower size={13} className="text-[#d81e1e] shrink-0" /> Live synced from {jackpot.bookie}
           </span>
         )}
 
@@ -173,15 +173,15 @@ export default function Room() {
         <div className="mb-8 bg-white border border-slate-200 rounded-2xl p-5 sm:p-6 shadow-xs relative overflow-hidden">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-3">
             <div className="flex items-center gap-2.5">
-              <div className="w-9 h-9 rounded-full bg-[#d81e1e]/10 text-[#d81e1e] flex items-center justify-center shrink-0">
+              <div className="w-9 h-9 rounded-md bg-[#d81e1e]/10 text-[#d81e1e] flex items-center justify-center shrink-0">
                 <ListChecks size={18} />
               </div>
               <div>
                 <h2 className="font-display font-black text-base sm:text-lg text-slate-900 uppercase tracking-tight flex items-center gap-2">
                   Room Betting Slip Progress
                   {pickedCount === totalMatches && (
-                    <span className="inline-flex items-center gap-1 text-xs font-black text-white bg-[#d81e1e] px-2.5 py-0.5 rounded-full">
-                      <Sparkles size={12} /> 100% Complete!
+                    <span className="inline-flex items-center gap-1 text-xs font-black text-[#d81e1e] uppercase tracking-wide">
+                      <Sparkles size={13} /> 100% Complete!
                     </span>
                   )}
                 </h2>
@@ -192,7 +192,7 @@ export default function Room() {
             </div>
 
             <div className="flex items-center gap-2 self-start sm:self-auto">
-              <span className="font-mono text-xs font-black px-3 py-1.5 rounded-full bg-slate-100 border border-slate-200 text-slate-900">
+              <span className="font-mono text-xs font-black text-slate-800 tracking-wide">
                 {pickedCount} / {totalMatches} Legs
               </span>
             </div>
