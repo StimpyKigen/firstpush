@@ -34,7 +34,7 @@ export default function Navbar() {
         <span>Free jackpot rooms every weekend.</span>{' '}
         <Link to="/free" className="underline underline-offset-2 text-[#FFD700]">Join now</Link>
       </div>
-      <header className="sticky top-0 z-50 border-b border-[#dee3e9] bg-white transition-colors">
+      <header className="sticky top-0 z-50 border-b border-[#E6E6D2] bg-[#FFFFF0] transition-colors">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between gap-4 h-16">
           <Link to="/" className="flex items-center gap-2 shrink-0 group active:scale-95 transition-transform" aria-label="MshindiRoom Home">
             <span className="font-display font-bold text-2xl tracking-tight text-[#0a1317] flex items-center">

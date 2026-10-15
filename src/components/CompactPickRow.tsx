@@ -13,9 +13,9 @@ import { moderateText } from '../lib/contentModeration';
 import ModerationWarningBox from './ModerationWarningBox';
 
 const outcomeDot: Record<string, string> = {
-  '1': '#1fae6f',
-  X: '#f2b705',
-  '2': '#ef5b5b',
+  '1': '#006C54',
+  X: '#8A6500',
+  '2': '#e41e3f',
 };
 
 const pickBtnStyle: Record<Outcome, string> = {
@@ -185,8 +185,8 @@ export default function CompactPickRow({ pick, isTopPick, onEdit }: CompactPickR
                 </span>
               )}
               {isTopPick && (
-                <span className="inline-flex items-center gap-1 text-[10px] font-black uppercase text-[#b49000] tracking-wider">
-                  <Crown size={11} className="text-[#FFD700] fill-[#FFD700]" /> #1 Top Pick
+                <span className="inline-flex items-center gap-1 text-[10px] font-bold text-[#8A6500]">
+                  <Crown size={11} className="text-[#8A6500] fill-[#8A6500]" /> #1 Top Pick
                 </span>
               )}
             </div>

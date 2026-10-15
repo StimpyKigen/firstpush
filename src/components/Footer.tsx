@@ -8,9 +8,9 @@ export default function Footer() {
   }
 
   return (
-    <footer className="border-t border-[#dee3e9] bg-white text-[#5d6c7b] mt-20">
+    <footer className="border-t border-[#E6E6D2] bg-[#FFFFF0] text-[#5d6c7b] mt-20">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 pb-8">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8 pb-10 border-b border-slate-200">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-8 pb-10 border-b border-[#E6E6D2]">
           {/* Brand Col */}
           <div className="space-y-3">
             <Link to="/" className="inline-block" aria-label="MshindiRoom">
@@ -24,7 +24,7 @@ export default function Footer() {
             </p>
             <button
               onClick={handleTriggerInstall}
-              className="inline-flex items-center gap-2 bg-white hover:bg-[#f1f4f7] border-2 border-[#0a1317] text-[#0a1317] text-sm font-bold px-5 py-2 rounded-full active:scale-95 transition-colors"
+              className="inline-flex items-center gap-2 bg-[#FFFFF0] hover:bg-[#F5F5E4] border-2 border-[#0a1317] text-[#0a1317] text-sm font-bold px-5 py-2 rounded-full active:scale-95 transition-colors"
               title="Install MshindiRoom App on Mobile or Desktop"
             >
               <Smartphone size={13} className="text-[#006C54]" />
@@ -91,7 +91,7 @@ export default function Footer() {
                 href="https://www.tiktok.com/@mshindiroom"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-9 h-9 rounded-full bg-white hover:bg-[#006C54] hover:text-white border border-slate-300 text-slate-700 active:scale-95 transition-all flex items-center justify-center shrink-0 shadow-xs"
+                className="w-9 h-9 rounded-full bg-[#FFFFF0] hover:bg-[#006C54] hover:text-white border border-[#D4D4C0] text-slate-700 active:scale-95 transition-all flex items-center justify-center shrink-0 shadow-xs"
                 title="Follow @mshindiroom on TikTok"
                 aria-label="TikTok"
               >
@@ -105,7 +105,7 @@ export default function Footer() {
                 href="https://www.facebook.com/share/18zCYvkaYQ/?mibextid=wwXIfr"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-9 h-9 rounded-full bg-white hover:bg-[#006C54] hover:text-white border border-slate-300 text-slate-700 active:scale-95 transition-all flex items-center justify-center shrink-0 shadow-xs"
+                className="w-9 h-9 rounded-full bg-[#FFFFF0] hover:bg-[#006C54] hover:text-white border border-[#D4D4C0] text-slate-700 active:scale-95 transition-all flex items-center justify-center shrink-0 shadow-xs"
                 title="Follow @mshindiroom on Facebook"
                 aria-label="Facebook"
               >

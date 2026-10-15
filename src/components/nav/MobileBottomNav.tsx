@@ -11,7 +11,7 @@ interface MobileBottomNavProps {
 /** Fixed native-app-style bottom tab bar shown below `lg`. Already handles safe-area correctly. */
 export default function MobileBottomNav({ pathname, builderLegsCount, currentUser }: MobileBottomNavProps) {
   return (
-    <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-slate-200 px-2 pt-1.5 pb-[max(0.5rem,env(safe-area-inset-bottom))] flex items-center justify-around shadow-[0_-4px_20px_rgba(0,0,0,0.06)] select-none">
+    <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-[#FFFFF0]/95 backdrop-blur-md border-t border-[#E6E6D2] px-2 pt-1.5 pb-[max(0.5rem,env(safe-area-inset-bottom))] flex items-center justify-around shadow-[0_-4px_20px_rgba(0,0,0,0.06)] select-none">
       <Link
         to="/"
         className={`relative flex flex-col items-center justify-center gap-0.5 py-1 px-3 rounded-xl transition-all duration-150 active:scale-95 min-h-[48px] min-w-[56px] touch-manipulation ${

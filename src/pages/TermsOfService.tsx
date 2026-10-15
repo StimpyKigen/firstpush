@@ -32,8 +32,8 @@ export default function TermsOfService() {
         </div>
 
         {/* Essential Notice Box */}
-        <div className="bg-amber-500/10 border border-amber-500/30 rounded-2xl p-5 sm:p-6 text-cream text-sm leading-relaxed space-y-2">
-          <div className="flex items-center gap-2 font-display font-bold text-amber-400 text-base">
+        <div className="bg-[#8A6500]/10 border border-[#8A6500]/25 rounded-2xl p-5 sm:p-6 text-cream text-sm leading-relaxed space-y-2">
+          <div className="flex items-center gap-2 font-display font-bold text-[#8A6500] text-base">
             <AlertTriangle size={18} />
             IMPORTANT NOTICE — NOT A BOOKMAKER / BETTING OPERATOR
           </div>
@@ -75,7 +75,7 @@ export default function TermsOfService() {
               <li>Attempt to manipulate prediction statistics, exploit rating system algorithms, or utilize automated scripts/bots.</li>
               <li>Impersonate other punters, verified analysts, or MshindiRoom moderators.</li>
             </ul>
-            <p className="text-xs text-amber-300/90 pt-1">
+            <p className="text-xs text-[#8A6500] font-medium pt-1">
               Violations are reviewed by our automated AI moderation filter and community team. Accounts found violating community guidelines are subject to warnings, temporary mutes, or permanent ban.
             </p>
           </section>

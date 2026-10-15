@@ -9,12 +9,12 @@ import { usePvP, type Side } from '../lib/p2pStore';
 import Avatar from '../components/Avatar';
 
 const statusMeta = {
-  awaiting_opponent: { label: 'Awaiting Opponent', color: '#f2b705', icon: Hourglass },
-  active: { label: 'Active: In Play', color: '#1fae6f', icon: Swords },
-  disputed: { label: 'Disputed', color: '#ef5b5b', icon: AlertTriangle },
-  settled: { label: 'Settled', color: '#3b82f6', icon: CheckCircle2 },
-  cancelled: { label: 'Cancelled', color: '#6b7280', icon: Ban },
-  declined: { label: 'Declined', color: '#6b7280', icon: XCircle },
+  awaiting_opponent: { label: 'Awaiting Opponent', color: '#8A6500', icon: Hourglass },
+  active: { label: 'Active: In Play', color: '#006C54', icon: Swords },
+  disputed: { label: 'Disputed', color: '#e41e3f', icon: AlertTriangle },
+  settled: { label: 'Settled', color: '#1876f2', icon: CheckCircle2 },
+  cancelled: { label: 'Cancelled', color: '#5d6c7b', icon: Ban },
+  declined: { label: 'Declined', color: '#5d6c7b', icon: XCircle },
 } as const;
 
 export default function BetDetail() {

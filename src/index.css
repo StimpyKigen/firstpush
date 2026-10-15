@@ -20,29 +20,29 @@
   --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 
   /* Meta surfaces & text */
-  --color-ink: #ffffff;           /* canvas */
-  --color-ink-2: #ffffff;
-  --color-panel: #ffffff;
-  --color-panel-2: #f1f4f7;       /* surface-soft */
-  --color-line: #dee3e9;          /* hairline-soft */
-  --color-hairline: #ced0d4;
+  --color-ink: #FFFFF0;           /* canvas ivory */
+  --color-ink-2: #FFFFF0;
+  --color-panel: #FFFFF0;
+  --color-panel-2: #F5F5E4;       /* surface-soft ivory tone */
+  --color-line: #E6E6D2;          /* hairline-soft */
+  --color-hairline: #D4D4C0;
   --color-cream: #1c1e21;         /* ink */
   --color-cream-dim: #5d6c7b;     /* steel */
   --color-ink-deep: #0a1317;
   --color-charcoal: #444950;
   --color-steel: #5d6c7b;
   --color-stone: #8595a4;
-  --color-frame-bg: #ffffff;
+  --color-frame-bg: #FFFFF0;
 
   /* Brand accents (user-specified, replace Meta cobalt) */
-  --color-gold: #FFD700;
-  --color-gold-2: #e6c200;
+  --color-gold: #8A6500;          /* Deep bronze gold for light-surface contrast (>4.5:1) */
+  --color-gold-2: #6d4f00;
   --color-emerald: #006C54;
   --color-emerald-2: #005441;
   --color-brand-primary: #006C54;
   --color-brand-primary-dark: #005441;
-  --color-brand-gold: #FFD700;
-  --color-brand-gold-dark: #e6c200;
+  --color-brand-gold: #8A6500;
+  --color-brand-gold-dark: #6d4f00;
   --color-espn-red: #006C54;
   --color-espn-red-dark: #005441;
 
@@ -114,7 +114,7 @@ html {
 }
 
 body {
-  background-color: #ffffff;
+  background-color: #FFFFF0;
   color: var(--color-cream);
   min-height: 100dvh;
 }
@@ -135,8 +135,8 @@ input, textarea, select, [contenteditable="true"], .select-text {
 ::selection { background: var(--color-emerald); color: #ffffff; }
 
 ::-webkit-scrollbar { width: 8px; height: 8px; }
-::-webkit-scrollbar-track { background: #f1f4f7; }
-::-webkit-scrollbar-thumb { background: #ced0d4; border-radius: 999px; }
+::-webkit-scrollbar-track { background: #F5F5E4; }
+::-webkit-scrollbar-thumb { background: #D4D4C0; border-radius: 999px; }
 ::-webkit-scrollbar-thumb:hover { background: #8595a4; }
 
 /* ==========================================================================
@@ -214,7 +214,7 @@ input, textarea, select, [contenteditable="true"], .select-text {
     border-color: rgba(10, 19, 23, 0.12);
     padding: 0.5rem 1.375rem;          /* 10px 22px */
   }
-  .btn-ghost:hover { background-color: #f1f4f7; }
+  .btn-ghost:hover { background-color: #F5F5E4; }
 
   .btn-gold { background-color: #FFD700; color: #0a1317; }
   .btn-gold:hover, .btn-gold:active { background-color: #e6c200; }
@@ -247,21 +247,21 @@ input, textarea, select, [contenteditable="true"], .select-text {
     width: 2.5rem;
     height: 2.5rem;
     border-radius: 9999px;
-    background: #ffffff;
+    background: #FFFFF0;
     color: #1c1e21;
-    border: 1px solid #ced0d4;
+    border: 1px solid #D4D4C0;
   }
 
   /* ---- Cards ----------------------------------------------------------- */
   .espn-card,
   .ios-card {
-    background-color: #ffffff;
+    background-color: #FFFFF0;
     border: 1px solid var(--color-line);
     border-radius: 24px;
     transition: border-color 200ms ease-out;
   }
   @media (hover: hover) {
-    .espn-card:hover, .ios-card:hover { border-color: #ced0d4; }
+    .espn-card:hover, .ios-card:hover { border-color: #D4D4C0; }
   }
 
   /* card-promo-strip: dark rounded promo band (replaces full-bleed red banner) */
@@ -288,7 +288,7 @@ input, textarea, select, [contenteditable="true"], .select-text {
     text-transform: none;
   }
   .espn-badge-hot { background-color: #006C54; color: #ffffff; }
-  .badge-gold { background-color: #f7b928; color: #0a1317; }
+  .badge-gold { background-color: #8A6500; color: #FFFFF0; }
 
   /* ---- Pill tabs / segmented control ---------------------------------- */
   .espn-tab-container,
@@ -303,8 +303,8 @@ input, textarea, select, [contenteditable="true"], .select-text {
   .espn-tab-item {
     padding: 0.5rem 1rem;
     border-radius: 100px;
-    background: #ffffff;
-    border: 1px solid #ced0d4;
+    background: #FFFFF0;
+    border: 1px solid #D4D4C0;
     color: #1c1e21;
     font-size: 0.875rem;
     font-weight: 700;
@@ -316,24 +316,24 @@ input, textarea, select, [contenteditable="true"], .select-text {
   .espn-dropdown,
   .ios-dropdown {
     border-radius: 16px;
-    background: #ffffff;
+    background: #FFFFF0;
     border: 1px solid var(--color-line);
     box-shadow: 0 12px 32px -8px rgba(20, 22, 26, 0.18);
   }
   .ios-glass {
-    background: rgba(255, 255, 255, 0.96);
+    background: rgba(255, 255, 240, 0.96);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
     border-bottom: 1px solid var(--color-line);
   }
 
   .bg-panel, .bg-panel-2, .bg-ink-2 { border-color: var(--color-line); }
-  .bg-panel-2 { background-color: #f1f4f7; }
+  .bg-panel-2 { background-color: #F5F5E4; }
 
   /* ---- Inputs: 44px, 8px radius, hairline ----------------------------- */
   input, textarea, select {
-    background-color: #ffffff;
-    border-color: #ced0d4;
+    background-color: #FFFFF0;
+    border-color: #D4D4C0;
     color: var(--color-cream);
   }
   input:focus, textarea:focus, select:focus {
@@ -346,6 +346,59 @@ input, textarea, select, [contenteditable="true"], .select-text {
    Meta global overrides (unlayered → win over Tailwind utilities)
    Applies the Meta look to existing screens without touching every file.
    ========================================================================== */
+
+/* Universal Ivory Canvas & Surface Override */
+.bg-white {
+  background-color: #FFFFF0 !important;
+}
+
+/* Warm ivory harmony for slate utilities across existing templates */
+.border-slate-200,
+.border-slate-100 {
+  border-color: #E6E6D2 !important;
+}
+.border-slate-300 {
+  border-color: #D4D4C0 !important;
+}
+.bg-slate-50 {
+  background-color: #F5F5E4 !important;
+}
+.hover\:bg-slate-50:hover {
+  background-color: #ECECD8 !important;
+}
+.bg-slate-100 {
+  background-color: #ECECD8 !important;
+}
+
+/* Meta-style clean, refined icons */
+svg.lucide,
+svg[class*="lucide"] {
+  stroke-width: 1.75px !important;
+  stroke-linecap: round !important;
+  stroke-linejoin: round !important;
+}
+
+/* High-contrast accessible gold on light/ivory surfaces */
+.text-gold,
+.text-amber-400,
+.text-amber-300 {
+  color: #8A6500;
+}
+
+/* Radiant gold #FFD700 preserved on dark pills/banners */
+[class*="bg-black"] .text-gold,
+[class*="bg-[#0a1317]"] .text-gold,
+[class*="bg-[#006C54]"] .text-gold,
+[class*="bg-emerald"] .text-gold,
+.espn-red-banner .text-gold,
+.btn-primary .text-gold,
+.btn-dark .text-gold,
+.btn-buy .text-gold,
+[class*="bg-black"] .text-amber-400,
+[class*="bg-[#0a1317]"] .text-amber-400,
+[class*="bg-[#006C54]"] .text-amber-400 {
+  color: #FFD700 !important;
+}
 
 /* Sentence-case labels, no italic wordmarks, Meta weights & tracking */
 .uppercase { text-transform: none; }
@@ -389,7 +442,7 @@ table { border-color: var(--color-line); }
   max-width: 100%;
   min-height: 100dvh;
   margin-inline: auto;
-  background-color: #ffffff;
+  background-color: #FFFFF0;
 }
 
 .no-scrollbar { scrollbar-width: none; -ms-overflow-style: none; }

@@ -8,13 +8,13 @@ import { getStarRating } from '../lib/punterRatings';
 import { useUserPicks } from '../lib/userPicksStore';
 
 const outcomeStyle: Record<string, { bg: string; label: string }> = {
-  '1': { bg: '#1fae6f', label: '1 · Home' },
-  X: { bg: '#f2b705', label: 'X · Draw' },
-  '2': { bg: '#ef5b5b', label: '2 · Away' },
+  '1': { bg: '#006C54', label: '1 · Home' },
+  X: { bg: '#8A6500', label: 'X · Draw' },
+  '2': { bg: '#e41e3f', label: '2 · Away' },
 };
 
 const convictionMeta: Record<string, { icon: typeof Flame; color: string }> = {
-  Banker: { icon: Flame, color: 'text-emerald-2' },
+  Banker: { icon: Flame, color: 'text-[#006C54]' },
   'Value Pick': { icon: Gem, color: 'text-gold' },
   'Long Shot': { icon: Dices, color: 'text-danger' },
 };
@@ -56,12 +56,12 @@ export default function PickCard({ pick, isCurrentUser, editCount, onEdit, onLik
             <div className="flex items-center gap-1.5 flex-wrap">
               <p className="font-semibold text-sm text-cream leading-tight truncate">{pick.username}</p>
               {isCurrentUser && (
-                <span className="text-[10px] font-black uppercase text-emerald-400 shrink-0">
+                <span className="text-[10px] font-bold text-[#006C54] shrink-0">
                   (You)
                 </span>
               )}
               {starRating >= 4.0 && !isCurrentUser && (
-                <span className="inline-flex items-center gap-0.5 text-[10px] font-black uppercase text-amber-400 shrink-0">
+                <span className="inline-flex items-center gap-0.5 text-[10px] font-bold text-[#8A6500] shrink-0">
                   <Sparkles size={11} /> Top Punter
                 </span>
               )}
@@ -73,8 +73,8 @@ export default function PickCard({ pick, isCurrentUser, editCount, onEdit, onLik
           </div>
         </div>
         <span
-          className="text-[11px] font-bold px-2.5 py-1 rounded-md text-ink shrink-0 whitespace-nowrap"
-          style={{ backgroundColor: out.bg, color: pick.pick === 'X' ? '#06110d' : '#fff' }}
+          className="text-[11px] font-bold px-2.5 py-1 rounded-md shrink-0 whitespace-nowrap shadow-xs"
+          style={{ backgroundColor: out.bg, color: '#FFFFF0' }}
         >
           {out.label}
         </span>

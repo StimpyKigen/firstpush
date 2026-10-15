@@ -17,11 +17,11 @@ import { getRoomStatusInfo, type DisplayRoomStatus } from '../lib/roomStatus';
 import { computeRoomPerformanceAndLeaderboard } from '../lib/leaderboardEngine';
 
 const BOOKIE_BADGE_STYLE: Record<string, { bg: string; text: string; border: string }> = {
-  SportPesa: { bg: 'bg-blue-900/40', text: 'text-blue-300', border: 'border-blue-500/40' },
-  Betika: { bg: 'bg-emerald-900/40', text: 'text-emerald-300', border: 'border-emerald-500/40' },
-  MozzartBet: { bg: 'bg-amber-900/40', text: 'text-amber-300', border: 'border-amber-500/40' },
-  Shabiki: { bg: 'bg-rose-900/40', text: 'text-rose-300', border: 'border-rose-500/40' },
-  Odibets: { bg: 'bg-yellow-900/40', text: 'text-yellow-300', border: 'border-yellow-500/40' },
+  SportPesa: { bg: 'bg-blue-50', text: 'text-blue-800', border: 'border-blue-200' },
+  Betika: { bg: 'bg-emerald-50', text: 'text-[#006C54]', border: 'border-emerald-200' },
+  MozzartBet: { bg: 'bg-amber-50', text: 'text-[#8A6500]', border: 'border-amber-200' },
+  Shabiki: { bg: 'bg-rose-50', text: 'text-rose-800', border: 'border-rose-200' },
+  Odibets: { bg: 'bg-amber-50', text: 'text-amber-900', border: 'border-amber-200' },
 };
 
 export default function Leaderboard() {
@@ -139,7 +139,7 @@ export default function Leaderboard() {
             <strong className="text-[#006C54] font-black">{overallAccuracy}%</strong>
           </div>
           <div className="w-px h-4 bg-slate-200" />
-          <div className="flex items-center gap-1 text-amber-500 font-black">
+          <div className="flex items-center gap-1 text-[#8A6500] font-black">
             {userStats.stars}★
           </div>
         </div>
@@ -297,7 +297,7 @@ export default function Leaderboard() {
                 <div className="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                   <div className="flex items-start gap-3 min-w-0">
                     <div className="w-10 h-10 rounded-xl bg-slate-100 border border-slate-200 flex items-center justify-center shrink-0 font-black text-slate-800">
-                      <Trophy size={16} className="text-[#FFD700]" />
+                      <Trophy size={16} className="text-[#8A6500]" />
                     </div>
 
                     <div className="min-w-0 space-y-1">
@@ -341,7 +341,7 @@ export default function Leaderboard() {
                   <div className="flex items-center justify-between sm:justify-end gap-3 shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-100">
                     <div className="text-left sm:text-right">
                       <span className="text-[9px] uppercase font-black text-slate-400 tracking-wider">Bookie Jackpot</span>
-                      <p className="font-display font-black text-[#FFD700] text-base sm:text-lg leading-none">
+                      <p className="font-display font-black text-[#8A6500] text-base sm:text-lg leading-none">
                         {jackpot.prizePool}
                       </p>
                     </div>

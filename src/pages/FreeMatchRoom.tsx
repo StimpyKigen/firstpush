@@ -12,9 +12,9 @@ import { useBetSlipStore } from '../lib/betSlipStore';
 import QuickBetBuilderModal from '../components/QuickBetBuilderModal';
 
 const tierColor: Record<string, string> = {
-  blockbuster: '#f2b705',
-  continental: '#3b82f6',
-  derby: '#ef5b5b',
+  blockbuster: '#8A6500',
+  continental: '#1876f2',
+  derby: '#e41e3f',
 };
 
 export default function FreeMatchRoom() {
@@ -42,7 +42,7 @@ export default function FreeMatchRoom() {
   if (!match) return <Navigate to="/free" replace />;
   const consensus = consensusMap[match.id];
 
-  const outcomeColor = myPickRecord?.pick === '1' ? '#1fae6f' : myPickRecord?.pick === 'X' ? '#f2b705' : '#ef5b5b';
+  const outcomeColor = myPickRecord?.pick === '1' ? '#006C54' : myPickRecord?.pick === 'X' ? '#8A6500' : '#e41e3f';
 
   const startEdit = () => {
     if (myPickRecord) {

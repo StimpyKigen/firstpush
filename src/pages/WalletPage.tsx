@@ -110,19 +110,19 @@ export default function WalletPage() {
           onClick={() => setActiveTab('tokens')}
           className={`cursor-pointer rounded-2xl p-6 border transition-all relative overflow-hidden ${
             activeTab === 'tokens'
-              ? 'bg-white border-[#FFD700] ring-2 ring-[#FFD700]/20 shadow-md'
+              ? 'bg-white border-[#8A6500]/50 ring-2 ring-[#8A6500]/20 shadow-md'
               : 'bg-white border-slate-200 hover:border-slate-300 shadow-xs'
           }`}
         >
           <div className="flex items-center justify-between mb-2">
             <span className="text-xs text-slate-500 uppercase tracking-wider font-black flex items-center gap-1">
-              <Coins size={14} className="text-[#FFD700]" /> Mshindi Tokens
+              <Coins size={14} className="text-[#8A6500]" /> Mshindi Tokens
             </span>
-            <span className="w-8 h-8 rounded-full bg-[#FFD700]/10 flex items-center justify-center">
-              <Coins size={16} className="text-[#FFD700]" />
+            <span className="w-8 h-8 rounded-full bg-[#8A6500]/10 flex items-center justify-center">
+              <Coins size={16} className="text-[#8A6500]" />
             </span>
           </div>
-          <p className="font-display font-black text-4xl text-[#FFD700]">{mshindiTokens} <span className="text-lg text-slate-400 font-sans">MT</span></p>
+          <p className="font-display font-black text-4xl text-[#8A6500]">{mshindiTokens} <span className="text-lg text-slate-400 font-sans">MT</span></p>
           <p className="text-xs text-slate-500 mt-2">Earned from room cashback &amp; inviting friends.</p>
         </div>
       </div>
@@ -286,7 +286,7 @@ export default function WalletPage() {
               </h2>
               <button
                 onClick={() => setInviteModalOpen(true)}
-                className="inline-flex items-center gap-1.5 bg-gold hover:bg-gold-2 text-ink font-bold text-xs px-3.5 py-2 rounded-xl transition-all shadow-md"
+                className="inline-flex items-center gap-1.5 bg-[#8A6500] hover:bg-[#6d4f00] text-[#FFFFF0] font-bold text-xs px-3.5 py-2 rounded-full transition-all shadow-md"
               >
                 <UserPlus size={14} /> Invite Friends (+4 MT)
               </button>

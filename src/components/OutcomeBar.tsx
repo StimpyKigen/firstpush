@@ -1,9 +1,9 @@
 import type { MatchConsensus } from '../lib/types';
 
 const OUTCOMES: { key: 'homePct' | 'drawPct' | 'awayPct'; label: string; short: string; color: string; textColor: string }[] = [
-  { key: 'homePct', label: 'Home Win', short: '1', color: '#1fae6f', textColor: '#eafff5' },
-  { key: 'drawPct', label: 'Draw', short: 'X', color: '#f2b705', textColor: '#241a00' },
-  { key: 'awayPct', label: 'Away Win', short: '2', color: '#ef5b5b', textColor: '#fff0f0' },
+  { key: 'homePct', label: 'Home Win', short: '1', color: '#006C54', textColor: '#FFFFF0' },
+  { key: 'drawPct', label: 'Draw', short: 'X', color: '#8A6500', textColor: '#FFFFF0' },
+  { key: 'awayPct', label: 'Away Win', short: '2', color: '#e41e3f', textColor: '#FFFFF0' },
 ];
 
 export default function OutcomeBar({
@@ -52,19 +52,19 @@ export default function OutcomeBar({
               className="rounded-xl px-2 py-3 flex flex-col items-center justify-center gap-1 border-2 transition-transform"
               style={{
                 borderColor: isMajority ? o.color : 'transparent',
-                backgroundColor: isMajority ? `${o.color}22` : 'rgba(255,255,255,0.03)',
+                backgroundColor: isMajority ? `${o.color}18` : '#F5F5E4',
                 transform: isMajority ? 'scale(1.03)' : 'scale(1)',
               }}
             >
-              <span className="font-mono text-[10px] font-bold uppercase tracking-wider" style={{ color: isMajority ? o.color : '#cdbf9e' }}>
+              <span className="font-mono text-[10px] font-bold uppercase tracking-wider" style={{ color: isMajority ? o.color : '#5d6c7b' }}>
                 {o.short} · {o.label}
               </span>
-              <span className="font-display font-extrabold text-2xl sm:text-3xl leading-none" style={{ color: isMajority ? o.color : '#f4ecd8' }}>
+              <span className="font-display font-extrabold text-2xl sm:text-3xl leading-none" style={{ color: isMajority ? o.color : '#1c1e21' }}>
                 {val}%
               </span>
-              <div className="mt-1 px-2 py-0.5 rounded bg-ink/80 border border-line flex items-center gap-1 text-[10px] font-mono font-bold">
+              <div className="mt-1 px-2.5 py-0.5 rounded-full bg-[#FFFFF0] border border-line flex items-center gap-1.5 text-[10px] font-mono font-bold shadow-2xs">
                 <span className="text-cream-dim text-[9px] uppercase">Odds</span>
-                <span className="text-gold font-extrabold">{oddsVal.toFixed(2)}</span>
+                <span className="text-[#8A6500] font-extrabold">{oddsVal.toFixed(2)}</span>
               </div>
             </div>
           );
@@ -73,9 +73,9 @@ export default function OutcomeBar({
 
       {/* Slim proportional bar for quick visual scan */}
       <div className="flex h-3 rounded-full overflow-hidden border border-line">
-        <div className="transition-all" style={{ width: `${homePct}%`, backgroundColor: '#1fae6f' }} />
-        <div className="transition-all" style={{ width: `${drawPct}%`, backgroundColor: '#f2b705' }} />
-        <div className="transition-all" style={{ width: `${awayPct}%`, backgroundColor: '#ef5b5b' }} />
+        <div className="transition-all" style={{ width: `${homePct}%`, backgroundColor: '#006C54' }} />
+        <div className="transition-all" style={{ width: `${drawPct}%`, backgroundColor: '#8A6500' }} />
+        <div className="transition-all" style={{ width: `${awayPct}%`, backgroundColor: '#e41e3f' }} />
       </div>
 
       {bookmaker && (

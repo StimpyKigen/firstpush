@@ -145,7 +145,7 @@ export default function Room() {
           </div>
           <div className="flex flex-col items-start sm:items-end">
             <p className="text-[11px] text-slate-400 uppercase tracking-wider font-black">Bookie Jackpot</p>
-            <p className="font-display font-black text-[#FFD700] text-3xl">{jackpot.prizePool}</p>
+            <p className="font-display font-black text-[#8A6500] text-3xl">{jackpot.prizePool}</p>
           </div>
         </div>
 
@@ -158,7 +158,7 @@ export default function Room() {
         <div className="flex flex-wrap gap-x-6 gap-y-2 mt-5 pt-5 border-t border-slate-100 text-xs font-semibold text-slate-500">
           <span className="flex items-center gap-1.5"><Users size={14} className="text-[#006C54]" /> {jackpot.participants.toLocaleString()} punters in room</span>
           <span className="flex items-center gap-1.5"><Clock size={14} className="text-slate-400" /> {jackpot.status === 'settled' ? `Settled · ${jackpot.deadline}` : `Deadline ${jackpot.deadline}`}</span>
-          <span className="flex items-center gap-1.5"><Trophy size={14} className="text-amber-500" /> Closest slip takes #1 Leaderboard Crown (earliest submission breaks ties)</span>
+          <span className="flex items-center gap-1.5"><Trophy size={14} className="text-[#8A6500]" /> Closest slip takes #1 Leaderboard Crown (earliest submission breaks ties)</span>
         </div>
       </div>
 
@@ -255,7 +255,7 @@ export default function Room() {
             const myPickRecord = getPick(jackpot.id, match.id);
 
             // Outcome badge styling
-            const outcomeColor = myPickRecord?.pick === '1' ? '#1fae6f' : myPickRecord?.pick === 'X' ? '#f2b705' : '#ef5b5b';
+            const outcomeColor = myPickRecord?.pick === '1' ? '#006C54' : myPickRecord?.pick === 'X' ? '#8A6500' : '#e41e3f';
 
             // Gather and rank all discussion picks by (likes + extraLikes) * 10 + starRating * 5
             const allPicks: GamblerPick[] = [...(consensus?.picks || [])];

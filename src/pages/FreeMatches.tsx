@@ -9,9 +9,9 @@ import { showToast } from '../lib/notificationStore';
 import QuickBetBuilderModal, { type MatchForBuilder } from '../components/QuickBetBuilderModal';
 
 const tierColor: Record<string, string> = {
-  blockbuster: '#d97706',
-  continental: '#2563eb',
-  derby: '#dc2626',
+  blockbuster: '#8A6500',
+  continental: '#1876f2',
+  derby: '#e41e3f',
 };
 
 export default function FreeMatches() {

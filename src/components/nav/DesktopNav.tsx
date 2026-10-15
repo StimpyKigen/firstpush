@@ -52,7 +52,7 @@ export default function DesktopNav({
               className={`inline-flex items-center gap-1.5 px-4 py-2 text-sm font-bold whitespace-nowrap shrink-0 rounded-full transition-colors ${
                 active
                   ? 'bg-[#0a1317] text-white border border-[#0a1317]'
-                  : 'bg-white text-[#1c1e21] border border-[#ced0d4] hover:bg-[#f1f4f7]'
+                  : 'bg-[#FFFFF0] text-[#1c1e21] border border-[#D4D4C0] hover:bg-[#F5F5E4]'
               }`}
             >
               <l.icon size={15} className={`shrink-0 ${active ? 'text-[#FFD700]' : 'text-[#5d6c7b]'}`} />
@@ -63,7 +63,7 @@ export default function DesktopNav({
                 </span>
               )}
               {l.soon && (
-                <span className="text-[11px] font-bold bg-[#f7b928] text-[#0a1317] px-2 py-0.5 rounded-full shrink-0 ml-1">Soon</span>
+                <span className="text-[11px] font-bold bg-[#8A6500] text-[#FFFFF0] px-2 py-0.5 rounded-full shrink-0 ml-1">Soon</span>
               )}
             </Link>
           );
@@ -76,7 +76,7 @@ export default function DesktopNav({
           to="/free"
           aria-label="Search fixtures and jackpots"
           title="Search fixtures & jackpots"
-          className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-[#f1f4f7] hover:bg-[#dee3e9] text-[#5d6c7b] active:scale-95 transition-colors shrink-0"
+          className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-[#F5F5E4] hover:bg-[#E6E6D2] text-[#5d6c7b] active:scale-95 transition-colors shrink-0"
         >
           <Search size={17} />
         </Link>
@@ -93,7 +93,7 @@ export default function DesktopNav({
             className={`inline-flex items-center gap-2 h-9 px-3.5 rounded-full border transition-all active:scale-95 ${
               walletOpen
                 ? 'bg-emerald-50 border-[#006C54] text-[#006C54] shadow-xs'
-                : 'bg-slate-50 hover:bg-slate-100 border-slate-200 text-slate-700 hover:text-slate-900'
+                : 'bg-[#F5F5E4] hover:bg-[#E6E6D2] border-[#E6E6D2] text-slate-700 hover:text-slate-900'
             }`}
           >
             <Wallet size={15} className="text-[#006C54] shrink-0" />
@@ -107,8 +107,8 @@ export default function DesktopNav({
               mshindiTokens={mshindiTokens}
               onClose={() => setWalletOpen(false)}
               backdropClassName="fixed inset-0 z-40 bg-black/25 backdrop-blur-xs"
-              panelClassName="absolute right-0 top-full mt-2 w-84 bg-white border border-slate-200 rounded-2xl shadow-xl p-4.5 z-50 animate-rise space-y-3.5"
-              headerClassName="flex items-center justify-between pb-2.5 border-b border-slate-100"
+              panelClassName="absolute right-0 top-full mt-2 w-84 bg-[#FFFFF0] border border-[#E6E6D2] rounded-2xl shadow-xl p-4.5 z-50 animate-rise space-y-3.5"
+              headerClassName="flex items-center justify-between pb-2.5 border-b border-[#E6E6D2]"
             />
           )}
         </div>
@@ -117,17 +117,17 @@ export default function DesktopNav({
           <div className="relative shrink-0">
             <button
               onClick={() => setProfileOpen(!profileOpen)}
-              className="inline-flex items-center gap-2 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-full pl-1.5 pr-3 h-9 active:scale-95 transition-all max-w-[170px]"
+              className="inline-flex items-center gap-2 bg-[#F5F5E4] hover:bg-[#E6E6D2] border border-[#E6E6D2] rounded-full pl-1.5 pr-3 h-9 active:scale-95 transition-all max-w-[170px]"
             >
               <Avatar name={currentUser.username} seed={currentUser.phone.length} size={24} avatarId={currentUser.avatarId} />
               <span className="text-xs font-bold text-slate-800 truncate">{currentUser.username}</span>
             </button>
             {profileOpen && (
-              <div className="absolute right-0 top-full mt-2 w-52 bg-white border border-slate-200 rounded-2xl shadow-xl p-1.5 overflow-hidden animate-rise z-50">
+              <div className="absolute right-0 top-full mt-2 w-52 bg-[#FFFFF0] border border-[#E6E6D2] rounded-2xl shadow-xl p-1.5 overflow-hidden animate-rise z-50">
                 <Link
                   to="/profile"
                   onClick={() => setProfileOpen(false)}
-                  className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-semibold text-slate-700 hover:text-slate-900 hover:bg-slate-50 transition-colors"
+                  className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-semibold text-slate-700 hover:text-slate-900 hover:bg-[#F5F5E4] transition-colors"
                 >
                   <UserCog size={15} /> My Profile
                 </Link>
@@ -142,7 +142,7 @@ export default function DesktopNav({
                     <ShieldCheck size={15} /> Jackpot Admin
                   </button>
                 )}
-                <div className="my-1 border-t border-slate-100" />
+                <div className="my-1 border-t border-[#E6E6D2]" />
                 <button
                   onClick={onLogout}
                   className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-bold text-rose-600 hover:bg-rose-50 transition-colors"

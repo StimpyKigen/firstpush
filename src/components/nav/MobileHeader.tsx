@@ -36,7 +36,7 @@ export function MobileHeaderControls({
           className={`inline-flex items-center gap-1.5 h-9 px-3 rounded-full border transition-all active:scale-95 ${
             walletOpen
               ? 'bg-emerald-50 border-[#006C54] text-[#006C54] shadow-xs'
-              : 'bg-slate-50 hover:bg-slate-100 border-slate-200 text-slate-800'
+              : 'bg-[#F5F5E4] hover:bg-[#E6E6D2] border-[#E6E6D2] text-slate-800'
           }`}
         >
           <Wallet size={15} className="text-[#006C54] shrink-0" />
@@ -49,14 +49,14 @@ export function MobileHeaderControls({
             mshindiTokens={mshindiTokens}
             onClose={() => setWalletOpen(false)}
             backdropClassName="fixed inset-0 z-40 bg-black/25 backdrop-blur-xs"
-            panelClassName="fixed top-16 right-3 left-3 xs:left-auto xs:right-4 xs:w-84 sm:absolute sm:right-0 sm:top-full sm:mt-2 bg-white border border-slate-200 rounded-2xl shadow-xl p-4.5 z-50 animate-rise space-y-3.5"
-            headerClassName="flex items-center justify-between pb-2 text-left border-b border-slate-100"
+            panelClassName="fixed top-16 right-3 left-3 xs:left-auto xs:right-4 xs:w-84 sm:absolute sm:right-0 sm:top-full sm:mt-2 bg-[#FFFFF0] border border-[#E6E6D2] rounded-2xl shadow-xl p-4.5 z-50 animate-rise space-y-3.5"
+            headerClassName="flex items-center justify-between pb-2 text-left border-b border-[#E6E6D2]"
           />
         )}
       </div>
 
       <button
-        className="text-slate-800 shrink-0 w-9 h-9 flex items-center justify-center rounded-full bg-slate-50 hover:bg-slate-100 border border-slate-200 active:scale-95 transition-all touch-manipulation"
+        className="text-slate-800 shrink-0 w-9 h-9 flex items-center justify-center rounded-full bg-[#F5F5E4] hover:bg-[#E6E6D2] border border-[#E6E6D2] active:scale-95 transition-all touch-manipulation"
         onClick={() => setOpen(!open)}
         aria-label="Toggle Menu"
       >
@@ -90,7 +90,7 @@ export function MobileMenuPanel({
   onLogout,
 }: MobileMenuPanelProps) {
   return (
-    <div className="lg:hidden border-b border-slate-200 bg-white/95 backdrop-blur-md px-4 py-4 flex flex-col gap-1.5 max-h-[calc(100dvh-4.5rem)] overflow-y-auto scroll-touch animate-rise shadow-xl">
+    <div className="lg:hidden border-b border-[#E6E6D2] bg-[#FFFFF0]/95 backdrop-blur-md px-4 py-4 flex flex-col gap-1.5 max-h-[calc(100dvh-4.5rem)] overflow-y-auto scroll-touch animate-rise shadow-xl">
       {links.map((l) => (
         <Link
           key={l.to}
@@ -101,17 +101,17 @@ export function MobileMenuPanel({
           <l.icon size={18} className="shrink-0 text-[#006C54]" />
           <span className="truncate">{l.label}</span>
           {l.soon && (
-            <span className="text-[9px] font-black uppercase tracking-wide bg-amber-50 text-amber-700 border border-amber-200 px-2 py-0.5 rounded-full shrink-0 ml-auto">Soon</span>
+            <span className="text-[9px] font-bold bg-[#8A6500]/15 text-[#8A6500] border border-[#8A6500]/30 px-2 py-0.5 rounded-full shrink-0 ml-auto">Soon</span>
           )}
         </Link>
       ))}
 
       {currentUser ? (
-        <div className="flex flex-col gap-2 mt-2 pt-2 border-t border-slate-100">
+        <div className="flex flex-col gap-2 mt-2 pt-2 border-t border-[#E6E6D2]">
           <Link
             to="/profile"
             onClick={onNavigate}
-            className="flex items-center gap-2.5 px-3.5 py-3 rounded-xl bg-slate-50 border border-slate-200 text-slate-800 font-bold text-sm min-w-0 active:scale-[0.98] transition-all"
+            className="flex items-center gap-2.5 px-3.5 py-3 rounded-xl bg-[#F5F5E4] border border-[#E6E6D2] text-slate-800 font-bold text-sm min-w-0 active:scale-[0.98] transition-all"
           >
             <Avatar name={currentUser.username} seed={currentUser.phone.length} size={28} avatarId={currentUser.avatarId} />
             <span className="truncate flex-1">{currentUser.username}</span>

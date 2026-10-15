@@ -75,7 +75,7 @@ export default function JackpotCard({ jackpot, index }: { jackpot: Jackpot; inde
         <div className="grid grid-cols-2 gap-3 pt-1">
           <div>
             <p className="text-[10px] text-slate-400 uppercase tracking-wider font-bold">Bookie Jackpot</p>
-            <p className="font-display font-black text-[#FFD700] drop-shadow-xs text-xl sm:text-2xl leading-tight [text-shadow:_0_1px_2px_rgba(0,0,0,0.15)]">{jackpot.prizePool}</p>
+            <p className="font-display font-black text-[#8A6500] text-xl sm:text-2xl leading-tight">{jackpot.prizePool}</p>
           </div>
           <div className="text-right">
             <p className="text-[10px] text-slate-400 uppercase tracking-wider font-bold">Room Entry</p>

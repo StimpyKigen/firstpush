@@ -94,7 +94,7 @@ export default function Home() {
   ];
 
   return (
-    <div className="bg-[#f6f8fa] text-slate-900">
+    <div className="bg-[#FFFFF0] text-slate-900">
       <SeoHead
         title="MshindiRoom — Kenya's Premier Sports Consensus & Jackpot Arena"
         description="Pool consensus with Kenya's top punters for SportPesa Mega Jackpot, Betika Midweek & Mozzart Daily. View crowd picks, share bet slips & track bookie predictions."

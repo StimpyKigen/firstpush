@@ -110,7 +110,7 @@ function App() {
           background that acts as the "surround" on larger screens.
           On small phones this is invisible (app-shell is 100% wide).
         */}
-        <div className="min-h-dvh w-full flex flex-col font-body bg-[#f6f8fa] text-slate-900 antialiased selection:bg-[#006C54]/20">
+        <div className="min-h-dvh w-full flex flex-col font-body bg-[#FFFFF0] text-slate-900 antialiased selection:bg-[#006C54]/20">
           {/*
             App shell: full responsive container spanning edge-to-edge on phones,
             and expansive desktop canvas on larger displays.
