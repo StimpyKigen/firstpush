@@ -33,8 +33,8 @@ export default function Navbar() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between gap-4 h-16">
           <Link to="/" className="flex items-center gap-2 shrink-0 group active:scale-95 transition-transform" aria-label="MshindiRoom Home">
             <span className="font-display font-black text-2xl tracking-tighter italic text-slate-900 uppercase flex items-center">
-              MSHINDI<span className="text-[#d81e1e]">.</span>
-              <span className="ml-1.5 text-[9px] tracking-wider not-italic font-mono font-black px-1.5 py-0.5 rounded bg-[#d81e1e] text-white">ROOM</span>
+              MSHINDI<span className="text-[#006C54]">.</span>
+              <span className="ml-1.5 text-[9px] tracking-wider not-italic font-mono font-black px-1.5 py-0.5 rounded bg-[#006C54] text-[#FFD700]">ROOM</span>
             </span>
           </Link>
 

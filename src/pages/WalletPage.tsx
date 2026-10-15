@@ -77,7 +77,7 @@ export default function WalletPage() {
         noIndex={true}
       />
       <div className="text-center mb-8">
-        <div className="w-14 h-14 mx-auto rounded-full bg-[#d81e1e] flex items-center justify-center mb-3 text-white shadow-xs">
+        <div className="w-14 h-14 mx-auto rounded-full bg-[#006C54] flex items-center justify-center mb-3 text-white shadow-xs">
           <WalletIcon size={26} />
         </div>
         <h1 className="font-display font-black text-3xl sm:text-5xl text-slate-900 tracking-tight uppercase">Your Wallet &amp; Rewards</h1>
@@ -91,14 +91,14 @@ export default function WalletPage() {
           onClick={() => setActiveTab('mpesa')}
           className={`cursor-pointer rounded-2xl p-6 border transition-all relative overflow-hidden ${
             activeTab === 'mpesa'
-              ? 'bg-white border-[#d81e1e] ring-2 ring-[#d81e1e]/20 shadow-md'
+              ? 'bg-white border-[#006C54] ring-2 ring-[#006C54]/20 shadow-md'
               : 'bg-white border-slate-200 hover:border-slate-300 shadow-xs'
           }`}
         >
           <div className="flex items-center justify-between mb-2">
             <span className="text-xs text-slate-500 uppercase tracking-wider font-black">M-Pesa Wallet Balance</span>
-            <span className="w-8 h-8 rounded-full bg-[#d81e1e]/10 flex items-center justify-center">
-              <WalletIcon size={16} className="text-[#d81e1e]" />
+            <span className="w-8 h-8 rounded-full bg-[#006C54]/10 flex items-center justify-center">
+              <WalletIcon size={16} className="text-[#006C54]" />
             </span>
           </div>
           <p className="font-display font-black text-4xl text-slate-900">Ksh {balance.toLocaleString()}</p>
@@ -110,19 +110,19 @@ export default function WalletPage() {
           onClick={() => setActiveTab('tokens')}
           className={`cursor-pointer rounded-2xl p-6 border transition-all relative overflow-hidden ${
             activeTab === 'tokens'
-              ? 'bg-white border-[#d81e1e] ring-2 ring-[#d81e1e]/20 shadow-md'
+              ? 'bg-white border-[#FFD700] ring-2 ring-[#FFD700]/20 shadow-md'
               : 'bg-white border-slate-200 hover:border-slate-300 shadow-xs'
           }`}
         >
           <div className="flex items-center justify-between mb-2">
             <span className="text-xs text-slate-500 uppercase tracking-wider font-black flex items-center gap-1">
-              <Coins size={14} className="text-[#d81e1e]" /> Mshindi Tokens
+              <Coins size={14} className="text-[#FFD700]" /> Mshindi Tokens
             </span>
-            <span className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center">
-              <Coins size={16} className="text-slate-700" />
+            <span className="w-8 h-8 rounded-full bg-[#FFD700]/10 flex items-center justify-center">
+              <Coins size={16} className="text-[#FFD700]" />
             </span>
           </div>
-          <p className="font-display font-black text-4xl text-[#d81e1e]">{mshindiTokens} <span className="text-lg text-slate-400 font-sans">MT</span></p>
+          <p className="font-display font-black text-4xl text-[#FFD700]">{mshindiTokens} <span className="text-lg text-slate-400 font-sans">MT</span></p>
           <p className="text-xs text-slate-500 mt-2">Earned from room cashback &amp; inviting friends.</p>
         </div>
       </div>
@@ -132,7 +132,7 @@ export default function WalletPage() {
         <button
           onClick={() => setActiveTab('mpesa')}
           className={`flex-1 py-2 px-4 rounded-full text-xs font-black uppercase tracking-wider transition-all flex items-center justify-center gap-2 ${
-            activeTab === 'mpesa' ? 'bg-[#d81e1e] text-white shadow-xs' : 'text-slate-600 hover:text-slate-900'
+            activeTab === 'mpesa' ? 'bg-[#006C54] text-white shadow-xs' : 'text-slate-600 hover:text-slate-900'
           }`}
         >
           <Smartphone size={15} /> Top Up M-Pesa
@@ -140,7 +140,7 @@ export default function WalletPage() {
         <button
           onClick={() => setActiveTab('tokens')}
           className={`flex-1 py-2 px-4 rounded-full text-xs font-black uppercase tracking-wider transition-all flex items-center justify-center gap-2 ${
-            activeTab === 'tokens' ? 'bg-[#d81e1e] text-white shadow-xs' : 'text-slate-600 hover:text-slate-900'
+            activeTab === 'tokens' ? 'bg-[#006C54] text-white shadow-xs' : 'text-slate-600 hover:text-slate-900'
           }`}
         >
           <Coins size={15} /> Tokens &amp; Referrals
@@ -158,7 +158,7 @@ export default function WalletPage() {
                   key={p}
                   onClick={() => setAmount(p)}
                   className={`inline-flex items-center justify-center h-10 rounded-md text-xs xs:text-sm font-black uppercase tracking-wider border transition-all cursor-pointer ${
-                    amount === p ? 'bg-[#d81e1e] border-[#d81e1e] text-white shadow-xs' : 'border-slate-200 text-slate-700 hover:border-[#d81e1e] hover:text-[#d81e1e]'
+                    amount === p ? 'bg-[#006C54] border-[#006C54] text-white shadow-xs' : 'border-slate-200 text-slate-700 hover:border-[#006C54] hover:text-[#006C54]'
                   }`}
                 >
                   {p}
@@ -171,14 +171,14 @@ export default function WalletPage() {
                 type="number"
                 value={amount}
                 onChange={(e) => setAmount(Number(e.target.value))}
-                className="w-full mt-1.5 bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-sm font-mono text-slate-900 focus:outline-none focus:border-[#d81e1e]"
+                className="w-full mt-1.5 bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-sm font-mono text-slate-900 focus:outline-none focus:border-[#006C54]"
               />
             </div>
 
             {stage === 'send' ? (
               <div className="flex flex-col gap-3">
                 <p className="text-xs font-black text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
-                  <Smartphone size={13} className="text-[#d81e1e]" /> Step 1: Send Money on M-Pesa
+                  <Smartphone size={13} className="text-[#006C54]" /> Step 1: Send Money on M-Pesa
                 </p>
                 <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 flex flex-col gap-2.5">
                   <div className="flex items-center justify-between">
@@ -191,18 +191,18 @@ export default function WalletPage() {
                       onClick={copyNumber}
                       className="flex items-center gap-1 text-xs font-black uppercase tracking-wider text-slate-700 hover:text-slate-900 bg-white border border-slate-300 rounded-md px-3 py-1.5 shrink-0 shadow-2xs active:scale-95 transition-all cursor-pointer"
                     >
-                      {copied ? <Check size={12} className="text-[#d81e1e]" /> : <Copy size={12} />}
+                      {copied ? <Check size={12} className="text-[#006C54]" /> : <Copy size={12} />}
                       {copied ? 'Copied' : 'Copy'}
                     </button>
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-xs text-slate-500 font-semibold">Amount</span>
-                    <span className="font-mono font-black text-sm text-[#d81e1e]">Ksh {amount}</span>
+                    <span className="font-mono font-black text-sm text-[#006C54]">Ksh {amount}</span>
                   </div>
                 </div>
                 <button
                   onClick={() => setStage('verify')}
-                  className="inline-flex items-center justify-center gap-2 bg-[#d81e1e] hover:bg-[#b51717] text-white font-black uppercase tracking-wider text-xs h-12 rounded-md transition-all shadow-xs active:scale-95 cursor-pointer"
+                  className="inline-flex items-center justify-center gap-2 bg-[#006C54] hover:bg-[#005441] text-white font-black uppercase tracking-wider text-xs h-12 rounded-md transition-all shadow-xs active:scale-95 cursor-pointer"
                 >
                   I&apos;ve sent the money →
                 </button>
@@ -210,7 +210,7 @@ export default function WalletPage() {
             ) : (
               <div className="flex flex-col gap-3 animate-rise">
                 <p className="text-xs font-black text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
-                  <KeyRound size={13} className="text-[#d81e1e]" /> Step 2: Confirm your payment
+                  <KeyRound size={13} className="text-[#006C54]" /> Step 2: Confirm your payment
                 </p>
                 <p className="text-xs text-slate-600 leading-relaxed">
                   Paste the M-Pesa confirmation code from your SMS receipt to instantly credit your wallet.
@@ -220,17 +220,17 @@ export default function WalletPage() {
                   onChange={(e) => { setCode(e.target.value.toUpperCase()); setError(''); }}
                   placeholder="e.g. QFT7K9L2M1"
                   maxLength={12}
-                  className="bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-sm font-mono tracking-widest text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#d81e1e] uppercase"
+                  className="bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-sm font-mono tracking-widest text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#006C54] uppercase"
                 />
                 {error && (
-                  <p className="flex items-center gap-1.5 text-xs text-[#d81e1e] font-bold">
+                  <p className="flex items-center gap-1.5 text-xs text-rose-600 font-bold">
                     <AlertCircle size={13} /> {error}
                   </p>
                 )}
                 <button
                   onClick={verifyAndTopUp}
                   disabled={checking || !code.trim()}
-                  className="inline-flex items-center justify-center gap-2 bg-[#d81e1e] hover:bg-[#b51717] disabled:opacity-50 text-white font-black uppercase tracking-wider text-xs h-12 rounded-md transition-all shadow-xs cursor-pointer"
+                  className="inline-flex items-center justify-center gap-2 bg-[#006C54] hover:bg-[#005441] disabled:opacity-50 text-white font-black uppercase tracking-wider text-xs h-12 rounded-md transition-all shadow-xs cursor-pointer"
                 >
                   {checking ? (
                     <>

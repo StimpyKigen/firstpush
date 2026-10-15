@@ -116,7 +116,7 @@ export default function Leaderboard() {
       <div className="bg-white border border-slate-200 rounded-2xl p-6 sm:p-7 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-5 shadow-xs">
         <div>
           <div className="flex items-center gap-2.5">
-            <div className="w-10 h-10 rounded-full bg-[#d81e1e] flex items-center justify-center text-white shadow-xs">
+            <div className="w-10 h-10 rounded-full bg-[#006C54] flex items-center justify-center text-white shadow-xs">
               <Trophy size={18} />
             </div>
             <h1 className="font-display font-black text-2xl sm:text-4xl text-slate-900 tracking-tight uppercase">Room Standings &amp; Rankings</h1>
@@ -129,14 +129,14 @@ export default function Leaderboard() {
         {/* Compact User Stats Pill */}
         <div className="flex items-center gap-3 bg-slate-50 border border-slate-200 px-4 py-2.5 rounded-full text-xs shrink-0 self-stretch sm:self-auto justify-between shadow-2xs">
           <div className="flex items-center gap-1.5">
-            <Target size={14} className="text-[#d81e1e]" />
+            <Target size={14} className="text-[#006C54]" />
             <span className="text-slate-500 font-bold uppercase text-[10px]">Rooms:</span>
             <strong className="text-slate-900 font-black">{totalRoomsJoined}</strong>
           </div>
           <div className="w-px h-4 bg-slate-200" />
           <div className="flex items-center gap-1.5">
             <span className="text-slate-500 font-bold uppercase text-[10px]">Hits Acc:</span>
-            <strong className="text-[#d81e1e] font-black">{overallAccuracy}%</strong>
+            <strong className="text-[#006C54] font-black">{overallAccuracy}%</strong>
           </div>
           <div className="w-px h-4 bg-slate-200" />
           <div className="flex items-center gap-1 text-amber-500 font-black">
@@ -154,7 +154,7 @@ export default function Leaderboard() {
               onClick={() => setFilterTab('all')}
               className={`px-4 py-1.5 rounded-full transition-all flex items-center gap-1.5 whitespace-nowrap active:scale-95 ${
                 filterTab === 'all'
-                  ? 'bg-[#d81e1e] text-white shadow-xs'
+                  ? 'bg-[#006C54] text-white shadow-xs'
                   : 'text-slate-600 hover:text-slate-900'
               }`}
             >
@@ -165,7 +165,7 @@ export default function Leaderboard() {
               onClick={() => setFilterTab('my')}
               className={`px-4 py-1.5 rounded-full transition-all flex items-center gap-1.5 whitespace-nowrap active:scale-95 ${
                 filterTab === 'my'
-                  ? 'bg-[#d81e1e] text-white shadow-xs'
+                  ? 'bg-[#006C54] text-white shadow-xs'
                   : 'text-slate-600 hover:text-slate-900'
               }`}
             >
@@ -187,7 +187,7 @@ export default function Leaderboard() {
               onClick={() => setFilterTab('live')}
               className={`px-3.5 py-1.5 rounded-full transition-all flex items-center gap-1.5 whitespace-nowrap ${
                 filterTab === 'live'
-                  ? 'bg-[#d81e1e] text-white shadow-xs'
+                  ? 'bg-[#006C54] text-white shadow-xs'
                   : 'text-slate-600 hover:text-slate-900'
               }`}
             >
@@ -214,7 +214,7 @@ export default function Leaderboard() {
               placeholder="Search room..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-slate-50 border border-slate-200 focus:border-[#d81e1e] rounded-full pl-9 pr-3 py-1.5 text-xs text-slate-900 focus:outline-none placeholder:text-slate-400 transition-all"
+              className="w-full bg-slate-50 border border-slate-200 focus:border-[#006C54] rounded-full pl-9 pr-3 py-1.5 text-xs text-slate-900 focus:outline-none placeholder:text-slate-400 transition-all"
             />
           </div>
         </div>
@@ -230,8 +230,8 @@ export default function Leaderboard() {
               onClick={() => setSelectedBookie(b)}
               className={`px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider border transition-all shrink-0 ${
                 selectedBookie.toLowerCase() === b.toLowerCase()
-                  ? 'bg-[#d81e1e] border-[#d81e1e] text-white shadow-xs'
-                  : 'bg-white border-slate-200 text-slate-600 hover:border-[#d81e1e] hover:text-[#d81e1e]'
+                  ? 'bg-[#006C54] border-[#006C54] text-white shadow-xs'
+                  : 'bg-white border-slate-200 text-slate-600 hover:border-[#006C54] hover:text-[#006C54]'
               }`}
             >
               {b === 'all' ? 'All' : b}
@@ -290,14 +290,14 @@ export default function Leaderboard() {
                 key={jackpot.id}
                 id={`room-leaderboard-${jackpot.id}`}
                 className={`bg-white border rounded-xl overflow-hidden transition-all hover:shadow-md ${
-                  userPerf.participated ? 'border-[#d81e1e] ring-1 ring-[#d81e1e]/20' : 'border-slate-200 hover:border-[#d81e1e]'
+                  userPerf.participated ? 'border-[#006C54] ring-1 ring-[#006C54]/20' : 'border-slate-200 hover:border-[#006C54]'
                 }`}
               >
                 {/* Minimalist Card Header */}
                 <div className="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                   <div className="flex items-start gap-3 min-w-0">
                     <div className="w-10 h-10 rounded-xl bg-slate-100 border border-slate-200 flex items-center justify-center shrink-0 font-black text-slate-800">
-                      <Trophy size={16} className="text-[#d81e1e]" />
+                      <Trophy size={16} className="text-[#FFD700]" />
                     </div>
 
                     <div className="min-w-0 space-y-1">
@@ -319,7 +319,7 @@ export default function Leaderboard() {
                         {userPerf.participated && (
                           <>
                             <span className="text-slate-300">·</span>
-                            <span className="text-[11px] font-black uppercase tracking-wider text-[#d81e1e] flex items-center gap-1">
+                            <span className="text-[11px] font-black uppercase tracking-wider text-[#006C54] flex items-center gap-1">
                               <Target size={11} /> My Picked Room
                             </span>
                           </>
@@ -341,7 +341,7 @@ export default function Leaderboard() {
                   <div className="flex items-center justify-between sm:justify-end gap-3 shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-100">
                     <div className="text-left sm:text-right">
                       <span className="text-[9px] uppercase font-black text-slate-400 tracking-wider">Bookie Jackpot</span>
-                      <p className="font-display font-black text-[#d81e1e] text-base sm:text-lg leading-none">
+                      <p className="font-display font-black text-[#FFD700] text-base sm:text-lg leading-none">
                         {jackpot.prizePool}
                       </p>
                     </div>
@@ -349,7 +349,7 @@ export default function Leaderboard() {
                     <div className="flex items-center gap-2">
                       <Link
                         to={`/?room=${jackpot.id}`}
-                        className="h-9 px-3.5 rounded-md bg-[#d81e1e] hover:bg-[#b91515] text-white font-black uppercase tracking-wider text-xs flex items-center gap-1.5 transition-all shadow-xs active:scale-95"
+                        className="h-9 px-3.5 rounded-md bg-[#006C54] hover:bg-[#005441] text-white font-black uppercase tracking-wider text-xs flex items-center gap-1.5 transition-all shadow-xs active:scale-95"
                       >
                         <span>Room</span>
                         <ExternalLink size={12} />
@@ -381,7 +381,7 @@ export default function Leaderboard() {
                       </span>
                     </div>
 
-                    <span className="text-[10px] font-black uppercase text-[#d81e1e] tracking-wider">
+                    <span className="text-[10px] font-black uppercase text-[#006C54] tracking-wider">
                       Active Pick
                     </span>
                   </div>

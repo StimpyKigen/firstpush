@@ -35,11 +35,11 @@ export function MobileHeaderControls({
           title="Wallet & Mshindi Tokens"
           className={`inline-flex items-center gap-1.5 h-9 px-3 rounded-full border transition-all active:scale-95 ${
             walletOpen
-              ? 'bg-red-50 border-[#d81e1e] text-[#d81e1e] shadow-xs'
+              ? 'bg-emerald-50 border-[#006C54] text-[#006C54] shadow-xs'
               : 'bg-slate-50 hover:bg-slate-100 border-slate-200 text-slate-800'
           }`}
         >
-          <Wallet size={15} className="text-[#059669] shrink-0" />
+          <Wallet size={15} className="text-[#006C54] shrink-0" />
           <span className="text-xs font-bold font-mono text-slate-900">Ksh {balance.toLocaleString()}</span>
         </button>
 
@@ -96,9 +96,9 @@ export function MobileMenuPanel({
           key={l.to}
           to={l.to}
           onClick={onNavigate}
-          className="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-700 hover:text-[#d81e1e] hover:bg-red-50/50 active:bg-red-50 active:scale-[0.98] font-bold text-sm transition-all touch-manipulation min-h-[44px]"
+          className="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-700 hover:text-[#006C54] hover:bg-emerald-50/50 active:bg-emerald-50 active:scale-[0.98] font-bold text-sm transition-all touch-manipulation min-h-[44px]"
         >
-          <l.icon size={18} className="shrink-0 text-[#d81e1e]" />
+          <l.icon size={18} className="shrink-0 text-[#006C54]" />
           <span className="truncate">{l.label}</span>
           {l.soon && (
             <span className="text-[9px] font-black uppercase tracking-wide bg-amber-50 text-amber-700 border border-amber-200 px-2 py-0.5 rounded-full shrink-0 ml-auto">Soon</span>
@@ -123,12 +123,12 @@ export function MobileMenuPanel({
                 onNavigate();
                 onOpenAdminModal();
               }}
-              className="flex items-center justify-center gap-2 px-3 py-2.5 rounded-full bg-red-50 text-[#d81e1e] border border-red-200 font-bold text-xs active:scale-98 transition-all"
+              className="flex items-center justify-center gap-2 px-3 py-2.5 rounded-full bg-emerald-50 text-[#006C54] border border-emerald-200 font-bold text-xs active:scale-98 transition-all"
             >
               <ShieldCheck size={15} /> Jackpot Admin Console
             </button>
           )}
-          <button onClick={onLogout} className="flex items-center justify-center gap-1.5 text-[#d81e1e] text-xs font-bold px-3 py-2.5 rounded-full border border-red-200 hover:bg-red-50 active:scale-98 transition-all">
+          <button onClick={onLogout} className="flex items-center justify-center gap-1.5 text-rose-600 text-xs font-bold px-3 py-2.5 rounded-full border border-rose-200 hover:bg-rose-50 active:scale-98 transition-all">
             <LogOut size={13} /> Log Out
           </button>
         </div>
@@ -136,7 +136,7 @@ export function MobileMenuPanel({
         <Link
           to="/auth"
           onClick={onNavigate}
-          className="bg-[#d81e1e] hover:bg-[#b91515] text-white text-sm font-bold py-3 px-4 mt-2 rounded-full whitespace-nowrap justify-center shadow-xs active:scale-98 inline-flex items-center gap-2"
+          className="bg-[#006C54] hover:bg-[#005441] text-white text-sm font-bold py-3 px-4 mt-2 rounded-full whitespace-nowrap justify-center shadow-xs active:scale-98 inline-flex items-center gap-2"
         >
           <UserCircle2 size={16} /> Sign Up / Log In
         </Link>
@@ -144,10 +144,10 @@ export function MobileMenuPanel({
 
       <div className="flex items-center justify-between gap-3 mt-2 px-4 py-3 bg-white/6 border border-white/10 rounded-2xl">
         <span className="flex items-center gap-2.5 text-sm font-mono text-cream min-w-0">
-          <Wallet size={16} className="text-emerald-2 shrink-0" />
+          <Wallet size={16} className="text-[#006C54] shrink-0" />
           <span className="truncate font-bold">Ksh {balance.toLocaleString()}</span>
         </span>
-        <Link to="/wallet" onClick={onNavigate} className="bg-gold text-ink font-bold text-xs px-3.5 py-1.5 rounded-full shrink-0 whitespace-nowrap active:scale-95 shadow-sm">
+        <Link to="/wallet" onClick={onNavigate} className="bg-[#FFD700] hover:bg-[#e6c200] text-slate-950 font-black text-xs px-3.5 py-1.5 rounded-full shrink-0 whitespace-nowrap active:scale-95 shadow-sm">
           Top Up
         </Link>
       </div>

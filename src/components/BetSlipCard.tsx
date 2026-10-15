@@ -125,7 +125,7 @@ export default function BetSlipCard({ post, index, onOpenProfile }: BetSlipCardP
           {/* Bookmaker Badge & Tags (Clean Text Directly on Card) */}
           <div className="flex flex-wrap gap-2 items-center justify-end text-xs">
             {hasBuiltSlip && (
-              <span className="text-[11px] font-black uppercase tracking-wider text-[#d81e1e] flex items-center gap-1">
+              <span className="text-[11px] font-black uppercase tracking-wider text-[#006C54] flex items-center gap-1">
                 <Dices size={12} /> Bet Builder
               </span>
             )}

@@ -15,8 +15,8 @@ export default function Footer() {
           <div className="space-y-3">
             <Link to="/" className="inline-block" aria-label="MshindiRoom">
               <span className="font-display font-black text-2xl tracking-tighter italic text-slate-900 uppercase flex items-center">
-                MSHINDI<span className="text-[#d81e1e]">.</span>
-                <span className="ml-1.5 text-[9px] tracking-wider not-italic font-mono font-black px-1.5 py-0.5 rounded bg-[#d81e1e] text-white">ROOM</span>
+                MSHINDI<span className="text-[#006C54]">.</span>
+                <span className="ml-1.5 text-[9px] tracking-wider not-italic font-mono font-black px-1.5 py-0.5 rounded bg-[#006C54] text-[#FFD700]">ROOM</span>
               </span>
             </Link>
             <p className="text-xs text-slate-500 leading-relaxed max-w-xs">
@@ -27,7 +27,7 @@ export default function Footer() {
               className="inline-flex items-center gap-2 bg-white hover:bg-slate-50 border border-slate-300 text-slate-800 text-xs font-bold px-3.5 py-1.5 rounded-full shadow-xs active:scale-95 transition-all"
               title="Install MshindiRoom App on Mobile or Desktop"
             >
-              <Smartphone size={13} className="text-[#d81e1e]" />
+              <Smartphone size={13} className="text-[#006C54]" />
               <span>Install App</span>
             </button>
           </div>
@@ -36,11 +36,11 @@ export default function Footer() {
           <div className="space-y-2.5 text-xs">
             <p className="font-bold text-slate-900 uppercase tracking-wider text-[11px]">Consensus & Matches</p>
             <ul className="space-y-2">
-              <li><Link to="/" className="hover:text-[#d81e1e] transition-colors">Jackpot Rooms</Link></li>
-              <li><Link to="/free" className="hover:text-[#d81e1e] transition-colors">Free Match Slate</Link></li>
-              <li><Link to="/slips" className="hover:text-[#d81e1e] transition-colors">Punter Slips Feed</Link></li>
-              <li><Link to="/leaderboard" className="hover:text-[#d81e1e] transition-colors">Top Punter Rankings</Link></li>
-              <li><Link to="/p2p" className="hover:text-[#d81e1e] transition-colors">P2P Challenges</Link></li>
+              <li><Link to="/" className="hover:text-[#006C54] transition-colors">Jackpot Rooms</Link></li>
+              <li><Link to="/free" className="hover:text-[#006C54] transition-colors">Free Match Slate</Link></li>
+              <li><Link to="/slips" className="hover:text-[#006C54] transition-colors">Punter Slips Feed</Link></li>
+              <li><Link to="/leaderboard" className="hover:text-[#006C54] transition-colors">Top Punter Rankings</Link></li>
+              <li><Link to="/p2p" className="hover:text-[#006C54] transition-colors">P2P Challenges</Link></li>
             </ul>
           </div>
 
@@ -48,10 +48,10 @@ export default function Footer() {
           <div className="space-y-2.5 text-xs">
             <p className="font-bold text-slate-900 uppercase tracking-wider text-[11px]">Policies &amp; Legal</p>
             <ul className="space-y-2">
-              <li><Link to="/terms" className="hover:text-[#d81e1e] transition-colors">Terms of Use</Link></li>
-              <li><Link to="/privacy" className="hover:text-[#d81e1e] transition-colors">Privacy Policy</Link></li>
-              <li><Link to="/how-it-works" className="hover:text-[#d81e1e] transition-colors">How Consensus Works</Link></li>
-              <li><a href="mailto:support@mshindi.co.ke" className="hover:text-[#d81e1e] transition-colors">Interest-Based Ads &amp; Inquiries</a></li>
+              <li><Link to="/terms" className="hover:text-[#006C54] transition-colors">Terms of Use</Link></li>
+              <li><Link to="/privacy" className="hover:text-[#006C54] transition-colors">Privacy Policy</Link></li>
+              <li><Link to="/how-it-works" className="hover:text-[#006C54] transition-colors">How Consensus Works</Link></li>
+              <li><a href="mailto:support@mshindi.co.ke" className="hover:text-[#006C54] transition-colors">Interest-Based Ads &amp; Inquiries</a></li>
               <li><span className="text-slate-400">Responsible Gaming (18+)</span></li>
             </ul>
           </div>
@@ -65,7 +65,7 @@ export default function Footer() {
                 href="https://www.instagram.com/mshindiroom?igsh=MWhxZ3B0c2UweWswaw%3D%3D&utm_source=qr"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-9 h-9 rounded-full bg-white hover:bg-[#d81e1e] hover:text-white border border-slate-300 text-slate-700 active:scale-95 transition-all flex items-center justify-center shrink-0 shadow-xs"
+                className="w-9 h-9 rounded-full bg-white hover:bg-[#006C54] hover:text-white border border-slate-300 text-slate-700 active:scale-95 transition-all flex items-center justify-center shrink-0 shadow-xs"
                 title="Follow @mshindiroom on Instagram"
                 aria-label="Instagram"
               >
@@ -77,7 +77,7 @@ export default function Footer() {
                 href="https://x.com/mshindiroom?s=21"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-9 h-9 rounded-full bg-white hover:bg-[#d81e1e] hover:text-white border border-slate-300 text-slate-700 active:scale-95 transition-all flex items-center justify-center shrink-0 shadow-xs"
+                className="w-9 h-9 rounded-full bg-white hover:bg-[#006C54] hover:text-white border border-slate-300 text-slate-700 active:scale-95 transition-all flex items-center justify-center shrink-0 shadow-xs"
                 title="Follow @mshindiroom on X"
                 aria-label="X (Twitter)"
               >
@@ -91,7 +91,7 @@ export default function Footer() {
                 href="https://www.tiktok.com/@mshindiroom"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-9 h-9 rounded-full bg-white hover:bg-[#d81e1e] hover:text-white border border-slate-300 text-slate-700 active:scale-95 transition-all flex items-center justify-center shrink-0 shadow-xs"
+                className="w-9 h-9 rounded-full bg-white hover:bg-[#006C54] hover:text-white border border-slate-300 text-slate-700 active:scale-95 transition-all flex items-center justify-center shrink-0 shadow-xs"
                 title="Follow @mshindiroom on TikTok"
                 aria-label="TikTok"
               >
@@ -105,7 +105,7 @@ export default function Footer() {
                 href="https://www.facebook.com/share/18zCYvkaYQ/?mibextid=wwXIfr"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-9 h-9 rounded-full bg-white hover:bg-[#d81e1e] hover:text-white border border-slate-300 text-slate-700 active:scale-95 transition-all flex items-center justify-center shrink-0 shadow-xs"
+                className="w-9 h-9 rounded-full bg-white hover:bg-[#006C54] hover:text-white border border-slate-300 text-slate-700 active:scale-95 transition-all flex items-center justify-center shrink-0 shadow-xs"
                 title="Follow @mshindiroom on Facebook"
                 aria-label="Facebook"
               >

@@ -78,7 +78,7 @@ export default function DiscussionPanel({
       {/* Section header */}
       <div className="flex items-center justify-between px-1 mb-2.5">
         <p className="text-xs font-black text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
-          <MessageSquarePlus size={14} className="text-[#d81e1e]" />
+          <MessageSquarePlus size={14} className="text-[#006C54]" />
           <span>{label}</span>
           <span className="text-slate-400 font-bold normal-case">
             ({picks.length})
@@ -135,7 +135,7 @@ export default function DiscussionPanel({
             rows={2}
             disabled={disabled}
             className={`w-full bg-slate-50 border rounded-md px-3.5 py-2.5 text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:bg-white transition-all resize-none ${
-              !modResult.isAllowed ? 'border-rose-500 bg-rose-50/50' : 'border-slate-300 focus:border-[#d81e1e]'
+              !modResult.isAllowed ? 'border-rose-500 bg-rose-50/50' : 'border-slate-300 focus:border-[#006C54]'
             }`}
           />
 
@@ -159,7 +159,7 @@ export default function DiscussionPanel({
               type="button"
               onClick={handleFormSubmit}
               disabled={!canSubmit || disabled}
-              className="h-10 px-5 rounded-md bg-[#d81e1e] hover:bg-[#b91515] disabled:opacity-30 disabled:cursor-not-allowed text-white text-xs font-black uppercase tracking-wider transition-all shadow-xs active:scale-95 inline-flex items-center justify-center gap-2 cursor-pointer shrink-0"
+              className="h-10 px-5 rounded-md bg-[#006C54] hover:bg-[#005441] disabled:opacity-30 disabled:cursor-not-allowed text-white text-xs font-black uppercase tracking-wider transition-all shadow-xs active:scale-95 inline-flex items-center justify-center gap-2 cursor-pointer shrink-0"
               aria-label="Post pick"
             >
               <Send size={13} className="shrink-0" />
@@ -210,7 +210,7 @@ export default function DiscussionPanel({
             onClick={() => setShowAll(true)}
             className="w-full flex items-center justify-center gap-1.5 py-3 text-xs font-black uppercase tracking-wider text-slate-800 bg-white hover:bg-slate-50 transition-colors border-t border-slate-200 cursor-pointer"
           >
-            <ChevronDown size={14} className="text-[#d81e1e]" />
+            <ChevronDown size={14} className="text-[#006C54]" />
             <span>Show {sortedPicks.length - SHOW_INITIAL} More Community Analyses</span>
           </button>
         )}

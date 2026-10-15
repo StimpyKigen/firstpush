@@ -51,14 +51,14 @@ export default function DesktopNav({
               to={l.to}
               className={`relative h-16 inline-flex items-center gap-1.5 px-3.5 xl:px-4 text-xs xl:text-sm font-bold whitespace-nowrap shrink-0 transition-all ${
                 active
-                  ? 'text-[#d81e1e] border-b-2 border-[#d81e1e]'
-                  : 'text-slate-600 hover:text-[#d81e1e]'
+                  ? 'text-[#006C54] border-b-2 border-[#006C54]'
+                  : 'text-slate-600 hover:text-[#006C54]'
               }`}
             >
-              <l.icon size={15} className={`shrink-0 ${active ? 'text-[#d81e1e]' : 'text-slate-400'}`} />
+              <l.icon size={15} className={`shrink-0 ${active ? 'text-[#006C54]' : 'text-slate-400'}`} />
               <span>{l.label}</span>
               {isBuilder && builderLegsCount > 0 && (
-                <span className="bg-[#d81e1e] text-white font-black text-[10px] px-1.5 py-0.2 rounded-full ml-1 shrink-0 shadow-xs">
+                <span className="bg-[#006C54] text-[#FFD700] font-black text-[10px] px-1.5 py-0.2 rounded-full ml-1 shrink-0 shadow-xs border border-[#005441]">
                   {builderLegsCount}
                 </span>
               )}
@@ -92,13 +92,13 @@ export default function DesktopNav({
             title="Wallet & Mshindi Tokens"
             className={`inline-flex items-center gap-2 h-9 px-3.5 rounded-full border transition-all active:scale-95 ${
               walletOpen
-                ? 'bg-red-50 border-[#d81e1e] text-[#d81e1e] shadow-xs'
+                ? 'bg-emerald-50 border-[#006C54] text-[#006C54] shadow-xs'
                 : 'bg-slate-50 hover:bg-slate-100 border-slate-200 text-slate-700 hover:text-slate-900'
             }`}
           >
-            <Wallet size={15} className="text-[#059669] shrink-0" />
+            <Wallet size={15} className="text-[#006C54] shrink-0" />
             <span className="text-xs font-bold font-mono text-slate-900">Ksh {balance.toLocaleString()}</span>
-            <ChevronDown size={13} className={`shrink-0 transition-transform duration-200 ${walletOpen ? 'rotate-180 text-[#d81e1e]' : 'text-slate-400'}`} />
+            <ChevronDown size={13} className={`shrink-0 transition-transform duration-200 ${walletOpen ? 'rotate-180 text-[#006C54]' : 'text-slate-400'}`} />
           </button>
 
           {walletOpen && (
@@ -137,7 +137,7 @@ export default function DesktopNav({
                       setProfileOpen(false);
                       onOpenAdminModal();
                     }}
-                    className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-bold text-[#d81e1e] hover:bg-red-50 transition-colors"
+                    className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-bold text-[#006C54] hover:bg-emerald-50 transition-colors"
                   >
                     <ShieldCheck size={15} /> Jackpot Admin
                   </button>
@@ -145,7 +145,7 @@ export default function DesktopNav({
                 <div className="my-1 border-t border-slate-100" />
                 <button
                   onClick={onLogout}
-                  className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-bold text-[#d81e1e] hover:bg-red-50 transition-colors"
+                  className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-bold text-rose-600 hover:bg-rose-50 transition-colors"
                 >
                   <LogOut size={15} /> Log Out
                 </button>
@@ -155,7 +155,7 @@ export default function DesktopNav({
         ) : (
           <Link
             to="/auth"
-            className="bg-[#d81e1e] hover:bg-[#b91515] text-white text-xs font-bold px-4 h-9 rounded-full inline-flex items-center gap-1.5 shadow-xs whitespace-nowrap shrink-0 active:scale-95 transition-all"
+            className="bg-[#006C54] hover:bg-[#005441] text-white text-xs font-bold px-4 h-9 rounded-full inline-flex items-center gap-1.5 shadow-xs whitespace-nowrap shrink-0 active:scale-95 transition-all"
           >
             <UserCircle2 size={15} /> Log In
           </Link>

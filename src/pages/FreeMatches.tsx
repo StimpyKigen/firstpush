@@ -75,10 +75,10 @@ export default function FreeMatches() {
       <div className="text-center mb-8 sm:mb-10">
         <div className="flex items-center justify-center gap-2.5 flex-wrap mb-3 text-xs font-bold uppercase tracking-wider text-slate-500">
           <span className="inline-flex items-center gap-1.5 text-slate-700">
-            <Unlock size={13} className="text-[#d81e1e]" /> Always free · No paywall
+            <Unlock size={13} className="text-[#006C54]" /> Always free · No paywall
           </span>
           <span className="text-slate-300 font-normal">·</span>
-          <span className="inline-flex items-center gap-1.5 text-[#d81e1e] font-black">
+          <span className="inline-flex items-center gap-1.5 text-[#006C54] font-black">
             <Flame size={13} /> Ranked by Activity
           </span>
           <span className="text-slate-300 font-normal">·</span>
@@ -91,7 +91,7 @@ export default function FreeMatches() {
           Match Slate &amp; Consensus
         </h1>
         <p className="text-slate-600 mt-2 sm:mt-3 max-w-3xl mx-auto text-xs sm:text-sm leading-relaxed">
-          Comprehensive match center for the <strong className="text-slate-900 font-bold">UEFA Champions League</strong>, <strong className="text-slate-900 font-bold">Premier League</strong>, and European derbies. Compare punter consensus splits and crowd picks before kickoff. Next slate updates at <span className="text-[#d81e1e] font-bold font-mono">03:00 AM EAT</span>.
+          Comprehensive match center for the <strong className="text-slate-900 font-bold">UEFA Champions League</strong>, <strong className="text-slate-900 font-bold">Premier League</strong>, and European derbies. Compare punter consensus splits and crowd picks before kickoff. Next slate updates at <span className="text-[#006C54] font-bold font-mono">03:00 AM EAT</span>.
         </p>
       </div>
 
@@ -105,7 +105,7 @@ export default function FreeMatches() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search team or fixture (e.g. Arsenal, Real Madrid, Chelsea)..."
-              className="w-full bg-white border border-slate-300 focus:border-[#d81e1e] focus:ring-2 focus:ring-[#d81e1e]/15 rounded-full pl-11 pr-10 py-3 text-sm text-slate-900 placeholder:text-slate-400 shadow-xs focus:outline-none transition-all"
+              className="w-full bg-white border border-slate-300 focus:border-[#006C54] focus:ring-2 focus:ring-[#006C54]/15 rounded-full pl-11 pr-10 py-3 text-sm text-slate-900 placeholder:text-slate-400 shadow-xs focus:outline-none transition-all"
             />
             {searchQuery && (
               <button
@@ -130,8 +130,8 @@ export default function FreeMatches() {
                     onClick={() => setSearchQuery(isActive ? '' : tag)}
                     className={`px-3 py-1 rounded-full text-xs font-bold transition-all shrink-0 ${
                       isActive
-                        ? 'bg-[#d81e1e] text-white shadow-xs'
-                        : 'bg-white text-slate-700 border border-slate-200 hover:border-[#d81e1e] hover:text-[#d81e1e]'
+                        ? 'bg-[#006C54] text-white shadow-xs'
+                        : 'bg-white text-slate-700 border border-slate-200 hover:border-[#006C54] hover:text-[#006C54]'
                     }`}
                   >
                     {tag}
@@ -149,7 +149,7 @@ export default function FreeMatches() {
               </span>
               <button
                 onClick={() => setSearchQuery('')}
-                className="text-[#d81e1e] hover:underline font-bold"
+                className="text-[#006C54] hover:underline font-bold"
               >
                 Clear filter
               </button>
@@ -161,25 +161,25 @@ export default function FreeMatches() {
       {/* Fixtures List / Empty States */}
       {upcomingMatches.length === 0 ? (
         <div className="bg-white border border-slate-200 rounded-2xl p-8 text-center max-w-xl mx-auto flex flex-col items-center gap-3 shadow-xs">
-          <Clock size={36} className="text-[#d81e1e] animate-pulse" />
+          <Clock size={36} className="text-[#006C54] animate-pulse" />
           <h3 className="font-display font-extrabold text-lg text-slate-900 uppercase tracking-tight">All Today&apos;s Matches Have Kicked Off</h3>
           <p className="text-xs text-slate-600 leading-relaxed">
-            Free match rooms focus strictly on pre-match pick analysis. All highlight matches for today&apos;s slate are currently in progress or finished. The next set of upcoming fixtures will automatically unlock at <span className="text-[#d81e1e] font-bold font-mono">03:00 AM EAT</span>!
+            Free match rooms focus strictly on pre-match pick analysis. All highlight matches for today&apos;s slate are currently in progress or finished. The next set of upcoming fixtures will automatically unlock at <span className="text-[#006C54] font-bold font-mono">03:00 AM EAT</span>!
           </p>
-          <Link to="/" className="mt-3 inline-flex items-center gap-2 bg-[#d81e1e] hover:bg-[#b51717] text-white font-black text-xs uppercase tracking-wider px-5 h-10 rounded-md shadow-xs transition-colors active:scale-95">
+          <Link to="/" className="mt-3 inline-flex items-center gap-2 bg-[#006C54] hover:bg-[#005441] text-white font-black text-xs uppercase tracking-wider px-5 h-10 rounded-md shadow-xs transition-colors active:scale-95">
             Browse Paid Jackpot Rooms
           </Link>
         </div>
       ) : filteredMatches.length === 0 ? (
         <div className="bg-white border border-slate-200 rounded-2xl p-8 text-center max-w-xl mx-auto flex flex-col items-center gap-3 shadow-xs">
-          <SearchX size={36} className="text-[#d81e1e]" />
+          <SearchX size={36} className="text-[#006C54]" />
           <h3 className="font-display font-extrabold text-lg text-slate-900 uppercase tracking-tight">No Fixtures Found</h3>
           <p className="text-xs text-slate-600 leading-relaxed">
             No upcoming free matches match your search for &quot;<strong className="text-slate-900">{searchQuery}</strong>&quot;. Try searching for another team, league, or clear your search to view all today&apos;s fixtures.
           </p>
           <button
             onClick={() => setSearchQuery('')}
-            className="mt-3 inline-flex items-center gap-2 bg-[#d81e1e] hover:bg-[#b51717] text-white font-black text-xs uppercase tracking-wider px-5 h-10 rounded-md shadow-xs transition-colors active:scale-95 cursor-pointer"
+            className="mt-3 inline-flex items-center gap-2 bg-[#006C54] hover:bg-[#005441] text-white font-black text-xs uppercase tracking-wider px-5 h-10 rounded-md shadow-xs transition-colors active:scale-95 cursor-pointer"
           >
             Show All Today&apos;s Matches
           </button>
@@ -243,19 +243,19 @@ export default function FreeMatches() {
                       {i === 0 && (
                         <>
                           <span className="text-slate-300 font-normal">·</span>
-                          <span className="inline-flex items-center gap-1 text-[#d81e1e] font-black">
+                          <span className="inline-flex items-center gap-1 text-[#006C54] font-black">
                             <Flame size={12} className="shrink-0" /> #1 Discussed
                           </span>
                         </>
                       )}
                     </div>
                     <span className="inline-flex items-center gap-1 text-[11px] font-bold text-slate-500 uppercase tracking-wider shrink-0">
-                      <RadioTower size={11} className="animate-pulse text-[#d81e1e]" /> Pre-Match
+                      <RadioTower size={11} className="animate-pulse text-[#006C54]" /> Pre-Match
                     </span>
                   </div>
 
                   {/* Team Names and Match Header */}
-                  <Link to={`/free/${m.id}`} className="block group-hover:text-[#d81e1e] transition-colors">
+                  <Link to={`/free/${m.id}`} className="block group-hover:text-[#006C54] transition-colors">
                     <h3 className="font-display font-black text-base sm:text-lg text-slate-900 leading-snug flex items-center gap-2 flex-wrap">
                       {m.homeLogo && <img src={m.homeLogo} alt="" loading="lazy" decoding="async" referrerPolicy="no-referrer" className="w-5 h-5 object-contain inline shrink-0" />}
                       <span>{m.home}</span>
@@ -270,7 +270,7 @@ export default function FreeMatches() {
 
                   <div className="flex items-center justify-between text-xs text-slate-500 pt-3 mt-3 border-t border-slate-100">
                     <span className="flex items-center gap-1.5 font-medium"><Clock size={12} className="text-slate-400" /> {m.kickoff}</span>
-                    <span className="flex items-center gap-1 font-bold text-slate-800"><Users size={12} className="text-[#d81e1e] shrink-0" /> {consensus.totalVotes.toLocaleString()} discussing</span>
+                    <span className="flex items-center gap-1 font-bold text-slate-800"><Users size={12} className="text-[#006C54] shrink-0" /> {consensus.totalVotes.toLocaleString()} discussing</span>
                   </div>
 
                   {/* Custom Athletic Odds Grid */}
@@ -283,7 +283,7 @@ export default function FreeMatches() {
                         onClick={(e) => handleQuickToggleOdd('Match Result (1X2)', `${m.home} Win (1)`, hOdds, e)}
                         className={`rounded-md py-2 px-1.5 border transition-all duration-150 active:scale-[0.98] touch-manipulation min-h-[46px] flex flex-col items-center justify-center gap-0.5 cursor-pointer ${
                           isHomeSelected
-                            ? 'bg-[#d81e1e] text-white font-black border-[#b91515] shadow-xs'
+                            ? 'bg-[#006C54] text-white font-black border-[#005441] shadow-xs'
                             : 'bg-slate-50 hover:bg-slate-100 text-slate-800 border-slate-200 hover:border-slate-400'
                         }`}
                       >
@@ -295,7 +295,7 @@ export default function FreeMatches() {
                         onClick={(e) => handleQuickToggleOdd('Match Result (1X2)', 'Draw (X)', dOdds, e)}
                         className={`rounded-md py-2 px-1.5 border transition-all duration-150 active:scale-[0.98] touch-manipulation min-h-[46px] flex flex-col items-center justify-center gap-0.5 cursor-pointer ${
                           isDrawSelected
-                            ? 'bg-[#d81e1e] text-white font-black border-[#b91515] shadow-xs'
+                            ? 'bg-[#006C54] text-white font-black border-[#005441] shadow-xs'
                             : 'bg-slate-50 hover:bg-slate-100 text-slate-800 border-slate-200 hover:border-slate-400'
                         }`}
                       >
@@ -307,7 +307,7 @@ export default function FreeMatches() {
                         onClick={(e) => handleQuickToggleOdd('Match Result (1X2)', `${m.away} Win (2)`, aOdds, e)}
                         className={`rounded-md py-2 px-1.5 border transition-all duration-150 active:scale-[0.98] touch-manipulation min-h-[46px] flex flex-col items-center justify-center gap-0.5 cursor-pointer ${
                           isAwaySelected
-                            ? 'bg-[#d81e1e] text-white font-black border-[#b91515] shadow-xs'
+                            ? 'bg-[#006C54] text-white font-black border-[#005441] shadow-xs'
                             : 'bg-slate-50 hover:bg-slate-100 text-slate-800 border-slate-200 hover:border-slate-400'
                         }`}
                       >
@@ -320,7 +320,7 @@ export default function FreeMatches() {
                   {/* Consensus strip */}
                   <div className="flex items-center justify-between rounded-md bg-slate-50 border border-slate-200 px-3 py-2 mt-3 text-xs">
                     <span className="font-semibold text-slate-600">Crowd Consensus</span>
-                    <span className="font-display font-black text-[#d81e1e] text-xs sm:text-sm font-mono">{majLabel} · {majority}%</span>
+                    <span className="font-display font-black text-[#006C54] text-xs sm:text-sm font-mono">{majLabel} · {majority}%</span>
                   </div>
                 </div>
 
@@ -330,7 +330,7 @@ export default function FreeMatches() {
                     to={`/free/${m.id}`}
                     className="h-10 px-3.5 rounded-md border border-slate-300 bg-white hover:bg-slate-50 hover:border-slate-800 text-slate-800 font-bold uppercase tracking-wider text-xs transition-all flex items-center justify-center gap-2 active:scale-[0.98] shadow-2xs group/btn cursor-pointer"
                   >
-                    <MessageSquarePlus size={14} className="text-[#d81e1e] group-hover/btn:scale-110 transition-transform shrink-0" />
+                    <MessageSquarePlus size={14} className="text-[#006C54] group-hover/btn:scale-110 transition-transform shrink-0" />
                     <span>Discuss</span>
                   </Link>
 
@@ -339,7 +339,7 @@ export default function FreeMatches() {
                     onClick={() => setSelectedMatchForBuilder(m)}
                     className={`h-10 px-3.5 rounded-md font-extrabold uppercase tracking-wider text-xs transition-all active:scale-[0.98] shadow-2xs flex items-center justify-center gap-2 cursor-pointer ${
                       matchLegs.length > 0
-                        ? 'bg-[#d81e1e] hover:bg-[#b91515] text-white border border-[#b91515]'
+                        ? 'bg-[#006C54] hover:bg-[#005441] text-white border border-[#005441]'
                         : 'bg-slate-900 hover:bg-slate-800 text-white border border-slate-900'
                     }`}
                   >

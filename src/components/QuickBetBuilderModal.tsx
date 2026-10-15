@@ -152,7 +152,7 @@ export default function QuickBetBuilderModal({
                       onClick={() => handleSelectLeg('Match Result (1X2)', m.label, m.odds)}
                       className={`p-2.5 rounded-md border text-center transition-all touch-manipulation min-h-[48px] flex flex-col items-center justify-center active:scale-[0.98] cursor-pointer ${
                         selected
-                          ? 'bg-[#d81e1e] text-white font-black border-[#b91515] shadow-xs'
+                          ? 'bg-[#006C54] text-white font-black border-[#005441] shadow-xs'
                           : 'bg-slate-50 border-slate-200 text-slate-800 hover:border-slate-400 hover:bg-slate-100'
                       }`}
                     >
@@ -180,7 +180,7 @@ export default function QuickBetBuilderModal({
                       onClick={() => handleSelectLeg('Double Chance', m.label, m.odds)}
                       className={`p-2.5 rounded-md border text-center transition-all touch-manipulation min-h-[48px] flex flex-col items-center justify-center active:scale-[0.98] cursor-pointer ${
                         selected
-                          ? 'bg-[#d81e1e] text-white font-black border-[#b91515] shadow-xs'
+                          ? 'bg-[#006C54] text-white font-black border-[#005441] shadow-xs'
                           : 'bg-slate-50 border-slate-200 text-slate-800 hover:border-slate-400 hover:bg-slate-100'
                       }`}
                     >
@@ -208,7 +208,7 @@ export default function QuickBetBuilderModal({
                       onClick={() => handleSelectLeg('Both Teams To Score', m.label, m.odds)}
                       className={`p-2.5 rounded-md border text-center transition-all touch-manipulation min-h-[46px] flex items-center justify-between px-3 active:scale-[0.98] cursor-pointer ${
                         selected
-                          ? 'bg-[#d81e1e] text-white font-black border-[#b91515] shadow-xs'
+                          ? 'bg-[#006C54] text-white font-black border-[#005441] shadow-xs'
                           : 'bg-slate-50 border-slate-200 text-slate-800 hover:border-slate-400 hover:bg-slate-100'
                       }`}
                     >
@@ -236,7 +236,7 @@ export default function QuickBetBuilderModal({
                       onClick={() => handleSelectLeg('Total Goals', m.label, m.odds)}
                       className={`p-2.5 rounded-md border text-center transition-all touch-manipulation min-h-[46px] flex items-center justify-between px-3 active:scale-[0.98] cursor-pointer ${
                         selected
-                          ? 'bg-[#d81e1e] text-white font-black border-[#b91515] shadow-xs'
+                          ? 'bg-[#006C54] text-white font-black border-[#005441] shadow-xs'
                           : 'bg-slate-50 border-slate-200 text-slate-800 hover:border-slate-400 hover:bg-slate-100'
                       }`}
                     >
@@ -270,7 +270,7 @@ export default function QuickBetBuilderModal({
                   onClose();
                   navigate('/slips');
                 }}
-                className="h-10 px-4 rounded-md bg-[#d81e1e] hover:bg-[#b91515] text-white font-black text-xs uppercase tracking-wider flex items-center gap-1.5 shadow-xs transition-all active:scale-95 touch-manipulation cursor-pointer"
+                className="h-10 px-4 rounded-md bg-[#006C54] hover:bg-[#005441] text-white font-black text-xs uppercase tracking-wider flex items-center gap-1.5 shadow-xs transition-all active:scale-95 touch-manipulation cursor-pointer"
               >
                 View Bet Slip <ArrowRight size={14} />
               </button>

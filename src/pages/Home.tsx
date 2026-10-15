@@ -134,7 +134,7 @@ export default function Home() {
                 
                 {/* Overlay match badge */}
                 <div className="absolute top-4 left-4">
-                  <span className="bg-[#d81e1e] text-white text-[11px] font-black uppercase tracking-wider px-3 py-1 rounded-md shadow-md">
+                  <span className="bg-[#006C54] text-[#FFD700] border border-[#005441] text-[11px] font-black uppercase tracking-wider px-3 py-1 rounded-md shadow-md">
                     FEATURED MATCH
                   </span>
                 </div>
@@ -150,17 +150,17 @@ export default function Home() {
               <div className="flex items-center gap-2 mt-4">
                 <button
                   onClick={() => setHeroSlide(0)}
-                  className={`w-2.5 h-2.5 rounded-full transition-all ${heroSlide === 0 ? 'bg-[#d81e1e] w-6' : 'bg-slate-300 hover:bg-slate-400'}`}
+                  className={`w-2.5 h-2.5 rounded-full transition-all ${heroSlide === 0 ? 'bg-[#006C54] w-6' : 'bg-slate-300 hover:bg-slate-400'}`}
                   aria-label="Slide 1"
                 />
                 <button
                   onClick={() => setHeroSlide(1)}
-                  className={`w-2.5 h-2.5 rounded-full transition-all ${heroSlide === 1 ? 'bg-[#d81e1e] w-6' : 'bg-slate-300 hover:bg-slate-400'}`}
+                  className={`w-2.5 h-2.5 rounded-full transition-all ${heroSlide === 1 ? 'bg-[#006C54] w-6' : 'bg-slate-300 hover:bg-slate-400'}`}
                   aria-label="Slide 2"
                 />
                 <button
                   onClick={() => setHeroSlide(2)}
-                  className={`w-2.5 h-2.5 rounded-full transition-all ${heroSlide === 2 ? 'bg-[#d81e1e] w-6' : 'bg-slate-300 hover:bg-slate-400'}`}
+                  className={`w-2.5 h-2.5 rounded-full transition-all ${heroSlide === 2 ? 'bg-[#006C54] w-6' : 'bg-slate-300 hover:bg-slate-400'}`}
                   aria-label="Slide 3"
                 />
               </div>
@@ -168,11 +168,11 @@ export default function Home() {
 
             {/* Right Column: Editorial Typography, CTA Button & Floating Thumbnail Previews */}
             <div className="lg:col-span-7 flex flex-col justify-center">
-              <span className="inline-block text-[#d81e1e] font-black text-xs uppercase tracking-widest mb-2">
+              <span className="inline-block text-[#006C54] font-black text-xs uppercase tracking-widest mb-2">
                 TOP STORY &amp; CONSENSUS
               </span>
 
-              <h1 className="font-display font-black text-3xl sm:text-5xl lg:text-6xl text-[#d81e1e] leading-[1.05] tracking-tight">
+              <h1 className="font-display font-black text-3xl sm:text-5xl lg:text-6xl text-[#006C54] leading-[1.05] tracking-tight">
                 Hazard magic has Chelsea sitting pretty
               </h1>
 
@@ -189,7 +189,7 @@ export default function Home() {
                 </a>
                 <a
                   href="#rooms"
-                  className="h-11 px-6 rounded-md bg-[#d81e1e] hover:bg-[#b91515] text-white font-black uppercase tracking-wider text-xs sm:text-sm shadow-xs active:scale-95 transition-all inline-flex items-center gap-2"
+                  className="h-11 px-6 rounded-md bg-[#006C54] hover:bg-[#005441] text-white font-black uppercase tracking-wider text-xs sm:text-sm shadow-xs active:scale-95 transition-all inline-flex items-center gap-2"
                 >
                   <span>Jackpot Rooms</span>
                   <ArrowRight size={15} />
@@ -260,7 +260,7 @@ export default function Home() {
                   <div>
                     {/* Crests */}
                     <div className="flex items-center justify-center gap-4 py-2 border-b border-slate-100">
-                      <div className="w-12 h-12 rounded-full bg-red-50 border border-red-200 flex items-center justify-center font-black text-xs text-[#d81e1e]">
+                      <div className="w-12 h-12 rounded-full bg-emerald-50 border border-emerald-200 flex items-center justify-center font-black text-xs text-[#006C54]">
                         LIV
                       </div>
                       <span className="text-xs font-bold text-slate-400">vs</span>
@@ -284,10 +284,10 @@ export default function Home() {
                   <div className="mt-5 pt-3 border-t border-slate-100 flex items-center justify-between">
                     <Link
                       to="/free"
-                      className="text-xs font-bold text-slate-800 hover:text-[#d81e1e] inline-flex items-center gap-1.5 transition-colors group"
+                      className="text-xs font-bold text-slate-800 hover:text-[#006C54] inline-flex items-center gap-1.5 transition-colors group"
                     >
                       <span>Preview</span>
-                      <span className="w-5 h-5 rounded-full bg-[#d81e1e] text-white flex items-center justify-center text-[10px] group-hover:translate-x-0.5 transition-transform">
+                      <span className="w-5 h-5 rounded-full bg-[#006C54] text-white flex items-center justify-center text-[10px] group-hover:translate-x-0.5 transition-transform">
                         →
                       </span>
                     </Link>
@@ -323,10 +323,10 @@ export default function Home() {
                   <div className="mt-5 pt-3 border-t border-slate-100 flex items-center justify-between">
                     <Link
                       to="/free"
-                      className="text-xs font-bold text-slate-800 hover:text-[#d81e1e] inline-flex items-center gap-1.5 transition-colors group"
+                      className="text-xs font-bold text-slate-800 hover:text-[#006C54] inline-flex items-center gap-1.5 transition-colors group"
                     >
                       <span>Preview</span>
-                      <span className="w-5 h-5 rounded-full bg-[#d81e1e] text-white flex items-center justify-center text-[10px] group-hover:translate-x-0.5 transition-transform">
+                      <span className="w-5 h-5 rounded-full bg-[#006C54] text-white flex items-center justify-center text-[10px] group-hover:translate-x-0.5 transition-transform">
                         →
                       </span>
                     </Link>
@@ -362,10 +362,10 @@ export default function Home() {
                   <div className="mt-5 pt-3 border-t border-slate-100 flex items-center justify-between">
                     <Link
                       to="/free"
-                      className="text-xs font-bold text-slate-800 hover:text-[#d81e1e] inline-flex items-center gap-1.5 transition-colors group"
+                      className="text-xs font-bold text-slate-800 hover:text-[#006C54] inline-flex items-center gap-1.5 transition-colors group"
                     >
                       <span>Preview</span>
-                      <span className="w-5 h-5 rounded-full bg-[#d81e1e] text-white flex items-center justify-center text-[10px] group-hover:translate-x-0.5 transition-transform">
+                      <span className="w-5 h-5 rounded-full bg-[#006C54] text-white flex items-center justify-center text-[10px] group-hover:translate-x-0.5 transition-transform">
                         →
                       </span>
                     </Link>
@@ -386,9 +386,9 @@ export default function Home() {
       <section className="bg-white py-12 sm:py-16 border-b border-slate-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           
-          {/* Header Row: Bold Red Title + Pill Tab Filters */}
+          {/* Header Row: Bold Primary Title + Pill Tab Filters */}
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
-            <h2 className="font-display font-black text-2xl sm:text-3xl lg:text-4xl text-[#d81e1e] tracking-tight">
+            <h2 className="font-display font-black text-2xl sm:text-3xl lg:text-4xl text-[#006C54] tracking-tight">
               Latest News
             </h2>
 
@@ -444,13 +444,13 @@ export default function Home() {
                     <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
                       {news.category} · {news.date}
                     </span>
-                    <h3 className="font-display font-black text-sm sm:text-base text-slate-900 leading-snug mt-1 group-hover:text-[#d81e1e] transition-colors">
+                    <h3 className="font-display font-black text-sm sm:text-base text-slate-900 leading-snug mt-1 group-hover:text-[#006C54] transition-colors">
                       {news.title}
                     </h3>
                   </div>
 
                   <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
-                    <span className="font-semibold text-[#d81e1e] group-hover:underline">Read Pick →</span>
+                    <span className="font-semibold text-[#006C54] group-hover:underline">Read Pick →</span>
                     <span className="text-[11px] font-mono text-slate-400">mshindi.co.ke</span>
                   </div>
                 </div>
@@ -490,7 +490,7 @@ export default function Home() {
               <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-black/20" />
 
               <div className="absolute inset-0 p-6 flex flex-col justify-end text-white">
-                <span className="bg-[#d81e1e] text-white text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full w-fit mb-2">
+                <span className="bg-[#006C54] text-[#FFD700] border border-[#005441] text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full w-fit mb-2">
                   TOP HIGHLIGHT
                 </span>
                 <h3 className="font-display font-black text-xl sm:text-2xl text-white leading-tight">
@@ -498,8 +498,8 @@ export default function Home() {
                 </h3>
                 
                 <div className="flex items-center gap-3 mt-4">
-                  <div className="w-10 h-10 rounded-full bg-white text-[#d81e1e] flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
-                    <Play size={18} fill="#d81e1e" />
+                  <div className="w-10 h-10 rounded-full bg-white text-[#006C54] flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+                    <Play size={18} fill="#006C54" />
                   </div>
                   <div>
                     <span className="text-xs font-bold text-white block">Play Video</span>
@@ -517,8 +517,8 @@ export default function Home() {
                 <div className="relative w-32 sm:w-40 aspect-[16/10] rounded-xl overflow-hidden shrink-0 border border-white/20">
                   <img src="/images/midfielder.jpg" alt="Video 1" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
                   <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
-                    <div className="w-8 h-8 rounded-full bg-white/90 text-[#d81e1e] flex items-center justify-center shadow-md">
-                      <Play size={14} fill="#d81e1e" />
+                    <div className="w-8 h-8 rounded-full bg-white/90 text-[#006C54] flex items-center justify-center shadow-md">
+                      <Play size={14} fill="#006C54" />
                     </div>
                   </div>
                 </div>
@@ -535,8 +535,8 @@ export default function Home() {
                 <div className="relative w-32 sm:w-40 aspect-[16/10] rounded-xl overflow-hidden shrink-0 border border-white/20">
                   <img src="/images/match-action.jpg" alt="Video 2" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
                   <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
-                    <div className="w-8 h-8 rounded-full bg-white/90 text-[#d81e1e] flex items-center justify-center shadow-md">
-                      <Play size={14} fill="#d81e1e" />
+                    <div className="w-8 h-8 rounded-full bg-white/90 text-[#006C54] flex items-center justify-center shadow-md">
+                      <Play size={14} fill="#006C54" />
                     </div>
                   </div>
                 </div>
@@ -553,8 +553,8 @@ export default function Home() {
                 <div className="relative w-32 sm:w-40 aspect-[16/10] rounded-xl overflow-hidden shrink-0 border border-white/20">
                   <img src="/images/hero-striker.jpg" alt="Video 3" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
                   <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
-                    <div className="w-8 h-8 rounded-full bg-white/90 text-[#d81e1e] flex items-center justify-center shadow-md">
-                      <Play size={14} fill="#d81e1e" />
+                    <div className="w-8 h-8 rounded-full bg-white/90 text-[#006C54] flex items-center justify-center shadow-md">
+                      <Play size={14} fill="#006C54" />
                     </div>
                   </div>
                 </div>
@@ -581,7 +581,7 @@ export default function Home() {
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-8">
           <div>
             <h2 className="font-display font-black text-2xl sm:text-3xl lg:text-4xl text-slate-900 flex items-center gap-2.5">
-              <Lock size={22} className="text-[#d81e1e]" />
+              <Lock size={22} className="text-[#006C54]" />
               <span>Jackpot Consensus Rooms</span>
             </h2>
             <p className="text-xs sm:text-sm text-slate-500 mt-1">
@@ -597,7 +597,7 @@ export default function Home() {
                 onClick={() => setIsAdminModalOpen(true)}
                 className="h-10 px-4 rounded-md bg-white hover:bg-slate-50 border border-slate-300 text-slate-800 text-xs font-black uppercase tracking-wider inline-flex items-center gap-2 active:scale-95 transition-all shadow-2xs cursor-pointer"
               >
-                <SlidersHorizontal size={14} className="text-[#d81e1e]" />
+                <SlidersHorizontal size={14} className="text-[#006C54]" />
                 <span>Jackpot Admin Console</span>
               </button>
             )}
@@ -608,7 +608,7 @@ export default function Home() {
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder="Search rooms..."
-                className="bg-white border border-slate-200 rounded-full pl-9 pr-4 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#d81e1e] w-full sm:w-64 shadow-xs transition-all"
+                className="bg-white border border-slate-200 rounded-full pl-9 pr-4 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#006C54] w-full sm:w-64 shadow-xs transition-all"
               />
             </div>
           </div>
@@ -624,14 +624,14 @@ export default function Home() {
               }}
               className={`px-5 py-2 rounded-xl font-display font-black text-xs sm:text-sm flex items-center gap-2 transition-all active:scale-95 ${
                 viewTab === 'active'
-                  ? 'bg-[#d81e1e] text-white shadow-xs'
+                  ? 'bg-[#006C54] text-white shadow-xs'
                   : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
               }`}
             >
               <Flame size={15} />
               <span>Active Rooms</span>
               <span className={`text-[10px] px-2 py-0.5 rounded-full font-mono font-bold ${
-                viewTab === 'active' ? 'bg-white text-[#d81e1e]' : 'bg-slate-100 text-slate-600'
+                viewTab === 'active' ? 'bg-white text-[#006C54]' : 'bg-slate-100 text-slate-600'
               }`}>
                 {activeRooms.length}
               </span>
@@ -644,14 +644,14 @@ export default function Home() {
               }}
               className={`px-5 py-2 rounded-xl font-display font-black text-xs sm:text-sm flex items-center gap-2 transition-all active:scale-95 ${
                 viewTab === 'archive'
-                  ? 'bg-[#d81e1e] text-white shadow-xs'
+                  ? 'bg-[#006C54] text-white shadow-xs'
                   : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
               }`}
             >
               <Archive size={15} />
               <span>Archives</span>
               <span className={`text-[10px] px-2 py-0.5 rounded-full font-mono font-bold ${
-                viewTab === 'archive' ? 'bg-white text-[#d81e1e]' : 'bg-slate-100 text-slate-600'
+                viewTab === 'archive' ? 'bg-white text-[#006C54]' : 'bg-slate-100 text-slate-600'
               }`}>
                 {archivedRooms.length}
               </span>
@@ -681,7 +681,7 @@ export default function Home() {
               onClick={() => setBookie(b)}
               className={`px-4 py-2 rounded-full text-xs font-bold border transition-all shrink-0 whitespace-nowrap active:scale-95 ${
                 bookie === b
-                  ? 'bg-[#d81e1e] border-[#d81e1e] text-white shadow-xs font-black'
+                  ? 'bg-[#006C54] border-[#006C54] text-white shadow-xs font-black'
                   : 'border-slate-200 text-slate-600 bg-white hover:border-slate-300 hover:bg-slate-50'
               }`}
             >
@@ -735,7 +735,7 @@ export default function Home() {
 
         {filtered.length === 0 ? (
           <div className="text-center py-16 px-4 bg-white border border-slate-200 rounded-2xl max-w-xl mx-auto space-y-4 shadow-xs">
-            <span className="w-12 h-12 rounded-2xl bg-red-50 text-[#d81e1e] flex items-center justify-center mx-auto">
+            <span className="w-12 h-12 rounded-2xl bg-emerald-50 text-[#006C54] flex items-center justify-center mx-auto">
               <SlidersHorizontal size={24} />
             </span>
             <div>
@@ -754,7 +754,7 @@ export default function Home() {
                   setViewTab('archive');
                   setStatus('All');
                 }}
-                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-[#d81e1e] hover:bg-[#b91515] text-white font-bold text-xs shadow-xs transition-all"
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-[#006C54] hover:bg-[#005441] text-white font-bold text-xs shadow-xs transition-all"
               >
                 <Archive size={15} />
                 <span>Browse {archivedRooms.length} Archived Rooms</span>

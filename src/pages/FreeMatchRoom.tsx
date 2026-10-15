@@ -119,11 +119,11 @@ export default function FreeMatchRoom() {
           </span>
           <span className="text-slate-300 font-normal">·</span>
           <span className="text-slate-600 inline-flex items-center gap-1.5 font-bold">
-            <Unlock size={13} className="text-[#d81e1e]" /> Free Match Room · Open Discussion
+            <Unlock size={13} className="text-[#006C54]" /> Free Match Room · Open Discussion
           </span>
           <span className="text-slate-300 font-normal">·</span>
           <span className="text-slate-400 font-semibold inline-flex items-center gap-1.5">
-            <RadioTower size={12} className="animate-pulse text-[#d81e1e]" /> Synced {match.syncedAt}
+            <RadioTower size={12} className="animate-pulse text-[#006C54]" /> Synced {match.syncedAt}
           </span>
         </div>
 
@@ -154,7 +154,7 @@ export default function FreeMatchRoom() {
               onClick={() => setShowBuilderModal(true)}
               className={`h-10 px-4 rounded-md font-extrabold uppercase tracking-wider text-xs transition-all active:scale-[0.98] shadow-2xs flex items-center justify-center gap-2 cursor-pointer ${
                 builderLegs.some((l) => l.matchId === match.id)
-                  ? 'bg-[#d81e1e] hover:bg-[#b91515] text-white border border-[#b91515]'
+                  ? 'bg-[#006C54] hover:bg-[#005441] text-white border border-[#005441]'
                   : 'bg-slate-900 hover:bg-slate-800 text-white border border-slate-900'
               }`}
             >
@@ -177,14 +177,14 @@ export default function FreeMatchRoom() {
 
         <div className="flex flex-wrap gap-x-6 gap-y-2 mt-5 pt-5 border-t border-slate-200 text-xs font-semibold text-slate-500">
           <span className="flex items-center gap-1.5"><Clock size={14} className="text-slate-400" /> {match.kickoff}</span>
-          <span className="flex items-center gap-1.5"><Users size={14} className="text-[#d81e1e]" /> {consensus.totalVotes.toLocaleString()} punters discussing</span>
+          <span className="flex items-center gap-1.5"><Users size={14} className="text-[#006C54]" /> {consensus.totalVotes.toLocaleString()} punters discussing</span>
         </div>
       </div>
 
       {/* Shared Picks Prior to Closure Highlight Banner */}
       <div className="mb-6 bg-white border border-slate-200 rounded-2xl p-4 sm:p-5 flex items-center justify-between gap-3 shadow-xs">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-[#d81e1e]/10 text-[#d81e1e] flex items-center justify-center font-bold shrink-0">
+          <div className="w-10 h-10 rounded-full bg-[#006C54]/10 text-[#006C54] flex items-center justify-center font-bold shrink-0">
             <Users size={20} />
           </div>
           <div>
@@ -198,7 +198,7 @@ export default function FreeMatchRoom() {
         </div>
         <div className="bg-slate-50 border border-slate-200 px-4 py-1.5 rounded-xl text-center shrink-0">
           <span className="text-[10px] uppercase font-black tracking-wider text-slate-400 block">Shared Picks</span>
-          <span className="font-display font-black text-[#d81e1e] text-base sm:text-lg">
+          <span className="font-display font-black text-[#006C54] text-base sm:text-lg">
             {consensus.totalVotes.toLocaleString()}
           </span>
         </div>

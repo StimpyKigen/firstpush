@@ -76,7 +76,7 @@ export default function CompactPickRow({ pick, isTopPick, onEdit }: CompactPickR
 
   if (editing && isMine) {
     return (
-      <div className="p-3.5 sm:p-4 rounded-xl border border-[#d81e1e]/40 bg-[#d81e1e]/[0.02] space-y-3">
+      <div className="p-3.5 sm:p-4 rounded-xl border border-[#006C54]/40 bg-[#006C54]/[0.02] space-y-3">
         <div className="flex items-center justify-between">
           <span className="text-xs font-black uppercase tracking-wider text-slate-800">Edit Your Match Pick</span>
           <span className="text-[10px] font-mono font-bold text-slate-500 uppercase">({canEdit ? '1 edit remaining' : 'no edits left'})</span>
@@ -106,7 +106,7 @@ export default function CompactPickRow({ pick, isTopPick, onEdit }: CompactPickR
           onChange={(e) => setEditReason(e.target.value)}
           rows={2}
           className={`w-full bg-white border rounded-md px-3 py-2 text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none resize-none transition-all ${
-            !editMod.isAllowed ? 'border-rose-500 bg-rose-50/50' : 'border-slate-300 focus:border-[#d81e1e]'
+            !editMod.isAllowed ? 'border-rose-500 bg-rose-50/50' : 'border-slate-300 focus:border-[#006C54]'
           }`}
         />
         <ModerationWarningBox result={editMod} text={editReason} />
@@ -122,7 +122,7 @@ export default function CompactPickRow({ pick, isTopPick, onEdit }: CompactPickR
             type="button"
             onClick={handleSaveEdit}
             disabled={!editMod.isAllowed}
-            className="h-8 px-3.5 rounded-md text-xs font-black uppercase tracking-wider bg-[#d81e1e] hover:bg-[#b91515] disabled:opacity-40 text-white transition-all shadow-xs flex items-center gap-1.5 cursor-pointer"
+            className="h-8 px-3.5 rounded-md text-xs font-black uppercase tracking-wider bg-[#006C54] hover:bg-[#005441] disabled:opacity-40 text-white transition-all shadow-xs flex items-center gap-1.5 cursor-pointer"
           >
             <Check size={12} /> Save Changes
           </button>
@@ -147,9 +147,9 @@ export default function CompactPickRow({ pick, isTopPick, onEdit }: CompactPickR
     <div
       className={`group relative flex flex-col gap-2.5 p-3.5 sm:p-4 rounded-xl border transition-all duration-150 ${
         isMine
-          ? 'bg-slate-50 border-[#d81e1e]/30 hover:border-[#d81e1e]/60 shadow-2xs'
+          ? 'bg-slate-50 border-[#006C54]/30 hover:border-[#006C54]/60 shadow-2xs'
           : isTopPick
-          ? 'bg-amber-500/[0.03] border-amber-400/40 hover:border-amber-500/60 shadow-2xs'
+          ? 'bg-[#FFD700]/[0.04] border-[#FFD700]/40 hover:border-[#FFD700]/70 shadow-2xs'
           : 'bg-white border-slate-200 hover:border-slate-300 hover:shadow-xs'
       }`}
     >
@@ -175,18 +175,18 @@ export default function CompactPickRow({ pick, isTopPick, onEdit }: CompactPickR
             <div className="flex items-center gap-1.5 flex-wrap">
               <button
                 onClick={() => setShowProfileModal(true)}
-                className="text-xs sm:text-sm font-black uppercase tracking-tight text-slate-900 hover:text-[#d81e1e] transition-colors truncate cursor-pointer"
+                className="text-xs sm:text-sm font-black uppercase tracking-tight text-slate-900 hover:text-[#006C54] transition-colors truncate cursor-pointer"
               >
                 {pick.username}
               </button>
               {isMine && (
-                <span className="text-[10px] font-black uppercase text-[#d81e1e] tracking-wider">
+                <span className="text-[10px] font-black uppercase text-[#006C54] tracking-wider">
                   (You)
                 </span>
               )}
               {isTopPick && (
-                <span className="inline-flex items-center gap-1 text-[10px] font-black uppercase text-amber-600 tracking-wider">
-                  <Crown size={11} className="text-amber-500" /> #1 Top Pick
+                <span className="inline-flex items-center gap-1 text-[10px] font-black uppercase text-[#b49000] tracking-wider">
+                  <Crown size={11} className="text-[#FFD700] fill-[#FFD700]" /> #1 Top Pick
                 </span>
               )}
             </div>
@@ -212,7 +212,7 @@ export default function CompactPickRow({ pick, isTopPick, onEdit }: CompactPickR
         {isLong && !expanded && (
           <button
             onClick={() => setExpanded(true)}
-            className="text-[#d81e1e] font-bold text-xs ml-1.5 hover:underline cursor-pointer"
+            className="text-[#006C54] font-bold text-xs ml-1.5 hover:underline cursor-pointer"
           >
             read more
           </button>
@@ -257,12 +257,12 @@ export default function CompactPickRow({ pick, isTopPick, onEdit }: CompactPickR
             onClick={handleLike}
             className={`h-7 px-2.5 rounded-md text-xs font-black uppercase tracking-wider flex items-center gap-1.5 transition-all active:scale-95 border cursor-pointer ${
               liked
-                ? 'bg-amber-50 border-amber-300 text-amber-700 shadow-2xs'
+                ? 'bg-[#FFD700]/20 border-[#FFD700] text-slate-950 shadow-2xs'
                 : 'bg-white hover:bg-slate-50 border-slate-200 text-slate-600 hover:text-slate-900'
             }`}
             title="Agree with this pick"
           >
-            <ThumbsUp size={11} className={liked ? 'fill-current text-amber-600' : 'text-slate-400'} />
+            <ThumbsUp size={11} className={liked ? 'fill-[#FFD700] text-[#b49000]' : 'text-slate-400'} />
             <span>{likes}</span>
           </button>
         </div>

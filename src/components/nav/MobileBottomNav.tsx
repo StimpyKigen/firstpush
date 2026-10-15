@@ -16,14 +16,14 @@ export default function MobileBottomNav({ pathname, builderLegsCount, currentUse
         to="/"
         className={`relative flex flex-col items-center justify-center gap-0.5 py-1 px-3 rounded-xl transition-all duration-150 active:scale-95 min-h-[48px] min-w-[56px] touch-manipulation ${
           pathname === '/'
-            ? 'text-[#d81e1e] font-bold bg-red-50/70'
+            ? 'text-[#006C54] font-bold bg-emerald-50'
             : 'text-slate-500 hover:text-slate-900'
         }`}
       >
         {pathname === '/' && (
-          <span className="absolute -top-1.5 left-1/2 -translate-x-1/2 w-6 h-1 bg-[#d81e1e] rounded-full" />
+          <span className="absolute -top-1.5 left-1/2 -translate-x-1/2 w-6 h-1 bg-[#006C54] rounded-full" />
         )}
-        <Home size={19} className={pathname === '/' ? 'text-[#d81e1e]' : ''} />
+        <Home size={19} className={pathname === '/' ? 'text-[#006C54]' : ''} />
         <span className="text-[10px] tracking-tight font-bold">Jackpots</span>
       </Link>
 
@@ -31,14 +31,14 @@ export default function MobileBottomNav({ pathname, builderLegsCount, currentUse
         to="/free"
         className={`relative flex flex-col items-center justify-center gap-0.5 py-1 px-3 rounded-xl transition-all duration-150 active:scale-95 min-h-[48px] min-w-[56px] touch-manipulation ${
           pathname.startsWith('/free')
-            ? 'text-[#d81e1e] font-bold bg-red-50/70'
+            ? 'text-[#006C54] font-bold bg-emerald-50'
             : 'text-slate-500 hover:text-slate-900'
         }`}
       >
         {pathname.startsWith('/free') && (
-          <span className="absolute -top-1.5 left-1/2 -translate-x-1/2 w-6 h-1 bg-[#d81e1e] rounded-full" />
+          <span className="absolute -top-1.5 left-1/2 -translate-x-1/2 w-6 h-1 bg-[#006C54] rounded-full" />
         )}
-        <Unlock size={19} className={pathname.startsWith('/free') ? 'text-[#d81e1e]' : ''} />
+        <Unlock size={19} className={pathname.startsWith('/free') ? 'text-[#006C54]' : ''} />
         <span className="text-[10px] tracking-tight font-bold">Matches</span>
       </Link>
 
@@ -46,19 +46,19 @@ export default function MobileBottomNav({ pathname, builderLegsCount, currentUse
         to="/slips"
         className={`relative flex flex-col items-center justify-center gap-0.5 py-1 px-3 rounded-xl transition-all duration-150 active:scale-95 min-h-[48px] min-w-[56px] touch-manipulation ${
           pathname === '/slips'
-            ? 'text-[#d81e1e] font-bold bg-red-50/70'
+            ? 'text-[#006C54] font-bold bg-emerald-50'
             : 'text-slate-500 hover:text-slate-900'
         }`}
       >
         {pathname === '/slips' && (
-          <span className="absolute -top-1.5 left-1/2 -translate-x-1/2 w-6 h-1 bg-[#d81e1e] rounded-full" />
+          <span className="absolute -top-1.5 left-1/2 -translate-x-1/2 w-6 h-1 bg-[#006C54] rounded-full" />
         )}
         {builderLegsCount > 0 && (
-          <span className="absolute top-1 right-2.5 bg-[#d81e1e] text-white font-black text-[9px] h-4 min-w-[16px] px-1 rounded-full flex items-center justify-center shadow-xs">
+          <span className="absolute top-1 right-2.5 bg-[#006C54] text-[#FFD700] font-black text-[9px] h-4 min-w-[16px] px-1 rounded-full flex items-center justify-center shadow-xs border border-[#005441]">
             {builderLegsCount}
           </span>
         )}
-        <Dices size={19} className={pathname === '/slips' ? 'text-[#d81e1e]' : ''} />
+        <Dices size={19} className={pathname === '/slips' ? 'text-[#006C54]' : ''} />
         <span className="text-[10px] tracking-tight font-bold">Slips</span>
       </Link>
 
@@ -66,14 +66,14 @@ export default function MobileBottomNav({ pathname, builderLegsCount, currentUse
         to="/leaderboard"
         className={`relative flex flex-col items-center justify-center gap-0.5 py-1 px-3 rounded-xl transition-all duration-150 active:scale-95 min-h-[48px] min-w-[56px] touch-manipulation ${
           pathname === '/leaderboard'
-            ? 'text-[#d81e1e] font-bold bg-red-50/70'
+            ? 'text-[#006C54] font-bold bg-emerald-50'
             : 'text-slate-500 hover:text-slate-900'
         }`}
       >
         {pathname === '/leaderboard' && (
-          <span className="absolute -top-1.5 left-1/2 -translate-x-1/2 w-6 h-1 bg-[#d81e1e] rounded-full" />
+          <span className="absolute -top-1.5 left-1/2 -translate-x-1/2 w-6 h-1 bg-[#006C54] rounded-full" />
         )}
-        <Trophy size={19} className={pathname === '/leaderboard' ? 'text-[#d81e1e]' : ''} />
+        <Trophy size={19} className={pathname === '/leaderboard' ? 'text-[#006C54]' : ''} />
         <span className="text-[10px] tracking-tight font-bold">Ranks</span>
       </Link>
 
@@ -81,14 +81,14 @@ export default function MobileBottomNav({ pathname, builderLegsCount, currentUse
         to={currentUser ? '/profile' : '/auth'}
         className={`relative flex flex-col items-center justify-center gap-0.5 py-1 px-3 rounded-xl transition-all duration-150 active:scale-95 min-h-[48px] min-w-[56px] touch-manipulation ${
           pathname === '/profile' || pathname === '/auth'
-            ? 'text-[#d81e1e] font-bold bg-red-50/70'
+            ? 'text-[#006C54] font-bold bg-emerald-50'
             : 'text-slate-500 hover:text-slate-900'
         }`}
       >
         {(pathname === '/profile' || pathname === '/auth') && (
-          <span className="absolute -top-1.5 left-1/2 -translate-x-1/2 w-6 h-1 bg-[#d81e1e] rounded-full" />
+          <span className="absolute -top-1.5 left-1/2 -translate-x-1/2 w-6 h-1 bg-[#006C54] rounded-full" />
         )}
-        <User size={19} className={pathname === '/profile' || pathname === '/auth' ? 'text-[#d81e1e]' : ''} />
+        <User size={19} className={pathname === '/profile' || pathname === '/auth' ? 'text-[#006C54]' : ''} />
         <span className="text-[10px] tracking-tight font-bold">{currentUser ? 'Profile' : 'Log In'}</span>
       </Link>
     </nav>

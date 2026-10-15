@@ -15,7 +15,7 @@
   --font-sans: "SF Pro Text", "SF Pro", "San Francisco", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 
-  /* Primary High-Contrast ESPN Sports Palette */
+  /* Primary High-Contrast Sports Palette: Forest Green #006C54 & Championship Gold #FFD700 */
   --color-ink: #f6f8fa;         /* Light sports canvas background */
   --color-ink-2: #ffffff;       /* Pure white elevated container surface */
   --color-panel: #ffffff;       /* Pure white card/panel surface */
@@ -23,13 +23,17 @@
   --color-line: #e2e8f0;        /* Subtle slate-200 border */
   --color-cream: #111827;       /* High-contrast deep slate text */
   --color-cream-dim: #64748b;   /* Clean secondary slate-500 text */
-  --color-gold: #d97706;        /* Energetic sport amber for jackpot prizes */
-  --color-gold-2: #b45309;
-  --color-emerald: #059669;     /* Sports green for verified picks & consensus */
-  --color-emerald-2: #047857;
-  --color-danger: #d81e1e;      /* Iconic ESPN Crimson Red */
-  --color-espn-red: #d81e1e;    /* Iconic ESPN Crimson Red */
-  --color-espn-red-dark: #b91515;
+  --color-gold: #FFD700;        /* Signature Championship Gold Accent */
+  --color-gold-2: #e6c200;
+  --color-emerald: #006C54;     /* Primary Brand Accent */
+  --color-emerald-2: #005441;
+  --color-brand-primary: #006C54; /* #006C54 replaces the red */
+  --color-brand-primary-dark: #005441;
+  --color-brand-gold: #FFD700;  /* Rest of accent in #FFD700 */
+  --color-brand-gold-dark: #e6c200;
+  --color-danger: #006C54;      /* Brand accent mapped */
+  --color-espn-red: #006C54;    /* Primary brand accent */
+  --color-espn-red-dark: #005441;
   --color-frame-bg: #eef2f6;
 
   /* Soft Ambient Elevation Tokens */
@@ -37,7 +41,9 @@
   --shadow-md: 0 4px 14px -2px rgba(0, 0, 0, 0.06), 0 2px 6px -1px rgba(0, 0, 0, 0.03);
   --shadow-lg: 0 12px 28px -4px rgba(0, 0, 0, 0.08), 0 4px 10px -2px rgba(0, 0, 0, 0.03);
   --shadow-xl: 0 20px 36px -6px rgba(0, 0, 0, 0.12), 0 8px 14px -3px rgba(0, 0, 0, 0.05);
-  --shadow-red: 0 8px 24px -4px rgba(216, 30, 30, 0.35);
+  --shadow-red: 0 8px 24px -4px rgba(0, 108, 84, 0.35);
+  --shadow-brand: 0 8px 24px -4px rgba(0, 108, 84, 0.35);
+  --shadow-gold: 0 8px 24px -4px rgba(255, 215, 0, 0.35);
 }
 
 /* ==========================================================================
@@ -182,15 +188,15 @@ select,
     border-radius: 9999px;
   }
 
-  /* ESPN Iconic Full-Bleed Crimson Red Section */
+  /* Sports Iconic Full-Bleed Primary Emerald Green Section */
   .espn-red-banner {
-    background: linear-gradient(135deg, #e52525 0%, #d81e1e 50%, #b91515 100%);
+    background: linear-gradient(135deg, #008769 0%, #006C54 50%, #005441 100%);
     color: #ffffff;
     position: relative;
     overflow: hidden;
   }
 
-  /* ESPN Clean White Card */
+  /* Clean White Card */
   .espn-card,
   .ios-card {
     background-color: #ffffff;
@@ -222,9 +228,9 @@ select,
     height: 2.5rem; /* 40px */
     padding: 0 1.125rem;
     border-radius: 6px;
-    background-color: #d81e1e;
+    background-color: #006C54;
     color: #ffffff;
-    border: 1px solid #b91515;
+    border: 1px solid #005441;
     font-size: 0.8125rem;
     font-weight: 800;
     text-transform: uppercase;
@@ -235,15 +241,15 @@ select,
     cursor: pointer;
   }
   .btn-primary:hover {
-    background-color: #b91515;
-    border-color: #991b1b;
-    box-shadow: 0 2px 6px rgba(216, 30, 30, 0.25);
+    background-color: #005441;
+    border-color: #004031;
+    box-shadow: 0 2px 6px rgba(0, 108, 84, 0.25);
   }
   .btn-primary:active {
     transform: scale(0.985);
   }
   .btn-primary:focus-visible {
-    outline: 2px solid #d81e1e;
+    outline: 2px solid #006C54;
     outline-offset: 2px;
   }
 
@@ -312,7 +318,8 @@ select,
     outline-offset: 2px;
   }
 
-  .btn-outline-red {
+  .btn-outline-red,
+  .btn-outline-primary {
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -321,8 +328,8 @@ select,
     padding: 0 1.125rem;
     border-radius: 6px;
     background-color: transparent;
-    color: #d81e1e;
-    border: 1.5px solid #d81e1e;
+    color: #006C54;
+    border: 1.5px solid #006C54;
     font-size: 0.8125rem;
     font-weight: 800;
     text-transform: uppercase;
@@ -331,11 +338,43 @@ select,
     touch-action: manipulation;
     cursor: pointer;
   }
-  .btn-outline-red:hover {
-    background-color: #d81e1e;
+  .btn-outline-red:hover,
+  .btn-outline-primary:hover {
+    background-color: #006C54;
     color: #ffffff;
   }
-  .btn-outline-red:active {
+  .btn-outline-red:active,
+  .btn-outline-primary:active {
+    transform: scale(0.985);
+  }
+
+  /* Championship Gold Accent Button */
+  .btn-gold {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    height: 2.5rem;
+    padding: 0 1.125rem;
+    border-radius: 6px;
+    background-color: #FFD700;
+    color: #0a1e17;
+    border: 1px solid #e6c200;
+    font-size: 0.8125rem;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+    transition: background-color 150ms ease, border-color 150ms ease, transform 100ms ease;
+    touch-action: manipulation;
+    cursor: pointer;
+  }
+  .btn-gold:hover {
+    background-color: #e6c200;
+    border-color: #ccac00;
+    box-shadow: 0 2px 6px rgba(255, 215, 0, 0.35);
+  }
+  .btn-gold:active {
     transform: scale(0.985);
   }
 
@@ -360,7 +399,7 @@ select,
   }
   .btn-outline-white:hover {
     background-color: #ffffff;
-    color: #d81e1e;
+    color: #006C54;
   }
   .btn-outline-white:active {
     transform: scale(0.985);
@@ -383,8 +422,8 @@ select,
     align-items: center;
     justify-content: center;
     gap: 0.5rem;
-    border: 1.5px solid #d81e1e;
-    color: #d81e1e;
+    border: 1.5px solid #006C54;
+    color: #006C54;
     background-color: transparent;
     border-radius: 6px;
     font-weight: 800;
@@ -394,7 +433,7 @@ select,
     transition: all 150ms ease;
   }
   .espn-pill-btn-outline:hover {
-    background-color: #d81e1e;
+    background-color: #006C54;
     color: #ffffff;
   }
 
@@ -415,12 +454,12 @@ select,
   }
   .espn-pill-btn-white-outline:hover {
     background-color: #ffffff;
-    color: #d81e1e;
+    color: #006C54;
   }
 
-  /* ESPN Red Minimal Tag ('HOT', 'TRENDING') */
+  /* Primary Minimal Tag ('HOT', 'TRENDING') */
   .espn-badge-hot {
-    background-color: #d81e1e;
+    background-color: #006C54;
     color: #ffffff;
     font-size: 0.65rem;
     font-weight: 900;
@@ -433,7 +472,21 @@ select,
     line-height: 1.2;
   }
 
-  /* ESPN Filter Pill Segmented Control Container ('HOT', 'Trending', 'Fresh', '•••') */
+  .badge-gold {
+    background-color: #FFD700;
+    color: #0a1e17;
+    font-size: 0.65rem;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 0.15rem 0.5rem;
+    border-radius: 4px;
+    display: inline-flex;
+    align-items: center;
+    line-height: 1.2;
+  }
+
+  /* Filter Pill Segmented Control Container ('HOT', 'Trending', 'Fresh', '•••') */
   .espn-tab-container,
   .ios-segmented-control {
     display: inline-flex;
@@ -455,7 +508,7 @@ select,
     transition: all 150ms ease;
   }
   .espn-tab-item.active {
-    background-color: #d81e1e;
+    background-color: #006C54;
     color: #ffffff;
   }
 
@@ -490,7 +543,7 @@ select,
     color: var(--color-cream);
   }
   input:focus, textarea:focus, select:focus {
-    border-color: #d81e1e;
+    border-color: #006C54;
     outline: none;
   }
 }

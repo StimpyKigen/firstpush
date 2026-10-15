@@ -145,18 +145,18 @@ export default function Room() {
           </div>
           <div className="flex flex-col items-start sm:items-end">
             <p className="text-[11px] text-slate-400 uppercase tracking-wider font-black">Bookie Jackpot</p>
-            <p className="font-display font-black text-[#d81e1e] text-3xl">{jackpot.prizePool}</p>
+            <p className="font-display font-black text-[#FFD700] text-3xl">{jackpot.prizePool}</p>
           </div>
         </div>
 
         {jackpot.syncedAt && (
           <span className="inline-flex w-fit items-center gap-1.5 text-xs font-bold text-slate-600 uppercase tracking-wider mt-4">
-            <RadioTower size={13} className="text-[#d81e1e] shrink-0" /> Live synced from {jackpot.bookie}
+            <RadioTower size={13} className="text-[#006C54] shrink-0" /> Live synced from {jackpot.bookie}
           </span>
         )}
 
         <div className="flex flex-wrap gap-x-6 gap-y-2 mt-5 pt-5 border-t border-slate-100 text-xs font-semibold text-slate-500">
-          <span className="flex items-center gap-1.5"><Users size={14} className="text-[#d81e1e]" /> {jackpot.participants.toLocaleString()} punters in room</span>
+          <span className="flex items-center gap-1.5"><Users size={14} className="text-[#006C54]" /> {jackpot.participants.toLocaleString()} punters in room</span>
           <span className="flex items-center gap-1.5"><Clock size={14} className="text-slate-400" /> {jackpot.status === 'settled' ? `Settled · ${jackpot.deadline}` : `Deadline ${jackpot.deadline}`}</span>
           <span className="flex items-center gap-1.5"><Trophy size={14} className="text-amber-500" /> Closest slip takes #1 Leaderboard Crown (earliest submission breaks ties)</span>
         </div>
@@ -173,14 +173,14 @@ export default function Room() {
         <div className="mb-8 bg-white border border-slate-200 rounded-2xl p-5 sm:p-6 shadow-xs relative overflow-hidden">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-3">
             <div className="flex items-center gap-2.5">
-              <div className="w-9 h-9 rounded-md bg-[#d81e1e]/10 text-[#d81e1e] flex items-center justify-center shrink-0">
+              <div className="w-9 h-9 rounded-md bg-[#006C54]/10 text-[#006C54] flex items-center justify-center shrink-0">
                 <ListChecks size={18} />
               </div>
               <div>
                 <h2 className="font-display font-black text-base sm:text-lg text-slate-900 uppercase tracking-tight flex items-center gap-2">
                   Room Betting Slip Progress
                   {pickedCount === totalMatches && (
-                    <span className="inline-flex items-center gap-1 text-xs font-black text-[#d81e1e] uppercase tracking-wide">
+                    <span className="inline-flex items-center gap-1 text-xs font-black text-[#006C54] uppercase tracking-wide">
                       <Sparkles size={13} /> 100% Complete!
                     </span>
                   )}
@@ -200,7 +200,7 @@ export default function Room() {
 
           <div className="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden border border-slate-200">
             <div
-              className="h-full bg-[#d81e1e] transition-all duration-500 rounded-full"
+              className="h-full bg-[#006C54] transition-all duration-500 rounded-full"
               style={{ width: `${progressPct}%` }}
             />
           </div>

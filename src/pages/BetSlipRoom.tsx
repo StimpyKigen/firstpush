@@ -61,7 +61,7 @@ export default function BetSlipRoom() {
       />
       {/* Header Navigation */}
       <div className="flex items-center justify-between gap-3 mb-6">
-        <Link to="/" className="inline-flex items-center gap-2 text-xs sm:text-sm font-bold uppercase tracking-wider text-slate-500 hover:text-[#d81e1e] transition-colors">
+        <Link to="/" className="inline-flex items-center gap-2 text-xs sm:text-sm font-bold uppercase tracking-wider text-slate-500 hover:text-[#006C54] transition-colors">
           <ArrowLeft size={16} /> Back to Matches
         </Link>
 
@@ -71,12 +71,12 @@ export default function BetSlipRoom() {
               onClick={() => setSelectedProfileUser(currentUser.username)}
               className="bg-white hover:bg-slate-50 border border-slate-300 text-slate-800 text-xs font-bold uppercase tracking-wider px-4 py-1.5 rounded-full shadow-xs active:scale-95 transition-all flex items-center gap-1.5"
             >
-              <Share2 size={13} className="text-[#d81e1e]" /> My Profile Link
+              <Share2 size={13} className="text-[#006C54]" /> My Profile Link
             </button>
           )}
           <button
             onClick={() => setShowInviteModal(true)}
-            className="bg-[#d81e1e] hover:bg-[#b51717] text-white text-xs font-bold uppercase tracking-wider px-4 py-1.5 rounded-full shadow-xs active:scale-95 transition-all flex items-center gap-1.5"
+            className="bg-[#006C54] hover:bg-[#005441] text-white text-xs font-bold uppercase tracking-wider px-4 py-1.5 rounded-full shadow-xs active:scale-95 transition-all flex items-center gap-1.5"
           >
             <UserPlus size={13} /> Invite Friends
           </button>
@@ -85,8 +85,8 @@ export default function BetSlipRoom() {
 
       <div className="mb-8 text-center sm:text-left">
         <div className="flex items-center justify-center sm:justify-start gap-2 mb-2">
-          <span className="inline-flex items-center gap-1.5 bg-[#d81e1e] text-white text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full shadow-xs">
-            <Sparkles size={13} /> Community Slips Hub
+          <span className="inline-flex items-center gap-1.5 bg-[#006C54] text-[#FFD700] border border-[#005441] text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full shadow-xs">
+            <Sparkles size={13} className="text-[#FFD700]" /> Community Slips Hub
           </span>
         </div>
         <h1 className="font-display font-black text-3xl sm:text-5xl text-slate-900 tracking-tight uppercase">
@@ -103,7 +103,7 @@ export default function BetSlipRoom() {
           onClick={() => setActiveTab('builder')}
           className={`flex-1 py-2 px-4 rounded-full text-xs font-black uppercase tracking-wider transition-all flex items-center justify-center gap-2 active:scale-95 ${
             activeTab === 'builder'
-              ? 'bg-[#d81e1e] text-white shadow-xs'
+              ? 'bg-[#006C54] text-white shadow-xs'
               : 'text-slate-600 hover:text-slate-900'
           }`}
         >
@@ -114,7 +114,7 @@ export default function BetSlipRoom() {
           onClick={() => setActiveTab('slips')}
           className={`flex-1 py-2 px-4 rounded-full text-xs font-black uppercase tracking-wider transition-all flex items-center justify-center gap-2 active:scale-95 ${
             activeTab === 'slips'
-              ? 'bg-[#d81e1e] text-white shadow-xs'
+              ? 'bg-[#006C54] text-white shadow-xs'
               : 'text-slate-600 hover:text-slate-900'
           }`}
         >
@@ -125,7 +125,7 @@ export default function BetSlipRoom() {
           onClick={() => setActiveTab('punters')}
           className={`flex-1 py-2 px-4 rounded-full text-xs font-black uppercase tracking-wider transition-all flex items-center justify-center gap-2 active:scale-95 ${
             activeTab === 'punters'
-              ? 'bg-[#d81e1e] text-white shadow-xs'
+              ? 'bg-[#006C54] text-white shadow-xs'
               : 'text-slate-600 hover:text-slate-900'
           }`}
         >
@@ -160,7 +160,7 @@ export default function BetSlipRoom() {
               value={punterSearchQuery}
               onChange={(e) => setPunterSearchQuery(e.target.value)}
               placeholder="Search punters by username (e.g. Mwangi, Kip_Punter)..."
-              className="w-full bg-white border border-slate-300 focus:border-[#d81e1e] focus:ring-2 focus:ring-[#d81e1e]/15 rounded-full pl-11 pr-10 py-3.5 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none shadow-xs transition-all"
+              className="w-full bg-white border border-slate-300 focus:border-[#006C54] focus:ring-2 focus:ring-[#006C54]/15 rounded-full pl-11 pr-10 py-3.5 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none shadow-xs transition-all"
             />
             {punterSearchQuery && (
               <button
@@ -195,7 +195,7 @@ export default function BetSlipRoom() {
                 return (
                   <div
                     key={punter.username}
-                    className="bg-white border border-slate-200 hover:border-[#d81e1e] rounded-xl p-4 flex flex-col justify-between gap-3 transition-all hover:shadow-md"
+                    className="bg-white border border-slate-200 hover:border-[#006C54] rounded-xl p-4 flex flex-col justify-between gap-3 transition-all hover:shadow-md"
                   >
                     <div className="flex items-start justify-between gap-3">
                       <button
@@ -204,7 +204,7 @@ export default function BetSlipRoom() {
                       >
                         <Avatar name={punter.username} seed={punter.username.length} size={42} />
                         <div className="min-w-0">
-                          <h3 className="font-display font-black text-sm text-slate-900 group-hover:text-[#d81e1e] transition-colors truncate uppercase">
+                          <h3 className="font-display font-black text-sm text-slate-900 group-hover:text-[#006C54] transition-colors truncate uppercase">
                             {punter.username}
                           </h3>
                           <div className="flex items-center gap-2 mt-0.5">
@@ -227,14 +227,14 @@ export default function BetSlipRoom() {
                           className={`flex-1 py-1.5 px-3 rounded-full font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all shadow-2xs ${
                             following
                               ? 'bg-slate-100 border border-slate-300 text-slate-700 hover:bg-slate-200'
-                              : 'bg-[#d81e1e] hover:bg-[#b51717] text-white'
+                              : 'bg-[#006C54] hover:bg-[#005441] text-white'
                           }`}
                         >
                           {following ? <UserCheck size={13} /> : <UserPlus size={13} />}
                           {following ? 'Following' : 'Follow'}
                         </button>
                       ) : (
-                        <span className="flex-1 py-1.5 text-center text-xs font-bold text-[#d81e1e] bg-[#d81e1e]/10 rounded-full uppercase tracking-wider">
+                        <span className="flex-1 py-1.5 text-center text-xs font-bold text-[#006C54] bg-[#006C54]/10 rounded-full uppercase tracking-wider">
                           You
                         </span>
                       )}
