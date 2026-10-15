@@ -129,78 +129,78 @@ export default function Room() {
       </Link>
 
       {/* Header */}
-      <div className="ticket-notch bg-panel border border-line rounded-2xl p-6 sm:p-8 mb-8 relative">
+      <div className="bg-white border border-slate-200 rounded-2xl p-6 sm:p-8 mb-8 shadow-xs relative">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <div
-              className="w-12 h-12 rounded-xl flex items-center justify-center font-display font-extrabold text-sm shrink-0"
+              className="w-12 h-12 rounded-xl flex items-center justify-center font-display font-black text-sm shrink-0"
               style={{ background: theme.bg, color: theme.text }}
             >
               {jackpot.bookie.slice(0, 2).toUpperCase()}
             </div>
             <div>
-              <p className="text-xs text-cream-dim font-semibold uppercase tracking-wide">{jackpot.bookie} · {jackpot.gameweek}</p>
-              <h1 className="font-display font-extrabold text-2xl sm:text-3xl text-cream">{jackpot.name}</h1>
+              <p className="text-xs text-slate-500 font-bold uppercase tracking-wider">{jackpot.bookie} · {jackpot.gameweek}</p>
+              <h1 className="font-display font-black text-2xl sm:text-4xl text-slate-900 uppercase tracking-tight">{jackpot.name}</h1>
             </div>
           </div>
           <div className="flex flex-col items-start sm:items-end">
-            <p className="text-[11px] text-cream-dim uppercase tracking-wide font-semibold">Bookie Jackpot</p>
-            <p className="font-display font-extrabold text-gold text-2xl">{jackpot.prizePool}</p>
+            <p className="text-[11px] text-slate-400 uppercase tracking-wider font-black">Bookie Jackpot</p>
+            <p className="font-display font-black text-[#d81e1e] text-3xl">{jackpot.prizePool}</p>
           </div>
         </div>
 
         {jackpot.syncedAt && (
-          <span className="inline-flex w-fit items-center gap-1.5 text-[11px] font-bold text-emerald-2 bg-emerald-2/10 border border-emerald-2/30 px-2.5 py-1 rounded-full mt-4">
-            <RadioTower size={12} className="animate-pulse" /> Live synced from {jackpot.bookie}
+          <span className="inline-flex w-fit items-center gap-1.5 text-[11px] font-bold text-slate-700 bg-slate-100 border border-slate-200 px-3 py-1 rounded-full mt-4">
+            <RadioTower size={12} className="animate-pulse text-[#d81e1e]" /> Live synced from {jackpot.bookie}
           </span>
         )}
 
-        <div className="flex flex-wrap gap-x-6 gap-y-2 mt-5 pt-5 border-t border-dashed border-line text-sm text-cream-dim">
-          <span className="flex items-center gap-1.5"><Users size={14} /> {jackpot.participants.toLocaleString()} punters in room</span>
-          <span className="flex items-center gap-1.5"><Clock size={14} /> {jackpot.status === 'settled' ? `Settled · ${jackpot.deadline}` : `Deadline ${jackpot.deadline}`}</span>
-          <span className="flex items-center gap-1.5"><Trophy size={14} className="text-gold" /> Closest slip takes #1 Leaderboard Crown (ties broken by earliest submission time)</span>
+        <div className="flex flex-wrap gap-x-6 gap-y-2 mt-5 pt-5 border-t border-slate-100 text-xs font-semibold text-slate-500">
+          <span className="flex items-center gap-1.5"><Users size={14} className="text-[#d81e1e]" /> {jackpot.participants.toLocaleString()} punters in room</span>
+          <span className="flex items-center gap-1.5"><Clock size={14} className="text-slate-400" /> {jackpot.status === 'settled' ? `Settled · ${jackpot.deadline}` : `Deadline ${jackpot.deadline}`}</span>
+          <span className="flex items-center gap-1.5"><Trophy size={14} className="text-amber-500" /> Closest slip takes #1 Leaderboard Crown (earliest submission breaks ties)</span>
         </div>
       </div>
 
       {toastMessage && (
-        <div className="mb-6 p-4 rounded-xl bg-emerald-2/15 border border-emerald-2/40 text-emerald-2 font-bold text-sm flex items-center gap-2 animate-rise">
-          <CheckCircle2 size={18} /> {toastMessage}
+        <div className="mb-6 p-4 rounded-xl bg-emerald-50 border border-emerald-300 text-emerald-800 font-bold text-sm flex items-center gap-2">
+          <CheckCircle2 size={18} className="text-emerald-600" /> {toastMessage}
         </div>
       )}
 
-      {/* Slip Progress Header Bar (Betting Platform Style) */}
+      {/* Slip Progress Header Bar */}
       {isUnlocked && (
-        <div className="mb-8 bg-panel border border-line rounded-2xl p-5 sm:p-6 relative overflow-hidden">
+        <div className="mb-8 bg-white border border-slate-200 rounded-2xl p-5 sm:p-6 shadow-xs relative overflow-hidden">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-3">
             <div className="flex items-center gap-2.5">
-              <div className="w-9 h-9 rounded-xl bg-gold/15 border border-gold/30 text-gold flex items-center justify-center shrink-0">
-                <ListChecks size={20} />
+              <div className="w-9 h-9 rounded-full bg-[#d81e1e]/10 text-[#d81e1e] flex items-center justify-center shrink-0">
+                <ListChecks size={18} />
               </div>
               <div>
-                <h2 className="font-display font-bold text-base sm:text-lg text-cream flex items-center gap-2">
+                <h2 className="font-display font-black text-base sm:text-lg text-slate-900 uppercase tracking-tight flex items-center gap-2">
                   Room Betting Slip Progress
                   {pickedCount === totalMatches && (
-                    <span className="inline-flex items-center gap-1 text-xs font-extrabold text-ink bg-gold px-2.5 py-0.5 rounded-full">
+                    <span className="inline-flex items-center gap-1 text-xs font-black text-white bg-[#d81e1e] px-2.5 py-0.5 rounded-full">
                       <Sparkles size={12} /> 100% Complete!
                     </span>
                   )}
                 </h2>
-                <p className="text-xs text-cream-dim">
+                <p className="text-xs text-slate-500">
                   {pickedCount} of {totalMatches} matches completed ({progressPct}%)
                 </p>
               </div>
             </div>
 
             <div className="flex items-center gap-2 self-start sm:self-auto">
-              <span className="font-mono text-xs font-bold px-3 py-1.5 rounded-xl bg-ink-2 border border-line text-gold">
+              <span className="font-mono text-xs font-black px-3 py-1.5 rounded-full bg-slate-100 border border-slate-200 text-slate-900">
                 {pickedCount} / {totalMatches} Legs
               </span>
             </div>
           </div>
 
-          <div className="w-full h-2.5 bg-ink-2 rounded-full overflow-hidden border border-line/60">
+          <div className="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden border border-slate-200">
             <div
-              className="h-full bg-gradient-to-r from-emerald-2 via-gold to-gold-2 transition-all duration-500 rounded-full"
+              className="h-full bg-[#d81e1e] transition-all duration-500 rounded-full"
               style={{ width: `${progressPct}%` }}
             />
           </div>

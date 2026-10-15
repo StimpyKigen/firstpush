@@ -1,6 +1,12 @@
 @import "tailwindcss";
 @import "./fonts.css";
 
+/* ==========================================================================
+   ESPN Sports Media Design System — MshindiRoom
+   Clean high-contrast editorial composition, bold crimson-red full-bleed sections,
+   crisp white cards, sharp athletic typography, and refined sports metadata.
+   ========================================================================== */
+
 @theme {
   --breakpoint-xs: 380px;
 
@@ -9,35 +15,33 @@
   --font-sans: "SF Pro Text", "SF Pro", "San Francisco", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 
-  --color-ink: #050f0b;
-  --color-ink-2: #0a1a14;
-  --color-panel: #0e2118;
-  --color-panel-2: #132c1e;
-  --color-line: #1f4331;
-  --color-gold: #f5b800;
-  --color-gold-2: #ffcc2e;
-  --color-emerald: #00a878;
-  --color-emerald-2: #1dd39a;
-  --color-cream: #f4f0e6;
-  --color-cream-dim: #c9c0a8;
-  --color-danger: #ef5b5b;
+  /* Primary High-Contrast ESPN Sports Palette */
+  --color-ink: #f6f8fa;         /* Light sports canvas background */
+  --color-ink-2: #ffffff;       /* Pure white elevated container surface */
+  --color-panel: #ffffff;       /* Pure white card/panel surface */
+  --color-panel-2: #f1f4f8;     /* Clean light slate secondary surface */
+  --color-line: #e2e8f0;        /* Subtle slate-200 border */
+  --color-cream: #111827;       /* High-contrast deep slate text */
+  --color-cream-dim: #64748b;   /* Clean secondary slate-500 text */
+  --color-gold: #d97706;        /* Energetic sport amber for jackpot prizes */
+  --color-gold-2: #b45309;
+  --color-emerald: #059669;     /* Sports green for verified picks & consensus */
+  --color-emerald-2: #047857;
+  --color-danger: #d81e1e;      /* Iconic ESPN Crimson Red */
+  --color-espn-red: #d81e1e;    /* Iconic ESPN Crimson Red */
+  --color-espn-red-dark: #b91515;
+  --color-frame-bg: #eef2f6;
 
-  /* Frame background: the surround visible outside the app shell on larger screens */
-  --color-frame-bg: #030c08;
-
-  /* iOS elevation tokens */
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.30), 0 1px 1px rgba(0, 0, 0, 0.20);
-  --shadow-md: 0 6px 16px -4px rgba(0, 0, 0, 0.40), 0 2px 6px -2px rgba(0, 0, 0, 0.28);
-  --shadow-lg: 0 16px 32px -8px rgba(0, 0, 0, 0.50), 0 6px 12px -6px rgba(0, 0, 0, 0.32);
-  --shadow-gold: 0 8px 24px -6px rgba(245, 184, 0, 0.32), 0 2px 8px -2px rgba(245, 184, 0, 0.18);
-  --shadow-ios-card: 0 10px 30px -5px rgba(0, 0, 0, 0.45), 0 2px 8px -2px rgba(0, 0, 0, 0.35);
-  --shadow-ios-popover: 0 24px 48px -12px rgba(0, 0, 0, 0.65), 0 4px 16px -4px rgba(0, 0, 0, 0.4);
+  /* Soft Ambient Elevation Tokens */
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.02);
+  --shadow-md: 0 4px 14px -2px rgba(0, 0, 0, 0.06), 0 2px 6px -1px rgba(0, 0, 0, 0.03);
+  --shadow-lg: 0 12px 28px -4px rgba(0, 0, 0, 0.08), 0 4px 10px -2px rgba(0, 0, 0, 0.03);
+  --shadow-xl: 0 20px 36px -6px rgba(0, 0, 0, 0.12), 0 8px 14px -3px rgba(0, 0, 0, 0.05);
+  --shadow-red: 0 8px 24px -4px rgba(216, 30, 30, 0.35);
 }
 
 /* ==========================================================================
-   Universal iOS Typography Enforcement
-   Ensures every single bit of text, heading, button, input and label renders
-   in authentic Apple San Francisco (SF Pro) across all browsers and devices.
+   Universal Typography Enforcement
    ========================================================================== */
 *,
 *::before,
@@ -61,7 +65,7 @@ h1, h2, h3, h4, h5, h6,
   letter-spacing: -0.024em;
 }
 
-/* Native form elements explicitly inherit iOS typography */
+/* Native form elements explicitly inherit typography */
 button,
 input,
 optgroup,
@@ -88,20 +92,9 @@ html {
 }
 
 body {
-  /* The frame background fills the entire viewport — the app shell sits on top */
   background-color: var(--color-frame-bg);
   color: var(--color-cream);
   font-family: var(--font-body);
-  /* Subtle emerald-gold ambient gradient on the frame itself */
-  background-image:
-    radial-gradient(ellipse 60% 40% at 10% 0%, rgba(0, 168, 120, 0.06), transparent),
-    radial-gradient(ellipse 40% 30% at 90% 100%, rgba(245, 184, 0, 0.04), transparent);
-  transition: background-color 0.25s ease, color 0.25s ease;
-  overscroll-behavior-y: none;
-  -webkit-user-select: none;
-  user-select: none;
-  -webkit-touch-callout: none;
-  /* Let the app shell control min-height, not the body */
   min-height: 100dvh;
 }
 
@@ -131,40 +124,31 @@ select,
 }
 
 ::selection {
-  background: var(--color-gold);
-  color: #0b1c15;
+  background: var(--color-espn-red);
+  color: #ffffff;
 }
 
 ::-webkit-scrollbar {
-  width: 10px;
-  height: 10px;
+  width: 8px;
+  height: 8px;
 }
 ::-webkit-scrollbar-track {
-  background: var(--color-ink);
+  background: #f1f4f8;
 }
 ::-webkit-scrollbar-thumb {
-  background: var(--color-line);
+  background: #cbd5e1;
   border-radius: 999px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--color-emerald);
+  background: #94a3b8;
 }
 
 /* ---------------------------------------------------------------------- */
-/* PREMIUM POLISH: global micro-interactions & elevation                   */
-/* Token-level so every existing button/card picks it up automatically -   */
-/* no per-component markup changes needed.                                 */
+/* ESPN SPORTS DESIGN SYSTEM COMPONENTS                                  */
 /* ---------------------------------------------------------------------- */
 
-/* Wrapped in Tailwind's own "components" layer (declared by `@import
-   "tailwindcss"` above) so these act as sensible DEFAULTS only: any element
-   that already carries an explicit Tailwind utility (shadow-xl, transition-
-   colors, etc. - all in the "utilities" layer) keeps winning the cascade,
-   regardless of selector order/specificity. Without this, e.g. a plain
-   `.bg-panel { box-shadow }` rule here would silently clobber every
-   component's own `shadow-xl`/`shadow-2xl` utility classes. */
 @layer components {
-  /* iOS responsive spring press feedback across buttons & touch targets */
+  /* Responsive micro-press feedback */
   button, a, [role="button"] {
     transition: transform 160ms cubic-bezier(0.2, 0.8, 0.2, 1),
                 filter 160ms ease,
@@ -174,18 +158,18 @@ select,
                 color 160ms ease;
   }
   button:active, [role="button"]:active {
-    transform: scale(0.965) translateY(1px);
+    transform: scale(0.97) translateY(1px);
   }
   @media (hover: hover) {
     button:not(:disabled):hover, [role="button"]:not(:disabled):hover {
-      filter: brightness(1.05);
+      filter: brightness(1.02);
     }
   }
   button:disabled, [role="button"][aria-disabled="true"] {
     transform: none !important;
   }
 
-  /* Accessible focus ring with smooth pill curvature */
+  /* Accessible focus ring */
   button:focus-visible,
   a:focus-visible,
   input:focus-visible,
@@ -193,36 +177,39 @@ select,
   textarea:focus-visible,
   [role="button"]:focus-visible,
   [tabindex]:focus-visible {
-    outline: 2px solid var(--color-gold);
+    outline: 2px solid var(--color-espn-red);
     outline-offset: 2px;
     border-radius: 9999px;
   }
 
-  /* iOS Frosted Glass Material */
-  .ios-glass {
-    background: rgba(14, 33, 24, 0.75);
-    backdrop-filter: blur(24px) saturate(190%);
-    -webkit-backdrop-filter: blur(24px) saturate(190%);
-    border: 1px solid rgba(255, 255, 255, 0.08);
+  /* ESPN Iconic Full-Bleed Crimson Red Section */
+  .espn-red-banner {
+    background: linear-gradient(135deg, #e52525 0%, #d81e1e 50%, #b91515 100%);
+    color: #ffffff;
+    position: relative;
+    overflow: hidden;
   }
 
-  /* iOS Card Container (Continuous squircle curves with soft elevation) */
+  /* ESPN Clean White Card */
+  .espn-card,
   .ios-card {
-    border-radius: 26px;
-    background: var(--color-panel);
+    background-color: #ffffff;
     border: 1px solid var(--color-line);
-    box-shadow: var(--shadow-ios-card);
-    transition: transform 220ms cubic-bezier(0.16, 1, 0.3, 1), box-shadow 220ms ease, border-color 220ms ease;
+    border-radius: 16px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    transition: transform 200ms cubic-bezier(0.16, 1, 0.3, 1), box-shadow 200ms ease, border-color 200ms ease;
   }
   @media (hover: hover) {
+    .espn-card:hover,
     .ios-card:hover {
       transform: translateY(-2px);
-      box-shadow: 0 18px 40px -8px rgba(0, 0, 0, 0.55);
-      border-color: rgba(245, 184, 0, 0.35);
+      box-shadow: 0 12px 26px -4px rgba(0, 0, 0, 0.08);
+      border-color: #cbd5e1;
     }
   }
 
-  /* iOS Pill Button (Directly inspired by the reference image's 'Discover >' button) */
+  /* Red Action Pill Buttons */
+  .espn-pill-btn-red,
   .ios-pill-btn {
     display: inline-flex;
     align-items: center;
@@ -230,345 +217,136 @@ select,
     gap: 0.5rem;
     border-radius: 9999px;
     font-weight: 700;
-    transition: all 180ms cubic-bezier(0.2, 0.8, 0.2, 1);
-    box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.22), 0 6px 20px -3px rgba(0, 0, 0, 0.35);
-  }
-  .ios-pill-btn:active {
-    transform: scale(0.96);
+    transition: all 180ms ease;
   }
 
-  /* iOS Native Segmented Control Container */
+  /* Red Outline Button (As seen in the ESPN reference Hero: 'Read More') */
+  .espn-pill-btn-outline {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    border: 2px solid #d81e1e;
+    color: #d81e1e;
+    background-color: transparent;
+    border-radius: 9999px;
+    font-weight: 700;
+    padding: 0.5rem 1.25rem;
+    transition: all 160ms ease;
+  }
+  .espn-pill-btn-outline:hover {
+    background-color: #d81e1e;
+    color: #ffffff;
+  }
+
+  /* White Outline Button (On Red Section: 'More' / 'View All') */
+  .espn-pill-btn-white-outline {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    border: 2px solid rgba(255, 255, 255, 0.85);
+    color: #ffffff;
+    background-color: transparent;
+    border-radius: 9999px;
+    font-weight: 700;
+    padding: 0.5rem 1.25rem;
+    transition: all 160ms ease;
+  }
+  .espn-pill-btn-white-outline:hover {
+    background-color: #ffffff;
+    color: #d81e1e;
+  }
+
+  /* ESPN Red Pill Badge ('HOT', 'TRENDING') */
+  .espn-badge-hot {
+    background-color: #d81e1e;
+    color: #ffffff;
+    font-size: 0.6875rem;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 0.2rem 0.65rem;
+    border-radius: 9999px;
+    display: inline-flex;
+    align-items: center;
+    line-height: 1.2;
+  }
+
+  /* ESPN Filter Pill Segmented Control Container ('HOT', 'Trending', 'Fresh', '•••') */
+  .espn-tab-container,
   .ios-segmented-control {
     display: inline-flex;
     align-items: center;
-    padding: 4px;
-    border-radius: 9999px;
-    background: var(--color-ink-2);
+    background-color: #ffffff;
     border: 1px solid var(--color-line);
+    border-radius: 9999px;
+    padding: 0.25rem;
+    gap: 0.25rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
   }
 
-  /* iOS Popover / Dropdown Menu */
+  .espn-tab-item {
+    padding: 0.35rem 0.9rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #64748b;
+    transition: all 150ms ease;
+  }
+  .espn-tab-item.active {
+    background-color: #d81e1e;
+    color: #ffffff;
+  }
+
+  /* Popover / Dropdown Menu */
+  .espn-dropdown,
   .ios-dropdown {
-    border-radius: 24px;
-    background: rgba(14, 33, 24, 0.92);
-    backdrop-filter: blur(28px) saturate(200%);
-    -webkit-backdrop-filter: blur(28px) saturate(200%);
-    border: 1px solid rgba(255, 255, 255, 0.12);
-    box-shadow: var(--shadow-ios-popover);
+    border-radius: 16px;
+    background: #ffffff;
+    border: 1px solid var(--color-line);
+    box-shadow: 0 16px 36px -6px rgba(0, 0, 0, 0.12);
   }
 
-  /* Solid gold CTAs get a grounded gold-tinted shadow */
-  .bg-gold {
-    box-shadow: var(--shadow-gold);
-  }
-  @media (hover: hover) {
-    .bg-gold:hover {
-      box-shadow: 0 10px 24px -6px rgba(245, 184, 0, 0.40), 0 3px 10px -2px rgba(245, 184, 0, 0.25);
-    }
+  /* Header Glass/Surface */
+  .ios-glass {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-bottom: 1px solid var(--color-line);
   }
 
   /* Elevated surfaces */
-  .bg-panel, .bg-panel-2 {
+  .bg-panel, .bg-panel-2, .bg-ink-2 {
+    background-color: #ffffff;
+    border-color: var(--color-line);
     box-shadow: var(--shadow-sm);
   }
-  @media (hover: hover) and (pointer: fine) {
-    .bg-panel:hover, .bg-panel-2:hover {
-      box-shadow: var(--shadow-md);
-    }
+
+  /* Clean inputs */
+  input, textarea, select {
+    background-color: #ffffff;
+    border-color: var(--color-line);
+    color: var(--color-cream);
+  }
+  input:focus, textarea:focus, select:focus {
+    border-color: #d81e1e;
+    outline: none;
   }
 }
 
 /* ---------------------------------------------------------------------- */
+/* APP SHELL — Full responsive canvas                                     */
 /* ---------------------------------------------------------------------- */
-/* LIGHT MODE                                                              */
-/* Dark (above @theme block) remains the default look. Adding the `.light` */
-/* class to <html> (see lib/themeStore.ts) re-points every semantic color   */
-/* variable to a light-mode value. Because every utility (bg-ink,           */
-/* text-cream, border-line, etc.) already compiles to `var(--color-*)`,    */
-/* no component code needs to change: the whole app re-themes instantly.  */
-/* ---------------------------------------------------------------------- */
-.light {
-  --color-ink: #f8f6f0;        /* Warm parchment canvas background */
-  --color-ink-2: #ffffff;      /* Clean crisp white surface for elevated containers */
-  --color-panel: #ffffff;      /* Pure white main card/panel surface */
-  --color-panel-2: #f3edd8;    /* Muted warm off-white surface for active/interactive sub-panels & hover states */
-  --color-line: #e2d7be;       /* Refined crisp border color with paper tactile contrast */
-  --color-gold: #a16800;       /* Vibrant warm golden amber for text & icons - brightened as far as WCAG AA (4.5:1) allows on white/parchment */
-  --color-gold-2: #8a5700;     /* Deeper golden amber for text hover & active emphasis */
-  --color-emerald: #007f50;    /* Vibrant sports green for text & icons - has more contrast headroom than gold, brightened further */
-  --color-emerald-2: #006b48;  /* Deep rich green for text hover & success emphasis */
-  --color-cream: #0c1812;      /* High-contrast deep dark forest primary text */
-  --color-cream-dim: #3a4c41;  /* Rich readable secondary text */
-  --color-danger: #cc1f1f;     /* Vibrant crimson red for errors & warnings */
-
-  /* Light mode frame: slightly cooler/darker than the warm parchment app surface */
-  --color-frame-bg: #e4dfd5;
-
-  /* Elevation & Ambient Soft Shadow Tokens for Light Mode */
-  --shadow-sm: 0 1px 3px rgba(12, 24, 18, 0.05), 0 1px 2px rgba(12, 24, 18, 0.03);
-  --shadow-md: 0 4px 12px -2px rgba(12, 24, 18, 0.07), 0 2px 4px -1px rgba(12, 24, 18, 0.04);
-  --shadow-lg: 0 10px 24px -4px rgba(12, 24, 18, 0.09), 0 4px 8px -2px rgba(12, 24, 18, 0.04);
-  --shadow-xl: 0 20px 32px -6px rgba(12, 24, 18, 0.12), 0 8px 12px -4px rgba(12, 24, 18, 0.05);
-}
-
-.light body {
-  color: var(--color-cream);
-  background-color: var(--color-frame-bg);
-  background-image:
-    radial-gradient(ellipse 60% 40% at 10% 0%, rgba(0, 100, 60, 0.04), transparent),
-    radial-gradient(ellipse 40% 30% at 90% 100%, rgba(180, 120, 0, 0.03), transparent);
-}
-
-.light .app-shell {
-  background-color: var(--color-ink);
-  background-image:
-    radial-gradient(ellipse 70% 50% at 15% -10%, rgba(0, 168, 120, 0.08), transparent 70%),
-    radial-gradient(ellipse 60% 40% at 85% 0%, rgba(245, 184, 0, 0.06), transparent 60%);
-}
-
-.light .ios-glass {
-  background: rgba(255, 255, 255, 0.82);
-  backdrop-filter: blur(24px) saturate(190%);
-  -webkit-backdrop-filter: blur(24px) saturate(190%);
-  border: 1px solid rgba(0, 0, 0, 0.06);
-}
-
-.light .ios-card {
-  background: #ffffff;
-  border-color: rgba(0, 0, 0, 0.08);
-  box-shadow: 0 10px 30px -4px rgba(0, 0, 0, 0.05), 0 2px 6px rgba(0, 0, 0, 0.02);
-}
-@media (hover: hover) {
-  .light .ios-card:hover {
-    box-shadow: 0 16px 36px -4px rgba(0, 0, 0, 0.09);
-    border-color: rgba(161, 104, 0, 0.3);
-  }
-}
-
-.light .ios-dropdown {
-  background: rgba(255, 255, 255, 0.95);
-  border: 1px solid rgba(0, 0, 0, 0.08);
-  box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.12);
-}
-
-.light ::placeholder {
-  color: #58695d !important;
-  opacity: 0.9 !important;
-}
-
-.light input,
-.light textarea,
-.light select {
-  background-color: #ffffff !important;
-  color: #0c1812 !important;
-  border-color: #e2d7be !important;
-  box-shadow: inset 0 1px 2px rgba(12, 24, 18, 0.03);
-}
-
-.light input:focus,
-.light textarea:focus,
-.light select:focus {
-  border-color: #a16800 !important;
-  outline: none !important;
-}
-
-/* Light mode card surface elevation & paper separation */
-.light .bg-panel,
-.light .bg-panel-2,
-.light .bg-ink-2 {
-  box-shadow: var(--shadow-sm);
-}
-
-.light .bg-panel:hover,
-.light .bg-panel-2:hover {
-  box-shadow: var(--shadow-md);
-}
-
-.light header,
-.light .sticky {
-  box-shadow: 0 2px 10px rgba(12, 24, 18, 0.04);
-}
-
-/* Primary Brand CTAs: identical vibrancy to dark mode. Safe to match exactly
-   here because contrast is measured against the dark ink text placed ON TOP
-   of these buttons, not against the page background - no visibility risk. */
-.light .bg-gold {
-  background-color: #f5b800 !important;
-  color: #0c1812 !important;
-}
-
-.light .bg-gold:hover {
-  background-color: #ffcc2e !important;
-  color: #0c1812 !important;
-}
-
-.light .bg-emerald {
-  background-color: #00a878 !important;
-  color: #0c1812 !important;
-}
-
-.light .bg-emerald:hover {
-  background-color: #1dd39a !important;
-  color: #0c1812 !important;
-}
-
-/* Light mode high-contrast text overrides for fixed neon utility classes */
-.light .text-emerald-2 {
-  color: #007f50 !important;
-}
-
-.light .text-emerald-300,
-.light .text-emerald-400 {
-  color: #006b48 !important;
-}
-
-.light .text-amber-300,
-.light .text-amber-400 {
-  color: #9a6400 !important;
-}
-
-.light .text-rose-400,
-.light .text-rose-300 {
-  color: #a81e1e !important;
-}
-
-.light .text-blue-300,
-.light .text-blue-400 {
-  color: #1d4ed8 !important;
-}
-
-.light .text-yellow-300,
-.light .text-yellow-400 {
-  color: #8a6300 !important;
-}
-
-.light .text-cream {
-  color: #0c1812 !important;
-}
-
-.light .text-cream-dim {
-  color: #3a4c41 !important;
-}
-
-/* Badges, Chips & Semi-transparent Status Tints. Backgrounds use the vibrant
-   dark-mode base colors (low opacity keeps them a subtle tint regardless);
-   text stays on the WCAG-safe tokens above since that's what actually needs
-   to stay readable. */
-.light .bg-gold\/20,
-.light .bg-gold\/10,
-.light .bg-gold\/15 {
-  background-color: rgba(245, 184, 0, 0.14) !important;
-  color: #8a5700 !important;
-}
-
-.light .bg-emerald\/20,
-.light .bg-emerald\/10,
-.light .bg-emerald\/15,
-.light .bg-emerald-500\/10,
-.light .bg-emerald-500\/20,
-.light .bg-emerald-950\/20 {
-  background-color: rgba(0, 168, 120, 0.14) !important;
-  color: #006b48 !important;
-}
-
-.light .bg-rose-500\/10,
-.light .bg-rose-500\/20,
-.light .bg-rose-500\/15,
-.light .bg-rose-950\/20,
-.light .bg-rose-950\/10 {
-  background-color: rgba(204, 31, 31, 0.12) !important;
-  color: #a81e1e !important;
-}
-
-.light .bg-amber-500\/10,
-.light .bg-amber-500\/20,
-.light .bg-amber-500\/15 {
-  background-color: rgba(245, 184, 0, 0.14) !important;
-  color: #8a5700 !important;
-}
-
-/* Bookie brand badges (Leaderboard.tsx's BOOKIE_BADGE_STYLE map): each uses
-   a `bg-{color}-900/40` + `text-{color}-300` pair tuned for dark mode (a
-   dark tint behind light text). Neither half was themed for light mode, so
-   `-900` at 40% opacity over white rendered as a washed-out pale tint with
-   equally pale `-300` text on top of it - unreadable. Same fix pattern as
-   the gold/emerald tokens above: dark, saturated, readable text + a light
-   tint of that same hue for the background. Kept each bookie's hue
-   distinct so the badges are still tellable apart at a glance. */
-.light .bg-blue-900\/40 {
-  background-color: rgba(29, 78, 216, 0.12) !important;
-}
-.light .bg-emerald-900\/40 {
-  background-color: rgba(0, 168, 120, 0.14) !important;
-}
-.light .bg-amber-900\/40 {
-  background-color: rgba(180, 83, 9, 0.14) !important;
-}
-.light .bg-rose-900\/40 {
-  background-color: rgba(204, 31, 31, 0.12) !important;
-}
-.light .bg-yellow-900\/40 {
-  background-color: rgba(138, 99, 0, 0.14) !important;
-}
-
-/* Modal Backdrops & Overlays */
-.light .fixed.inset-0.bg-black\/60,
-.light .fixed.inset-0.bg-black\/70,
-.light .fixed.inset-0.bg-black\/80 {
-  background-color: rgba(12, 24, 18, 0.45) !important;
-  backdrop-filter: blur(4px);
-}
-
-.light ::selection {
-  background: #f5b800;
-  color: #0c1812;
-}
-
-.light ::-webkit-scrollbar-track {
-  background: var(--color-ink);
-}
-.light ::-webkit-scrollbar-thumb {
-  background: var(--color-line);
-}
-.light ::-webkit-scrollbar-thumb:hover {
-  background: var(--color-emerald);
-}
-
-.light .ticket-notch::before,
-.light .ticket-notch::after {
-  background: var(--color-ink);
-}
-
-.ticket-notch {
+.app-shell {
   position: relative;
-}
-.ticket-notch::before,
-.ticket-notch::after {
-  content: "";
-  position: absolute;
-  width: 18px;
-  height: 18px;
-  background: var(--color-ink);
-  border-radius: 999px;
-  top: 50%;
-  transform: translateY(-50%);
-}
-.ticket-notch::before { left: -9px; }
-.ticket-notch::after { right: -9px; }
-
-.perforation {
-  background-image: repeating-linear-gradient(to bottom, var(--color-line) 0 6px, transparent 6px 14px);
-  width: 1px;
+  width: 100%;
+  max-width: 100%;
+  min-height: 100dvh;
+  margin-inline: auto;
+  background-color: var(--color-ink);
 }
 
-.text-stroke-gold {
-  -webkit-text-stroke: 1px var(--color-gold);
-}
-
-/* Scrollable-but-invisible-scrollbar utility: used by the desktop nav so
-   that if the viewport is too narrow to fit every link at once, the links
-   remain reachable via horizontal scroll instead of being silently clipped
-   by overflow-hidden. */
 .no-scrollbar {
   scrollbar-width: none;
   -ms-overflow-style: none;
@@ -577,55 +355,10 @@ select,
   display: none;
 }
 
-/* ---------------------------------------------------------------------- */
-/* ---------------------------------------------------------------------- */
-/* APP SHELL — Expansive responsive canvas                                 */
-/* Unlocks full desktop widths with elegant Apple-inspired spacing,       */
-/* while keeping mobile devices 100% immersive.                           */
-/* ---------------------------------------------------------------------- */
-.app-shell {
-  position: relative;
-  width: 100%;
-  max-width: 100%;
-  min-height: 100dvh;
-  margin-inline: auto;
-
-  /* App surface background with ambient depth */
-  background-color: var(--color-ink);
-  background-image:
-    radial-gradient(ellipse 70% 50% at 20% -10%, rgba(0, 168, 120, 0.12), transparent 70%),
-    radial-gradient(ellipse 50% 40% at 85% 5%, rgba(245, 184, 0, 0.08), transparent 60%),
-    radial-gradient(ellipse 60% 50% at 50% 100%, rgba(0, 168, 120, 0.05), transparent 70%);
-}
-
-@keyframes float-slow {
-  0%, 100% { transform: translateY(0px) rotate(0deg); }
-  50% { transform: translateY(-14px) rotate(1.2deg); }
-}
-.animate-float-slow {
-  animation: float-slow 7s ease-in-out infinite;
-}
-
-@keyframes marquee {
-  0% { transform: translateX(0); }
-  100% { transform: translateX(-50%); }
-}
-.animate-marquee {
-  animation: marquee 28s linear infinite;
-}
-
-@keyframes pulse-ring {
-  0% { box-shadow: 0 0 0 0 rgba(242, 183, 5, 0.45); }
-  100% { box-shadow: 0 0 0 14px rgba(242, 183, 5, 0); }
-}
-.animate-pulse-ring {
-  animation: pulse-ring 1.8s ease-out infinite;
-}
-
 @keyframes rise-in {
-  from { opacity: 0; transform: translateY(16px); }
+  from { opacity: 0; transform: translateY(12px); }
   to { opacity: 1; transform: translateY(0); }
 }
 .animate-rise {
-  animation: rise-in 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation: rise-in 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
 }

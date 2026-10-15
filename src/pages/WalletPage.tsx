@@ -77,11 +77,11 @@ export default function WalletPage() {
         noIndex={true}
       />
       <div className="text-center mb-8">
-        <div className="w-14 h-14 mx-auto rounded-2xl bg-emerald-2/10 border border-emerald-2/30 flex items-center justify-center mb-3">
-          <WalletIcon className="text-emerald-2" size={26} />
+        <div className="w-14 h-14 mx-auto rounded-full bg-[#d81e1e] flex items-center justify-center mb-3 text-white shadow-xs">
+          <WalletIcon size={26} />
         </div>
-        <h1 className="font-display font-extrabold text-3xl text-cream">Your Wallet &amp; Rewards</h1>
-        <p className="text-cream-dim mt-1">Manage M-Pesa top ups and view your earned Mshindi Tokens.</p>
+        <h1 className="font-display font-black text-3xl sm:text-5xl text-slate-900 tracking-tight uppercase">Your Wallet &amp; Rewards</h1>
+        <p className="text-slate-600 mt-2 text-sm">Manage M-Pesa top ups and view your earned Mshindi Tokens.</p>
       </div>
 
       {/* Balance Summary Grid */}
@@ -91,18 +91,18 @@ export default function WalletPage() {
           onClick={() => setActiveTab('mpesa')}
           className={`cursor-pointer rounded-2xl p-6 border transition-all relative overflow-hidden ${
             activeTab === 'mpesa'
-              ? 'bg-gradient-to-br from-panel to-ink-2 border-emerald-2/60 ring-2 ring-emerald-2/30'
-              : 'bg-panel border-line hover:border-line/80'
+              ? 'bg-white border-[#d81e1e] ring-2 ring-[#d81e1e]/20 shadow-md'
+              : 'bg-white border-slate-200 hover:border-slate-300 shadow-xs'
           }`}
         >
           <div className="flex items-center justify-between mb-2">
-            <span className="text-xs text-cream-dim uppercase tracking-wide font-semibold">M-Pesa Wallet Balance</span>
-            <span className="w-8 h-8 rounded-full bg-emerald-2/10 border border-emerald-2/30 flex items-center justify-center">
-              <WalletIcon size={16} className="text-emerald-2" />
+            <span className="text-xs text-slate-500 uppercase tracking-wider font-black">M-Pesa Wallet Balance</span>
+            <span className="w-8 h-8 rounded-full bg-[#d81e1e]/10 flex items-center justify-center">
+              <WalletIcon size={16} className="text-[#d81e1e]" />
             </span>
           </div>
-          <p className="font-display font-extrabold text-4xl text-emerald-2">Ksh {balance.toLocaleString()}</p>
-          <p className="text-[11px] text-cream-dim mt-2">Spendable for instant room unlocks &amp; P2P stakes.</p>
+          <p className="font-display font-black text-4xl text-slate-900">Ksh {balance.toLocaleString()}</p>
+          <p className="text-xs text-slate-500 mt-2">Spendable for instant room unlocks &amp; P2P stakes.</p>
         </div>
 
         {/* Mshindi Tokens Balance */}
@@ -110,55 +110,55 @@ export default function WalletPage() {
           onClick={() => setActiveTab('tokens')}
           className={`cursor-pointer rounded-2xl p-6 border transition-all relative overflow-hidden ${
             activeTab === 'tokens'
-              ? 'bg-gradient-to-br from-panel to-ink-2 border-gold/60 ring-2 ring-gold/30'
-              : 'bg-panel border-line hover:border-line/80'
+              ? 'bg-white border-[#d81e1e] ring-2 ring-[#d81e1e]/20 shadow-md'
+              : 'bg-white border-slate-200 hover:border-slate-300 shadow-xs'
           }`}
         >
           <div className="flex items-center justify-between mb-2">
-            <span className="text-xs text-gold uppercase tracking-wide font-bold flex items-center gap-1">
-              <Coins size={14} /> Mshindi Tokens
+            <span className="text-xs text-slate-500 uppercase tracking-wider font-black flex items-center gap-1">
+              <Coins size={14} className="text-[#d81e1e]" /> Mshindi Tokens
             </span>
-            <span className="w-8 h-8 rounded-full bg-gold/15 border border-gold/30 flex items-center justify-center">
-              <Coins size={16} className="text-gold" />
+            <span className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center">
+              <Coins size={16} className="text-slate-700" />
             </span>
           </div>
-          <p className="font-display font-extrabold text-4xl text-gold">{mshindiTokens} <span className="text-lg text-cream-dim">MT</span></p>
-          <p className="text-[11px] text-cream-dim mt-2">Earned from room cashback &amp; inviting friends.</p>
+          <p className="font-display font-black text-4xl text-[#d81e1e]">{mshindiTokens} <span className="text-lg text-slate-400 font-sans">MT</span></p>
+          <p className="text-xs text-slate-500 mt-2">Earned from room cashback &amp; inviting friends.</p>
         </div>
       </div>
 
       {/* Tab Selectors */}
-      <div className="flex bg-panel border border-line rounded-xl p-1 mb-8">
+      <div className="flex bg-white border border-slate-300 rounded-full p-1.5 mb-8 shadow-xs max-w-lg mx-auto">
         <button
           onClick={() => setActiveTab('mpesa')}
-          className={`flex-1 py-2.5 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-2 ${
-            activeTab === 'mpesa' ? 'bg-emerald-2 text-ink shadow-md' : 'text-cream-dim hover:text-cream'
+          className={`flex-1 py-2 px-4 rounded-full text-xs font-black uppercase tracking-wider transition-all flex items-center justify-center gap-2 ${
+            activeTab === 'mpesa' ? 'bg-[#d81e1e] text-white shadow-xs' : 'text-slate-600 hover:text-slate-900'
           }`}
         >
-          <Smartphone size={15} /> Top Up M-Pesa Balance
+          <Smartphone size={15} /> Top Up M-Pesa
         </button>
         <button
           onClick={() => setActiveTab('tokens')}
-          className={`flex-1 py-2.5 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-2 ${
-            activeTab === 'tokens' ? 'bg-gold text-ink shadow-md' : 'text-cream-dim hover:text-cream'
+          className={`flex-1 py-2 px-4 rounded-full text-xs font-black uppercase tracking-wider transition-all flex items-center justify-center gap-2 ${
+            activeTab === 'tokens' ? 'bg-[#d81e1e] text-white shadow-xs' : 'text-slate-600 hover:text-slate-900'
           }`}
         >
-          <Coins size={15} /> Mshindi Tokens &amp; Referrals
+          <Coins size={15} /> Tokens &amp; Referrals
         </button>
       </div>
 
       {activeTab === 'mpesa' ? (
         <>
-          <div className="bg-panel border border-line rounded-2xl p-6 sm:p-8 mb-8">
-            <h2 className="font-display font-bold text-lg text-cream mb-4">Top Up via M-Pesa</h2>
+          <div className="bg-white border border-slate-200 rounded-2xl p-6 sm:p-8 mb-8 shadow-xs">
+            <h2 className="font-display font-black text-xl text-slate-900 uppercase tracking-tight mb-4">Top Up via M-Pesa</h2>
 
             <div className="grid grid-cols-3 xs:grid-cols-5 gap-2 mb-5">
               {presets.map((p) => (
                 <button
                   key={p}
                   onClick={() => setAmount(p)}
-                  className={`inline-flex items-center justify-center h-10 rounded-xl text-xs xs:text-sm font-bold border transition-all ${
-                    amount === p ? 'bg-emerald-2 border-emerald-2 text-ink' : 'border-line text-cream-dim hover:border-emerald-2/50'
+                  className={`inline-flex items-center justify-center h-10 rounded-full text-xs xs:text-sm font-black uppercase tracking-wider border transition-all ${
+                    amount === p ? 'bg-[#d81e1e] border-[#d81e1e] text-white shadow-xs' : 'border-slate-200 text-slate-700 hover:border-[#d81e1e] hover:text-[#d81e1e]'
                   }`}
                 >
                   {p}
@@ -166,53 +166,53 @@ export default function WalletPage() {
               ))}
             </div>
             <div className="mb-5">
-              <label className="text-xs font-semibold text-cream-dim uppercase tracking-wide">Custom Amount (Ksh)</label>
+              <label className="text-xs font-black text-slate-500 uppercase tracking-wider">Custom Amount (Ksh)</label>
               <input
                 type="number"
                 value={amount}
                 onChange={(e) => setAmount(Number(e.target.value))}
-                className="w-full mt-1 bg-ink border border-line rounded-lg px-3 py-2.5 text-sm font-mono text-cream focus:outline-none focus:border-emerald-2"
+                className="w-full mt-1.5 bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-sm font-mono text-slate-900 focus:outline-none focus:border-[#d81e1e]"
               />
             </div>
 
             {stage === 'send' ? (
               <div className="flex flex-col gap-3">
-                <p className="text-xs font-semibold text-cream-dim uppercase tracking-wide flex items-center gap-1.5">
-                  <Smartphone size={13} /> Step 1: Send Money on M-Pesa
+                <p className="text-xs font-black text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
+                  <Smartphone size={13} className="text-[#d81e1e]" /> Step 1: Send Money on M-Pesa
                 </p>
-                <div className="bg-ink-2 border border-emerald-2/40 rounded-lg p-4 flex flex-col gap-2.5">
+                <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 flex flex-col gap-2.5">
                   <div className="flex items-center justify-between">
-                    <span className="text-[11px] text-cream-dim">Send To</span>
-                    <span className="text-[11px] text-cream-dim">{RECEIVER_NAME}</span>
+                    <span className="text-xs text-slate-500 font-semibold">Send To</span>
+                    <span className="text-xs text-slate-800 font-bold">{RECEIVER_NAME}</span>
                   </div>
                   <div className="flex items-center justify-between gap-2">
-                    <span className="font-mono font-bold text-lg text-emerald-2 tracking-wide">{RECEIVER_MPESA_NUMBER}</span>
+                    <span className="font-mono font-black text-lg text-slate-900 tracking-wider">{RECEIVER_MPESA_NUMBER}</span>
                     <button
                       onClick={copyNumber}
-                      className="flex items-center gap-1 text-xs font-semibold text-cream-dim hover:text-cream bg-panel-2 border border-line rounded-md px-2 py-1.5 shrink-0"
+                      className="flex items-center gap-1 text-xs font-bold uppercase tracking-wider text-slate-700 hover:text-slate-900 bg-white border border-slate-300 rounded-full px-3 py-1 shrink-0 shadow-2xs active:scale-95 transition-all"
                     >
-                      {copied ? <Check size={12} className="text-emerald-2" /> : <Copy size={12} />}
+                      {copied ? <Check size={12} className="text-[#d81e1e]" /> : <Copy size={12} />}
                       {copied ? 'Copied' : 'Copy'}
                     </button>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-[11px] text-cream-dim">Amount</span>
-                    <span className="font-mono font-bold text-sm text-gold">Ksh {amount}</span>
+                    <span className="text-xs text-slate-500 font-semibold">Amount</span>
+                    <span className="font-mono font-black text-sm text-[#d81e1e]">Ksh {amount}</span>
                   </div>
                 </div>
                 <button
                   onClick={() => setStage('verify')}
-                  className="inline-flex items-center justify-center gap-2 bg-gold hover:bg-gold-2 text-ink font-bold text-sm h-12 rounded-xl transition-all"
+                  className="inline-flex items-center justify-center gap-2 bg-[#d81e1e] hover:bg-[#b51717] text-white font-bold uppercase tracking-wider text-xs h-12 rounded-full transition-all shadow-xs active:scale-95"
                 >
-                  I've sent the money →
+                  I&apos;ve sent the money →
                 </button>
               </div>
             ) : (
               <div className="flex flex-col gap-3 animate-rise">
-                <p className="text-xs font-semibold text-cream-dim uppercase tracking-wide flex items-center gap-1.5">
-                  <KeyRound size={13} /> Step 2: Confirm your payment
+                <p className="text-xs font-black text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
+                  <KeyRound size={13} className="text-[#d81e1e]" /> Step 2: Confirm your payment
                 </p>
-                <p className="text-xs text-cream-dim leading-relaxed">
+                <p className="text-xs text-slate-600 leading-relaxed">
                   Paste the M-Pesa confirmation code from your SMS receipt to instantly credit your wallet.
                 </p>
                 <input
@@ -220,17 +220,17 @@ export default function WalletPage() {
                   onChange={(e) => { setCode(e.target.value.toUpperCase()); setError(''); }}
                   placeholder="e.g. QFT7K9L2M1"
                   maxLength={12}
-                  className="bg-ink border border-line rounded-lg px-3 py-2.5 text-sm font-mono tracking-widest text-cream placeholder:text-cream-dim/50 focus:outline-none focus:border-gold uppercase"
+                  className="bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-sm font-mono tracking-widest text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#d81e1e] uppercase"
                 />
                 {error && (
-                  <p className="flex items-center gap-1.5 text-xs text-danger font-semibold">
+                  <p className="flex items-center gap-1.5 text-xs text-[#d81e1e] font-bold">
                     <AlertCircle size={13} /> {error}
                   </p>
                 )}
                 <button
                   onClick={verifyAndTopUp}
                   disabled={checking || !code.trim()}
-                  className="inline-flex items-center justify-center gap-2 bg-gold hover:bg-gold-2 disabled:opacity-70 text-ink font-bold text-sm h-12 rounded-xl transition-all"
+                  className="inline-flex items-center justify-center gap-2 bg-[#d81e1e] hover:bg-[#b51717] disabled:opacity-50 text-white font-bold uppercase tracking-wider text-xs h-12 rounded-full transition-all shadow-xs"
                 >
                   {checking ? (
                     <>
@@ -240,14 +240,14 @@ export default function WalletPage() {
                     `Verify & Credit Ksh ${amount}`
                   )}
                 </button>
-                <button onClick={() => setStage('send')} className="text-xs text-cream-dim hover:text-cream text-center">
+                <button onClick={() => setStage('send')} className="text-xs text-slate-500 hover:text-slate-900 font-bold uppercase tracking-wider text-center pt-1">
                   Back
                 </button>
               </div>
             )}
 
             {done && (
-              <p className="text-xs text-emerald-2 font-semibold mt-3 flex items-center gap-1.5 animate-rise">
+              <p className="text-xs text-emerald-600 font-bold mt-3 flex items-center gap-1.5 animate-rise">
                 <CheckCircle2 size={13} /> Top up successful! Balance updated.
               </p>
             )}

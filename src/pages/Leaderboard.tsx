@@ -112,50 +112,50 @@ export default function Leaderboard() {
         onClose={() => setSelectedUserForModal(null)}
       />
 
-      {/* iOS Styled Header */}
-      <div className="ios-card p-6 sm:p-7 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-5">
+      {/* ESPN Styled Editorial Header */}
+      <div className="bg-white border border-slate-200 rounded-2xl p-6 sm:p-7 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-5 shadow-xs">
         <div>
           <div className="flex items-center gap-2.5">
-            <div className="w-10 h-10 rounded-2xl bg-gold/15 border border-gold/30 flex items-center justify-center text-gold shadow-sm">
-              <Trophy size={20} />
+            <div className="w-10 h-10 rounded-full bg-[#d81e1e] flex items-center justify-center text-white shadow-xs">
+              <Trophy size={18} />
             </div>
-            <h1 className="font-display font-black text-2xl sm:text-3xl text-cream tracking-tight">Room Leaderboards</h1>
+            <h1 className="font-display font-black text-2xl sm:text-4xl text-slate-900 tracking-tight uppercase">Room Standings &amp; Rankings</h1>
           </div>
-          <p className="text-xs sm:text-sm text-cream-dim mt-2 max-w-xl leading-relaxed">
-            Independent standings per jackpot room. Select any room to expand its rankings, participant slips & live leg hits.
+          <p className="text-xs sm:text-sm text-slate-600 mt-2 max-w-xl leading-relaxed">
+            Independent standings per jackpot room. Select any room to expand its rankings, participant slips &amp; live leg hits.
           </p>
         </div>
 
         {/* Compact User Stats Pill */}
-        <div className="flex items-center gap-3 bg-white/6 border border-white/10 px-4 py-2.5 rounded-full text-xs shrink-0 self-stretch sm:self-auto justify-between shadow-sm">
+        <div className="flex items-center gap-3 bg-slate-50 border border-slate-200 px-4 py-2.5 rounded-full text-xs shrink-0 self-stretch sm:self-auto justify-between shadow-2xs">
           <div className="flex items-center gap-1.5">
-            <Target size={14} className="text-gold" />
-            <span className="text-cream-dim">Rooms:</span>
-            <strong className="text-cream font-bold">{totalRoomsJoined}</strong>
+            <Target size={14} className="text-[#d81e1e]" />
+            <span className="text-slate-500 font-bold uppercase text-[10px]">Rooms:</span>
+            <strong className="text-slate-900 font-black">{totalRoomsJoined}</strong>
           </div>
-          <div className="w-px h-4 bg-line/80" />
+          <div className="w-px h-4 bg-slate-200" />
           <div className="flex items-center gap-1.5">
-            <span className="text-cream-dim">Hits Acc:</span>
-            <strong className="text-emerald-300 font-bold">{overallAccuracy}%</strong>
+            <span className="text-slate-500 font-bold uppercase text-[10px]">Hits Acc:</span>
+            <strong className="text-[#d81e1e] font-black">{overallAccuracy}%</strong>
           </div>
-          <div className="w-px h-4 bg-line/80" />
-          <div className="flex items-center gap-1 text-gold font-bold">
+          <div className="w-px h-4 bg-slate-200" />
+          <div className="flex items-center gap-1 text-amber-500 font-black">
             {userStats.stars}★
           </div>
         </div>
       </div>
 
       {/* Filter Tabs & Search Bar */}
-      <div className="ios-card p-3 sm:p-4 space-y-3">
+      <div className="bg-white border border-slate-200 rounded-2xl p-4 space-y-3 shadow-xs">
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
-          {/* Main Status Category Tabs with iOS Segmented Control */}
-          <div className="ios-segmented-control p-1 overflow-x-auto scrollbar-none text-xs font-bold w-full sm:w-auto">
+          {/* Main Status Category Tabs (ESPN Style) */}
+          <div className="flex items-center gap-1 p-1 bg-slate-100 rounded-full overflow-x-auto scrollbar-none text-xs font-black uppercase tracking-wider w-full sm:w-auto">
             <button
               onClick={() => setFilterTab('all')}
-              className={`px-3.5 py-2 rounded-full transition-all flex items-center gap-1.5 whitespace-nowrap active:scale-95 ${
+              className={`px-4 py-1.5 rounded-full transition-all flex items-center gap-1.5 whitespace-nowrap active:scale-95 ${
                 filterTab === 'all'
-                  ? 'bg-gold text-ink shadow-sm font-extrabold'
-                  : 'text-cream-dim hover:text-cream'
+                  ? 'bg-[#d81e1e] text-white shadow-xs'
+                  : 'text-slate-600 hover:text-slate-900'
               }`}
             >
               <Layers size={13} /> All ({allJackpots.length})
@@ -163,10 +163,10 @@ export default function Leaderboard() {
 
             <button
               onClick={() => setFilterTab('my')}
-              className={`px-3.5 py-2 rounded-full transition-all flex items-center gap-1.5 whitespace-nowrap active:scale-95 ${
+              className={`px-4 py-1.5 rounded-full transition-all flex items-center gap-1.5 whitespace-nowrap active:scale-95 ${
                 filterTab === 'my'
-                  ? 'bg-gold text-ink shadow-sm font-extrabold'
-                  : 'text-cream-dim hover:text-cream'
+                  ? 'bg-[#d81e1e] text-white shadow-xs'
+                  : 'text-slate-600 hover:text-slate-900'
               }`}
             >
               <Target size={13} /> My Rooms ({totalRoomsJoined})
@@ -174,21 +174,21 @@ export default function Leaderboard() {
 
             <button
               onClick={() => setFilterTab('not_started')}
-              className={`px-3 py-1.5 rounded-xl transition-all flex items-center gap-1.5 whitespace-nowrap border ${
+              className={`px-3.5 py-1.5 rounded-full transition-all flex items-center gap-1.5 whitespace-nowrap ${
                 filterTab === 'not_started'
-                  ? 'bg-amber-500 text-ink-2 border-amber-400 font-extrabold'
-                  : 'bg-panel-2 border-amber-500/20 text-amber-300 hover:border-amber-500/40'
+                  ? 'bg-amber-500 text-white shadow-xs'
+                  : 'text-slate-600 hover:text-slate-900'
               }`}
             >
-              <Clock size={12} /> Not Started
+              <Clock size={12} /> Upcoming
             </button>
 
             <button
               onClick={() => setFilterTab('live')}
-              className={`px-3 py-1.5 rounded-xl transition-all flex items-center gap-1.5 whitespace-nowrap border ${
+              className={`px-3.5 py-1.5 rounded-full transition-all flex items-center gap-1.5 whitespace-nowrap ${
                 filterTab === 'live'
-                  ? 'bg-rose-500 text-white border-rose-400 font-extrabold'
-                  : 'bg-panel-2 border-rose-500/20 text-rose-300 hover:border-rose-500/40'
+                  ? 'bg-[#d81e1e] text-white shadow-xs'
+                  : 'text-slate-600 hover:text-slate-900'
               }`}
             >
               <Flame size={12} /> Live
@@ -196,10 +196,10 @@ export default function Leaderboard() {
 
             <button
               onClick={() => setFilterTab('settled')}
-              className={`px-3 py-1.5 rounded-xl transition-all flex items-center gap-1.5 whitespace-nowrap border ${
+              className={`px-3.5 py-1.5 rounded-full transition-all flex items-center gap-1.5 whitespace-nowrap ${
                 filterTab === 'settled'
-                  ? 'bg-emerald-600 text-white border-emerald-400 font-extrabold'
-                  : 'bg-panel-2 border-emerald-500/20 text-emerald-300 hover:border-emerald-500/40'
+                  ? 'bg-emerald-600 text-white shadow-xs'
+                  : 'text-slate-600 hover:text-slate-900'
               }`}
             >
               <CheckCircle2 size={12} /> Settled
@@ -207,31 +207,31 @@ export default function Leaderboard() {
           </div>
 
           {/* Search Input */}
-          <div className="relative shrink-0 sm:w-48">
-            <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-cream-dim" />
+          <div className="relative shrink-0 sm:w-56">
+            <Search size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
             <input
               type="text"
               placeholder="Search room..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-ink border border-line rounded-xl pl-8 pr-2.5 py-1.5 text-xs text-cream focus:outline-none focus:border-gold/60 placeholder:text-cream-dim/60"
+              className="w-full bg-slate-50 border border-slate-200 focus:border-[#d81e1e] rounded-full pl-9 pr-3 py-1.5 text-xs text-slate-900 focus:outline-none placeholder:text-slate-400 transition-all"
             />
           </div>
         </div>
 
         {/* Bookie Pill Selection */}
-        <div className="flex items-center gap-1.5 overflow-x-auto pt-1 border-t border-line/40 scrollbar-none">
-          <span className="text-[11px] font-bold text-cream-dim flex items-center gap-1 shrink-0 mr-1">
+        <div className="flex items-center gap-1.5 overflow-x-auto pt-2 border-t border-slate-100 scrollbar-none">
+          <span className="text-[11px] font-black uppercase tracking-wider text-slate-400 flex items-center gap-1 shrink-0 mr-1">
             <Filter size={11} /> Bookie:
           </span>
           {['all', 'SportPesa', 'Betika', 'MozzartBet', 'Shabiki', 'Odibets'].map((b) => (
             <button
               key={b}
               onClick={() => setSelectedBookie(b)}
-              className={`px-2.5 py-0.5 rounded-lg text-[11px] font-bold border transition-all shrink-0 ${
+              className={`px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider border transition-all shrink-0 ${
                 selectedBookie.toLowerCase() === b.toLowerCase()
-                  ? 'bg-gold/20 border-gold text-gold'
-                  : 'bg-panel-2 border-line/60 text-cream-dim hover:text-cream'
+                  ? 'bg-[#d81e1e] border-[#d81e1e] text-white shadow-xs'
+                  : 'bg-white border-slate-200 text-slate-600 hover:border-[#d81e1e] hover:text-[#d81e1e]'
               }`}
             >
               {b === 'all' ? 'All' : b}
@@ -289,62 +289,62 @@ export default function Leaderboard() {
               <div
                 key={jackpot.id}
                 id={`room-leaderboard-${jackpot.id}`}
-                className={`bg-panel border rounded-2xl overflow-hidden transition-all hover:border-gold/30 ${
-                  userPerf.participated ? 'border-gold/40 ring-1 ring-gold/15' : 'border-line'
+                className={`bg-white border rounded-xl overflow-hidden transition-all hover:shadow-md ${
+                  userPerf.participated ? 'border-[#d81e1e] ring-1 ring-[#d81e1e]/20' : 'border-slate-200 hover:border-[#d81e1e]'
                 }`}
               >
                 {/* Minimalist Card Header */}
-                <div className="p-3.5 sm:p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div className="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                   <div className="flex items-start gap-3 min-w-0">
-                    <div className={`w-9 h-9 rounded-xl border flex items-center justify-center shrink-0 font-bold text-xs ${bookieStyle.bg} ${bookieStyle.text} ${bookieStyle.border}`}>
-                      <Trophy size={16} />
+                    <div className="w-10 h-10 rounded-xl bg-slate-100 border border-slate-200 flex items-center justify-center shrink-0 font-black text-slate-800">
+                      <Trophy size={16} className="text-[#d81e1e]" />
                     </div>
 
                     <div className="min-w-0 space-y-1">
                       <div className="flex items-center gap-2 flex-wrap">
                         {/* Bookie Pill */}
-                        <span className={`text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-md border ${bookieStyle.bg} ${bookieStyle.text} ${bookieStyle.border}`}>
+                        <span className="text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-slate-900 text-white">
                           {jackpot.bookie}
                         </span>
 
                         {/* Minimalist 3-State Status Badge */}
-                        <span className={`text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-md border flex items-center gap-1.5 ${statusInfo.badgeClass}`}>
+                        <span className={`text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full border flex items-center gap-1.5 ${statusInfo.badgeClass}`}>
                           <span className={`w-1.5 h-1.5 rounded-full ${statusInfo.dotClass}`} />
                           {statusInfo.label}
                         </span>
 
                         {/* Participated Tag */}
                         {userPerf.participated && (
-                          <span className="text-[10px] font-bold text-gold bg-gold/10 border border-gold/30 px-2 py-0.5 rounded-md flex items-center gap-1">
+                          <span className="text-[10px] font-black uppercase tracking-wider text-[#d81e1e] bg-[#d81e1e]/10 border border-[#d81e1e]/30 px-2.5 py-0.5 rounded-full flex items-center gap-1">
                             <Target size={10} /> My Picked Room
                           </span>
                         )}
                       </div>
 
-                      <h2 className="font-display font-bold text-sm text-cream truncate flex items-center gap-1.5">
+                      <h2 className="font-display font-black text-base sm:text-lg text-slate-900 truncate flex items-center gap-1.5 uppercase">
                         {jackpot.name}
-                        <span className="text-xs font-normal text-cream-dim">({jackpot.gameweek})</span>
+                        <span className="text-xs font-semibold text-slate-400 not-italic">({jackpot.gameweek})</span>
                       </h2>
 
-                      <p className="text-[11px] text-cream-dim truncate">
-                        {jackpot.deadline} · <span className="text-cream font-medium">{jackpot.participants.toLocaleString()} punters</span>
+                      <p className="text-xs text-slate-500 truncate">
+                        {jackpot.deadline} · <span className="text-slate-800 font-bold">{jackpot.participants.toLocaleString()} punters</span>
                       </p>
                     </div>
                   </div>
 
                   {/* Right Side Prize Pool & Toggle */}
-                  <div className="flex items-center justify-between sm:justify-end gap-3 shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-line/40">
+                  <div className="flex items-center justify-between sm:justify-end gap-3 shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-100">
                     <div className="text-left sm:text-right">
-                      <span className="text-[9px] uppercase font-extrabold text-cream-dim tracking-wider">Bookie Jackpot</span>
-                      <p className="font-display font-extrabold text-gold text-sm sm:text-base leading-none">
+                      <span className="text-[9px] uppercase font-black text-slate-400 tracking-wider">Bookie Jackpot</span>
+                      <p className="font-display font-black text-[#d81e1e] text-base sm:text-lg leading-none">
                         {jackpot.prizePool}
                       </p>
                     </div>
 
-                    <div className="flex items-center gap-1.5">
+                    <div className="flex items-center gap-2">
                       <Link
                         to={`/?room=${jackpot.id}`}
-                        className="py-1.5 px-2.5 rounded-xl bg-gold/15 hover:bg-gold text-gold hover:text-ink-2 border border-gold/30 font-bold text-xs flex items-center gap-1 transition-all"
+                        className="py-1.5 px-3 rounded-full bg-[#d81e1e] hover:bg-[#b51717] text-white font-bold uppercase tracking-wider text-xs flex items-center gap-1 transition-all shadow-2xs"
                       >
                         <span>Room</span>
                         <ExternalLink size={12} />
@@ -352,7 +352,7 @@ export default function Leaderboard() {
 
                       <button
                         onClick={() => toggleRoomExpand(jackpot.id)}
-                        className="py-1.5 px-2.5 rounded-xl bg-panel-2 hover:bg-ink border border-line text-cream-dim hover:text-cream text-xs font-bold transition-all flex items-center gap-1"
+                        className="py-1.5 px-3 rounded-full bg-slate-100 hover:bg-slate-200 border border-slate-300 text-slate-800 text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-1"
                       >
                         <span>{isExpanded ? 'Hide' : 'Standings'}</span>
                         {isExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
@@ -363,21 +363,21 @@ export default function Leaderboard() {
 
                 {/* Minimalist User Performance Line (if participated) */}
                 {userPerf.participated && (
-                  <div className="bg-gold/10 border-t border-gold/20 px-3.5 py-1.5 flex items-center justify-between gap-2 text-xs">
+                  <div className="bg-slate-50 border-t border-slate-200 px-4 py-2 flex items-center justify-between gap-2 text-xs">
                     <div className="flex items-center gap-2">
-                      <span className="text-[10px] font-black uppercase text-ink-2 bg-gold px-1.5 py-0.2 rounded">
+                      <span className="text-[10px] font-black uppercase text-white bg-[#d81e1e] px-2 py-0.5 rounded-full">
                         Your Rank
                       </span>
-                      <span className="font-bold text-cream">
+                      <span className="font-black text-slate-900">
                         #{userPerf.userRank} of {leaderboard.length}
                       </span>
-                      <span className="text-cream-dim text-[11px]">
+                      <span className="text-slate-500 text-[11px] font-semibold">
                         ({userPerf.userCorrect}/{completedCount || totalMatches} hits • {userPerf.accuracy}%)
                       </span>
                     </div>
 
-                    <span className="text-[10px] font-extrabold text-emerald-300">
-                      Active
+                    <span className="text-[10px] font-black uppercase text-[#d81e1e]">
+                      Active Pick
                     </span>
                   </div>
                 )}

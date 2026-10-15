@@ -111,34 +111,34 @@ export default function FreeMatchRoom() {
         <ArrowLeft size={15} /> All free matches
       </Link>
 
-      <div className="bg-panel border border-line rounded-2xl p-6 sm:p-8 mb-6">
+      <div className="bg-white border border-slate-200 rounded-2xl p-6 sm:p-8 mb-6 shadow-xs">
         <div className="flex flex-wrap items-center gap-2 mb-4">
           <span
-            className="text-[10px] font-bold uppercase tracking-wide px-2.5 py-1 rounded-full border"
+            className="text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full border"
             style={{ color: tierColor[match.tier], borderColor: `${tierColor[match.tier]}55`, backgroundColor: `${tierColor[match.tier]}18` }}
           >
             {TIER_LABEL[match.tier]}
           </span>
-          <span className="inline-flex items-center gap-1.5 text-[11px] font-bold text-emerald-2 bg-emerald-2/10 border border-emerald-2/30 px-2.5 py-1 rounded-full">
-            <Unlock size={11} /> Free room: no payment required
+          <span className="inline-flex items-center gap-1.5 text-[11px] font-bold text-slate-700 bg-slate-100 border border-slate-200 px-3 py-1 rounded-full">
+            <Unlock size={11} className="text-[#d81e1e]" /> Free room · Open discussion
           </span>
-          <span className="inline-flex items-center gap-1.5 text-[11px] font-bold text-cream-dim">
-            <RadioTower size={11} className="animate-pulse text-emerald-2" /> Synced {match.syncedAt}
+          <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-slate-500">
+            <RadioTower size={11} className="animate-pulse text-[#d81e1e]" /> Synced {match.syncedAt}
           </span>
         </div>
 
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h1 className="font-display font-extrabold text-2xl sm:text-3xl text-cream leading-tight">
-              {match.home} <span className="text-cream-dim">vs</span> {match.away}
+            <h1 className="font-display font-black text-2xl sm:text-4xl text-slate-900 leading-tight uppercase tracking-tight">
+              {match.home} <span className="text-slate-400 font-normal">v</span> {match.away}
             </h1>
-            <p className="text-sm text-cream-dim mt-2">{match.competition}</p>
+            <p className="text-sm font-semibold text-slate-500 mt-1">{match.competition}</p>
           </div>
 
           <div className="flex items-center gap-2 flex-wrap self-start sm:self-auto">
             {myPickRecord && (
               <span
-                className="inline-flex items-center gap-1.5 text-xs font-extrabold px-3 py-1.5 rounded-xl shadow-sm"
+                className="inline-flex items-center gap-1.5 text-xs font-black uppercase tracking-wider px-3.5 py-1.5 rounded-full shadow-2xs"
                 style={{
                   backgroundColor: `${outcomeColor}22`,
                   color: outcomeColor,
@@ -152,10 +152,10 @@ export default function FreeMatchRoom() {
 
             <button
               onClick={() => setShowBuilderModal(true)}
-              className={`inline-flex items-center gap-1.5 text-xs font-extrabold px-3.5 py-2 rounded-xl transition-all shadow-sm touch-manipulation active:scale-95 ${
+              className={`inline-flex items-center gap-1.5 text-xs font-black uppercase tracking-wider px-4 py-2 rounded-full transition-all shadow-xs touch-manipulation active:scale-95 ${
                 builderLegs.some((l) => l.matchId === match.id)
-                  ? 'bg-gold text-ink border border-gold shadow-md'
-                  : 'bg-gold/15 text-gold border border-gold/40 hover:bg-gold hover:text-ink'
+                  ? 'bg-[#d81e1e] text-white shadow-xs'
+                  : 'bg-slate-900 hover:bg-slate-800 text-white'
               }`}
             >
               {builderLegs.some((l) => l.matchId === match.id) ? (
@@ -171,40 +171,40 @@ export default function FreeMatchRoom() {
           </div>
         </div>
 
-        <p className="text-sm text-cream-dim mt-3 leading-relaxed max-w-2xl">{match.blurb}</p>
+        <p className="text-sm text-slate-600 mt-3 leading-relaxed max-w-2xl">{match.blurb}</p>
 
-        <div className="flex flex-wrap gap-x-6 gap-y-2 mt-5 pt-5 border-t border-dashed border-line text-sm text-cream-dim">
-          <span className="flex items-center gap-1.5"><Clock size={14} /> {match.kickoff}</span>
-          <span className="flex items-center gap-1.5"><Users size={14} /> {consensus.totalVotes.toLocaleString()} punters discussing</span>
+        <div className="flex flex-wrap gap-x-6 gap-y-2 mt-5 pt-5 border-t border-slate-200 text-xs font-semibold text-slate-500">
+          <span className="flex items-center gap-1.5"><Clock size={14} className="text-slate-400" /> {match.kickoff}</span>
+          <span className="flex items-center gap-1.5"><Users size={14} className="text-[#d81e1e]" /> {consensus.totalVotes.toLocaleString()} punters discussing</span>
         </div>
       </div>
 
       {/* Shared Picks Prior to Closure Highlight Banner */}
-      <div className="mb-6 bg-gradient-to-r from-emerald-500/15 via-gold/15 to-emerald-500/10 border border-gold/30 rounded-2xl p-4 flex items-center justify-between gap-3 shadow-md">
+      <div className="mb-6 bg-white border border-slate-200 rounded-2xl p-4 sm:p-5 flex items-center justify-between gap-3 shadow-xs">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-gold text-ink flex items-center justify-center font-bold shrink-0 shadow">
+          <div className="w-10 h-10 rounded-full bg-[#d81e1e]/10 text-[#d81e1e] flex items-center justify-center font-bold shrink-0">
             <Users size={20} />
           </div>
           <div>
-            <h3 className="font-display font-extrabold text-cream text-sm sm:text-base">
-              Shared Picks Before Match Closure
+            <h3 className="font-display font-black text-slate-900 text-sm sm:text-base uppercase tracking-tight">
+              Community Picks &amp; Consensus Split
             </h3>
-            <p className="text-xs text-cream-dim">
+            <p className="text-xs text-slate-500">
               Predictions and reasoning shared by community punters prior to kickoff closure.
             </p>
           </div>
         </div>
-        <div className="bg-ink border border-gold/40 px-3.5 py-1.5 rounded-xl text-center shrink-0">
-          <span className="text-[10px] uppercase font-bold tracking-wider text-cream-dim block">Shared Picks</span>
-          <span className="font-display font-extrabold text-gold text-base sm:text-lg">
+        <div className="bg-slate-50 border border-slate-200 px-4 py-1.5 rounded-xl text-center shrink-0">
+          <span className="text-[10px] uppercase font-black tracking-wider text-slate-400 block">Shared Picks</span>
+          <span className="font-display font-black text-[#d81e1e] text-base sm:text-lg">
             {consensus.totalVotes.toLocaleString()}
           </span>
         </div>
       </div>
 
       {toastMsg && (
-        <div className="mb-6 p-4 rounded-xl bg-emerald-2/15 border border-emerald-2/40 text-emerald-2 font-bold text-sm flex items-center gap-2 animate-rise">
-          <CheckCircle2 size={18} /> {toastMsg}
+        <div className="mb-6 p-4 rounded-xl bg-emerald-50 border border-emerald-300 text-emerald-800 font-bold text-sm flex items-center gap-2">
+          <CheckCircle2 size={18} className="text-emerald-600" /> {toastMsg}
         </div>
       )}
 

@@ -70,41 +70,45 @@ export default function FreeMatches() {
         description="Free discussion rooms for UEFA Champions League, Premier League, Europa League & top derbies. See community consensus, crowd splits & expert punter picks."
         canonicalUrl="https://mshindi.co.ke/free"
       />
+      
+      {/* Editorial Page Header */}
       <div className="text-center mb-8 sm:mb-10">
-        <div className="flex items-center justify-center gap-1.5 sm:gap-2 flex-wrap mb-3 sm:mb-4">
-          <span className="inline-flex items-center gap-1.5 bg-panel border border-emerald-2/30 text-emerald-2 text-[11px] sm:text-xs font-bold px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-full">
-            <Unlock size={12} className="sm:w-3.2 sm:h-3.2" /> Always free: no paywall
+        <div className="flex items-center justify-center gap-2 flex-wrap mb-3 sm:mb-4">
+          <span className="inline-flex items-center gap-1.5 bg-white border border-slate-200 text-slate-800 text-[11px] sm:text-xs font-bold px-3 py-1 rounded-full shadow-xs">
+            <Unlock size={12} className="text-[#d81e1e]" /> Always free · No paywall
           </span>
-          <span className="inline-flex items-center gap-1.5 bg-panel border border-amber-500/40 text-amber-400 text-[11px] sm:text-xs font-bold px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-full">
-            <Flame size={12} className="animate-bounce sm:w-3.2 sm:h-3.2" /> Ranked by Most Discussed
+          <span className="inline-flex items-center gap-1.5 bg-[#d81e1e] text-white text-[11px] sm:text-xs font-bold px-3 py-1 rounded-full shadow-xs">
+            <Flame size={12} className="animate-pulse" /> Ranked by Most Discussed
           </span>
-          <span className="inline-flex items-center gap-1.5 bg-panel border border-gold/40 text-gold text-[11px] sm:text-xs font-bold px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-full">
-            <Calendar size={12} className="sm:w-3.2 sm:h-3.2" /> Today's Slate: {activeDayLabel} EAT
+          <span className="inline-flex items-center gap-1.5 bg-white border border-slate-200 text-slate-700 text-[11px] sm:text-xs font-bold px-3 py-1 rounded-full shadow-xs">
+            <Calendar size={12} className="text-slate-500" /> Today&apos;s Slate: {activeDayLabel} EAT
           </span>
         </div>
 
-        <h1 className="font-display font-extrabold text-2xl sm:text-4xl text-cream">Upcoming Free Matches</h1>
-        <p className="text-cream-dim mt-2 sm:mt-3 max-w-3xl mx-auto text-xs sm:text-base leading-relaxed">
-          Covering the <strong className="text-gold">UEFA Champions League</strong>, <strong className="text-gold">Europa League</strong>, <strong className="text-gold">Conference League</strong>, and highlights from football's top-flight leagues (Premier League, La Liga, Serie A, Bundesliga, Ligue 1 & derby clashes). Discuss picks and vote on consensus before kickoff. Matches that have already started are automatically hidden so punter debates focus purely on upcoming predictions. Next slate updates at <span className="text-gold font-semibold font-mono">03:00 AM EAT</span>.
+        <h1 className="font-display font-black text-3xl sm:text-5xl text-slate-900 tracking-tight uppercase">
+          Match Slate &amp; Consensus
+        </h1>
+        <p className="text-slate-600 mt-2 sm:mt-3 max-w-3xl mx-auto text-xs sm:text-sm leading-relaxed">
+          Comprehensive match center for the <strong className="text-slate-900 font-bold">UEFA Champions League</strong>, <strong className="text-slate-900 font-bold">Premier League</strong>, and European derbies. Compare punter consensus splits and crowd picks before kickoff. Next slate updates at <span className="text-[#d81e1e] font-bold font-mono">03:00 AM EAT</span>.
         </p>
       </div>
 
       {/* Interactive Search Bar & Fixture Filter */}
       {upcomingMatches.length > 0 && (
-        <div className="mb-6 sm:mb-8 max-w-2xl mx-auto space-y-2.5 sm:space-y-3">
+        <div className="mb-8 max-w-2xl mx-auto space-y-3">
           <div className="relative flex items-center">
-            <Search size={16} className="absolute left-3.5 text-cream-dim pointer-events-none" />
+            <Search size={17} className="absolute left-4 text-slate-400 pointer-events-none" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search team or fixture for today (e.g. Arsenal, Real Madrid)..."
-              className="w-full bg-panel border border-line focus:border-gold/60 rounded-2xl pl-10 pr-9 py-2.5 sm:py-3.5 text-xs sm:text-sm text-cream placeholder-cream-dim/50 shadow-lg focus:outline-none transition-all"
+              placeholder="Search team or fixture (e.g. Arsenal, Real Madrid, Chelsea)..."
+              className="w-full bg-white border border-slate-300 focus:border-[#d81e1e] focus:ring-2 focus:ring-[#d81e1e]/15 rounded-full pl-11 pr-10 py-3 text-sm text-slate-900 placeholder:text-slate-400 shadow-xs focus:outline-none transition-all"
             />
             {searchQuery && (
               <button
                 onClick={() => setSearchQuery('')}
-                className="absolute right-3 p-1 rounded-full hover:bg-ink text-cream-dim hover:text-cream transition-colors"
+                className="absolute right-3.5 p-1 rounded-full hover:bg-slate-100 text-slate-400 hover:text-slate-700 transition-colors"
                 title="Clear search"
               >
                 <X size={15} />
@@ -112,20 +116,20 @@ export default function FreeMatches() {
             )}
           </div>
 
-          {/* Quick Tag Pills */}
+          {/* Quick Tag Pills (ESPN Tab Container Style) */}
           {popularTags.length > 0 && (
-            <div className="flex items-center gap-1 sm:gap-1.5 overflow-x-auto whitespace-nowrap pt-0.5 scrollbar-none text-[11px] sm:text-xs">
-              <span className="text-cream-dim/60 text-[10px] sm:text-[11px] font-medium mr-0.5 shrink-0">Quick search:</span>
+            <div className="flex items-center gap-1.5 overflow-x-auto whitespace-nowrap pt-1 scrollbar-none text-xs justify-center">
+              <span className="text-slate-400 text-[11px] font-bold uppercase tracking-wider mr-1 shrink-0">Popular:</span>
               {popularTags.map((tag) => {
                 const isActive = searchQuery.toLowerCase() === tag.toLowerCase();
                 return (
                   <button
                     key={tag}
                     onClick={() => setSearchQuery(isActive ? '' : tag)}
-                    className={`px-2.5 py-0.5 sm:px-3 sm:py-1 rounded-full text-[11px] sm:text-xs font-semibold border transition-all shrink-0 ${
+                    className={`px-3 py-1 rounded-full text-xs font-bold transition-all shrink-0 ${
                       isActive
-                        ? 'bg-gold text-ink-2 border-gold font-bold shadow'
-                        : 'bg-panel-2 text-cream-dim border-line hover:border-gold/40 hover:text-gold'
+                        ? 'bg-[#d81e1e] text-white shadow-xs'
+                        : 'bg-white text-slate-700 border border-slate-200 hover:border-[#d81e1e] hover:text-[#d81e1e]'
                     }`}
                   >
                     {tag}
@@ -137,13 +141,13 @@ export default function FreeMatches() {
 
           {/* Results Summary Counter */}
           {searchQuery.trim() && (
-            <div className="flex items-center justify-between text-[11px] sm:text-xs text-cream-dim px-1">
+            <div className="flex items-center justify-between text-xs text-slate-500 px-2 pt-1">
               <span>
-                Found <strong className="text-gold">{filteredMatches.length}</strong> {filteredMatches.length === 1 ? 'fixture' : 'fixtures'} matching &quot;<span className="text-cream font-medium">{searchQuery}</span>&quot;
+                Found <strong className="text-slate-900">{filteredMatches.length}</strong> {filteredMatches.length === 1 ? 'fixture' : 'fixtures'} matching &quot;<span className="text-slate-900 font-semibold">{searchQuery}</span>&quot;
               </span>
               <button
                 onClick={() => setSearchQuery('')}
-                className="text-gold hover:underline font-medium"
+                className="text-[#d81e1e] hover:underline font-bold"
               >
                 Clear filter
               </button>
@@ -154,32 +158,32 @@ export default function FreeMatches() {
 
       {/* Fixtures List / Empty States */}
       {upcomingMatches.length === 0 ? (
-        <div className="bg-panel border border-line rounded-2xl p-6 sm:p-8 text-center max-w-xl mx-auto flex flex-col items-center gap-3">
-          <Clock size={32} className="text-gold animate-pulse" />
-          <h3 className="font-display font-bold text-base sm:text-lg text-cream">All Today's Matches Have Kicked Off</h3>
-          <p className="text-xs text-cream-dim leading-relaxed">
-            Free match rooms focus strictly on pre-match pick analysis. All highlight matches for today's slate are currently in progress or finished. The next set of upcoming fixtures will automatically unlock at <span className="text-gold font-semibold font-mono">03:00 AM EAT</span>!
+        <div className="bg-white border border-slate-200 rounded-2xl p-8 text-center max-w-xl mx-auto flex flex-col items-center gap-3 shadow-xs">
+          <Clock size={36} className="text-[#d81e1e] animate-pulse" />
+          <h3 className="font-display font-extrabold text-lg text-slate-900 uppercase tracking-tight">All Today&apos;s Matches Have Kicked Off</h3>
+          <p className="text-xs text-slate-600 leading-relaxed">
+            Free match rooms focus strictly on pre-match pick analysis. All highlight matches for today&apos;s slate are currently in progress or finished. The next set of upcoming fixtures will automatically unlock at <span className="text-[#d81e1e] font-bold font-mono">03:00 AM EAT</span>!
           </p>
-          <Link to="/" className="mt-2 inline-flex items-center gap-2 bg-emerald-2 text-ink font-bold text-xs px-4 py-2.5 rounded-lg hover:bg-emerald-2/90 transition-colors">
+          <Link to="/" className="mt-3 inline-flex items-center gap-2 bg-[#d81e1e] hover:bg-[#b51717] text-white font-bold text-xs uppercase tracking-wider px-5 py-2.5 rounded-full shadow-xs transition-colors">
             Browse Paid Jackpot Rooms
           </Link>
         </div>
       ) : filteredMatches.length === 0 ? (
-        <div className="bg-panel border border-line rounded-2xl p-6 sm:p-8 text-center max-w-xl mx-auto flex flex-col items-center gap-3">
-          <SearchX size={32} className="text-gold/80" />
-          <h3 className="font-display font-bold text-base sm:text-lg text-cream">No Fixtures Found</h3>
-          <p className="text-xs text-cream-dim leading-relaxed">
-            No upcoming free matches match your search for &quot;<strong className="text-cream">{searchQuery}</strong>&quot;. Try searching for another team, league, or clear your search to view all today's fixtures.
+        <div className="bg-white border border-slate-200 rounded-2xl p-8 text-center max-w-xl mx-auto flex flex-col items-center gap-3 shadow-xs">
+          <SearchX size={36} className="text-[#d81e1e]" />
+          <h3 className="font-display font-extrabold text-lg text-slate-900 uppercase tracking-tight">No Fixtures Found</h3>
+          <p className="text-xs text-slate-600 leading-relaxed">
+            No upcoming free matches match your search for &quot;<strong className="text-slate-900">{searchQuery}</strong>&quot;. Try searching for another team, league, or clear your search to view all today&apos;s fixtures.
           </p>
           <button
             onClick={() => setSearchQuery('')}
-            className="mt-2 inline-flex items-center gap-2 bg-gold text-ink-2 font-bold text-xs px-4 py-2.5 rounded-xl hover:bg-amber-400 transition-colors"
+            className="mt-3 inline-flex items-center gap-2 bg-[#d81e1e] hover:bg-[#b51717] text-white font-bold text-xs uppercase tracking-wider px-5 py-2.5 rounded-full shadow-xs transition-colors"
           >
-            Show All Today's Free Matches
+            Show All Today&apos;s Matches
           </button>
         </div>
       ) : (
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredMatches.map((m, i) => {
             const consensus = consensusMap[m.id] || { homePct: 33, drawPct: 34, awayPct: 33, totalVotes: 0 };
             const majority = Math.max(consensus.homePct, consensus.drawPct, consensus.awayPct);
@@ -225,122 +229,123 @@ export default function FreeMatches() {
             return (
               <div
                 key={m.id}
-                className="animate-rise group ios-card p-5 sm:p-6 flex flex-col gap-3 sm:gap-4 hover:border-gold/50 transition-all hover:-translate-y-1"
-                style={{ animationDelay: `${i * 60}ms` }}
+                className="bg-white border border-slate-200 hover:border-[#d81e1e] rounded-xl p-5 sm:p-6 flex flex-col justify-between gap-4 transition-all hover:shadow-lg group"
               >
-                <div className="flex items-center justify-between gap-2">
-                  <div className="flex items-center gap-1.5 flex-wrap">
-                    {i === 0 && (
-                      <span className="inline-flex items-center gap-1 text-[10px] font-extrabold uppercase tracking-wide px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-400 border border-amber-500/40 shadow-sm">
-                        <Flame size={11} /> #1 Discussed
+                <div>
+                  <div className="flex items-center justify-between gap-2 mb-3">
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      {i === 0 && (
+                        <span className="inline-flex items-center gap-1 text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-[#d81e1e] text-white shadow-xs">
+                          <Flame size={11} /> #1 Discussed
+                        </span>
+                      )}
+                      <span
+                        className="text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full border"
+                        style={{ color: tierColor[m.tier], borderColor: `${tierColor[m.tier]}55`, backgroundColor: `${tierColor[m.tier]}18` }}
+                      >
+                        {TIER_LABEL[m.tier]}
                       </span>
-                    )}
-                    <span
-                      className="text-[10px] font-bold uppercase tracking-wide px-2.5 py-0.5 rounded-full border shadow-sm"
-                      style={{ color: tierColor[m.tier], borderColor: `${tierColor[m.tier]}55`, backgroundColor: `${tierColor[m.tier]}18` }}
-                    >
-                      {TIER_LABEL[m.tier]}
+                    </div>
+                    <span className="inline-flex items-center gap-1 text-[10px] font-bold text-[#d81e1e] uppercase tracking-wider shrink-0">
+                      <RadioTower size={11} className="animate-pulse" /> Pre-Match
                     </span>
                   </div>
-                  <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-2 shrink-0">
-                    <RadioTower size={11} className="animate-pulse" /> Pre-Match
-                  </span>
-                </div>
 
-                <Link to={`/free/${m.id}`} className="block group-hover:text-gold transition-colors">
-                  <h3 className="font-display font-extrabold text-base sm:text-lg text-cream leading-snug flex items-center gap-2 flex-wrap">
-                    {m.homeLogo && <img src={m.homeLogo} alt="" loading="lazy" decoding="async" referrerPolicy="no-referrer" className="w-5 h-5 object-contain inline shrink-0" />}
-                    <span>{m.home}</span>
-                    <span className="text-cream-dim/60 text-xs font-normal">vs</span>
-                    {m.awayLogo && <img src={m.awayLogo} alt="" loading="lazy" decoding="async" referrerPolicy="no-referrer" className="w-5 h-5 object-contain inline shrink-0" />}
-                    <span>{m.away}</span>
-                  </h3>
-                  <p className="text-[11px] text-cream-dim mt-0.5 font-medium">{m.competition}</p>
-                </Link>
+                  <Link to={`/free/${m.id}`} className="block group-hover:text-[#d81e1e] transition-colors">
+                    <h3 className="font-display font-black text-base sm:text-lg text-slate-900 leading-snug flex items-center gap-2 flex-wrap">
+                      {m.homeLogo && <img src={m.homeLogo} alt="" loading="lazy" decoding="async" referrerPolicy="no-referrer" className="w-5 h-5 object-contain inline shrink-0" />}
+                      <span>{m.home}</span>
+                      <span className="text-slate-400 text-xs font-normal">v</span>
+                      {m.awayLogo && <img src={m.awayLogo} alt="" loading="lazy" decoding="async" referrerPolicy="no-referrer" className="w-5 h-5 object-contain inline shrink-0" />}
+                      <span>{m.away}</span>
+                    </h3>
+                    <p className="text-xs text-slate-500 mt-1 font-semibold">{m.competition}</p>
+                  </Link>
 
-                <p className="text-xs text-cream-dim leading-relaxed line-clamp-2">{m.blurb}</p>
+                  <p className="text-xs text-slate-600 mt-2 leading-relaxed line-clamp-2">{m.blurb}</p>
 
-                <div className="flex items-center justify-between text-xs text-cream-dim pt-2 border-t border-line/60">
-                  <span className="flex items-center gap-1.5 font-medium"><Clock size={12} /> {m.kickoff}</span>
-                  <span className="flex items-center gap-1 font-semibold text-amber-400"><Flame size={12} className="text-amber-400 shrink-0" /> {consensus.totalVotes.toLocaleString()} discussing</span>
-                </div>
+                  <div className="flex items-center justify-between text-xs text-slate-500 pt-3 mt-3 border-t border-slate-100">
+                    <span className="flex items-center gap-1.5 font-medium"><Clock size={12} className="text-slate-400" /> {m.kickoff}</span>
+                    <span className="flex items-center gap-1 font-bold text-slate-800"><Users size={12} className="text-[#d81e1e] shrink-0" /> {consensus.totalVotes.toLocaleString()} discussing</span>
+                  </div>
 
-                {/* Quick Interactive Odds Grid */}
-                <div>
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-cream-dim/70 block mb-1.5">
-                    Match Result (1X2):
-                  </span>
-                  <div className="grid grid-cols-3 gap-2 text-center font-mono">
-                    <button
-                      onClick={(e) => handleQuickToggleOdd('Match Result (1X2)', `${m.home} Win (1)`, hOdds, e)}
-                      className={`rounded-2xl py-2 px-1.5 border transition-all duration-200 active:scale-95 touch-manipulation min-h-[44px] flex flex-col items-center justify-center gap-0.5 shadow-sm ${
-                        isHomeSelected
-                          ? 'bg-gold text-ink font-black border-gold shadow-md'
-                          : 'bg-white/6 hover:bg-white/10 text-cream border-line/70 hover:border-gold/50'
-                      }`}
-                    >
-                      <span className={`text-[9px] font-extrabold uppercase tracking-wider block leading-none ${isHomeSelected ? 'text-ink' : 'text-cream-dim'}`}>1 (HOME)</span>
-                      <span className={`font-extrabold text-xs sm:text-sm ${isHomeSelected ? 'text-ink' : 'text-emerald-400'}`}>{hOdds.toFixed(2)}</span>
-                    </button>
+                  {/* ESPN-Styled Odds Grid */}
+                  <div className="mt-3">
+                    <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 block mb-1.5">
+                      Match Result (1X2):
+                    </span>
+                    <div className="grid grid-cols-3 gap-2 text-center font-mono">
+                      <button
+                        onClick={(e) => handleQuickToggleOdd('Match Result (1X2)', `${m.home} Win (1)`, hOdds, e)}
+                        className={`rounded-lg py-2 px-1.5 border transition-all duration-150 active:scale-95 touch-manipulation min-h-[44px] flex flex-col items-center justify-center gap-0.5 shadow-2xs ${
+                          isHomeSelected
+                            ? 'bg-[#d81e1e] text-white font-black border-[#d81e1e] shadow-xs'
+                            : 'bg-slate-50 hover:bg-slate-100 text-slate-800 border-slate-200 hover:border-[#d81e1e]'
+                        }`}
+                      >
+                        <span className={`text-[9px] font-black uppercase tracking-wider block leading-none ${isHomeSelected ? 'text-white/80' : 'text-slate-500'}`}>1 (HOME)</span>
+                        <span className={`font-black text-xs sm:text-sm ${isHomeSelected ? 'text-white' : 'text-slate-900'}`}>{hOdds.toFixed(2)}</span>
+                      </button>
 
-                    <button
-                      onClick={(e) => handleQuickToggleOdd('Match Result (1X2)', 'Draw (X)', dOdds, e)}
-                      className={`rounded-2xl py-2 px-1.5 border transition-all duration-200 active:scale-95 touch-manipulation min-h-[44px] flex flex-col items-center justify-center gap-0.5 shadow-sm ${
-                        isDrawSelected
-                          ? 'bg-gold text-ink font-black border-gold shadow-md'
-                          : 'bg-white/6 hover:bg-white/10 text-cream border-line/70 hover:border-gold/50'
-                      }`}
-                    >
-                      <span className={`text-[9px] font-extrabold uppercase tracking-wider block leading-none ${isDrawSelected ? 'text-ink' : 'text-cream-dim'}`}>X (DRAW)</span>
-                      <span className={`font-extrabold text-xs sm:text-sm ${isDrawSelected ? 'text-ink' : 'text-gold'}`}>{dOdds.toFixed(2)}</span>
-                    </button>
+                      <button
+                        onClick={(e) => handleQuickToggleOdd('Match Result (1X2)', 'Draw (X)', dOdds, e)}
+                        className={`rounded-lg py-2 px-1.5 border transition-all duration-150 active:scale-95 touch-manipulation min-h-[44px] flex flex-col items-center justify-center gap-0.5 shadow-2xs ${
+                          isDrawSelected
+                            ? 'bg-[#d81e1e] text-white font-black border-[#d81e1e] shadow-xs'
+                            : 'bg-slate-50 hover:bg-slate-100 text-slate-800 border-slate-200 hover:border-[#d81e1e]'
+                        }`}
+                      >
+                        <span className={`text-[9px] font-black uppercase tracking-wider block leading-none ${isDrawSelected ? 'text-white/80' : 'text-slate-500'}`}>X (DRAW)</span>
+                        <span className={`font-black text-xs sm:text-sm ${isDrawSelected ? 'text-white' : 'text-slate-900'}`}>{dOdds.toFixed(2)}</span>
+                      </button>
 
-                    <button
-                      onClick={(e) => handleQuickToggleOdd('Match Result (1X2)', `${m.away} Win (2)`, aOdds, e)}
-                      className={`rounded-2xl py-2 px-1.5 border transition-all duration-200 active:scale-95 touch-manipulation min-h-[44px] flex flex-col items-center justify-center gap-0.5 shadow-sm ${
-                        isAwaySelected
-                          ? 'bg-gold text-ink font-black border-gold shadow-md'
-                          : 'bg-white/6 hover:bg-white/10 text-cream border-line/70 hover:border-gold/50'
-                      }`}
-                    >
-                      <span className={`text-[9px] font-extrabold uppercase tracking-wider block leading-none ${isAwaySelected ? 'text-ink' : 'text-cream-dim'}`}>2 (AWAY)</span>
-                      <span className={`font-extrabold text-xs sm:text-sm ${isAwaySelected ? 'text-ink' : 'text-red-400'}`}>{aOdds.toFixed(2)}</span>
-                    </button>
+                      <button
+                        onClick={(e) => handleQuickToggleOdd('Match Result (1X2)', `${m.away} Win (2)`, aOdds, e)}
+                        className={`rounded-lg py-2 px-1.5 border transition-all duration-150 active:scale-95 touch-manipulation min-h-[44px] flex flex-col items-center justify-center gap-0.5 shadow-2xs ${
+                          isAwaySelected
+                            ? 'bg-[#d81e1e] text-white font-black border-[#d81e1e] shadow-xs'
+                            : 'bg-slate-50 hover:bg-slate-100 text-slate-800 border-slate-200 hover:border-[#d81e1e]'
+                        }`}
+                      >
+                        <span className={`text-[9px] font-black uppercase tracking-wider block leading-none ${isAwaySelected ? 'text-white/80' : 'text-slate-500'}`}>2 (AWAY)</span>
+                        <span className={`font-black text-xs sm:text-sm ${isAwaySelected ? 'text-white' : 'text-slate-900'}`}>{aOdds.toFixed(2)}</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between rounded-lg bg-slate-50 border border-slate-200 px-3 py-2 mt-3">
+                    <span className="text-xs font-semibold text-slate-600">Crowd Consensus</span>
+                    <span className="font-display font-black text-[#d81e1e] text-xs sm:text-sm font-mono">{majLabel} · {majority}%</span>
                   </div>
                 </div>
 
-                <div className="flex items-center justify-between rounded-2xl bg-ink-2/80 border border-line/70 px-3.5 py-2">
-                  <span className="text-xs font-semibold text-cream-dim">Punters Mass Pick</span>
-                  <span className="font-display font-extrabold text-gold text-xs sm:text-sm font-mono">{majLabel} · {majority}%</span>
-                </div>
-
-                {/* Dual Action Buttons: Discuss Picks + Add to Bet Builder */}
-                <div className="grid grid-cols-2 gap-2 pt-1">
+                {/* Dual Action Buttons */}
+                <div className="grid grid-cols-2 gap-2 pt-2 border-t border-slate-100">
                   <Link
                     to={`/free/${m.id}`}
-                    className="ios-pill-btn py-2.5 px-3 min-h-[42px] text-xs font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 hover:bg-emerald-500 hover:text-ink hover:border-emerald-500 active:scale-95 transition-all shadow-sm text-center"
+                    className="py-2 px-3 min-h-[40px] text-xs font-bold uppercase tracking-wider rounded-lg border border-slate-300 bg-white text-slate-800 hover:border-[#d81e1e] hover:text-[#d81e1e] active:scale-95 transition-all shadow-2xs flex items-center justify-center gap-1.5"
                   >
-                    <Sparkles size={14} className="shrink-0" />
-                    <span>Discuss</span>
+                    <Sparkles size={13} className="text-[#d81e1e] shrink-0" />
+                    <span>Preview</span>
                   </Link>
 
                   <button
                     type="button"
                     onClick={() => setSelectedMatchForBuilder(m)}
-                    className={`ios-pill-btn py-2.5 px-3 min-h-[42px] text-xs font-bold transition-all active:scale-95 shadow-sm text-center ${
+                    className={`py-2 px-3 min-h-[40px] text-xs font-bold uppercase tracking-wider rounded-lg transition-all active:scale-95 shadow-2xs flex items-center justify-center gap-1.5 ${
                       matchLegs.length > 0
-                        ? 'bg-gold text-ink shadow-md font-black'
-                        : 'bg-gold/15 text-gold border border-gold/30 hover:bg-gold hover:text-ink'
+                        ? 'bg-[#d81e1e] text-white font-black'
+                        : 'bg-slate-900 text-white hover:bg-slate-800'
                     }`}
                   >
                     {matchLegs.length > 0 ? (
                       <>
-                        <Check size={14} className="shrink-0 stroke-[2.5]" />
+                        <Check size={13} className="shrink-0 stroke-[3]" />
                         <span>Builder ({matchLegs.length})</span>
                       </>
                     ) : (
                       <>
-                        <Dices size={14} className="shrink-0" />
+                        <Dices size={13} className="shrink-0" />
                         <span>+ Builder</span>
                       </>
                     )}

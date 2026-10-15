@@ -1,10 +1,10 @@
 import { useMemo, useState, useSyncExternalStore } from 'react';
 import { Link } from 'react-router-dom';
-import { Search, TrendingUp, Users, Sparkles, Lock, Unlock, ArrowRight, Swords, ShieldCheck, Scale, SlidersHorizontal, Flame, Archive, CheckCircle2 } from 'lucide-react';
+import { Search, TrendingUp, Users, Sparkles, Lock, Unlock, ArrowRight, Swords, ShieldCheck, Scale, SlidersHorizontal, Flame, Archive, CheckCircle2, Play, ChevronRight } from 'lucide-react';
 import SeoHead from '../components/SeoHead';
-import { jackpots, subscribeToJackpots, getJackpotsSnapshot } from '../lib/mockData';
-import { useAuth, isAdminUser, useCurrentUser } from '../lib/authStore';
-import { freeMatches, freeMatchConsensus, getFreeMatchesSnapshot, getFreeMatchConsensusSnapshot, subscribeToFreeMatches } from '../lib/freeMatches';
+import { subscribeToJackpots, getJackpotsSnapshot } from '../lib/mockData';
+import { isAdminUser, useCurrentUser } from '../lib/authStore';
+import { getFreeMatchesSnapshot, getFreeMatchConsensusSnapshot, subscribeToFreeMatches } from '../lib/freeMatches';
 import type { Bookie, RoomStatus } from '../lib/types';
 import JackpotCard from '../components/JackpotCard';
 import JackpotAdminModal from '../components/JackpotAdminModal';
@@ -16,6 +16,8 @@ export default function Home() {
   const [status, setStatus] = useState<RoomStatus | 'All'>('All');
   const [query, setQuery] = useState('');
   const [viewTab, setViewTab] = useState<'active' | 'archive'>('active');
+  const [newsFilter, setNewsFilter] = useState<'HOT' | 'Trending' | 'Fresh'>('HOT');
+  const [heroSlide, setHeroSlide] = useState(0);
   const [isAdminModalOpen, setIsAdminModalOpen] = useState(false);
   const currentUser = useCurrentUser();
   const isAuthorizedAdmin = isAdminUser(currentUser);
@@ -36,10 +38,8 @@ export default function Home() {
 
   const filtered = useMemo(() => {
     return activeJackpots.filter((j) => {
-      // Primary view tab filtering: Active mode hides settled rooms, Archive mode shows only settled rooms
       if (viewTab === 'active' && j.status === 'settled') return false;
       if (viewTab === 'archive' && j.status !== 'settled') return false;
-
       if (bookie !== 'All' && j.bookie !== bookie) return false;
       if (status !== 'All' && j.status !== status) return false;
       if (query && !`${j.name} ${j.bookie} ${j.gameweek}`.toLowerCase().includes(query.toLowerCase())) return false;
@@ -49,10 +49,54 @@ export default function Home() {
 
   const totalPunters = activeJackpots.reduce((a, j) => a + j.participants, 0);
 
+  // Mock editorial news list inspired by the ESPN reference
+  const editorialNews = [
+    {
+      id: 'news-1',
+      tag: 'HOT',
+      image: '/images/celebration.jpg',
+      title: 'Liverpool clobber Norwich in EPL opener as front three shine',
+      desc: 'Jurgen Klopp’s men fired on all cylinders to kick off their domestic campaign with dominant finishing.',
+      category: 'Premier League',
+      date: 'Today, 2:40 PM',
+      link: '/free'
+    },
+    {
+      id: 'news-2',
+      tag: 'HOT',
+      image: '/images/midfielder.jpg',
+      title: 'Frenkie de Jong on leaving Ajax, joining Barcelona, hopes for season',
+      desc: 'The midfield orchestrator opens up about Camp Nou ambitions, tactical adjustments, and Champions League aims.',
+      category: 'La Liga',
+      date: 'Today, 1:15 PM',
+      link: '/free'
+    },
+    {
+      id: 'news-3',
+      tag: 'HOT',
+      image: '/images/match-action.jpg',
+      title: 'Transfer Talk: PSG eye Modric, Vinicius if Real Madrid want Neymar',
+      desc: 'High-stakes negotiations reach boiling point as European giants prepare blockbuster swap deals.',
+      category: 'Transfers',
+      date: 'Today, 11:30 AM',
+      link: '/slips'
+    },
+    {
+      id: 'news-4',
+      tag: 'HOT',
+      image: '/images/hero-striker.jpg',
+      title: 'Can Spurs afford to lose Eriksen this summer? Tactical analysis',
+      desc: 'Evaluating Pochettino’s midfield balance and whether Tottenham can mount a title push without their playmaker.',
+      category: 'Analysis',
+      date: 'Yesterday, 8:00 PM',
+      link: '/free'
+    }
+  ];
+
   return (
-    <div>
+    <div className="bg-[#f6f8fa] text-slate-900">
       <SeoHead
-        title="Kenya's Premier Jackpot Consensus & P2P Bets"
+        title="MshindiRoom — Kenya's Premier Sports Consensus & Jackpot Arena"
         description="Pool consensus with Kenya's top punters for SportPesa Mega Jackpot, Betika Midweek & Mozzart Daily. View crowd picks, share bet slips & track bookie predictions."
         canonicalUrl="https://mshindi.co.ke/"
         structuredData={{
@@ -68,265 +112,526 @@ export default function Home() {
           }
         }}
       />
-      {/* Hero */}
-      <section className="relative overflow-hidden border-b border-white/[0.08] dark:border-white/[0.08] light:border-black/[0.06] bg-gradient-to-b from-ink via-ink/95 to-ink-2/90">
-        <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute -top-40 right-10 w-[550px] h-[550px] bg-emerald-500/10 rounded-full blur-[120px]" />
-          <div className="absolute top-20 left-10 w-[450px] h-[450px] bg-gold/8 rounded-full blur-[100px]" />
-        </div>
 
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 pb-14 sm:pt-20 sm:pb-20">
-          <div className="max-w-3xl animate-rise">
-            <div className="inline-flex items-center gap-2 bg-white/6 hover:bg-white/10 backdrop-blur-xl border border-white/12 text-gold text-xs font-bold tracking-wide px-4 py-1.5 rounded-full mb-6 shadow-sm">
-              <Sparkles size={13} className="text-gold" />
-              <span>Jackpots are paid · Weekly matches are free</span>
-            </div>
+      {/* =========================================================================
+          SECTION 1: HERO EDITORIAL SHOWCASE (DIRECTLY INSPIRED BY ESPN REFERENCE)
+          Left: Striker action cutout with slide dots
+          Right: Bold Crimson Red headline, lead story, red outline button & floating previews
+          ========================================================================= */}
+      <section className="bg-white border-b border-slate-200 overflow-hidden">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 lg:py-16">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
+            
+            {/* Left Column: Striker Photo & Slide Indicators */}
+            <div className="lg:col-span-5 relative flex flex-col items-center justify-center">
+              <div className="relative w-full max-w-md lg:max-w-none rounded-2xl overflow-hidden shadow-xl border border-slate-200 aspect-[3/4] bg-slate-900 group">
+                <img
+                  src="/images/hero-striker.jpg"
+                  alt="Dynamic Football Striker in Action"
+                  className="w-full h-full object-cover object-top filter contrast-105 group-hover:scale-105 transition-transform duration-500"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/20" />
+                
+                {/* Overlay match badge */}
+                <div className="absolute top-4 left-4">
+                  <span className="bg-[#d81e1e] text-white text-[11px] font-black uppercase tracking-wider px-3 py-1 rounded-full shadow-md">
+                    FEATURED MATCH
+                  </span>
+                </div>
 
-            <h1 className="font-display font-black text-3xl xs:text-5xl sm:text-6xl md:text-7xl leading-[1.03] text-cream tracking-tight">
-              Never punt the <span className="text-gold">jackpot</span> alone again.
-            </h1>
-
-            <p className="text-cream-dim text-sm xs:text-base sm:text-lg mt-5 leading-relaxed max-w-2xl font-normal">
-              Pool a few bob to unlock any bookie's jackpot room: see the mass pick across all 17 legs, read verified rationale, and battle it out for who lands closest to the winning slip. Midweek matches are 100% free to discuss.
-            </p>
-
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3.5 mt-8 sm:mt-9">
-              <a
-                href="#rooms"
-                className="ios-pill-btn bg-[#00a878] hover:bg-[#1dd39a] text-white text-sm sm:text-base px-8 h-13 shadow-[0_10px_25px_-5px_rgba(0,168,120,0.45)] whitespace-nowrap active:scale-96"
-              >
-                <span>Browse Jackpot Rooms</span>
-                <ArrowRight size={16} />
-              </a>
-              <Link
-                to="/free"
-                className="ios-pill-btn bg-white/8 hover:bg-white/14 border border-white/15 text-cream text-sm sm:text-base px-6 h-13 backdrop-blur-md whitespace-nowrap active:scale-96"
-              >
-                <Unlock size={16} className="text-emerald-2" />
-                <span>Free Matches</span>
-              </Link>
-              <Link
-                to="/slips"
-                className="ios-pill-btn bg-white/8 hover:bg-white/14 border border-white/15 text-cream text-sm sm:text-base px-6 h-13 backdrop-blur-md whitespace-nowrap active:scale-96"
-              >
-                <Search size={16} className="text-gold" />
-                <span>Parse Slip</span>
-              </Link>
-            </div>
-
-            <div className="flex flex-wrap gap-x-6 gap-y-2.5 mt-9 text-xs sm:text-sm font-medium">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-cream-dim">
-                <Users size={15} className="text-emerald-2 shrink-0" />
-                <span className="font-mono font-bold text-cream">{totalPunters.toLocaleString()}</span> active punters
+                <div className="absolute bottom-6 left-6 right-6 text-white">
+                  <p className="text-xs uppercase tracking-widest text-slate-300 font-bold">Chelsea FC vs Arsenal</p>
+                  <p className="font-display font-black text-xl leading-tight text-white mt-1">Hazard magic has Chelsea sitting pretty</p>
+                  <p className="text-xs text-slate-300 mt-1">Stamford Bridge · Premier League Derby</p>
+                </div>
               </div>
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-cream-dim">
-                <TrendingUp size={15} className="text-gold shrink-0" />
-                <span className="font-mono font-bold text-cream">{activeRooms.length}</span> active jackpot rooms
-              </div>
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-cream-dim">
-                <Archive size={15} className="text-cream-dim shrink-0" />
-                <span className="font-mono font-bold text-cream">{archivedRooms.length}</span> archives
-              </div>
-            </div>
-          </div>
 
-          {/* iOS 3-Feature Trio (Directly inspired by reference layout: Feeding · Light · Care) */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-10 sm:pt-14 mt-12 sm:mt-16 border-t border-white/[0.08] dark:border-white/[0.08] light:border-black/[0.06]">
-            <div className="flex items-start gap-4">
-              <div className="w-12 h-12 rounded-2xl bg-emerald-2/15 border border-emerald-2/30 flex items-center justify-center text-emerald-2 shrink-0 shadow-sm">
-                <Users size={22} />
-              </div>
-              <div>
-                <h3 className="font-display font-bold text-base text-cream">Crowd Consensus</h3>
-                <p className="text-xs sm:text-sm text-cream-dim mt-1 leading-relaxed">
-                  Real-time consensus splits on 1X2, double chance, and banker picks across all legs before lock.
-                </p>
+              {/* Slide Indicators: ● ○ ○ as in ESPN reference */}
+              <div className="flex items-center gap-2 mt-4">
+                <button
+                  onClick={() => setHeroSlide(0)}
+                  className={`w-2.5 h-2.5 rounded-full transition-all ${heroSlide === 0 ? 'bg-[#d81e1e] w-6' : 'bg-slate-300 hover:bg-slate-400'}`}
+                  aria-label="Slide 1"
+                />
+                <button
+                  onClick={() => setHeroSlide(1)}
+                  className={`w-2.5 h-2.5 rounded-full transition-all ${heroSlide === 1 ? 'bg-[#d81e1e] w-6' : 'bg-slate-300 hover:bg-slate-400'}`}
+                  aria-label="Slide 2"
+                />
+                <button
+                  onClick={() => setHeroSlide(2)}
+                  className={`w-2.5 h-2.5 rounded-full transition-all ${heroSlide === 2 ? 'bg-[#d81e1e] w-6' : 'bg-slate-300 hover:bg-slate-400'}`}
+                  aria-label="Slide 3"
+                />
               </div>
             </div>
 
-            <div className="flex items-start gap-4">
-              <div className="w-12 h-12 rounded-2xl bg-gold/15 border border-gold/30 flex items-center justify-center text-gold shrink-0 shadow-sm">
-                <Sparkles size={22} />
+            {/* Right Column: Editorial Typography, CTA Button & Floating Thumbnail Previews */}
+            <div className="lg:col-span-7 flex flex-col justify-center">
+              <span className="inline-block text-[#d81e1e] font-black text-xs uppercase tracking-widest mb-2">
+                TOP STORY &amp; CONSENSUS
+              </span>
+
+              <h1 className="font-display font-black text-3xl sm:text-5xl lg:text-6xl text-[#d81e1e] leading-[1.05] tracking-tight">
+                Hazard magic has Chelsea sitting pretty
+              </h1>
+
+              <p className="text-slate-600 text-base sm:text-lg mt-4 leading-relaxed max-w-2xl font-normal">
+                Chelsea have maintained their lead in the race for the English Premier League title with Tottenham seemingly the only team close enough to catch them. On MshindiRoom, community consensus is rallying behind another dominant weekend slate.
+              </p>
+
+              <div className="flex flex-wrap items-center gap-4 mt-6">
+                <a
+                  href="#match-schedule"
+                  className="espn-pill-btn-outline text-sm"
+                >
+                  <span>Read More</span>
+                </a>
+                <a
+                  href="#rooms"
+                  className="bg-[#d81e1e] hover:bg-[#b91515] text-white font-bold text-sm px-6 py-2.5 rounded-full shadow-xs active:scale-95 transition-all inline-flex items-center gap-2"
+                >
+                  <span>Jackpot Rooms</span>
+                  <ArrowRight size={15} />
+                </a>
               </div>
-              <div>
-                <h3 className="font-display font-bold text-base text-cream">Verified Leaderboards</h3>
-                <p className="text-xs sm:text-sm text-cream-dim mt-1 leading-relaxed">
-                  Track genuine strike rates, close slips, and gameweek standings for Kenya's sharpest punters.
-                </p>
+
+              {/* Floating Match Thumbnail Previews underneath (As seen in the ESPN reference) */}
+              <div className="mt-8 pt-6 border-t border-slate-100">
+                <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-3">Live Highlights &amp; Slates</p>
+                <div className="grid grid-cols-3 gap-3">
+                  <div className="relative rounded-xl overflow-hidden aspect-[16/10] border border-slate-200 group cursor-pointer shadow-xs">
+                    <img src="/images/celebration.jpg" alt="Match 1" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
+                    <span className="absolute bottom-1.5 left-2 right-2 text-[10px] font-bold text-white truncate">Liverpool vs Man City</span>
+                  </div>
+                  <div className="relative rounded-xl overflow-hidden aspect-[16/10] border border-slate-200 group cursor-pointer shadow-xs">
+                    <img src="/images/midfielder.jpg" alt="Match 2" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
+                    <span className="absolute bottom-1.5 left-2 right-2 text-[10px] font-bold text-white truncate">Barcelona vs Arsenal</span>
+                  </div>
+                  <div className="relative rounded-xl overflow-hidden aspect-[16/10] border border-slate-200 group cursor-pointer shadow-xs">
+                    <img src="/images/match-action.jpg" alt="Match 3" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
+                    <span className="absolute bottom-1.5 left-2 right-2 text-[10px] font-bold text-white truncate">Everton vs Porto</span>
+                  </div>
+                </div>
               </div>
+
             </div>
 
-            <div className="flex items-start gap-4">
-              <div className="w-12 h-12 rounded-2xl bg-blue-500/15 border border-blue-500/30 flex items-center justify-center text-blue-400 shrink-0 shadow-sm">
-                <Unlock size={22} />
-              </div>
-              <div>
-                <h3 className="font-display font-bold text-base text-cream">Free Weekly Matches</h3>
-                <p className="text-xs sm:text-sm text-cream-dim mt-1 leading-relaxed">
-                  Champions League, Premier League, and derby discussion rooms are always open with zero paywalls.
-                </p>
-              </div>
-            </div>
           </div>
         </div>
       </section>
 
-      {/* Free vs Paid explainer strip */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-14">
-        <div className="grid sm:grid-cols-2 gap-6">
-          <div className="ios-card p-6 sm:p-8 flex flex-col gap-4 relative overflow-hidden">
-            <div className="absolute -right-8 -top-8 w-40 h-40 bg-emerald-2/15 rounded-full blur-3xl pointer-events-none" />
-            <span className="w-12 h-12 rounded-2xl bg-emerald-2/15 border border-emerald-2/30 flex items-center justify-center text-emerald-2 shrink-0">
-              <Unlock size={20} />
-            </span>
-            <div>
-              <h3 className="font-display font-extrabold text-xl text-cream">Free Matches: always open</h3>
-              <p className="text-sm text-cream-dim mt-2 leading-relaxed">
-                UEFA Champions League, Europa League, Conference League, and highlights from top-flight football (Premier League, La Liga, Serie A & Bundesliga) are 100% free to discuss. See the crowd split, read reasoning, post your own pick.
+      {/* =========================================================================
+          SECTION 2: FULL-WIDTH CRIMSON RED "MATCH SCHEDULE" (ESPN REFERENCE CORE)
+          Full-bleed Red background with clean white rounded match cards
+          ========================================================================= */}
+      <section id="match-schedule" className="espn-red-banner py-12 sm:py-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+            
+            {/* Left description column */}
+            <div className="lg:col-span-4 text-white">
+              <h2 className="font-display font-black text-3xl sm:text-4xl lg:text-5xl tracking-tight leading-tight text-white">
+                Match<br />Schedule
+              </h2>
+              <p className="text-white/85 text-xs sm:text-sm mt-4 leading-relaxed font-normal max-w-sm">
+                Follow upcoming fixtures and weekly jackpot slates. Analyze team form, preview match statistics, and explore punter consensus before kickoff.
               </p>
+              <div className="mt-6">
+                <Link
+                  to="/free"
+                  className="espn-pill-btn-white-outline text-xs sm:text-sm"
+                >
+                  <span>More Matches</span>
+                  <ChevronRight size={15} />
+                </Link>
+              </div>
             </div>
-            <Link to="/free" className="mt-auto ios-pill-btn bg-emerald-2/15 hover:bg-emerald-2/25 border border-emerald-2/40 text-emerald-2 text-xs font-bold py-2.5 px-4 w-fit active:scale-95">
-              Explore free matches <ArrowRight size={14} />
+
+            {/* Right column: White Cards with Team Crests & Match Info */}
+            <div className="lg:col-span-8">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
+                
+                {/* Match Card 1: Liverpool vs Manchester City */}
+                <div className="bg-white rounded-2xl p-5 text-slate-900 shadow-xl flex flex-col justify-between hover:shadow-2xl transition-all">
+                  <div>
+                    {/* Crests */}
+                    <div className="flex items-center justify-center gap-4 py-2 border-b border-slate-100">
+                      <div className="w-12 h-12 rounded-full bg-red-50 border border-red-200 flex items-center justify-center font-black text-xs text-[#d81e1e]">
+                        LIV
+                      </div>
+                      <span className="text-xs font-bold text-slate-400">vs</span>
+                      <div className="w-12 h-12 rounded-full bg-sky-50 border border-sky-200 flex items-center justify-center font-black text-xs text-sky-600">
+                        MCI
+                      </div>
+                    </div>
+
+                    <div className="mt-4">
+                      <h3 className="font-display font-black text-base text-slate-900">Liverpool v Manchester City</h3>
+                      <p className="text-xs text-slate-500 font-semibold mt-0.5">English Premier League</p>
+                    </div>
+
+                    <div className="text-xs text-slate-400 mt-4 space-y-0.5">
+                      <p>Anfield Stadium</p>
+                      <p className="font-medium text-slate-600">Sunday, 18 Oct 2026</p>
+                      <p className="font-mono text-slate-500">08:45 PM</p>
+                    </div>
+                  </div>
+
+                  <div className="mt-5 pt-3 border-t border-slate-100 flex items-center justify-between">
+                    <Link
+                      to="/free"
+                      className="text-xs font-bold text-slate-800 hover:text-[#d81e1e] inline-flex items-center gap-1.5 transition-colors group"
+                    >
+                      <span>Preview</span>
+                      <span className="w-5 h-5 rounded-full bg-[#d81e1e] text-white flex items-center justify-center text-[10px] group-hover:translate-x-0.5 transition-transform">
+                        →
+                      </span>
+                    </Link>
+                  </div>
+                </div>
+
+                {/* Match Card 2: Arsenal vs Barcelona */}
+                <div className="bg-white rounded-2xl p-5 text-slate-900 shadow-xl flex flex-col justify-between hover:shadow-2xl transition-all">
+                  <div>
+                    {/* Crests */}
+                    <div className="flex items-center justify-center gap-4 py-2 border-b border-slate-100">
+                      <div className="w-12 h-12 rounded-full bg-red-50 border border-red-200 flex items-center justify-center font-black text-xs text-red-700">
+                        ARS
+                      </div>
+                      <span className="text-xs font-bold text-slate-400">vs</span>
+                      <div className="w-12 h-12 rounded-full bg-blue-50 border border-blue-200 flex items-center justify-center font-black text-xs text-blue-700">
+                        FCB
+                      </div>
+                    </div>
+
+                    <div className="mt-4">
+                      <h3 className="font-display font-black text-base text-slate-900">Arsenal v Barcelona</h3>
+                      <p className="text-xs text-slate-500 font-semibold mt-0.5">Champions League · Semi-Final</p>
+                    </div>
+
+                    <div className="text-xs text-slate-400 mt-4 space-y-0.5">
+                      <p>Wembley Stadium</p>
+                      <p className="font-medium text-slate-600">Sunday, 18 Oct 2026</p>
+                      <p className="font-mono text-slate-500">07:30 PM</p>
+                    </div>
+                  </div>
+
+                  <div className="mt-5 pt-3 border-t border-slate-100 flex items-center justify-between">
+                    <Link
+                      to="/free"
+                      className="text-xs font-bold text-slate-800 hover:text-[#d81e1e] inline-flex items-center gap-1.5 transition-colors group"
+                    >
+                      <span>Preview</span>
+                      <span className="w-5 h-5 rounded-full bg-[#d81e1e] text-white flex items-center justify-center text-[10px] group-hover:translate-x-0.5 transition-transform">
+                        →
+                      </span>
+                    </Link>
+                  </div>
+                </div>
+
+                {/* Match Card 3: Everton vs Porto */}
+                <div className="bg-white rounded-2xl p-5 text-slate-900 shadow-xl flex flex-col justify-between hover:shadow-2xl transition-all">
+                  <div>
+                    {/* Crests */}
+                    <div className="flex items-center justify-center gap-4 py-2 border-b border-slate-100">
+                      <div className="w-12 h-12 rounded-full bg-blue-50 border border-blue-200 flex items-center justify-center font-black text-xs text-blue-800">
+                        EVE
+                      </div>
+                      <span className="text-xs font-bold text-slate-400">vs</span>
+                      <div className="w-12 h-12 rounded-full bg-indigo-50 border border-indigo-200 flex items-center justify-center font-black text-xs text-indigo-700">
+                        FCP
+                      </div>
+                    </div>
+
+                    <div className="mt-4">
+                      <h3 className="font-display font-black text-base text-slate-900">Everton v Porto</h3>
+                      <p className="text-xs text-slate-500 font-semibold mt-0.5">EURO League · Semi-Final</p>
+                    </div>
+
+                    <div className="text-xs text-slate-400 mt-4 space-y-0.5">
+                      <p>Goodison Park Stadium</p>
+                      <p className="font-medium text-slate-600">Saturday, 17 Oct 2026</p>
+                      <p className="font-mono text-slate-500">07:45 PM</p>
+                    </div>
+                  </div>
+
+                  <div className="mt-5 pt-3 border-t border-slate-100 flex items-center justify-between">
+                    <Link
+                      to="/free"
+                      className="text-xs font-bold text-slate-800 hover:text-[#d81e1e] inline-flex items-center gap-1.5 transition-colors group"
+                    >
+                      <span>Preview</span>
+                      <span className="w-5 h-5 rounded-full bg-[#d81e1e] text-white flex items-center justify-center text-[10px] group-hover:translate-x-0.5 transition-transform">
+                        →
+                      </span>
+                    </Link>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </section>
+
+      {/* =========================================================================
+          SECTION 3: "LATEST NEWS" / 4-COLUMN CONTENT GRIDS (ESPN REFERENCE)
+          Clean white background, bold red title, pill tab container, vertical photo cards with red HOT badges
+          ========================================================================= */}
+      <section className="bg-white py-12 sm:py-16 border-b border-slate-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          
+          {/* Header Row: Bold Red Title + Pill Tab Filters */}
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
+            <h2 className="font-display font-black text-2xl sm:text-3xl lg:text-4xl text-[#d81e1e] tracking-tight">
+              Latest News
+            </h2>
+
+            {/* Pill Container: HOT · Trending · Fresh · ••• */}
+            <div className="espn-tab-container">
+              <button
+                onClick={() => setNewsFilter('HOT')}
+                className={`espn-tab-item ${newsFilter === 'HOT' ? 'active' : ''}`}
+              >
+                HOT
+              </button>
+              <button
+                onClick={() => setNewsFilter('Trending')}
+                className={`espn-tab-item ${newsFilter === 'Trending' ? 'active' : ''}`}
+              >
+                Trending
+              </button>
+              <button
+                onClick={() => setNewsFilter('Fresh')}
+                className={`espn-tab-item ${newsFilter === 'Fresh' ? 'active' : ''}`}
+              >
+                Fresh
+              </button>
+              <span className="text-slate-400 px-2 text-xs font-black">···</span>
+            </div>
+          </div>
+
+          {/* 4-Column Card Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {editorialNews.map((news) => (
+              <Link
+                key={news.id}
+                to={news.link}
+                className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-xs hover:shadow-lg hover:border-slate-300 transition-all flex flex-col group"
+              >
+                {/* Image Top */}
+                <div className="relative aspect-[4/3] overflow-hidden bg-slate-900">
+                  <img
+                    src={news.image}
+                    alt={news.title}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                  />
+                  <div className="absolute top-3 left-3">
+                    <span className="espn-badge-hot">
+                      {news.tag}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Card Body */}
+                <div className="p-4 flex flex-col flex-1 justify-between">
+                  <div>
+                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                      {news.category} · {news.date}
+                    </span>
+                    <h3 className="font-display font-black text-sm sm:text-base text-slate-900 leading-snug mt-1 group-hover:text-[#d81e1e] transition-colors">
+                      {news.title}
+                    </h3>
+                  </div>
+
+                  <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
+                    <span className="font-semibold text-[#d81e1e] group-hover:underline">Read Pick →</span>
+                    <span className="text-[11px] font-mono text-slate-400">mshindi.co.ke</span>
+                  </div>
+                </div>
+              </Link>
+            ))}
+          </div>
+
+        </div>
+      </section>
+
+      {/* =========================================================================
+          SECTION 4: FULL-WIDTH CRIMSON RED "FEATURED VIDEO & DEBATES" (ESPN REFERENCE)
+          Full-bleed Red background with featured play banner and horizontal video cards
+          ========================================================================= */}
+      <section className="espn-red-banner py-12 sm:py-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          
+          <div className="flex items-center justify-between mb-8 text-white">
+            <h2 className="font-display font-black text-2xl sm:text-3xl lg:text-4xl tracking-tight text-white">
+              Featured Video &amp; Debates
+            </h2>
+            <Link to="/slips" className="text-xs sm:text-sm font-bold text-white hover:underline flex items-center gap-1">
+              <span>View All Discussions</span>
+              <ChevronRight size={15} />
             </Link>
           </div>
 
-          <div className="ios-card p-6 sm:p-8 flex flex-col gap-4 relative overflow-hidden">
-            <div className="absolute -right-8 -top-8 w-40 h-40 bg-gold/15 rounded-full blur-3xl pointer-events-none" />
-            <span className="w-12 h-12 rounded-2xl bg-gold/15 border border-gold/30 flex items-center justify-center text-gold shrink-0">
-              <Lock size={20} />
-            </span>
-            <div>
-              <h3 className="font-display font-extrabold text-xl text-cream">Jackpot Rooms: paid, exclusive</h3>
-              <p className="text-sm text-cream-dim mt-2 leading-relaxed">
-                Real bookie jackpot slips (SportPesa, Betika & more) live behind one flat entry fee: just Ksh 10 — where punters compete for top spot on the verified gameweek leaderboard with pooled picks.
-              </p>
-            </div>
-            <a href="#rooms" className="mt-auto ios-pill-btn bg-gold hover:bg-gold-2 text-ink text-xs font-bold py-2.5 px-4 w-fit shadow-md active:scale-95">
-              Browse jackpot rooms <ArrowRight size={14} />
-            </a>
-          </div>
-        </div>
-      </section>
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
+            
+            {/* Main Feature Banner (Left 5 cols) */}
+            <div className="lg:col-span-5 relative rounded-2xl overflow-hidden shadow-2xl border border-white/20 aspect-[16/11] lg:aspect-auto group cursor-pointer">
+              <img
+                src="/images/celebration.jpg"
+                alt="Liverpool clobber Norwich in EPL opener"
+                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-black/20" />
 
-      {/* P2P Bets promo */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
-        <div className="ios-card p-6 sm:p-10 relative overflow-hidden">
-          <div className="absolute -left-12 -bottom-12 w-64 h-64 bg-emerald-2/15 rounded-full blur-3xl pointer-events-none" />
-          <div className="absolute -right-12 -top-12 w-64 h-64 bg-gold/15 rounded-full blur-3xl pointer-events-none" />
-          <div className="relative flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-            <div className="flex-1 min-w-0 max-w-2xl">
-              <span className="inline-flex items-center gap-1.5 bg-gold/15 border border-gold/30 text-gold text-xs font-bold px-3.5 py-1.5 rounded-full mb-3 shadow-sm">
-                <Swords size={13} /> Coming Soon: Peer-to-Peer Bets
-              </span>
-              <h2 className="font-display font-black text-2xl sm:text-3xl lg:text-4xl text-cream leading-tight">
-                Bet your friends directly. <span className="text-gold">You set the terms.</span>
-              </h2>
-              <p className="text-sm text-cream-dim mt-2.5 leading-relaxed">
-                No pre-built bookie margins: just you and someone else agreeing on what's being bet, the stake, and the odds. We securely hold both stakes in escrow until both parties confirm the outcome.
-              </p>
-              <div className="flex flex-wrap gap-x-5 gap-y-2.5 mt-5 text-xs text-cream-dim font-medium">
-                <span className="flex items-center gap-1.5"><Scale size={14} className="text-gold shrink-0" /> Custom odds</span>
-                <span className="flex items-center gap-1.5"><ShieldCheck size={14} className="text-emerald-2 shrink-0" /> Escrow secured</span>
-                <span className="flex items-center gap-1.5"><Users size={14} className="text-[#3b82f6] shrink-0" /> Mutual settlement</span>
+              <div className="absolute inset-0 p-6 flex flex-col justify-end text-white">
+                <span className="bg-[#d81e1e] text-white text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full w-fit mb-2">
+                  TOP HIGHLIGHT
+                </span>
+                <h3 className="font-display font-black text-xl sm:text-2xl text-white leading-tight">
+                  Liverpool clobber Norwich in EPL opener
+                </h3>
+                
+                <div className="flex items-center gap-3 mt-4">
+                  <div className="w-10 h-10 rounded-full bg-white text-[#d81e1e] flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+                    <Play size={18} fill="#d81e1e" />
+                  </div>
+                  <div>
+                    <span className="text-xs font-bold text-white block">Play Video</span>
+                    <span className="text-[10px] text-white/70 font-mono">www.youtube.com</span>
+                  </div>
+                </div>
               </div>
             </div>
-            <div className="shrink-0">
-              <Link to="/p2p" className="ios-pill-btn bg-gold hover:bg-gold-2 text-ink font-bold text-sm px-7 py-3.5 shadow-md active:scale-96">
-                Get Notified
-              </Link>
-            </div>
-          </div>
-        </div>
-      </section>
 
-      {/* Free matches preview */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="font-display font-extrabold text-2xl sm:text-3xl text-cream flex items-center gap-2.5">
-            <Unlock size={22} className="text-emerald-2" /> This Week's Free Matches
-          </h2>
-          <Link to="/free" className="text-sm font-bold text-emerald-2 hover:underline flex items-center gap-1">
-            See all <ArrowRight size={14} />
-          </Link>
-        </div>
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
-          {matches.slice(0, 3).map((m) => {
-            const consensus = consensusMap[m.id];
-            const majority = Math.max(consensus.homePct, consensus.drawPct, consensus.awayPct);
-            const majLabel = majority === consensus.homePct ? '1' : majority === consensus.drawPct ? 'X' : '2';
-            return (
-              <Link
-                key={m.id}
-                to={`/free/${m.id}`}
-                className="ios-card p-5 hover:border-emerald-2/50 transition-all flex flex-col gap-3 group active:scale-[0.985]"
-              >
-                <p className="text-[11px] text-cream-dim uppercase font-bold tracking-wider">{m.competition}</p>
-                <p className="font-display font-extrabold text-cream text-lg leading-tight group-hover:text-emerald-2 transition-colors">
-                  {m.home} <span className="text-cream-dim/60 font-normal">vs</span> {m.away}
-                </p>
-                <div className="flex items-center justify-between text-xs pt-2 border-t border-line/60">
-                  <span className="text-cream-dim font-medium">{m.kickoff}</span>
-                  <span className="font-bold text-gold px-2.5 py-0.5 rounded-full bg-gold/10 border border-gold/25 font-mono">{majLabel} · {majority}%</span>
+            {/* Horizontal Video Cards (Right 7 cols) */}
+            <div className="lg:col-span-7 flex flex-col gap-4 justify-between">
+              
+              {/* Video Item 1 */}
+              <div className="bg-white/10 hover:bg-white/15 backdrop-blur-xs border border-white/20 rounded-2xl p-3.5 flex items-center gap-4 transition-all group cursor-pointer">
+                <div className="relative w-32 sm:w-40 aspect-[16/10] rounded-xl overflow-hidden shrink-0 border border-white/20">
+                  <img src="/images/midfielder.jpg" alt="Video 1" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                  <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+                    <div className="w-8 h-8 rounded-full bg-white/90 text-[#d81e1e] flex items-center justify-center shadow-md">
+                      <Play size={14} fill="#d81e1e" />
+                    </div>
+                  </div>
                 </div>
-              </Link>
-            );
-          })}
+                <div className="flex-1 min-w-0 text-white">
+                  <h4 className="font-display font-black text-sm sm:text-base leading-snug group-hover:text-amber-200 transition-colors">
+                    Atlético asks La Liga to block Griezmann's Barcelona transfer
+                  </h4>
+                  <span className="text-[11px] text-white/70 font-mono block mt-1">www.youtube.com</span>
+                </div>
+              </div>
+
+              {/* Video Item 2 */}
+              <div className="bg-white/10 hover:bg-white/15 backdrop-blur-xs border border-white/20 rounded-2xl p-3.5 flex items-center gap-4 transition-all group cursor-pointer">
+                <div className="relative w-32 sm:w-40 aspect-[16/10] rounded-xl overflow-hidden shrink-0 border border-white/20">
+                  <img src="/images/match-action.jpg" alt="Video 2" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                  <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+                    <div className="w-8 h-8 rounded-full bg-white/90 text-[#d81e1e] flex items-center justify-center shadow-md">
+                      <Play size={14} fill="#d81e1e" />
+                    </div>
+                  </div>
+                </div>
+                <div className="flex-1 min-w-0 text-white">
+                  <h4 className="font-display font-black text-sm sm:text-base leading-snug group-hover:text-amber-200 transition-colors">
+                    Inter Milan fan dies after clashes with Napoli supporters
+                  </h4>
+                  <span className="text-[11px] text-white/70 font-mono block mt-1">www.youtube.com</span>
+                </div>
+              </div>
+
+              {/* Video Item 3 */}
+              <div className="bg-white/10 hover:bg-white/15 backdrop-blur-xs border border-white/20 rounded-2xl p-3.5 flex items-center gap-4 transition-all group cursor-pointer">
+                <div className="relative w-32 sm:w-40 aspect-[16/10] rounded-xl overflow-hidden shrink-0 border border-white/20">
+                  <img src="/images/hero-striker.jpg" alt="Video 3" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                  <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+                    <div className="w-8 h-8 rounded-full bg-white/90 text-[#d81e1e] flex items-center justify-center shadow-md">
+                      <Play size={14} fill="#d81e1e" />
+                    </div>
+                  </div>
+                </div>
+                <div className="flex-1 min-w-0 text-white">
+                  <h4 className="font-display font-black text-sm sm:text-base leading-snug group-hover:text-amber-200 transition-colors">
+                    Bayern Munich 6-0 goal torrent in Bundesliga opener
+                  </h4>
+                  <span className="text-[11px] text-white/70 font-mono block mt-1">www.youtube.com</span>
+                </div>
+              </div>
+
+            </div>
+
+          </div>
+
         </div>
       </section>
 
-      {/* Filters + list */}
-      <section id="rooms" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-14">
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-6">
+      {/* =========================================================================
+          SECTION 5: ALL JACKPOT ROOMS & ARCHIVE ARENA (CORE FUNCTIONALITY)
+          Clean white cards with real mockData, filters, search, and admin controls
+          ========================================================================= */}
+      <section id="rooms" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-8">
           <div>
-            <h2 className="font-display font-black text-2xl sm:text-3xl text-cream flex items-center gap-2.5">
-              <Lock size={20} className="text-gold" /> Jackpot Rooms
+            <h2 className="font-display font-black text-2xl sm:text-3xl lg:text-4xl text-slate-900 flex items-center gap-2.5">
+              <Lock size={22} className="text-[#d81e1e]" />
+              <span>Jackpot Consensus Rooms</span>
             </h2>
-            <p className="text-xs sm:text-sm text-cream-dim mt-1">
+            <p className="text-xs sm:text-sm text-slate-500 mt-1">
               {viewTab === 'active'
                 ? 'Showing unplayed and ongoing jackpot rooms. Settled rooms are automatically archived.'
                 : 'Jackpot Archives: Review completed rooms, final winning slips, and historical leaderboards.'}
             </p>
           </div>
+
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
             {isAuthorizedAdmin && (
               <button
                 onClick={() => setIsAdminModalOpen(true)}
-                className="ios-pill-btn bg-gold/15 hover:bg-gold/25 border border-gold/40 text-gold text-xs font-bold px-4 py-2.5 active:scale-95"
+                className="bg-red-50 hover:bg-red-100 border border-red-200 text-[#d81e1e] text-xs font-bold px-4 py-2.5 rounded-full inline-flex items-center gap-2 active:scale-95 transition-all shadow-xs"
               >
                 <SlidersHorizontal size={14} />
-                Jackpot Admin Console
+                <span>Jackpot Admin Console</span>
               </button>
             )}
+
             <div className="relative">
-              <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-cream-dim" />
+              <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
               <input
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder="Search rooms..."
-                className="bg-white/6 border border-white/10 dark:border-white/10 light:border-black/10 rounded-full pl-9 pr-4 py-2.5 text-sm text-cream placeholder:text-cream-dim/60 focus:outline-none focus:border-gold w-full sm:w-64 transition-all"
+                className="bg-white border border-slate-200 rounded-full pl-9 pr-4 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#d81e1e] w-full sm:w-64 shadow-xs transition-all"
               />
             </div>
           </div>
         </div>
 
-        {/* Main View Mode Navigation Tabs (iOS Segmented Control) */}
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 mb-6 ios-segmented-control w-full sm:w-auto p-1.5 shadow-sm">
-          <div className="flex items-center gap-1.5 min-w-0">
+        {/* View Mode Navigation Tabs: Active vs Archive */}
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 mb-6 bg-white border border-slate-200 rounded-2xl p-2 shadow-xs">
+          <div className="flex items-center gap-2 min-w-0">
             <button
               onClick={() => {
                 setViewTab('active');
                 setStatus('All');
               }}
-              className={`flex-1 sm:flex-none px-4 sm:px-5 py-2 rounded-full font-display font-bold text-xs sm:text-sm flex items-center justify-center sm:justify-start gap-2 transition-all active:scale-95 ${
+              className={`px-5 py-2 rounded-xl font-display font-black text-xs sm:text-sm flex items-center gap-2 transition-all active:scale-95 ${
                 viewTab === 'active'
-                  ? 'bg-gold text-ink shadow-sm font-extrabold'
-                  : 'text-cream-dim hover:text-cream hover:bg-white/6'
+                  ? 'bg-[#d81e1e] text-white shadow-xs'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
               }`}
             >
-              <Flame size={15} className={viewTab === 'active' ? 'text-ink' : 'text-gold'} />
+              <Flame size={15} />
               <span>Active Rooms</span>
-              <span className={`text-[10px] px-2 py-0.5 rounded-full font-mono font-extrabold ${
-                viewTab === 'active' ? 'bg-ink text-gold' : 'bg-panel-2 text-cream-dim border border-line'
+              <span className={`text-[10px] px-2 py-0.5 rounded-full font-mono font-bold ${
+                viewTab === 'active' ? 'bg-white text-[#d81e1e]' : 'bg-slate-100 text-slate-600'
               }`}>
                 {activeRooms.length}
               </span>
@@ -337,31 +642,31 @@ export default function Home() {
                 setViewTab('archive');
                 setStatus('All');
               }}
-              className={`flex-1 sm:flex-none px-4 sm:px-5 py-2 rounded-full font-display font-bold text-xs sm:text-sm flex items-center justify-center sm:justify-start gap-2 transition-all active:scale-95 ${
+              className={`px-5 py-2 rounded-xl font-display font-black text-xs sm:text-sm flex items-center gap-2 transition-all active:scale-95 ${
                 viewTab === 'archive'
-                  ? 'bg-gold text-ink shadow-sm font-extrabold'
-                  : 'text-cream-dim hover:text-cream hover:bg-white/6'
+                  ? 'bg-[#d81e1e] text-white shadow-xs'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
               }`}
             >
-              <Archive size={15} className={viewTab === 'archive' ? 'text-ink' : 'text-gold'} />
+              <Archive size={15} />
               <span>Archives</span>
-              <span className={`text-[10px] px-2 py-0.5 rounded-full font-mono font-extrabold ${
-                viewTab === 'archive' ? 'bg-ink text-gold' : 'bg-panel-2 text-cream-dim border border-line'
+              <span className={`text-[10px] px-2 py-0.5 rounded-full font-mono font-bold ${
+                viewTab === 'archive' ? 'bg-white text-[#d81e1e]' : 'bg-slate-100 text-slate-600'
               }`}>
                 {archivedRooms.length}
               </span>
             </button>
           </div>
 
-          <div className="text-xs text-cream-dim px-3 py-1 flex items-center gap-2 font-mono shrink-0">
+          <div className="text-xs text-slate-500 px-3 py-1 flex items-center gap-2 font-mono shrink-0">
             {viewTab === 'active' ? (
-              <span className="flex items-center gap-1.5 text-emerald-2">
-                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                <span>Showing open &amp; ongoing rooms</span>
+              <span className="flex items-center gap-1.5 text-emerald-700 font-bold">
+                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                <span>Showing live &amp; upcoming rooms</span>
               </span>
             ) : (
-              <span className="flex items-center gap-1.5 text-gold">
-                <CheckCircle2 size={13} />
+              <span className="flex items-center gap-1.5 text-slate-600 font-bold">
+                <CheckCircle2 size={13} className="text-emerald-600" />
                 <span>Showing completed &amp; settled archives</span>
               </span>
             )}
@@ -375,7 +680,9 @@ export default function Home() {
               key={b}
               onClick={() => setBookie(b)}
               className={`px-4 py-2 rounded-full text-xs font-bold border transition-all shrink-0 whitespace-nowrap active:scale-95 ${
-                bookie === b ? 'bg-emerald-2 border-emerald-2 text-ink shadow-sm font-extrabold' : 'border-line/70 text-cream-dim bg-white/4 hover:border-emerald-2/50 hover:bg-white/8'
+                bookie === b
+                  ? 'bg-[#d81e1e] border-[#d81e1e] text-white shadow-xs font-black'
+                  : 'border-slate-200 text-slate-600 bg-white hover:border-slate-300 hover:bg-slate-50'
               }`}
             >
               {b}
@@ -384,13 +691,15 @@ export default function Home() {
         </div>
 
         {/* Status Filter Pills */}
-        <div className="flex items-center gap-2 mb-7 overflow-x-auto no-scrollbar pb-1 -mx-4 px-4 sm:mx-0 sm:px-0 flex-nowrap sm:flex-wrap">
+        <div className="flex items-center gap-2 mb-8 overflow-x-auto no-scrollbar pb-1 -mx-4 px-4 sm:mx-0 sm:px-0 flex-nowrap sm:flex-wrap">
           {statusOptions.map((s) => (
             <button
               key={s}
               onClick={() => setStatus(s)}
               className={`px-4 py-2 rounded-full text-xs font-bold border capitalize transition-all shrink-0 whitespace-nowrap active:scale-95 ${
-                status === s ? 'bg-gold border-gold text-ink shadow-sm font-extrabold' : 'border-line/70 text-cream-dim bg-white/4 hover:border-gold/50 hover:bg-white/8'
+                status === s
+                  ? 'bg-slate-900 border-slate-900 text-white shadow-xs font-black'
+                  : 'border-slate-200 text-slate-600 bg-white hover:border-slate-300 hover:bg-slate-50'
               }`}
             >
               {s === 'All' ? (viewTab === 'active' ? 'All Active' : 'All Settled') : s}
@@ -400,15 +709,15 @@ export default function Home() {
 
         {/* Archive Banner when in Archive mode */}
         {viewTab === 'archive' && (
-          <div className="bg-panel border border-gold/30 rounded-2xl p-4 sm:p-5 mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 animate-rise">
+          <div className="bg-white border border-slate-200 rounded-2xl p-5 mb-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-sm animate-rise">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-gold/15 border border-gold/30 flex items-center justify-center text-gold shrink-0">
+              <div className="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center text-slate-700 shrink-0">
                 <Archive size={20} />
               </div>
               <div>
-                <h3 className="font-display font-bold text-base text-cream">Jackpot Archives &amp; Settlement History</h3>
-                <p className="text-xs text-cream-dim mt-0.5 leading-relaxed">
-                  Settled jackpot rooms are stored here for up to 90 days. You can review verified crowd accuracy, winning leg slips, and historical gameweek leaderboards.
+                <h3 className="font-display font-black text-base text-slate-900">Jackpot Archives &amp; Settlement History</h3>
+                <p className="text-xs text-slate-500 mt-0.5 leading-relaxed">
+                  Settled jackpot rooms are retained for up to 90 days. You can review verified crowd accuracy, winning leg slips, and historical gameweek leaderboards.
                 </p>
               </div>
             </div>
@@ -417,32 +726,23 @@ export default function Home() {
                 setViewTab('active');
                 setStatus('All');
               }}
-              className="px-4 py-2 rounded-xl bg-ink-2 hover:bg-panel border border-line text-cream-dim hover:text-cream text-xs font-bold transition-all shrink-0"
+              className="px-4 py-2 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-800 text-xs font-bold transition-all shrink-0"
             >
               ← Back to Active Rooms
             </button>
           </div>
         )}
 
-        {/* 3-Month Archive Policy Active Notification */}
-        <div className="bg-ink-2/80 border border-line rounded-xl p-3 mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 text-xs text-cream-dim">
-          <span className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-emerald-400 shrink-0" />
-            <strong className="text-cream">3-Month Archive Policy Active:</strong> Settled jackpot rooms are retained in the Archives for up to 90 days.
-          </span>
-          <span className="text-[11px] text-gold font-mono shrink-0">Retention: 90 Days</span>
-        </div>
-
         {filtered.length === 0 ? (
-          <div className="text-center py-16 px-4 bg-ink-2/60 border border-line rounded-2xl max-w-xl mx-auto space-y-4">
-            <span className="w-12 h-12 rounded-2xl bg-gold/15 text-gold border border-gold/30 flex items-center justify-center mx-auto">
+          <div className="text-center py-16 px-4 bg-white border border-slate-200 rounded-2xl max-w-xl mx-auto space-y-4 shadow-xs">
+            <span className="w-12 h-12 rounded-2xl bg-red-50 text-[#d81e1e] flex items-center justify-center mx-auto">
               <SlidersHorizontal size={24} />
             </span>
             <div>
-              <h3 className="font-display font-bold text-lg text-cream">
-                {viewTab === 'active' ? 'No Active Jackpot Rooms Active' : 'No Archived Rooms Found'}
+              <h3 className="font-display font-black text-lg text-slate-900">
+                {viewTab === 'active' ? 'No Active Jackpot Rooms Found' : 'No Archived Rooms Found'}
               </h3>
-              <p className="text-xs text-cream-dim mt-1 max-w-md mx-auto">
+              <p className="text-xs text-slate-500 mt-1 max-w-md mx-auto">
                 {viewTab === 'active'
                   ? 'All active jackpot rooms have concluded or are pending publication. You can check past results in the Archives!'
                   : 'No settled jackpot rooms match your search or filter selection.'}
@@ -454,49 +754,21 @@ export default function Home() {
                   setViewTab('archive');
                   setStatus('All');
                 }}
-                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gold hover:bg-gold-2 text-ink font-bold text-xs shadow-lg transition-all"
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-[#d81e1e] hover:bg-[#b91515] text-white font-bold text-xs shadow-xs transition-all"
               >
                 <Archive size={15} />
-                Browse {archivedRooms.length} Archived Rooms
-              </button>
-            )}
-            {isAuthorizedAdmin && (
-              <button
-                onClick={() => setIsAdminModalOpen(true)}
-                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-panel hover:bg-panel-2 border border-line text-cream font-bold text-xs shadow-lg transition-all ml-2"
-              >
-                <SlidersHorizontal size={15} />
-                Open Jackpot Admin Console
+                <span>Browse {archivedRooms.length} Archived Rooms</span>
               </button>
             )}
           </div>
         ) : (
-          <>
-            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
-              {filtered.map((j, i) => (
-                <JackpotCard key={j.id} jackpot={j} index={i} />
-              ))}
-            </div>
-
-            {viewTab === 'active' && archivedRooms.length > 0 && (
-              <div className="mt-8 text-center p-4 bg-ink-2/60 border border-line rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-cream-dim">
-                <span className="flex items-center gap-2 text-left">
-                  <Archive size={16} className="text-gold shrink-0" />
-                  <span>Looking for past jackpot results? Settled rooms are automatically moved to the <strong>Archives</strong> to keep the homepage clean for upcoming and live jackpots.</span>
-                </span>
-                <button
-                  onClick={() => {
-                    setViewTab('archive');
-                    setStatus('All');
-                  }}
-                  className="px-4 py-2 rounded-xl bg-gold/15 hover:bg-gold/25 border border-gold/30 text-gold font-bold transition-all shrink-0 whitespace-nowrap"
-                >
-                  Browse {archivedRooms.length} Archived Rooms →
-                </button>
-              </div>
-            )}
-          </>
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filtered.map((j, i) => (
+              <JackpotCard key={j.id} jackpot={j} index={i} />
+            ))}
+          </div>
         )}
+
       </section>
 
       <JackpotAdminModal
@@ -506,4 +778,3 @@ export default function Home() {
     </div>
   );
 }
-

@@ -61,75 +61,75 @@ export default function BetSlipRoom() {
       />
       {/* Header Navigation */}
       <div className="flex items-center justify-between gap-3 mb-6">
-        <Link to="/" className="inline-flex items-center gap-2 text-xs sm:text-sm font-semibold text-cream-dim hover:text-cream transition-colors">
-          <ArrowLeft size={16} /> Back home
+        <Link to="/" className="inline-flex items-center gap-2 text-xs sm:text-sm font-bold uppercase tracking-wider text-slate-500 hover:text-[#d81e1e] transition-colors">
+          <ArrowLeft size={16} /> Back to Matches
         </Link>
 
         <div className="flex items-center gap-2.5">
           {currentUser && (
             <button
               onClick={() => setSelectedProfileUser(currentUser.username)}
-              className="ios-pill-btn bg-white/6 hover:bg-white/12 border border-white/10 text-xs font-bold text-cream px-3.5 py-1.5 active:scale-95"
+              className="bg-white hover:bg-slate-50 border border-slate-300 text-slate-800 text-xs font-bold uppercase tracking-wider px-4 py-1.5 rounded-full shadow-xs active:scale-95 transition-all flex items-center gap-1.5"
             >
-              <Share2 size={13} /> My Profile Link
+              <Share2 size={13} className="text-[#d81e1e]" /> My Profile Link
             </button>
           )}
           <button
             onClick={() => setShowInviteModal(true)}
-            className="ios-pill-btn bg-gold hover:bg-gold-2 text-ink text-xs font-bold px-4 py-1.5 shadow-sm active:scale-95"
+            className="bg-[#d81e1e] hover:bg-[#b51717] text-white text-xs font-bold uppercase tracking-wider px-4 py-1.5 rounded-full shadow-xs active:scale-95 transition-all flex items-center gap-1.5"
           >
             <UserPlus size={13} /> Invite Friends
           </button>
         </div>
       </div>
 
-      <div className="mb-8">
-        <div className="flex items-center gap-2 mb-2">
-          <span className="inline-flex items-center gap-1.5 bg-gold/15 border border-gold/30 text-gold text-xs font-bold px-3.5 py-1.5 rounded-full shadow-sm">
-            <Sparkles size={13} /> Bet Builder & Slip Hub
+      <div className="mb-8 text-center sm:text-left">
+        <div className="flex items-center justify-center sm:justify-start gap-2 mb-2">
+          <span className="inline-flex items-center gap-1.5 bg-[#d81e1e] text-white text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full shadow-xs">
+            <Sparkles size={13} /> Community Slips Hub
           </span>
         </div>
-        <h1 className="font-display font-black text-2xl sm:text-4xl text-cream tracking-tight">
-          Bet Builder & Slip Room
+        <h1 className="font-display font-black text-3xl sm:text-5xl text-slate-900 tracking-tight uppercase">
+          Bet Builder &amp; Slips
         </h1>
-        <p className="text-sm text-cream-dim mt-2 leading-relaxed max-w-2xl font-normal">
+        <p className="text-sm text-slate-600 mt-2 leading-relaxed max-w-2xl font-normal">
           Build multi-leg bet slips with choosable markets (1X2, Over/Under, Double Chance, BTTS, Handicap), attach official bookie codes/links, and follow top community punters.
         </p>
       </div>
 
-      {/* Main Mode Tabs (iOS Segmented Control) */}
-      <div className="flex items-center gap-1.5 p-1.5 ios-segmented-control w-full mb-8 shadow-sm">
+      {/* Main Mode Tabs (ESPN Pill Navigation) */}
+      <div className="flex items-center justify-center p-1.5 bg-white border border-slate-300 rounded-full max-w-xl mx-auto sm:mx-0 mb-8 shadow-xs">
         <button
           onClick={() => setActiveTab('builder')}
-          className={`flex-1 py-2.5 px-4 rounded-full text-xs sm:text-sm font-bold transition-all flex items-center justify-center gap-2 active:scale-95 ${
+          className={`flex-1 py-2 px-4 rounded-full text-xs font-black uppercase tracking-wider transition-all flex items-center justify-center gap-2 active:scale-95 ${
             activeTab === 'builder'
-              ? 'bg-gold text-ink shadow-sm font-extrabold'
-              : 'text-cream-dim hover:text-cream'
+              ? 'bg-[#d81e1e] text-white shadow-xs'
+              : 'text-slate-600 hover:text-slate-900'
           }`}
         >
-          <Dices size={16} />
+          <Dices size={15} />
           Bet Builder
         </button>
         <button
           onClick={() => setActiveTab('slips')}
-          className={`flex-1 py-2.5 px-4 rounded-full text-xs sm:text-sm font-bold transition-all flex items-center justify-center gap-2 active:scale-95 ${
+          className={`flex-1 py-2 px-4 rounded-full text-xs font-black uppercase tracking-wider transition-all flex items-center justify-center gap-2 active:scale-95 ${
             activeTab === 'slips'
-              ? 'bg-gold text-ink shadow-sm font-extrabold'
-              : 'text-cream-dim hover:text-cream'
+              ? 'bg-[#d81e1e] text-white shadow-xs'
+              : 'text-slate-600 hover:text-slate-900'
           }`}
         >
-          <Clapperboard size={16} />
+          <Clapperboard size={15} />
           SlipFeed
         </button>
         <button
           onClick={() => setActiveTab('punters')}
-          className={`flex-1 py-2.5 px-4 rounded-full text-xs sm:text-sm font-bold transition-all flex items-center justify-center gap-2 active:scale-95 ${
+          className={`flex-1 py-2 px-4 rounded-full text-xs font-black uppercase tracking-wider transition-all flex items-center justify-center gap-2 active:scale-95 ${
             activeTab === 'punters'
-              ? 'bg-gold text-ink shadow-sm font-extrabold'
-              : 'text-cream-dim hover:text-cream'
+              ? 'bg-[#d81e1e] text-white shadow-xs'
+              : 'text-slate-600 hover:text-slate-900'
           }`}
         >
-          <Search size={16} />
+          <Search size={15} />
           Find Punters
         </button>
       </div>
@@ -149,42 +149,42 @@ export default function BetSlipRoom() {
         />
       )}
 
-      {/* TAB 2: SEARCH PUNTERS / USERS */}
+      {/* TAB 3: SEARCH PUNTERS / USERS */}
       {activeTab === 'punters' && (
         <div className="space-y-5 animate-fade-in">
           {/* Search Input Box */}
-          <div className="relative">
-            <Search size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gold" />
+          <div className="relative max-w-2xl">
+            <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
             <input
               type="text"
               value={punterSearchQuery}
               onChange={(e) => setPunterSearchQuery(e.target.value)}
               placeholder="Search punters by username (e.g. Mwangi, Kip_Punter)..."
-              className="w-full bg-panel border border-gold/40 focus:border-gold rounded-2xl pl-11 pr-10 py-3.5 text-sm text-cream placeholder:text-cream-dim/60 focus:outline-none shadow-lg"
+              className="w-full bg-white border border-slate-300 focus:border-[#d81e1e] focus:ring-2 focus:ring-[#d81e1e]/15 rounded-full pl-11 pr-10 py-3.5 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none shadow-xs transition-all"
             />
             {punterSearchQuery && (
               <button
                 onClick={() => setPunterSearchQuery('')}
                 aria-label="Clear search"
-                className="absolute right-3.5 top-1/2 -translate-y-1/2 text-cream-dim hover:text-cream"
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700"
               >
                 <X size={16} />
               </button>
             )}
           </div>
 
-          <div className="flex items-center justify-between text-xs text-cream-dim">
+          <div className="flex items-center justify-between text-xs text-slate-500 max-w-2xl px-1">
             <span>
-              Showing <strong className="text-cream">{matchingPunters.length}</strong> punters
+              Showing <strong className="text-slate-900">{matchingPunters.length}</strong> punters
             </span>
-            <span>Follow punters to stay updated on their consensus picks</span>
+            <span>Follow top punters to inspect their consensus slips</span>
           </div>
 
           {/* Punters Grid */}
-          <div className="grid sm:grid-cols-2 gap-3.5">
+          <div className="grid sm:grid-cols-2 gap-4">
             {matchingPunters.length === 0 ? (
-              <div className="sm:col-span-2 bg-panel border border-dashed border-line rounded-2xl p-8 text-center text-cream-dim text-xs">
-                No punters found matching "{punterSearchQuery}". Try another search or invite a friend!
+              <div className="sm:col-span-2 bg-white border border-dashed border-slate-300 rounded-2xl p-8 text-center text-slate-500 text-xs">
+                No punters found matching &quot;{punterSearchQuery}&quot;. Try another search or invite a friend!
               </div>
             ) : (
               matchingPunters.map((punter) => {
@@ -195,7 +195,7 @@ export default function BetSlipRoom() {
                 return (
                   <div
                     key={punter.username}
-                    className="bg-panel border border-line hover:border-gold/30 rounded-2xl p-4 flex flex-col justify-between gap-3 transition-all shadow-sm"
+                    className="bg-white border border-slate-200 hover:border-[#d81e1e] rounded-xl p-4 flex flex-col justify-between gap-3 transition-all hover:shadow-md"
                   >
                     <div className="flex items-start justify-between gap-3">
                       <button
@@ -204,44 +204,44 @@ export default function BetSlipRoom() {
                       >
                         <Avatar name={punter.username} seed={punter.username.length} size={42} />
                         <div className="min-w-0">
-                          <h3 className="font-display font-bold text-sm text-cream group-hover:text-gold transition-colors truncate">
+                          <h3 className="font-display font-black text-sm text-slate-900 group-hover:text-[#d81e1e] transition-colors truncate uppercase">
                             {punter.username}
                           </h3>
                           <div className="flex items-center gap-2 mt-0.5">
                             <StarRating rating={punter.stars} size={12} />
-                            <span className="text-[11px] text-cream-dim">{punter.accuracyPct}% acc</span>
+                            <span className="text-[11px] font-bold text-slate-500">{punter.accuracyPct}% acc</span>
                           </div>
                         </div>
                       </button>
 
                       <div className="text-right shrink-0">
-                        <span className="font-mono font-bold text-xs text-cream">{followersCount}</span>
-                        <p className="text-[10px] text-cream-dim uppercase">Followers</p>
+                        <span className="font-mono font-black text-xs text-slate-900">{followersCount}</span>
+                        <p className="text-[10px] text-slate-400 font-black uppercase">Followers</p>
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-2 pt-1 border-t border-line/60">
+                    <div className="flex items-center gap-2 pt-2 border-t border-slate-100">
                       {!isSelf ? (
                         <button
                           onClick={() => handleFollowToggle(punter.username)}
-                          className={`flex-1 py-1.5 px-3 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition-all ${
+                          className={`flex-1 py-1.5 px-3 rounded-full font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all shadow-2xs ${
                             following
-                              ? 'bg-ink border border-gold/40 text-gold hover:bg-gold/10'
-                              : 'bg-gold hover:bg-gold-2 text-ink shadow-sm'
+                              ? 'bg-slate-100 border border-slate-300 text-slate-700 hover:bg-slate-200'
+                              : 'bg-[#d81e1e] hover:bg-[#b51717] text-white'
                           }`}
                         >
                           {following ? <UserCheck size={13} /> : <UserPlus size={13} />}
                           {following ? 'Following' : 'Follow'}
                         </button>
                       ) : (
-                        <span className="flex-1 py-1.5 text-center text-xs font-semibold text-gold bg-gold/10 rounded-xl">
+                        <span className="flex-1 py-1.5 text-center text-xs font-bold text-[#d81e1e] bg-[#d81e1e]/10 rounded-full uppercase tracking-wider">
                           You
                         </span>
                       )}
 
                       <button
                         onClick={() => setSelectedProfileUser(punter.username)}
-                        className="py-1.5 px-3 rounded-xl bg-ink-2 hover:bg-panel-2 border border-line text-cream-dim hover:text-cream text-xs font-semibold transition-colors"
+                        className="py-1.5 px-3 rounded-full bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-700 text-xs font-bold uppercase tracking-wider transition-colors"
                       >
                         View Profile
                       </button>

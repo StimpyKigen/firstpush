@@ -105,58 +105,57 @@ export default function HowItWorks() {
       
       {/* Header */}
       <div className="text-center mb-14">
-        <span className="inline-flex items-center gap-1.5 bg-panel border border-emerald-2/30 text-emerald-2 text-xs font-bold px-3.5 py-1.5 rounded-full mb-4 shadow-sm">
-          <Sparkles size={13} /> How MshindiRoom Works
+        <span className="inline-flex items-center gap-1.5 bg-[#d81e1e] text-white text-xs font-bold uppercase tracking-wider px-3.5 py-1.5 rounded-full mb-4 shadow-xs">
+          <Sparkles size={13} /> Platform Guide &amp; Mechanics
         </span>
-        <h1 className="font-display font-extrabold text-3xl sm:text-4xl text-cream">From gut feeling to group wisdom.</h1>
-        <p className="text-cream-dim mt-3 max-w-2xl mx-auto text-sm sm:text-base leading-relaxed">
-          Whether you're building a daily custom accumulator or analyzing 17-leg jackpots, MshindiRoom pools community insights and offers smart tools to help you bet wiser.
+        <h1 className="font-display font-black text-3xl sm:text-5xl text-slate-900 uppercase tracking-tight">From Gut Feeling to Group Consensus.</h1>
+        <p className="text-slate-600 mt-3 max-w-2xl mx-auto text-sm sm:text-base leading-relaxed">
+          Whether you&apos;re building a daily custom accumulator or analyzing 17-leg jackpots, MshindiRoom pools community insights and offers smart tools to help you bet wiser.
         </p>
       </div>
 
       {/* Main 4 Steps */}
       <div className="grid sm:grid-cols-2 gap-5 mb-16">
         {steps.map((s, i) => (
-          <div key={s.title} className="animate-rise bg-panel border border-line rounded-2xl p-6 flex gap-4 hover:border-gold/30 transition-colors shadow-sm" style={{ animationDelay: `${i * 90}ms` }}>
-            <div className="w-11 h-11 rounded-xl bg-emerald-2/10 border border-emerald-2/30 flex items-center justify-center shrink-0">
-              <s.icon size={20} className="text-emerald-2" />
+          <div key={s.title} className="bg-white border border-slate-200 rounded-2xl p-6 flex gap-4 hover:border-[#d81e1e] hover:shadow-md transition-all shadow-xs" style={{ animationDelay: `${i * 90}ms` }}>
+            <div className="w-12 h-12 rounded-full bg-[#d81e1e]/10 text-[#d81e1e] flex items-center justify-center shrink-0">
+              <s.icon size={22} />
             </div>
             <div>
-              <h3 className="font-display font-bold text-lg text-cream mb-1.5">{s.title}</h3>
-              <p className="text-sm text-cream-dim leading-relaxed">{s.body}</p>
+              <h3 className="font-display font-black text-lg text-slate-900 mb-1 uppercase">{s.title}</h3>
+              <p className="text-sm text-slate-600 leading-relaxed">{s.body}</p>
             </div>
           </div>
         ))}
       </div>
 
       {/* Feature Deep-Dive: Bet Builder */}
-      <div className="bg-panel border border-emerald-500/30 rounded-2xl p-6 sm:p-8 mb-12 relative overflow-hidden shadow-md">
-        <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/5 rounded-full blur-3xl pointer-events-none" />
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 pb-6 border-b border-line">
+      <div className="bg-white border border-slate-200 rounded-2xl p-6 sm:p-8 mb-12 shadow-xs">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 pb-6 border-b border-slate-100">
           <div>
-            <span className="inline-flex items-center gap-1.5 bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-extrabold px-3 py-1 rounded-full mb-2">
-              <Dices size={13} /> 100% FREE TOOL
+            <span className="inline-flex items-center gap-1.5 bg-[#d81e1e] text-white text-xs font-black uppercase tracking-wider px-3 py-1 rounded-full mb-2 shadow-xs">
+              <Dices size={13} /> 100% Free Tool
             </span>
-            <h2 className="font-display font-extrabold text-2xl text-cream">Custom Bet Builder</h2>
-            <p className="text-sm text-cream-dim mt-1">Build, calculate, export, and share custom multi-leg sports accumulators instantly.</p>
+            <h2 className="font-display font-black text-2xl sm:text-3xl text-slate-900 uppercase tracking-tight">Custom Bet Builder</h2>
+            <p className="text-sm text-slate-600 mt-1">Build, calculate, export, and share custom multi-leg sports accumulators instantly.</p>
           </div>
           <Link
             to="/free"
-            className="inline-flex items-center justify-center gap-2 bg-emerald-500 text-ink font-bold text-xs sm:text-sm px-5 py-2.5 rounded-xl hover:bg-emerald-400 transition-colors shrink-0 shadow"
+            className="inline-flex items-center justify-center gap-2 bg-[#d81e1e] hover:bg-[#b51717] text-white font-bold uppercase tracking-wider text-xs sm:text-sm px-6 py-3 rounded-full transition-colors shrink-0 shadow-xs"
           >
-            <Dices size={15} /> Try Bet Builder Now
+            <Dices size={16} /> Try Bet Builder
           </Link>
         </div>
 
         <div className="grid sm:grid-cols-2 gap-4">
           {betBuilderFeatures.map((f) => (
-            <div key={f.title} className="bg-ink-2/60 border border-line/70 rounded-xl p-4 flex gap-3.5 items-start">
-              <div className="w-9 h-9 rounded-lg bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center shrink-0 text-emerald-400 mt-0.5">
+            <div key={f.title} className="bg-slate-50 border border-slate-200 rounded-xl p-4 flex gap-3.5 items-start">
+              <div className="w-9 h-9 rounded-full bg-white border border-slate-200 flex items-center justify-center shrink-0 text-[#d81e1e] mt-0.5 shadow-2xs">
                 <f.icon size={18} />
               </div>
               <div>
-                <h4 className="font-bold text-cream text-sm mb-1">{f.title}</h4>
-                <p className="text-xs text-cream-dim leading-relaxed">{f.desc}</p>
+                <h4 className="font-bold text-slate-900 text-sm mb-1">{f.title}</h4>
+                <p className="text-xs text-slate-600 leading-relaxed">{f.desc}</p>
               </div>
             </div>
           ))}
@@ -164,46 +163,46 @@ export default function HowItWorks() {
       </div>
 
       {/* Feature Deep-Dive: Star Rating */}
-      <div className="bg-panel border border-gold/20 rounded-2xl p-6 sm:p-8 mb-12 shadow-md">
+      <div className="bg-white border border-slate-200 rounded-2xl p-6 sm:p-8 mb-12 shadow-xs">
         <div className="flex flex-col sm:flex-row sm:items-center gap-5">
-          <div className="w-14 h-14 rounded-2xl bg-gold/10 border border-gold/30 flex items-center justify-center shrink-0">
-            <Target size={26} className="text-gold" />
+          <div className="w-14 h-14 rounded-full bg-amber-500/10 border border-amber-500/30 flex items-center justify-center shrink-0">
+            <Target size={26} className="text-amber-500" />
           </div>
           <div className="flex-1">
-            <h2 className="font-display font-bold text-xl text-cream mb-1.5">Your Star Rating Grows With Accuracy</h2>
-            <p className="text-sm text-cream-dim leading-relaxed">
+            <h2 className="font-display font-black text-xl sm:text-2xl text-slate-900 uppercase tracking-tight mb-1.5">Your Reputation Rating Grows With Accuracy</h2>
+            <p className="text-sm text-slate-600 leading-relaxed">
               Every punter carries a 5-star reputation score shown next to their name in every room. Land more accurate
               picks and get crowned closest to the winning slip more often, and your rating climbs: displayed in precise
               half-star increments, maxing out at 5.
             </p>
           </div>
         </div>
-        <div className="flex flex-wrap items-center gap-x-8 gap-y-3 mt-5 pt-5 border-t border-dashed border-line">
+        <div className="flex flex-wrap items-center gap-x-8 gap-y-3 mt-5 pt-5 border-t border-slate-100">
           <div className="flex items-center gap-2">
             <StarRating rating={2} size={16} />
-            <span className="text-xs text-cream-dim">New punter</span>
+            <span className="text-xs font-semibold text-slate-500">New punter</span>
           </div>
           <div className="flex items-center gap-2">
             <StarRating rating={3.5} size={16} />
-            <span className="text-xs text-cream-dim">Solid accuracy</span>
+            <span className="text-xs font-semibold text-slate-500">Solid accuracy</span>
           </div>
           <div className="flex items-center gap-2">
             <StarRating rating={5} size={16} />
-            <span className="text-xs text-cream-dim">Elite: multiple closest-slip wins</span>
+            <span className="text-xs font-semibold text-slate-500">Elite: multiple closest-slip wins</span>
           </div>
         </div>
       </div>
 
       {/* FAQs */}
-      <div className="bg-panel border border-line rounded-2xl p-6 sm:p-8 mb-14 shadow-md">
-        <h2 className="font-display font-bold text-2xl text-cream mb-6 flex items-center gap-2">
-          <ShieldCheck className="text-gold" size={22} /> Frequently Asked Questions
+      <div className="bg-white border border-slate-200 rounded-2xl p-6 sm:p-8 mb-14 shadow-xs">
+        <h2 className="font-display font-black text-2xl text-slate-900 uppercase tracking-tight mb-6 flex items-center gap-2">
+          <ShieldCheck className="text-[#d81e1e]" size={22} /> Frequently Asked Questions
         </h2>
-        <div className="flex flex-col divide-y divide-line">
+        <div className="flex flex-col divide-y divide-slate-100">
           {faqs.map((f) => (
             <div key={f.q} className="py-4">
-              <p className="font-semibold text-cream mb-1.5 text-sm sm:text-base">{f.q}</p>
-              <p className="text-xs sm:text-sm text-cream-dim leading-relaxed">{f.a}</p>
+              <p className="font-bold text-slate-900 mb-1 text-sm sm:text-base">{f.q}</p>
+              <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">{f.a}</p>
             </div>
           ))}
         </div>
@@ -211,11 +210,11 @@ export default function HowItWorks() {
 
       {/* Call to Actions */}
       <div className="flex flex-wrap items-center justify-center gap-4">
-        <Link to="/" className="inline-block bg-gold hover:bg-gold-2 text-ink font-bold px-7 py-3 rounded-full transition-colors shadow-md">
+        <Link to="/" className="inline-block bg-[#d81e1e] hover:bg-[#b51717] text-white font-bold uppercase tracking-wider text-xs px-8 py-3.5 rounded-full transition-colors shadow-xs">
           Browse Jackpot Rooms
         </Link>
-        <Link to="/free" className="inline-flex items-center gap-2 text-cream font-bold px-7 py-3 rounded-full border border-emerald-2/40 hover:border-emerald-2 hover:bg-emerald-2/10 transition-colors shadow-sm">
-          <CalendarDays size={16} className="text-emerald-2" /> Free Matches & Bet Builder
+        <Link to="/free" className="inline-flex items-center gap-2 text-slate-800 font-bold uppercase tracking-wider text-xs px-8 py-3.5 rounded-full border border-slate-300 hover:border-[#d81e1e] hover:text-[#d81e1e] bg-white transition-colors shadow-xs">
+          <CalendarDays size={16} className="text-[#d81e1e]" /> Free Matches &amp; Bet Builder
         </Link>
       </div>
     </div>
