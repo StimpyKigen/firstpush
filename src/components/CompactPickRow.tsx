@@ -76,21 +76,28 @@ export default function CompactPickRow({ pick, isTopPick, onEdit }: CompactPickR
 
   if (editing && isMine) {
     return (
-      <div className="py-3 border-b border-line/40">
-        <div className="flex items-center gap-2 mb-2">
-          <span className="text-xs font-bold text-cream">Edit your pick</span>
-          <span className="text-[10px] text-cream-dim">({canEdit ? '1 edit left' : 'no edits left'})</span>
+      <div className="p-3.5 sm:p-4 rounded-xl border border-[#d81e1e]/40 bg-[#d81e1e]/[0.02] space-y-3">
+        <div className="flex items-center justify-between">
+          <span className="text-xs font-black uppercase tracking-wider text-slate-800">Edit Your Match Pick</span>
+          <span className="text-[10px] font-mono font-bold text-slate-500 uppercase">({canEdit ? '1 edit remaining' : 'no edits left'})</span>
         </div>
-        <div className="flex gap-1.5 mb-2">
+        <div className="grid grid-cols-3 gap-2">
           {(['1', 'X', '2'] as Outcome[]).map((o) => (
             <button
               key={o}
+              type="button"
               onClick={() => setEditPick(o)}
-              className={`flex-1 px-2 py-1.5 rounded-lg text-[11px] font-bold border transition-colors ${
-                editPick === o ? pickBtnStyle[o] : 'border-line text-cream-dim hover:border-emerald-2/50'
+              className={`h-9 px-2 rounded-md text-xs font-black uppercase tracking-wider border transition-all active:scale-95 cursor-pointer ${
+                editPick === o
+                  ? o === '1'
+                    ? 'bg-emerald-600 border-emerald-700 text-white shadow-xs'
+                    : o === 'X'
+                    ? 'bg-amber-500 border-amber-600 text-slate-950 shadow-xs'
+                    : 'bg-rose-600 border-rose-700 text-white shadow-xs'
+                  : 'bg-white border-slate-200 text-slate-700 hover:border-slate-400'
               }`}
             >
-              {o === '1' ? '1 · Home' : o === 'X' ? 'X · Draw' : '2 · Away'}
+              {o === '1' ? '1 (Home)' : o === 'X' ? 'X (Draw)' : '2 (Away)'}
             </button>
           ))}
         </div>
@@ -98,32 +105,54 @@ export default function CompactPickRow({ pick, isTopPick, onEdit }: CompactPickR
           value={editReason}
           onChange={(e) => setEditReason(e.target.value)}
           rows={2}
-          className={`w-full bg-ink border rounded-lg px-3 py-2 text-[13px] text-cream placeholder:text-cream-dim/50 focus:outline-none resize-none mb-2 ${
-            !editMod.isAllowed ? 'border-rose-500 bg-rose-500/5' : 'border-line focus:border-gold'
+          className={`w-full bg-white border rounded-md px-3 py-2 text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none resize-none transition-all ${
+            !editMod.isAllowed ? 'border-rose-500 bg-rose-50/50' : 'border-slate-300 focus:border-[#d81e1e]'
           }`}
         />
         <ModerationWarningBox result={editMod} text={editReason} />
-        <div className="flex items-center gap-2">
+        <div className="flex items-center justify-end gap-2 pt-1">
           <button
-            onClick={handleSaveEdit}
-            disabled={!editMod.isAllowed}
-            className="flex items-center gap-1.5 bg-gold hover:bg-gold-2 disabled:opacity-40 text-ink text-xs font-bold px-3 py-1.5 rounded-lg transition-colors"
+            type="button"
+            onClick={() => { setEditing(false); setEditPick(pick.pick); setEditReason(pick.reasoning); }}
+            className="h-8 px-3 rounded-md text-xs font-bold text-slate-600 hover:text-slate-900 hover:bg-slate-100 border border-slate-300 transition-all cursor-pointer"
           >
-            <Check size={12} /> Save
+            Cancel
           </button>
           <button
-            onClick={() => { setEditing(false); setEditPick(pick.pick); setEditReason(pick.reasoning); }}
-            className="flex items-center gap-1.5 text-cream-dim hover:text-cream text-xs font-bold px-3 py-1.5 rounded-lg border border-line transition-colors"
+            type="button"
+            onClick={handleSaveEdit}
+            disabled={!editMod.isAllowed}
+            className="h-8 px-3.5 rounded-md text-xs font-black uppercase tracking-wider bg-[#d81e1e] hover:bg-[#b91515] disabled:opacity-40 text-white transition-all shadow-xs flex items-center gap-1.5 cursor-pointer"
           >
-            <X size={12} /> Cancel
+            <Check size={12} /> Save Changes
           </button>
         </div>
       </div>
     );
   }
 
+  const outcomeColors = {
+    '1': 'bg-emerald-600 text-white',
+    X: 'bg-amber-500 text-slate-950',
+    '2': 'bg-rose-600 text-white',
+  }[pick.pick] || 'bg-slate-800 text-white';
+
+  const outcomeLabel = {
+    '1': '1 (Home)',
+    X: 'X (Draw)',
+    '2': '2 (Away)',
+  }[pick.pick] || pick.pick;
+
   return (
-    <div className={`flex gap-2.5 sm:gap-3 py-2.5 border-b border-line/40 last:border-b-0 ${isTopPick ? 'bg-gold/5 -mx-3 sm:-mx-4 px-3 sm:px-4' : ''}`}>
+    <div
+      className={`group relative flex flex-col gap-2.5 p-3.5 sm:p-4 rounded-xl border transition-all duration-150 ${
+        isMine
+          ? 'bg-slate-50 border-[#d81e1e]/30 hover:border-[#d81e1e]/60 shadow-2xs'
+          : isTopPick
+          ? 'bg-amber-500/[0.03] border-amber-400/40 hover:border-amber-500/60 shadow-2xs'
+          : 'bg-white border-slate-200 hover:border-slate-300 hover:shadow-xs'
+      }`}
+    >
       {showProfileModal && (
         <PlayerProfileModal
           username={pick.username}
@@ -131,82 +160,111 @@ export default function CompactPickRow({ pick, isTopPick, onEdit }: CompactPickR
         />
       )}
 
-      {/* Avatar */}
-      <button onClick={() => setShowProfileModal(true)} className="shrink-0 pt-0.5 hover:opacity-80 transition-opacity">
-        <Avatar name={pick.username} seed={pick.colorSeed} size={28} />
-      </button>
-
-      {/* Content */}
-      <div className="flex-1 min-w-0">
-        {/* Header line */}
-        <div className="flex items-center gap-1.5 flex-wrap">
+      {/* Message Header */}
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex items-center gap-2.5 min-w-0">
           <button
             onClick={() => setShowProfileModal(true)}
-            className="text-sm font-bold text-cream hover:text-gold transition-colors text-left"
+            className="shrink-0 hover:opacity-85 transition-opacity cursor-pointer"
+            title={`View ${pick.username}'s profile`}
           >
-            {pick.username}
+            <Avatar name={pick.username} seed={pick.colorSeed} size={32} />
           </button>
-          <StarRating rating={getStarRating(pick.username)} size={9} showNumber={false} />
-          <span
-            className="w-2 h-2 rounded-full shrink-0"
-            style={{ backgroundColor: dotColor }}
-            title={`Pick: ${pick.pick}`}
-          />
-          <span className="text-[11px] text-cream-dim/70">{pick.timeAgo}</span>
-          {isTopPick && (
-            <span className="inline-flex items-center gap-1 text-[10px] font-black uppercase text-amber-400">
-              <Crown size={10} /> Top Pick
-            </span>
+
+          <div className="min-w-0">
+            <div className="flex items-center gap-1.5 flex-wrap">
+              <button
+                onClick={() => setShowProfileModal(true)}
+                className="text-xs sm:text-sm font-black uppercase tracking-tight text-slate-900 hover:text-[#d81e1e] transition-colors truncate cursor-pointer"
+              >
+                {pick.username}
+              </button>
+              {isMine && (
+                <span className="text-[10px] font-black uppercase text-[#d81e1e] tracking-wider">
+                  (You)
+                </span>
+              )}
+              {isTopPick && (
+                <span className="inline-flex items-center gap-1 text-[10px] font-black uppercase text-amber-600 tracking-wider">
+                  <Crown size={11} className="text-amber-500" /> #1 Top Pick
+                </span>
+              )}
+            </div>
+
+            <div className="flex items-center gap-2 mt-0.5 text-xs text-slate-400">
+              <StarRating rating={getStarRating(pick.username)} size={10} showNumber={false} />
+              <span>·</span>
+              <span className="text-[11px] font-mono text-slate-500">{pick.timeAgo}</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Outcome Pick Badge */}
+        <div className={`px-2.5 py-1 rounded-md text-[11px] font-black uppercase tracking-wider shrink-0 shadow-2xs flex items-center gap-1 leading-none ${outcomeColors}`}>
+          <span>Pick:</span>
+          <span>{outcomeLabel}</span>
+        </div>
+      </div>
+
+      {/* Message Bubble Reasoning */}
+      <div className="p-3 rounded-lg bg-slate-50 border border-slate-100 text-slate-800 text-xs sm:text-[13px] leading-relaxed break-words">
+        {displayText}
+        {isLong && !expanded && (
+          <button
+            onClick={() => setExpanded(true)}
+            className="text-[#d81e1e] font-bold text-xs ml-1.5 hover:underline cursor-pointer"
+          >
+            read more
+          </button>
+        )}
+      </div>
+
+      {/* Message Card Footer: Conviction, Reactions & Actions */}
+      <div className="flex items-center justify-between gap-2 pt-1 border-t border-slate-100 text-xs">
+        <div className="flex items-center gap-2 min-w-0 flex-wrap">
+          <span className={`inline-flex items-center gap-1 text-[11px] font-black uppercase tracking-wider ${conv.color}`}>
+            <ConvIcon size={12} /> {conv.label}
+          </span>
+          {isMine && !canEdit && (
+            <span className="text-[10px] font-mono text-slate-400 font-bold">Edited 2/2</span>
           )}
         </div>
 
-        {/* Reasoning */}
-        <p className="text-[13px] text-cream-dim leading-snug mt-0.5">
-          {displayText}
-          {isLong && !expanded && (
-            <button
-              onClick={() => setExpanded(true)}
-              className="text-gold text-[11px] font-semibold ml-1 hover:underline"
-            >
-              more
-            </button>
-          )}
-        </p>
-
-        {/* Actions */}
-        <div className="flex items-center gap-3 mt-1.5">
-          <button
-            onClick={handleLike}
-            className={`flex items-center gap-1 text-[11px] font-semibold transition-colors min-h-[28px] px-1 ${
-              liked ? 'text-gold' : 'text-cream-dim/60 hover:text-gold'
-            }`}
-          >
-            <ThumbsUp size={11} className={liked ? 'fill-current' : ''} />
-            {likes > 0 && <span>{likes}</span>}
-          </button>
-          {!isMine && (
-            <button
-              onClick={() => setShowReportModal(true)}
-              className="flex items-center gap-1 text-[11px] font-semibold text-cream-dim/50 hover:text-rose-400 transition-colors min-h-[28px] px-1"
-              title="Report this pick"
-            >
-              <Flag size={10} /> Report
-            </button>
-          )}
-          <span className={`flex items-center gap-1 text-[11px] font-semibold ${conv.color}`}>
-            <ConvIcon size={10} /> {conv.label}
-          </span>
+        <div className="flex items-center gap-1.5 shrink-0">
           {isMine && canEdit && onEdit && (
             <button
               onClick={() => setEditing(true)}
-              className="flex items-center gap-1 text-[11px] font-semibold text-cream-dim/60 hover:text-gold transition-colors min-h-[28px] px-1"
+              className="h-7 px-2 rounded-md text-xs font-bold text-slate-600 hover:text-slate-900 hover:bg-slate-100 flex items-center gap-1 transition-colors cursor-pointer"
+              title="Edit your reasoning"
             >
-              <Pencil size={10} /> Edit
+              <Pencil size={11} />
+              <span>Edit</span>
             </button>
           )}
-          {isMine && !canEdit && (
-            <span className="text-[10px] text-cream-dim/40">Edited 2x</span>
+
+          {!isMine && (
+            <button
+              onClick={() => setShowReportModal(true)}
+              className="h-7 px-2 rounded-md text-xs font-semibold text-slate-400 hover:text-rose-600 hover:bg-rose-50 flex items-center gap-1 transition-colors cursor-pointer"
+              title="Report this comment"
+            >
+              <Flag size={11} />
+              <span className="hidden xs:inline">Report</span>
+            </button>
           )}
+
+          <button
+            onClick={handleLike}
+            className={`h-7 px-2.5 rounded-md text-xs font-black uppercase tracking-wider flex items-center gap-1.5 transition-all active:scale-95 border cursor-pointer ${
+              liked
+                ? 'bg-amber-50 border-amber-300 text-amber-700 shadow-2xs'
+                : 'bg-white hover:bg-slate-50 border-slate-200 text-slate-600 hover:text-slate-900'
+            }`}
+            title="Agree with this pick"
+          >
+            <ThumbsUp size={11} className={liked ? 'fill-current text-amber-600' : 'text-slate-400'} />
+            <span>{likes}</span>
+          </button>
         </div>
       </div>
 
