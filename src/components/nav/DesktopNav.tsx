@@ -40,7 +40,7 @@ export default function DesktopNav({
 }: DesktopNavProps) {
   return (
     <>
-      {/* Desktop nav links: with ESPN signature red active indicator */}
+      {/* Meta button-pill-tab / button-pill-tab-active category navigation */}
       <nav className="hidden lg:flex items-center gap-2 min-w-0 flex-1 overflow-x-auto no-scrollbar h-16">
         {links.map((l) => {
           const active = pathname === l.to;
@@ -49,21 +49,21 @@ export default function DesktopNav({
             <Link
               key={l.to}
               to={l.to}
-              className={`relative h-16 inline-flex items-center gap-1.5 px-3.5 xl:px-4 text-xs xl:text-sm font-bold whitespace-nowrap shrink-0 transition-all ${
+              className={`inline-flex items-center gap-1.5 px-4 py-2 text-sm font-bold whitespace-nowrap shrink-0 rounded-full transition-colors ${
                 active
-                  ? 'text-[#006C54] border-b-2 border-[#006C54]'
-                  : 'text-slate-600 hover:text-[#006C54]'
+                  ? 'bg-[#0a1317] text-white border border-[#0a1317]'
+                  : 'bg-white text-[#1c1e21] border border-[#ced0d4] hover:bg-[#f1f4f7]'
               }`}
             >
-              <l.icon size={15} className={`shrink-0 ${active ? 'text-[#006C54]' : 'text-slate-400'}`} />
+              <l.icon size={15} className={`shrink-0 ${active ? 'text-[#FFD700]' : 'text-[#5d6c7b]'}`} />
               <span>{l.label}</span>
               {isBuilder && builderLegsCount > 0 && (
-                <span className="bg-[#006C54] text-[#FFD700] font-black text-[10px] px-1.5 py-0.2 rounded-full ml-1 shrink-0 shadow-xs border border-[#005441]">
+                <span className="bg-[#006C54] text-[#FFD700] font-bold text-[11px] px-2 rounded-full ml-1 shrink-0">
                   {builderLegsCount}
                 </span>
               )}
               {l.soon && (
-                <span className="text-[9px] font-black uppercase tracking-wide bg-amber-50 text-amber-700 px-2 py-0.5 rounded-full shrink-0 ml-1 border border-amber-200">Soon</span>
+                <span className="text-[11px] font-bold bg-[#f7b928] text-[#0a1317] px-2 py-0.5 rounded-full shrink-0 ml-1">Soon</span>
               )}
             </Link>
           );
@@ -76,7 +76,7 @@ export default function DesktopNav({
           to="/free"
           aria-label="Search fixtures and jackpots"
           title="Search fixtures & jackpots"
-          className="inline-flex items-center justify-center w-9 h-9 rounded-full hover:bg-slate-100 text-slate-500 hover:text-slate-900 active:scale-95 transition-all shrink-0"
+          className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-[#f1f4f7] hover:bg-[#dee3e9] text-[#5d6c7b] active:scale-95 transition-colors shrink-0"
         >
           <Search size={17} />
         </Link>
@@ -155,7 +155,7 @@ export default function DesktopNav({
         ) : (
           <Link
             to="/auth"
-            className="bg-[#006C54] hover:bg-[#005441] text-white text-xs font-bold px-4 h-9 rounded-full inline-flex items-center gap-1.5 shadow-xs whitespace-nowrap shrink-0 active:scale-95 transition-all"
+            className="bg-black hover:bg-[#444950] text-white text-sm font-bold px-6 h-10 rounded-full inline-flex items-center gap-1.5 whitespace-nowrap shrink-0 active:scale-95 transition-colors"
           >
             <UserCircle2 size={15} /> Log In
           </Link>

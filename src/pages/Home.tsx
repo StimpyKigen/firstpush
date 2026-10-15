@@ -124,7 +124,7 @@ export default function Home() {
             
             {/* Left Column: Striker Photo & Slide Indicators */}
             <div className="lg:col-span-5 relative flex flex-col items-center justify-center">
-              <div className="relative w-full max-w-md lg:max-w-none rounded-2xl overflow-hidden shadow-xl border border-slate-200 aspect-[3/4] bg-slate-900 group">
+              <div className="relative w-full max-w-md lg:max-w-none rounded-3xl overflow-hidden aspect-[3/4] bg-[#0a1317] group">
                 <img
                   src="/images/hero-striker.jpg"
                   alt="Dynamic Football Striker in Action"
@@ -134,8 +134,8 @@ export default function Home() {
                 
                 {/* Overlay match badge */}
                 <div className="absolute top-4 left-4">
-                  <span className="bg-[#006C54] text-[#FFD700] border border-[#005441] text-[11px] font-black uppercase tracking-wider px-3 py-1 rounded-md shadow-md">
-                    FEATURED MATCH
+                  <span className="bg-[#FFD700] text-[#0a1317] text-xs font-bold px-3 py-1 rounded-full">
+                    Featured match
                   </span>
                 </div>
 
@@ -168,31 +168,31 @@ export default function Home() {
 
             {/* Right Column: Editorial Typography, CTA Button & Floating Thumbnail Previews */}
             <div className="lg:col-span-7 flex flex-col justify-center">
-              <span className="inline-block text-[#006C54] font-black text-xs uppercase tracking-widest mb-2">
-                TOP STORY &amp; CONSENSUS
+              <span className="inline-block text-[#006C54] font-bold text-sm mb-2">
+                Top story & consensus
               </span>
 
-              <h1 className="font-display font-black text-3xl sm:text-5xl lg:text-6xl text-[#006C54] leading-[1.05] tracking-tight">
+              <h1 className="font-display font-medium text-4xl sm:text-5xl lg:text-6xl text-[#0a1317] leading-[1.16]">
                 Hazard magic has Chelsea sitting pretty
               </h1>
 
-              <p className="text-slate-600 text-base sm:text-lg mt-4 leading-relaxed max-w-2xl font-normal">
+              <p className="text-[#444950] text-base sm:text-lg mt-4 leading-relaxed max-w-2xl font-normal">
                 Chelsea have maintained their lead in the race for the English Premier League title with Tottenham seemingly the only team close enough to catch them. On MshindiRoom, community consensus is rallying behind another dominant weekend slate.
               </p>
 
-              <div className="flex flex-wrap items-center gap-4 mt-6">
-                <a
-                  href="#match-schedule"
-                  className="espn-pill-btn-outline text-xs sm:text-sm"
-                >
-                  <span>Read More</span>
-                </a>
+              <div className="flex flex-wrap items-center gap-3 mt-8">
                 <a
                   href="#rooms"
-                  className="h-11 px-6 rounded-md bg-[#006C54] hover:bg-[#005441] text-white font-black uppercase tracking-wider text-xs sm:text-sm shadow-xs active:scale-95 transition-all inline-flex items-center gap-2"
+                  className="btn-primary"
                 >
-                  <span>Jackpot Rooms</span>
+                  <span>Jackpot rooms</span>
                   <ArrowRight size={15} />
+                </a>
+                <a
+                  href="#match-schedule"
+                  className="btn-secondary"
+                >
+                  <span>Read more</span>
                 </a>
               </div>
 

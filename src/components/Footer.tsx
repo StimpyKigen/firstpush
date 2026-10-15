@@ -8,15 +8,15 @@ export default function Footer() {
   }
 
   return (
-    <footer className="border-t border-slate-200 bg-[#f4f5f7] text-slate-600 mt-20">
+    <footer className="border-t border-[#dee3e9] bg-white text-[#5d6c7b] mt-20">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 pb-8">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8 pb-10 border-b border-slate-200">
           {/* Brand Col */}
           <div className="space-y-3">
             <Link to="/" className="inline-block" aria-label="MshindiRoom">
-              <span className="font-display font-black text-2xl tracking-tighter italic text-slate-900 uppercase flex items-center">
-                MSHINDI<span className="text-[#006C54]">.</span>
-                <span className="ml-1.5 text-[9px] tracking-wider not-italic font-mono font-black px-1.5 py-0.5 rounded bg-[#006C54] text-[#FFD700]">ROOM</span>
+              <span className="font-display font-bold text-2xl tracking-tight text-[#0a1317] flex items-center">
+                Mshindi<span className="text-[#006C54]">.</span>
+                <span className="ml-2 text-[11px] font-bold px-2.5 py-1 rounded-full bg-[#006C54] text-[#FFD700]">Room</span>
               </span>
             </Link>
             <p className="text-xs text-slate-500 leading-relaxed max-w-xs">
@@ -24,7 +24,7 @@ export default function Footer() {
             </p>
             <button
               onClick={handleTriggerInstall}
-              className="inline-flex items-center gap-2 bg-white hover:bg-slate-50 border border-slate-300 text-slate-800 text-xs font-bold px-3.5 py-1.5 rounded-full shadow-xs active:scale-95 transition-all"
+              className="inline-flex items-center gap-2 bg-white hover:bg-[#f1f4f7] border-2 border-[#0a1317] text-[#0a1317] text-sm font-bold px-5 py-2 rounded-full active:scale-95 transition-colors"
               title="Install MshindiRoom App on Mobile or Desktop"
             >
               <Smartphone size={13} className="text-[#006C54]" />
@@ -34,7 +34,7 @@ export default function Footer() {
 
           {/* Quick Links Col 1 */}
           <div className="space-y-2.5 text-xs">
-            <p className="font-bold text-slate-900 uppercase tracking-wider text-[11px]">Consensus & Matches</p>
+            <p className="font-bold text-[#1c1e21] text-sm">Consensus & Matches</p>
             <ul className="space-y-2">
               <li><Link to="/" className="hover:text-[#006C54] transition-colors">Jackpot Rooms</Link></li>
               <li><Link to="/free" className="hover:text-[#006C54] transition-colors">Free Match Slate</Link></li>
@@ -46,7 +46,7 @@ export default function Footer() {
 
           {/* Legal Links Col 2 (As modeled in the reference) */}
           <div className="space-y-2.5 text-xs">
-            <p className="font-bold text-slate-900 uppercase tracking-wider text-[11px]">Policies &amp; Legal</p>
+            <p className="font-bold text-[#1c1e21] text-sm">Policies &amp; Legal</p>
             <ul className="space-y-2">
               <li><Link to="/terms" className="hover:text-[#006C54] transition-colors">Terms of Use</Link></li>
               <li><Link to="/privacy" className="hover:text-[#006C54] transition-colors">Privacy Policy</Link></li>
@@ -58,7 +58,7 @@ export default function Footer() {
 
           {/* Social Links Col */}
           <div className="space-y-3">
-            <p className="font-bold text-slate-900 uppercase tracking-wider text-[11px]">Follow Mshindi</p>
+            <p className="font-bold text-[#1c1e21] text-sm">Follow Mshindi</p>
             <div className="flex items-center gap-2">
               {/* Instagram */}
               <a
