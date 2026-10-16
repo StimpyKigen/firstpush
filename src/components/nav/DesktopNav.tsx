@@ -41,7 +41,7 @@ export default function DesktopNav({
   return (
     <>
       {/* Meta button-pill-tab / button-pill-tab-active category navigation */}
-      <nav className="hidden lg:flex items-center gap-2 min-w-0 flex-1 overflow-x-auto no-scrollbar h-16">
+      <nav className="hidden lg:flex items-center justify-center gap-0.5 xl:gap-1.5 min-w-0 flex-1 h-16">
         {links.map((l) => {
           const active = pathname === l.to;
           const isBuilder = l.to === '/slips';
@@ -49,21 +49,21 @@ export default function DesktopNav({
             <Link
               key={l.to}
               to={l.to}
-              className={`inline-flex items-center gap-1.5 px-4 py-2 text-sm font-bold whitespace-nowrap shrink-0 rounded-full transition-colors ${
+              className={`group inline-flex items-center gap-1.5 px-2 xl:px-3.5 py-2 text-[13px] xl:text-sm font-bold whitespace-nowrap shrink-0 rounded-full border transition-colors ${
                 active
-                  ? 'bg-[#0a1317] text-white border border-[#0a1317]'
-                  : 'bg-[#FFFFF0] text-[#1c1e21] border border-[#D4D4C0] hover:bg-[#F5F5E4]'
+                  ? 'bg-[#0a1317] text-white border-[#0a1317]'
+                  : 'bg-transparent text-[#1c1e21] border-transparent active:bg-[#0a1317] active:text-white active:border-[#0a1317]'
               }`}
             >
-              <l.icon size={15} className={`shrink-0 ${active ? 'text-[#FFD700]' : 'text-[#5d6c7b]'}`} />
+              <l.icon size={15} className={`shrink-0 hidden xl:block ${active ? 'text-[#FFD700]' : 'text-[#5d6c7b] group-active:text-[#FFD700]'}`} />
               <span>{l.label}</span>
               {isBuilder && builderLegsCount > 0 && (
-                <span className="bg-[#006C54] text-[#FFD700] font-bold text-[11px] px-2 rounded-full ml-1 shrink-0">
+                <span className="bg-[#006C54] text-[#FFD700] font-bold text-[11px] px-2 rounded-full ml-0.5 shrink-0">
                   {builderLegsCount}
                 </span>
               )}
               {l.soon && (
-                <span className="text-[11px] font-bold bg-[#8A6500] text-[#FFFFF0] px-2 py-0.5 rounded-full shrink-0 ml-1">Soon</span>
+                <span className="text-[10px] xl:text-[11px] font-bold bg-[#8A6500] text-[#FFFFF0] px-1.5 xl:px-2 py-0.5 rounded-full shrink-0 ml-0.5">Soon</span>
               )}
             </Link>
           );
@@ -76,7 +76,7 @@ export default function DesktopNav({
           to="/free"
           aria-label="Search fixtures and jackpots"
           title="Search fixtures & jackpots"
-          className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-[#F5F5E4] hover:bg-[#E6E6D2] text-[#5d6c7b] active:scale-95 transition-colors shrink-0"
+          className="hidden xl:inline-flex items-center justify-center w-10 h-10 rounded-full bg-[#F5F5E4] hover:bg-[#E6E6D2] text-[#5d6c7b] active:scale-95 transition-colors shrink-0"
         >
           <Search size={17} />
         </Link>
@@ -90,7 +90,7 @@ export default function DesktopNav({
             }}
             aria-label="Wallet & Mshindi Tokens"
             title="Wallet & Mshindi Tokens"
-            className={`inline-flex items-center gap-2 h-9 px-3.5 rounded-full border transition-all active:scale-95 ${
+            className={`inline-flex items-center gap-1.5 xl:gap-2 h-9 px-2.5 xl:px-3.5 rounded-full border transition-all active:scale-95 ${
               walletOpen
                 ? 'bg-emerald-50 border-[#006C54] text-[#006C54] shadow-xs'
                 : 'bg-[#F5F5E4] hover:bg-[#E6E6D2] border-[#E6E6D2] text-slate-700 hover:text-slate-900'
@@ -98,7 +98,7 @@ export default function DesktopNav({
           >
             <Wallet size={15} className="text-[#006C54] shrink-0" />
             <span className="text-xs font-bold font-mono text-slate-900">Ksh {balance.toLocaleString()}</span>
-            <ChevronDown size={13} className={`shrink-0 transition-transform duration-200 ${walletOpen ? 'rotate-180 text-[#006C54]' : 'text-slate-400'}`} />
+            <ChevronDown size={13} className={`hidden xl:block shrink-0 transition-transform duration-200 ${walletOpen ? 'rotate-180 text-[#006C54]' : 'text-slate-400'}`} />
           </button>
 
           {walletOpen && (
@@ -117,10 +117,10 @@ export default function DesktopNav({
           <div className="relative shrink-0">
             <button
               onClick={() => setProfileOpen(!profileOpen)}
-              className="inline-flex items-center gap-2 bg-[#F5F5E4] hover:bg-[#E6E6D2] border border-[#E6E6D2] rounded-full pl-1.5 pr-3 h-9 active:scale-95 transition-all max-w-[170px]"
+              className="inline-flex items-center gap-2 bg-[#F5F5E4] hover:bg-[#E6E6D2] border border-[#E6E6D2] rounded-full pl-1.5 pr-1.5 xl:pr-3 h-9 active:scale-95 transition-all max-w-[170px]"
             >
               <Avatar name={currentUser.username} seed={currentUser.phone.length} size={24} avatarId={currentUser.avatarId} />
-              <span className="text-xs font-bold text-slate-800 truncate">{currentUser.username}</span>
+              <span className="hidden xl:inline text-xs font-bold text-slate-800 truncate">{currentUser.username}</span>
             </button>
             {profileOpen && (
               <div className="absolute right-0 top-full mt-2 w-52 bg-[#FFFFF0] border border-[#E6E6D2] rounded-2xl shadow-xl p-1.5 overflow-hidden animate-rise z-50">

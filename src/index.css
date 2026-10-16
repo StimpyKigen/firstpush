@@ -457,3 +457,24 @@ table { border-color: var(--color-line); }
 @media (max-width: 767px) {
   .espn-red-banner { border-radius: 24px; }
 }
+
+/* ==========================================================================
+   Mobile floating tab bar — concave notch + sliding bubble
+   ========================================================================== */
+@property --notch-x {
+  syntax: '<percentage>';
+  inherits: false;
+  initial-value: 10%;
+}
+
+.mobile-nav-bar {
+  transition: --notch-x 320ms cubic-bezier(0.3, 0.8, 0.3, 1);
+}
+.mobile-nav-notch {
+  -webkit-mask-image: radial-gradient(circle 34px at var(--notch-x) 0px, transparent 33.5px, #000 34px);
+  mask-image: radial-gradient(circle 34px at var(--notch-x) 0px, transparent 33.5px, #000 34px);
+}
+.mobile-nav-bubble {
+  transform: translateX(-50%);
+  transition: left 320ms cubic-bezier(0.3, 0.8, 0.3, 1);
+}
