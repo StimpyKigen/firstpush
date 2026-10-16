@@ -117,7 +117,7 @@ function App() {
           */}
           <div className="app-shell w-full flex-1 flex flex-col">
             <Navbar />
-            <main className="flex-1 flex flex-col w-full pb-[calc(7rem+env(safe-area-inset-bottom,0px))] lg:pb-12 overflow-x-hidden">
+            <main className="flex-1 flex flex-col w-full pb-[calc(5.25rem+env(safe-area-inset-bottom,0px))] lg:pb-12 overflow-x-hidden">
               <AnimatedRoutes />
             </main>
             <Footer />

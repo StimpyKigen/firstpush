@@ -16,9 +16,11 @@ interface Tab {
   badge?: number;
 }
 
+const INSET = 6; // px of padding between the bar edge and the tabs / sliding pill
+
 /**
  * Floating bottom tab bar shown below `lg`.
- * The active tab's icon lifts into a green bubble set in a concave notch cut out of the bar.
+ * A green pill slides behind the active tab (gold icon, bold ivory label) and stays inside the bar.
  * The bar floats above the device's gesture/home indicator via the safe-area inset.
  */
 export default function MobileBottomNav({ pathname, builderLegsCount, currentUser }: MobileBottomNavProps) {
@@ -37,10 +39,8 @@ export default function MobileBottomNav({ pathname, builderLegsCount, currentUse
 
   const activeIndex = tabs.findIndex((t) => t.isActive);
   const hasActive = activeIndex >= 0;
-  const slotPct = 100 / tabs.length;
-  const centerPct = (activeIndex + 0.5) * slotPct;
-  const ActiveIcon = hasActive ? tabs[activeIndex].icon : null;
-  const activeBadge = hasActive ? tabs[activeIndex].badge : 0;
+  const count = tabs.length;
+  const slotWidth = `calc((100% - ${INSET * 2}px) / ${count})`;
 
   return (
     <nav
@@ -48,61 +48,60 @@ export default function MobileBottomNav({ pathname, builderLegsCount, currentUse
       className="lg:hidden fixed left-3 right-3 z-40 select-none"
       style={{ bottom: 'calc(env(safe-area-inset-bottom, 0px) + 12px)' }}
     >
-      {/* Drop shadow lives on the wrapper so it follows the masked (notched) bar shape */}
-      <div className="relative" style={{ filter: 'drop-shadow(0 6px 16px rgba(10, 19, 23, 0.14))' }}>
-        <div
-          className={`mobile-nav-bar h-[66px] rounded-[26px] bg-[#FFFFF0] border border-[#E6E6D2] ${hasActive ? 'mobile-nav-notch' : ''}`}
-          style={{ ['--notch-x' as string]: `${centerPct}%` }}
-        >
-          <div className="grid h-full" style={{ gridTemplateColumns: `repeat(${tabs.length}, minmax(0, 1fr))` }}>
-            {tabs.map((tab) => {
-              const Icon = tab.icon;
-              return (
-                <Link
-                  key={tab.to}
-                  to={tab.to}
-                  aria-current={tab.isActive ? 'page' : undefined}
-                  className="relative flex flex-col items-center justify-end gap-1 pb-2.5 touch-manipulation active:scale-95 transition-transform"
-                >
-                  <span className="relative flex items-center justify-center h-6">
-                    <Icon
-                      size={22}
-                      className={`transition-opacity duration-200 ${tab.isActive ? 'opacity-0' : 'text-[#5d6c7b]'}`}
-                    />
-                    {!tab.isActive && !!tab.badge && tab.badge > 0 && (
-                      <span className="absolute -top-1.5 -right-2.5 bg-[#006C54] text-[#FFD700] font-bold text-[9px] h-4 min-w-[16px] px-1 rounded-full flex items-center justify-center">
-                        {tab.badge}
-                      </span>
-                    )}
-                  </span>
-                  <span
-                    className={`text-[11px] leading-none tracking-tight max-w-full truncate px-1 ${
-                      tab.isActive ? 'font-bold text-[#0a1317]' : 'font-medium text-[#5d6c7b]'
-                    }`}
-                  >
-                    {tab.label}
-                  </span>
-                </Link>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Raised bubble that slides to the active tab */}
-        {hasActive && ActiveIcon && (
+      <div
+        className="relative h-[58px] rounded-[24px] bg-[#FFFFF0] border border-[#E6E6D2]"
+        style={{ boxShadow: '0 6px 16px rgba(10, 19, 23, 0.12)', padding: INSET }}
+      >
+        {/* Sliding active pill */}
+        {hasActive && (
           <span
             aria-hidden="true"
-            className="mobile-nav-bubble pointer-events-none absolute -top-[26px] flex h-[52px] w-[52px] items-center justify-center rounded-full bg-[#006C54] text-[#FFD700] shadow-[0_4px_12px_rgba(0,108,84,0.35)]"
-            style={{ left: `${centerPct}%` }}
-          >
-            <ActiveIcon size={24} />
-            {!!activeBadge && activeBadge > 0 && (
-              <span className="absolute -top-0.5 -right-0.5 bg-[#FFD700] text-[#0a1317] font-bold text-[9px] h-4 min-w-[16px] px-1 rounded-full flex items-center justify-center">
-                {activeBadge}
-              </span>
-            )}
-          </span>
+            className="mobile-nav-pill pointer-events-none absolute rounded-[18px] bg-[#006C54]"
+            style={{
+              top: INSET,
+              bottom: INSET,
+              width: slotWidth,
+              left: `calc(${INSET}px + ${activeIndex} * ${slotWidth})`,
+            }}
+          />
         )}
+
+        <div className="relative grid h-full" style={{ gridTemplateColumns: `repeat(${count}, minmax(0, 1fr))` }}>
+          {tabs.map((tab) => {
+            const Icon = tab.icon;
+            return (
+              <Link
+                key={tab.to}
+                to={tab.to}
+                aria-current={tab.isActive ? 'page' : undefined}
+                className="relative flex flex-col items-center justify-center gap-0.5 touch-manipulation active:scale-95 transition-transform"
+              >
+                <span className="relative flex items-center justify-center h-5">
+                  <Icon
+                    size={20}
+                    className={`transition-colors duration-300 ${tab.isActive ? 'text-[#FFD700]' : 'text-[#5d6c7b]'}`}
+                  />
+                  {!!tab.badge && tab.badge > 0 && (
+                    <span
+                      className={`absolute -top-1.5 -right-2.5 font-bold text-[9px] h-4 min-w-[16px] px-1 rounded-full flex items-center justify-center ${
+                        tab.isActive ? 'bg-[#FFD700] text-[#0a1317]' : 'bg-[#006C54] text-[#FFD700]'
+                      }`}
+                    >
+                      {tab.badge}
+                    </span>
+                  )}
+                </span>
+                <span
+                  className={`text-[10.5px] leading-none tracking-tight max-w-full truncate px-0.5 transition-colors duration-300 ${
+                    tab.isActive ? 'font-bold text-[#FFFFF0]' : 'font-medium text-[#5d6c7b]'
+                  }`}
+                >
+                  {tab.label}
+                </span>
+              </Link>
+            );
+          })}
+        </div>
       </div>
     </nav>
   );
