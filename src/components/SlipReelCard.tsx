@@ -2,7 +2,8 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import {
   Heart, Bookmark, Send, MessageCircle,
-  Copy, Check, ExternalLink, Clock, Trophy, Zap, X
+  Copy, Check, ExternalLink, Clock, Trophy, Zap, X,
+  ChevronUp, ChevronDown
 } from 'lucide-react';
 import Avatar from './Avatar';
 import { useBetSlipStore } from '../lib/betSlipStore';
@@ -17,9 +18,21 @@ interface SlipReelCardProps {
   post: BetSlipPost;
   index: number;
   isActive: boolean;
+  onPrev?: () => void;
+  onNext?: () => void;
+  canPrev?: boolean;
+  canNext?: boolean;
 }
 
-export default function SlipReelCard({ post, index, isActive }: SlipReelCardProps) {
+export default function SlipReelCard({
+  post,
+  index,
+  isActive,
+  onPrev,
+  onNext,
+  canPrev,
+  canNext
+}: SlipReelCardProps) {
   const toggleLike = useBetSlipStore((s) => s.toggleLike);
   const toggleSave = useBetSlipStore((s) => s.toggleSave);
 
@@ -118,12 +131,12 @@ export default function SlipReelCard({ post, index, isActive }: SlipReelCardProp
         {/* Ticket Container */}
         <div className="flex flex-col flex-1 min-h-0 overflow-hidden">
           {/* Ticket Header Bar */}
-          <div className="pb-2 pt-1 px-0.5 flex items-center justify-between gap-3 shrink-0">
-            <div className="flex items-center gap-2">
+          <div className="pb-2 pt-1 px-0.5 flex items-start justify-between gap-3 shrink-0">
+            <div className="flex items-center gap-2 pt-0.5">
               <span className="text-black text-sm sm:text-base font-black font-mono leading-none">
                 {slip.totalOdds.toFixed(2)}x
               </span>
-              <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
+              <span className="text-xs font-bold uppercase tracking-wider text-slate-500 leading-none">
                 {legs.length} Leg{legs.length !== 1 ? 's' : ''}
               </span>
             </div>
@@ -356,6 +369,28 @@ export default function SlipReelCard({ post, index, isActive }: SlipReelCardProp
             {post.savedByMe ? 'Saved' : 'Save'}
           </span>
         </button>
+
+        {/* Desktop Scroll Indicators (Grey, sitting just below the Save button) */}
+        {(onPrev || onNext) && (
+          <div className="hidden sm:flex flex-col items-center gap-1.5 pt-2">
+            <button
+              onClick={onPrev}
+              disabled={!canPrev}
+              aria-label="Previous slip"
+              className="w-7 h-7 rounded-full bg-slate-200/80 hover:bg-slate-300 text-slate-500 hover:text-slate-700 disabled:opacity-20 flex items-center justify-center transition-all cursor-pointer active:scale-95 shadow-2xs"
+            >
+              <ChevronUp size={15} />
+            </button>
+            <button
+              onClick={onNext}
+              disabled={!canNext}
+              aria-label="Next slip"
+              className="w-7 h-7 rounded-full bg-slate-200/80 hover:bg-slate-300 text-slate-500 hover:text-slate-700 disabled:opacity-20 flex items-center justify-center transition-all cursor-pointer active:scale-95 shadow-2xs"
+            >
+              <ChevronDown size={15} />
+            </button>
+          </div>
+        )}
       </div>
 
       {/* ── BOTTOM CREATOR & CAPTION OVERLAY ── */}

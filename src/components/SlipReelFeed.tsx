@@ -1,6 +1,6 @@
 import { useRef, useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { ChevronUp, ChevronDown, Layers, X } from 'lucide-react';
+import { ChevronUp, Layers, X } from 'lucide-react';
 import SlipReelCard from './SlipReelCard';
 import type { BetSlipPost } from '../lib/betSlipStore';
 
@@ -165,7 +165,15 @@ export default function SlipReelFeed({ posts, onClose }: SlipReelFeedProps) {
                 flexShrink: 0,
               }}
             >
-              <SlipReelCard post={post} index={i} isActive={i === activeIndex} />
+              <SlipReelCard
+                post={post}
+                index={i}
+                isActive={i === activeIndex}
+                onPrev={goPrev}
+                onNext={goNext}
+                canPrev={activeIndex > 0}
+                canNext={activeIndex < reelPosts.length - 1}
+              />
             </div>
           ))}
         </div>
@@ -209,25 +217,6 @@ export default function SlipReelFeed({ posts, onClose }: SlipReelFeedProps) {
           </div>
         </div>
 
-        {/* ── DESKTOP NAV ARROWS ───────────────────────────────────────────── */}
-        <div className="hidden sm:flex flex-col items-center gap-2 absolute right-3 top-1/2 -translate-y-1/2 z-20">
-          <button
-            onClick={goPrev}
-            disabled={activeIndex === 0}
-            aria-label="Previous slip"
-            className="p-2.5 rounded-full bg-white/90 backdrop-blur-md border border-slate-200 text-slate-700 hover:text-slate-900 disabled:opacity-25 transition-all hover:scale-105 active:scale-95 shadow-sm cursor-pointer"
-          >
-            <ChevronUp size={17} />
-          </button>
-          <button
-            onClick={goNext}
-            disabled={activeIndex === reelPosts.length - 1}
-            aria-label="Next slip"
-            className="p-2.5 rounded-full bg-white/90 backdrop-blur-md border border-slate-200 text-slate-700 hover:text-slate-900 disabled:opacity-25 transition-all hover:scale-105 active:scale-95 shadow-sm cursor-pointer"
-          >
-            <ChevronDown size={17} />
-          </button>
-        </div>
 
         {/* ── SWIPE HINT (mobile only) ─────────────────────────────────────── */}
         <AnimatePresence>
