@@ -172,9 +172,9 @@ export function generateOddsForFixture(f: BuilderFixture) {
       { label: `${f.awayTeam} (2)`, code: '2', odds: awayOdds },
     ],
     doubleChance: [
-      { label: `1X (${f.homeTeam} or Draw)`, code: '1X', odds: +(1 / (hProb + dProb) * 1.05).toFixed(2) },
-      { label: `12 (${f.homeTeam} or ${f.awayTeam})`, code: '12', odds: +(1 / (hProb + aProb) * 1.05).toFixed(2) },
-      { label: `X2 (${f.awayTeam} or Draw)`, code: 'X2', odds: +(1 / (dProb + aProb) * 1.05).toFixed(2) },
+      { label: 'Home or Draw', code: '1X', odds: +(1 / (hProb + dProb) * 1.05).toFixed(2) },
+      { label: 'Draw or Away', code: 'X2', odds: +(1 / (dProb + aProb) * 1.05).toFixed(2) },
+      { label: 'Home or Away', code: '12', odds: +(1 / (hProb + aProb) * 1.05).toFixed(2) },
     ],
     overUnderGoals: [
       { label: 'Over 1.5 Goals', code: 'O1.5', odds: 1.25 },
@@ -189,10 +189,10 @@ export function generateOddsForFixture(f: BuilderFixture) {
       { label: 'NG (No BTTS)', code: 'NG', odds: 2.05 },
     ],
     handicap: [
-      { label: `${f.homeTeam} (-1.5)`, code: 'H1.5', odds: +(homeOdds * 1.6).toFixed(2) },
-      { label: `${f.awayTeam} (+1.5)`, code: 'A1.5', odds: +(awayOdds * 0.65).toFixed(2) },
-      { label: `${f.homeTeam} (-0.5)`, code: 'H0.5', odds: homeOdds },
-      { label: `${f.awayTeam} (+0.5)`, code: 'A0.5', odds: +(1 / (dProb + aProb) * 1.05).toFixed(2) },
+      { label: 'Home (-1.5)', code: 'H1.5', odds: +(homeOdds * 1.6).toFixed(2) },
+      { label: 'Away (+1.5)', code: 'A1.5', odds: +(awayOdds * 0.65).toFixed(2) },
+      { label: 'Home (-0.5)', code: 'H0.5', odds: homeOdds },
+      { label: 'Away (+0.5)', code: 'A0.5', odds: +(1 / (dProb + aProb) * 1.05).toFixed(2) },
     ],
     correctScore: [
       { label: '1 - 0', code: '1-0', odds: 6.50 },
