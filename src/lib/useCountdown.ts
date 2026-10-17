@@ -12,7 +12,7 @@ export interface CountdownState {
 }
 
 function formatCountdown(seconds: number): string {
-  if (seconds <= 0) return '⚡ LIVE — Match in Progress';
+  if (seconds <= 0) return 'live';
   const h = Math.floor(seconds / 3600);
   const m = Math.floor((seconds % 3600) / 60);
   const s = seconds % 60;
@@ -35,7 +35,7 @@ export function useCountdown(target: Date | null): CountdownState {
     const diff = Math.floor((target.getTime() - Date.now()) / 1000);
     const isLive = diff <= 0;
     return {
-      label: isLive ? '⚡ LIVE — Match in Progress' : formatCountdown(diff),
+      label: isLive ? 'live' : formatCountdown(diff),
       isLive,
       isUnknown: false,
       secondsLeft: diff,

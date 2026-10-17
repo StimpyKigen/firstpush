@@ -143,21 +143,23 @@ export default function SlipReelCard({
 
             {/* Top Right: Countdown & Booking Code (Vertically inline with interaction buttons) */}
             <div className="flex flex-col items-end gap-1 shrink-0">
-              {/* Countdown Badge */}
-              <div
-                className={`flex items-center gap-1.5 text-xs font-mono font-bold ${
-                  countdown.isLive
-                    ? 'text-emerald-700'
-                    : 'text-[#8A6500]'
-                }`}
-              >
-                {countdown.isLive ? (
-                  <Zap size={12} className="animate-pulse text-emerald-600" />
-                ) : (
+              {/* Countdown / Live Badge */}
+              {countdown.isLive ? (
+                <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/25 shadow-[0_0_10px_rgba(16,185,129,0.25)] text-emerald-600">
+                  <span className="relative flex h-1.5 w-1.5">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                    <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500 shadow-[0_0_6px_#10b981]" />
+                  </span>
+                  <span className="text-[11px] font-mono font-bold lowercase tracking-wider text-emerald-600 drop-shadow-[0_0_6px_rgba(16,185,129,0.5)]">
+                    live
+                  </span>
+                </div>
+              ) : (
+                <div className="flex items-center gap-1.5 text-xs font-mono font-bold text-[#8A6500]">
                   <Clock size={12} className="text-[#8A6500]" />
-                )}
-                <span>{countdown.isUnknown ? 'Pending KO' : countdown.label}</span>
-              </div>
+                  <span>{countdown.isUnknown ? 'Pending KO' : countdown.label}</span>
+                </div>
+              )}
 
               {/* Booking Code Pill */}
               {(slip.bookieCode || slip.bookieLink) && (
