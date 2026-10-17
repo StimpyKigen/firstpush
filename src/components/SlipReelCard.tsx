@@ -114,7 +114,7 @@ export default function SlipReelCard({ post, index, isActive }: SlipReelCardProp
       <div className="absolute inset-0 bg-gradient-to-b from-[#FFFFF0] via-[#FAF9EC] to-[#F5F5E4] pointer-events-none" />
 
       {/* ── CENTER BET SLIP TICKET CONTENT ── */}
-      <div className="relative z-10 flex flex-col h-full pt-13 pb-32 pl-4 pr-12 sm:pl-5 sm:pr-14">
+      <div className="relative z-10 flex flex-col h-full pt-13 pb-32 pl-4 pr-2.5 sm:pl-5 sm:pr-3">
         {/* Ticket Container */}
         <div className="flex flex-col flex-1 min-h-0 overflow-hidden">
           {/* Ticket Header Bar */}
@@ -128,7 +128,7 @@ export default function SlipReelCard({ post, index, isActive }: SlipReelCardProp
               </span>
             </div>
 
-            {/* Top Right: Countdown & Booking Code */}
+            {/* Top Right: Countdown & Booking Code (Vertically inline with interaction buttons) */}
             <div className="flex flex-col items-end gap-1 shrink-0">
               {/* Countdown Badge */}
               <div
@@ -176,7 +176,7 @@ export default function SlipReelCard({ post, index, isActive }: SlipReelCardProp
 
           {/* Centered Scrollable Matches Container */}
           <div
-            className={`flex-1 min-h-0 py-1 px-0.5 flex flex-col overflow-y-auto slip-legs-scroll ${
+            className={`flex-1 min-h-0 py-1 pl-0.5 pr-9.5 sm:pr-11 flex flex-col overflow-y-auto slip-legs-scroll ${
               legs.length >= 7 ? 'justify-start' : 'justify-center'
             }`}
             style={{
