@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
-import { Send, X, Sparkles, RefreshCw, ShieldCheck } from 'lucide-react';
+import { Send, X, RefreshCw, ShieldCheck } from 'lucide-react';
 
 interface ChatMessage {
   id: string;
@@ -9,15 +9,6 @@ interface ChatMessage {
   timestamp: string;
   isError?: boolean;
 }
-
-const FAQ_SUGGESTIONS = [
-  '⚡ How does Jackpot Consensus work?',
-  '🎲 Bet Builder vs Jackpot Rooms?',
-  '💳 How do I deposit with M-Pesa?',
-  '👑 How is the Gameweek Leaderboard crowned?',
-  '⭐️ How do 5-Star Punter Ratings increase?',
-  '🎮 How do P2P Wagers work?',
-];
 
 // Clean AI Assistant Chat Icon
 function AvaLogo({ className = "w-6 h-6" }: { className?: string }) {
@@ -205,72 +196,73 @@ export default function AvaChatSupport() {
         </div>
       )}
 
-      {/* Floating Support Window Widget (Optimized Mobile Sizing) */}
+      {/* Floating Support Window Widget (Modern iOS/ChatGPT Style Redesign) */}
       {isOpen && (
-        <div className="fixed z-50 bottom-[calc(0.625rem+env(safe-area-inset-bottom))] sm:bottom-10 lg:bottom-16 right-2 left-2 sm:left-auto sm:right-6 w-auto sm:w-[370px] h-[510px] max-h-[82vh] bg-panel border border-[#E6E6D2] rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-200">
-          {/* Header */}
-          <div className="p-3 sm:p-3.5 bg-panel-2 border-b border-line flex items-center justify-between shrink-0">
+        <div className="fixed z-50 bottom-[calc(0.625rem+env(safe-area-inset-bottom))] sm:bottom-10 lg:bottom-16 right-2 left-2 sm:left-auto sm:right-6 w-auto sm:w-[380px] h-[530px] max-h-[85vh] bg-[#FFFFF0] border border-[#E6E6D2] rounded-[28px] shadow-2xl flex flex-col overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-200">
+          {/* Top Subtle Pull Handle */}
+          <div className="pt-2 pb-0.5 flex justify-center shrink-0">
+            <span className="w-9 h-1 rounded-full bg-slate-300/80" />
+          </div>
+
+          {/* Minimalist Header */}
+          <div className="px-3.5 py-2.5 bg-[#FFFFF0] border-b border-[#E6E6D2]/70 flex items-center justify-between shrink-0">
             <div className="flex items-center gap-2.5">
-              <div className="relative w-9 h-9 rounded-xl bg-[#FFFFF0] border border-[#E6E6D2] flex items-center justify-center shrink-0 shadow-sm p-1">
-                <AvaLogo className="w-6 h-6" />
-                <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-emerald-500 border-2 border-[#FFFFF0] rounded-full"></span>
+              <div className="relative w-8 h-8 rounded-full bg-white border border-[#E6E6D2] flex items-center justify-center shrink-0 shadow-2xs p-1">
+                <AvaLogo className="w-5 h-5" />
+                <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-emerald-500 border-2 border-[#FFFFF0] rounded-full"></span>
               </div>
               <div>
-                <div className="flex items-center gap-1.5">
-                  <h3 className="font-display font-extrabold text-cream text-sm">Ava</h3>
-                  <span className="text-[10px] font-bold text-gold bg-gold/10 px-1.5 py-0.1 rounded border border-gold/20 flex items-center gap-0.5">
-                    <Sparkles size={9} /> AI 24/7
-                  </span>
-                </div>
-                <p className="text-[10px] sm:text-[11px] text-emerald-400 font-medium flex items-center gap-1">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-                  MshindiRoom Specialist • Online
+                <h3 className="font-display font-bold text-slate-900 text-sm leading-tight">Ava</h3>
+                <p className="text-[10px] text-emerald-600 font-medium flex items-center gap-1">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                  Online • Mshindi Support
                 </p>
               </div>
             </div>
 
-            <div className="flex items-center gap-1 text-cream-dim">
+            <div className="flex items-center gap-1 text-slate-500">
               <button
                 onClick={handleClearChat}
-                className="p-1.5 rounded-lg hover:bg-ink hover:text-cream transition-colors"
+                className="w-8 h-8 rounded-full hover:bg-slate-200/60 text-slate-500 hover:text-slate-800 flex items-center justify-center transition-colors"
                 title="Clear Chat History"
               >
-                <RefreshCw size={14} />
+                <RefreshCw size={13} />
               </button>
               <button
                 onClick={() => setIsOpen(false)}
-                className="p-1.5 rounded-lg hover:bg-ink hover:text-cream transition-colors"
-                title="Minimize Chat"
+                className="w-8 h-8 rounded-full bg-slate-200/70 hover:bg-slate-300/80 text-slate-700 flex items-center justify-center transition-colors"
+                title="Close Chat"
+                aria-label="Close Chat"
               >
-                <X size={18} />
+                <X size={15} />
               </button>
             </div>
           </div>
 
           {/* Chat Messages Body */}
-          <div className="flex-1 p-3 sm:p-3.5 overflow-y-auto space-y-3 text-xs text-cream-dim scrollbar-thin">
+          <div className="flex-1 p-3.5 sm:p-4 overflow-y-auto space-y-3 text-xs text-slate-700 scrollbar-thin">
             {messages.map((msg) => (
               <div
                 key={msg.id}
                 className={`flex gap-2 sm:gap-2.5 ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}
               >
                 {msg.sender === 'ava' && (
-                  <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-lg bg-[#FFFFF0] border border-[#E6E6D2] flex items-center justify-center shrink-0 mt-0.5 p-0.5 shadow-2xs">
+                  <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-white border border-[#E6E6D2] flex items-center justify-center shrink-0 mt-0.5 p-0.5 shadow-2xs">
                     <AvaLogo className="w-4 h-4 sm:w-5 sm:h-5" />
                   </div>
                 )}
 
                 <div
-                  className={`max-w-[86%] rounded-2xl p-2.5 sm:p-3 text-xs leading-relaxed ${
+                  className={`max-w-[85%] rounded-[20px] p-3 text-xs leading-relaxed ${
                     msg.sender === 'user'
-                      ? 'bg-gold text-ink-2 font-medium rounded-tr-none shadow-md'
-                      : 'bg-panel-2 border border-line/80 text-cream rounded-tl-none shadow'
+                      ? 'bg-[#EEAA04] text-[#0a1317] font-medium rounded-br-sm shadow-xs'
+                      : 'bg-white border border-[#E6E6D2] text-slate-800 rounded-tl-sm shadow-2xs'
                   }`}
                 >
                   <div>{renderFormattedText(msg.text)}</div>
                   <div
                     className={`mt-1 text-[9px] font-mono ${
-                      msg.sender === 'user' ? 'text-ink-2/70 text-right' : 'text-cream-dim/60 text-left'
+                      msg.sender === 'user' ? 'text-[#0a1317]/70 text-right' : 'text-slate-400 text-left'
                     }`}
                   >
                     {msg.timestamp}
@@ -282,15 +274,15 @@ export default function AvaChatSupport() {
             {/* Loading Indicator */}
             {isLoading && (
               <div className="flex gap-2 sm:gap-2.5 justify-start items-center">
-                <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-lg bg-[#FFFFF0] border border-[#E6E6D2] flex items-center justify-center shrink-0 p-0.5 shadow-2xs">
+                <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-white border border-[#E6E6D2] flex items-center justify-center shrink-0 p-0.5 shadow-2xs">
                   <AvaLogo className="w-4 h-4 sm:w-5 sm:h-5" />
                 </div>
-                <div className="bg-panel-2 border border-line/80 rounded-2xl rounded-tl-none px-3 py-2 flex items-center gap-1.5 text-cream-dim">
-                  <span className="text-[11px] font-medium text-gold">Ava is typing</span>
+                <div className="bg-white border border-[#E6E6D2] rounded-[18px] rounded-tl-sm px-3.5 py-2 flex items-center gap-1.5 shadow-2xs">
+                  <span className="text-[11px] font-medium text-[#EEAA04]">Ava is typing</span>
                   <div className="flex items-center gap-1">
-                    <span className="w-1.5 h-1.5 bg-gold rounded-full animate-bounce [animation-delay:-0.3s]"></span>
-                    <span className="w-1.5 h-1.5 bg-gold rounded-full animate-bounce [animation-delay:-0.15s]"></span>
-                    <span className="w-1.5 h-1.5 bg-gold rounded-full animate-bounce"></span>
+                    <span className="w-1.5 h-1.5 bg-[#EEAA04] rounded-full animate-bounce [animation-delay:-0.3s]"></span>
+                    <span className="w-1.5 h-1.5 bg-[#EEAA04] rounded-full animate-bounce [animation-delay:-0.15s]"></span>
+                    <span className="w-1.5 h-1.5 bg-[#EEAA04] rounded-full animate-bounce"></span>
                   </div>
                 </div>
               </div>
@@ -299,30 +291,14 @@ export default function AvaChatSupport() {
             <div ref={messagesEndRef} />
           </div>
 
-          {/* Quick FAQ Suggestion Chips */}
-          {messages.length < 5 && (
-            <div className="px-2.5 py-1.5 bg-ink/40 border-t border-line/50 overflow-x-auto whitespace-nowrap flex items-center gap-1.5 scrollbar-none">
-              {FAQ_SUGGESTIONS.map((faq, idx) => (
-                <button
-                  key={idx}
-                  onClick={() => void handleSendMessage(faq)}
-                  disabled={isLoading}
-                  className="px-2 py-1 rounded-full bg-panel-2 hover:bg-gold/15 border border-line hover:border-gold/30 text-cream-dim hover:text-gold text-[10px] font-medium transition-colors shrink-0 disabled:opacity-50"
-                >
-                  {faq}
-                </button>
-              ))}
-            </div>
-          )}
-
-          {/* Input Footer Bar */}
-          <div className="p-2.5 sm:p-3 bg-panel-2 border-t border-line">
+          {/* Floating Capsule Input Footer Bar (Inspired by Photo 2) */}
+          <div className="p-3 bg-[#FFFFF0] border-t border-[#E6E6D2]/60">
             <form
               onSubmit={(e) => {
                 e.preventDefault();
                 void handleSendMessage();
               }}
-              className="flex items-center gap-1.5 sm:gap-2"
+              className="relative flex items-center gap-2 bg-[#0a1317] text-white rounded-full pl-4 pr-1.5 py-1.5 shadow-md focus-within:ring-2 focus-within:ring-[#EEAA04]/50 transition-all"
             >
               <input
                 ref={inputRef}
@@ -330,25 +306,24 @@ export default function AvaChatSupport() {
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={handleKeyDown}
-                placeholder="Ask Ava anything..."
+                placeholder="Ask anything..."
                 disabled={isLoading}
-                className="flex-1 bg-ink border border-line rounded-xl px-2.5 py-1.5 sm:px-3 sm:py-2 text-xs text-cream placeholder-cream-dim/50 focus:outline-none focus:border-gold/60 transition-colors disabled:opacity-50"
+                className="flex-1 bg-transparent text-white placeholder-slate-400 text-xs sm:text-[13px] focus:outline-none min-w-0"
               />
               <button
                 type="submit"
                 disabled={!input.trim() || isLoading}
-                className="p-1.5 sm:p-2 rounded-xl bg-gold text-ink-2 font-bold hover:bg-amber-400 disabled:opacity-40 disabled:hover:bg-gold transition-colors shrink-0"
+                className="w-8 h-8 rounded-full bg-[#EEAA04] text-[#0a1317] flex items-center justify-center font-bold hover:bg-amber-400 disabled:opacity-30 disabled:hover:bg-[#EEAA04] transition-all shrink-0 active:scale-95"
                 title="Send Message"
               >
-                <Send size={15} />
+                <Send size={14} className="ml-0.5" />
               </button>
             </form>
-            <div className="mt-1 flex items-center justify-between text-[9px] text-cream-dim/60 px-0.5">
+            <div className="mt-1.5 flex items-center justify-center text-[10px] text-slate-400">
               <span className="flex items-center gap-1">
-                <ShieldCheck size={10} className="text-emerald-400" />
+                <ShieldCheck size={11} className="text-emerald-500" />
                 Verified Mshindi AI Assistant
               </span>
-              <span>Gemini 3.6 • 24/7</span>
             </div>
           </div>
         </div>
