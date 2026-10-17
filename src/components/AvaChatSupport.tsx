@@ -173,7 +173,7 @@ export default function AvaChatSupport() {
     <>
       {/* Floating Toggle Button (Borderless Icon with Green Online Indicator) */}
       {!isOpen && (
-        <div className="fixed bottom-[calc(6.75rem+env(safe-area-inset-bottom))] sm:bottom-10 lg:bottom-16 right-2 sm:right-3 z-50 flex items-center">
+        <div className="fixed bottom-[calc(6.25rem+env(safe-area-inset-bottom))] sm:bottom-10 lg:bottom-16 right-2 sm:right-3 z-50 flex items-center">
           <button
             onClick={() => setIsOpen(true)}
             className="relative p-1 focus:outline-none hover:scale-110 active:scale-95 transition-transform group"

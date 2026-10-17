@@ -552,4 +552,12 @@ table { border-color: var(--color-line); }
   }
 }
 
+/* Mobile bottom nav PWA standalone offset */
+@media (display-mode: standalone) {
+  .mobile-bottom-nav-container {
+    bottom: max(6px, calc(env(safe-area-inset-bottom, 0px) + 4px)) !important;
+  }
+}
+
+
 

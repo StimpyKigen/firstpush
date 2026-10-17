@@ -45,8 +45,8 @@ export default function MobileBottomNav({ pathname, builderLegsCount, currentUse
   return (
     <nav
       aria-label="Primary"
-      className="lg:hidden fixed left-3 right-3 z-40 select-none"
-      style={{ bottom: 'calc(env(safe-area-inset-bottom, 0px) + 12px)' }}
+      className="lg:hidden fixed left-3 right-3 z-40 select-none mobile-bottom-nav-container"
+      style={{ bottom: 'max(6px, calc(env(safe-area-inset-bottom, 0px) + 5px))' }}
     >
       <div
         className="relative h-[58px] rounded-[24px] mobile-nav-glass border border-[#E6E6D2]/80"
