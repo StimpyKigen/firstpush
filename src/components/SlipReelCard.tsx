@@ -331,9 +331,9 @@ export default function SlipReelCard({ post, index, isActive }: SlipReelCardProp
 
       {/* ── BOTTOM CREATOR & CAPTION OVERLAY ── */}
       <div
-        className="absolute left-3.5 right-18 z-20 flex flex-col gap-1.5 pointer-events-auto"
+        className="absolute left-4 right-18 z-20 flex flex-col gap-1.5 pointer-events-auto"
         style={{
-          bottom: 'max(14px, env(safe-area-inset-bottom))',
+          bottom: 'max(24px, calc(env(safe-area-inset-bottom) + 10px))',
         }}
       >
         {/* Creator Row */}
@@ -389,9 +389,9 @@ export default function SlipReelCard({ post, index, isActive }: SlipReelCardProp
           </div>
         )}
 
-        {/* Bookie Code Pill */}
+        {/* Bookie Code Pill (Raised and shifted right) */}
         {(slip.bookieCode || slip.bookieLink) && (
-          <div className="flex items-center gap-2 pt-0.5">
+          <div className="flex items-center gap-2 pt-1 pl-3.5">
             {slip.bookieCode && (
               <button
                 onClick={handleCopyCode}

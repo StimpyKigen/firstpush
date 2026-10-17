@@ -170,22 +170,19 @@ export default function SlipReelFeed({ posts, onClose }: SlipReelFeedProps) {
           ))}
         </div>
 
-        {/* ── TOP BAR (Instagram Reels Header) ──────────────────────────────── */}
+        {/* ── TOP BAR (SlipFeed Header) ──────────────────────────────── */}
         <div
           className="absolute top-0 left-0 right-0 z-30 flex items-center justify-between gap-2 px-4"
           style={{ paddingTop: 'max(14px, env(safe-area-inset-top))' }}
         >
-          <div className="flex items-center gap-2">
+          <div className="flex items-center">
             <h2 className="font-display font-black text-xl text-slate-900 tracking-tight leading-none">
-              Reels
+              SlipFeed
             </h2>
-            <span className="text-[10px] font-mono font-bold text-slate-500 bg-slate-200/70 px-2 py-0.5 rounded-full">
-              {activeIndex + 1}/{reelPosts.length}
-            </span>
           </div>
 
           {showDots && (
-            <div className="flex items-center gap-1 justify-center flex-1 overflow-hidden px-2">
+            <div className="absolute left-1/2 -translate-x-1/2 flex items-center gap-1 justify-center pointer-events-auto">
               {reelPosts.map((_, i) => (
                 <button
                   key={i}
@@ -193,7 +190,7 @@ export default function SlipReelFeed({ posts, onClose }: SlipReelFeedProps) {
                   aria-label={`Go to slip ${i + 1}`}
                   className={`rounded-full transition-all shrink-0 ${
                     i === activeIndex
-                      ? 'w-4 h-[5px] bg-[#006C54]'
+                      ? 'w-5 h-[5px] bg-[#006C54]'
                       : 'w-[5px] h-[5px] bg-slate-300 hover:bg-slate-400'
                   }`}
                 />
@@ -204,7 +201,7 @@ export default function SlipReelFeed({ posts, onClose }: SlipReelFeedProps) {
           <div className="flex items-center gap-2">
             <button
               onClick={onClose}
-              aria-label="Close Reels"
+              aria-label="Close SlipFeed"
               className="w-8 h-8 rounded-full bg-white/90 hover:bg-white text-slate-800 border border-slate-200 shadow-2xs flex items-center justify-center transition-all active:scale-95 cursor-pointer"
             >
               <X size={16} />
