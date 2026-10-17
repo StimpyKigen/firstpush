@@ -34,14 +34,25 @@ export const Login: React.FC = () => {
 
       {/* Main Animated Card */}
       <div className={`card ${isRegister ? 'register' : ''}`}>
-        {/* Mobile card pitch background layer */}
-        <div className="mobile-card-pitch-bg" aria-hidden="true">
+        {/* Mobile Football Pitch Showcase Banner */}
+        <div className="mobile-pitch-banner">
           <img
             src="/images/auth-pitch-bg.jpg"
             alt="Football Pitch Background"
-            className="mobile-card-pitch-img"
+            className="mobile-pitch-banner-img"
           />
-          <div className="mobile-card-pitch-overlay" />
+          <div className="mobile-pitch-banner-overlay" />
+          <div className="mobile-pitch-banner-content">
+            <span className="mobile-pitch-badge">MshindiRoom</span>
+            <h2 className="mobile-pitch-title">
+              {isRegister ? 'Hello there' : 'Welcome back'}
+            </h2>
+            <p className="mobile-pitch-subtitle">
+              {isRegister
+                ? 'Register now to track slips & consensus'
+                : 'Sign in to access your active pools & slips'}
+            </p>
+          </div>
         </div>
 
         {/* Mobile segmented mode switch */}
@@ -74,7 +85,7 @@ export const Login: React.FC = () => {
           </div>
         </div>
 
-        {/* Registration-side hero */}
+        {/* Registration-side hero (Desktop) */}
         <Hero
           variant="register"
           title="Welcome back"
@@ -83,7 +94,7 @@ export const Login: React.FC = () => {
           onSwitch={() => setIsRegister(false)}
         />
 
-        {/* Login-side hero */}
+        {/* Login-side hero (Desktop) */}
         <Hero
           variant="login"
           title="Hello there"
