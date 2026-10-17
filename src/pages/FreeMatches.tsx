@@ -7,7 +7,7 @@ import { getEffectiveMatchDayFormattedEAT } from '../lib/footballApi';
 import { useBetSlipStore } from '../lib/betSlipStore';
 import { showToast } from '../lib/notificationStore';
 import QuickBetBuilderModal, { type MatchForBuilder } from '../components/QuickBetBuilderModal';
-import { MatchListSkeleton, SkeletonImage } from '../components/skeleton';
+import { MatchListSkeleton } from '../components/skeleton';
 
 const tierColor: Record<string, string> = {
   blockbuster: '#8A6500',
@@ -260,24 +260,10 @@ export default function FreeMatches() {
                   {/* Team Names and Match Header */}
                   <Link to={`/free/${m.id}`} className="block group-hover:text-[#006C54] transition-colors">
                     <h3 className="font-display font-black text-base sm:text-lg text-slate-900 leading-snug flex items-center gap-2 flex-wrap">
-                      {m.homeLogo && (
-                        <SkeletonImage
-                          src={m.homeLogo}
-                          alt=""
-                          className="w-5 h-5 object-contain inline shrink-0"
-                          skeletonClassName="w-5 h-5 rounded-full"
-                        />
-                      )}
+                      {m.homeLogo && <img src={m.homeLogo} alt="" loading="lazy" decoding="async" referrerPolicy="no-referrer" className="w-5 h-5 object-contain inline shrink-0" />}
                       <span>{m.home}</span>
                       <span className="text-slate-400 text-xs font-normal">v</span>
-                      {m.awayLogo && (
-                        <SkeletonImage
-                          src={m.awayLogo}
-                          alt=""
-                          className="w-5 h-5 object-contain inline shrink-0"
-                          skeletonClassName="w-5 h-5 rounded-full"
-                        />
-                      )}
+                      {m.awayLogo && <img src={m.awayLogo} alt="" loading="lazy" decoding="async" referrerPolicy="no-referrer" className="w-5 h-5 object-contain inline shrink-0" />}
                       <span>{m.away}</span>
                     </h3>
                     <p className="text-xs text-slate-500 mt-1 font-semibold">{m.competition}</p>
