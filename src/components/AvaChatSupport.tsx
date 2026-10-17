@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import { Send, X, Sparkles, RefreshCw, ShieldCheck } from 'lucide-react';
 
 interface ChatMessage {
@@ -34,6 +35,7 @@ function AvaLogo({ className = "w-6 h-6" }: { className?: string }) {
 }
 
 export default function AvaChatSupport() {
+  const location = useLocation();
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>(() => [
     {
@@ -169,6 +171,11 @@ export default function AvaChatSupport() {
         </p>
       );
     });
+  }
+
+  // Chatbot icon should only appear on the homepage
+  if (location.pathname !== '/') {
+    return null;
   }
 
   return (

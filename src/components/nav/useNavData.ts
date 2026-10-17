@@ -13,7 +13,7 @@ export interface NavLinkItem {
 }
 
 export const NAV_LINKS: NavLinkItem[] = [
-  { to: '/', label: 'Jackpots', icon: Home },
+  { to: '/', label: 'Home', icon: Home },
   { to: '/free', label: 'Free Matches', icon: Unlock },
   { to: '/slips', label: 'Bet Builder', icon: Dices },
   { to: '/p2p', label: 'P2P Bets', icon: Swords, soon: true },

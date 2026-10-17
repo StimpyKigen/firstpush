@@ -25,7 +25,7 @@ const INSET = 6; // px of padding between the bar edge and the tabs / sliding pi
  */
 export default function MobileBottomNav({ pathname, builderLegsCount, currentUser }: MobileBottomNavProps) {
   const tabs: Tab[] = [
-    { to: '/', label: 'Jackpots', icon: Home, isActive: pathname === '/' },
+    { to: '/', label: 'Home', icon: Home, isActive: pathname === '/' },
     { to: '/free', label: 'Matches', icon: Unlock, isActive: pathname.startsWith('/free') },
     { to: '/slips', label: 'Slips', icon: Dices, isActive: pathname === '/slips', badge: builderLegsCount },
     { to: '/leaderboard', label: 'Ranks', icon: Trophy, isActive: pathname === '/leaderboard' },
