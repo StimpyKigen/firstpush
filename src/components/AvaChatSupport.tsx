@@ -173,24 +173,24 @@ export default function AvaChatSupport() {
 
   return (
     <>
-      {/* Floating Toggle Button (Sleek, Circular Floating Action Button with New Chat Icon) */}
+      {/* Floating Toggle Button (Borderless Icon with Green Online Indicator) */}
       {!isOpen && (
-        <div className="fixed bottom-[calc(6.75rem+env(safe-area-inset-bottom))] sm:bottom-10 lg:bottom-16 right-3.5 sm:right-6 z-50 flex items-center">
+        <div className="fixed bottom-[calc(6.75rem+env(safe-area-inset-bottom))] sm:bottom-10 lg:bottom-16 right-2 sm:right-3 z-50 flex items-center">
           <button
             onClick={() => setIsOpen(true)}
-            className="relative w-12 h-12 sm:w-13 sm:h-13 rounded-full bg-[#FFFFF0] border-2 border-[#0a1317] shadow-xl hover:shadow-2xl hover:border-[#006C54] hover:scale-105 active:scale-95 transition-all flex items-center justify-center p-2 group overflow-visible"
+            className="relative p-1 focus:outline-none hover:scale-110 active:scale-95 transition-transform group"
             title="Open 24/7 AI Support"
             aria-label="Open 24/7 Support Chat"
           >
-            <AvaLogo className="w-7 h-7 sm:w-8 sm:h-8 transition-transform group-hover:scale-110" />
+            <AvaLogo className="w-11 h-11 sm:w-12 sm:h-12 drop-shadow-md transition-transform" />
             
-            {/* Online status indicator */}
-            <span className="absolute top-0 right-0 flex h-3.5 w-3.5">
-              <span className="relative inline-flex rounded-full h-3.5 w-3.5 bg-emerald-500 border-2 border-[#FFFFF0]"></span>
+            {/* Green online indicator directly on the borderless icon */}
+            <span className="absolute top-1 right-1 flex h-3.5 w-3.5">
+              <span className="relative inline-flex rounded-full h-3.5 w-3.5 bg-emerald-500 border-2 border-white shadow-xs"></span>
             </span>
 
             {unreadBadge && (
-              <span className="absolute -bottom-1 -left-1 px-1.5 py-0.5 text-[9px] font-extrabold bg-rose-500 text-white rounded-full">
+              <span className="absolute -bottom-0.5 -left-0.5 px-1.5 py-0.5 text-[9px] font-extrabold bg-rose-500 text-white rounded-full shadow-sm">
                 1
               </span>
             )}
