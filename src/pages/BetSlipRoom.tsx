@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import {
-  ArrowLeft, Sparkles, X, Search, UserPlus, UserCheck, Share2, Dices, Clapperboard
+  ArrowLeft, X, Search, UserPlus, UserCheck, Share2, Dices, Clapperboard
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import SeoHead from '../components/SeoHead';
@@ -84,11 +84,6 @@ export default function BetSlipRoom() {
       </div>
 
       <div className="mb-8 text-center sm:text-left">
-        <div className="flex items-center justify-center sm:justify-start gap-2 mb-2">
-          <span className="inline-flex items-center gap-1.5 bg-[#006C54] text-[#FFD700] border border-[#005441] text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full shadow-xs">
-            <Sparkles size={13} className="text-[#FFD700]" /> Community Slips Hub
-          </span>
-        </div>
         <h1 className="font-display font-black text-3xl sm:text-5xl text-slate-900 tracking-tight uppercase">
           Bet Builder &amp; Slips
         </h1>

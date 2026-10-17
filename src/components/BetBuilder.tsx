@@ -60,7 +60,7 @@ export default function BetBuilder({ onPublished }: BetBuilderProps) {
       <div className="bg-gradient-to-r from-panel via-panel-2 to-panel border border-gold/30 rounded-2xl p-4 sm:p-5 shadow-lg relative overflow-hidden">
         <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <div className="inline-flex items-center gap-1.5 bg-gold/10 border border-gold/30 text-gold text-xs font-bold px-3 py-1 rounded-full mb-1">
+            <div className="inline-flex items-center gap-1.5 text-[#6D4F00] text-xs font-bold uppercase tracking-wider mb-1">
               <Dices size={13} /> Custom Bet Builder Engine
             </div>
             <h2 className="font-display font-black text-xl sm:text-2xl text-cream">
@@ -73,8 +73,8 @@ export default function BetBuilder({ onPublished }: BetBuilderProps) {
 
           <div className="flex items-center gap-2 shrink-0">
             <span className="text-xs font-bold text-cream-dim bg-ink px-3 py-1.5 rounded-xl border border-line flex items-center gap-1.5">
-              <Layers size={13} className="text-gold" />
-              <strong className="text-gold font-mono text-sm">{cartLegs.length}</strong> Legs Selected
+              <Layers size={13} className="text-[#6D4F00]" />
+              <strong className="text-[#6D4F00] font-mono text-sm">{cartLegs.length}</strong> Legs Selected
             </span>
           </div>
         </div>
