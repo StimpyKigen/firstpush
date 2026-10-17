@@ -118,7 +118,7 @@ export default function SlipReelCard({ post, index, isActive }: SlipReelCardProp
         {/* Ticket Container */}
         <div className="flex flex-col flex-1 min-h-0 overflow-hidden">
           {/* Ticket Header Bar */}
-          <div className="pb-2 pt-1 px-0.5 flex items-center justify-between gap-2 shrink-0">
+          <div className="pb-2 pt-1 px-0.5 flex items-center justify-between gap-3 shrink-0">
             <div className="flex items-center gap-2">
               <span className="text-black text-sm sm:text-base font-black font-mono leading-none">
                 {slip.totalOdds.toFixed(2)}x
@@ -128,20 +128,49 @@ export default function SlipReelCard({ post, index, isActive }: SlipReelCardProp
               </span>
             </div>
 
-            {/* Countdown Badge */}
-            <div
-              className={`flex items-center gap-1.5 text-xs font-mono font-bold ${
-                countdown.isLive
-                  ? 'text-emerald-700'
-                  : 'text-[#8A6500]'
-              }`}
-            >
-              {countdown.isLive ? (
-                <Zap size={12} className="animate-pulse text-emerald-600" />
-              ) : (
-                <Clock size={12} className="text-[#8A6500]" />
+            {/* Top Right: Countdown & Booking Code */}
+            <div className="flex flex-col items-end gap-1 shrink-0">
+              {/* Countdown Badge */}
+              <div
+                className={`flex items-center gap-1.5 text-xs font-mono font-bold ${
+                  countdown.isLive
+                    ? 'text-emerald-700'
+                    : 'text-[#8A6500]'
+                }`}
+              >
+                {countdown.isLive ? (
+                  <Zap size={12} className="animate-pulse text-emerald-600" />
+                ) : (
+                  <Clock size={12} className="text-[#8A6500]" />
+                )}
+                <span>{countdown.isUnknown ? 'Pending KO' : countdown.label}</span>
+              </div>
+
+              {/* Booking Code Pill */}
+              {(slip.bookieCode || slip.bookieLink) && (
+                <div className="flex items-center gap-1.5 pt-0.5">
+                  {slip.bookieCode && (
+                    <button
+                      onClick={handleCopyCode}
+                      className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-slate-900 text-white text-[11px] font-mono font-bold shadow-xs active:scale-95 transition-all hover:bg-slate-800 cursor-pointer"
+                    >
+                      {copiedCode ? <Check size={11} className="text-emerald-400" /> : <Copy size={11} />}
+                      <span>{slip.bookieCode}</span>
+                    </button>
+                  )}
+                  {slip.bookieLink && (
+                    <a
+                      href={slip.bookieLink}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-white border border-slate-300 text-slate-800 text-[10px] font-bold hover:bg-slate-50 active:scale-95 transition-all"
+                    >
+                      <ExternalLink size={10} className="text-[#006C54]" />
+                      <span>Open</span>
+                    </a>
+                  )}
+                </div>
               )}
-              <span>{countdown.isUnknown ? 'Pending KO' : countdown.label}</span>
             </div>
           </div>
 
@@ -389,31 +418,6 @@ export default function SlipReelCard({ post, index, isActive }: SlipReelCardProp
           </div>
         )}
 
-        {/* Bookie Code Pill (Raised and shifted right) */}
-        {(slip.bookieCode || slip.bookieLink) && (
-          <div className="flex items-center gap-2 pt-1 pl-3.5">
-            {slip.bookieCode && (
-              <button
-                onClick={handleCopyCode}
-                className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-900 text-white text-xs font-mono font-bold shadow-xs active:scale-95 transition-all"
-              >
-                {copiedCode ? <Check size={12} className="text-emerald-400" /> : <Copy size={12} />}
-                <span>{slip.bookieCode}</span>
-              </button>
-            )}
-            {slip.bookieLink && (
-              <a
-                href={slip.bookieLink}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-white border border-slate-300 text-slate-800 text-xs font-bold hover:bg-slate-50 active:scale-95 transition-all"
-              >
-                <ExternalLink size={12} className="text-[#006C54]" />
-                <span>Open Bookie</span>
-              </a>
-            )}
-          </div>
-        )}
       </div>
 
 
