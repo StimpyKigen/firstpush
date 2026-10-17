@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
-import { Send, X, RefreshCw, ShieldCheck } from 'lucide-react';
+import { X, RefreshCw, ShieldCheck } from 'lucide-react';
 
 interface ChatMessage {
   id: string;
@@ -291,14 +291,14 @@ export default function AvaChatSupport() {
             <div ref={messagesEndRef} />
           </div>
 
-          {/* Floating Capsule Input Footer Bar (Inspired by Photo 2) */}
+          {/* Floating Capsule Input Footer Bar (Ivory Background + Borderless Send Icon) */}
           <div className="p-3 bg-[#FFFFF0] border-t border-[#E6E6D2]/60">
             <form
               onSubmit={(e) => {
                 e.preventDefault();
                 void handleSendMessage();
               }}
-              className="relative flex items-center gap-2 bg-[#0a1317] text-white rounded-full pl-4 pr-1.5 py-1.5 shadow-md focus-within:ring-2 focus-within:ring-[#EEAA04]/50 transition-all"
+              className="relative flex items-center gap-2 bg-[#FFFFF0] border border-[#E6E6D2] rounded-full pl-4 pr-2.5 py-2 shadow-xs focus-within:border-[#0a1317] focus-within:ring-2 focus-within:ring-[#0a1317]/10 transition-all"
             >
               <input
                 ref={inputRef}
@@ -308,15 +308,24 @@ export default function AvaChatSupport() {
                 onKeyDown={handleKeyDown}
                 placeholder="Ask anything..."
                 disabled={isLoading}
-                className="flex-1 bg-transparent text-white placeholder-slate-400 text-xs sm:text-[13px] focus:outline-none min-w-0"
+                className="flex-1 bg-transparent text-slate-900 placeholder-slate-400 text-xs sm:text-[13px] focus:outline-none min-w-0"
               />
               <button
                 type="submit"
                 disabled={!input.trim() || isLoading}
-                className="w-8 h-8 rounded-full bg-[#EEAA04] text-[#0a1317] flex items-center justify-center font-bold hover:bg-amber-400 disabled:opacity-30 disabled:hover:bg-[#EEAA04] transition-all shrink-0 active:scale-95"
+                className="p-1 focus:outline-none hover:scale-110 active:scale-95 transition-transform disabled:opacity-25 shrink-0 cursor-pointer disabled:cursor-not-allowed"
                 title="Send Message"
+                aria-label="Send Message"
               >
-                <Send size={14} className="ml-0.5" />
+                <img
+                  src="/images/send-icon.png"
+                  alt="Send"
+                  className="w-5 h-5 sm:w-5.5 sm:h-5.5 object-contain"
+                  width="22"
+                  height="22"
+                  loading="eager"
+                  decoding="async"
+                />
               </button>
             </form>
             <div className="mt-1.5 flex items-center justify-center text-[10px] text-slate-400">
