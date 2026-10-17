@@ -472,13 +472,6 @@ table { border-color: var(--color-line); }
   .espn-red-banner { border-radius: 24px; }
 }
 
-/* ==========================================================================
-   Mobile floating tab bar — sliding in-bar pill indicator
-   ========================================================================== */
-.mobile-nav-pill {
-  transition: left 280ms cubic-bezier(0.3, 0.8, 0.3, 1);
-  box-shadow: 0 2px 8px rgba(0, 108, 84, 0.28);
-}
 
 /* ==========================================================================
    Skeleton loaders & shimmer animations
@@ -552,12 +545,20 @@ table { border-color: var(--color-line); }
   }
 }
 
-/* Mobile bottom nav PWA standalone offset */
-@media (display-mode: standalone) {
-  .mobile-bottom-nav-container {
-    bottom: max(6px, calc(env(safe-area-inset-bottom, 0px) + 4px)) !important;
-  }
+/* ==========================================================================
+   Mobile Bottom Navigation (TikTok-style, full-width fixed bar)
+   ========================================================================== */
+.mobile-bottom-nav {
+  background-color: #FFFFF0;
+  border-top: 1px solid #E6E6D2;
+  box-shadow: 0 -1px 3px rgba(10, 19, 23, 0.03), 0 -4px 12px rgba(10, 19, 23, 0.02);
 }
 
-
-
+@supports ((-webkit-backdrop-filter: blur(1px)) or (backdrop-filter: blur(1px))) {
+  .mobile-bottom-nav {
+    background-color: rgba(255, 255, 240, 0.92) !important;
+    -webkit-backdrop-filter: blur(16px);
+    backdrop-filter: blur(16px);
+    border-top-color: rgba(230, 230, 210, 0.85) !important;
+  }
+}
