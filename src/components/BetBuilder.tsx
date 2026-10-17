@@ -477,13 +477,15 @@ function BuilderFixtureItem({
     >
       {/* Match Header Row */}
       <div className="p-3.5 sm:p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <div className="min-w-0">
-          <div className="flex items-center gap-2 text-[10px] uppercase font-bold text-cream-dim">
-            <span className="text-gold">{fixture.competition}</span>
-            <span>•</span>
-            <span>{fixture.kickoff}</span>
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center justify-between gap-2 text-[10px] uppercase font-bold text-cream-dim">
+            <div className="flex items-center gap-1.5 min-w-0 flex-wrap">
+              <span className="text-gold">{fixture.competition}</span>
+              <span>•</span>
+              <span className="shrink-0">{fixture.kickoff}</span>
+            </div>
             {legsInThisMatch.length > 0 && (
-              <span className="bg-gold text-ink font-extrabold text-[9px] px-2 py-0.5 rounded-full ml-1">
+              <span className="bg-gold text-ink font-extrabold text-[9px] px-2.5 py-0.5 rounded-full shrink-0 whitespace-nowrap shadow-2xs">
                 {legsInThisMatch.length} Pick{legsInThisMatch.length > 1 ? 's' : ''} Added
               </span>
             )}
