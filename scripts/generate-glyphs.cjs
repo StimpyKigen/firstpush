@@ -33,9 +33,9 @@ const PRESETS = [
 async function fetchOrGenerate(preset) {
   const filePath = path.join(GLYPHS_DIR, `${preset.id}.svg`);
   
-  // Try DiceBear 10.x API first for crisp circle & clean output
+  // Try DiceBear 10.x API first for clean square output (cropped to rounded square by container)
   try {
-    const url = `https://api.dicebear.com/10.x/glyphs/svg?seed=${encodeURIComponent(preset.seed)}&radius=50`;
+    const url = `https://api.dicebear.com/10.x/glyphs/svg?seed=${encodeURIComponent(preset.seed)}`;
     const res = await fetch(url);
     if (res.ok) {
       const svg = await res.text();

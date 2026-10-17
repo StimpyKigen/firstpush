@@ -22,14 +22,18 @@ export default function Avatar({
   const preset = avatarId ? allActive.find((a) => a.id === avatarId) || getAvatarById(avatarId) : undefined;
   const [fg, bg] = colorsFor(seed);
 
+  // Continuous rounded-square / squircle radius proportional to avatar dimensions
+  const borderRadius = Math.max(4, Math.round(size * 0.26));
+
   if (preset) {
     const src = preset.svgContent || (preset as any).src || '';
     return (
       <div
-        className="rounded-full shrink-0 overflow-hidden bg-ink-2 shadow-sm transition-transform hover:scale-105"
+        className="shrink-0 overflow-hidden bg-ink-2 shadow-sm transition-transform hover:scale-105"
         style={{
           width: size,
           height: size,
+          borderRadius,
           border: showBorder ? `1.5px solid ${fg}` : 'none',
         }}
         title={preset.label}
@@ -39,7 +43,7 @@ export default function Avatar({
           alt={preset.label}
           className="w-full h-full object-cover"
           containerClassName="w-full h-full"
-          skeletonClassName="rounded-full"
+          style={{ borderRadius }}
         />
       </div>
     );
@@ -48,13 +52,14 @@ export default function Avatar({
   // Dynamic DiceBear Glyph default avatar
   if (!glyphError) {
     const glyphSeed = name ? name.trim() : `user-${seed}`;
-    const glyphUrl = `https://api.dicebear.com/10.x/glyphs/svg?seed=${encodeURIComponent(glyphSeed)}&radius=50`;
+    const glyphUrl = `https://api.dicebear.com/10.x/glyphs/svg?seed=${encodeURIComponent(glyphSeed)}`;
     return (
       <div
-        className="rounded-full shrink-0 overflow-hidden bg-ink-2 shadow-sm transition-transform hover:scale-105"
+        className="shrink-0 overflow-hidden bg-ink-2 shadow-sm transition-transform hover:scale-105"
         style={{
           width: size,
           height: size,
+          borderRadius,
           border: showBorder ? `1.5px solid ${fg}` : 'none',
         }}
         title={name || 'User Avatar'}
@@ -64,7 +69,7 @@ export default function Avatar({
           alt={name || 'User Avatar'}
           className="w-full h-full object-cover"
           containerClassName="w-full h-full"
-          skeletonClassName="rounded-full"
+          style={{ borderRadius }}
           onError={() => setGlyphError(true)}
         />
       </div>
@@ -74,10 +79,11 @@ export default function Avatar({
   // Graceful offline/error initials fallback
   return (
     <div
-      className="flex items-center justify-center rounded-full font-bold shrink-0 font-display select-none transition-transform hover:scale-105"
+      className="flex items-center justify-center font-bold shrink-0 font-display select-none transition-transform hover:scale-105"
       style={{
         width: size,
         height: size,
+        borderRadius,
         background: `linear-gradient(145deg, ${bg}, ${fg}33)`,
         border: showBorder ? `1.5px solid ${fg}` : 'none',
         color: fg,

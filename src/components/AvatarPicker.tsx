@@ -436,7 +436,7 @@ export default function AvatarPicker({ selected, onSelect, userStats }: AvatarPi
 
                 {/* Avatar SVG Canvas */}
                 <div
-                  className={`w-full aspect-square rounded-full overflow-hidden relative flex items-center justify-center transition-all ${
+                  className={`w-full aspect-square rounded-2xl overflow-hidden relative flex items-center justify-center transition-all ${
                     !unlocked ? 'filter blur-[1.5px] opacity-60' : ''
                   }`}
                 >
