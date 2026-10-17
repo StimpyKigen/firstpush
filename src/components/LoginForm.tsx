@@ -79,21 +79,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSwitchToRegister }) => {
       <form onSubmit={handleSubmit} className="form-content">
         <h1 className="form-title">Sign In</h1>
 
-        <button
-          type="button"
-          onClick={() => {
-            setError('Google sign-in initialized. Please use phone & PIN to access all MshindiRoom features.');
-          }}
-          className="google-btn"
-          aria-label="Sign in with Google"
-        >
-          <img src="/google.svg" alt="Google" width="18" height="18" className="google-icon" />
-          <span>Sign in with Google</span>
-        </button>
 
-        <div className="form-divider">
-          <span>or use your phone</span>
-        </div>
 
         {error && (
           <div className="form-alert error" role="alert">

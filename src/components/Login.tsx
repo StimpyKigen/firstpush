@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { X } from 'lucide-react';
-import GradientWaves from './GradientWaves';
 import Hero from './Hero';
 import LoginForm from './LoginForm';
 import RegisterForm from './RegisterForm';
@@ -33,19 +32,15 @@ export const Login: React.FC = () => {
         </Link>
       </div>
 
-      {/* Page Background Layer */}
-      <div className="login-page-bg">
-        <GradientWaves
-          horizonColor="#cfd5dd"
-          waveColor="#afb6c2"
-          crestColor="#e0e4e9"
-          amplitude={2.8}
-          fogDepth={34}
-          brightness={1.1}
-          opacity={1}
-          mouseInteraction={false}
-          grain={false}
+      {/* High-Resolution Static Football Pitch Background */}
+      <div className="login-pitch-bg" aria-hidden="true">
+        <img
+          src="/images/auth-pitch-bg.jpg"
+          alt="Football Pitch Background"
+          className="login-pitch-bg-image"
+          loading="eager"
         />
+        <div className="login-pitch-overlay" />
       </div>
 
       {/* Main Animated Card */}
@@ -70,14 +65,14 @@ export const Login: React.FC = () => {
 
         {/* Sliding Card Background (Desktop 0.65s slide) */}
         <div className="card-bg">
-          <GradientWaves
-            horizonColor="#032b38"
-            waveColor="#14a3c4"
-            crestColor="#7fdcef"
-            amplitude={3.2}
-            fogDepth={22}
-            brightness={0.9}
-          />
+          <div className="card-bg-pitch-wrapper">
+            <img
+              src="/images/auth-pitch-bg.jpg"
+              alt="Pitch background texture"
+              className="card-bg-pitch-image"
+            />
+            <div className="card-bg-pitch-overlay" />
+          </div>
         </div>
 
         {/* Registration-side hero */}

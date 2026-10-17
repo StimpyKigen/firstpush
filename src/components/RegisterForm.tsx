@@ -107,21 +107,7 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onSwitchToLogin }) =
       <form onSubmit={handleSubmit} className="form-content">
         <h1 className="form-title">Create Account</h1>
 
-        <button
-          type="button"
-          onClick={() => {
-            setError('Google sign-up initialized. Please provide phone & PIN to secure your wallet.');
-          }}
-          className="google-btn"
-          aria-label="Sign up with Google"
-        >
-          <img src="/google.svg" alt="Google" width="18" height="18" className="google-icon" />
-          <span>Sign up with Google</span>
-        </button>
 
-        <div className="form-divider">
-          <span>or register with phone</span>
-        </div>
 
         {referredBy && (
           <div className="referral-banner">
