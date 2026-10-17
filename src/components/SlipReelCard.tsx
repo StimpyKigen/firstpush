@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import {
   Heart, Bookmark, Send, MessageCircle, MoreHorizontal,
-  Music2, CheckCircle2, Copy, Check, ExternalLink,
+  CheckCircle2, Copy, Check, ExternalLink,
   Clock, Trophy, Zap, X
 } from 'lucide-react';
 import Avatar from './Avatar';
@@ -122,20 +122,20 @@ export default function SlipReelCard({ post, index, isActive }: SlipReelCardProp
           {/* Ticket Header Bar */}
           <div className="p-3 bg-[#F5F5E4]/80 border-b border-[#E6E6D2] flex items-center justify-between gap-2 shrink-0">
             <div className="flex items-center gap-2">
-              <span className="bg-[#006C54] text-white text-xs font-black px-2.5 py-1 rounded-lg font-mono shadow-2xs">
+              <span className="text-black text-sm sm:text-base font-black font-mono leading-none">
                 @{slip.totalOdds.toFixed(2)}x
               </span>
-              <span className="text-xs font-black uppercase tracking-wider text-slate-800">
+              <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
                 {legs.length} Leg{legs.length !== 1 ? 's' : ''}
               </span>
             </div>
 
             {/* Countdown Badge */}
             <div
-              className={`flex items-center gap-1.5 text-xs font-mono font-bold px-2.5 py-1 rounded-full ${
+              className={`flex items-center gap-1.5 text-xs font-mono font-bold ${
                 countdown.isLive
-                  ? 'bg-emerald-50 text-emerald-800 border border-emerald-200'
-                  : 'bg-amber-50 text-[#8A6500] border border-amber-200'
+                  ? 'text-emerald-700'
+                  : 'text-[#8A6500]'
               }`}
             >
               {countdown.isLive ? (
@@ -183,7 +183,7 @@ export default function SlipReelCard({ post, index, isActive }: SlipReelCardProp
 
                 {/* Individual Leg Odds Pill */}
                 <div className="shrink-0">
-                  <div className="bg-amber-50/80 border border-amber-200 text-[#8A6500] rounded-xl px-2.5 py-1.5 text-center min-w-[48px]">
+                  <div className="bg-amber-50/80 text-[#8A6500] rounded-xl px-2.5 py-1.5 text-center min-w-[48px]">
                     <span className="font-mono font-black text-xs sm:text-sm block leading-none">
                       {leg.odds.toFixed(2)}
                     </span>
@@ -298,16 +298,6 @@ export default function SlipReelCard({ post, index, isActive }: SlipReelCardProp
             <MoreHorizontal size={26} className="text-slate-800 hover:text-slate-900 stroke-[1.8]" />
           </div>
         </button>
-
-        {/* STATIC Bookie Disc / Badge (Non-spinning as requested!) */}
-        <div className="relative mt-1" title={post.bookmaker || 'Bookmaker'}>
-          <div className="w-8 h-8 rounded-xl bg-slate-900 border-2 border-white shadow-sm flex items-center justify-center font-black text-xs text-white">
-            {post.bookmaker ? post.bookmaker.slice(0, 2).toUpperCase() : 'SP'}
-          </div>
-          <div className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-[#006C54] text-white flex items-center justify-center text-[9px] border border-white">
-            <Music2 size={8} />
-          </div>
-        </div>
       </div>
 
       {/* ── BOTTOM CREATOR & CAPTION OVERLAY ── */}
@@ -347,19 +337,17 @@ export default function SlipReelCard({ post, index, isActive }: SlipReelCardProp
           )}
         </div>
 
-        {/* Audio Track Style Line */}
-        <div className="flex items-center gap-1.5 text-xs text-slate-600 font-semibold truncate">
-          <Music2 size={12} className="text-slate-800 shrink-0" />
-          <span className="truncate">
-            {post.bookmaker || 'Mshindi Slip'} · {legs.length} Legs @ {slip.totalOdds.toFixed(2)}x
-          </span>
-        </div>
+        {/* Bookmaker Tag */}
+        {post.bookmaker && (
+          <div className="text-xs text-slate-500 font-semibold truncate">
+            <span>{post.bookmaker}</span>
+          </div>
+        )}
 
         {/* Caption / Note */}
         {post.note && (
           <div className="text-xs text-slate-800 leading-snug">
             <span className={isCaptionExpanded ? '' : 'line-clamp-2'}>
-              <strong className="font-bold mr-1">{post.postedBy}</strong>
               {post.note}
             </span>
             {post.note.length > 70 && (
