@@ -18,45 +18,18 @@ const FAQ_SUGGESTIONS = [
   '🎮 How do P2P Wagers work?',
 ];
 
-// Futuristic Clean AI Assistant Logo: Glowing Speech Bubble + Circular Ring Element
+// Clean AI Assistant Chat Icon
 function AvaLogo({ className = "w-6 h-6" }: { className?: string }) {
   return (
-    <svg viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
-      <defs>
-        <linearGradient id="avaRingGrad" x1="2" y1="2" x2="34" y2="34" gradientUnits="userSpaceOnUse">
-          <stop stopColor="#F59E0B" />
-          <stop offset="0.5" stopColor="#FBBF24" />
-          <stop offset="1" stopColor="#D97706" />
-        </linearGradient>
-        <linearGradient id="avaBubbleGrad" x1="10" y1="8" x2="26" y2="26" gradientUnits="userSpaceOnUse">
-          <stop stopColor="#FFFFFF" stopOpacity="0.95" />
-          <stop offset="1" stopColor="#FDE68A" stopOpacity="0.9" />
-        </linearGradient>
-        <filter id="avaBubbleGlow" x="2" y="2" width="32" height="32" filterUnits="userSpaceOnUse">
-          <feGaussianBlur stdDeviation="1" result="blur" />
-          <feComposite in="SourceGraphic" in2="blur" operator="over" />
-        </filter>
-      </defs>
-
-      {/* Outer Glowing Futuristic Circular Ring */}
-      <circle cx="18" cy="18" r="16.5" stroke="url(#avaRingGrad)" strokeWidth="1.5" strokeDasharray="50 10" className="opacity-90" />
-      <circle cx="18" cy="18" r="13.5" fill="#0D0E15" stroke="url(#avaRingGrad)" strokeWidth="1" />
-
-      {/* Glowing Speech Bubble */}
-      <g filter="url(#avaBubbleGlow)">
-        <path
-          d="M10 16.5C10 12.3579 13.3579 9 17.5 9H18.5C22.6421 9 26 12.3579 26 16.5C26 20.6421 22.6421 24 18.5 24H16L12 26.5V23.2C10.7818 21.6212 10 19.1601 10 16.5Z"
-          fill="url(#avaBubbleGrad)"
-        />
-        {/* Smart AI Node Dots */}
-        <circle cx="14.5" cy="16.5" r="1.3" fill="#12131A" />
-        <circle cx="18" cy="16.5" r="1.3" fill="#D97706" />
-        <circle cx="21.5" cy="16.5" r="1.3" fill="#12131A" />
-      </g>
-
-      {/* Futuristic Orbit Dot */}
-      <circle cx="26" cy="10" r="1.5" fill="#FBBF24" />
-    </svg>
+    <img
+      src="/images/chat-icon.png"
+      alt="Support Chat"
+      className={`${className} object-contain`}
+      width="32"
+      height="32"
+      loading="eager"
+      decoding="async"
+    />
   );
 }
 
@@ -200,20 +173,20 @@ export default function AvaChatSupport() {
 
   return (
     <>
-      {/* Floating Toggle Button (Sleek, Compact, Futuristic AI Logo, No Hover Text) */}
+      {/* Floating Toggle Button (Sleek, Circular Floating Action Button with New Chat Icon) */}
       {!isOpen && (
-        <div className="fixed bottom-[calc(4.5rem+env(safe-area-inset-bottom))] lg:bottom-6 right-3.5 sm:right-6 z-50 flex items-center">
+        <div className="fixed bottom-[calc(6.75rem+env(safe-area-inset-bottom))] sm:bottom-10 lg:bottom-16 right-3.5 sm:right-6 z-50 flex items-center">
           <button
             onClick={() => setIsOpen(true)}
-            className="relative w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-panel border-2 border-gold/60 shadow-xl shadow-gold/10 hover:border-gold hover:scale-105 active:scale-95 transition-all flex items-center justify-center p-1.5 group overflow-visible"
-            title="Open Ava 24/7 AI Support"
-            aria-label="Open Ava 24/7 Support Chat"
+            className="relative w-12 h-12 sm:w-13 sm:h-13 rounded-full bg-[#FFFFF0] border-2 border-[#0a1317] shadow-xl hover:shadow-2xl hover:border-[#006C54] hover:scale-105 active:scale-95 transition-all flex items-center justify-center p-2 group overflow-visible"
+            title="Open 24/7 AI Support"
+            aria-label="Open 24/7 Support Chat"
           >
             <AvaLogo className="w-7 h-7 sm:w-8 sm:h-8 transition-transform group-hover:scale-110" />
             
             {/* Online status indicator */}
-            <span className="absolute -top-1 -right-1 flex h-3.5 w-3.5">
-              <span className="relative inline-flex rounded-full h-3.5 w-3.5 bg-emerald-500 border-2 border-panel"></span>
+            <span className="absolute top-0 right-0 flex h-3.5 w-3.5">
+              <span className="relative inline-flex rounded-full h-3.5 w-3.5 bg-emerald-500 border-2 border-[#FFFFF0]"></span>
             </span>
 
             {unreadBadge && (
@@ -227,13 +200,13 @@ export default function AvaChatSupport() {
 
       {/* Floating Support Window Widget (Optimized Mobile Sizing) */}
       {isOpen && (
-        <div className="fixed z-50 bottom-[calc(0.625rem+env(safe-area-inset-bottom))] sm:bottom-6 right-2 left-2 sm:left-auto sm:right-6 w-auto sm:w-[370px] h-[510px] max-h-[82vh] bg-panel border border-gold/30 rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-200">
+        <div className="fixed z-50 bottom-[calc(0.625rem+env(safe-area-inset-bottom))] sm:bottom-10 lg:bottom-16 right-2 left-2 sm:left-auto sm:right-6 w-auto sm:w-[370px] h-[510px] max-h-[82vh] bg-panel border border-[#E6E6D2] rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-200">
           {/* Header */}
           <div className="p-3 sm:p-3.5 bg-panel-2 border-b border-line flex items-center justify-between shrink-0">
             <div className="flex items-center gap-2.5">
-              <div className="relative w-9 h-9 rounded-xl bg-ink/80 border border-gold/40 flex items-center justify-center shrink-0 shadow-md p-1">
+              <div className="relative w-9 h-9 rounded-xl bg-[#FFFFF0] border border-[#E6E6D2] flex items-center justify-center shrink-0 shadow-sm p-1">
                 <AvaLogo className="w-6 h-6" />
-                <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-emerald-500 border-2 border-panel rounded-full"></span>
+                <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-emerald-500 border-2 border-[#FFFFF0] rounded-full"></span>
               </div>
               <div>
                 <div className="flex items-center gap-1.5">
@@ -275,7 +248,7 @@ export default function AvaChatSupport() {
                 className={`flex gap-2 sm:gap-2.5 ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}
               >
                 {msg.sender === 'ava' && (
-                  <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-lg bg-ink border border-gold/30 flex items-center justify-center shrink-0 mt-0.5 p-0.5">
+                  <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-lg bg-[#FFFFF0] border border-[#E6E6D2] flex items-center justify-center shrink-0 mt-0.5 p-0.5 shadow-2xs">
                     <AvaLogo className="w-4 h-4 sm:w-5 sm:h-5" />
                   </div>
                 )}
@@ -302,7 +275,7 @@ export default function AvaChatSupport() {
             {/* Loading Indicator */}
             {isLoading && (
               <div className="flex gap-2 sm:gap-2.5 justify-start items-center">
-                <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-lg bg-ink border border-gold/30 flex items-center justify-center shrink-0 p-0.5">
+                <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-lg bg-[#FFFFF0] border border-[#E6E6D2] flex items-center justify-center shrink-0 p-0.5 shadow-2xs">
                   <AvaLogo className="w-4 h-4 sm:w-5 sm:h-5" />
                 </div>
                 <div className="bg-panel-2 border border-line/80 rounded-2xl rounded-tl-none px-3 py-2 flex items-center gap-1.5 text-cream-dim">
