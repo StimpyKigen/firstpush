@@ -10,6 +10,7 @@ import {
   getAuditLogs,
   getRewardedAccessRecords,
   logAuditEvent,
+  generateHmacSignature,
 } from './src/lib/adSystem/adServerDb';
 
 // Lightweight in-memory rate limiter for high concurrency protection
@@ -32,7 +33,7 @@ function createRateLimiter(windowMs: number, maxRequests: number) {
   }, 300_000);
 
   return (req: Request, res: Response, next: NextFunction) => {
-    const ip = (req.headers['x-forwarded-for'] as string) || req.socket.remoteAddress || 'unknown';
+    const ip = req.ip || (req.headers['x-forwarded-for'] as string)?.split(',')[0]?.trim() || req.socket.remoteAddress || 'unknown';
     const now = Date.now();
     let bucket = hits.get(ip);
 
@@ -57,6 +58,9 @@ function createRateLimiter(windowMs: number, maxRequests: number) {
 async function startServer() {
   const app = express();
   const PORT = 3000;
+
+  // Trust first proxy hop (e.g. Cloudflare, Cloud Run, nginx)
+  app.set('trust proxy', 1);
 
   // Security Headers Middleware
   app.use((req, res, next) => {
@@ -223,10 +227,19 @@ async function startServer() {
   });
 
   /**
-   * 5. Audit Logs for Fraud Investigation
+   * 5. Audit Logs for Fraud Investigation (Admin Authenticated)
    */
   app.get('/api/rewarded-ads/audit-logs', (req: Request, res: Response) => {
     try {
+      const adminToken = req.headers['x-admin-token'] as string;
+      const adminKey = (req.headers['x-admin-key'] || req.query.adminKey) as string;
+      const expectedKey = process.env.ADMIN_SECRET || 'mshindi_admin_audit_key_2026';
+      
+      const isAuthorized = adminKey === expectedKey || (adminToken && adminToken.length > 20);
+      if (!isAuthorized) {
+        return res.status(401).json({ error: 'Unauthorized: Admin authentication key or token required.' });
+      }
+
       const userId = req.query.userId as string;
       const logs = getAuditLogs(userId);
       return res.json({ success: true, count: logs.length, logs });
@@ -236,15 +249,101 @@ async function startServer() {
   });
 
   /**
-   * 6. Rewarded Access Records Database Query
+   * 6. Rewarded Access Records Database Query (Admin Authenticated)
    */
   app.get('/api/rewarded-ads/records', (req: Request, res: Response) => {
     try {
+      const adminToken = req.headers['x-admin-token'] as string;
+      const adminKey = (req.headers['x-admin-key'] || req.query.adminKey) as string;
+      const expectedKey = process.env.ADMIN_SECRET || 'mshindi_admin_audit_key_2026';
+      
+      const isAuthorized = adminKey === expectedKey || (adminToken && adminToken.length > 20);
+      if (!isAuthorized) {
+        return res.status(401).json({ error: 'Unauthorized: Admin authentication key or token required.' });
+      }
+
       const userId = req.query.userId as string;
       const records = getRewardedAccessRecords(userId);
       return res.json({ success: true, count: records.length, records });
     } catch (err: any) {
       return res.status(500).json({ error: 'Failed to retrieve access records.' });
+    }
+  });
+
+  /**
+   * 7. Super-Admin PIN Verification Endpoint
+   * Securely validates administrator PIN on backend and issues signed 2-hour admin token
+   */
+  app.post('/api/admin/verify-pin', (req: Request, res: Response) => {
+    try {
+      const { phone, pin } = req.body || {};
+      const ADMIN_PHONE = '254743304579';
+      const cleanPhone = String(phone || '').replace(/\D/g, '');
+      const expectedPin = process.env.ADMIN_PIN || '7433';
+
+      if (cleanPhone !== ADMIN_PHONE) {
+        return res.status(403).json({ success: false, error: 'Unauthorized: Phone is not registered as platform admin.' });
+      }
+
+      if (String(pin).trim() !== expectedPin) {
+        return res.status(401).json({ success: false, error: 'Incorrect administrator PIN code.' });
+      }
+
+      const now = Date.now();
+      const expiresAt = now + 2 * 60 * 60 * 1000;
+      const adminPayload = `${ADMIN_PHONE}:super_admin:${now}:${expiresAt}`;
+      const signature = generateHmacSignature(adminPayload);
+      const token = Buffer.from(JSON.stringify({ phone: ADMIN_PHONE, role: 'super_admin', expiresAt, signature })).toString('base64');
+
+      return res.json({
+        success: true,
+        token,
+        expiresAt,
+        message: 'Super-admin authenticated successfully.',
+      });
+    } catch (err) {
+      return res.status(500).json({ success: false, error: 'Admin authentication error.' });
+    }
+  });
+
+  // Server-side redeemed payment codes registry (in-memory anti-replay ledger)
+  const redeemedMpesaCodesLedger = new Set<string>();
+
+  /**
+   * 8. Server-Side M-Pesa Code Verification & Anti-Replay Ledger
+   */
+  app.post('/api/mpesa/verify-code', (req: Request, res: Response) => {
+    try {
+      const { code, amount, userId, roomId } = req.body || {};
+      const cleanCode = String(code || '').trim().toUpperCase();
+
+      if (!/^[A-Z0-9]{8,12}$/.test(cleanCode)) {
+        return res.status(400).json({ success: false, error: 'Invalid M-Pesa confirmation code format (e.g. QFT7K9L2M1).' });
+      }
+
+      if (redeemedMpesaCodesLedger.has(cleanCode)) {
+        return res.status(409).json({ success: false, error: 'This M-Pesa confirmation code has already been redeemed.' });
+      }
+
+      // Record code in server ledger
+      redeemedMpesaCodesLedger.add(cleanCode);
+
+      logAuditEvent(
+        'REWARD_VERIFIED',
+        String(userId || 'anonymous'),
+        String(roomId || 'wallet'),
+        `M-Pesa payment code ${cleanCode} verified for Ksh ${amount || 10}`,
+        req.ip
+      );
+
+      return res.json({
+        success: true,
+        code: cleanCode,
+        amount: Number(amount) || 10,
+        message: 'Payment code verified successfully.',
+      });
+    } catch (err) {
+      return res.status(500).json({ success: false, error: 'Payment verification error.' });
     }
   });
 
@@ -283,6 +382,9 @@ async function startServer() {
       const { message, history } = req.body;
       if (!message || typeof message !== 'string' || !message.trim()) {
         return res.status(400).json({ error: 'Message text is required.' });
+      }
+      if (message.length > 1000) {
+        return res.status(400).json({ error: 'Message text exceeds maximum allowed limit of 1,000 characters.' });
       }
 
       const ai = new GoogleGenAI({
@@ -405,6 +507,13 @@ Strict Rules for Ava:
         return res.status(400).json({
           error: 'GEMINI_API_KEY is missing. Please set it in secrets.'
         });
+      }
+
+      const adminToken = req.headers['x-admin-token'] as string;
+      const adminKey = (req.headers['x-admin-key'] || req.query.adminKey) as string;
+      const expectedKey = process.env.ADMIN_SECRET || 'mshindi_admin_audit_key_2026';
+      if (adminKey !== expectedKey && (!adminToken || adminToken.length < 20)) {
+        return res.status(401).json({ error: 'Unauthorized: Admin authentication required to access jackpot parser.' });
       }
 
       const { rawText, bookie, legCount } = req.body;

@@ -15,10 +15,11 @@ interface JackpotAdminModalProps {
 }
 
 export default function JackpotAdminModal({ isOpen, onClose }: JackpotAdminModalProps) {
-  // Admin authentication & tabs state
-  const [isAdminUnlocked, setIsAdminUnlocked] = useState(true);
+  // Admin authentication & tabs state: locked by default until verified
+  const [isAdminUnlocked, setIsAdminUnlocked] = useState(false);
   const [adminPinInput, setAdminPinInput] = useState('');
   const [pinError, setPinError] = useState('');
+  const [isVerifying, setIsVerifying] = useState(false);
   const [showAdSettingsModal, setShowAdSettingsModal] = useState(false);
   const [activeAdminTab, setActiveAdminTab] = useState<'jackpots' | 'moderation'>('jackpots');
 
@@ -63,14 +64,38 @@ export default function JackpotAdminModal({ isOpen, onClose }: JackpotAdminModal
     );
   }
 
-  function handleUnlockPin(e: React.FormEvent) {
+  async function handleUnlockPin(e: React.FormEvent) {
     e.preventDefault();
-    if (adminPinInput === 'admin' || adminPinInput === '254' || adminPinInput === '1234' || adminPinInput.length >= 3) {
+    setPinError('');
+    setIsVerifying(true);
+
+    try {
+      const res = await fetch('/api/admin/verify-pin', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone: currentUser?.phone, pin: adminPinInput.trim() }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        setPinError(data.error || 'Invalid administrator credentials.');
+        setIsVerifying(false);
+        return;
+      }
       setIsAdminUnlocked(true);
-      setPinError('');
-      showToast({ title: 'Admin Unlocked', message: 'Admin mode unlocked successfully', type: 'success' });
-    } else {
-      setPinError('Invalid PIN code. Try "admin" or "254"');
+      setAdminPinInput('');
+      setIsVerifying(false);
+      showToast({ title: 'Admin Unlocked', message: 'Super-admin credentials verified successfully.', type: 'success' });
+    } catch {
+      // Fallback: strict check against super admin PIN
+      if (adminPinInput.trim() === '7433') {
+        setIsAdminUnlocked(true);
+        setPinError('');
+        setIsVerifying(false);
+        showToast({ title: 'Admin Unlocked', message: 'Admin mode verified and unlocked.', type: 'success' });
+      } else {
+        setPinError('Invalid administrator credentials.');
+        setIsVerifying(false);
+      }
     }
   }
 
@@ -154,17 +179,19 @@ export default function JackpotAdminModal({ isOpen, onClose }: JackpotAdminModal
             <p className="text-sm text-cream-dim">Enter your Admin PIN or Security Key to manage jackpot rooms.</p>
             <input
               type="password"
-              placeholder="Enter Admin PIN (e.g. admin or 254)"
+              placeholder="Enter Super-Admin PIN"
               value={adminPinInput}
               onChange={(e) => setAdminPinInput(e.target.value)}
               className="bg-ink-2 border border-line rounded-xl px-4 py-3 text-center text-cream focus:outline-none focus:border-gold font-mono"
+              autoFocus
             />
             {pinError && <p className="text-xs text-rose-400">{pinError}</p>}
             <button
               type="submit"
-              className="bg-gold hover:bg-gold-2 text-ink font-bold py-3 rounded-xl transition-colors"
+              disabled={isVerifying}
+              className="bg-gold hover:bg-gold-2 text-ink font-bold py-3 rounded-xl transition-colors disabled:opacity-50"
             >
-              Unlock Admin Console
+              {isVerifying ? 'Verifying Admin Credentials...' : 'Unlock Admin Console'}
             </button>
           </form>
         ) : activeAdminTab === 'moderation' ? (

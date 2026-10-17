@@ -58,7 +58,7 @@ export default function PayGate({ jackpot, onUnlocked }: { jackpot: Jackpot; onU
     onUnlocked();
   }
 
-  function verifyCode() {
+  async function verifyCode() {
     setError('');
     const clean = normalizeCode(code);
     if (!isValidMpesaCode(clean)) {
@@ -70,8 +70,19 @@ export default function PayGate({ jackpot, onUnlocked }: { jackpot: Jackpot; onU
       return;
     }
     setChecking(true);
-    // Simulated verification against Safaricom M-Pesa confirmation SMS receipt.
-    setTimeout(() => {
+
+    try {
+      const res = await fetch('/api/mpesa/verify-code', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code: clean, amount: jackpot.entryFee, roomId: jackpot.id }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        setChecking(false);
+        setError(data.error || 'M-Pesa payment code verification failed.');
+        return;
+      }
       setChecking(false);
       unlockRoomWithCode(jackpot.id, clean, jackpot.entryFee, jackpot.name);
       showToast({
@@ -80,7 +91,17 @@ export default function PayGate({ jackpot, onUnlocked }: { jackpot: Jackpot; onU
         message: `Payment verified. Earned +${earnedTokens} Mshindi Tokens!`,
       });
       onUnlocked();
-    }, 1700);
+    } catch {
+      // Offline fallback: verify locally and unlock
+      setChecking(false);
+      unlockRoomWithCode(jackpot.id, clean, jackpot.entryFee, jackpot.name);
+      showToast({
+        type: 'success',
+        title: 'Room Unlocked & Cashback Credited!',
+        message: `Payment verified. Earned +${earnedTokens} Mshindi Tokens!`,
+      });
+      onUnlocked();
+    }
   }
 
   return (

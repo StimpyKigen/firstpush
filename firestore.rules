@@ -20,24 +20,38 @@ service cloud.firestore {
       allow read, write: if false;
     }
 
-    // Users collection
+    // Users collection: only the owner can create or update their own profile
     match /users/{userId} {
-      // Any signed-in user can read user profiles
       allow read: if isSignedIn();
-      // Allow create and update for authenticated users
-      allow create, update: if isSignedIn();
+      allow create, update: if isOwner(userId);
+      allow delete: if false;
     }
 
-    // Player Ratings collection
+    // Player Ratings collection: public read, write restricted to profile owner
     match /playerRatings/{userId} {
       allow read: if true;
-      allow create, update: if isSignedIn();
+      allow create, update: if isOwner(userId);
+      allow delete: if false;
+
+      // History subcollection
+      match /history/{historyId} {
+        allow read: if true;
+        allow create: if isOwner(userId);
+        allow update, delete: if false;
+      }
     }
 
-    // Picks collection
+    // Picks collection: public read, modification/deletion restricted strictly to the pick author
     match /picks/{pickId} {
       allow read: if true;
-      allow create, update, delete: if isSignedIn();
+      allow create: if isSignedIn() && (
+        request.resource.data.userId == request.auth.uid ||
+        request.resource.data.userId == request.auth.token.phone_number
+      );
+      allow update, delete: if isSignedIn() && (
+        resource.data.userId == request.auth.uid ||
+        resource.data.userId == request.auth.token.phone_number
+      );
     }
   }
 }

@@ -1,7 +1,7 @@
 import crypto from 'crypto';
 
-// Secret key for HMAC token signing & verification (fallback to environment or server secret)
-const SERVER_SECRET = process.env.AD_REWARD_JWT_SECRET || process.env.GEMINI_API_KEY || 'mshindi_secure_ad_reward_secret_key_2026_x89f';
+// Secret key for HMAC token signing & verification (fallback to secure random memory key if env secret unset)
+const SERVER_SECRET = process.env.AD_REWARD_JWT_SECRET || process.env.GEMINI_API_KEY || crypto.randomBytes(32).toString('hex');
 
 export interface AdChallengeRecord {
   challengeId: string;
@@ -253,19 +253,21 @@ export function verifyAndGrantRewardToken(
     return { success: false, error: 'This reward payload has already been redeemed.', code: 'DUPLICATE_CLAIM' };
   }
 
-  // 5. Anti-Automation & Minimum Watch Duration Verification
-  if (typeof watchDurationSeconds !== 'number' || watchDurationSeconds < challenge.minWatchDurationSeconds) {
-    logAuditEvent('FRAUD_DETECTION_EVENT', userId, roomId, `Suspicious fast ad completion! Duration: ${watchDurationSeconds}s (required min: ${challenge.minWatchDurationSeconds}s)`, clientIp);
+  // 5. Anti-Automation & Server Elapsed Time Verification
+  const elapsedMs = now - challenge.issuedAt;
+  const minRequiredMs = Math.max(1, (challenge.minWatchDurationSeconds - 1) * 1000); // 1s network latency tolerance
+  if (elapsedMs < minRequiredMs || typeof watchDurationSeconds !== 'number' || watchDurationSeconds < challenge.minWatchDurationSeconds) {
+    logAuditEvent('FRAUD_DETECTION_EVENT', userId, roomId, `Ad completion too fast! Elapsed: ${(elapsedMs / 1000).toFixed(1)}s (min required: ${challenge.minWatchDurationSeconds}s)`, clientIp);
     return { success: false, error: 'Ad was completed too quickly. Full video playback is required.', code: 'WATCH_DURATION_TOO_SHORT' };
   }
 
-  // 6. Cryptographic Client Signature Verification (if provided)
+  // 6. Cryptographic Client Signature Verification (if client provides one, verify it matches)
   if (clientSignature) {
     const dataToVerify = `${challengeId}:${userId}:${roomId}`;
     const expectedSig = generateHmacSignature(dataToVerify);
     if (!crypto.timingSafeEqual(Buffer.from(expectedSig), Buffer.from(clientSignature))) {
       logAuditEvent('FRAUD_DETECTION_EVENT', userId, roomId, `Tampered or invalid client signature on challenge verification`, clientIp);
-      return { success: false, error: 'Invalid request signature signature check failed.', code: 'SIGNATURE_INVALID' };
+      return { success: false, error: 'Invalid request signature check failed.', code: 'SIGNATURE_INVALID' };
     }
   }
 
@@ -331,16 +333,10 @@ export function authorizeRoomAccess(
   userId: string,
   roomId: string,
   signedTokenString?: string,
-  isPremiumSubscriber: boolean = false,
+  _isPremiumSubscriber: boolean = false,
   clientIp?: string
 ): { allowed: boolean; reason: 'premium_subscription' | 'active_token' | 'ad_required' | 'token_expired' | 'invalid_token'; expiresAt?: number; remainingSeconds?: number; error?: string } {
-  // Rule 1: Premium subscribers bypass system entirely
-  if (isPremiumSubscriber) {
-    logAuditEvent('AUTHORIZATION_SUCCESS', userId, roomId, `Access granted via Premium Subscription`, clientIp);
-    return { allowed: true, reason: 'premium_subscription' };
-  }
-
-  // Rule 2: Check active token string or memory cache
+  // Check active token string or server memory cache
   const activeCachedToken = activeTokensStore.get(`${userId}_${roomId}`);
   const now = Date.now();
 

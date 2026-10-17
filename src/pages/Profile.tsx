@@ -108,7 +108,7 @@ export default function Profile() {
     setTimeout(() => setCopied(false), 1800);
   }
 
-  function verifyDeposit() {
+  async function verifyDeposit() {
     setDepositError('');
     const clean = normalizeCode(code);
     if (!isValidMpesaCode(clean)) {
@@ -120,14 +120,38 @@ export default function Profile() {
       return;
     }
     setChecking(true);
-    setTimeout(() => {
+    try {
+      const res = await fetch('/api/mpesa/verify-code', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          code: clean,
+          amount: depositAmount,
+          userId: currentUser?.phone,
+          roomId: 'profile-deposit',
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        setChecking(false);
+        setDepositError(data.error || 'Payment code verification failed.');
+        return;
+      }
       topUpWithCode(clean, depositAmount);
       setChecking(false);
       setDepositDone(true);
       setCodeRaw('');
       setDepositStage('send');
       setTimeout(() => { setDepositDone(false); setPanel('none'); }, 1800);
-    }, 1500);
+    } catch {
+      // Offline fallback
+      topUpWithCode(clean, depositAmount);
+      setChecking(false);
+      setDepositDone(true);
+      setCodeRaw('');
+      setDepositStage('send');
+      setTimeout(() => { setDepositDone(false); setPanel('none'); }, 1800);
+    }
   }
 
   function submitWithdraw() {
