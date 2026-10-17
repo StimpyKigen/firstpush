@@ -2,7 +2,7 @@
    Animated Login and Registration Interface
    ========================================================================== */
 
-/* Page Viewport & Full-Screen Background Container */
+/* Page Viewport: Clean Ivory Canvas (#FFFFF0) */
 .login-page-container {
   position: relative;
   min-height: calc(100vh - 80px);
@@ -10,42 +10,17 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 32px 16px;
+  padding: 40px 16px;
   overflow: hidden;
   box-sizing: border-box;
-}
-
-/* High-Resolution Static Football Pitch Background */
-.login-pitch-bg {
-  position: fixed;
-  inset: 0;
-  width: 100vw;
-  height: 100vh;
-  height: 100dvh;
-  z-index: 0;
-  pointer-events: none;
-  overflow: hidden;
-}
-
-.login-pitch-bg-image {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: center;
-  display: block;
-  filter: brightness(0.9) contrast(1.08) saturate(1.1);
-  transform: scale(1.02); /* prevent subpixel gaps at viewport boundaries */
-}
-
-.login-pitch-overlay {
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(circle at center, rgba(3, 43, 56, 0.35) 0%, rgba(2, 22, 28, 0.72) 100%);
-  backdrop-filter: blur(1.5px);
-  -webkit-backdrop-filter: blur(1.5px);
+  background-color: #FFFFF0;
 }
 
 .mobile-top-bar {
+  display: none;
+}
+
+.mobile-card-pitch-bg {
   display: none;
 }
 
@@ -54,7 +29,7 @@
 }
 
 /* ==========================================================================
-   4. Main Card Design
+   4. Main Card Design (Desktop)
    ========================================================================== */
 .card {
   position: relative;
@@ -66,13 +41,14 @@
   background: #ffffff;
   border: 8px solid #ffffff;
   box-shadow:
-    0 24px 60px -15px rgba(0, 0, 0, 0.5),
-    0 0 1px 1px rgba(255, 255, 255, 0.2);
+    0 24px 60px -15px rgba(0, 70, 50, 0.16),
+    0 10px 25px -10px rgba(0, 0, 0, 0.08),
+    0 0 1px 1px rgba(0, 0, 0, 0.04);
   box-sizing: border-box;
 }
 
 /* ==========================================================================
-   5. Card Background Animation (Desktop)
+   5. Card Background Animation (Desktop Pitch Artwork)
    ========================================================================== */
 .card-bg {
   position: absolute;
@@ -86,7 +62,7 @@
   border-radius: 26px;
   transform: translateX(100%);
   transition: transform 0.65s ease-in-out;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
+  box-shadow: 0 8px 32px rgba(0, 40, 30, 0.25);
 }
 
 .card.register .card-bg {
@@ -102,17 +78,19 @@
 }
 
 .card-bg-pitch-image {
-  width: 200%;
+  width: 100%;
   height: 100%;
   object-fit: cover;
   object-position: center;
-  filter: brightness(0.7) contrast(1.2) saturate(1.15);
+  display: block;
+  image-rendering: -webkit-optimize-contrast;
+  filter: brightness(0.85) contrast(1.1) saturate(1.12);
 }
 
 .card-bg-pitch-overlay {
   position: absolute;
   inset: 0;
-  background: linear-gradient(135deg, rgba(2, 44, 34, 0.82) 0%, rgba(3, 30, 40, 0.88) 100%);
+  background: linear-gradient(180deg, rgba(2, 35, 28, 0.42) 0%, rgba(3, 30, 40, 0.65) 100%);
 }
 
 /* ==========================================================================
@@ -223,10 +201,10 @@
   font-family: 'Inter', -apple-system, sans-serif;
   font-size: 13.5px;
   line-height: 1.55;
-  color: #e0f2fe;
+  color: #f0fdf4;
   margin: 0 0 28px 0;
   max-width: 250px;
-  opacity: 0.94;
+  opacity: 0.95;
   text-shadow: 0 1px 6px rgba(0, 0, 0, 0.4);
 }
 
@@ -234,10 +212,10 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.18);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
-  border: 1.5px solid rgba(255, 255, 255, 0.85);
+  border: 1.5px solid rgba(255, 255, 255, 0.88);
   color: #ffffff;
   font-family: 'Outfit', 'Inter', -apple-system, sans-serif;
   font-size: 13.5px;
@@ -253,7 +231,7 @@
 
 .hero .switch:hover {
   background: #ffffff;
-  color: #032b38;
+  color: #024e3b;
   border-color: #ffffff;
   transform: translateY(-2px) scale(1.03);
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
@@ -329,8 +307,8 @@
 .form-input {
   width: 100%;
   height: 42px;
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
+  background: #ffffff;
+  border: 1.5px solid #e2e8f0;
   border-radius: 11px;
   padding: 0 12px 0 38px;
   font-size: 13.5px;
@@ -489,7 +467,7 @@
    Mobile Rigid & Centered Viewport Optimizations (<= 720px)
    ========================================================================== */
 @media (max-width: 720px) {
-  /* Strictly lock container to viewport - completely rigid, no vertical scroll or bouncing */
+  /* Page background is signature clean ivory canvas (#FFFFF0) */
   .login-page-container {
     position: fixed;
     top: 0;
@@ -509,18 +487,10 @@
     -webkit-overflow-scrolling: auto;
     touch-action: pan-x;
     z-index: 50;
-    background: #02231c;
+    background-color: #FFFFF0;
   }
 
-  .login-pitch-bg {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    pointer-events: none;
-  }
-
-  /* Mobile Top Bar with Close/Home Button */
+  /* Mobile Top Bar with Close/Home Button against Ivory */
   .mobile-top-bar {
     display: flex;
     position: absolute;
@@ -533,41 +503,72 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 36px;
-    height: 36px;
+    width: 38px;
+    height: 38px;
     border-radius: 9999px;
-    background: rgba(0, 0, 0, 0.35);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.4);
-    color: #ffffff;
-    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3);
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    color: #334155;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
     transition: transform 0.2s ease, background 0.2s ease;
   }
 
   .mobile-close-btn:active {
     transform: scale(0.92);
-    background: rgba(0, 0, 0, 0.5);
+    background: #f1f5f9;
   }
 
-  /* Card locked in exact center of viewport */
+  /* Card locked in exact center of viewport with high-res pitch background */
   .card {
     width: calc(100% - 24px) !important;
     max-width: 380px !important;
     height: auto !important;
     max-height: calc(100dvh - 32px) !important;
-    border-width: 4px !important;
+    border-width: 3px !important;
     border-radius: 28px !important;
+    border-color: #ffffff !important;
     box-shadow:
-      0 24px 60px -10px rgba(0, 0, 0, 0.6),
-      0 0 0 1px rgba(255, 255, 255, 0.3) !important;
+      0 20px 50px -10px rgba(0, 70, 50, 0.2),
+      0 6px 18px -4px rgba(0, 0, 0, 0.08),
+      0 0 1px 1px rgba(0, 0, 0, 0.05) !important;
     margin: 0 auto !important;
     overflow: hidden !important;
     display: flex !important;
     flex-direction: column !important;
     justify-content: center !important;
     align-items: center !important;
+    position: relative !important;
     background: #ffffff !important;
+  }
+
+  /* Mobile Pitch Background Layer inside the card */
+  .mobile-card-pitch-bg {
+    display: block !important;
+    position: absolute !important;
+    inset: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    overflow: hidden !important;
+    z-index: 1 !important;
+    pointer-events: none !important;
+  }
+
+  .mobile-card-pitch-img {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
+    object-position: center !important;
+    display: block !important;
+    image-rendering: -webkit-optimize-contrast !important;
+    filter: brightness(0.96) contrast(1.06) !important;
+  }
+
+  .mobile-card-pitch-overlay {
+    position: absolute !important;
+    inset: 0 !important;
+    background: rgba(255, 255, 255, 0.88) !important;
+    backdrop-filter: blur(8px) !important;
+    -webkit-backdrop-filter: blur(8px) !important;
   }
 
   /* Hide sliding card background and heroes on mobile */
@@ -581,15 +582,17 @@
 
   /* Mobile Segmented Toggle Pill */
   .mobile-card-toggle {
-    display: flex;
-    width: calc(100% - 28px);
-    margin: 16px auto 6px auto;
-    background: #f1f5f9;
-    border-radius: 9999px;
-    padding: 3px;
-    box-sizing: border-box;
-    position: relative;
-    z-index: 5;
+    display: flex !important;
+    width: calc(100% - 28px) !important;
+    margin: 16px auto 6px auto !important;
+    background: rgba(255, 255, 255, 0.95) !important;
+    border: 1px solid rgba(0, 0, 0, 0.06) !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04) !important;
+    border-radius: 9999px !important;
+    padding: 3px !important;
+    box-sizing: border-box !important;
+    position: relative !important;
+    z-index: 5 !important;
   }
 
   .toggle-tab {
@@ -628,7 +631,9 @@
     opacity: 1 !important;
     visibility: visible !important;
     transform: none !important;
+    background: transparent !important;
     box-sizing: border-box !important;
+    z-index: 5 !important;
   }
 
   .form-content {

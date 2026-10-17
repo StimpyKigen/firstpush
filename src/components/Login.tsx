@@ -32,19 +32,18 @@ export const Login: React.FC = () => {
         </Link>
       </div>
 
-      {/* High-Resolution Static Football Pitch Background */}
-      <div className="login-pitch-bg" aria-hidden="true">
-        <img
-          src="/images/auth-pitch-bg.jpg"
-          alt="Football Pitch Background"
-          className="login-pitch-bg-image"
-          loading="eager"
-        />
-        <div className="login-pitch-overlay" />
-      </div>
-
       {/* Main Animated Card */}
       <div className={`card ${isRegister ? 'register' : ''}`}>
+        {/* Mobile card pitch background layer */}
+        <div className="mobile-card-pitch-bg" aria-hidden="true">
+          <img
+            src="/images/auth-pitch-bg.jpg"
+            alt="Football Pitch Background"
+            className="mobile-card-pitch-img"
+          />
+          <div className="mobile-card-pitch-overlay" />
+        </div>
+
         {/* Mobile segmented mode switch */}
         <div className="mobile-card-toggle">
           <button
