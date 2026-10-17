@@ -19,6 +19,7 @@ import {
   X,
   Upload,
   ChevronDown,
+  Shapes,
 } from 'lucide-react';
 import {
   AVATAR_CATEGORIES,
@@ -40,6 +41,7 @@ interface AvatarPickerProps {
 const CATEGORY_ICONS: Record<string, React.ReactNode> = {
   all: <Sparkles size={14} />,
   favorites: <Star size={14} className="fill-amber-400 text-amber-400" />,
+  glyphs: <Shapes size={14} />,
   champions: <Trophy size={14} />,
   football: <Zap size={14} />,
   animals: <Zap size={14} />,

@@ -8,7 +8,8 @@ export type AvatarCategory =
   | 'gaming'
   | 'luxury'
   | 'african'
-  | 'abstract';
+  | 'abstract'
+  | 'glyphs';
 
 export type UnlockTier = 'starter' | 'silver' | 'gold' | 'diamond' | 'champion' | 'seasonal' | 'premium';
 
@@ -32,6 +33,7 @@ export interface CategoryInfo {
 }
 
 export const AVATAR_CATEGORIES: CategoryInfo[] = [
+  { id: 'glyphs', label: 'Glyphs', iconName: 'Shapes', description: 'Minimalist geometric silhouettes and abstract glyphs by Matt Houser' },
   { id: 'champions', label: 'Champions', iconName: 'Trophy', description: 'Royal crowns, crests, and victory honors' },
   { id: 'football', label: 'Football', iconName: 'Futbol', description: 'Pitch legends, tactical minds, and stadium heroes' },
   { id: 'animals', label: 'Animals', iconName: 'Zap', description: 'Apex predators, spirit fauna, and wild beasts' },
@@ -299,6 +301,7 @@ export function generateFullAvatarCatalog(): AvatarOption[] {
     luxury: ['Obsidian Rune', 'Emerald Vault', 'Diamond Solitaire', 'Royal Marble', 'Gold Bullion', 'Platinum Emblem', 'Velvet Crown', 'Sapphire Matrix', 'Ruby Sovereign', 'Black Pearl', 'Silk Crest', 'Opal Halo', 'Amethyst Seal', 'Crystal Prism', 'Titanium Vault'],
     african: ['Kilimanjaro Peak', 'Savannah Sun', 'Baobab Shield', 'Maasai Warrior', 'Rift Falcon', 'Kente Grid', 'Nile Crest', 'Serengeti Dusk', 'Afro Vector', 'Sahara Gold', 'Zambezi Flow', 'Atlas Pride', 'Victoria Falls', 'Bantu Pattern', 'Swahili Rune'],
     abstract: ['Neon Vortex', 'Plasma Wave', 'Crystal Matrix', 'Fire Prism', 'Ice Nova', 'Galaxy Ring', 'Hex Core', 'Quantum Pulse', 'Chroma Burst', 'Eclipse Ring', 'Lava Orb', 'Hyper Cube', 'Solar Flare', 'Aether Node', 'Subzero Spark'],
+    glyphs: ['Vortex Glyph', 'Solar Glyph', 'Apex Glyph', 'Nexus Glyph', 'Cipher Glyph', 'Zenith Glyph', 'Pulse Glyph', 'Titan Glyph', 'Oracle Glyph', 'Phantom Glyph', 'Mirage Glyph', 'Quantum Glyph', 'Eclipse Glyph', 'Chronos Glyph', 'Nova Glyph', 'Aether Glyph'],
   };
 
   while (counter <= totalTarget) {
@@ -336,7 +339,9 @@ export function generateFullAvatarCatalog(): AvatarOption[] {
   return result;
 }
 
-export const AVATAR_CATALOG: AvatarOption[] = generateFullAvatarCatalog();
+import { GLYPHS_AVATARS } from './dicebearGlyphsData';
+
+export const AVATAR_CATALOG: AvatarOption[] = [...GLYPHS_AVATARS, ...generateFullAvatarCatalog()];
 
 export function getAvatarById(id?: string | null): AvatarOption | undefined {
   if (!id) return undefined;
