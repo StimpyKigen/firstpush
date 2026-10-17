@@ -22,8 +22,8 @@ export default function Avatar({
   const preset = avatarId ? allActive.find((a) => a.id === avatarId) || getAvatarById(avatarId) : undefined;
   const [fg, bg] = colorsFor(seed);
 
-  // Continuous rounded-square / squircle radius proportional to avatar dimensions
-  const borderRadius = Math.max(4, Math.round(size * 0.26));
+  // Prominent rounded-square / squircle radius proportional to avatar dimensions
+  const borderRadius = Math.max(6, Math.round(size * 0.28));
 
   if (preset) {
     const src = preset.svgContent || (preset as any).src || '';
