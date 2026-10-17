@@ -22,19 +22,19 @@ export default function Avatar({
   const preset = avatarId ? allActive.find((a) => a.id === avatarId) || getAvatarById(avatarId) : undefined;
   const [fg, bg] = colorsFor(seed);
 
-  // Prominent rounded-square / squircle radius proportional to avatar dimensions
-  const borderRadius = Math.max(6, Math.round(size * 0.28));
+  // Prominent rounded-square / squircle radius proportional to avatar dimensions (iconic ~22% squircle ratio)
+  const borderRadius = Math.max(5, Math.round(size * 0.22));
 
   if (preset) {
     const src = preset.svgContent || (preset as any).src || '';
     return (
       <div
-        className="shrink-0 overflow-hidden bg-ink-2 shadow-sm transition-transform hover:scale-105"
+        className="shrink-0 overflow-hidden bg-ink-2 shadow-xs transition-transform hover:scale-105"
         style={{
           width: size,
           height: size,
           borderRadius,
-          border: showBorder ? `1.5px solid ${fg}` : 'none',
+          border: showBorder ? `2px solid ${fg}` : 'none',
         }}
         title={preset.label}
       >
@@ -55,12 +55,12 @@ export default function Avatar({
     const glyphUrl = `https://api.dicebear.com/10.x/glyphs/svg?seed=${encodeURIComponent(glyphSeed)}`;
     return (
       <div
-        className="shrink-0 overflow-hidden bg-ink-2 shadow-sm transition-transform hover:scale-105"
+        className="shrink-0 overflow-hidden bg-ink-2 shadow-xs transition-transform hover:scale-105"
         style={{
           width: size,
           height: size,
           borderRadius,
-          border: showBorder ? `1.5px solid ${fg}` : 'none',
+          border: showBorder ? `2px solid ${fg}` : 'none',
         }}
         title={name || 'User Avatar'}
       >
@@ -85,7 +85,7 @@ export default function Avatar({
         height: size,
         borderRadius,
         background: `linear-gradient(145deg, ${bg}, ${fg}33)`,
-        border: showBorder ? `1.5px solid ${fg}` : 'none',
+        border: showBorder ? `2px solid ${fg}` : 'none',
         color: fg,
         fontSize: size * 0.36,
       }}

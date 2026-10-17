@@ -403,13 +403,9 @@ export default function SlipReelCard({
         }}
       >
         {/* Creator Row */}
-        <div className="flex items-center gap-2 flex-wrap">
-          {/* Prominent Rounded Square Story Frame */}
-          <div className="p-[2.5px] rounded-2xl bg-gradient-to-tr from-amber-500 via-rose-500 to-[#006C54] shadow-sm shrink-0">
-            <div className="rounded-[14px] bg-white p-[1.5px] flex items-center justify-center overflow-hidden">
-              <Avatar name={post.postedBy} seed={post.postedByAvatarSeed} size={34} showBorder={false} />
-            </div>
-          </div>
+        <div className="flex items-center gap-2.5 flex-wrap">
+          {/* Creator Avatar - Prominent Rounded Square */}
+          <Avatar name={post.postedBy} seed={post.postedByAvatarSeed} size={36} showBorder={true} />
 
           <div className="flex items-center gap-1.5 min-w-0">
             <span className="font-display font-black text-sm text-slate-900 truncate">

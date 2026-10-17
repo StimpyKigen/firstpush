@@ -100,7 +100,10 @@ export function SkeletonImage({
   const [hasError, setHasError] = useState(false);
 
   return (
-    <div className={`relative overflow-hidden ${aspectRatio || ''} ${containerClassName}`}>
+    <div
+      className={`relative overflow-hidden rounded-[inherit] ${aspectRatio || ''} ${containerClassName}`}
+      style={imgProps.style}
+    >
       {!loaded && !hasError && (
         <div
           className={`absolute inset-0 skeleton-shimmer z-0 ${skeletonClassName}`}
