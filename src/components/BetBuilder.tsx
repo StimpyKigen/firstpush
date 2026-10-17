@@ -4,7 +4,6 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import ModerationWarningBox from './ModerationWarningBox';
-import { useAutoCollapse } from '../lib/useAutoCollapse';
 import { useBetBuilder } from '../lib/useBetBuilder';
 import { generateOddsForFixture, type BuilderFixture } from '../lib/builderFixtures';
 import type { BuiltSlipLeg } from '../lib/betSlipStore';
@@ -467,17 +466,11 @@ function BuilderFixtureItem({
   isLegSelected,
   toggleLeg,
 }: BuilderFixtureItemProps) {
-  // Auto-collapse when user scrolls outside/away (>70px) or clicks outside the open markets container
-  const containerRef = useAutoCollapse<HTMLDivElement>(isExpanded, () => {
-    onToggleExpand(null);
-  }, 70);
-
   const oddsData = generateOddsForFixture(fixture);
   const legsInThisMatch = cartLegs.filter((l) => l.matchId === fixture.id);
 
   return (
     <div
-      ref={containerRef}
       className={`bg-panel border rounded-2xl transition-all shadow-sm overflow-hidden ${
         legsInThisMatch.length > 0 ? 'border-gold/60 bg-gold/5' : 'border-line hover:border-gold/30'
       }`}
@@ -674,7 +667,7 @@ function BuilderFixtureItem({
 
             {/* Bottom bar: Done button & auto-collapse hint */}
             <div className="flex items-center justify-between pt-2 border-t border-line/40 text-[10px] text-cream-dim font-mono">
-              <span className="text-cream-dim/60">Auto-collapses on scroll outside or pick selection</span>
+              <span className="text-cream-dim/60">Auto-collapses on pick selection</span>
               <button
                 type="button"
                 onClick={() => onToggleExpand(null)}
