@@ -121,7 +121,7 @@ export default function SlipReelCard({ post, index, isActive }: SlipReelCardProp
           <div className="pb-2 pt-1 px-0.5 flex items-center justify-between gap-2 shrink-0">
             <div className="flex items-center gap-2">
               <span className="text-black text-sm sm:text-base font-black font-mono leading-none">
-                @{slip.totalOdds.toFixed(2)}x
+                {slip.totalOdds.toFixed(2)}x
               </span>
               <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
                 {legs.length} Leg{legs.length !== 1 ? 's' : ''}
@@ -145,62 +145,104 @@ export default function SlipReelCard({ post, index, isActive }: SlipReelCardProp
             </div>
           </div>
 
-          {/* Scrollable Legs List */}
+          {/* Centered Scrollable Matches Container */}
           <div
-            className="flex-1 min-h-0 overflow-y-auto py-1 px-0.5 space-y-2 slip-legs-scroll"
+            className={`flex-1 min-h-0 py-1 px-0.5 flex flex-col overflow-y-auto slip-legs-scroll ${
+              legs.length >= 7 ? 'justify-start' : 'justify-center'
+            }`}
             style={{
               scrollbarWidth: 'none',
               touchAction: 'pan-y',
               overscrollBehaviorY: 'contain',
             }}
           >
-            {legs.map((leg, i) => (
-              <motion.div
-                key={leg.id}
-                initial={isActive ? { opacity: 0, y: 6 } : false}
-                animate={isActive ? { opacity: 1, y: 0 } : {}}
-                transition={{ delay: 0.04 + i * 0.04, duration: 0.28, ease: 'easeOut' }}
-                className="p-3 bg-[#FFFFF0] border border-[#E6E6D2] rounded-xl flex items-center justify-between gap-3 shadow-2xs"
-              >
-                <div className="min-w-0 flex-1">
-                  <p className="text-[10px] font-black uppercase tracking-wider text-[#006C54] truncate mb-0.5">
-                    {leg.competition}
-                  </p>
-                  <p className="font-display font-black text-xs sm:text-sm text-slate-900 truncate leading-snug">
-                    {leg.homeTeam} <span className="text-slate-400 font-normal text-xs">v</span> {leg.awayTeam}
-                  </p>
-                  <div className="flex items-center gap-1.5 mt-0.5 text-xs">
-                    <span className="font-bold text-slate-700">{leg.market}:</span>
-                    <span className="text-[#006C54] font-black">{leg.pick}</span>
-                  </div>
-                  <div className="flex items-center gap-1 text-[10px] text-slate-400 font-mono mt-0.5">
-                    <Clock size={10} />
-                    <span>{leg.kickoff}</span>
-                  </div>
-                </div>
+            {legs.length <= 3 ? (
+              /* ── 1 to 3 GAMES: Standard 1-Column Layout ── */
+              <div className="grid grid-cols-1 gap-2.5 w-full my-auto">
+                {legs.map((leg, i) => (
+                  <motion.div
+                    key={leg.id}
+                    initial={isActive ? { opacity: 0, y: 6 } : false}
+                    animate={isActive ? { opacity: 1, y: 0 } : {}}
+                    transition={{ delay: 0.04 + i * 0.04, duration: 0.28, ease: 'easeOut' }}
+                    className="p-3 bg-[#FFFFF0] border border-[#E6E6D2] rounded-xl flex items-center justify-between gap-3 shadow-2xs"
+                  >
+                    <div className="min-w-0 flex-1">
+                      <p className="text-[10px] font-black uppercase tracking-wider text-[#006C54] truncate mb-0.5">
+                        {leg.competition}
+                      </p>
+                      <p className="font-display font-black text-xs sm:text-sm text-slate-900 truncate leading-snug">
+                        {leg.homeTeam} <span className="text-slate-400 font-normal text-xs">v</span> {leg.awayTeam}
+                      </p>
+                      <div className="flex items-center gap-1.5 mt-0.5 text-xs">
+                        <span className="font-bold text-slate-700">{leg.market}:</span>
+                        <span className="text-[#006C54] font-black">{leg.pick}</span>
+                      </div>
+                      <div className="flex items-center gap-1 text-[10px] text-slate-400 font-mono mt-0.5">
+                        <Clock size={10} />
+                        <span>{leg.kickoff}</span>
+                      </div>
+                    </div>
 
-                {/* Individual Leg Odds Pill */}
-                <div className="shrink-0">
-                  <div className="bg-amber-50/80 text-[#8A6500] rounded-xl px-2.5 py-1.5 text-center min-w-[48px]">
-                    <span className="font-mono font-black text-xs sm:text-sm block leading-none">
-                      {leg.odds.toFixed(2)}
-                    </span>
-                    <span className="text-[8px] uppercase text-amber-900/60 font-bold block mt-0.5">odds</span>
-                  </div>
-                </div>
-              </motion.div>
-            ))}
+                    {/* Individual Leg Odds Pill */}
+                    <div className="shrink-0">
+                      <div className="bg-amber-50/80 text-[#8A6500] rounded-xl px-2.5 py-1.5 text-center min-w-[48px]">
+                        <span className="font-mono font-black text-xs sm:text-sm block leading-none">
+                          {leg.odds.toFixed(2)}
+                        </span>
+                        <span className="text-[8px] uppercase text-amber-900/60 font-bold block mt-0.5">odds</span>
+                      </div>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            ) : (
+              /* ── 4+ GAMES: Adaptive 2-Column Grid (2 to max 3 rows visible) ── */
+              <div className={`grid grid-cols-2 w-full my-auto ${legs.length === 4 ? 'gap-2' : 'gap-1.5'}`}>
+                {legs.map((leg, i) => {
+                  const isSuperCompact = legs.length >= 5;
+                  return (
+                    <motion.div
+                      key={leg.id}
+                      initial={isActive ? { opacity: 0, y: 6 } : false}
+                      animate={isActive ? { opacity: 1, y: 0 } : {}}
+                      transition={{ delay: 0.03 + i * 0.03, duration: 0.25, ease: 'easeOut' }}
+                      className={`${
+                        isSuperCompact ? 'p-2' : 'p-2.5'
+                      } bg-[#FFFFF0] border border-[#E6E6D2] rounded-xl flex flex-col justify-between shadow-2xs`}
+                    >
+                      <div className="min-w-0">
+                        <p className="text-[8.5px] font-black uppercase tracking-wider text-[#006C54] truncate">
+                          {leg.competition}
+                        </p>
+                        <p className={`font-display font-black text-slate-900 truncate leading-tight mt-0.5 ${
+                          isSuperCompact ? 'text-[11px]' : 'text-xs'
+                        }`}>
+                          {leg.homeTeam} <span className="text-slate-400 font-normal text-[10px]">v</span> {leg.awayTeam}
+                        </p>
+                        <p className="text-[10px] text-slate-600 truncate mt-0.5">
+                          <span className="font-bold text-slate-700">{leg.market}: </span>
+                          <span className="text-[#006C54] font-black">{leg.pick}</span>
+                        </p>
+                      </div>
+
+                      <div className="flex items-center justify-between mt-1 pt-1 border-t border-[#E6E6D2]/60">
+                        <div className="flex items-center gap-0.5 text-[9px] text-slate-400 font-mono truncate">
+                          <Clock size={9} className="shrink-0" />
+                          <span className="truncate">{leg.kickoff}</span>
+                        </div>
+                        <div className="bg-amber-50/80 text-[#8A6500] rounded-md px-1.5 py-0.5 text-center shrink-0">
+                          <span className="font-mono font-black text-[11px] block leading-none">
+                            {leg.odds.toFixed(2)}
+                          </span>
+                        </div>
+                      </div>
+                    </motion.div>
+                  );
+                })}
+              </div>
+            )}
           </div>
-
-          {/* Ticket Footer (Stake & Return) */}
-          {slip.estimatedReturn && slip.stake && (
-            <div className="pt-2 pb-0.5 px-0.5 flex items-center justify-between text-xs shrink-0 font-medium text-slate-600">
-              <span>Stake: Ksh {slip.stake.toLocaleString()}</span>
-              <span className="font-bold text-[#006C54] font-mono">
-                Est. Return: Ksh {slip.estimatedReturn.toLocaleString()}
-              </span>
-            </div>
-          )}
         </div>
       </div>
 
