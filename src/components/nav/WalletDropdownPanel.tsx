@@ -1,3 +1,4 @@
+import { createPortal } from 'react-dom';
 import { Link } from 'react-router-dom';
 import { Wallet, X, Coins, ArrowUpRight } from 'lucide-react';
 
@@ -19,9 +20,16 @@ export default function WalletDropdownPanel({
   panelClassName,
   headerClassName,
 }: WalletDropdownPanelProps) {
+  const backdropNode =
+    typeof document !== 'undefined' ? (
+      createPortal(<div className={backdropClassName} onClick={onClose} />, document.body)
+    ) : (
+      <div className={backdropClassName} onClick={onClose} />
+    );
+
   return (
     <>
-      <div className={backdropClassName} onClick={onClose} />
+      {backdropNode}
       <div className={panelClassName}>
         <div className={headerClassName}>
           <span className="text-xs font-bold text-cream uppercase tracking-wider flex items-center gap-2">

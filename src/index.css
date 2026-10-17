@@ -507,3 +507,35 @@ table { border-color: var(--color-line); }
   }
 }
 
+/* ==========================================================================
+   Mobile Frosted Glass Navigation (Mobile Viewports Only)
+   Provides translucent ivory tint, backdrop blur, soft border & shadow,
+   with solid fallback for unsupported browsers and desktop reset.
+   ========================================================================== */
+.mobile-nav-glass {
+  background-color: #FFFFF0;
+  border-color: #E6E6D2;
+}
+
+@supports ((-webkit-backdrop-filter: blur(1px)) or (backdrop-filter: blur(1px))) {
+  .mobile-nav-glass {
+    background-color: rgba(255, 255, 240, 0.82) !important;
+    -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: blur(12px);
+    border-color: rgba(230, 230, 210, 0.8) !important;
+    box-shadow: 0 1px 3px 0 rgba(10, 19, 23, 0.04), 0 6px 16px -4px rgba(10, 19, 23, 0.06);
+  }
+}
+
+/* Reset on desktop viewports (lg: breakpoint >= 1024px) */
+@media (min-width: 1024px) {
+  .mobile-nav-glass {
+    background-color: #FFFFF0 !important;
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+    border-color: #E6E6D2 !important;
+    box-shadow: none !important;
+  }
+}
+
+

@@ -49,7 +49,7 @@ export default function MobileBottomNav({ pathname, builderLegsCount, currentUse
       style={{ bottom: 'calc(env(safe-area-inset-bottom, 0px) + 12px)' }}
     >
       <div
-        className="relative h-[58px] rounded-[24px] bg-[#FFFFF0] border border-[#E6E6D2]"
+        className="relative h-[58px] rounded-[24px] mobile-nav-glass border border-[#E6E6D2]/80"
         style={{ boxShadow: '0 6px 16px rgba(10, 19, 23, 0.12)', padding: INSET }}
       >
         {/* Sliding active pill */}
