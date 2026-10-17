@@ -114,7 +114,7 @@ export default function SlipReelCard({ post, index, isActive }: SlipReelCardProp
       <div className="absolute inset-0 bg-gradient-to-b from-[#FFFFF0] via-[#FAF9EC] to-[#F5F5E4] pointer-events-none" />
 
       {/* ── CENTER BET SLIP TICKET CONTENT ── */}
-      <div className="relative z-10 flex flex-col h-full pt-13 pb-36 pl-3.5 pr-14 sm:pl-4 sm:pr-16">
+      <div className="relative z-10 flex flex-col h-full pt-13 pb-32 pl-4 pr-12 sm:pl-5 sm:pr-14">
         {/* Ticket Container */}
         <div className="flex flex-col flex-1 min-h-0 overflow-hidden">
           {/* Ticket Header Bar */}
@@ -247,7 +247,7 @@ export default function SlipReelCard({ post, index, isActive }: SlipReelCardProp
       </div>
 
       {/* ── RIGHT VERTICAL ACTION BAR (INSTAGRAM REELS STYLE) ── */}
-      <div className="absolute right-3 bottom-14 z-20 flex flex-col items-center gap-3.5 pointer-events-auto">
+      <div className="absolute right-2.5 sm:right-3 top-[50%] z-20 flex flex-col items-center gap-3.5 pointer-events-auto">
         {/* Like Button (Heart) */}
         <button
           onClick={handleLike}
