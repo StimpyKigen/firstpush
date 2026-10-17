@@ -106,6 +106,9 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onSwitchToLogin }) =
     <div className="form register">
       <form onSubmit={handleSubmit} className="form-content">
         <h1 className="form-title">Create Account</h1>
+        <p className="form-subtitle">
+          To stay connected with fellow punters and track live slips, create your account.
+        </p>
 
 
 
@@ -235,13 +238,7 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onSwitchToLogin }) =
           disabled={isLoading || pin.length !== 4 || confirmPin.length !== 4 || !username || !phone}
           className="submit-btn"
         >
-          {isLoading ? (
-            'Creating Account...'
-          ) : (
-            <>
-              Sign Up <ArrowRight size={15} />
-            </>
-          )}
+          {isLoading ? 'Creating Account...' : 'SIGN UP'}
         </button>
       </form>
     </div>

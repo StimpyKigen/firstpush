@@ -34,25 +34,14 @@ export const Login: React.FC = () => {
 
       {/* Main Animated Card */}
       <div className={`card ${isRegister ? 'register' : ''}`}>
-        {/* Mobile Football Pitch Showcase Banner */}
-        <div className="mobile-pitch-banner">
+        {/* Full Card Mobile Football Pitch Background */}
+        <div className="mobile-card-pitch-bg" aria-hidden="true">
           <img
             src="/images/auth-pitch-bg.jpg"
             alt="Football Pitch Background"
-            className="mobile-pitch-banner-img"
+            className="mobile-card-pitch-img"
           />
-          <div className="mobile-pitch-banner-overlay" />
-          <div className="mobile-pitch-banner-content">
-            <span className="mobile-pitch-badge">MshindiRoom</span>
-            <h2 className="mobile-pitch-title">
-              {isRegister ? 'Hello there' : 'Welcome back'}
-            </h2>
-            <p className="mobile-pitch-subtitle">
-              {isRegister
-                ? 'Register now to track slips & consensus'
-                : 'Sign in to access your active pools & slips'}
-            </p>
-          </div>
+          <div className="mobile-card-pitch-overlay" />
         </div>
 
         {/* Mobile segmented mode switch */}

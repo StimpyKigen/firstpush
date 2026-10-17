@@ -77,7 +77,10 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSwitchToRegister }) => {
   return (
     <div className="form login">
       <form onSubmit={handleSubmit} className="form-content">
-        <h1 className="form-title">Sign In</h1>
+        <h1 className="form-title">Welcome back</h1>
+        <p className="form-subtitle">
+          To stay connected with fellow punters and track live slips, please login with your account.
+        </p>
 
 
 
@@ -165,13 +168,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSwitchToRegister }) => {
           disabled={isLoading || pin.length !== 4 || !phone}
           className="submit-btn"
         >
-          {isLoading ? (
-            'Signing in...'
-          ) : (
-            <>
-              Sign In <ArrowRight size={15} />
-            </>
-          )}
+          {isLoading ? 'Signing in...' : 'LOGIN'}
         </button>
       </form>
     </div>
