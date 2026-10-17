@@ -5,12 +5,12 @@
 /* Page Viewport & Full-Screen Background Container */
 .login-page-container {
   position: relative;
-  min-height: 100vh;
+  min-height: calc(100vh - 80px);
   width: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 24px 16px;
+  padding: 32px 16px;
   overflow: hidden;
   box-sizing: border-box;
 }
@@ -23,6 +23,14 @@
   z-index: 0;
   pointer-events: none;
   overflow: hidden;
+}
+
+.mobile-top-bar {
+  display: none;
+}
+
+.mobile-card-toggle {
+  display: none;
 }
 
 /* ==========================================================================
@@ -38,8 +46,8 @@
   background: #ffffff;
   border: 8px solid #ffffff;
   box-shadow:
-    0 20px 40px -15px rgba(3, 43, 56, 0.25),
-    0 0 1px 1px rgba(0, 0, 0, 0.05);
+    0 20px 45px -15px rgba(3, 43, 56, 0.3),
+    0 0 1px 1px rgba(0, 0, 0, 0.06);
   box-sizing: border-box;
 }
 
@@ -481,18 +489,89 @@
 }
 
 /* ==========================================================================
-   Responsive Adaptations (Tablet & Mobile)
+   Mobile Rigid & Centered Viewport Optimizations (<= 720px)
    ========================================================================== */
 @media (max-width: 720px) {
-  .card {
-    width: 100%;
-    max-width: 440px;
-    height: auto;
-    min-height: 480px;
-    border-width: 6px;
-    border-radius: 24px;
+  /* Strictly lock container to viewport - completely rigid, no vertical scroll or bouncing */
+  .login-page-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 100vw;
+    height: 100vh;
+    height: 100dvh;
+    margin: 0;
+    padding: env(safe-area-inset-top, 16px) 16px env(safe-area-inset-bottom, 16px) 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    overscroll-behavior: none;
+    -webkit-overflow-scrolling: auto;
+    touch-action: pan-x;
+    z-index: 50;
+    background: #032b38;
   }
 
+  .login-page-bg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+  }
+
+  /* Mobile Top Bar with Close/Home Button */
+  .mobile-top-bar {
+    display: flex;
+    position: absolute;
+    top: max(env(safe-area-inset-top, 14px), 14px);
+    right: 16px;
+    z-index: 60;
+  }
+
+  .mobile-close-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 9999px;
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    color: #ffffff;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    transition: transform 0.2s ease, background 0.2s ease;
+  }
+
+  .mobile-close-btn:active {
+    transform: scale(0.92);
+    background: rgba(255, 255, 255, 0.3);
+  }
+
+  /* Card locked in exact center of viewport */
+  .card {
+    width: 100%;
+    max-width: 380px;
+    height: auto;
+    max-height: calc(100dvh - 36px);
+    border-width: 4px;
+    border-radius: 28px;
+    box-shadow:
+      0 24px 50px -12px rgba(0, 0, 0, 0.5),
+      0 0 0 1px rgba(255, 255, 255, 0.3);
+    margin: 0 auto;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+
+  /* Hide sliding card background and heroes on mobile */
   .card-bg {
     display: none;
   }
@@ -501,11 +580,45 @@
     display: none;
   }
 
+  /* Mobile Segmented Toggle Pill */
+  .mobile-card-toggle {
+    display: flex;
+    width: calc(100% - 32px);
+    margin: 16px auto 4px auto;
+    background: #f1f5f9;
+    border-radius: 9999px;
+    padding: 3px;
+    box-sizing: border-box;
+    position: relative;
+    z-index: 5;
+  }
+
+  .toggle-tab {
+    flex: 1;
+    border: none;
+    background: transparent;
+    padding: 7px 0;
+    border-radius: 9999px;
+    font-family: 'Outfit', 'Inter', -apple-system, sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    color: #64748b;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .toggle-tab.active {
+    background: #0284c7;
+    color: #ffffff;
+    box-shadow: 0 2px 8px rgba(2, 132, 199, 0.35);
+  }
+
+  /* Mobile Form Display */
   .form {
     position: relative;
     width: 100%;
     height: auto;
-    padding: 32px 24px;
+    padding: 12px 22px 20px 22px;
     opacity: 1;
     visibility: visible;
     transform: none !important;
@@ -513,6 +626,7 @@
 
   .form.login {
     display: flex;
+    animation: mobileFormFadeIn 0.22s ease-out;
   }
 
   .form.register {
@@ -525,9 +639,25 @@
 
   .card.register .form.register {
     display: flex;
+    animation: mobileFormFadeIn 0.22s ease-out;
+  }
+
+  .form-title {
+    display: none; /* Segmented tab serves as title on mobile */
   }
 
   .mobile-only-switch {
     display: inline-block;
+  }
+}
+
+@keyframes mobileFormFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
   }
 }
