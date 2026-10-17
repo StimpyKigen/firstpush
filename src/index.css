@@ -125,6 +125,20 @@ input, textarea, select, [contenteditable="true"], .select-text {
   user-select: text;
 }
 
+/* Prevent iOS WebKit auto-zoom on input focus */
+@media screen and (max-width: 767px) {
+  input[type="text"],
+  input[type="number"],
+  input[type="email"],
+  input[type="password"],
+  input[type="search"],
+  input[type="tel"],
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+}
+
 .pb-safe { padding-bottom: max(0.5rem, env(safe-area-inset-bottom, 0px)); }
 .pt-safe { padding-top: max(0.5rem, env(safe-area-inset-top, 0px)); }
 

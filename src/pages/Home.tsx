@@ -120,12 +120,12 @@ export default function Home() {
           Right: Bold Crimson Red headline, lead story, red outline button & floating previews
           ========================================================================= */}
       <section className="bg-white border-b border-slate-200 overflow-hidden">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 lg:py-16">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 sm:py-12 lg:py-16">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-12 items-center">
             
             {/* Left Column: Striker Photo & Slide Indicators */}
             <div className="lg:col-span-5 relative flex flex-col items-center justify-center">
-              <div className="relative w-full max-w-md lg:max-w-none rounded-3xl overflow-hidden aspect-[3/4] bg-[#0a1317] group">
+              <div className="relative w-full max-w-md lg:max-w-none rounded-3xl overflow-hidden aspect-[4/5] sm:aspect-[3/4] bg-[#0a1317] group">
                 <SkeletonImage
                   src="/images/hero-striker.jpg"
                   alt="Dynamic Football Striker in Action"

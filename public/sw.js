@@ -1,6 +1,6 @@
-// MshindiRoom Production Service Worker v1.0.0
-const CACHE_NAME = 'mshindiroom-v1-cache';
-const DATA_CACHE_NAME = 'mshindiroom-v1-data';
+// MshindiRoom Production Service Worker v1.1.0
+const CACHE_NAME = 'mshindiroom-v2-cache';
+const DATA_CACHE_NAME = 'mshindiroom-v2-data';
 
 // Core static assets to pre-cache on install
 const PRECACHE_ASSETS = [
