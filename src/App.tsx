@@ -105,6 +105,7 @@ function AnimatedRoutes() {
             <Route path="/how-it-works" element={<HowItWorks />} />
             <Route path="/wallet" element={<WalletPage />} />
             <Route path="/auth" element={<Auth />} />
+            <Route path="/login" element={<Auth />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="/slips" element={<BetSlipRoom />} />
             <Route path="/privacy" element={<PrivacyPolicy />} />
