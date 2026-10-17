@@ -134,7 +134,7 @@ export default function Home() {
                 
                 {/* Overlay match badge */}
                 <div className="absolute top-4 left-4">
-                  <span className="bg-[#FFD700] text-[#0a1317] text-xs font-bold px-3 py-1 rounded-full">
+                  <span className="bg-[#EEAA04] text-[#0a1317] text-xs font-bold px-3 py-1 rounded-full">
                     Featured match
                   </span>
                 </div>
@@ -490,7 +490,7 @@ export default function Home() {
               <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-black/20" />
 
               <div className="absolute inset-0 p-6 flex flex-col justify-end text-white">
-                <span className="bg-[#006C54] text-[#FFD700] border border-[#005441] text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full w-fit mb-2">
+                <span className="bg-[#006C54] text-[#EEAA04] border border-[#005441] text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full w-fit mb-2">
                   TOP HIGHLIGHT
                 </span>
                 <h3 className="font-display font-black text-xl sm:text-2xl text-white leading-tight">

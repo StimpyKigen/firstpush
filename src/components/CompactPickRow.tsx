@@ -149,7 +149,7 @@ export default function CompactPickRow({ pick, isTopPick, onEdit }: CompactPickR
         isMine
           ? 'bg-slate-50 border-[#006C54]/30 hover:border-[#006C54]/60 shadow-2xs'
           : isTopPick
-          ? 'bg-[#FFD700]/[0.04] border-[#FFD700]/40 hover:border-[#FFD700]/70 shadow-2xs'
+          ? 'bg-[#EEAA04]/[0.06] border-[#EEAA04]/40 hover:border-[#EEAA04]/70 shadow-2xs'
           : 'bg-white border-slate-200 hover:border-slate-300 hover:shadow-xs'
       }`}
     >
@@ -257,12 +257,12 @@ export default function CompactPickRow({ pick, isTopPick, onEdit }: CompactPickR
             onClick={handleLike}
             className={`h-7 px-2.5 rounded-md text-xs font-black uppercase tracking-wider flex items-center gap-1.5 transition-all active:scale-95 border cursor-pointer ${
               liked
-                ? 'bg-[#FFD700]/20 border-[#FFD700] text-slate-950 shadow-2xs'
+                ? 'bg-[#EEAA04]/20 border-[#EEAA04] text-slate-950 shadow-2xs'
                 : 'bg-white hover:bg-slate-50 border-slate-200 text-slate-600 hover:text-slate-900'
             }`}
             title="Agree with this pick"
           >
-            <ThumbsUp size={11} className={liked ? 'fill-[#FFD700] text-[#b49000]' : 'text-slate-400'} />
+            <ThumbsUp size={11} className={liked ? 'fill-[#EEAA04] text-[#EEAA04]' : 'text-slate-400'} />
             <span>{likes}</span>
           </button>
         </div>

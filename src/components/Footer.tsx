@@ -16,7 +16,7 @@ export default function Footer() {
             <Link to="/" className="inline-block" aria-label="MshindiRoom">
               <span className="font-display font-bold text-2xl tracking-tight text-[#0a1317] flex items-center">
                 Mshindi<span className="text-[#006C54]">.</span>
-                <span className="ml-2 text-[11px] font-bold px-2.5 py-1 rounded-full bg-[#006C54] text-[#FFD700]">Room</span>
+                <span className="ml-2 text-[11px] font-bold px-2.5 py-1 rounded-full bg-[#006C54] text-[#EEAA04]">Room</span>
               </span>
             </Link>
             <p className="text-xs text-slate-500 leading-relaxed max-w-xs">

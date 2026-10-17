@@ -105,8 +105,8 @@ export default function HowItWorks() {
       
       {/* Header */}
       <div className="text-center mb-14">
-        <span className="inline-flex items-center gap-1.5 bg-[#006C54] text-[#FFD700] border border-[#005441] text-xs font-bold uppercase tracking-wider px-3.5 py-1.5 rounded-full mb-4 shadow-xs">
-          <Sparkles size={13} className="text-[#FFD700]" /> Platform Guide &amp; Mechanics
+        <span className="inline-flex items-center gap-1.5 bg-[#006C54] text-[#EEAA04] border border-[#005441] text-xs font-bold uppercase tracking-wider px-3.5 py-1.5 rounded-full mb-4 shadow-xs">
+          <Sparkles size={13} className="text-[#EEAA04]" /> Platform Guide &amp; Mechanics
         </span>
         <h1 className="font-display font-black text-3xl sm:text-5xl text-slate-900 uppercase tracking-tight">From Gut Feeling to Group Consensus.</h1>
         <p className="text-slate-600 mt-3 max-w-2xl mx-auto text-sm sm:text-base leading-relaxed">
@@ -133,8 +133,8 @@ export default function HowItWorks() {
       <div className="bg-white border border-slate-200 rounded-2xl p-6 sm:p-8 mb-12 shadow-xs">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 pb-6 border-b border-slate-100">
           <div>
-            <span className="inline-flex items-center gap-1.5 bg-[#006C54] text-[#FFD700] border border-[#005441] text-xs font-black uppercase tracking-wider px-3 py-1 rounded-full mb-2 shadow-xs">
-              <Dices size={13} className="text-[#FFD700]" /> 100% Free Tool
+            <span className="inline-flex items-center gap-1.5 bg-[#006C54] text-[#EEAA04] border border-[#005441] text-xs font-black uppercase tracking-wider px-3 py-1 rounded-full mb-2 shadow-xs">
+              <Dices size={13} className="text-[#EEAA04]" /> 100% Free Tool
             </span>
             <h2 className="font-display font-black text-2xl sm:text-3xl text-slate-900 uppercase tracking-tight">Custom Bet Builder</h2>
             <p className="text-sm text-slate-600 mt-1">Build, calculate, export, and share custom multi-leg sports accumulators instantly.</p>

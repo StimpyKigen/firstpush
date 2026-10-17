@@ -55,15 +55,15 @@ export default function DesktopNav({
                   : 'bg-transparent text-[#1c1e21] border-transparent active:bg-[#0a1317] active:text-white active:border-[#0a1317]'
               }`}
             >
-              <l.icon size={15} className={`shrink-0 hidden xl:block ${active ? 'text-[#FFD700]' : 'text-[#5d6c7b] group-active:text-[#FFD700]'}`} />
+              <l.icon size={15} className={`shrink-0 hidden xl:block ${active ? 'text-[#EEAA04]' : 'text-[#5d6c7b] group-active:text-[#EEAA04]'}`} />
               <span>{l.label}</span>
               {isBuilder && builderLegsCount > 0 && (
-                <span className="bg-[#006C54] text-[#FFD700] font-bold text-[11px] px-2 rounded-full ml-0.5 shrink-0">
+                <span className="bg-[#006C54] text-[#EEAA04] font-bold text-[11px] px-2 rounded-full ml-0.5 shrink-0">
                   {builderLegsCount}
                 </span>
               )}
               {l.soon && (
-                <span className="text-[10px] xl:text-[11px] font-bold bg-[#8A6500] text-[#FFFFF0] px-1.5 xl:px-2 py-0.5 rounded-full shrink-0 ml-0.5">Soon</span>
+                <span className="text-[10px] xl:text-[11px] font-bold bg-[#EEAA04] text-[#0a1317] px-1.5 xl:px-2 py-0.5 rounded-full shrink-0 ml-0.5">Soon</span>
               )}
             </Link>
           );

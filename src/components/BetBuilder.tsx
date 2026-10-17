@@ -59,7 +59,7 @@ export default function BetBuilder({ onPublished }: BetBuilderProps) {
       <div className="bg-gradient-to-r from-panel via-panel-2 to-panel border border-gold/30 rounded-2xl p-4 sm:p-5 shadow-lg relative overflow-hidden">
         <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <div className="inline-flex items-center gap-1.5 text-[#6D4F00] text-xs font-bold uppercase tracking-wider mb-1">
+            <div className="inline-flex items-center gap-1.5 text-[#EEAA04] text-xs font-bold uppercase tracking-wider mb-1">
               <Dices size={13} /> Custom Bet Builder Engine
             </div>
             <h2 className="font-display font-black text-xl sm:text-2xl text-cream">
@@ -72,8 +72,8 @@ export default function BetBuilder({ onPublished }: BetBuilderProps) {
 
           <div className="flex items-center gap-2 shrink-0">
             <span className="text-xs font-bold text-cream-dim bg-ink px-3 py-1.5 rounded-xl border border-line flex items-center gap-1.5">
-              <Layers size={13} className="text-[#6D4F00]" />
-              <strong className="text-[#6D4F00] font-mono text-sm">{cartLegs.length}</strong> Legs Selected
+              <Layers size={13} className="text-[#EEAA04]" />
+              <strong className="text-[#EEAA04] font-mono text-sm">{cartLegs.length}</strong> Legs Selected
             </span>
           </div>
         </div>
@@ -455,7 +455,7 @@ interface BuilderFixtureItemProps {
   onToggleExpand: (id: string | null) => void;
   cartLegs: BuiltSlipLeg[];
   isLegSelected: (matchId: string, market: string, pick: string) => boolean;
-  toggleLeg: (fixture: BuilderFixture, market: string, pick: string, odds: number, collapseExpanded?: boolean) => void;
+  toggleLeg: (fixture: BuilderFixture, market: string, pick: string, odds: number) => void;
 }
 
 function BuilderFixtureItem({
@@ -502,7 +502,7 @@ function BuilderFixtureItem({
             return (
               <button
                 key={m.code}
-                onClick={() => toggleLeg(fixture, 'Match Result (1X2)', m.label, m.odds, false)}
+                onClick={() => toggleLeg(fixture, 'Match Result (1X2)', m.label, m.odds)}
                 className={`flex-1 sm:flex-none font-mono font-bold text-xs px-3 py-2 rounded-xl border transition-all flex flex-col items-center justify-center min-w-[62px] ${
                   selected
                     ? 'bg-gold text-ink border-gold shadow font-black scale-105'
@@ -549,7 +549,7 @@ function BuilderFixtureItem({
                   return (
                     <button
                       key={dc.code}
-                      onClick={() => toggleLeg(fixture, 'Double Chance', dc.label, dc.odds, true)}
+                      onClick={() => toggleLeg(fixture, 'Double Chance', dc.label, dc.odds)}
                       className={`p-2 rounded-xl border text-center transition-all flex flex-col items-center justify-center ${
                         selected ? 'bg-gold text-ink border-gold font-bold shadow' : 'bg-panel border-line text-cream hover:border-gold/40'
                       }`}
@@ -575,7 +575,7 @@ function BuilderFixtureItem({
                   return (
                     <button
                       key={ou.code}
-                      onClick={() => toggleLeg(fixture, 'Over / Under', ou.label, ou.odds, true)}
+                      onClick={() => toggleLeg(fixture, 'Over / Under', ou.label, ou.odds)}
                       className={`p-2 rounded-xl border text-center transition-all flex items-center justify-between px-3 ${
                         selected ? 'bg-gold text-ink border-gold font-bold shadow' : 'bg-panel border-line text-cream hover:border-gold/40'
                       }`}
@@ -601,7 +601,7 @@ function BuilderFixtureItem({
                   return (
                     <button
                       key={b.code}
-                      onClick={() => toggleLeg(fixture, 'BTTS', b.label, b.odds, true)}
+                      onClick={() => toggleLeg(fixture, 'BTTS', b.label, b.odds)}
                       className={`p-2.5 rounded-xl border text-center transition-all flex items-center justify-between px-4 ${
                         selected ? 'bg-gold text-ink border-gold font-bold shadow' : 'bg-panel border-line text-cream hover:border-gold/40'
                       }`}
@@ -628,7 +628,7 @@ function BuilderFixtureItem({
                     return (
                       <button
                         key={h.code}
-                        onClick={() => toggleLeg(fixture, 'Handicap', h.label, h.odds, true)}
+                        onClick={() => toggleLeg(fixture, 'Handicap', h.label, h.odds)}
                         className={`p-1.5 rounded-xl border text-center transition-all flex flex-col items-center ${
                           selected ? 'bg-gold text-ink border-gold font-bold shadow' : 'bg-panel border-line text-cream hover:border-gold/40'
                         }`}
@@ -651,7 +651,7 @@ function BuilderFixtureItem({
                     return (
                       <button
                         key={cs.code}
-                        onClick={() => toggleLeg(fixture, 'Correct Score', cs.label, cs.odds, true)}
+                        onClick={() => toggleLeg(fixture, 'Correct Score', cs.label, cs.odds)}
                         className={`p-1.5 rounded-xl border text-center transition-all flex flex-col items-center ${
                           selected ? 'bg-gold text-ink border-gold font-bold shadow' : 'bg-panel border-line text-cream hover:border-gold/40'
                         }`}
@@ -667,7 +667,7 @@ function BuilderFixtureItem({
 
             {/* Bottom bar: Done button & auto-collapse hint */}
             <div className="flex items-center justify-between pt-2 border-t border-line/40 text-[10px] text-cream-dim font-mono">
-              <span className="text-cream-dim/60">Auto-collapses on pick selection</span>
+              <span className="text-cream-dim/60">Auto-collapses when picking outside</span>
               <button
                 type="button"
                 onClick={() => onToggleExpand(null)}

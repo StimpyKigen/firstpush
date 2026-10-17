@@ -29,17 +29,12 @@ export default function Navbar() {
 
   return (
     <>
-      {/* Meta promo-banner: dark strip above the nav with one-line offer + inline link */}
-      <div className="bg-[#0a1317] text-white text-sm font-bold px-4 py-3 text-center truncate">
-        <span>Free jackpot rooms every weekend.</span>{' '}
-        <Link to="/free" className="underline underline-offset-2 text-[#FFD700]">Join now</Link>
-      </div>
       <header className="sticky top-0 z-50 border-b border-[#E6E6D2] bg-[#FFFFF0] transition-colors">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between gap-4 h-16">
           <Link to="/" className="flex items-center gap-2 shrink-0 group active:scale-95 transition-transform" aria-label="MshindiRoom Home">
             <span className="font-display font-bold text-2xl tracking-tight text-[#0a1317] flex items-center">
               Mshindi<span className="text-[#006C54]">.</span>
-              <span className="ml-2 text-[11px] font-bold px-2.5 py-1 rounded-full bg-[#006C54] text-[#FFD700]">Room</span>
+              <span className="ml-2 text-[11px] font-bold px-2.5 py-1 rounded-full bg-[#006C54] text-[#EEAA04]">Room</span>
             </span>
           </Link>
 

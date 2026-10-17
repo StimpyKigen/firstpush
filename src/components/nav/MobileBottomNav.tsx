@@ -79,12 +79,12 @@ export default function MobileBottomNav({ pathname, builderLegsCount, currentUse
                 <span className="relative flex items-center justify-center h-5">
                   <Icon
                     size={20}
-                    className={`transition-colors duration-300 ${tab.isActive ? 'text-[#FFD700]' : 'text-[#5d6c7b]'}`}
+                    className={`transition-colors duration-300 ${tab.isActive ? 'text-[#EEAA04]' : 'text-[#5d6c7b]'}`}
                   />
                   {!!tab.badge && tab.badge > 0 && (
                     <span
                       className={`absolute -top-1.5 -right-2.5 font-bold text-[9px] h-4 min-w-[16px] px-1 rounded-full flex items-center justify-center ${
-                        tab.isActive ? 'bg-[#FFD700] text-[#0a1317]' : 'bg-[#006C54] text-[#FFD700]'
+                        tab.isActive ? 'bg-[#EEAA04] text-[#0a1317]' : 'bg-[#006C54] text-[#EEAA04]'
                       }`}
                     >
                       {tab.badge}

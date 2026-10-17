@@ -20,9 +20,9 @@ export default function StarRating({
     <div className={`flex items-center gap-1 ${className}`}>
       <div className="flex items-center" style={{ gap: 1 }}>
         {Array.from({ length: full }).map((_, i) => (
-          <Star key={`f-${i}`} size={size} className="text-gold" fill="#FFD700" strokeWidth={0} />
+          <Star key={`f-${i}`} size={size} className="text-gold" fill="#EEAA04" strokeWidth={0} />
         ))}
-        {hasHalf && <StarHalf size={size} className="text-gold" fill="#FFD700" strokeWidth={0} />}
+        {hasHalf && <StarHalf size={size} className="text-gold" fill="#EEAA04" strokeWidth={0} />}
         {Array.from({ length: empty }).map((_, i) => (
           <Star key={`e-${i}`} size={size} className="text-line" fill="none" strokeWidth={1.5} />
         ))}

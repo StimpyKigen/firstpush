@@ -54,7 +54,7 @@ export function useBetBuilder(onPublished?: () => void) {
   // Moderation for publish note
   const modResult = useMemo(() => moderateText(`${publishNote} ${bookieCode} ${bookieLink}`), [publishNote, bookieCode, bookieLink]);
 
-  function toggleLeg(fixture: BuilderFixture, market: string, pick: string, odds: number, collapseExpanded = false) {
+  function toggleLeg(fixture: BuilderFixture, market: string, pick: string, odds: number) {
     const legId = `${fixture.id}-${market}-${pick}`;
 
     toggleBuilderLeg({
@@ -70,9 +70,9 @@ export function useBetBuilder(onPublished?: () => void) {
       status: 'pending',
     });
 
-    if (collapseExpanded && expandedFixtureId === fixture.id) {
+    // Auto-collapse when user picks another market outside of the triggered markets
+    if (expandedFixtureId !== null && expandedFixtureId !== fixture.id) {
       setExpandedFixtureId(null);
-      showToast({ title: 'Pick Selected', message: 'Markets collapsed for clean view', type: 'info' });
     }
   }
 

@@ -35,14 +35,15 @@
   --color-frame-bg: #FFFFF0;
 
   /* Brand accents (user-specified, replace Meta cobalt) */
-  --color-gold: #8A6500;          /* Deep bronze gold for light-surface contrast (>4.5:1) */
-  --color-gold-2: #6d4f00;
+  --color-1: #EEAA04;
+  --color-gold: var(--color-1);
+  --color-gold-2: #c48b03;
   --color-emerald: #006C54;
   --color-emerald-2: #005441;
   --color-brand-primary: #006C54;
   --color-brand-primary-dark: #005441;
-  --color-brand-gold: #8A6500;
-  --color-brand-gold-dark: #6d4f00;
+  --color-brand-gold: var(--color-1);
+  --color-brand-gold-dark: #c48b03;
   --color-espn-red: #006C54;
   --color-espn-red-dark: #005441;
 
@@ -216,8 +217,8 @@ input, textarea, select, [contenteditable="true"], .select-text {
   }
   .btn-ghost:hover { background-color: #F5F5E4; }
 
-  .btn-gold { background-color: #FFD700; color: #0a1317; }
-  .btn-gold:hover, .btn-gold:active { background-color: #e6c200; }
+  .btn-gold { background-color: #EEAA04; color: #0a1317; }
+  .btn-gold:hover, .btn-gold:active { background-color: #d99903; }
 
   .btn-outline-red,
   .btn-outline-primary,
@@ -378,14 +379,13 @@ svg[class*="lucide"] {
   stroke-linejoin: round !important;
 }
 
-/* High-contrast accessible gold on light/ivory surfaces */
+/* Gold accent across site: --color-1: #EEAA04 */
 .text-gold,
 .text-amber-400,
 .text-amber-300 {
-  color: #8A6500;
+  color: #EEAA04;
 }
 
-/* Radiant gold #FFD700 preserved on dark pills/banners */
 [class*="bg-black"] .text-gold,
 [class*="bg-[#0a1317]"] .text-gold,
 [class*="bg-[#006C54]"] .text-gold,
@@ -397,7 +397,7 @@ svg[class*="lucide"] {
 [class*="bg-black"] .text-amber-400,
 [class*="bg-[#0a1317]"] .text-amber-400,
 [class*="bg-[#006C54]"] .text-amber-400 {
-  color: #FFD700 !important;
+  color: #EEAA04 !important;
 }
 
 /* Sentence-case labels, no italic wordmarks, Meta weights & tracking */

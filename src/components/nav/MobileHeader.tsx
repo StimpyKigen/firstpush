@@ -147,7 +147,7 @@ export function MobileMenuPanel({
           <Wallet size={16} className="text-[#006C54] shrink-0" />
           <span className="truncate font-bold">Ksh {balance.toLocaleString()}</span>
         </span>
-        <Link to="/wallet" onClick={onNavigate} className="bg-[#FFD700] hover:bg-[#e6c200] text-slate-950 font-black text-xs px-3.5 py-1.5 rounded-full shrink-0 whitespace-nowrap active:scale-95 shadow-sm">
+        <Link to="/wallet" onClick={onNavigate} className="bg-[#EEAA04] hover:bg-[#d99903] text-slate-950 font-black text-xs px-3.5 py-1.5 rounded-full shrink-0 whitespace-nowrap active:scale-95 shadow-sm">
           Top Up
         </Link>
       </div>
