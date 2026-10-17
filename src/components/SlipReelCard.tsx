@@ -1,9 +1,8 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import {
-  Heart, Bookmark, Send, MessageCircle, MoreHorizontal,
-  CheckCircle2, Copy, Check, ExternalLink,
-  Clock, Trophy, Zap, X
+  Heart, Bookmark, Send, MessageCircle,
+  Copy, Check, ExternalLink, Clock, Trophy, Zap, X
 } from 'lucide-react';
 import Avatar from './Avatar';
 import { useBetSlipStore } from '../lib/betSlipStore';
@@ -40,7 +39,6 @@ export default function SlipReelCard({ post, index, isActive }: SlipReelCardProp
   const countdown = useCountdown(earliestKickoff);
 
   const [copiedCode, setCopiedCode] = useState(false);
-  const [showMoreMenu, setShowMoreMenu] = useState(false);
   const [showCommentsModal, setShowCommentsModal] = useState(false);
   const [isCaptionExpanded, setIsCaptionExpanded] = useState(false);
   const [likePop, setLikePop] = useState(false);
@@ -116,11 +114,11 @@ export default function SlipReelCard({ post, index, isActive }: SlipReelCardProp
       <div className="absolute inset-0 bg-gradient-to-b from-[#FFFFF0] via-[#FAF9EC] to-[#F5F5E4] pointer-events-none" />
 
       {/* ── CENTER BET SLIP TICKET CONTENT ── */}
-      <div className="relative z-10 flex flex-col h-full pt-14 pb-36 px-3 sm:px-4">
+      <div className="relative z-10 flex flex-col h-full pt-13 pb-36 pl-3.5 pr-14 sm:pl-4 sm:pr-16">
         {/* Ticket Container */}
-        <div className="bg-white border border-[#E6E6D2] rounded-2xl shadow-sm flex flex-col flex-1 min-h-0 overflow-hidden">
+        <div className="flex flex-col flex-1 min-h-0 overflow-hidden">
           {/* Ticket Header Bar */}
-          <div className="p-3 bg-[#F5F5E4]/80 border-b border-[#E6E6D2] flex items-center justify-between gap-2 shrink-0">
+          <div className="pb-2 pt-1 px-0.5 flex items-center justify-between gap-2 shrink-0">
             <div className="flex items-center gap-2">
               <span className="text-black text-sm sm:text-base font-black font-mono leading-none">
                 @{slip.totalOdds.toFixed(2)}x
@@ -149,7 +147,7 @@ export default function SlipReelCard({ post, index, isActive }: SlipReelCardProp
 
           {/* Scrollable Legs List */}
           <div
-            className="flex-1 min-h-0 overflow-y-auto p-3 space-y-2 slip-legs-scroll"
+            className="flex-1 min-h-0 overflow-y-auto py-1 px-0.5 space-y-2 slip-legs-scroll"
             style={{
               scrollbarWidth: 'none',
               touchAction: 'pan-y',
@@ -196,7 +194,7 @@ export default function SlipReelCard({ post, index, isActive }: SlipReelCardProp
 
           {/* Ticket Footer (Stake & Return) */}
           {slip.estimatedReturn && slip.stake && (
-            <div className="p-2.5 bg-[#F5F5E4]/80 border-t border-[#E6E6D2] flex items-center justify-between text-xs shrink-0 font-medium text-slate-600 px-3.5">
+            <div className="pt-2 pb-0.5 px-0.5 flex items-center justify-between text-xs shrink-0 font-medium text-slate-600">
               <span>Stake: Ksh {slip.stake.toLocaleString()}</span>
               <span className="font-bold text-[#006C54] font-mono">
                 Est. Return: Ksh {slip.estimatedReturn.toLocaleString()}
@@ -287,17 +285,6 @@ export default function SlipReelCard({ post, index, isActive }: SlipReelCardProp
             {post.savedByMe ? 'Saved' : 'Save'}
           </span>
         </button>
-
-        {/* More Options Button (...) */}
-        <button
-          onClick={() => setShowMoreMenu(true)}
-          aria-label="More options"
-          className="flex flex-col items-center group active:scale-125 transition-transform"
-        >
-          <div className="p-1">
-            <MoreHorizontal size={26} className="text-slate-800 hover:text-slate-900 stroke-[1.8]" />
-          </div>
-        </button>
       </div>
 
       {/* ── BOTTOM CREATOR & CAPTION OVERLAY ── */}
@@ -320,7 +307,6 @@ export default function SlipReelCard({ post, index, isActive }: SlipReelCardProp
             <span className="font-display font-black text-sm text-slate-900 truncate">
               {post.postedBy}
             </span>
-            <CheckCircle2 size={13} className="text-[#1876f2] fill-[#1876f2] shrink-0" />
           </div>
 
           {!isSelf && (
@@ -388,72 +374,6 @@ export default function SlipReelCard({ post, index, isActive }: SlipReelCardProp
         )}
       </div>
 
-      {/* ── MORE OPTIONS MODAL ── */}
-      <AnimatePresence>
-        {showMoreMenu && (
-          <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-3 sm:p-4 bg-black/50 backdrop-blur-xs">
-            <div className="fixed inset-0" onClick={() => setShowMoreMenu(false)} />
-            <motion.div
-              initial={{ y: 80, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              exit={{ y: 80, opacity: 0 }}
-              className="relative z-10 w-full max-w-sm bg-white rounded-2xl border border-slate-200 p-4 shadow-2xl space-y-1.5 text-sm font-bold text-slate-800"
-            >
-              <div className="w-10 h-1 rounded-full bg-slate-300 mx-auto mb-3" />
-              {slip.bookieCode && (
-                <button
-                  onClick={() => {
-                    handleCopyCode();
-                    setShowMoreMenu(false);
-                  }}
-                  className="w-full py-2.5 px-3 rounded-xl hover:bg-slate-50 flex items-center justify-between text-left"
-                >
-                  <span>Copy Bookie Code ({slip.bookieCode})</span>
-                  <Copy size={16} className="text-slate-500" />
-                </button>
-              )}
-              {slip.bookieLink && (
-                <a
-                  href={slip.bookieLink}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  onClick={() => setShowMoreMenu(false)}
-                  className="w-full py-2.5 px-3 rounded-xl hover:bg-slate-50 flex items-center justify-between text-left"
-                >
-                  <span>Open in Official Bookmaker</span>
-                  <ExternalLink size={16} className="text-[#006C54]" />
-                </a>
-              )}
-              <button
-                onClick={() => {
-                  handleSave();
-                  setShowMoreMenu(false);
-                }}
-                className="w-full py-2.5 px-3 rounded-xl hover:bg-slate-50 flex items-center justify-between text-left"
-              >
-                <span>{post.savedByMe ? 'Remove from Saved' : 'Save to My Slips'}</span>
-                <Bookmark size={16} className="text-slate-500" />
-              </button>
-              <button
-                onClick={() => {
-                  handleCopyLink();
-                  setShowMoreMenu(false);
-                }}
-                className="w-full py-2.5 px-3 rounded-xl hover:bg-slate-50 flex items-center justify-between text-left"
-              >
-                <span>Copy Post Link</span>
-                <Send size={16} className="text-slate-500" />
-              </button>
-              <button
-                onClick={() => setShowMoreMenu(false)}
-                className="w-full py-2.5 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-center mt-2 font-black"
-              >
-                Cancel
-              </button>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
 
       {/* ── COMMENTS & INSIGHTS MODAL ── */}
       <AnimatePresence>
