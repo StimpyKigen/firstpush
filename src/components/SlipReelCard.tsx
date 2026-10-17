@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import {
-  Heart, Bookmark, Share2, Copy, Check, ExternalLink,
-  Zap, Clock, Trophy, TrendingUp,
+  Heart, Bookmark, Send, MessageCircle, MoreHorizontal,
+  Music2, CheckCircle2, Copy, Check, ExternalLink,
+  Clock, Trophy, Zap, X
 } from 'lucide-react';
 import Avatar from './Avatar';
 import { useBetSlipStore } from '../lib/betSlipStore';
@@ -10,15 +11,8 @@ import { useCountdown } from '../lib/useCountdown';
 import { getEarliestKickoff } from '../lib/kickoffParser';
 import type { BetSlipPost } from '../lib/betSlipStore';
 import { showToast } from '../lib/notificationStore';
-
-// Per-card ambient gradient palette (cycles by index)
-const CARD_ACCENTS = [
-  'radial-gradient(ellipse 80% 60% at 20% 0%, rgba(0,168,120,0.22), transparent 60%), radial-gradient(ellipse 60% 50% at 90% 100%, rgba(245,184,0,0.14), transparent 70%)',
-  'radial-gradient(ellipse 70% 55% at 85% 0%, rgba(245,184,0,0.20), transparent 60%), radial-gradient(ellipse 60% 50% at 10% 100%, rgba(0,168,120,0.12), transparent 70%)',
-  'radial-gradient(ellipse 75% 60% at 50% -10%, rgba(0,168,120,0.18), transparent 60%), radial-gradient(ellipse 50% 45% at 50% 110%, rgba(245,184,0,0.12), transparent 70%)',
-  'radial-gradient(ellipse 80% 50% at 0% 50%, rgba(245,184,0,0.16), transparent 65%), radial-gradient(ellipse 60% 50% at 100% 50%, rgba(0,168,120,0.14), transparent 70%)',
-  'radial-gradient(ellipse 70% 60% at 30% 10%, rgba(29,211,154,0.18), transparent 60%), radial-gradient(ellipse 60% 55% at 80% 90%, rgba(245,184,0,0.12), transparent 70%)',
-];
+import { useFollowStore } from '../lib/followStore';
+import { useCurrentUser } from '../lib/authStore';
 
 interface SlipReelCardProps {
   post: BetSlipPost;
@@ -29,7 +23,15 @@ interface SlipReelCardProps {
 export default function SlipReelCard({ post, index, isActive }: SlipReelCardProps) {
   const toggleLike = useBetSlipStore((s) => s.toggleLike);
   const toggleSave = useBetSlipStore((s) => s.toggleSave);
-  const accent = CARD_ACCENTS[index % CARD_ACCENTS.length];
+
+  const currentUser = useCurrentUser();
+  const currentUsername = currentUser?.username || '';
+  const isFollowing = useFollowStore((s) => s.isFollowing);
+  const followUser = useFollowStore((s) => s.followUser);
+  const unfollowUser = useFollowStore((s) => s.unfollowUser);
+
+  const isSelf = currentUsername.toLowerCase() === post.postedBy.toLowerCase();
+  const following = currentUsername ? isFollowing(currentUsername, post.postedBy) : false;
 
   const slip = post.builtSlip!;
   const legs = slip.legs ?? [];
@@ -37,14 +39,16 @@ export default function SlipReelCard({ post, index, isActive }: SlipReelCardProp
   const earliestKickoff = getEarliestKickoff(legs);
   const countdown = useCountdown(earliestKickoff);
 
-  const [copied, setCopied] = useState(false);
-  const [showShareMenu, setShowShareMenu] = useState(false);
+  const [copiedCode, setCopiedCode] = useState(false);
+  const [showMoreMenu, setShowMoreMenu] = useState(false);
+  const [showCommentsModal, setShowCommentsModal] = useState(false);
+  const [isCaptionExpanded, setIsCaptionExpanded] = useState(false);
   const [likePop, setLikePop] = useState(false);
 
   function handleLike() {
     toggleLike(post.id);
     setLikePop(true);
-    setTimeout(() => setLikePop(false), 400);
+    setTimeout(() => setLikePop(false), 450);
   }
 
   function handleSave() {
@@ -53,8 +57,8 @@ export default function SlipReelCard({ post, index, isActive }: SlipReelCardProp
       type: post.savedByMe ? 'info' : 'success',
       title: post.savedByMe ? 'Removed from Saved' : 'Slip Saved!',
       message: post.savedByMe
-        ? 'Removed from your saved slips.'
-        : 'Slip added to your saved collection.',
+        ? 'Removed from your saved collection.'
+        : 'Slip saved to your profile collection.',
     });
   }
 
@@ -64,363 +68,483 @@ export default function SlipReelCard({ post, index, isActive }: SlipReelCardProp
       try {
         await navigator.share({ title: 'MshindiRoom Bet Slip', text: shareText, url: window.location.href });
         return;
-      } catch { /* user cancelled */ }
+      } catch {
+        /* user cancelled */
+      }
     }
-    setShowShareMenu((v) => !v);
+    handleCopyLink();
   }
 
   async function handleCopyLink() {
     try {
       await navigator.clipboard.writeText(window.location.href);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-      setShowShareMenu(false);
+      showToast({ type: 'success', title: 'Link Copied', message: 'Slip link copied to clipboard!' });
     } catch {
-      showToast({ type: 'warning', title: 'Copy failed', message: 'Please copy the URL manually.' });
+      showToast({ type: 'warning', title: 'Copy failed', message: 'Could not copy link to clipboard.' });
+    }
+  }
+
+  function handleCopyCode() {
+    if (!slip.bookieCode) return;
+    navigator.clipboard?.writeText(slip.bookieCode).then(() => {
+      setCopiedCode(true);
+      showToast({ type: 'success', title: 'Code Copied!', message: slip.bookieCode! });
+      setTimeout(() => setCopiedCode(false), 2000);
+    });
+  }
+
+  function handleFollowToggle() {
+    if (!currentUser) {
+      showToast({ type: 'warning', title: 'Login Required', message: 'Sign in to follow punters.' });
+      return;
+    }
+    if (following) {
+      unfollowUser(currentUsername, post.postedBy);
+      showToast({ type: 'info', title: 'Unfollowed', message: `You unfollowed ${post.postedBy}` });
+    } else {
+      followUser(currentUsername, post.postedBy);
+      showToast({ type: 'success', title: 'Following!', message: `You are now following ${post.postedBy}` });
     }
   }
 
   return (
-    /*
-     * height: 100% — fills whatever scroll-snap container gives it
-     * (100% of panel on desktop · 100% of viewport on mobile)
-     */
     <div
-      className="relative w-full overflow-hidden"
-      style={{ height: '100%' }}
+      className="relative w-full h-full overflow-hidden bg-[#FFFFF0] select-none text-slate-900"
       aria-label={`Bet slip by ${post.postedBy}`}
     >
-      {/* ── BACKGROUND ────────────────────────────────────────────────────── */}
-      <div className="absolute inset-0 bg-ink" style={{ backgroundImage: accent }} />
-      {/* Grain texture */}
-      <div
-        className="absolute inset-0 opacity-[0.03] pointer-events-none"
-        style={{
-          backgroundImage:
-            'url("data:image/svg+xml,%3Csvg viewBox=\'0 0 256 256\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'noise\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.9\' numOctaves=\'4\' stitchTiles=\'stitch\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23noise)\'/%3E%3C/svg%3E")',
-          backgroundSize: '256px 256px',
-        }}
-      />
+      {/* ── AMBIENT SUBTLE PATTERN ── */}
+      <div className="absolute inset-0 bg-gradient-to-b from-[#FFFFF0] via-[#FAF9EC] to-[#F5F5E4] pointer-events-none" />
 
-      {/* ── CONTENT STACK (flex column, fills full height) ────────────────── */}
-      <div className="relative z-10 flex flex-col h-full">
+      {/* ── CENTER BET SLIP TICKET CONTENT ── */}
+      <div className="relative z-10 flex flex-col h-full pt-14 pb-36 px-3 sm:px-4">
+        {/* Ticket Container */}
+        <div className="bg-white border border-[#E6E6D2] rounded-2xl shadow-sm flex flex-col flex-1 min-h-0 overflow-hidden">
+          {/* Ticket Header Bar */}
+          <div className="p-3 bg-[#F5F5E4]/80 border-b border-[#E6E6D2] flex items-center justify-between gap-2 shrink-0">
+            <div className="flex items-center gap-2">
+              <span className="bg-[#006C54] text-white text-xs font-black px-2.5 py-1 rounded-lg font-mono shadow-2xs">
+                @{slip.totalOdds.toFixed(2)}x
+              </span>
+              <span className="text-xs font-black uppercase tracking-wider text-slate-800">
+                {legs.length} Leg{legs.length !== 1 ? 's' : ''}
+              </span>
+            </div>
 
-        {/*
-         * ── TOP INSET SPACER ────────────────────────────────────────────────
-         * Pushes the card header below the SlipReelFeed top-bar overlay.
-         * The top-bar uses paddingTop: max(10px, safe-area-inset-top) ~26px bar.
-         * We clear that with max(44px, safe-area + 36px) which works for:
-         *   Desktop (safe=0)  : max(44, 36) = 44px   bar≈36px  ✓
-         *   iPhone SE (safe≈20): max(44, 56) = 56px   bar≈56px  ✓
-         *   iPhone 14 (safe≈44): max(44, 80) = 80px   bar≈70px  ✓ (+ breathing room)
-         */}
-        <div style={{ height: 'max(44px, calc(env(safe-area-inset-top) + 36px))', flexShrink: 0 }} />
-
-        {/* ── USER HEADER ─────────────────────────────────────────────────── */}
-        <div className="flex items-center justify-between gap-3 px-4 pb-3 shrink-0">
-          <div className="flex items-center gap-2.5 min-w-0">
-            <Avatar name={post.postedBy} seed={post.postedByAvatarSeed} size={36} />
-            <div className="min-w-0">
-              <p className="font-display font-extrabold text-sm text-cream truncate leading-tight">
-                {post.postedBy}
-              </p>
-              <p className="text-[10px] text-cream-dim font-mono">
-                {new Date(post.createdAt).toLocaleDateString('en-KE', {
-                  month: 'short',
-                  day: 'numeric',
-                  hour: '2-digit',
-                  minute: '2-digit',
-                })}
-              </p>
+            {/* Countdown Badge */}
+            <div
+              className={`flex items-center gap-1.5 text-xs font-mono font-bold px-2.5 py-1 rounded-full ${
+                countdown.isLive
+                  ? 'bg-emerald-50 text-emerald-800 border border-emerald-200'
+                  : 'bg-amber-50 text-[#8A6500] border border-amber-200'
+              }`}
+            >
+              {countdown.isLive ? (
+                <Zap size={12} className="animate-pulse text-emerald-600" />
+              ) : (
+                <Clock size={12} className="text-[#8A6500]" />
+              )}
+              <span>{countdown.isUnknown ? 'Pending KO' : countdown.label}</span>
             </div>
           </div>
 
-          <div className="flex items-center gap-1.5 shrink-0">
-            {post.bookmaker && (
-              <span className="text-[10px] font-extrabold uppercase tracking-wide bg-panel/80 border border-line/60 text-gold px-2 py-0.5 rounded-full backdrop-blur-sm">
-                {post.bookmaker}
-              </span>
-            )}
-            {post.tags.slice(0, 1).map((tag) => (
-              <span
-                key={tag}
-                className="text-[9px] font-extrabold uppercase tracking-wide bg-gold/15 text-gold px-2 py-0.5 rounded-full"
-              >
-                #{tag}
-              </span>
-            ))}
-          </div>
-        </div>
-
-        {/* ── NOTE / ANALYSIS ─────────────────────────────────────────────── */}
-        {post.note && (
-          <div className="px-4 pb-2 shrink-0">
-            <p className="text-xs text-cream-dim leading-relaxed line-clamp-2">{post.note}</p>
-          </div>
-        )}
-
-        {/* ── LEGS SECTION ────────────────────────────────────────────────── */}
-        {/*
-         * flex-1 + min-h-0 = takes remaining vertical space and allows
-         * the inner overflow-y-auto to actually scroll rather than expanding
-         * past the card boundary.
-         */}
-        <div className="flex-1 min-h-0 flex flex-col px-4 pb-2">
-          {/* Divider label */}
-          <div className="flex items-center gap-2 py-1.5 shrink-0">
-            <div className="h-px flex-1 bg-line/50" />
-            <span className="text-[9px] font-extrabold uppercase tracking-widest text-cream-dim/60 flex items-center gap-1">
-              <Trophy size={9} />
-              {legs.length} Leg{legs.length !== 1 ? 's' : ''}
-            </span>
-            <div className="h-px flex-1 bg-line/50" />
-          </div>
-
-          {/* Scrollable leg list — hides its own scrollbar */}
+          {/* Scrollable Legs List */}
           <div
-            className="flex-1 min-h-0 overflow-y-auto space-y-2 slip-legs-scroll"
+            className="flex-1 min-h-0 overflow-y-auto p-3 space-y-2 slip-legs-scroll"
             style={{
               scrollbarWidth: 'none',
-              // Allow this nested scroller to own vertical pan gestures.
-              // Without this, iOS/Android may hand the gesture back to the
-              // parent (the page body) when the list reaches its top or bottom.
               touchAction: 'pan-y',
-              // Stop overscroll from bubbling out of the legs list into the
-              // feed container when the list hits its own boundary.
               overscrollBehaviorY: 'contain',
             }}
           >
             {legs.map((leg, i) => (
               <motion.div
                 key={leg.id}
-                initial={isActive ? { opacity: 0, y: 8 } : false}
+                initial={isActive ? { opacity: 0, y: 6 } : false}
                 animate={isActive ? { opacity: 1, y: 0 } : {}}
-                transition={{ delay: 0.07 + i * 0.05, duration: 0.32, ease: [0.16, 1, 0.3, 1] }}
-                className="bg-panel/60 backdrop-blur-sm border border-line/40 rounded-2xl px-3.5 py-2.5 flex items-center justify-between gap-3"
+                transition={{ delay: 0.04 + i * 0.04, duration: 0.28, ease: 'easeOut' }}
+                className="p-3 bg-[#FFFFF0] border border-[#E6E6D2] rounded-xl flex items-center justify-between gap-3 shadow-2xs"
               >
                 <div className="min-w-0 flex-1">
-                  <p className="text-[9px] font-bold uppercase tracking-wider text-gold/80 truncate mb-0.5">
+                  <p className="text-[10px] font-black uppercase tracking-wider text-[#006C54] truncate mb-0.5">
                     {leg.competition}
                   </p>
-                  <p className="font-display font-extrabold text-sm text-cream truncate leading-snug">
-                    {leg.homeTeam}{' '}
-                    <span className="text-cream-dim font-normal text-xs">vs</span>{' '}
-                    {leg.awayTeam}
+                  <p className="font-display font-black text-xs sm:text-sm text-slate-900 truncate leading-snug">
+                    {leg.homeTeam} <span className="text-slate-400 font-normal text-xs">v</span> {leg.awayTeam}
                   </p>
-                  <p className="text-xs text-emerald-2 font-semibold mt-0.5 truncate">
-                    {leg.market}:{' '}
-                    <span className="text-cream-dim">{leg.pick}</span>
-                  </p>
-                  <p className="text-[10px] text-cream-dim/55 font-mono mt-0.5 flex items-center gap-1">
-                    <Clock size={9} />
-                    {leg.kickoff}
-                  </p>
+                  <div className="flex items-center gap-1.5 mt-0.5 text-xs">
+                    <span className="font-bold text-slate-700">{leg.market}:</span>
+                    <span className="text-[#006C54] font-black">{leg.pick}</span>
+                  </div>
+                  <div className="flex items-center gap-1 text-[10px] text-slate-400 font-mono mt-0.5">
+                    <Clock size={10} />
+                    <span>{leg.kickoff}</span>
+                  </div>
                 </div>
 
-                {/* Odds pill */}
+                {/* Individual Leg Odds Pill */}
                 <div className="shrink-0">
-                  <div className="bg-gold/15 border border-gold/30 rounded-xl px-2.5 py-1.5 text-center min-w-[48px]">
-                    <span className="font-mono font-black text-gold text-sm block">
+                  <div className="bg-amber-50/80 border border-amber-200 text-[#8A6500] rounded-xl px-2.5 py-1.5 text-center min-w-[48px]">
+                    <span className="font-mono font-black text-xs sm:text-sm block leading-none">
                       {leg.odds.toFixed(2)}
                     </span>
-                    <span className="text-[8px] uppercase text-cream-dim/55 font-bold block">odds</span>
+                    <span className="text-[8px] uppercase text-amber-900/60 font-bold block mt-0.5">odds</span>
                   </div>
                 </div>
               </motion.div>
             ))}
-            {/* Bottom breathing room inside the scroll area */}
-            <div className="h-1" />
           </div>
-        </div>
 
-        {/* ── ODDS SUMMARY BAR ────────────────────────────────────────────── */}
-        <div className="px-4 py-2.5 flex items-center justify-between gap-3 border-t border-line/30 bg-panel/40 backdrop-blur-md shrink-0">
-          <div className="flex items-center gap-1.5">
-            <TrendingUp size={13} className="text-emerald-2" />
-            <span className="text-xs text-cream-dim font-semibold">Total Odds</span>
-          </div>
-          <div className="flex items-center gap-3">
-            <span className="font-mono font-black text-gold text-xl leading-none">
-              @{slip.totalOdds.toFixed(2)}x
-            </span>
-            {slip.estimatedReturn && slip.stake && (
-              <div className="text-right">
-                <p className="text-[10px] text-cream-dim leading-tight">Est. Return</p>
-                <p className="text-xs font-bold text-emerald-2 font-mono">
-                  Ksh {slip.estimatedReturn.toLocaleString()}
-                </p>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* ── COUNTDOWN BAR ───────────────────────────────────────────────── */}
-        <motion.div
-          animate={countdown.isLive ? { scale: [1, 1.015, 1] } : {}}
-          transition={countdown.isLive ? { repeat: Infinity, duration: 2 } : {}}
-          className={`px-4 py-2.5 flex items-center justify-center gap-2 shrink-0 ${
-            countdown.isLive
-              ? 'bg-emerald-2/20 border-t border-emerald-2/40'
-              : 'bg-gold/10 border-t border-gold/20'
-          }`}
-        >
-          {countdown.isLive ? (
-            <Zap size={14} className="text-emerald-2 shrink-0 animate-pulse" />
-          ) : (
-            <Clock size={13} className="text-gold shrink-0" />
-          )}
-          <span
-            className={`text-sm font-extrabold font-mono tracking-wide ${
-              countdown.isLive ? 'text-emerald-2' : 'text-gold'
-            }`}
-          >
-            {countdown.isUnknown ? 'Kickoff time unavailable' : countdown.label}
-          </span>
-        </motion.div>
-
-        {/* ── ACTION BUTTONS ──────────────────────────────────────────────── */}
-        <div
-          className="px-4 flex items-center justify-between gap-2 border-t border-line/20 bg-ink/60 backdrop-blur-md shrink-0"
-          style={{
-            paddingTop: '12px',
-            // Clears the iOS home indicator (≈34 px) and Android gesture bar.
-            // env(safe-area-inset-bottom) is 0 on browsers that don't support
-            // viewport-fit=cover (unlikely here, but 20px is a safe minimum
-            // that keeps all action buttons clear of the OS gesture zone).
-            paddingBottom: 'max(20px, env(safe-area-inset-bottom))',
-          }}
-        >
-          {/* Like ❤️ */}
-          <button
-            onClick={handleLike}
-            aria-label={post.likedByMe ? 'Unlike slip' : 'Like slip'}
-            className="flex items-center gap-2"
-          >
-            <div className="relative">
-              <AnimatePresence>
-                {likePop && (
-                  <motion.div
-                    key="pop"
-                    initial={{ scale: 1, opacity: 1 }}
-                    animate={{ scale: 2.2, opacity: 0 }}
-                    exit={{}}
-                    transition={{ duration: 0.4, ease: 'easeOut' }}
-                    className="absolute inset-0 flex items-center justify-center pointer-events-none"
-                  >
-                    <Heart size={22} className="text-rose-400 fill-rose-400" />
-                  </motion.div>
-                )}
-              </AnimatePresence>
-              <motion.div
-                animate={post.likedByMe ? { scale: [1, 1.35, 1] } : {}}
-                transition={{ duration: 0.25 }}
-              >
-                <Heart
-                  size={22}
-                  className={`transition-colors ${
-                    post.likedByMe ? 'text-rose-400 fill-rose-400' : 'text-cream-dim'
-                  }`}
-                />
-              </motion.div>
-            </div>
-            <span className={`text-sm font-bold font-mono ${post.likedByMe ? 'text-rose-400' : 'text-cream-dim'}`}>
-              {post.likes}
-            </span>
-          </button>
-
-          {/* Save 🔖 */}
-          <button
-            onClick={handleSave}
-            aria-label={post.savedByMe ? 'Unsave slip' : 'Save slip'}
-            className="flex items-center gap-1.5"
-          >
-            <motion.div
-              animate={post.savedByMe ? { scale: [1, 1.4, 1] } : {}}
-              transition={{ duration: 0.3 }}
-            >
-              <Bookmark
-                size={22}
-                className={`transition-colors ${
-                  post.savedByMe ? 'text-gold fill-gold' : 'text-cream-dim'
-                }`}
-              />
-            </motion.div>
-            <span className={`text-xs font-bold ${post.savedByMe ? 'text-gold' : 'text-cream-dim'}`}>
-              {post.savedByMe ? 'Saved' : 'Save'}
-            </span>
-          </button>
-
-          {/* Bookie code / link pill */}
-          {(slip.bookieCode || slip.bookieLink) && (
-            <a
-              href={slip.bookieLink || '#'}
-              target={slip.bookieLink ? '_blank' : undefined}
-              rel="noopener noreferrer"
-              onClick={
-                slip.bookieLink
-                  ? undefined
-                  : (e) => {
-                      e.preventDefault();
-                      navigator.clipboard
-                        .writeText(slip.bookieCode!)
-                        .then(() =>
-                          showToast({ type: 'success', title: 'Code Copied!', message: slip.bookieCode! })
-                        );
-                    }
-              }
-              className="flex items-center gap-1.5 bg-panel/70 border border-gold/30 text-gold text-xs font-bold px-2.5 py-1.5 rounded-full backdrop-blur-sm hover:bg-gold/20 transition-colors"
-            >
-              {slip.bookieLink ? <ExternalLink size={12} /> : <Copy size={12} />}
-              <span className="font-mono max-w-[72px] truncate">
-                {slip.bookieCode || 'Open Link'}
+          {/* Ticket Footer (Stake & Return) */}
+          {slip.estimatedReturn && slip.stake && (
+            <div className="p-2.5 bg-[#F5F5E4]/80 border-t border-[#E6E6D2] flex items-center justify-between text-xs shrink-0 font-medium text-slate-600 px-3.5">
+              <span>Stake: Ksh {slip.stake.toLocaleString()}</span>
+              <span className="font-bold text-[#006C54] font-mono">
+                Est. Return: Ksh {slip.estimatedReturn.toLocaleString()}
               </span>
-            </a>
+            </div>
           )}
+        </div>
+      </div>
 
-          {/* Share */}
-          <div className="relative">
-            <button
-              onClick={handleShare}
-              aria-label="Share slip"
-              className="flex items-center gap-1.5"
-            >
-              <Share2 size={22} className="text-cream-dim" />
-              <span className="text-xs font-bold text-cream-dim">Share</span>
-            </button>
-
+      {/* ── RIGHT VERTICAL ACTION BAR (INSTAGRAM REELS STYLE) ── */}
+      <div className="absolute right-3 bottom-14 z-20 flex flex-col items-center gap-3.5 pointer-events-auto">
+        {/* Like Button (Heart) */}
+        <button
+          onClick={handleLike}
+          aria-label={post.likedByMe ? 'Unlike slip' : 'Like slip'}
+          className="flex flex-col items-center gap-0.5 group active:scale-125 transition-transform"
+        >
+          <div className="relative p-1">
             <AnimatePresence>
-              {showShareMenu && (
+              {likePop && (
                 <motion.div
-                  initial={{ opacity: 0, y: 8, scale: 0.95 }}
-                  animate={{ opacity: 1, y: 0, scale: 1 }}
-                  exit={{ opacity: 0, y: 8, scale: 0.95 }}
-                  transition={{ duration: 0.18 }}
-                  className="absolute bottom-full right-0 mb-2 bg-panel border border-line rounded-2xl shadow-2xl p-3 min-w-[160px] z-50"
+                  key="pop"
+                  initial={{ scale: 1, opacity: 1 }}
+                  animate={{ scale: 2.2, opacity: 0 }}
+                  exit={{}}
+                  transition={{ duration: 0.4, ease: 'easeOut' }}
+                  className="absolute inset-0 flex items-center justify-center pointer-events-none"
                 >
-                  <button
-                    onClick={handleCopyLink}
-                    className="w-full flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm font-semibold text-cream hover:bg-ink-2 transition-colors"
-                  >
-                    {copied ? (
-                      <Check size={15} className="text-emerald-2" />
-                    ) : (
-                      <Copy size={15} />
-                    )}
-                    {copied ? 'Copied!' : 'Copy Link'}
-                  </button>
+                  <Heart size={28} className="text-rose-500 fill-rose-500" />
                 </motion.div>
               )}
             </AnimatePresence>
+            <Heart
+              size={28}
+              className={`transition-colors ${
+                post.likedByMe ? 'text-rose-500 fill-rose-500' : 'text-slate-800 hover:text-slate-900 stroke-[1.8]'
+              }`}
+            />
+          </div>
+          <span className="text-[11px] font-bold text-slate-800 font-mono leading-none">
+            {post.likes}
+          </span>
+        </button>
+
+        {/* Comment / Discussion Button */}
+        <button
+          onClick={() => setShowCommentsModal(true)}
+          aria-label="View comments"
+          className="flex flex-col items-center gap-0.5 group active:scale-125 transition-transform"
+        >
+          <div className="p-1">
+            <MessageCircle size={28} className="text-slate-800 hover:text-slate-900 stroke-[1.8]" />
+          </div>
+          <span className="text-[11px] font-bold text-slate-800 font-mono leading-none">
+            {legs.length * 3 + 4}
+          </span>
+        </button>
+
+        {/* Share / Send Button (Paper Airplane) */}
+        <button
+          onClick={handleShare}
+          aria-label="Share slip"
+          className="flex flex-col items-center gap-0.5 group active:scale-125 transition-transform"
+        >
+          <div className="p-1">
+            <Send size={26} className="text-slate-800 hover:text-slate-900 stroke-[1.8] -rotate-12" />
+          </div>
+          <span className="text-[10px] font-bold text-slate-800 leading-none">
+            Share
+          </span>
+        </button>
+
+        {/* Save / Bookmark Button */}
+        <button
+          onClick={handleSave}
+          aria-label="Save slip"
+          className="flex flex-col items-center gap-0.5 group active:scale-125 transition-transform"
+        >
+          <div className="p-1">
+            <Bookmark
+              size={26}
+              className={
+                post.savedByMe ? 'text-amber-500 fill-amber-500' : 'text-slate-800 hover:text-slate-900 stroke-[1.8]'
+              }
+            />
+          </div>
+          <span className="text-[10px] font-bold text-slate-800 leading-none">
+            {post.savedByMe ? 'Saved' : 'Save'}
+          </span>
+        </button>
+
+        {/* More Options Button (...) */}
+        <button
+          onClick={() => setShowMoreMenu(true)}
+          aria-label="More options"
+          className="flex flex-col items-center group active:scale-125 transition-transform"
+        >
+          <div className="p-1">
+            <MoreHorizontal size={26} className="text-slate-800 hover:text-slate-900 stroke-[1.8]" />
+          </div>
+        </button>
+
+        {/* STATIC Bookie Disc / Badge (Non-spinning as requested!) */}
+        <div className="relative mt-1" title={post.bookmaker || 'Bookmaker'}>
+          <div className="w-8 h-8 rounded-xl bg-slate-900 border-2 border-white shadow-sm flex items-center justify-center font-black text-xs text-white">
+            {post.bookmaker ? post.bookmaker.slice(0, 2).toUpperCase() : 'SP'}
+          </div>
+          <div className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-[#006C54] text-white flex items-center justify-center text-[9px] border border-white">
+            <Music2 size={8} />
           </div>
         </div>
       </div>
 
-      {/* Dismiss share menu on backdrop click */}
-      {showShareMenu && (
-        <div className="fixed inset-0 z-40" onClick={() => setShowShareMenu(false)} />
-      )}
+      {/* ── BOTTOM CREATOR & CAPTION OVERLAY ── */}
+      <div
+        className="absolute left-3.5 right-18 z-20 flex flex-col gap-1.5 pointer-events-auto"
+        style={{
+          bottom: 'max(14px, env(safe-area-inset-bottom))',
+        }}
+      >
+        {/* Creator Row */}
+        <div className="flex items-center gap-2 flex-wrap">
+          {/* Story Ring Avatar */}
+          <div className="p-[2px] rounded-full bg-gradient-to-tr from-amber-500 via-rose-500 to-[#006C54] shadow-2xs shrink-0">
+            <div className="rounded-full bg-white p-[1px]">
+              <Avatar name={post.postedBy} seed={post.postedByAvatarSeed} size={30} />
+            </div>
+          </div>
 
-      {/* Hide leg-list scrollbar in WebKit */}
+          <div className="flex items-center gap-1.5 min-w-0">
+            <span className="font-display font-black text-sm text-slate-900 truncate">
+              {post.postedBy}
+            </span>
+            <CheckCircle2 size={13} className="text-[#1876f2] fill-[#1876f2] shrink-0" />
+          </div>
+
+          {!isSelf && (
+            <button
+              onClick={handleFollowToggle}
+              className={`px-3 py-0.5 text-xs font-bold rounded-lg border transition-all active:scale-95 ${
+                following
+                  ? 'border-slate-300 bg-white/90 text-slate-700 hover:bg-white'
+                  : 'border-slate-900 bg-slate-900 text-white hover:bg-slate-800'
+              }`}
+            >
+              {following ? 'Following' : 'Follow'}
+            </button>
+          )}
+        </div>
+
+        {/* Audio Track Style Line */}
+        <div className="flex items-center gap-1.5 text-xs text-slate-600 font-semibold truncate">
+          <Music2 size={12} className="text-slate-800 shrink-0" />
+          <span className="truncate">
+            {post.bookmaker || 'Mshindi Slip'} · {legs.length} Legs @ {slip.totalOdds.toFixed(2)}x
+          </span>
+        </div>
+
+        {/* Caption / Note */}
+        {post.note && (
+          <div className="text-xs text-slate-800 leading-snug">
+            <span className={isCaptionExpanded ? '' : 'line-clamp-2'}>
+              <strong className="font-bold mr-1">{post.postedBy}</strong>
+              {post.note}
+            </span>
+            {post.note.length > 70 && (
+              <button
+                onClick={() => setIsCaptionExpanded(!isCaptionExpanded)}
+                className="text-slate-500 hover:text-slate-900 font-bold ml-1 text-[11px]"
+              >
+                {isCaptionExpanded ? 'less' : 'more'}
+              </button>
+            )}
+          </div>
+        )}
+
+        {/* Bookie Code Pill */}
+        {(slip.bookieCode || slip.bookieLink) && (
+          <div className="flex items-center gap-2 pt-0.5">
+            {slip.bookieCode && (
+              <button
+                onClick={handleCopyCode}
+                className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-900 text-white text-xs font-mono font-bold shadow-xs active:scale-95 transition-all"
+              >
+                {copiedCode ? <Check size={12} className="text-emerald-400" /> : <Copy size={12} />}
+                <span>{slip.bookieCode}</span>
+              </button>
+            )}
+            {slip.bookieLink && (
+              <a
+                href={slip.bookieLink}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-white border border-slate-300 text-slate-800 text-xs font-bold hover:bg-slate-50 active:scale-95 transition-all"
+              >
+                <ExternalLink size={12} className="text-[#006C54]" />
+                <span>Open Bookie</span>
+              </a>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* ── MORE OPTIONS MODAL ── */}
+      <AnimatePresence>
+        {showMoreMenu && (
+          <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-3 sm:p-4 bg-black/50 backdrop-blur-xs">
+            <div className="fixed inset-0" onClick={() => setShowMoreMenu(false)} />
+            <motion.div
+              initial={{ y: 80, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: 80, opacity: 0 }}
+              className="relative z-10 w-full max-w-sm bg-white rounded-2xl border border-slate-200 p-4 shadow-2xl space-y-1.5 text-sm font-bold text-slate-800"
+            >
+              <div className="w-10 h-1 rounded-full bg-slate-300 mx-auto mb-3" />
+              {slip.bookieCode && (
+                <button
+                  onClick={() => {
+                    handleCopyCode();
+                    setShowMoreMenu(false);
+                  }}
+                  className="w-full py-2.5 px-3 rounded-xl hover:bg-slate-50 flex items-center justify-between text-left"
+                >
+                  <span>Copy Bookie Code ({slip.bookieCode})</span>
+                  <Copy size={16} className="text-slate-500" />
+                </button>
+              )}
+              {slip.bookieLink && (
+                <a
+                  href={slip.bookieLink}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={() => setShowMoreMenu(false)}
+                  className="w-full py-2.5 px-3 rounded-xl hover:bg-slate-50 flex items-center justify-between text-left"
+                >
+                  <span>Open in Official Bookmaker</span>
+                  <ExternalLink size={16} className="text-[#006C54]" />
+                </a>
+              )}
+              <button
+                onClick={() => {
+                  handleSave();
+                  setShowMoreMenu(false);
+                }}
+                className="w-full py-2.5 px-3 rounded-xl hover:bg-slate-50 flex items-center justify-between text-left"
+              >
+                <span>{post.savedByMe ? 'Remove from Saved' : 'Save to My Slips'}</span>
+                <Bookmark size={16} className="text-slate-500" />
+              </button>
+              <button
+                onClick={() => {
+                  handleCopyLink();
+                  setShowMoreMenu(false);
+                }}
+                className="w-full py-2.5 px-3 rounded-xl hover:bg-slate-50 flex items-center justify-between text-left"
+              >
+                <span>Copy Post Link</span>
+                <Send size={16} className="text-slate-500" />
+              </button>
+              <button
+                onClick={() => setShowMoreMenu(false)}
+                className="w-full py-2.5 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-center mt-2 font-black"
+              >
+                Cancel
+              </button>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* ── COMMENTS & INSIGHTS MODAL ── */}
+      <AnimatePresence>
+        {showCommentsModal && (
+          <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/50 backdrop-blur-xs">
+            <div className="fixed inset-0" onClick={() => setShowCommentsModal(false)} />
+            <motion.div
+              initial={{ y: '100%' }}
+              animate={{ y: 0 }}
+              exit={{ y: '100%' }}
+              transition={{ type: 'spring', damping: 25, stiffness: 250 }}
+              className="relative z-10 w-full sm:max-w-md bg-white rounded-t-3xl sm:rounded-3xl border border-slate-200 max-h-[75vh] flex flex-col shadow-2xl overflow-hidden"
+            >
+              <div className="p-4 border-b border-slate-100 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <MessageCircle size={18} className="text-[#006C54]" />
+                  <h3 className="font-display font-black text-sm uppercase tracking-wide text-slate-900">
+                    Slip Discussion &amp; Analysis
+                  </h3>
+                </div>
+                <button
+                  onClick={() => setShowCommentsModal(false)}
+                  className="w-7 h-7 rounded-full bg-slate-100 flex items-center justify-center text-slate-600 hover:bg-slate-200"
+                >
+                  <X size={15} />
+                </button>
+              </div>
+
+              <div className="flex-1 overflow-y-auto p-4 space-y-3">
+                <div className="p-3 bg-[#F5F5E4] rounded-xl border border-[#E6E6D2]">
+                  <div className="flex items-center gap-2 mb-1">
+                    <Avatar name={post.postedBy} seed={post.postedByAvatarSeed} size={24} />
+                    <span className="font-bold text-xs text-slate-900">{post.postedBy} (Author)</span>
+                  </div>
+                  <p className="text-xs text-slate-700 leading-relaxed">
+                    {post.note || 'Multi-leg bet slip curated by top community punter.'}
+                  </p>
+                </div>
+
+                <div className="text-xs text-slate-500 pt-2 pb-1 font-bold uppercase tracking-wider">
+                  Matches in this Slip ({legs.length}):
+                </div>
+                {legs.map((leg) => (
+                  <div key={leg.id} className="text-xs p-2.5 rounded-lg border border-slate-100 bg-white flex items-center justify-between">
+                    <div>
+                      <p className="font-bold text-slate-900">{leg.homeTeam} v {leg.awayTeam}</p>
+                      <p className="text-[11px] text-[#006C54]">{leg.market}: {leg.pick}</p>
+                    </div>
+                    <span className="font-mono font-bold text-slate-800">@{leg.odds.toFixed(2)}</span>
+                  </div>
+                ))}
+              </div>
+
+              <div className="p-3 border-t border-slate-100 bg-slate-50 flex items-center gap-2">
+                <input
+                  type="text"
+                  placeholder="Add a comment to this slip..."
+                  className="flex-1 bg-white border border-slate-300 rounded-full px-4 py-2 text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#006C54]"
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      showToast({ type: 'success', title: 'Comment Shared', message: 'Your comment was added to this slip!' });
+                      (e.target as HTMLInputElement).value = '';
+                    }
+                  }}
+                />
+                <button
+                  onClick={() => {
+                    showToast({ type: 'success', title: 'Comment Shared', message: 'Your comment was added to this slip!' });
+                  }}
+                  className="p-2 rounded-full bg-[#006C54] text-white hover:bg-[#005441]"
+                >
+                  <Send size={14} />
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
       <style>{`.slip-legs-scroll::-webkit-scrollbar { display: none; }`}</style>
     </div>
   );

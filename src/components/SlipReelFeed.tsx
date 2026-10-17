@@ -84,24 +84,26 @@ export default function SlipReelFeed({ posts, onClose }: SlipReelFeedProps) {
   // ── Empty state ─────────────────────────────────────────────────────────────
   if (reelPosts.length === 0) {
     return (
-      <div className="fixed inset-0 z-50 bg-ink flex flex-col items-center justify-center gap-4 p-8">
+      <div className="fixed inset-0 z-50 bg-[#FFFFF0] flex flex-col items-center justify-center gap-4 p-8 text-slate-900">
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 p-2 rounded-full bg-panel border border-line text-cream-dim hover:text-cream transition-colors"
-          aria-label="Close SlipFeed"
+          className="absolute top-4 right-4 p-2 rounded-full bg-white border border-slate-200 text-slate-600 hover:text-slate-900 transition-colors shadow-xs cursor-pointer"
+          aria-label="Close Reels"
         >
           <X size={20} />
         </button>
-        <Layers size={52} className="text-cream-dim/20" />
+        <div className="w-16 h-16 rounded-2xl bg-emerald-50 text-[#006C54] flex items-center justify-center shadow-xs">
+          <Layers size={32} />
+        </div>
         <div className="text-center">
-          <p className="font-display font-extrabold text-lg text-cream mb-1">No SlipFeed Posts Yet</p>
-          <p className="text-sm text-cream-dim leading-relaxed max-w-xs">
-            No Bet Builder slips have been published yet. Build and publish a multi-leg slip to see it here!
+          <p className="font-display font-black text-xl text-slate-900 mb-1">No SlipFeed Reels Yet</p>
+          <p className="text-xs text-slate-600 leading-relaxed max-w-xs">
+            No Bet Builder slips have been published yet. Build and publish a multi-leg slip to see it featured here!
           </p>
         </div>
         <button
           onClick={onClose}
-          className="mt-2 px-5 py-2.5 bg-gold text-ink font-bold rounded-full text-sm"
+          className="mt-2 px-6 py-2.5 bg-[#006C54] text-white font-bold rounded-full text-xs uppercase tracking-wider shadow-xs hover:bg-[#005441] transition-all cursor-pointer"
         >
           Back to Builder
         </button>
@@ -114,12 +116,10 @@ export default function SlipReelFeed({ posts, onClose }: SlipReelFeedProps) {
   return (
     /*
      * BACKDROP
-     * Mobile  – bg-ink fills the full visual viewport (fixed inset-0).
-     *           `fixed` + `inset-0` already tracks the dynamic viewport so
-     *           we get the correct size even when the iOS address bar animates.
+     * Mobile  – bg-[#FFFFF0] fills the full visual viewport (fixed inset-0).
      * Desktop – dark translucent overlay with a centred phone-shaped panel.
      */
-    <div className="fixed inset-0 z-50 bg-ink sm:bg-black/80 sm:backdrop-blur-sm sm:flex sm:items-center sm:justify-center">
+    <div className="fixed inset-0 z-50 bg-[#FFFFF0] sm:bg-black/75 sm:backdrop-blur-sm sm:flex sm:items-center sm:justify-center">
 
       {/* Desktop: click backdrop to exit */}
       <div className="hidden sm:block absolute inset-0" onClick={onClose} />
@@ -131,68 +131,27 @@ export default function SlipReelFeed({ posts, onClose }: SlipReelFeedProps) {
        */}
       <div
         className={[
-          'relative w-full h-full overflow-hidden',
+          'relative w-full h-full overflow-hidden bg-[#FFFFF0]',
           'sm:w-[390px] sm:h-[90dvh] sm:max-h-[820px]',
           'sm:rounded-[32px]',
-          'sm:border sm:border-white/[0.07]',
-          'sm:shadow-[0_24px_80px_-8px_rgba(0,0,0,0.8),0_0_0_1px_rgba(255,255,255,0.04)]',
+          'sm:border sm:border-slate-200',
+          'sm:shadow-[0_24px_80px_-8px_rgba(0,0,0,0.5),0_0_0_1px_rgba(0,0,0,0.05)]',
         ].join(' ')}
       >
-        <div className="absolute inset-0 bg-ink" />
+        <div className="absolute inset-0 bg-[#FFFFF0]" />
 
         {/*
          * SCROLL CONTAINER — the single source of truth for gesture handling.
-         *
-         * Key gesture properties (order matters):
-         *
-         * touch-action: pan-y pinch-zoom
-         *   Tells the browser immediately that vertical panning is ours.
-         *   Without this, iOS/Android spend the first gesture frame deciding
-         *   whether it's horizontal or vertical — causing the "dead first swipe".
-         *   pan-y means: the browser handles vertical scroll natively (fast-path),
-         *   we never intercept touch events ourselves.
-         *   pinch-zoom preserves the default pinch-to-zoom behaviour.
-         *   NOTE: this does NOT interfere with iOS edge-swipe back (that is
-         *   captured by the OS before the browser sees any touch event) or
-         *   Android bottom gesture navigation (same OS-level pre-capture).
-         *
-         * overscroll-behavior-y: contain
-         *   At the top card (index 0) swiping DOWN would normally trigger
-         *   pull-to-refresh or bounce the page — contain stops that propagation.
-         *   At the last card swiping UP gets the same containment.
-         *   Combined with the body scroll lock above, there is zero rubber-band
-         *   leakage to the page underneath.
-         *
-         * scroll-snap-type: y mandatory
-         *   Every gesture lands exactly on a card boundary.
-         *   scroll-snap-stop: always (on each child) means a fast fling still
-         *   only advances one card — same UX as TikTok/Reels.
-         *
-         * will-change: scroll-position
-         *   Hints to the compositor to promote the layer, so scroll-snap
-         *   animations are GPU-accelerated on both iOS and Android.
-         *
-         * scrollbarWidth: none + WebKit rule
-         *   Cosmetic — hides the scrollbar track on all browsers.
-         *
-         * We intentionally do NOT add onTouchStart/onTouchMove/onTouchEnd
-         * handlers. Native scroll + touch-action is always faster and more
-         * reliable than JS gesture interception.
          */}
         <div
           ref={scrollRef}
           className="slip-feed-scroll w-full h-full overflow-y-scroll"
           style={{
-            // Gesture handling
             touchAction: 'pan-y pinch-zoom',
             overscrollBehaviorY: 'contain',
-            // Snap behaviour
             scrollSnapType: 'y mandatory',
-            // GPU hint
             willChange: 'scroll-position',
-            // Scrollbar hide (Firefox + Safari legacy)
             scrollbarWidth: 'none',
-            // iOS momentum scrolling (still beneficial on older WebKit)
             WebkitOverflowScrolling: 'touch',
           }}
         >
@@ -200,12 +159,8 @@ export default function SlipReelFeed({ posts, onClose }: SlipReelFeedProps) {
             <div
               key={post.id}
               style={{
-                // 100% of the panel (desktop) or viewport (mobile) — never 100dvh
-                // so the card always fits inside whatever container it lives in.
                 height: '100%',
-                // Snap properties on each child:
                 scrollSnapAlign: 'start',
-                // 'always' = one card per swipe even on a fast fling
                 scrollSnapStop: 'always',
                 flexShrink: 0,
               }}
@@ -215,20 +170,22 @@ export default function SlipReelFeed({ posts, onClose }: SlipReelFeedProps) {
           ))}
         </div>
 
-        {/* ── TOP BAR ──────────────────────────────────────────────────────── */}
+        {/* ── TOP BAR (Instagram Reels Header) ──────────────────────────────── */}
         <div
-          className="absolute top-0 left-0 right-0 z-20 flex items-center justify-between gap-2 px-3 sm:px-4"
-          style={{ paddingTop: 'max(10px, env(safe-area-inset-top))' }}
+          className="absolute top-0 left-0 right-0 z-30 flex items-center justify-between gap-2 px-4"
+          style={{ paddingTop: 'max(14px, env(safe-area-inset-top))' }}
         >
-          <div className="flex items-center gap-1.5 bg-black/50 backdrop-blur-md border border-white/10 rounded-full px-2.5 py-1.5 shrink-0">
-            <Layers size={11} className="text-gold" />
-            <span className="text-[11px] font-extrabold text-cream font-mono tracking-wide">
+          <div className="flex items-center gap-2">
+            <h2 className="font-display font-black text-xl text-slate-900 tracking-tight leading-none">
+              Reels
+            </h2>
+            <span className="text-[10px] font-mono font-bold text-slate-500 bg-slate-200/70 px-2 py-0.5 rounded-full">
               {activeIndex + 1}/{reelPosts.length}
             </span>
           </div>
 
           {showDots && (
-            <div className="flex items-center gap-1 justify-center flex-1 overflow-hidden">
+            <div className="flex items-center gap-1 justify-center flex-1 overflow-hidden px-2">
               {reelPosts.map((_, i) => (
                 <button
                   key={i}
@@ -236,22 +193,23 @@ export default function SlipReelFeed({ posts, onClose }: SlipReelFeedProps) {
                   aria-label={`Go to slip ${i + 1}`}
                   className={`rounded-full transition-all shrink-0 ${
                     i === activeIndex
-                      ? 'w-4 h-[5px] bg-gold'
-                      : 'w-[5px] h-[5px] bg-cream/30 hover:bg-cream/60'
+                      ? 'w-4 h-[5px] bg-[#006C54]'
+                      : 'w-[5px] h-[5px] bg-slate-300 hover:bg-slate-400'
                   }`}
                 />
               ))}
             </div>
           )}
 
-          <button
-            onClick={onClose}
-            aria-label="Close SlipFeed"
-            className="flex items-center gap-1 bg-black/50 backdrop-blur-md border border-white/10 rounded-full px-2.5 py-1.5 text-cream-dim hover:text-cream transition-colors shrink-0"
-          >
-            <X size={13} />
-            <span className="text-[11px] font-bold">Exit</span>
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={onClose}
+              aria-label="Close Reels"
+              className="w-8 h-8 rounded-full bg-white/90 hover:bg-white text-slate-800 border border-slate-200 shadow-2xs flex items-center justify-center transition-all active:scale-95 cursor-pointer"
+            >
+              <X size={16} />
+            </button>
+          </div>
         </div>
 
         {/* ── DESKTOP NAV ARROWS ───────────────────────────────────────────── */}
@@ -260,7 +218,7 @@ export default function SlipReelFeed({ posts, onClose }: SlipReelFeedProps) {
             onClick={goPrev}
             disabled={activeIndex === 0}
             aria-label="Previous slip"
-            className="p-2.5 rounded-full bg-black/50 backdrop-blur-md border border-white/10 text-cream-dim hover:text-cream disabled:opacity-25 transition-all hover:scale-105 active:scale-95"
+            className="p-2.5 rounded-full bg-white/90 backdrop-blur-md border border-slate-200 text-slate-700 hover:text-slate-900 disabled:opacity-25 transition-all hover:scale-105 active:scale-95 shadow-sm cursor-pointer"
           >
             <ChevronUp size={17} />
           </button>
@@ -268,7 +226,7 @@ export default function SlipReelFeed({ posts, onClose }: SlipReelFeedProps) {
             onClick={goNext}
             disabled={activeIndex === reelPosts.length - 1}
             aria-label="Next slip"
-            className="p-2.5 rounded-full bg-black/50 backdrop-blur-md border border-white/10 text-cream-dim hover:text-cream disabled:opacity-25 transition-all hover:scale-105 active:scale-95"
+            className="p-2.5 rounded-full bg-white/90 backdrop-blur-md border border-slate-200 text-slate-700 hover:text-slate-900 disabled:opacity-25 transition-all hover:scale-105 active:scale-95 shadow-sm cursor-pointer"
           >
             <ChevronDown size={17} />
           </button>
