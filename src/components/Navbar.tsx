@@ -31,11 +31,20 @@ export default function Navbar() {
     <>
       <header className="sticky top-0 z-50 border-b border-[#E6E6D2] bg-[#FFFFF0] transition-colors">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between gap-4 h-16">
-          <Link to="/" className="flex items-center gap-2 shrink-0 group active:scale-95 transition-transform" aria-label="MshindiRoom Home">
-            <span className="font-display font-bold text-2xl tracking-tight text-[#0a1317] flex items-center">
-              Mshindi<span className="text-[#006C54]">.</span>
-              <span className="ml-2 text-[11px] font-bold px-2.5 py-1 rounded-full bg-[#006C54] text-[#EEAA04]">Room</span>
-            </span>
+          <Link
+            to="/"
+            className="flex items-center shrink-0 group active:scale-95 transition-transform focus:outline-none"
+            aria-label="MshindiRoom Home"
+          >
+            <img
+              src="/images/logo.png"
+              alt="MshindiRoom"
+              className="h-6 sm:h-7.5 lg:h-8 w-auto max-w-[170px] xs:max-w-[200px] sm:max-w-none object-contain shrink-0"
+              width="240"
+              height="32"
+              loading="eager"
+              decoding="async"
+            />
           </Link>
 
           <DesktopNav

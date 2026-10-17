@@ -13,11 +13,16 @@ export default function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8 pb-10 border-b border-[#E6E6D2]">
           {/* Brand Col */}
           <div className="space-y-3">
-            <Link to="/" className="inline-block" aria-label="MshindiRoom">
-              <span className="font-display font-bold text-2xl tracking-tight text-[#0a1317] flex items-center">
-                Mshindi<span className="text-[#006C54]">.</span>
-                <span className="ml-2 text-[11px] font-bold px-2.5 py-1 rounded-full bg-[#006C54] text-[#EEAA04]">Room</span>
-              </span>
+            <Link to="/" className="inline-block group active:scale-95 transition-transform focus:outline-none" aria-label="MshindiRoom">
+              <img
+                src="/images/logo.png"
+                alt="MshindiRoom"
+                className="h-7 sm:h-8 w-auto object-contain shrink-0"
+                width="240"
+                height="32"
+                loading="lazy"
+                decoding="async"
+              />
             </Link>
             <p className="text-xs text-slate-500 leading-relaxed max-w-xs">
               Kenya's premier jackpot crowd consensus and sports analytics community. Powered by verified punters.
