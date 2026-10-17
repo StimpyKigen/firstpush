@@ -41,7 +41,7 @@ export default function DesktopNav({
   return (
     <>
       {/* Meta button-pill-tab / button-pill-tab-active category navigation */}
-      <nav className="hidden lg:flex items-center justify-center gap-0.5 xl:gap-1.5 min-w-0 flex-1 h-16">
+      <nav className="hidden lg:flex items-center justify-center gap-1 xl:gap-1.5 min-w-0 flex-1 px-1 xl:px-2">
         {links.map((l) => {
           const active = pathname === l.to;
           const isBuilder = l.to === '/slips';
@@ -49,16 +49,16 @@ export default function DesktopNav({
             <Link
               key={l.to}
               to={l.to}
-              className={`group inline-flex items-center gap-1.5 px-2 xl:px-3.5 py-2 text-[13px] xl:text-sm font-bold whitespace-nowrap shrink-0 rounded-full border transition-colors ${
+              className={`group inline-flex items-center gap-1.5 px-2.5 xl:px-3 py-1.5 text-xs xl:text-[13px] font-bold whitespace-nowrap shrink-0 rounded-full border transition-colors ${
                 active
                   ? 'bg-[#0a1317] text-white border-[#0a1317]'
                   : 'bg-transparent text-[#1c1e21] border-transparent active:bg-[#0a1317] active:text-white active:border-[#0a1317]'
               }`}
             >
-              <l.icon size={15} className={`shrink-0 hidden xl:block ${active ? 'text-[#EEAA04]' : 'text-[#5d6c7b] group-active:text-[#EEAA04]'}`} />
+              <l.icon size={14} className={`shrink-0 hidden xl:block ${active ? 'text-[#EEAA04]' : 'text-[#5d6c7b] group-active:text-[#EEAA04]'}`} />
               <span>{l.label}</span>
               {isBuilder && builderLegsCount > 0 && (
-                <span className="bg-[#006C54] text-[#EEAA04] font-bold text-[11px] px-2 rounded-full ml-0.5 shrink-0">
+                <span className="bg-[#006C54] text-[#EEAA04] font-bold text-[10px] xl:text-[11px] px-1.5 xl:px-2 rounded-full ml-0.5 shrink-0">
                   {builderLegsCount}
                 </span>
               )}
@@ -71,14 +71,14 @@ export default function DesktopNav({
       </nav>
 
       {/* Desktop right-side controls: search, theme, wallet, profile */}
-      <div className="hidden lg:flex items-center gap-2 xl:gap-3 shrink-0">
+      <div className="hidden lg:flex items-center gap-2 xl:gap-2.5 shrink-0 ml-1 sm:ml-2 xl:ml-4 z-10">
         <Link
           to="/free"
           aria-label="Search fixtures and jackpots"
           title="Search fixtures & jackpots"
-          className="hidden xl:inline-flex items-center justify-center w-10 h-10 rounded-full bg-[#F5F5E4] hover:bg-[#E6E6D2] text-[#5d6c7b] active:scale-95 transition-colors shrink-0"
+          className="hidden xl:inline-flex items-center justify-center w-9 h-9 rounded-full bg-[#F5F5E4] hover:bg-[#E6E6D2] text-[#5d6c7b] active:scale-95 transition-colors shrink-0"
         >
-          <Search size={17} />
+          <Search size={16} />
         </Link>
 
         {/* Integrated Wallet & Mshindi Tokens Dropdown */}
@@ -90,7 +90,7 @@ export default function DesktopNav({
             }}
             aria-label="Wallet & Mshindi Tokens"
             title="Wallet & Mshindi Tokens"
-            className={`inline-flex items-center gap-1.5 xl:gap-2 h-9 px-2.5 xl:px-3.5 rounded-full border transition-all active:scale-95 ${
+            className={`inline-flex items-center gap-1.5 xl:gap-2 h-9 px-2.5 xl:px-3 rounded-full border transition-all active:scale-95 ${
               walletOpen
                 ? 'bg-emerald-50 border-[#006C54] text-[#006C54] shadow-xs'
                 : 'bg-[#F5F5E4] hover:bg-[#E6E6D2] border-[#E6E6D2] text-slate-700 hover:text-slate-900'
@@ -155,7 +155,7 @@ export default function DesktopNav({
         ) : (
           <Link
             to="/auth"
-            className="bg-black hover:bg-[#444950] text-white text-sm font-bold px-6 h-10 rounded-full inline-flex items-center gap-1.5 whitespace-nowrap shrink-0 active:scale-95 transition-colors"
+            className="bg-black hover:bg-[#444950] text-white text-xs xl:text-sm font-bold px-4 xl:px-5 h-9 rounded-full inline-flex items-center gap-1.5 whitespace-nowrap shrink-0 active:scale-95 transition-colors"
           >
             <UserCircle2 size={15} /> Log In
           </Link>

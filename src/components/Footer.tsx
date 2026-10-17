@@ -17,9 +17,9 @@ export default function Footer() {
               <img
                 src="/images/logo.png"
                 alt="MshindiRoom"
-                className="h-7 sm:h-8 w-auto object-contain shrink-0"
-                width="240"
-                height="32"
+                className="h-7 sm:h-7.5 w-auto object-contain shrink-0"
+                width="210"
+                height="28"
                 loading="lazy"
                 decoding="async"
               />

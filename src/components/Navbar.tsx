@@ -33,15 +33,15 @@ export default function Navbar() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between gap-4 h-16">
           <Link
             to="/"
-            className="flex items-center shrink-0 group active:scale-95 transition-transform focus:outline-none"
+            className="flex items-center shrink-0 mr-1 sm:mr-2 xl:mr-4 group active:scale-95 transition-transform focus:outline-none z-10"
             aria-label="MshindiRoom Home"
           >
             <img
               src="/images/logo.png"
               alt="MshindiRoom"
-              className="h-6 sm:h-7.5 lg:h-8 w-auto max-w-[170px] xs:max-w-[200px] sm:max-w-none object-contain shrink-0"
-              width="240"
-              height="32"
+              className="h-6 sm:h-6.5 lg:h-7 w-auto max-w-[165px] xs:max-w-[195px] sm:max-w-none object-contain shrink-0"
+              width="210"
+              height="28"
               loading="eager"
               decoding="async"
             />
