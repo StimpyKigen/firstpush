@@ -12,9 +12,10 @@ import { useAuth, useCurrentUser } from '../lib/authStore';
 import Avatar from '../components/Avatar';
 import StarRating from '../components/StarRating';
 import PlayerProfileModal from '../components/PlayerProfileModal';
-import { getPunterStats } from '../lib/punterRatings';
+import { getPunterStats, getStarRating } from '../lib/punterRatings';
 import { getRoomStatusInfo, type DisplayRoomStatus } from '../lib/roomStatus';
 import { computeRoomPerformanceAndLeaderboard } from '../lib/leaderboardEngine';
+import { LeaderboardSkeleton } from '../components/skeleton';
 
 const BOOKIE_BADGE_STYLE: Record<string, { bg: string; text: string; border: string }> = {
   SportPesa: { bg: 'bg-blue-50', text: 'text-blue-800', border: 'border-blue-200' },
@@ -98,6 +99,10 @@ export default function Leaderboard() {
       ...prev,
       [roomId]: prev[roomId] === true ? false : true, // toggle expand
     }));
+  }
+
+  if (allJackpots.length === 0) {
+    return <LeaderboardSkeleton />;
   }
 
   return (

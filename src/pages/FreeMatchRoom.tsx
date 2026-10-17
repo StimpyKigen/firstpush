@@ -10,6 +10,7 @@ import OutcomeBar from '../components/OutcomeBar';
 import DiscussionPanel from '../components/DiscussionPanel';
 import { useBetSlipStore } from '../lib/betSlipStore';
 import QuickBetBuilderModal from '../components/QuickBetBuilderModal';
+import { RoomDetailSkeleton } from '../components/skeleton';
 
 const tierColor: Record<string, string> = {
   blockbuster: '#8A6500',
@@ -39,7 +40,12 @@ export default function FreeMatchRoom() {
 
   const builderLegs = useBetSlipStore((s) => s.builderLegs);
 
-  if (!match) return <Navigate to="/free" replace />;
+  if (!match) {
+    if (matches.length === 0) {
+      return <RoomDetailSkeleton />;
+    }
+    return <Navigate to="/free" replace />;
+  }
   const consensus = consensusMap[match.id];
 
   const outcomeColor = myPickRecord?.pick === '1' ? '#006C54' : myPickRecord?.pick === 'X' ? '#8A6500' : '#e41e3f';

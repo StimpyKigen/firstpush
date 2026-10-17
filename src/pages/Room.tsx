@@ -17,6 +17,7 @@ import Avatar from '../components/Avatar';
 import StarRating from '../components/StarRating';
 import { getPunterStats, getStarRating } from '../lib/punterRatings';
 import { useAutoCollapse } from '../lib/useAutoCollapse';
+import { RoomDetailSkeleton } from '../components/skeleton';
 
 const CONVICTIONS: Conviction[] = ['Banker', 'Value Pick', 'Long Shot'];
 
@@ -41,7 +42,12 @@ export default function Room() {
   const [formError, setFormError] = useState<string | null>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
-  if (!jackpot) return <Navigate to="/" replace />;
+  if (!jackpot) {
+    if (activeJackpots.length === 0) {
+      return <RoomDetailSkeleton />;
+    }
+    return <Navigate to="/" replace />;
+  }
 
   const theme = BOOKIE_THEME[jackpot.bookie];
   const isUnlocked = unlocked || unlockedLocal;

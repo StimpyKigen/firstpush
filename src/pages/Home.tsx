@@ -8,6 +8,7 @@ import { getFreeMatchesSnapshot, getFreeMatchConsensusSnapshot, subscribeToFreeM
 import type { Bookie, RoomStatus } from '../lib/types';
 import JackpotCard from '../components/JackpotCard';
 import JackpotAdminModal from '../components/JackpotAdminModal';
+import { SkeletonImage, JackpotGridSkeleton } from '../components/skeleton';
 
 const bookies: (Bookie | 'All')[] = ['All', 'SportPesa', 'Betika', 'Odibets', 'Mozzart'];
 
@@ -125,12 +126,13 @@ export default function Home() {
             {/* Left Column: Striker Photo & Slide Indicators */}
             <div className="lg:col-span-5 relative flex flex-col items-center justify-center">
               <div className="relative w-full max-w-md lg:max-w-none rounded-3xl overflow-hidden aspect-[3/4] bg-[#0a1317] group">
-                <img
+                <SkeletonImage
                   src="/images/hero-striker.jpg"
                   alt="Dynamic Football Striker in Action"
                   className="w-full h-full object-cover object-top filter contrast-105 group-hover:scale-105 transition-transform duration-500"
+                  containerClassName="w-full h-full"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/20" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/20 pointer-events-none" />
                 
                 {/* Overlay match badge */}
                 <div className="absolute top-4 left-4">
@@ -201,19 +203,34 @@ export default function Home() {
                 <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-3">Live Highlights &amp; Slates</p>
                 <div className="grid grid-cols-3 gap-3">
                   <div className="relative rounded-xl overflow-hidden aspect-[16/10] border border-slate-200 group cursor-pointer shadow-xs">
-                    <img src="/images/celebration.jpg" alt="Match 1" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
-                    <span className="absolute bottom-1.5 left-2 right-2 text-[10px] font-bold text-white truncate">Liverpool vs Man City</span>
+                    <SkeletonImage
+                      src="/images/celebration.jpg"
+                      alt="Match 1"
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      containerClassName="w-full h-full"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent pointer-events-none" />
+                    <span className="absolute bottom-1.5 left-2 right-2 text-[10px] font-bold text-white truncate z-10">Liverpool vs Man City</span>
                   </div>
                   <div className="relative rounded-xl overflow-hidden aspect-[16/10] border border-slate-200 group cursor-pointer shadow-xs">
-                    <img src="/images/midfielder.jpg" alt="Match 2" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
-                    <span className="absolute bottom-1.5 left-2 right-2 text-[10px] font-bold text-white truncate">Barcelona vs Arsenal</span>
+                    <SkeletonImage
+                      src="/images/midfielder.jpg"
+                      alt="Match 2"
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      containerClassName="w-full h-full"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent pointer-events-none" />
+                    <span className="absolute bottom-1.5 left-2 right-2 text-[10px] font-bold text-white truncate z-10">Barcelona vs Arsenal</span>
                   </div>
                   <div className="relative rounded-xl overflow-hidden aspect-[16/10] border border-slate-200 group cursor-pointer shadow-xs">
-                    <img src="/images/match-action.jpg" alt="Match 3" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
-                    <span className="absolute bottom-1.5 left-2 right-2 text-[10px] font-bold text-white truncate">Everton vs Porto</span>
+                    <SkeletonImage
+                      src="/images/match-action.jpg"
+                      alt="Match 3"
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      containerClassName="w-full h-full"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent pointer-events-none" />
+                    <span className="absolute bottom-1.5 left-2 right-2 text-[10px] font-bold text-white truncate z-10">Everton vs Porto</span>
                   </div>
                 </div>
               </div>
@@ -733,7 +750,9 @@ export default function Home() {
           </div>
         )}
 
-        {filtered.length === 0 ? (
+        {activeJackpots.length === 0 ? (
+          <JackpotGridSkeleton count={6} />
+        ) : filtered.length === 0 ? (
           <div className="text-center py-16 px-4 bg-white border border-slate-200 rounded-2xl max-w-xl mx-auto space-y-4 shadow-xs">
             <span className="w-12 h-12 rounded-2xl bg-emerald-50 text-[#006C54] flex items-center justify-center mx-auto">
               <SlidersHorizontal size={24} />

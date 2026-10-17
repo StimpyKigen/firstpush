@@ -1,6 +1,7 @@
 import { colorsFor, initials } from '../lib/avatar';
 import { getAvatarById } from '../lib/avatarCatalog';
 import { avatarStore } from '../lib/avatarStore';
+import { SkeletonImage } from './skeleton';
 
 export default function Avatar({
   name,
@@ -31,13 +32,12 @@ export default function Avatar({
         }}
         title={preset.label}
       >
-        <img
+        <SkeletonImage
           src={src}
           alt={preset.label}
-          loading="lazy"
-          decoding="async"
-          referrerPolicy="no-referrer"
           className="w-full h-full object-cover"
+          containerClassName="w-full h-full"
+          skeletonClassName="rounded-full"
         />
       </div>
     );

@@ -14,6 +14,7 @@ import {
   MessageScrollerItem,
   MessageScrollerButton,
 } from './ui/message-scroller';
+import { PickRowSkeleton } from './skeleton';
 
 interface DiscussionPanelProps {
   picks: GamblerPick[];
@@ -27,6 +28,7 @@ interface DiscussionPanelProps {
   disabled?: boolean;
   label?: string;
   onEditPick?: (id: string, pick: Outcome, reasoning: string) => void;
+  loading?: boolean;
 }
 
 const SHOW_INITIAL = 8;
@@ -42,6 +44,7 @@ export default function DiscussionPanel({
   disabled,
   label = 'Discussion',
   onEditPick,
+  loading = false,
 }: DiscussionPanelProps) {
   const [showAll, setShowAll] = useState(false);
   const currentUser = useCurrentUser();
@@ -175,7 +178,13 @@ export default function DiscussionPanel({
           <MessageScroller className="h-[460px] max-h-[60vh] w-full">
             <MessageScrollerViewport className="p-3 sm:p-4">
               <MessageScrollerContent className="space-y-3">
-                {visiblePicks.length === 0 ? (
+                {loading ? (
+                  <div className="space-y-3">
+                    <PickRowSkeleton />
+                    <PickRowSkeleton />
+                    <PickRowSkeleton />
+                  </div>
+                ) : visiblePicks.length === 0 ? (
                   <div className="py-12 text-center text-slate-500 space-y-1">
                     <p className="font-display font-black text-sm uppercase tracking-wide text-slate-700">No Punter Comments Yet</p>
                     <p className="text-xs">Be the first in the arena to post your prediction and analysis above!</p>

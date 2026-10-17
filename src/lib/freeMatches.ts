@@ -153,25 +153,43 @@ function toFreeMatch(item: HighlightFixture): FreeMatch {
   };
 }
 
-export async function refreshFreeMatches() {
-  const fixtures = await fetchDailyHighlightFixtures();
-  if (fixtures.length === 0) {
-    const fallbacks = getDynamicFallbackMatches();
-    liveMatches = fallbacks;
-    liveConsensus = Object.fromEntries(
-      fallbacks.map((m, i) => [m.id, buildConsensus(m.id, i * 13 + 41, RAW_PCT[i].homePct, RAW_PCT[i].drawPct)]),
-    ) as Record<string, MatchConsensus>;
-  } else {
-    liveMatches = fixtures.map((fixture) => toFreeMatch(fixture));
-    liveConsensus = Object.fromEntries(
-      liveMatches.map((match, index) => [match.id, buildConsensus(match.id, index * 17 + 7, fixtures[index].homePct, fixtures[index].drawPct)]),
-    ) as Record<string, MatchConsensus>;
-  }
+let isSyncingFreeMatches = false;
+let hasSyncedFreeMatchesOnce = false;
 
-  freeMatches.splice(0, freeMatches.length, ...liveMatches);
-  Object.keys(freeMatchConsensus).forEach((key) => delete freeMatchConsensus[key]);
-  Object.assign(freeMatchConsensus, liveConsensus);
+export function getIsFreeMatchesSyncing(): boolean {
+  return isSyncingFreeMatches;
+}
+
+export function getHasFreeMatchesSynced(): boolean {
+  return hasSyncedFreeMatchesOnce;
+}
+
+export async function refreshFreeMatches() {
+  isSyncingFreeMatches = true;
   emitFreeMatchesChange();
+  try {
+    const fixtures = await fetchDailyHighlightFixtures();
+    if (fixtures.length === 0) {
+      const fallbacks = getDynamicFallbackMatches();
+      liveMatches = fallbacks;
+      liveConsensus = Object.fromEntries(
+        fallbacks.map((m, i) => [m.id, buildConsensus(m.id, i * 13 + 41, RAW_PCT[i].homePct, RAW_PCT[i].drawPct)]),
+      ) as Record<string, MatchConsensus>;
+    } else {
+      liveMatches = fixtures.map((fixture) => toFreeMatch(fixture));
+      liveConsensus = Object.fromEntries(
+        liveMatches.map((match, index) => [match.id, buildConsensus(match.id, index * 17 + 7, fixtures[index].homePct, fixtures[index].drawPct)]),
+      ) as Record<string, MatchConsensus>;
+    }
+
+    freeMatches.splice(0, freeMatches.length, ...liveMatches);
+    Object.keys(freeMatchConsensus).forEach((key) => delete freeMatchConsensus[key]);
+    Object.assign(freeMatchConsensus, liveConsensus);
+  } finally {
+    isSyncingFreeMatches = false;
+    hasSyncedFreeMatchesOnce = true;
+    emitFreeMatchesChange();
+  }
 }
 
 export function getFreeMatch(id: string): FreeMatch | undefined {

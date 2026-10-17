@@ -31,20 +31,62 @@ const PrivacyPolicy = lazy(() => import('./pages/PrivacyPolicy'));
 const TermsOfService = lazy(() => import('./pages/TermsOfService'));
 const NotFound = lazy(() => import('./pages/NotFound'));
 
-function LoadingFallback() {
-  return (
-    <div className="min-h-[60vh] flex flex-col items-center justify-center gap-3 p-6 text-cream-dim">
-      <div className="w-8 h-8 border-2 border-gold border-t-transparent rounded-full animate-spin" />
-      <span className="text-xs font-mono font-medium tracking-wide">Loading arena...</span>
-    </div>
-  );
+import {
+  PageSkeleton,
+  RoomDetailSkeleton,
+  LeaderboardSkeleton,
+  WalletSkeleton,
+  MatchListSkeleton,
+  BetSlipFeedSkeleton,
+  Skeleton,
+} from './components/skeleton';
+
+function RouteLoadingFallback({ pathname }: { pathname: string }) {
+  if (pathname.startsWith('/room/') || pathname.startsWith('/free/')) {
+    return <RoomDetailSkeleton />;
+  }
+  if (pathname === '/free') {
+    return (
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
+        <div className="text-center mb-8 sm:mb-10 flex flex-col items-center">
+          <div className="flex items-center gap-2 mb-3">
+            <Skeleton className="w-24 h-4 rounded-full" />
+            <span className="text-slate-300">·</span>
+            <Skeleton className="w-28 h-4 rounded-full" />
+          </div>
+          <Skeleton className="w-72 sm:w-96 h-10 sm:h-12 rounded-lg mb-3" />
+          <Skeleton className="w-full max-w-2xl h-4 rounded" />
+        </div>
+        <MatchListSkeleton count={6} />
+      </div>
+    );
+  }
+  if (pathname === '/leaderboard') {
+    return <LeaderboardSkeleton />;
+  }
+  if (pathname === '/wallet') {
+    return <WalletSkeleton />;
+  }
+  if (pathname === '/slips') {
+    return (
+      <div className="max-w-4xl lg:max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
+        <div className="mb-8">
+          <Skeleton className="w-32 h-4 rounded-full mb-3" />
+          <Skeleton className="w-64 h-10 rounded-lg mb-2" />
+          <Skeleton className="w-full max-w-xl h-4 rounded" />
+        </div>
+        <BetSlipFeedSkeleton count={3} />
+      </div>
+    );
+  }
+  return <PageSkeleton />;
 }
 
 function AnimatedRoutes() {
   const location = useLocation();
 
   return (
-    <Suspense fallback={<LoadingFallback />}>
+    <Suspense fallback={<RouteLoadingFallback pathname={location.pathname} />}>
       <AnimatePresence mode="wait" initial={false}>
         <motion.div
           key={location.pathname}
