@@ -1,10 +1,9 @@
 import { useMemo, useState, useSyncExternalStore } from 'react';
 import { Link } from 'react-router-dom';
-import { Search, TrendingUp, Users, Sparkles, Lock, Unlock, ArrowRight, Swords, ShieldCheck, Scale, SlidersHorizontal, Flame, Archive, CheckCircle2, Play, ChevronRight } from 'lucide-react';
+import { Search, Lock, ArrowRight, SlidersHorizontal, Flame, Archive, CheckCircle2 } from 'lucide-react';
 import SeoHead from '../components/SeoHead';
 import { subscribeToJackpots, getJackpotsSnapshot } from '../lib/mockData';
 import { isAdminUser, useCurrentUser } from '../lib/authStore';
-import { getFreeMatchesSnapshot, getFreeMatchConsensusSnapshot, subscribeToFreeMatches } from '../lib/freeMatches';
 import type { Bookie, RoomStatus } from '../lib/types';
 import JackpotCard from '../components/JackpotCard';
 import JackpotAdminModal from '../components/JackpotAdminModal';
@@ -17,15 +16,12 @@ export default function Home() {
   const [status, setStatus] = useState<RoomStatus | 'All'>('All');
   const [query, setQuery] = useState('');
   const [viewTab, setViewTab] = useState<'active' | 'archive'>('active');
-  const [newsFilter, setNewsFilter] = useState<'HOT' | 'Trending' | 'Fresh'>('HOT');
   const [heroSlide, setHeroSlide] = useState(0);
   const [isAdminModalOpen, setIsAdminModalOpen] = useState(false);
   const currentUser = useCurrentUser();
   const isAuthorizedAdmin = isAdminUser(currentUser);
 
   const activeJackpots = useSyncExternalStore(subscribeToJackpots, getJackpotsSnapshot, getJackpotsSnapshot);
-  const matches = useSyncExternalStore(subscribeToFreeMatches, getFreeMatchesSnapshot, getFreeMatchesSnapshot);
-  const consensusMap = useSyncExternalStore(subscribeToFreeMatches, getFreeMatchConsensusSnapshot, getFreeMatchConsensusSnapshot);
 
   const activeRooms = useMemo(() => activeJackpots.filter((j) => j.status !== 'settled'), [activeJackpots]);
   const archivedRooms = useMemo(() => activeJackpots.filter((j) => j.status === 'settled'), [activeJackpots]);
@@ -48,52 +44,6 @@ export default function Home() {
     });
   }, [activeJackpots, viewTab, bookie, status, query]);
 
-  const totalPunters = activeJackpots.reduce((a, j) => a + j.participants, 0);
-
-  // Mock editorial news list inspired by the ESPN reference
-  const editorialNews = [
-    {
-      id: 'news-1',
-      tag: 'HOT',
-      image: '/images/celebration.jpg',
-      title: 'Liverpool clobber Norwich in EPL opener as front three shine',
-      desc: 'Jurgen Klopp’s men fired on all cylinders to kick off their domestic campaign with dominant finishing.',
-      category: 'Premier League',
-      date: 'Today, 2:40 PM',
-      link: '/free'
-    },
-    {
-      id: 'news-2',
-      tag: 'HOT',
-      image: '/images/midfielder.jpg',
-      title: 'Frenkie de Jong on leaving Ajax, joining Barcelona, hopes for season',
-      desc: 'The midfield orchestrator opens up about Camp Nou ambitions, tactical adjustments, and Champions League aims.',
-      category: 'La Liga',
-      date: 'Today, 1:15 PM',
-      link: '/free'
-    },
-    {
-      id: 'news-3',
-      tag: 'HOT',
-      image: '/images/match-action.jpg',
-      title: 'Transfer Talk: PSG eye Modric, Vinicius if Real Madrid want Neymar',
-      desc: 'High-stakes negotiations reach boiling point as European giants prepare blockbuster swap deals.',
-      category: 'Transfers',
-      date: 'Today, 11:30 AM',
-      link: '/slips'
-    },
-    {
-      id: 'news-4',
-      tag: 'HOT',
-      image: '/images/hero-striker.jpg',
-      title: 'Can Spurs afford to lose Eriksen this summer? Tactical analysis',
-      desc: 'Evaluating Pochettino’s midfield balance and whether Tottenham can mount a title push without their playmaker.',
-      category: 'Analysis',
-      date: 'Yesterday, 8:00 PM',
-      link: '/free'
-    }
-  ];
-
   return (
     <div className="bg-[#FFFFF0] text-slate-900">
       <SeoHead
@@ -115,9 +65,9 @@ export default function Home() {
       />
 
       {/* =========================================================================
-          SECTION 1: HERO EDITORIAL SHOWCASE (DIRECTLY INSPIRED BY ESPN REFERENCE)
+          HERO EDITORIAL SHOWCASE
           Left: Striker action cutout with slide dots
-          Right: Bold Crimson Red headline, lead story, red outline button & floating previews
+          Right: Headline, lead story, buttons & previews
           ========================================================================= */}
       <section className="bg-white border-b border-slate-200 overflow-hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 sm:py-12 lg:py-16">
@@ -148,7 +98,7 @@ export default function Home() {
                 </div>
               </div>
 
-              {/* Slide Indicators: ● ○ ○ as in ESPN reference */}
+              {/* Slide Indicators */}
               <div className="flex items-center gap-2 mt-4">
                 <button
                   onClick={() => setHeroSlide(0)}
@@ -190,15 +140,15 @@ export default function Home() {
                   <span>Jackpot rooms</span>
                   <ArrowRight size={15} />
                 </a>
-                <a
-                  href="#match-schedule"
+                <Link
+                  to="/free"
                   className="btn-secondary"
                 >
-                  <span>Read more</span>
-                </a>
+                  <span>Free Matches</span>
+                </Link>
               </div>
 
-              {/* Floating Match Thumbnail Previews underneath (As seen in the ESPN reference) */}
+              {/* Floating Match Thumbnail Previews underneath */}
               <div className="mt-8 pt-6 border-t border-slate-100">
                 <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-3">Live Highlights &amp; Slates</p>
                 <div className="grid grid-cols-3 gap-3">
@@ -242,356 +192,7 @@ export default function Home() {
       </section>
 
       {/* =========================================================================
-          SECTION 2: FULL-WIDTH CRIMSON RED "MATCH SCHEDULE" (ESPN REFERENCE CORE)
-          Full-bleed Red background with clean white rounded match cards
-          ========================================================================= */}
-      <section id="match-schedule" className="espn-red-banner py-12 sm:py-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
-            
-            {/* Left description column */}
-            <div className="lg:col-span-4 text-white">
-              <h2 className="font-display font-black text-3xl sm:text-4xl lg:text-5xl tracking-tight leading-tight text-white">
-                Match<br />Schedule
-              </h2>
-              <p className="text-white/85 text-xs sm:text-sm mt-4 leading-relaxed font-normal max-w-sm">
-                Follow upcoming fixtures and weekly jackpot slates. Analyze team form, preview match statistics, and explore punter consensus before kickoff.
-              </p>
-              <div className="mt-6">
-                <Link
-                  to="/free"
-                  className="espn-pill-btn-white-outline text-xs sm:text-sm"
-                >
-                  <span>More Matches</span>
-                  <ChevronRight size={15} />
-                </Link>
-              </div>
-            </div>
-
-            {/* Right column: White Cards with Team Crests & Match Info */}
-            <div className="lg:col-span-8">
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
-                
-                {/* Match Card 1: Liverpool vs Manchester City */}
-                <div className="bg-white rounded-2xl p-5 text-slate-900 shadow-xl flex flex-col justify-between hover:shadow-2xl transition-all">
-                  <div>
-                    {/* Crests */}
-                    <div className="flex items-center justify-center gap-4 py-2 border-b border-slate-100">
-                      <div className="w-12 h-12 rounded-full bg-emerald-50 border border-emerald-200 flex items-center justify-center font-black text-xs text-[#006C54]">
-                        LIV
-                      </div>
-                      <span className="text-xs font-bold text-slate-400">vs</span>
-                      <div className="w-12 h-12 rounded-full bg-sky-50 border border-sky-200 flex items-center justify-center font-black text-xs text-sky-600">
-                        MCI
-                      </div>
-                    </div>
-
-                    <div className="mt-4">
-                      <h3 className="font-display font-black text-base text-slate-900">Liverpool v Manchester City</h3>
-                      <p className="text-xs text-slate-500 font-semibold mt-0.5">English Premier League</p>
-                    </div>
-
-                    <div className="text-xs text-slate-400 mt-4 space-y-0.5">
-                      <p>Anfield Stadium</p>
-                      <p className="font-medium text-slate-600">Sunday, 18 Oct 2026</p>
-                      <p className="font-mono text-slate-500">08:45 PM</p>
-                    </div>
-                  </div>
-
-                  <div className="mt-5 pt-3 border-t border-slate-100 flex items-center justify-between">
-                    <Link
-                      to="/free"
-                      className="text-xs font-bold text-slate-800 hover:text-[#006C54] inline-flex items-center gap-1.5 transition-colors group"
-                    >
-                      <span>Preview</span>
-                      <span className="w-5 h-5 rounded-full bg-[#006C54] text-white flex items-center justify-center text-[10px] group-hover:translate-x-0.5 transition-transform">
-                        →
-                      </span>
-                    </Link>
-                  </div>
-                </div>
-
-                {/* Match Card 2: Arsenal vs Barcelona */}
-                <div className="bg-white rounded-2xl p-5 text-slate-900 shadow-xl flex flex-col justify-between hover:shadow-2xl transition-all">
-                  <div>
-                    {/* Crests */}
-                    <div className="flex items-center justify-center gap-4 py-2 border-b border-slate-100">
-                      <div className="w-12 h-12 rounded-full bg-red-50 border border-red-200 flex items-center justify-center font-black text-xs text-red-700">
-                        ARS
-                      </div>
-                      <span className="text-xs font-bold text-slate-400">vs</span>
-                      <div className="w-12 h-12 rounded-full bg-blue-50 border border-blue-200 flex items-center justify-center font-black text-xs text-blue-700">
-                        FCB
-                      </div>
-                    </div>
-
-                    <div className="mt-4">
-                      <h3 className="font-display font-black text-base text-slate-900">Arsenal v Barcelona</h3>
-                      <p className="text-xs text-slate-500 font-semibold mt-0.5">Champions League · Semi-Final</p>
-                    </div>
-
-                    <div className="text-xs text-slate-400 mt-4 space-y-0.5">
-                      <p>Wembley Stadium</p>
-                      <p className="font-medium text-slate-600">Sunday, 18 Oct 2026</p>
-                      <p className="font-mono text-slate-500">07:30 PM</p>
-                    </div>
-                  </div>
-
-                  <div className="mt-5 pt-3 border-t border-slate-100 flex items-center justify-between">
-                    <Link
-                      to="/free"
-                      className="text-xs font-bold text-slate-800 hover:text-[#006C54] inline-flex items-center gap-1.5 transition-colors group"
-                    >
-                      <span>Preview</span>
-                      <span className="w-5 h-5 rounded-full bg-[#006C54] text-white flex items-center justify-center text-[10px] group-hover:translate-x-0.5 transition-transform">
-                        →
-                      </span>
-                    </Link>
-                  </div>
-                </div>
-
-                {/* Match Card 3: Everton vs Porto */}
-                <div className="bg-white rounded-2xl p-5 text-slate-900 shadow-xl flex flex-col justify-between hover:shadow-2xl transition-all">
-                  <div>
-                    {/* Crests */}
-                    <div className="flex items-center justify-center gap-4 py-2 border-b border-slate-100">
-                      <div className="w-12 h-12 rounded-full bg-blue-50 border border-blue-200 flex items-center justify-center font-black text-xs text-blue-800">
-                        EVE
-                      </div>
-                      <span className="text-xs font-bold text-slate-400">vs</span>
-                      <div className="w-12 h-12 rounded-full bg-indigo-50 border border-indigo-200 flex items-center justify-center font-black text-xs text-indigo-700">
-                        FCP
-                      </div>
-                    </div>
-
-                    <div className="mt-4">
-                      <h3 className="font-display font-black text-base text-slate-900">Everton v Porto</h3>
-                      <p className="text-xs text-slate-500 font-semibold mt-0.5">EURO League · Semi-Final</p>
-                    </div>
-
-                    <div className="text-xs text-slate-400 mt-4 space-y-0.5">
-                      <p>Goodison Park Stadium</p>
-                      <p className="font-medium text-slate-600">Saturday, 17 Oct 2026</p>
-                      <p className="font-mono text-slate-500">07:45 PM</p>
-                    </div>
-                  </div>
-
-                  <div className="mt-5 pt-3 border-t border-slate-100 flex items-center justify-between">
-                    <Link
-                      to="/free"
-                      className="text-xs font-bold text-slate-800 hover:text-[#006C54] inline-flex items-center gap-1.5 transition-colors group"
-                    >
-                      <span>Preview</span>
-                      <span className="w-5 h-5 rounded-full bg-[#006C54] text-white flex items-center justify-center text-[10px] group-hover:translate-x-0.5 transition-transform">
-                        →
-                      </span>
-                    </Link>
-                  </div>
-                </div>
-
-              </div>
-            </div>
-
-          </div>
-        </div>
-      </section>
-
-      {/* =========================================================================
-          SECTION 3: "LATEST NEWS" / 4-COLUMN CONTENT GRIDS (ESPN REFERENCE)
-          Clean white background, bold red title, pill tab container, vertical photo cards with red HOT badges
-          ========================================================================= */}
-      <section className="bg-white py-12 sm:py-16 border-b border-slate-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          
-          {/* Header Row: Bold Primary Title + Pill Tab Filters */}
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
-            <h2 className="font-display font-black text-2xl sm:text-3xl lg:text-4xl text-[#006C54] tracking-tight">
-              Latest News
-            </h2>
-
-            {/* Pill Container: HOT · Trending · Fresh · ••• */}
-            <div className="espn-tab-container">
-              <button
-                onClick={() => setNewsFilter('HOT')}
-                className={`espn-tab-item ${newsFilter === 'HOT' ? 'active' : ''}`}
-              >
-                HOT
-              </button>
-              <button
-                onClick={() => setNewsFilter('Trending')}
-                className={`espn-tab-item ${newsFilter === 'Trending' ? 'active' : ''}`}
-              >
-                Trending
-              </button>
-              <button
-                onClick={() => setNewsFilter('Fresh')}
-                className={`espn-tab-item ${newsFilter === 'Fresh' ? 'active' : ''}`}
-              >
-                Fresh
-              </button>
-              <span className="text-slate-400 px-2 text-xs font-black">···</span>
-            </div>
-          </div>
-
-          {/* 4-Column Card Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {editorialNews.map((news) => (
-              <Link
-                key={news.id}
-                to={news.link}
-                className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-xs hover:shadow-lg hover:border-slate-300 transition-all flex flex-col group"
-              >
-                {/* Image Top */}
-                <div className="relative aspect-[4/3] overflow-hidden bg-slate-900">
-                  <img
-                    src={news.image}
-                    alt={news.title}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                  />
-                  <div className="absolute top-3 left-3">
-                    <span className="espn-badge-hot">
-                      {news.tag}
-                    </span>
-                  </div>
-                </div>
-
-                {/* Card Body */}
-                <div className="p-4 flex flex-col flex-1 justify-between">
-                  <div>
-                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                      {news.category} · {news.date}
-                    </span>
-                    <h3 className="font-display font-black text-sm sm:text-base text-slate-900 leading-snug mt-1 group-hover:text-[#006C54] transition-colors">
-                      {news.title}
-                    </h3>
-                  </div>
-
-                  <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
-                    <span className="font-semibold text-[#006C54] group-hover:underline">Read Pick →</span>
-                    <span className="text-[11px] font-mono text-slate-400">mshindi.co.ke</span>
-                  </div>
-                </div>
-              </Link>
-            ))}
-          </div>
-
-        </div>
-      </section>
-
-      {/* =========================================================================
-          SECTION 4: FULL-WIDTH CRIMSON RED "FEATURED VIDEO & DEBATES" (ESPN REFERENCE)
-          Full-bleed Red background with featured play banner and horizontal video cards
-          ========================================================================= */}
-      <section className="espn-red-banner py-12 sm:py-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          
-          <div className="flex items-center justify-between mb-8 text-white">
-            <h2 className="font-display font-black text-2xl sm:text-3xl lg:text-4xl tracking-tight text-white">
-              Featured Video &amp; Debates
-            </h2>
-            <Link to="/slips" className="text-xs sm:text-sm font-bold text-white hover:underline flex items-center gap-1">
-              <span>View All Discussions</span>
-              <ChevronRight size={15} />
-            </Link>
-          </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
-            
-            {/* Main Feature Banner (Left 5 cols) */}
-            <div className="lg:col-span-5 relative rounded-2xl overflow-hidden shadow-2xl border border-white/20 aspect-[16/11] lg:aspect-auto group cursor-pointer">
-              <img
-                src="/images/celebration.jpg"
-                alt="Liverpool clobber Norwich in EPL opener"
-                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-black/20" />
-
-              <div className="absolute inset-0 p-6 flex flex-col justify-end text-white">
-                <span className="bg-[#006C54] text-[#EEAA04] border border-[#005441] text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full w-fit mb-2">
-                  TOP HIGHLIGHT
-                </span>
-                <h3 className="font-display font-black text-xl sm:text-2xl text-white leading-tight">
-                  Liverpool clobber Norwich in EPL opener
-                </h3>
-                
-                <div className="flex items-center gap-3 mt-4">
-                  <div className="w-10 h-10 rounded-full bg-white text-[#006C54] flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
-                    <Play size={18} fill="#006C54" />
-                  </div>
-                  <div>
-                    <span className="text-xs font-bold text-white block">Play Video</span>
-                    <span className="text-[10px] text-white/70 font-mono">www.youtube.com</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Horizontal Video Cards (Right 7 cols) */}
-            <div className="lg:col-span-7 flex flex-col gap-4 justify-between">
-              
-              {/* Video Item 1 */}
-              <div className="bg-white/10 hover:bg-white/15 backdrop-blur-xs border border-white/20 rounded-2xl p-3.5 flex items-center gap-4 transition-all group cursor-pointer">
-                <div className="relative w-32 sm:w-40 aspect-[16/10] rounded-xl overflow-hidden shrink-0 border border-white/20">
-                  <img src="/images/midfielder.jpg" alt="Video 1" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
-                  <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
-                    <div className="w-8 h-8 rounded-full bg-white/90 text-[#006C54] flex items-center justify-center shadow-md">
-                      <Play size={14} fill="#006C54" />
-                    </div>
-                  </div>
-                </div>
-                <div className="flex-1 min-w-0 text-white">
-                  <h4 className="font-display font-black text-sm sm:text-base leading-snug group-hover:text-amber-200 transition-colors">
-                    Atlético asks La Liga to block Griezmann's Barcelona transfer
-                  </h4>
-                  <span className="text-[11px] text-white/70 font-mono block mt-1">www.youtube.com</span>
-                </div>
-              </div>
-
-              {/* Video Item 2 */}
-              <div className="bg-white/10 hover:bg-white/15 backdrop-blur-xs border border-white/20 rounded-2xl p-3.5 flex items-center gap-4 transition-all group cursor-pointer">
-                <div className="relative w-32 sm:w-40 aspect-[16/10] rounded-xl overflow-hidden shrink-0 border border-white/20">
-                  <img src="/images/match-action.jpg" alt="Video 2" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
-                  <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
-                    <div className="w-8 h-8 rounded-full bg-white/90 text-[#006C54] flex items-center justify-center shadow-md">
-                      <Play size={14} fill="#006C54" />
-                    </div>
-                  </div>
-                </div>
-                <div className="flex-1 min-w-0 text-white">
-                  <h4 className="font-display font-black text-sm sm:text-base leading-snug group-hover:text-amber-200 transition-colors">
-                    Inter Milan fan dies after clashes with Napoli supporters
-                  </h4>
-                  <span className="text-[11px] text-white/70 font-mono block mt-1">www.youtube.com</span>
-                </div>
-              </div>
-
-              {/* Video Item 3 */}
-              <div className="bg-white/10 hover:bg-white/15 backdrop-blur-xs border border-white/20 rounded-2xl p-3.5 flex items-center gap-4 transition-all group cursor-pointer">
-                <div className="relative w-32 sm:w-40 aspect-[16/10] rounded-xl overflow-hidden shrink-0 border border-white/20">
-                  <img src="/images/hero-striker.jpg" alt="Video 3" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
-                  <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
-                    <div className="w-8 h-8 rounded-full bg-white/90 text-[#006C54] flex items-center justify-center shadow-md">
-                      <Play size={14} fill="#006C54" />
-                    </div>
-                  </div>
-                </div>
-                <div className="flex-1 min-w-0 text-white">
-                  <h4 className="font-display font-black text-sm sm:text-base leading-snug group-hover:text-amber-200 transition-colors">
-                    Bayern Munich 6-0 goal torrent in Bundesliga opener
-                  </h4>
-                  <span className="text-[11px] text-white/70 font-mono block mt-1">www.youtube.com</span>
-                </div>
-              </div>
-
-            </div>
-
-          </div>
-
-        </div>
-      </section>
-
-      {/* =========================================================================
-          SECTION 5: ALL JACKPOT ROOMS & ARCHIVE ARENA (CORE FUNCTIONALITY)
+          JACKPOT ROOMS & ARCHIVE ARENA (CORE FUNCTIONALITY)
           Clean white cards with real mockData, filters, search, and admin controls
           ========================================================================= */}
       <section id="rooms" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
