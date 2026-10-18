@@ -22,10 +22,6 @@ export default function JackpotCard({ jackpot, index }: { jackpot: Jackpot; inde
       className="animate-rise group relative flex flex-col bg-white border border-slate-200 rounded-xl overflow-hidden hover:border-slate-300 hover:shadow-md transition-all active:scale-[0.985] touch-manipulation hover:-translate-y-1"
       style={{ animationDelay: `${index * 50}ms` }}
     >
-      <div
-        className="h-1.5 w-full"
-        style={{ background: theme.ring }}
-      />
       <div className="p-5 sm:p-6 flex flex-col gap-4 flex-1">
         <div className="flex items-start justify-between gap-3">
           <div className="flex items-center gap-3">

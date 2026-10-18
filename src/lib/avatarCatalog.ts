@@ -74,9 +74,8 @@ function makeSvg(bgGradient: [string, string], innerPath: string, accentColor = 
       <stop offset="100%" stop-color="#000000" stop-opacity="0.4" />
     </radialGradient>
   </defs>
-  <rect width="128" height="128" rx="28" fill="url(#bg)" />
-  <rect x="1" y="1" width="126" height="126" rx="27" fill="none" stroke="${accentColor}" stroke-opacity="0.3" stroke-width="2" />
-  <rect width="128" height="128" rx="28" fill="url(#glow)" />
+  <rect width="128" height="128" fill="url(#bg)" />
+  <rect width="128" height="128" fill="url(#glow)" />
   <g transform="translate(16, 16)">
     ${innerPath}
   </g>

@@ -120,12 +120,7 @@ export default function Leaderboard() {
       {/* ESPN Styled Editorial Header */}
       <div className="bg-white border border-slate-200 rounded-2xl p-6 sm:p-7 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-5 shadow-xs">
         <div>
-          <div className="flex items-center gap-2.5">
-            <div className="w-10 h-10 rounded-full bg-[#006C54] flex items-center justify-center text-white shadow-xs">
-              <Trophy size={18} />
-            </div>
-            <h1 className="font-display font-black text-2xl sm:text-4xl text-slate-900 tracking-tight uppercase">Room Standings &amp; Rankings</h1>
-          </div>
+          <h1 className="font-display font-black text-2xl sm:text-4xl text-slate-900 tracking-tight uppercase">Room Standings &amp; Rankings</h1>
           <p className="text-xs sm:text-sm text-slate-600 mt-2 max-w-xl leading-relaxed">
             Independent standings per jackpot room. Select any room to expand its rankings, participant slips &amp; live leg hits.
           </p>

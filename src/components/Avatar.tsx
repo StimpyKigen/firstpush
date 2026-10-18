@@ -29,21 +29,21 @@ export default function Avatar({
     const src = preset.svgContent || (preset as any).src || '';
     return (
       <div
-        className="shrink-0 overflow-hidden bg-ink-2 shadow-xs transition-transform hover:scale-105"
+        className="shrink-0 overflow-hidden shadow-xs transition-transform hover:scale-105"
         style={{
           width: size,
           height: size,
           borderRadius,
           border: showBorder ? `2px solid ${fg}` : 'none',
+          backgroundColor: bg,
         }}
         title={preset.label}
       >
         <SkeletonImage
           src={src}
           alt={preset.label}
-          className="w-full h-full object-cover"
-          containerClassName="w-full h-full"
-          style={{ borderRadius }}
+          className="w-full h-full object-cover scale-[1.12] origin-center"
+          containerClassName="w-full h-full overflow-hidden"
         />
       </div>
     );
@@ -55,21 +55,21 @@ export default function Avatar({
     const glyphUrl = `https://api.dicebear.com/10.x/glyphs/svg?seed=${encodeURIComponent(glyphSeed)}`;
     return (
       <div
-        className="shrink-0 overflow-hidden bg-ink-2 shadow-xs transition-transform hover:scale-105"
+        className="shrink-0 overflow-hidden shadow-xs transition-transform hover:scale-105"
         style={{
           width: size,
           height: size,
           borderRadius,
           border: showBorder ? `2px solid ${fg}` : 'none',
+          backgroundColor: bg,
         }}
         title={name || 'User Avatar'}
       >
         <SkeletonImage
           src={glyphUrl}
           alt={name || 'User Avatar'}
-          className="w-full h-full object-cover"
-          containerClassName="w-full h-full"
-          style={{ borderRadius }}
+          className="w-full h-full object-cover scale-[1.12] origin-center"
+          containerClassName="w-full h-full overflow-hidden"
           onError={() => setGlyphError(true)}
         />
       </div>
