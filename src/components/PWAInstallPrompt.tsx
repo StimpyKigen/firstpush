@@ -154,11 +154,9 @@ export default function PWAInstallPrompt() {
             </button>
 
             <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-2xl bg-ink border border-gold/40 p-2 flex items-center justify-center shrink-0">
-                <img src="/pwa-192.png" alt="MshindiRoom" className="w-full h-full object-contain" />
-              </div>
+              <img src="/pwa-192.png" alt="MshindiRoom" className="w-11 h-11 shrink-0 object-contain" />
               <div>
-                <span className="text-[10px] font-black tracking-widest text-emerald-2 uppercase bg-emerald/15 px-2 py-0.5 rounded-md border border-emerald/30">
+                <span className="text-[10px] font-black tracking-widest text-emerald-2 uppercase">
                   iOS Installation
                 </span>
                 <h3 className="text-base font-extrabold text-cream mt-0.5">Install MshindiRoom on iPhone</h3>

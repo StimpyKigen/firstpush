@@ -35,15 +35,15 @@ export default function Avatar({
           height: size,
           borderRadius,
           border: showBorder ? `2px solid ${fg}` : 'none',
-          backgroundColor: bg,
+          backgroundColor: 'transparent',
         }}
         title={preset.label}
       >
         <SkeletonImage
           src={src}
           alt={preset.label}
-          className="w-full h-full object-cover scale-[1.12] origin-center"
-          containerClassName="w-full h-full overflow-hidden"
+          className="w-full h-full object-cover scale-[1.05] origin-center"
+          containerClassName="w-full h-full !rounded-none overflow-hidden"
         />
       </div>
     );
@@ -61,15 +61,15 @@ export default function Avatar({
           height: size,
           borderRadius,
           border: showBorder ? `2px solid ${fg}` : 'none',
-          backgroundColor: bg,
+          backgroundColor: 'transparent',
         }}
         title={name || 'User Avatar'}
       >
         <SkeletonImage
           src={glyphUrl}
           alt={name || 'User Avatar'}
-          className="w-full h-full object-cover scale-[1.12] origin-center"
-          containerClassName="w-full h-full overflow-hidden"
+          className="w-full h-full object-cover scale-[1.05] origin-center"
+          containerClassName="w-full h-full !rounded-none overflow-hidden"
           onError={() => setGlyphError(true)}
         />
       </div>
