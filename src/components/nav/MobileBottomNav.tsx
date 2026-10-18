@@ -50,7 +50,7 @@ export default function MobileBottomNav({ pathname, builderLegsCount, currentUse
         {hasActive && (
           <span
             aria-hidden="true"
-            className="pointer-events-none absolute top-0 h-[2.5px] w-8 rounded-full bg-[#006C54] transition-all duration-300 ease-out z-10"
+            className="pointer-events-none absolute top-0 h-[2.5px] w-8 rounded-full bg-[#006C54] dark:bg-[#EEAA04] transition-all duration-300 ease-out z-10"
             style={{
               left: `calc((${activeIndex} + 0.5) * (100% / ${count}) - 16px)`,
             }}
@@ -75,13 +75,13 @@ export default function MobileBottomNav({ pathname, builderLegsCount, currentUse
                     size={20}
                     className={`transition-colors duration-200 ${
                       tab.isActive
-                        ? 'text-[#006C54] stroke-[2.35]'
-                        : 'text-[#5d6c7b] group-hover:text-[#0a1317]'
+                        ? 'text-[#006C54] dark:text-[#EEAA04] stroke-[2.35]'
+                        : 'text-[#5d6c7b] dark:text-[#8ba296] group-hover:text-[#0a1317] dark:group-hover:text-[#f0f4f1]'
                     }`}
                   />
                   {!!tab.badge && tab.badge > 0 && (
                     <span
-                      className={`absolute -top-1.5 -right-2.5 font-black text-[9px] h-3.5 min-w-[15px] px-1 rounded-full flex items-center justify-center shadow-xs border border-[#FFFFF0] ${
+                      className={`absolute -top-1.5 -right-2.5 font-black text-[9px] h-3.5 min-w-[15px] px-1 rounded-full flex items-center justify-center shadow-xs border border-[#FFFFF0] dark:border-[#0a120f] ${
                         tab.isActive ? 'bg-[#EEAA04] text-[#0a1317]' : 'bg-[#006C54] text-[#EEAA04]'
                       }`}
                     >
@@ -92,8 +92,8 @@ export default function MobileBottomNav({ pathname, builderLegsCount, currentUse
                 <span
                   className={`text-[10px] leading-tight tracking-tight mt-0.5 truncate max-w-full px-0.5 transition-colors duration-200 ${
                     tab.isActive
-                      ? 'font-bold text-[#006C54]'
-                      : 'font-medium text-[#5d6c7b] group-hover:text-[#0a1317]'
+                      ? 'font-bold text-[#006C54] dark:text-[#EEAA04]'
+                      : 'font-medium text-[#5d6c7b] dark:text-[#8ba296] group-hover:text-[#0a1317] dark:group-hover:text-[#f0f4f1]'
                   }`}
                 >
                   {tab.label}

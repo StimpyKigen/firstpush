@@ -35,12 +35,12 @@ export function MobileHeaderControls({
           title="Wallet & Mshindi Tokens"
           className={`inline-flex items-center gap-1.5 h-9 px-3 rounded-full border transition-all active:scale-95 ${
             walletOpen
-              ? 'bg-emerald-50 border-[#006C54] text-[#006C54] shadow-xs'
-              : 'bg-[#F5F5E4] hover:bg-[#E6E6D2] border-[#E6E6D2] text-slate-800'
+              ? 'bg-emerald-50 dark:bg-emerald-950/60 border-[#006C54] text-[#006C54] dark:text-emerald-400 shadow-xs'
+              : 'bg-[#F5F5E4] dark:bg-[#182622] hover:bg-[#E6E6D2] dark:hover:bg-[#22352f] border-[#E6E6D2] dark:border-[#2e453c] text-slate-800 dark:text-[#f0f4f1]'
           }`}
         >
-          <Wallet size={15} className="text-[#006C54] shrink-0" />
-          <span className="text-xs font-bold font-mono text-slate-900">Ksh {balance.toLocaleString()}</span>
+          <Wallet size={15} className="text-[#006C54] dark:text-emerald-400 shrink-0" />
+          <span className="text-xs font-bold font-mono text-slate-900 dark:text-[#f0f4f1]">Ksh {balance.toLocaleString()}</span>
         </button>
 
         {walletOpen && (
@@ -48,15 +48,15 @@ export function MobileHeaderControls({
             balance={balance}
             mshindiTokens={mshindiTokens}
             onClose={() => setWalletOpen(false)}
-            backdropClassName="fixed inset-0 z-40 bg-black/25 backdrop-blur-xs"
-            panelClassName="fixed top-16 right-3 left-3 xs:left-auto xs:right-4 xs:w-84 sm:absolute sm:right-0 sm:top-full sm:mt-2 bg-[#FFFFF0] border border-[#E6E6D2] rounded-2xl shadow-xl p-4.5 z-50 animate-rise space-y-3.5"
-            headerClassName="flex items-center justify-between pb-2 text-left border-b border-[#E6E6D2]"
+            backdropClassName="fixed inset-0 z-40 bg-black/40 backdrop-blur-xs"
+            panelClassName="fixed top-16 right-3 left-3 xs:left-auto xs:right-4 xs:w-84 sm:absolute sm:right-0 sm:top-full sm:mt-2 bg-[#FFFFF0] dark:bg-[#131f1b] border border-[#E6E6D2] dark:border-[#2e453c] rounded-2xl shadow-xl p-4.5 z-50 animate-rise space-y-3.5"
+            headerClassName="flex items-center justify-between pb-2 text-left border-b border-[#E6E6D2] dark:border-[#2e453c]"
           />
         )}
       </div>
 
       <button
-        className="text-slate-800 shrink-0 w-9 h-9 flex items-center justify-center rounded-full bg-[#F5F5E4] hover:bg-[#E6E6D2] border border-[#E6E6D2] active:scale-95 transition-all touch-manipulation"
+        className="text-slate-800 dark:text-[#f0f4f1] shrink-0 w-9 h-9 flex items-center justify-center rounded-full bg-[#F5F5E4] dark:bg-[#182622] hover:bg-[#E6E6D2] dark:hover:bg-[#22352f] border border-[#E6E6D2] dark:border-[#2e453c] active:scale-95 transition-all touch-manipulation cursor-pointer"
         onClick={() => setOpen(!open)}
         aria-label="Toggle Menu"
       >
@@ -90,32 +90,34 @@ export function MobileMenuPanel({
   onLogout,
 }: MobileMenuPanelProps) {
   return (
-    <div className="lg:hidden border-b border-[#E6E6D2]/80 mobile-nav-glass px-4 py-4 flex flex-col gap-1.5 max-h-[calc(100dvh-4.5rem)] overflow-y-auto scroll-touch animate-rise shadow-xl">
+    <div className="lg:hidden border-b border-[#E6E6D2]/80 dark:border-[#243831] mobile-nav-glass px-4 py-4 flex flex-col gap-1.5 max-h-[calc(100dvh-4.5rem)] overflow-y-auto scroll-touch animate-rise shadow-xl">
       {links.map((l) => (
         <Link
           key={l.to}
           to={l.to}
           onClick={onNavigate}
-          className="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-700 hover:text-[#006C54] hover:bg-emerald-50/50 active:bg-emerald-50 active:scale-[0.98] font-bold text-sm transition-all touch-manipulation min-h-[44px]"
+          className="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-700 dark:text-[#d1dbd5] hover:text-[#EEAA04] dark:hover:text-[#EEAA04] hover:bg-emerald-50/50 dark:hover:bg-[#182622] active:bg-emerald-50 dark:active:bg-[#182622] active:scale-[0.98] font-bold text-sm transition-all touch-manipulation min-h-[44px]"
         >
-          <l.icon size={18} className="shrink-0 text-[#006C54]" />
+          <l.icon size={18} className="shrink-0 text-[#006C54] dark:text-[#EEAA04]" />
           <span className="truncate">{l.label}</span>
           {l.soon && (
-            <span className="text-[9px] font-bold bg-[#8A6500]/15 text-[#8A6500] border border-[#8A6500]/30 px-2 py-0.5 rounded-full shrink-0 ml-auto">Soon</span>
+            <span className="text-[9px] font-bold bg-[#8A6500]/15 dark:bg-[#EEAA04]/20 text-[#8A6500] dark:text-[#EEAA04] border border-[#8A6500]/30 px-2 py-0.5 rounded-full shrink-0 ml-auto">
+              Soon
+            </span>
           )}
         </Link>
       ))}
 
       {currentUser ? (
-        <div className="flex flex-col gap-2 mt-2 pt-2 border-t border-[#E6E6D2]">
+        <div className="flex flex-col gap-2 mt-2 pt-2 border-t border-[#E6E6D2] dark:border-[#2e453c]">
           <Link
             to="/profile"
             onClick={onNavigate}
-            className="flex items-center gap-2.5 px-3.5 py-3 rounded-xl bg-[#F5F5E4] border border-[#E6E6D2] text-slate-800 font-bold text-sm min-w-0 active:scale-[0.98] transition-all"
+            className="flex items-center gap-2.5 px-3.5 py-3 rounded-xl bg-[#F5F5E4] dark:bg-[#182622] border border-[#E6E6D2] dark:border-[#2e453c] text-slate-800 dark:text-[#f0f4f1] font-bold text-sm min-w-0 active:scale-[0.98] transition-all"
           >
             <Avatar name={currentUser.username} seed={currentUser.phone.length} size={28} avatarId={currentUser.avatarId} />
             <span className="truncate flex-1">{currentUser.username}</span>
-            <span className="text-xs text-slate-500 font-normal">View Profile &rarr;</span>
+            <span className="text-xs text-slate-500 dark:text-slate-400 font-normal">View Profile &rarr;</span>
           </Link>
           {isAdminUser(currentUser) && (
             <button
@@ -123,12 +125,15 @@ export function MobileMenuPanel({
                 onNavigate();
                 onOpenAdminModal();
               }}
-              className="flex items-center justify-center gap-2 px-3 py-2.5 rounded-full bg-emerald-50 text-[#006C54] border border-emerald-200 font-bold text-xs active:scale-98 transition-all"
+              className="flex items-center justify-center gap-2 px-3 py-2.5 rounded-full bg-emerald-50 dark:bg-emerald-950/40 text-[#006C54] dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800/50 font-bold text-xs active:scale-98 transition-all"
             >
               <ShieldCheck size={15} /> Jackpot Admin Console
             </button>
           )}
-          <button onClick={onLogout} className="flex items-center justify-center gap-1.5 text-rose-600 text-xs font-bold px-3 py-2.5 rounded-full border border-rose-200 hover:bg-rose-50 active:scale-98 transition-all">
+          <button
+            onClick={onLogout}
+            className="flex items-center justify-center gap-1.5 text-rose-600 dark:text-rose-400 text-xs font-bold px-3 py-2.5 rounded-full border border-rose-200 dark:border-rose-900/40 hover:bg-rose-50 dark:hover:bg-rose-950/30 active:scale-98 transition-all"
+          >
             <LogOut size={13} /> Log Out
           </button>
         </div>
@@ -142,9 +147,9 @@ export function MobileMenuPanel({
         </Link>
       )}
 
-      <div className="flex items-center justify-between gap-3 mt-2 px-4 py-3 bg-white/6 border border-white/10 rounded-2xl">
-        <span className="flex items-center gap-2.5 text-sm font-mono text-cream min-w-0">
-          <Wallet size={16} className="text-[#006C54] shrink-0" />
+      <div className="flex items-center justify-between gap-3 mt-2 px-4 py-3 bg-[#F5F5E4] dark:bg-[#182622] border border-[#E6E6D2] dark:border-[#2e453c] rounded-2xl">
+        <span className="flex items-center gap-2.5 text-sm font-mono text-slate-900 dark:text-[#f0f4f1] min-w-0">
+          <Wallet size={16} className="text-[#006C54] dark:text-emerald-400 shrink-0" />
           <span className="truncate font-bold">Ksh {balance.toLocaleString()}</span>
         </span>
         <Link to="/wallet" onClick={onNavigate} className="bg-[#EEAA04] hover:bg-[#d99903] text-slate-950 font-black text-xs px-3.5 py-1.5 rounded-full shrink-0 whitespace-nowrap active:scale-95 shadow-sm">
@@ -153,7 +158,7 @@ export function MobileMenuPanel({
       </div>
 
       {/* ── Settings Section ── */}
-      <div className="mt-3 pt-3 border-t border-line/40">
+      <div className="mt-3 pt-3 border-t border-line/40 dark:border-[#2e453c]">
         <p className="flex items-center gap-1.5 px-3 mb-1 text-[10px] font-extrabold uppercase tracking-widest text-cream-dim/60">
           <Settings size={11} />
           Settings
@@ -162,23 +167,23 @@ export function MobileMenuPanel({
         {/* Theme toggle */}
         <div className="flex items-center justify-between gap-2 px-3.5 py-3 rounded-xl hover:bg-panel transition-all min-h-[44px]">
           <span className="flex items-center gap-2.5 text-sm font-semibold text-cream-dim">
-            {theme === 'dark' ? <Moon size={17} className="shrink-0" /> : <Sun size={17} className="shrink-0" />}
+            {theme === 'dark' ? <Moon size={17} className="shrink-0 text-[#EEAA04]" /> : <Sun size={17} className="shrink-0 text-slate-700" />}
             {theme === 'dark' ? 'Dark Mode' : 'Light Mode'}
           </span>
           <button
             onClick={toggleTheme}
             aria-label="Toggle light/dark mode"
-            className={`relative inline-flex w-11 h-6 rounded-full border transition-all shrink-0 touch-manipulation ${
+            className={`relative inline-flex w-11 h-6 rounded-full border transition-all shrink-0 touch-manipulation cursor-pointer ${
               theme === 'dark'
-                ? 'bg-panel-2 border-line'
-                : 'bg-gold/80 border-gold/60'
+                ? 'bg-[#EEAA04] border-[#d99903]'
+                : 'bg-panel-2 border-line'
             }`}
           >
             <span
               className={`absolute top-0.5 w-5 h-5 rounded-full shadow transition-all ${
                 theme === 'dark'
-                  ? 'left-0.5 bg-cream-dim'
-                  : 'left-[22px] bg-ink'
+                  ? 'left-[22px] bg-[#0a120f]'
+                  : 'left-0.5 bg-cream-dim'
               }`}
             />
           </button>

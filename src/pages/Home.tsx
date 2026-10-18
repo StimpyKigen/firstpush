@@ -273,35 +273,35 @@ export default function Home() {
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
                 
                 {/* Match Card 1: Liverpool vs Manchester City */}
-                <div className="bg-white rounded-2xl p-5 text-slate-900 shadow-xl flex flex-col justify-between hover:shadow-2xl transition-all">
+                <div className="bg-white dark:bg-[#182622] rounded-2xl p-5 text-slate-900 dark:text-[#f0f4f1] border border-transparent dark:border-[#2e453c] shadow-xl flex flex-col justify-between hover:shadow-2xl transition-all">
                   <div>
                     {/* Crests */}
-                    <div className="flex items-center justify-center gap-4 py-2 border-b border-slate-100">
-                      <div className="w-12 h-12 rounded-full bg-emerald-50 border border-emerald-200 flex items-center justify-center font-black text-xs text-[#006C54]">
+                    <div className="flex items-center justify-center gap-4 py-2 border-b border-slate-100 dark:border-[#243831]">
+                      <div className="w-12 h-12 rounded-full bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800/50 flex items-center justify-center font-black text-xs text-[#006C54] dark:text-emerald-400">
                         LIV
                       </div>
                       <span className="text-xs font-bold text-slate-400">vs</span>
-                      <div className="w-12 h-12 rounded-full bg-sky-50 border border-sky-200 flex items-center justify-center font-black text-xs text-sky-600">
+                      <div className="w-12 h-12 rounded-full bg-sky-50 dark:bg-sky-950/60 border border-sky-200 dark:border-sky-800/50 flex items-center justify-center font-black text-xs text-sky-600 dark:text-sky-400">
                         MCI
                       </div>
                     </div>
 
                     <div className="mt-4">
-                      <h3 className="font-display font-black text-base text-slate-900">Liverpool v Manchester City</h3>
-                      <p className="text-xs text-slate-500 font-semibold mt-0.5">English Premier League</p>
+                      <h3 className="font-display font-black text-base text-slate-900 dark:text-[#f0f4f1]">Liverpool v Manchester City</h3>
+                      <p className="text-xs text-slate-500 dark:text-[#8ba296] font-semibold mt-0.5">English Premier League</p>
                     </div>
 
                     <div className="text-xs text-slate-400 mt-4 space-y-0.5">
                       <p>Anfield Stadium</p>
-                      <p className="font-medium text-slate-600">Sunday, 18 Oct 2026</p>
-                      <p className="font-mono text-slate-500">08:45 PM</p>
+                      <p className="font-medium text-slate-600 dark:text-[#9ab0a6]">Sunday, 18 Oct 2026</p>
+                      <p className="font-mono text-slate-500 dark:text-slate-400">08:45 PM</p>
                     </div>
                   </div>
 
-                  <div className="mt-5 pt-3 border-t border-slate-100 flex items-center justify-between">
+                  <div className="mt-5 pt-3 border-t border-slate-100 dark:border-[#243831] flex items-center justify-between">
                     <Link
                       to="/free"
-                      className="text-xs font-bold text-slate-800 hover:text-[#006C54] inline-flex items-center gap-1.5 transition-colors group"
+                      className="text-xs font-bold text-slate-800 dark:text-[#f0f4f1] hover:text-[#006C54] dark:hover:text-[#EEAA04] inline-flex items-center gap-1.5 transition-colors group"
                     >
                       <span>Preview</span>
                       <span className="w-5 h-5 rounded-full bg-[#006C54] text-white flex items-center justify-center text-[10px] group-hover:translate-x-0.5 transition-transform">
@@ -312,35 +312,35 @@ export default function Home() {
                 </div>
 
                 {/* Match Card 2: Arsenal vs Barcelona */}
-                <div className="bg-white rounded-2xl p-5 text-slate-900 shadow-xl flex flex-col justify-between hover:shadow-2xl transition-all">
+                <div className="bg-white dark:bg-[#182622] rounded-2xl p-5 text-slate-900 dark:text-[#f0f4f1] border border-transparent dark:border-[#2e453c] shadow-xl flex flex-col justify-between hover:shadow-2xl transition-all">
                   <div>
                     {/* Crests */}
-                    <div className="flex items-center justify-center gap-4 py-2 border-b border-slate-100">
-                      <div className="w-12 h-12 rounded-full bg-red-50 border border-red-200 flex items-center justify-center font-black text-xs text-red-700">
+                    <div className="flex items-center justify-center gap-4 py-2 border-b border-slate-100 dark:border-[#243831]">
+                      <div className="w-12 h-12 rounded-full bg-red-50 dark:bg-red-950/60 border border-red-200 dark:border-red-800/50 flex items-center justify-center font-black text-xs text-red-700 dark:text-red-400">
                         ARS
                       </div>
                       <span className="text-xs font-bold text-slate-400">vs</span>
-                      <div className="w-12 h-12 rounded-full bg-blue-50 border border-blue-200 flex items-center justify-center font-black text-xs text-blue-700">
+                      <div className="w-12 h-12 rounded-full bg-blue-50 dark:bg-blue-950/60 border border-blue-200 dark:border-blue-800/50 flex items-center justify-center font-black text-xs text-blue-700 dark:text-blue-400">
                         FCB
                       </div>
                     </div>
 
                     <div className="mt-4">
-                      <h3 className="font-display font-black text-base text-slate-900">Arsenal v Barcelona</h3>
-                      <p className="text-xs text-slate-500 font-semibold mt-0.5">Champions League · Semi-Final</p>
+                      <h3 className="font-display font-black text-base text-slate-900 dark:text-[#f0f4f1]">Arsenal v Barcelona</h3>
+                      <p className="text-xs text-slate-500 dark:text-[#8ba296] font-semibold mt-0.5">Champions League · Semi-Final</p>
                     </div>
 
                     <div className="text-xs text-slate-400 mt-4 space-y-0.5">
                       <p>Wembley Stadium</p>
-                      <p className="font-medium text-slate-600">Sunday, 18 Oct 2026</p>
-                      <p className="font-mono text-slate-500">07:30 PM</p>
+                      <p className="font-medium text-slate-600 dark:text-[#9ab0a6]">Sunday, 18 Oct 2026</p>
+                      <p className="font-mono text-slate-500 dark:text-slate-400">07:30 PM</p>
                     </div>
                   </div>
 
-                  <div className="mt-5 pt-3 border-t border-slate-100 flex items-center justify-between">
+                  <div className="mt-5 pt-3 border-t border-slate-100 dark:border-[#243831] flex items-center justify-between">
                     <Link
                       to="/free"
-                      className="text-xs font-bold text-slate-800 hover:text-[#006C54] inline-flex items-center gap-1.5 transition-colors group"
+                      className="text-xs font-bold text-slate-800 dark:text-[#f0f4f1] hover:text-[#006C54] dark:hover:text-[#EEAA04] inline-flex items-center gap-1.5 transition-colors group"
                     >
                       <span>Preview</span>
                       <span className="w-5 h-5 rounded-full bg-[#006C54] text-white flex items-center justify-center text-[10px] group-hover:translate-x-0.5 transition-transform">
@@ -351,35 +351,35 @@ export default function Home() {
                 </div>
 
                 {/* Match Card 3: Everton vs Porto */}
-                <div className="bg-white rounded-2xl p-5 text-slate-900 shadow-xl flex flex-col justify-between hover:shadow-2xl transition-all">
+                <div className="bg-white dark:bg-[#182622] rounded-2xl p-5 text-slate-900 dark:text-[#f0f4f1] border border-transparent dark:border-[#2e453c] shadow-xl flex flex-col justify-between hover:shadow-2xl transition-all">
                   <div>
                     {/* Crests */}
-                    <div className="flex items-center justify-center gap-4 py-2 border-b border-slate-100">
-                      <div className="w-12 h-12 rounded-full bg-blue-50 border border-blue-200 flex items-center justify-center font-black text-xs text-blue-800">
+                    <div className="flex items-center justify-center gap-4 py-2 border-b border-slate-100 dark:border-[#243831]">
+                      <div className="w-12 h-12 rounded-full bg-blue-50 dark:bg-blue-950/60 border border-blue-200 dark:border-blue-800/50 flex items-center justify-center font-black text-xs text-blue-800 dark:text-blue-400">
                         EVE
                       </div>
                       <span className="text-xs font-bold text-slate-400">vs</span>
-                      <div className="w-12 h-12 rounded-full bg-indigo-50 border border-indigo-200 flex items-center justify-center font-black text-xs text-indigo-700">
+                      <div className="w-12 h-12 rounded-full bg-indigo-50 dark:bg-indigo-950/60 border border-indigo-200 dark:border-indigo-800/50 flex items-center justify-center font-black text-xs text-indigo-700 dark:text-indigo-400">
                         FCP
                       </div>
                     </div>
 
                     <div className="mt-4">
-                      <h3 className="font-display font-black text-base text-slate-900">Everton v Porto</h3>
-                      <p className="text-xs text-slate-500 font-semibold mt-0.5">EURO League · Semi-Final</p>
+                      <h3 className="font-display font-black text-base text-slate-900 dark:text-[#f0f4f1]">Everton v Porto</h3>
+                      <p className="text-xs text-slate-500 dark:text-[#8ba296] font-semibold mt-0.5">EURO League · Semi-Final</p>
                     </div>
 
                     <div className="text-xs text-slate-400 mt-4 space-y-0.5">
                       <p>Goodison Park Stadium</p>
-                      <p className="font-medium text-slate-600">Saturday, 17 Oct 2026</p>
-                      <p className="font-mono text-slate-500">07:45 PM</p>
+                      <p className="font-medium text-slate-600 dark:text-[#9ab0a6]">Saturday, 17 Oct 2026</p>
+                      <p className="font-mono text-slate-500 dark:text-slate-400">07:45 PM</p>
                     </div>
                   </div>
 
-                  <div className="mt-5 pt-3 border-t border-slate-100 flex items-center justify-between">
+                  <div className="mt-5 pt-3 border-t border-slate-100 dark:border-[#243831] flex items-center justify-between">
                     <Link
                       to="/free"
-                      className="text-xs font-bold text-slate-800 hover:text-[#006C54] inline-flex items-center gap-1.5 transition-colors group"
+                      className="text-xs font-bold text-slate-800 dark:text-[#f0f4f1] hover:text-[#006C54] dark:hover:text-[#EEAA04] inline-flex items-center gap-1.5 transition-colors group"
                     >
                       <span>Preview</span>
                       <span className="w-5 h-5 rounded-full bg-[#006C54] text-white flex items-center justify-center text-[10px] group-hover:translate-x-0.5 transition-transform">
@@ -400,12 +400,12 @@ export default function Home() {
           SECTION 3: "LATEST NEWS" / 4-COLUMN CONTENT GRIDS (ESPN REFERENCE)
           Clean white background, bold red title, pill tab container, vertical photo cards with red HOT badges
           ========================================================================= */}
-      <section className="bg-white py-12 sm:py-16 border-b border-slate-200">
+      <section className="bg-white dark:bg-[#0a120f] py-12 sm:py-16 border-b border-slate-200 dark:border-[#243831]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           
           {/* Header Row: Bold Primary Title + Pill Tab Filters */}
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
-            <h2 className="font-display font-black text-2xl sm:text-3xl lg:text-4xl text-[#006C54] tracking-tight">
+            <h2 className="font-display font-black text-2xl sm:text-3xl lg:text-4xl text-[#006C54] dark:text-[#EEAA04] tracking-tight">
               Latest News
             </h2>
 
@@ -439,7 +439,7 @@ export default function Home() {
               <Link
                 key={news.id}
                 to={news.link}
-                className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-xs hover:shadow-lg hover:border-slate-300 transition-all flex flex-col group"
+                className="bg-white dark:bg-[#131f1b] border border-slate-200 dark:border-[#243831] rounded-2xl overflow-hidden shadow-xs hover:shadow-lg hover:border-slate-300 dark:hover:border-[#2e453c] transition-all flex flex-col group"
               >
                 {/* Image Top */}
                 <div className="relative aspect-[4/3] overflow-hidden bg-slate-900">
@@ -461,13 +461,13 @@ export default function Home() {
                     <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
                       {news.category} · {news.date}
                     </span>
-                    <h3 className="font-display font-black text-sm sm:text-base text-slate-900 leading-snug mt-1 group-hover:text-[#006C54] transition-colors">
+                    <h3 className="font-display font-black text-sm sm:text-base text-slate-900 dark:text-[#f0f4f1] leading-snug mt-1 group-hover:text-[#006C54] dark:group-hover:text-[#EEAA04] transition-colors">
                       {news.title}
                     </h3>
                   </div>
 
-                  <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
-                    <span className="font-semibold text-[#006C54] group-hover:underline">Read Pick →</span>
+                  <div className="mt-4 pt-3 border-t border-slate-100 dark:border-[#243831] flex items-center justify-between text-xs text-slate-500 dark:text-[#8ba296]">
+                    <span className="font-semibold text-[#006C54] dark:text-[#EEAA04] group-hover:underline">Read Pick →</span>
                     <span className="text-[11px] font-mono text-slate-400">mshindi.co.ke</span>
                   </div>
                 </div>
@@ -597,11 +597,11 @@ export default function Home() {
       <section id="rooms" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-8">
           <div>
-            <h2 className="font-display font-black text-2xl sm:text-3xl lg:text-4xl text-slate-900 flex items-center gap-2.5">
-              <Lock size={22} className="text-[#006C54]" />
+            <h2 className="font-display font-black text-2xl sm:text-3xl lg:text-4xl text-slate-900 dark:text-[#f0f4f1] flex items-center gap-2.5">
+              <Lock size={22} className="text-[#006C54] dark:text-[#EEAA04]" />
               <span>Jackpot Consensus Rooms</span>
             </h2>
-            <p className="text-xs sm:text-sm text-slate-500 mt-1">
+            <p className="text-xs sm:text-sm text-slate-500 dark:text-[#8ba296] mt-1">
               {viewTab === 'active'
                 ? 'Showing unplayed and ongoing jackpot rooms. Settled rooms are automatically archived.'
                 : 'Jackpot Archives: Review completed rooms, final winning slips, and historical leaderboards.'}
@@ -612,43 +612,43 @@ export default function Home() {
             {isAuthorizedAdmin && (
               <button
                 onClick={() => setIsAdminModalOpen(true)}
-                className="h-10 px-4 rounded-md bg-white hover:bg-slate-50 border border-slate-300 text-slate-800 text-xs font-black uppercase tracking-wider inline-flex items-center gap-2 active:scale-95 transition-all shadow-2xs cursor-pointer"
+                className="h-10 px-4 rounded-md bg-white dark:bg-[#182622] hover:bg-slate-50 dark:hover:bg-[#22352f] border border-slate-300 dark:border-[#2e453c] text-slate-800 dark:text-[#f0f4f1] text-xs font-black uppercase tracking-wider inline-flex items-center gap-2 active:scale-95 transition-all shadow-2xs cursor-pointer"
               >
-                <SlidersHorizontal size={14} className="text-[#006C54]" />
+                <SlidersHorizontal size={14} className="text-[#006C54] dark:text-[#EEAA04]" />
                 <span>Jackpot Admin Console</span>
               </button>
             )}
 
             <div className="relative">
-              <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+              <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500" />
               <input
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder="Search rooms..."
-                className="bg-white border border-slate-200 rounded-full pl-9 pr-4 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#006C54] w-full sm:w-64 shadow-xs transition-all"
+                className="bg-white dark:bg-[#131f1b] border border-slate-200 dark:border-[#243831] rounded-full pl-9 pr-4 py-2 text-sm text-slate-900 dark:text-[#f0f4f1] placeholder:text-slate-400 dark:placeholder:text-[#6a8276] focus:outline-none focus:border-[#006C54] dark:focus:border-[#EEAA04] w-full sm:w-64 shadow-xs transition-all"
               />
             </div>
           </div>
         </div>
 
         {/* View Mode Navigation Tabs: Active vs Archive */}
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 mb-6 bg-white border border-slate-200 rounded-2xl p-2 shadow-xs">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 mb-6 bg-white dark:bg-[#131f1b] border border-slate-200 dark:border-[#243831] rounded-2xl p-2 shadow-xs">
           <div className="flex items-center gap-2 min-w-0">
             <button
               onClick={() => {
                 setViewTab('active');
                 setStatus('All');
               }}
-              className={`px-5 py-2 rounded-xl font-display font-black text-xs sm:text-sm flex items-center gap-2 transition-all active:scale-95 ${
+              className={`px-5 py-2 rounded-xl font-display font-black text-xs sm:text-sm flex items-center gap-2 transition-all active:scale-95 cursor-pointer ${
                 viewTab === 'active'
                   ? 'bg-[#006C54] text-white shadow-xs'
-                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+                  : 'text-slate-600 dark:text-[#9ab0a6] hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-[#182622]'
               }`}
             >
               <Flame size={15} />
               <span>Active Rooms</span>
               <span className={`text-[10px] px-2 py-0.5 rounded-full font-mono font-bold ${
-                viewTab === 'active' ? 'bg-white text-[#006C54]' : 'bg-slate-100 text-slate-600'
+                viewTab === 'active' ? 'bg-white text-[#006C54]' : 'bg-slate-100 dark:bg-[#182622] text-slate-600 dark:text-[#9ab0a6]'
               }`}>
                 {activeRooms.length}
               </span>
@@ -659,31 +659,31 @@ export default function Home() {
                 setViewTab('archive');
                 setStatus('All');
               }}
-              className={`px-5 py-2 rounded-xl font-display font-black text-xs sm:text-sm flex items-center gap-2 transition-all active:scale-95 ${
+              className={`px-5 py-2 rounded-xl font-display font-black text-xs sm:text-sm flex items-center gap-2 transition-all active:scale-95 cursor-pointer ${
                 viewTab === 'archive'
                   ? 'bg-[#006C54] text-white shadow-xs'
-                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+                  : 'text-slate-600 dark:text-[#9ab0a6] hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-[#182622]'
               }`}
             >
               <Archive size={15} />
               <span>Archives</span>
               <span className={`text-[10px] px-2 py-0.5 rounded-full font-mono font-bold ${
-                viewTab === 'archive' ? 'bg-white text-[#006C54]' : 'bg-slate-100 text-slate-600'
+                viewTab === 'archive' ? 'bg-white text-[#006C54]' : 'bg-slate-100 dark:bg-[#182622] text-slate-600 dark:text-[#9ab0a6]'
               }`}>
                 {archivedRooms.length}
               </span>
             </button>
           </div>
 
-          <div className="text-xs text-slate-500 px-3 py-1 flex items-center gap-2 font-mono shrink-0">
+          <div className="text-xs text-slate-500 dark:text-[#8ba296] px-3 py-1 flex items-center gap-2 font-mono shrink-0">
             {viewTab === 'active' ? (
-              <span className="flex items-center gap-1.5 text-emerald-700 font-bold">
+              <span className="flex items-center gap-1.5 text-emerald-700 dark:text-emerald-400 font-bold">
                 <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
                 <span>Showing live &amp; upcoming rooms</span>
               </span>
             ) : (
-              <span className="flex items-center gap-1.5 text-slate-600 font-bold">
-                <CheckCircle2 size={13} className="text-emerald-600" />
+              <span className="flex items-center gap-1.5 text-slate-600 dark:text-slate-400 font-bold">
+                <CheckCircle2 size={13} className="text-emerald-600 dark:text-emerald-400" />
                 <span>Showing completed &amp; settled archives</span>
               </span>
             )}
@@ -696,10 +696,10 @@ export default function Home() {
             <button
               key={b}
               onClick={() => setBookie(b)}
-              className={`px-4 py-2 rounded-full text-xs font-bold border transition-all shrink-0 whitespace-nowrap active:scale-95 ${
+              className={`px-4 py-2 rounded-full text-xs font-bold border transition-all shrink-0 whitespace-nowrap active:scale-95 cursor-pointer ${
                 bookie === b
                   ? 'bg-[#006C54] border-[#006C54] text-white shadow-xs font-black'
-                  : 'border-slate-200 text-slate-600 bg-white hover:border-slate-300 hover:bg-slate-50'
+                  : 'border-slate-200 dark:border-[#243831] text-slate-600 dark:text-[#d1dbd5] bg-white dark:bg-[#131f1b] hover:border-slate-300 dark:hover:border-[#2e453c] hover:bg-slate-50 dark:hover:bg-[#182622]'
               }`}
             >
               {b}
@@ -713,10 +713,10 @@ export default function Home() {
             <button
               key={s}
               onClick={() => setStatus(s)}
-              className={`px-4 py-2 rounded-full text-xs font-bold border capitalize transition-all shrink-0 whitespace-nowrap active:scale-95 ${
+              className={`px-4 py-2 rounded-full text-xs font-bold border capitalize transition-all shrink-0 whitespace-nowrap active:scale-95 cursor-pointer ${
                 status === s
-                  ? 'bg-slate-900 border-slate-900 text-white shadow-xs font-black'
-                  : 'border-slate-200 text-slate-600 bg-white hover:border-slate-300 hover:bg-slate-50'
+                  ? 'bg-slate-900 dark:bg-[#EEAA04] border-slate-900 dark:border-[#EEAA04] text-white dark:text-[#0a120f] shadow-xs font-black'
+                  : 'border-slate-200 dark:border-[#243831] text-slate-600 dark:text-[#d1dbd5] bg-white dark:bg-[#131f1b] hover:border-slate-300 dark:hover:border-[#2e453c] hover:bg-slate-50 dark:hover:bg-[#182622]'
               }`}
             >
               {s === 'All' ? (viewTab === 'active' ? 'All Active' : 'All Settled') : s}
@@ -726,13 +726,13 @@ export default function Home() {
 
         {/* Archive Banner when in Archive mode */}
         {viewTab === 'archive' && (
-          <div className="bg-white border border-slate-200 rounded-2xl p-5 mb-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-sm animate-rise">
+          <div className="bg-white dark:bg-[#131f1b] border border-slate-200 dark:border-[#243831] rounded-2xl p-5 mb-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-sm animate-rise">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center text-slate-700 shrink-0">
+              <div className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-[#182622] flex items-center justify-center text-slate-700 dark:text-[#f0f4f1] shrink-0">
                 <Archive size={20} />
               </div>
               <div>
-                <h3 className="font-display font-black text-base text-slate-900">Jackpot Archives &amp; Settlement History</h3>
+                <h3 className="font-display font-black text-base text-slate-900 dark:text-[#f0f4f1]">Jackpot Archives &amp; Settlement History</h3>
                 <p className="text-xs text-slate-500 mt-0.5 leading-relaxed">
                   Settled jackpot rooms are retained for up to 90 days. You can review verified crowd accuracy, winning leg slips, and historical gameweek leaderboards.
                 </p>

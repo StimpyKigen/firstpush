@@ -26,6 +26,13 @@ export const useTheme = create<ThemeState>()(
 
 export function applyThemeClass(theme: Theme) {
   const root = document.documentElement;
-  if (theme === 'light') root.classList.add('light');
-  else root.classList.remove('light');
+  if (theme === 'dark') {
+    root.classList.add('dark');
+    root.classList.remove('light');
+    document.querySelector('meta[name="theme-color"]')?.setAttribute('content', '#0a120f');
+  } else {
+    root.classList.add('light');
+    root.classList.remove('dark');
+    document.querySelector('meta[name="theme-color"]')?.setAttribute('content', '#FFFFF0');
+  }
 }
