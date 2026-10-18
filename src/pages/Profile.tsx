@@ -2,7 +2,8 @@ import { useState } from 'react';
 import { useNavigate, Navigate, Link } from 'react-router-dom';
 import {
   Wallet as WalletIcon, ArrowDownLeft, ArrowUpRight, ShieldAlert, LifeBuoy,
-  ImageIcon, Pencil, UserPlus, Share2, Target, Trophy as TrophyIcon, Coins, LogOut
+  ImageIcon, Pencil, UserPlus, Share2, Trophy as TrophyIcon, Coins, LogOut,
+  ChevronRight, Phone, Clock, ArrowLeft, Check, Sparkles, UserCheck
 } from 'lucide-react';
 import SeoHead from '../components/SeoHead';
 import { useAuth, useCurrentUser } from '../lib/authStore';
@@ -45,6 +46,8 @@ export default function Profile() {
   const [avatarSaved, setAvatarSaved] = useState(false);
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [showMyProfileModal, setShowMyProfileModal] = useState(false);
+  const [copiedLink, setCopiedLink] = useState(false);
+  const [showTransactions, setShowTransactions] = useState(false);
 
   // Deposit state
   const [depositAmount, setDepositAmount] = useState(100);
@@ -69,6 +72,10 @@ export default function Profile() {
   const [closeProcessing, setCloseProcessing] = useState(false);
 
   if (!currentUser) return <Navigate to="/auth" replace />;
+
+  const punterStats = getPunterStats(currentUser.username);
+  const followers = getFollowersCount(currentUser.username);
+  const following = getFollowingCount(currentUser.username);
 
   function setCode(v: string) {
     setCodeRaw(v);
@@ -106,6 +113,17 @@ export default function Profile() {
     navigator.clipboard?.writeText(RECEIVER_MPESA_NUMBER.replace(/\s/g, ''));
     setCopied(true);
     setTimeout(() => setCopied(false), 1800);
+  }
+
+  function handleShareProfile() {
+    const url = `${window.location.origin}/punters/${encodeURIComponent(currentUser.username)}`;
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(url);
+      setCopiedLink(true);
+      setTimeout(() => setCopiedLink(false), 2000);
+    } else {
+      setShowMyProfileModal(true);
+    }
   }
 
   async function verifyDeposit() {
@@ -201,260 +219,526 @@ export default function Profile() {
     navigate('/');
   }
 
-  return (
-    <div className="max-w-3xl mx-auto px-4 sm:px-6 py-10">
-      <SeoHead
-        title="My Profile & Settings"
-        description="Manage your MshindiRoom profile, avatar settings, followers & account preferences."
-        noIndex={true}
+  // Cover Card Component used both standalone on mobile and left-column on desktop
+  const HeroCoverCard = (
+    <div className="relative overflow-hidden rounded-3xl bg-gradient-to-b from-[#0e2c20] via-[#091a13] to-[#05100c] text-white shadow-xl border border-[#1b3d2f]">
+      {/* Stadium backdrop texture & warm gradient glow */}
+      <div
+        className="absolute inset-0 bg-cover bg-center opacity-30 mix-blend-luminosity pointer-events-none"
+        style={{ backgroundImage: 'url(/hero-stadium.svg)' }}
       />
-      {/* Header */}
-      <div className="bg-gradient-to-br from-panel to-ink-2 border border-line rounded-2xl p-5 sm:p-8 mb-6 relative overflow-hidden">
-        <div className="absolute -right-10 -top-10 w-48 h-48 bg-gold/10 rounded-full blur-3xl" />
-        <div className="relative flex items-center justify-between gap-3 sm:gap-4 flex-wrap sm:flex-nowrap">
-          <div className="flex items-center gap-3 sm:gap-4 min-w-0">
-            <button
-              onClick={() => { setPendingAvatarId(currentUser.avatarId); setPanel(panel === 'avatar' ? 'none' : 'avatar'); }}
-              className="relative group shrink-0"
-              title="Change avatar"
-            >
-              <Avatar name={currentUser.username} seed={currentUser.phone.length} size={56} avatarId={currentUser.avatarId} />
-              <span className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-gold border-2 border-ink flex items-center justify-center group-hover:bg-gold-2 transition-colors">
-                <Pencil size={10} className="text-ink" />
-              </span>
-            </button>
-            <div className="min-w-0">
-              <h1 className="font-display font-extrabold text-xl sm:text-3xl text-cream truncate">{currentUser.username}</h1>
-              <div className="flex items-center gap-2 mt-1.5">
-                <StarRating rating={getPunterStats(currentUser.username).stars} size={14} />
-              </div>
-            </div>
-          </div>
+      <div className="absolute -top-12 -right-12 w-48 h-48 bg-[#EEAA04]/15 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute -bottom-10 -left-10 w-48 h-48 bg-[#006C54]/25 rounded-full blur-3xl pointer-events-none" />
 
-          {/* Social followers counter */}
-          <div className="flex items-center gap-4 bg-ink/60 border border-line/60 rounded-xl px-4 py-2.5">
-            <div className="text-center">
-              <p className="font-mono font-bold text-sm text-cream">{getFollowersCount(currentUser.username)}</p>
-              <p className="text-[10px] text-cream-dim uppercase font-semibold">Followers</p>
-            </div>
-            <div className="w-px h-6 bg-line" />
-            <div className="text-center">
-              <p className="font-mono font-bold text-sm text-cream">{getFollowingCount(currentUser.username)}</p>
-              <p className="text-[10px] text-cream-dim uppercase font-semibold">Following</p>
-            </div>
-          </div>
-        </div>
+      {/* Top action row */}
+      <div className="relative z-10 flex items-center justify-between p-4 sm:p-5 pb-0">
+        <button
+          onClick={() => navigate(-1)}
+          aria-label="Back"
+          className="w-9 h-9 rounded-full bg-black/40 hover:bg-black/60 border border-white/10 text-white/90 flex items-center justify-center active:scale-95 transition-all"
+        >
+          <ArrowLeft size={16} />
+        </button>
 
-        {/* Share & Invite quick action strip */}
-        <div className="relative flex flex-wrap items-center gap-2.5 mt-5 pt-4 border-t border-line/60">
+        <div className="flex items-center gap-2">
           <button
-            onClick={() => setShowMyProfileModal(true)}
-            className="flex-1 min-w-[140px] py-2 px-3 rounded-xl bg-panel hover:bg-panel-2 border border-line hover:border-gold/30 text-cream text-xs font-bold flex items-center justify-center gap-1.5 transition-colors"
+            onClick={handleShareProfile}
+            title={copiedLink ? 'Link Copied!' : 'Share Profile Link'}
+            className="w-9 h-9 rounded-full bg-black/40 hover:bg-black/60 border border-white/10 text-white/90 flex items-center justify-center active:scale-95 transition-all"
           >
-            <Share2 size={13} className="text-gold" />
-            Share Profile Link
+            {copiedLink ? <Check size={15} className="text-emerald-400" /> : <Share2 size={15} />}
           </button>
           <button
             onClick={() => setShowInviteModal(true)}
-            className="flex-1 min-w-[140px] py-2 px-3 rounded-xl bg-gold hover:bg-gold-2 text-ink text-xs font-bold flex items-center justify-center gap-1.5 transition-colors shadow"
+            title="Invite Friends"
+            className="w-9 h-9 rounded-full bg-black/40 hover:bg-black/60 border border-white/10 text-white/90 flex items-center justify-center active:scale-95 transition-all"
           >
-            <UserPlus size={13} />
-            Invite Friends
+            <UserPlus size={15} />
           </button>
         </div>
+      </div>
 
-        <div className="relative flex flex-wrap items-center justify-between gap-4 mt-5 pt-4 border-t border-dashed border-line">
-          <div className="flex items-center gap-6">
-            <div>
-              <p className="text-[11px] text-cream-dim uppercase tracking-wide font-semibold">Wallet Balance</p>
-              <p className="font-display font-extrabold text-emerald-2 text-2xl sm:text-3xl">Ksh {balance.toLocaleString()}</p>
-            </div>
-            <div className="w-px h-8 bg-line" />
-            <Link to="/wallet" className="group">
-              <p className="text-[11px] text-gold uppercase tracking-wide font-bold flex items-center gap-1">
-                <Coins size={12} /> Mshindi Tokens
-              </p>
-              <p className="font-display font-extrabold text-gold text-2xl sm:text-3xl group-hover:underline">
-                {mshindiTokens} <span className="text-xs font-normal text-cream-dim">MT</span>
-              </p>
-            </Link>
-          </div>
+      {/* Centered Profile Identity */}
+      <div className="relative z-10 flex flex-col items-center text-center px-4 pt-2 pb-6 sm:pb-7">
+        {/* Squircle Avatar with Edit Badge */}
+        <div className="relative group mb-3">
           <button
-            onClick={handleLogout}
-            className="flex items-center gap-1.5 text-xs font-bold text-cream-dim hover:text-cream border border-line rounded-full px-3 py-2 transition-colors shrink-0"
+            onClick={() => {
+              setPendingAvatarId(currentUser.avatarId);
+              setPanel(panel === 'avatar' ? 'none' : 'avatar');
+            }}
+            className="block relative focus:outline-none focus:ring-2 focus:ring-[#EEAA04] rounded-2xl transition-transform active:scale-95"
+            title="Change Avatar"
           >
-            <LogOut size={13} /> Log Out
+            <Avatar
+              name={currentUser.username}
+              seed={currentUser.phone.length}
+              size={82}
+              avatarId={currentUser.avatarId}
+            />
+            <span className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-[#EEAA04] text-slate-950 border-2 border-[#091a13] flex items-center justify-center shadow-md group-hover:scale-110 transition-transform">
+              <Pencil size={11} strokeWidth={2.5} />
+            </span>
           </button>
         </div>
-      </div>
 
-      {/* Punter Rating card */}
-      <div className="bg-panel border border-gold/20 rounded-2xl p-6 sm:p-7 mb-6">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="font-display font-bold text-lg text-cream flex items-center gap-2">
-            <TrophyIcon size={18} className="text-gold" /> Punter Rating
-          </h2>
-          <StarRating rating={getPunterStats(currentUser.username).stars} size={16} />
+        {/* Username */}
+        <h1 className="font-display font-extrabold text-2xl sm:text-3xl text-white tracking-tight flex items-center justify-center gap-1.5">
+          {currentUser.username}
+        </h1>
+
+        {/* Subtitle / Punter Credentials Motto */}
+        <div className="flex items-center justify-center gap-2 mt-1.5 flex-wrap">
+          <StarRating rating={punterStats.stars} size={14} />
+          <span className="text-[11px] font-bold text-[#EEAA04] uppercase tracking-wider bg-[#EEAA04]/15 border border-[#EEAA04]/30 px-2 py-0.5 rounded-full">
+            {punterStats.tierName}
+          </span>
         </div>
-        <p className="text-xs text-cream-dim leading-relaxed mb-4">
-          Your star rating climbs the more accurate picks you land and every time you're crowned closest to the
-          winning slip in a jackpot room: up to a maximum of 5 stars.
+
+        <p className="text-xs text-white/70 max-w-xs mt-2 italic font-normal leading-relaxed">
+          "Focused picks in consensus rooms. Let the winning slips speak."
         </p>
-        <div className="grid grid-cols-2 gap-3">
-          <div className="bg-ink-2 border border-line rounded-xl p-3.5 flex items-center gap-3">
-            <span className="w-9 h-9 rounded-lg bg-emerald-2/10 border border-emerald-2/30 flex items-center justify-center shrink-0">
-              <Target size={16} className="text-emerald-2" />
-            </span>
-            <div>
-              <p className="font-display font-extrabold text-cream text-lg leading-none">{getPunterStats(currentUser.username).accuracyPct}%</p>
-              <p className="text-[11px] text-cream-dim mt-0.5">Pick accuracy</p>
-            </div>
+
+        {/* Social / Accuracy Stats Pills */}
+        <div className="flex items-center justify-center gap-3 mt-4 pt-4 border-t border-white/10 w-full max-w-sm">
+          <div className="text-center flex-1">
+            <p className="font-mono font-bold text-base text-white">{followers}</p>
+            <p className="text-[10px] text-white/60 font-semibold uppercase tracking-wider">Followers</p>
           </div>
-          <div className="bg-ink-2 border border-line rounded-xl p-3.5 flex items-center gap-3">
-            <span className="w-9 h-9 rounded-lg bg-gold/10 border border-gold/30 flex items-center justify-center shrink-0">
-              <TrophyIcon size={16} className="text-gold" />
-            </span>
-            <div>
-              <p className="font-display font-extrabold text-cream text-lg leading-none">{getPunterStats(currentUser.username).closestWins}</p>
-              <p className="text-[11px] text-cream-dim mt-0.5">Closest-slip wins</p>
-            </div>
+          <div className="w-px h-6 bg-white/15" />
+          <div className="text-center flex-1">
+            <p className="font-mono font-bold text-base text-white">{following}</p>
+            <p className="text-[10px] text-white/60 font-semibold uppercase tracking-wider">Following</p>
+          </div>
+          <div className="w-px h-6 bg-white/15" />
+          <div className="text-center flex-1">
+            <p className="font-mono font-bold text-base text-emerald-400">{punterStats.accuracyPct}%</p>
+            <p className="text-[10px] text-white/60 font-semibold uppercase tracking-wider">Accuracy</p>
           </div>
         </div>
       </div>
+    </div>
+  );
 
-      {/* Action grid */}
-      <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 mb-6">
-        <button
-          onClick={() => { setPendingAvatarId(currentUser.avatarId); setPanel(panel === 'avatar' ? 'none' : 'avatar'); }}
-          className={`h-20 flex flex-col items-center justify-center gap-1.5 p-3 rounded-2xl border transition-all ${panel === 'avatar' ? 'bg-gold/10 border-gold/40' : 'bg-panel border-line hover:border-gold/40'}`}
-        >
-          <ImageIcon size={20} className="text-gold shrink-0" />
-          <span className="text-xs font-bold text-cream">Avatar</span>
-        </button>
-        <button
-          onClick={() => setPanel(panel === 'deposit' ? 'none' : 'deposit')}
-          className={`h-20 flex flex-col items-center justify-center gap-1.5 p-3 rounded-2xl border transition-all ${panel === 'deposit' ? 'bg-emerald-2/10 border-emerald-2/40' : 'bg-panel border-line hover:border-emerald-2/40'}`}
-        >
-          <ArrowDownLeft size={20} className="text-emerald-2 shrink-0" />
-          <span className="text-xs font-bold text-cream">Deposit</span>
-        </button>
-        <button
-          onClick={() => setPanel(panel === 'withdraw' ? 'none' : 'withdraw')}
-          className={`h-20 flex flex-col items-center justify-center gap-1.5 p-3 rounded-2xl border transition-all ${panel === 'withdraw' ? 'bg-gold/10 border-gold/40' : 'bg-panel border-line hover:border-gold/40'}`}
-        >
-          <ArrowUpRight size={20} className="text-gold shrink-0" />
-          <span className="text-xs font-bold text-cream">Withdraw</span>
-        </button>
-        <button
-          onClick={() => setPanel(panel === 'support' ? 'none' : 'support')}
-          className={`h-20 flex flex-col items-center justify-center gap-1.5 p-3 rounded-2xl border transition-all ${panel === 'support' ? 'bg-blue-500/10 border-blue-400/40' : 'bg-panel border-line hover:border-blue-400/40'}`}
-        >
-          <LifeBuoy size={20} className="text-[#3b82f6] shrink-0" />
-          <span className="text-xs font-bold text-cream">Support</span>
-        </button>
-        <button
-          onClick={() => setPanel(panel === 'close' ? 'none' : 'close')}
-          className={`h-20 flex flex-col items-center justify-center gap-1.5 p-3 rounded-2xl border transition-all ${panel === 'close' ? 'bg-danger/10 border-danger/40' : 'bg-panel border-line hover:border-danger/40'}`}
-        >
-          <ShieldAlert size={20} className="text-danger shrink-0" />
-          <span className="text-xs font-bold text-cream">Close Account</span>
-        </button>
-      </div>
+  return (
+    <div className="min-h-screen bg-[#FDFBF7] text-slate-800 pb-20">
+      <SeoHead
+        title="My Profile & Settings"
+        description="Manage your MshindiRoom profile, avatar settings, wallet & account preferences."
+        noIndex={true}
+      />
 
-      {panel === 'avatar' && (
-        <AvatarPanel
-          pendingAvatarId={pendingAvatarId}
-          setPendingAvatarId={setPendingAvatarId}
-          avatarSaved={avatarSaved}
-          onSave={saveAvatar}
-          onClose={() => setPanel('none')}
-        />
-      )}
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 sm:pt-6 lg:pt-8">
+        {/* Desktop: 2-column layout; Mobile: Stack with hero cover at top */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start">
+          
+          {/* Left Column: Hero Cover Card on Desktop / Standalone Hero on Mobile */}
+          <div className="lg:col-span-5 xl:col-span-5 lg:sticky lg:top-20 space-y-4">
+            {HeroCoverCard}
 
-      {panel === 'deposit' && (
-        <DepositPanel
-          depositAmount={depositAmount}
-          setDepositAmount={setDepositAmount}
-          depositStage={depositStage}
-          setDepositStage={setDepositStage}
-          code={code}
-          setCode={setCode}
-          copied={copied}
-          checking={checking}
-          depositError={depositError}
-          depositDone={depositDone}
-          onCopyNumber={copyNumber}
-          onVerify={verifyDeposit}
-          onClose={() => setPanel('none')}
-        />
-      )}
-
-      {panel === 'withdraw' && (
-        <WithdrawPanel
-          balance={balance}
-          withdrawAmount={withdrawAmount}
-          setWithdrawAmount={setWithdrawAmount}
-          withdrawPhone={withdrawPhone}
-          setWithdrawPhone={setWithdrawPhone}
-          withdrawError={withdrawError}
-          withdrawProcessing={withdrawProcessing}
-          withdrawDone={withdrawDone}
-          onSubmit={submitWithdraw}
-          onClose={() => setPanel('none')}
-        />
-      )}
-
-      {panel === 'support' && <SupportPanel onClose={() => setPanel('none')} />}
-
-      {panel === 'close' && (
-        <CloseAccountPanel
-          currentUser={currentUser}
-          closePin={closePin}
-          setClosePin={setClosePin}
-          closeConfirmText={closeConfirmText}
-          setCloseConfirmText={setCloseConfirmText}
-          closeError={closeError}
-          closeProcessing={closeProcessing}
-          onSubmit={submitCloseAccount}
-          onClose={() => setPanel('none')}
-        />
-      )}
-
-      {/* Transaction history */}
-      <div className="bg-panel border border-line rounded-2xl p-6 sm:p-7">
-        <h2 className="font-display font-bold text-lg text-cream mb-4 flex items-center gap-2">
-          <WalletIcon size={18} className="text-emerald-2" /> Recent Activity
-        </h2>
-        <div className="flex flex-col divide-y divide-line">
-          {transactions.length === 0 && <p className="text-sm text-cream-dim py-4 text-center">No activity yet.</p>}
-          {transactions.map((tx) => (
-            <div key={tx.id} className="flex items-center justify-between gap-3 py-3">
-              <div className="flex items-center gap-3 min-w-0">
-                <div className={`w-9 h-9 rounded-full flex items-center justify-center shrink-0 ${
-                  tx.type === 'topup' ? 'bg-emerald-2/10 text-emerald-2' : tx.type === 'withdraw' ? 'bg-gold/10 text-gold' : 'bg-panel-2 text-cream-dim'
-                }`}>
-                  {tx.type === 'topup' ? <ArrowDownLeft size={16} /> : <ArrowUpRight size={16} />}
-                </div>
-                <div className="min-w-0">
-                  <p className="text-sm font-semibold text-cream truncate">{tx.label}</p>
-                  <p className="text-xs text-cream-dim">{tx.time}</p>
+            {/* Desktop Quick Wallet Highlight Card */}
+            <div className="hidden lg:flex items-center justify-between p-4.5 rounded-2xl bg-white border border-[#E6E6D2] shadow-xs">
+              <div className="flex items-center gap-3">
+                <span className="w-10 h-10 rounded-xl bg-emerald-50 text-[#006C54] flex items-center justify-center shrink-0">
+                  <WalletIcon size={18} />
+                </span>
+                <div>
+                  <p className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Wallet Balance</p>
+                  <p className="font-display font-extrabold text-xl text-slate-900 leading-tight">
+                    Ksh {balance.toLocaleString()}
+                  </p>
                 </div>
               </div>
-              <span className={`text-sm font-bold shrink-0 ${tx.amount > 0 ? 'text-emerald-2' : 'text-cream-dim'}`}>
-                {tx.amount > 0 ? '+' : ''}{tx.amount}
-              </span>
+
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setPanel(panel === 'deposit' ? 'none' : 'deposit')}
+                  className="px-3.5 py-1.5 rounded-full bg-[#006C54] hover:bg-[#005441] text-white text-xs font-bold transition-colors shadow-xs active:scale-95"
+                >
+                  Deposit
+                </button>
+                <button
+                  onClick={() => setPanel(panel === 'withdraw' ? 'none' : 'withdraw')}
+                  className="px-3.5 py-1.5 rounded-full bg-[#F5F5E4] hover:bg-[#E6E6D2] text-slate-800 text-xs font-bold transition-colors border border-[#E6E6D2] active:scale-95"
+                >
+                  Withdraw
+                </button>
+              </div>
             </div>
-          ))}
+          </div>
+
+          {/* Right Column: Active Interactive Panels & iOS Grouped Cards */}
+          <div className="lg:col-span-7 xl:col-span-7 space-y-4">
+            
+            {/* Active Inline Drawer Panels */}
+            {panel === 'avatar' && (
+              <div className="animate-rise">
+                <AvatarPanel
+                  pendingAvatarId={pendingAvatarId}
+                  setPendingAvatarId={setPendingAvatarId}
+                  avatarSaved={avatarSaved}
+                  onSave={saveAvatar}
+                  onClose={() => setPanel('none')}
+                />
+              </div>
+            )}
+
+            {panel === 'deposit' && (
+              <div className="animate-rise">
+                <DepositPanel
+                  depositAmount={depositAmount}
+                  setDepositAmount={setDepositAmount}
+                  depositStage={depositStage}
+                  setDepositStage={setDepositStage}
+                  code={code}
+                  setCode={setCode}
+                  copied={copied}
+                  checking={checking}
+                  depositError={depositError}
+                  depositDone={depositDone}
+                  onCopyNumber={copyNumber}
+                  onVerify={verifyDeposit}
+                  onClose={() => setPanel('none')}
+                />
+              </div>
+            )}
+
+            {panel === 'withdraw' && (
+              <div className="animate-rise">
+                <WithdrawPanel
+                  balance={balance}
+                  withdrawAmount={withdrawAmount}
+                  setWithdrawAmount={setWithdrawAmount}
+                  withdrawPhone={withdrawPhone}
+                  setWithdrawPhone={setWithdrawPhone}
+                  withdrawError={withdrawError}
+                  withdrawProcessing={withdrawProcessing}
+                  withdrawDone={withdrawDone}
+                  onSubmit={submitWithdraw}
+                  onClose={() => setPanel('none')}
+                />
+              </div>
+            )}
+
+            {panel === 'support' && (
+              <div className="animate-rise">
+                <SupportPanel onClose={() => setPanel('none')} />
+              </div>
+            )}
+
+            {panel === 'close' && (
+              <div className="animate-rise">
+                <CloseAccountPanel
+                  currentUser={currentUser}
+                  closePin={closePin}
+                  setClosePin={setClosePin}
+                  closeConfirmText={closeConfirmText}
+                  setCloseConfirmText={setCloseConfirmText}
+                  closeError={closeError}
+                  closeProcessing={closeProcessing}
+                  onSubmit={submitCloseAccount}
+                  onClose={() => setPanel('none')}
+                />
+              </div>
+            )}
+
+            {/* ── CARD GROUP 1: Wallet & Finances ── */}
+            <div className="bg-white rounded-2xl border border-[#E6E6D2] shadow-xs divide-y divide-[#F2F2E6] overflow-hidden">
+              <button
+                onClick={() => setPanel(panel === 'deposit' ? 'none' : 'deposit')}
+                className="w-full flex items-center justify-between p-4 hover:bg-slate-50/70 active:bg-slate-100/70 transition-colors text-left group"
+              >
+                <div className="flex items-center gap-3.5 min-w-0">
+                  <span className="w-10 h-10 rounded-xl bg-emerald-50 text-[#006C54] flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                    <WalletIcon size={18} />
+                  </span>
+                  <div className="min-w-0">
+                    <p className="text-sm font-bold text-slate-900 truncate">Wallet Balance</p>
+                    <p className="text-xs text-slate-500 font-normal truncate">Deposit M-Pesa funds for entry fees</p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2 shrink-0">
+                  <span className="font-mono font-extrabold text-sm text-[#006C54]">
+                    Ksh {balance.toLocaleString()}
+                  </span>
+                  <span className="hidden sm:inline-block px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-[#006C54]/10 text-[#006C54]">
+                    Deposit
+                  </span>
+                  <ChevronRight size={17} className="text-slate-400 group-hover:text-slate-600 transition-colors" />
+                </div>
+              </button>
+
+              <button
+                onClick={() => setPanel(panel === 'withdraw' ? 'none' : 'withdraw')}
+                className="w-full flex items-center justify-between p-4 hover:bg-slate-50/70 active:bg-slate-100/70 transition-colors text-left group"
+              >
+                <div className="flex items-center gap-3.5 min-w-0">
+                  <span className="w-10 h-10 rounded-xl bg-amber-50 text-amber-700 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                    <ArrowUpRight size={18} />
+                  </span>
+                  <div className="min-w-0">
+                    <p className="text-sm font-bold text-slate-900 truncate">Withdraw to M-Pesa</p>
+                    <p className="text-xs text-slate-500 font-normal truncate">Instant payout to your mobile phone</p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-1.5 shrink-0">
+                  <span className="text-xs font-semibold text-slate-500">Cashout</span>
+                  <ChevronRight size={17} className="text-slate-400 group-hover:text-slate-600 transition-colors" />
+                </div>
+              </button>
+
+              <Link
+                to="/wallet"
+                className="w-full flex items-center justify-between p-4 hover:bg-slate-50/70 active:bg-slate-100/70 transition-colors text-left group"
+              >
+                <div className="flex items-center gap-3.5 min-w-0">
+                  <span className="w-10 h-10 rounded-xl bg-[#EEAA04]/15 text-[#8A6500] flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                    <Coins size={18} />
+                  </span>
+                  <div className="min-w-0">
+                    <p className="text-sm font-bold text-slate-900 truncate">Mshindi Tokens</p>
+                    <p className="text-xs text-slate-500 font-normal truncate">Earn MT points through consensus picks</p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2 shrink-0">
+                  <span className="font-mono font-bold text-xs text-[#8A6500] bg-[#EEAA04]/20 px-2 py-0.5 rounded-full">
+                    {mshindiTokens} MT
+                  </span>
+                  <ChevronRight size={17} className="text-slate-400 group-hover:text-slate-600 transition-colors" />
+                </div>
+              </Link>
+
+              <button
+                onClick={() => setShowTransactions(!showTransactions)}
+                className="w-full flex items-center justify-between p-4 hover:bg-slate-50/70 active:bg-slate-100/70 transition-colors text-left group"
+              >
+                <div className="flex items-center gap-3.5 min-w-0">
+                  <span className="w-10 h-10 rounded-xl bg-slate-100 text-slate-700 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                    <Clock size={18} />
+                  </span>
+                  <div className="min-w-0">
+                    <p className="text-sm font-bold text-slate-900 truncate">Recent Transactions</p>
+                    <p className="text-xs text-slate-500 font-normal truncate">View wallet history and statements</p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-1.5 shrink-0">
+                  <span className="text-xs font-semibold text-slate-500">{transactions.length} records</span>
+                  <ChevronRight
+                    size={17}
+                    className={`text-slate-400 group-hover:text-slate-600 transition-transform ${
+                      showTransactions ? 'rotate-90' : ''
+                    }`}
+                  />
+                </div>
+              </button>
+            </div>
+
+            {/* Expandable Transaction History List */}
+            {showTransactions && (
+              <div className="bg-white rounded-2xl border border-[#E6E6D2] p-5 shadow-xs animate-rise space-y-3">
+                <div className="flex items-center justify-between pb-2.5 border-b border-[#F2F2E6]">
+                  <h3 className="font-display font-bold text-sm text-slate-900">Wallet Statements</h3>
+                  <span className="text-xs text-slate-500">{transactions.length} total entries</span>
+                </div>
+
+                {transactions.length === 0 ? (
+                  <p className="text-xs text-slate-500 py-4 text-center">No transactions recorded yet.</p>
+                ) : (
+                  <div className="divide-y divide-[#F2F2E6]">
+                    {transactions.map((tx) => (
+                      <div key={tx.id} className="flex items-center justify-between py-2.5">
+                        <div className="flex items-center gap-3 min-w-0">
+                          <span
+                            className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${
+                              tx.type === 'topup'
+                                ? 'bg-emerald-50 text-emerald-700'
+                                : tx.type === 'withdraw'
+                                ? 'bg-amber-50 text-amber-700'
+                                : 'bg-slate-100 text-slate-600'
+                            }`}
+                          >
+                            {tx.type === 'topup' ? <ArrowDownLeft size={14} /> : <ArrowUpRight size={14} />}
+                          </span>
+                          <div className="min-w-0">
+                            <p className="text-xs font-bold text-slate-800 truncate">{tx.label}</p>
+                            <p className="text-[10px] text-slate-400">{tx.time}</p>
+                          </div>
+                        </div>
+
+                        <span
+                          className={`text-xs font-mono font-bold shrink-0 ${
+                            tx.amount > 0 ? 'text-[#006C54]' : 'text-slate-600'
+                          }`}
+                        >
+                          {tx.amount > 0 ? '+' : ''}{tx.amount}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* ── CARD GROUP 2: Identity & Punter Performance ── */}
+            <div className="bg-white rounded-2xl border border-[#E6E6D2] shadow-xs divide-y divide-[#F2F2E6] overflow-hidden">
+              <button
+                onClick={() => {
+                  setPendingAvatarId(currentUser.avatarId);
+                  setPanel(panel === 'avatar' ? 'none' : 'avatar');
+                }}
+                className="w-full flex items-center justify-between p-4 hover:bg-slate-50/70 active:bg-slate-100/70 transition-colors text-left group"
+              >
+                <div className="flex items-center gap-3.5 min-w-0">
+                  <span className="w-10 h-10 rounded-xl bg-purple-50 text-purple-700 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                    <ImageIcon size={18} />
+                  </span>
+                  <div className="min-w-0">
+                    <p className="text-sm font-bold text-slate-900 truncate">Choose Avatar</p>
+                    <p className="text-xs text-slate-500 font-normal truncate">160+ presets, Glyphs & custom SVG</p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2 shrink-0">
+                  <span className="text-xs font-bold text-[#EEAA04] bg-[#EEAA04]/15 px-2.5 py-0.5 rounded-full">
+                    Change
+                  </span>
+                  <ChevronRight size={17} className="text-slate-400 group-hover:text-slate-600 transition-colors" />
+                </div>
+              </button>
+
+              <button
+                onClick={() => setShowMyProfileModal(true)}
+                className="w-full flex items-center justify-between p-4 hover:bg-slate-50/70 active:bg-slate-100/70 transition-colors text-left group"
+              >
+                <div className="flex items-center gap-3.5 min-w-0">
+                  <span className="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                    <TrophyIcon size={18} />
+                  </span>
+                  <div className="min-w-0">
+                    <p className="text-sm font-bold text-slate-900 truncate">Punter Performance</p>
+                    <p className="text-xs text-slate-500 font-normal truncate">
+                      {punterStats.accuracyPct}% accuracy • {punterStats.closestWins} closest-slip wins
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2 shrink-0">
+                  <StarRating rating={punterStats.stars} size={13} />
+                  <ChevronRight size={17} className="text-slate-400 group-hover:text-slate-600 transition-colors" />
+                </div>
+              </button>
+
+              <button
+                onClick={() => setShowInviteModal(true)}
+                className="w-full flex items-center justify-between p-4 hover:bg-slate-50/70 active:bg-slate-100/70 transition-colors text-left group"
+              >
+                <div className="flex items-center gap-3.5 min-w-0">
+                  <span className="w-10 h-10 rounded-xl bg-emerald-50 text-[#006C54] flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                    <UserPlus size={18} />
+                  </span>
+                  <div className="min-w-0">
+                    <p className="text-sm font-bold text-slate-900 truncate">Invite Friends</p>
+                    <p className="text-xs text-slate-500 font-normal truncate">Share referral code & invite punters</p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-1.5 shrink-0">
+                  <span className="text-xs font-semibold text-slate-500">Earn MT</span>
+                  <ChevronRight size={17} className="text-slate-400 group-hover:text-slate-600 transition-colors" />
+                </div>
+              </button>
+            </div>
+
+            {/* ── CARD GROUP 3: Security & Preferences ── */}
+            <div className="bg-white rounded-2xl border border-[#E6E6D2] shadow-xs divide-y divide-[#F2F2E6] overflow-hidden">
+              <div className="flex items-center justify-between p-4 text-left">
+                <div className="flex items-center gap-3.5 min-w-0">
+                  <span className="w-10 h-10 rounded-xl bg-blue-50 text-blue-700 flex items-center justify-center shrink-0">
+                    <Phone size={18} />
+                  </span>
+                  <div className="min-w-0">
+                    <p className="text-sm font-bold text-slate-900 truncate">Account Phone</p>
+                    <p className="text-xs text-slate-500 font-normal truncate">Verified mobile credentials</p>
+                  </div>
+                </div>
+
+                <span className="font-mono text-xs font-bold text-slate-700 bg-slate-100 px-2.5 py-1 rounded-md shrink-0">
+                  {currentUser.phone}
+                </span>
+              </div>
+
+              <button
+                onClick={() => setPanel(panel === 'support' ? 'none' : 'support')}
+                className="w-full flex items-center justify-between p-4 hover:bg-slate-50/70 active:bg-slate-100/70 transition-colors text-left group"
+              >
+                <div className="flex items-center gap-3.5 min-w-0">
+                  <span className="w-10 h-10 rounded-xl bg-sky-50 text-sky-700 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                    <LifeBuoy size={18} />
+                  </span>
+                  <div className="min-w-0">
+                    <p className="text-sm font-bold text-slate-900 truncate">Support & WhatsApp</p>
+                    <p className="text-xs text-slate-500 font-normal truncate">Direct helpline & rule consultations</p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-1.5 shrink-0">
+                  <span className="text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full">
+                    24/7 Care
+                  </span>
+                  <ChevronRight size={17} className="text-slate-400 group-hover:text-slate-600 transition-colors" />
+                </div>
+              </button>
+
+              <button
+                onClick={() => setPanel(panel === 'close' ? 'none' : 'close')}
+                className="w-full flex items-center justify-between p-4 hover:bg-rose-50/40 active:bg-rose-50 transition-colors text-left group"
+              >
+                <div className="flex items-center gap-3.5 min-w-0">
+                  <span className="w-10 h-10 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                    <ShieldAlert size={18} />
+                  </span>
+                  <div className="min-w-0">
+                    <p className="text-sm font-bold text-rose-700 truncate">Close Account</p>
+                    <p className="text-xs text-slate-500 font-normal truncate">Permanent deletion of account credentials</p>
+                  </div>
+                </div>
+
+                <ChevronRight size={17} className="text-slate-400 group-hover:text-rose-600 transition-colors shrink-0" />
+              </button>
+
+              <button
+                onClick={handleLogout}
+                className="w-full flex items-center justify-between p-4 hover:bg-slate-50/70 active:bg-slate-100/70 transition-colors text-left group"
+              >
+                <div className="flex items-center gap-3.5 min-w-0">
+                  <span className="w-10 h-10 rounded-xl bg-slate-100 text-slate-600 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                    <LogOut size={18} />
+                  </span>
+                  <div className="min-w-0">
+                    <p className="text-sm font-bold text-slate-900 truncate">Log Out</p>
+                    <p className="text-xs text-slate-500 font-normal truncate">Sign out of this session safely</p>
+                  </div>
+                </div>
+
+                <ChevronRight size={17} className="text-slate-400 group-hover:text-slate-600 transition-colors shrink-0" />
+              </button>
+            </div>
+
+          </div>
         </div>
       </div>
 
-      {/* Invite Modal */}
+      {/* Invite Friends Modal */}
       <InviteModal
         isOpen={showInviteModal}
         onClose={() => setShowInviteModal(false)}
       />
 
-      {/* Own Profile Modal */}
+      {/* Public Profile Preview Modal */}
       {showMyProfileModal && (
         <PunterProfileModal
           username={currentUser.username}

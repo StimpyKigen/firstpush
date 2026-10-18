@@ -11,14 +11,12 @@ export default function Navbar() {
   const { links, balance, mshindiTokens, currentUser, logOut, navigate, builderLegsCount } = useNavData();
   const [open, setOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
-  const [walletOpen, setWalletOpen] = useState(false);
   const [adminModalOpen, setAdminModalOpen] = useState(false);
 
   // Close menus on route change
   useEffect(() => {
     setOpen(false);
     setProfileOpen(false);
-    setWalletOpen(false);
   }, [location.pathname]);
 
   function handleLogout() {
@@ -54,22 +52,14 @@ export default function Navbar() {
             links={links}
             pathname={location.pathname}
             builderLegsCount={builderLegsCount}
-            walletOpen={walletOpen}
-            setWalletOpen={setWalletOpen}
             profileOpen={profileOpen}
             setProfileOpen={setProfileOpen}
             currentUser={currentUser}
-            balance={balance}
-            mshindiTokens={mshindiTokens}
             onOpenAdminModal={() => setAdminModalOpen(true)}
             onLogout={handleLogout}
           />
 
           <MobileHeaderControls
-            walletOpen={walletOpen}
-            setWalletOpen={setWalletOpen}
-            balance={balance}
-            mshindiTokens={mshindiTokens}
             open={open}
             setOpen={setOpen}
           />

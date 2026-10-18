@@ -2,65 +2,26 @@ import { Link } from 'react-router-dom';
 import { Wallet, Menu, X, UserCircle2, ShieldCheck, LogOut, Settings, UserCog, Bell } from 'lucide-react';
 import { isAdminUser, type Account } from '../../lib/authStore';
 import Avatar from '../Avatar';
-import WalletDropdownPanel from './WalletDropdownPanel';
 import type { NavLinkItem } from './useNavData';
 
 interface MobileHeaderControlsProps {
-  walletOpen: boolean;
-  setWalletOpen: (open: boolean) => void;
-  balance: number;
-  mshindiTokens: number;
   open: boolean;
   setOpen: (open: boolean) => void;
 }
 
-/** The compact icon row (wallet + hamburger) that sits inline in the header bar below `lg`. */
+/** The clean hamburger menu toggle in the header bar below `lg`, free of circular borders. */
 export function MobileHeaderControls({
-  walletOpen,
-  setWalletOpen,
-  balance,
-  mshindiTokens,
   open,
   setOpen,
 }: MobileHeaderControlsProps) {
   return (
-    <div className="flex lg:hidden items-center gap-2 shrink-0">
-      <div className="relative shrink-0">
-        <button
-          onClick={() => {
-            setWalletOpen(!walletOpen);
-            setOpen(false);
-          }}
-          aria-label="Wallet and Mshindi Tokens"
-          title="Wallet & Mshindi Tokens"
-          className={`inline-flex items-center gap-1.5 h-9 px-3 rounded-full border transition-all active:scale-95 ${
-            walletOpen
-              ? 'bg-emerald-50 border-[#006C54] text-[#006C54] shadow-xs'
-              : 'bg-[#F5F5E4] hover:bg-[#E6E6D2] border-[#E6E6D2] text-slate-800'
-          }`}
-        >
-          <Wallet size={15} className="text-[#006C54] shrink-0" />
-          <span className="text-xs font-bold font-mono text-slate-900">Ksh {balance.toLocaleString()}</span>
-        </button>
-
-        {walletOpen && (
-          <WalletDropdownPanel
-            balance={balance}
-            mshindiTokens={mshindiTokens}
-            onClose={() => setWalletOpen(false)}
-            backdropClassName="fixed inset-0 z-40 bg-black/25 backdrop-blur-xs"
-            panelClassName="fixed top-16 right-3 left-3 xs:left-auto xs:right-4 xs:w-84 sm:absolute sm:right-0 sm:top-full sm:mt-2 bg-[#FFFFF0] border border-[#E6E6D2] rounded-2xl shadow-xl p-4.5 z-50 animate-rise space-y-3.5"
-            headerClassName="flex items-center justify-between pb-2 text-left border-b border-[#E6E6D2]"
-          />
-        )}
-      </div>
-
+    <div className="flex lg:hidden items-center shrink-0">
       <button
-        className="text-slate-800 shrink-0 w-9 h-9 flex items-center justify-center rounded-full bg-[#F5F5E4] hover:bg-[#E6E6D2] border border-[#E6E6D2] active:scale-95 transition-all touch-manipulation cursor-pointer"
+        className="text-slate-800 p-1.5 hover:text-[#EEAA04] active:scale-95 transition-colors touch-manipulation cursor-pointer flex items-center justify-center"
         onClick={() => setOpen(!open)}
         aria-label="Toggle Menu"
       >
-        {open ? <X size={18} /> : <Menu size={18} />}
+        {open ? <X size={24} /> : <Menu size={24} />}
       </button>
     </div>
   );

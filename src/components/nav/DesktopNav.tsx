@@ -1,21 +1,16 @@
 import { Link } from 'react-router-dom';
-import { Wallet, Search, ChevronDown, UserCircle2, UserCog, ShieldCheck, LogOut } from 'lucide-react';
+import { UserCircle2, UserCog, ShieldCheck, LogOut } from 'lucide-react';
 import { isAdminUser, type Account } from '../../lib/authStore';
 import Avatar from '../Avatar';
-import WalletDropdownPanel from './WalletDropdownPanel';
 import type { NavLinkItem } from './useNavData';
 
 interface DesktopNavProps {
   links: NavLinkItem[];
   pathname: string;
   builderLegsCount: number;
-  walletOpen: boolean;
-  setWalletOpen: (open: boolean) => void;
   profileOpen: boolean;
   setProfileOpen: (open: boolean) => void;
   currentUser: Account | null;
-  balance: number;
-  mshindiTokens: number;
   onOpenAdminModal: () => void;
   onLogout: () => void;
 }
@@ -24,13 +19,9 @@ export default function DesktopNav({
   links,
   pathname,
   builderLegsCount,
-  walletOpen,
-  setWalletOpen,
   profileOpen,
   setProfileOpen,
   currentUser,
-  balance,
-  mshindiTokens,
   onOpenAdminModal,
   onLogout,
 }: DesktopNavProps) {
@@ -73,56 +64,8 @@ export default function DesktopNav({
         })}
       </nav>
 
-      {/* Desktop right-side controls: search, wallet, profile */}
+      {/* Desktop right-side controls: profile */}
       <div className="hidden lg:flex items-center gap-2 xl:gap-2.5 shrink-0 ml-1 sm:ml-2 xl:ml-4 z-10">
-        <Link
-          to="/free"
-          aria-label="Search fixtures and jackpots"
-          title="Search fixtures & jackpots"
-          className="hidden xl:inline-flex items-center justify-center w-9 h-9 rounded-full bg-[#F5F5E4] hover:bg-[#E6E6D2] border border-[#E6E6D2] text-[#5d6c7b] active:scale-95 transition-colors shrink-0"
-        >
-          <Search size={16} />
-        </Link>
-
-        {/* Integrated Wallet & Mshindi Tokens Dropdown */}
-        <div className="relative shrink-0">
-          <button
-            onClick={() => {
-              setWalletOpen(!walletOpen);
-              setProfileOpen(false);
-            }}
-            aria-label="Wallet & Mshindi Tokens"
-            title="Wallet & Mshindi Tokens"
-            className={`inline-flex items-center gap-1.5 xl:gap-2 h-9 px-2.5 xl:px-3 rounded-full border transition-all active:scale-95 ${
-              walletOpen
-                ? 'bg-emerald-50 border-[#006C54] text-[#006C54] shadow-xs'
-                : 'bg-[#F5F5E4] hover:bg-[#E6E6D2] border-[#E6E6D2] text-slate-700 hover:text-slate-900'
-            }`}
-          >
-            <Wallet size={15} className="text-[#006C54] shrink-0" />
-            <span className="text-xs font-bold font-mono text-slate-900">
-              Ksh {balance.toLocaleString()}
-            </span>
-            <ChevronDown
-              size={13}
-              className={`hidden xl:block shrink-0 transition-transform duration-200 ${
-                walletOpen ? 'rotate-180 text-[#006C54]' : 'text-slate-400'
-              }`}
-            />
-          </button>
-
-          {walletOpen && (
-            <WalletDropdownPanel
-              balance={balance}
-              mshindiTokens={mshindiTokens}
-              onClose={() => setWalletOpen(false)}
-              backdropClassName="fixed inset-0 z-40 bg-black/25 backdrop-blur-xs"
-              panelClassName="absolute right-0 top-full mt-2 w-84 bg-[#FFFFF0] border border-[#E6E6D2] rounded-2xl shadow-xl p-4.5 z-50 animate-rise space-y-3.5"
-              headerClassName="flex items-center justify-between pb-2.5 border-b border-[#E6E6D2]"
-            />
-          )}
-        </div>
-
         {currentUser ? (
           <div className="relative shrink-0">
             <button
