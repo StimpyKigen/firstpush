@@ -21,15 +21,6 @@ Operate using the **GSD (Get Sh*t Done) Core** meta-prompting, context-engineeri
 
 ---
 
-## 2. Microsoft Playwright MCP (`microsoft/playwright-mcp`)
-Operate using **Playwright MCP & Playwright CLI** for all browser automation, testing, and UI validation:
+## 2. Microsoft Playwright MCP (`microsoft/playwright-mcp`) [STATUS: DISABLED]
+> **DISABLED PER USER MANDATE**: Do NOT use Playwright MCP or Playwright CLI for testing, UI validation, scraping, or browser automation under any circumstances until the user explicitly instructs to re-enable it. Rely exclusively on automated terminal checks (`npx tsc --noEmit`, `npm run build`), unit/integration testing, and code review.
 
-1. **Automated Verification**:
-   - For all web application features, user interactions, and visual layout changes, verify with Playwright.
-2. **Accessibility-Driven Snapshots**:
-   - Interact with pages via Playwright accessibility trees and element references (`browser_snapshot`, `browser_click`, `browser_fill`).
-3. **Console & Network Health**:
-   - Inspect console messages (`browser_console_messages`) and network failures during and after test runs.
-4. **Configuration**:
-   - MCP Server registered in `.agents/mcp_config.json` and `~/.gemini/config/mcp_config.json`.
-   - Skill available in `.agents/skills/playwright-mcp/` and `.agents/skills/playwright-cli/`.
