@@ -70,12 +70,11 @@ export default function DesktopNav({
           <div className="relative shrink-0">
             <button
               onClick={() => setProfileOpen(!profileOpen)}
-              className="inline-flex items-center gap-2 bg-[#F5F5E4] hover:bg-[#E6E6D2] border border-[#E6E6D2] rounded-full pl-1.5 pr-1.5 xl:pr-3 h-9 active:scale-95 transition-all max-w-[170px]"
+              className="p-0.5 rounded-xl hover:opacity-85 active:scale-95 transition-all focus:outline-none flex items-center justify-center shrink-0 cursor-pointer"
+              title={`Profile (${currentUser.username})`}
+              aria-label="Profile Menu"
             >
-              <Avatar name={currentUser.username} seed={currentUser.phone.length} size={24} avatarId={currentUser.avatarId} />
-              <span className="hidden xl:inline text-xs font-bold text-slate-800 truncate">
-                {currentUser.username}
-              </span>
+              <Avatar name={currentUser.username} seed={currentUser.phone.length} size={32} avatarId={currentUser.avatarId} />
             </button>
             {profileOpen && (
               <div className="absolute right-0 top-full mt-2 w-52 bg-[#FFFFF0] border border-[#E6E6D2] rounded-2xl shadow-xl p-1.5 overflow-hidden animate-rise z-50">

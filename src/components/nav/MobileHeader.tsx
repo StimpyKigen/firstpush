@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { Wallet, Menu, X, UserCircle2, ShieldCheck, LogOut, Settings, UserCog, Bell } from 'lucide-react';
+import { Wallet, Menu, X, UserCircle2, ShieldCheck, LogOut, Settings, UserCog, Bell, Swords } from 'lucide-react';
 import { isAdminUser, type Account } from '../../lib/authStore';
 import Avatar from '../Avatar';
 import type { NavLinkItem } from './useNavData';
@@ -28,8 +28,8 @@ export function MobileHeaderControls({
 }
 
 interface MobileMenuPanelProps {
-  links: NavLinkItem[];
-  pathname: string;
+  links?: NavLinkItem[];
+  pathname?: string;
   currentUser: Account | null;
   balance: number;
   onNavigate: () => void;
@@ -39,7 +39,6 @@ interface MobileMenuPanelProps {
 
 /** The hamburger dropdown panel, rendered below the header bar (not nested inside it). */
 export function MobileMenuPanel({
-  links,
   currentUser,
   balance,
   onNavigate,
@@ -48,25 +47,9 @@ export function MobileMenuPanel({
 }: MobileMenuPanelProps) {
   return (
     <div className="lg:hidden border-b border-[#E6E6D2]/80 mobile-nav-glass px-4 py-4 flex flex-col gap-1.5 max-h-[calc(100dvh-4.5rem)] overflow-y-auto scroll-touch animate-rise shadow-xl">
-      {links.map((l) => (
-        <Link
-          key={l.to}
-          to={l.to}
-          onClick={onNavigate}
-          className="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-700 hover:text-[#EEAA04] hover:bg-emerald-50/50 active:bg-emerald-50 active:scale-[0.98] font-bold text-sm transition-all touch-manipulation min-h-[44px]"
-        >
-          <l.icon size={18} className="shrink-0 text-[#006C54]" />
-          <span className="truncate">{l.label}</span>
-          {l.soon && (
-            <span className="text-[9px] font-bold bg-[#8A6500]/15 text-[#8A6500] border border-[#8A6500]/30 px-2 py-0.5 rounded-full shrink-0 ml-auto">
-              Soon
-            </span>
-          )}
-        </Link>
-      ))}
-
       {currentUser ? (
-        <div className="flex flex-col gap-2 mt-2 pt-2 border-t border-[#E6E6D2]">
+        <div className="flex flex-col gap-2">
+          {/* View Profile Card */}
           <Link
             to="/profile"
             onClick={onNavigate}
@@ -76,6 +59,20 @@ export function MobileMenuPanel({
             <span className="truncate flex-1">{currentUser.username}</span>
             <span className="text-xs text-slate-500 font-normal">View Profile &rarr;</span>
           </Link>
+
+          {/* P2P Bets Placed Directly Below View Profile Card */}
+          <Link
+            to="/p2p"
+            onClick={onNavigate}
+            className="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-700 hover:text-[#EEAA04] hover:bg-emerald-50/50 active:bg-emerald-50 active:scale-[0.98] font-bold text-sm transition-all touch-manipulation min-h-[44px]"
+          >
+            <Swords size={18} className="shrink-0 text-[#006C54]" />
+            <span className="truncate">P2P Bets</span>
+            <span className="text-[9px] font-bold bg-[#8A6500]/15 text-[#8A6500] border border-[#8A6500]/30 px-2 py-0.5 rounded-full shrink-0 ml-auto">
+              Soon
+            </span>
+          </Link>
+
           {isAdminUser(currentUser) && (
             <button
               onClick={() => {
@@ -95,13 +92,28 @@ export function MobileMenuPanel({
           </button>
         </div>
       ) : (
-        <Link
-          to="/auth"
-          onClick={onNavigate}
-          className="bg-[#006C54] hover:bg-[#005441] text-white text-sm font-bold py-3 px-4 mt-2 rounded-full whitespace-nowrap justify-center shadow-xs active:scale-98 inline-flex items-center gap-2"
-        >
-          <UserCircle2 size={16} /> Sign Up / Log In
-        </Link>
+        <div className="flex flex-col gap-2">
+          <Link
+            to="/auth"
+            onClick={onNavigate}
+            className="bg-[#006C54] hover:bg-[#005441] text-white text-sm font-bold py-3 px-4 rounded-full whitespace-nowrap justify-center shadow-xs active:scale-98 inline-flex items-center gap-2"
+          >
+            <UserCircle2 size={16} /> Sign Up / Log In
+          </Link>
+
+          {/* P2P Bets */}
+          <Link
+            to="/p2p"
+            onClick={onNavigate}
+            className="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-700 hover:text-[#EEAA04] hover:bg-emerald-50/50 active:bg-emerald-50 active:scale-[0.98] font-bold text-sm transition-all touch-manipulation min-h-[44px]"
+          >
+            <Swords size={18} className="shrink-0 text-[#006C54]" />
+            <span className="truncate">P2P Bets</span>
+            <span className="text-[9px] font-bold bg-[#8A6500]/15 text-[#8A6500] border border-[#8A6500]/30 px-2 py-0.5 rounded-full shrink-0 ml-auto">
+              Soon
+            </span>
+          </Link>
+        </div>
       )}
 
       <div className="flex items-center justify-between gap-3 mt-2 px-4 py-3 bg-[#F5F5E4] border border-[#E6E6D2] rounded-2xl">
