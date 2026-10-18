@@ -2,7 +2,6 @@ import { useNavigate } from 'react-router-dom';
 import { Home, Unlock, Dices, Swords, Trophy, type LucideIcon } from 'lucide-react';
 import { useWallet } from '../../lib/store';
 import { useAuth, useCurrentUser } from '../../lib/authStore';
-import { useTheme } from '../../lib/themeStore';
 import { useBetSlipStore } from '../../lib/betSlipStore';
 
 export interface NavLinkItem {
@@ -27,8 +26,6 @@ export function useNavData() {
   const mshindiTokens = useWallet((s) => s.mshindiTokens);
   const currentUser = useCurrentUser();
   const logOut = useAuth((s) => s.logOut);
-  const theme = useTheme((s) => s.theme);
-  const toggleTheme = useTheme((s) => s.toggleTheme);
   const builderLegsCount = useBetSlipStore((s) => s.builderLegs.length);
 
   return {
@@ -38,8 +35,7 @@ export function useNavData() {
     currentUser,
     logOut,
     navigate,
-    theme,
-    toggleTheme,
     builderLegsCount,
   };
 }
+

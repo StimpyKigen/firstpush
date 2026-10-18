@@ -8,7 +8,7 @@ import { useNavData } from './nav/useNavData';
 
 export default function Navbar() {
   const location = useLocation();
-  const { links, balance, mshindiTokens, currentUser, logOut, navigate, theme, toggleTheme, builderLegsCount } = useNavData();
+  const { links, balance, mshindiTokens, currentUser, logOut, navigate, builderLegsCount } = useNavData();
   const [open, setOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const [walletOpen, setWalletOpen] = useState(false);
@@ -30,7 +30,7 @@ export default function Navbar() {
   return (
     <>
       <header
-        className="sticky top-0 z-50 border-b mobile-nav-glass lg:bg-[#FFFFF0] dark:lg:bg-[#0a120f] lg:border-[#E6E6D2] dark:lg:border-[#243831] transition-colors"
+        className="sticky top-0 z-50 border-b mobile-nav-glass lg:bg-[#FFFFF0] lg:border-[#E6E6D2] transition-colors"
         style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between gap-4 h-16">
@@ -54,8 +54,6 @@ export default function Navbar() {
             links={links}
             pathname={location.pathname}
             builderLegsCount={builderLegsCount}
-            theme={theme}
-            toggleTheme={toggleTheme}
             walletOpen={walletOpen}
             setWalletOpen={setWalletOpen}
             profileOpen={profileOpen}
@@ -83,8 +81,6 @@ export default function Navbar() {
             pathname={location.pathname}
             currentUser={currentUser}
             balance={balance}
-            theme={theme}
-            toggleTheme={toggleTheme}
             onNavigate={() => setOpen(false)}
             onOpenAdminModal={() => setAdminModalOpen(true)}
             onLogout={handleLogout}

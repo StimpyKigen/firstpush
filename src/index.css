@@ -11,10 +11,7 @@
    - Typography: Montserrat (documented fallback for proprietary Optimistic VF)
    ========================================================================== */
 
-@custom-variant dark (&:where(.dark, .dark *));
-
-:root,
-html.light {
+:root {
   --color-ink: #FFFFF0;           /* canvas ivory */
   --color-ink-2: #FFFFF0;
   --color-panel: #FFFFF0;
@@ -28,22 +25,6 @@ html.light {
   --color-steel: #5d6c7b;
   --color-stone: #8595a4;
   --color-frame-bg: #FFFFF0;
-}
-
-html.dark {
-  --color-ink: #0a120f;           /* deep stadium night */
-  --color-ink-2: #0e1814;
-  --color-panel: #131f1b;         /* elevated dark surface */
-  --color-panel-2: #182622;       /* secondary card/tile surface */
-  --color-line: #243831;          /* subtle deep-emerald border */
-  --color-hairline: #2e453c;
-  --color-cream: #f0f4f1;         /* high-contrast clean off-white */
-  --color-cream-dim: #9ab0a6;     /* muted sage/steel */
-  --color-ink-deep: #050a08;
-  --color-charcoal: #b0c2b9;
-  --color-steel: #9ab0a6;
-  --color-stone: #789084;
-  --color-frame-bg: #0a120f;
 }
 
 @theme {
@@ -266,30 +247,6 @@ input, textarea, select, [contenteditable="true"], .select-text {
   }
   .btn-ghost:hover { background-color: #F5F5E4; }
 
-  .dark .btn-primary, .dark .btn-dark {
-    background-color: #182622;
-    color: #f0f4f1;
-    border-color: #2e453c;
-  }
-  .dark .btn-primary:hover, .dark .btn-dark:hover {
-    background-color: #22352f;
-    border-color: #3b574c;
-  }
-  .dark .btn-secondary {
-    color: #f0f4f1;
-    border-color: #3b574c;
-  }
-  .dark .btn-secondary:hover {
-    background-color: rgba(240, 244, 241, 0.08);
-  }
-  .dark .btn-ghost {
-    color: #f0f4f1;
-    border-color: rgba(240, 244, 241, 0.18);
-  }
-  .dark .btn-ghost:hover {
-    background-color: rgba(240, 244, 241, 0.08);
-  }
-
   .btn-gold { background-color: #EEAA04; color: #0a1317; }
   .btn-gold:hover, .btn-gold:active { background-color: #d99903; }
 
@@ -346,10 +303,6 @@ input, textarea, select, [contenteditable="true"], .select-text {
     overflow: hidden;
     border-radius: 32px;
     margin-inline: clamp(0.75rem, 3vw, 2rem);
-  }
-  .dark .espn-red-banner {
-    background: #131f1b;
-    border: 1px solid #243831;
   }
 
   /* ---- Badges ---------------------------------------------------------- */
@@ -626,36 +579,3 @@ table { border-color: var(--color-line); }
   }
 }
 
-/* Dark Mode Overrides for Navigation Bars */
-.dark .mobile-nav-glass {
-  background-color: #0a120f !important;
-  border-color: #243831 !important;
-}
-
-@supports ((-webkit-backdrop-filter: blur(1px)) or (backdrop-filter: blur(1px))) {
-  .dark .mobile-nav-glass {
-    background-color: rgba(10, 18, 15, 0.90) !important;
-    border-color: rgba(36, 56, 49, 0.85) !important;
-    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.3);
-  }
-}
-
-@media (min-width: 1024px) {
-  .dark .mobile-nav-glass {
-    background-color: #0a120f !important;
-    border-color: #243831 !important;
-  }
-}
-
-.dark .mobile-bottom-nav {
-  background-color: #0a120f !important;
-  border-top-color: #243831 !important;
-  box-shadow: 0 -1px 4px rgba(0, 0, 0, 0.4);
-}
-
-@supports ((-webkit-backdrop-filter: blur(1px)) or (backdrop-filter: blur(1px))) {
-  .dark .mobile-bottom-nav {
-    background-color: rgba(10, 18, 15, 0.94) !important;
-    border-top-color: rgba(36, 56, 49, 0.85) !important;
-  }
-}

@@ -1,7 +1,7 @@
 import { useEffect, Suspense, lazy } from 'react';
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 import { AnimatePresence, motion } from 'motion/react';
-import { useTheme, applyThemeClass } from './lib/themeStore';
+import { enforceLightMode } from './lib/themeStore';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import ScrollToTop from './components/ScrollToTop';
@@ -122,12 +122,10 @@ function AnimatedRoutes() {
 }
 
 function App() {
-  const theme = useTheme((s) => s.theme);
-
-  // Synchronize theme changes
+  // Ensure light theme is strictly enforced across all client sessions
   useEffect(() => {
-    applyThemeClass(theme);
-  }, [theme]);
+    enforceLightMode();
+  }, []);
 
   // Initial data sync and background updates (runs strictly once)
   useEffect(() => {
@@ -149,11 +147,9 @@ function App() {
         <PWAInstallPrompt />
         <AvaChatSupport />
         {/*
-          Outer frame: fills the full viewport with the dark emerald-tinted
-          background that acts as the "surround" on larger screens.
-          On small phones this is invisible (app-shell is 100% wide).
+          Outer frame: fills the full viewport with warm ivory background
         */}
-        <div className="min-h-dvh w-full flex flex-col font-body bg-[#FFFFF0] dark:bg-[#0a120f] text-slate-900 dark:text-[#f0f4f1] antialiased selection:bg-[#006C54]/20 transition-colors duration-200">
+        <div className="min-h-dvh w-full flex flex-col font-body bg-[#FFFFF0] text-slate-900 antialiased selection:bg-[#006C54]/20 transition-colors duration-200">
           {/*
             App shell: full responsive container spanning edge-to-edge on phones,
             and expansive desktop canvas on larger displays.
