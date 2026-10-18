@@ -225,10 +225,27 @@ export default function Profile() {
         <button
           onClick={() => navigate(-1)}
           aria-label="Back"
-          className="p-1 text-white hover:text-[#EEAA04] drop-shadow-[0_2px_4px_rgba(0,0,0,0.7)] flex items-center justify-center active:scale-95 transition-all"
+          className="p-1 text-white hover:text-[#EEAA04] drop-shadow-[0_2px_4px_rgba(0,0,0,0.7)] flex items-center justify-center active:scale-95 transition-all cursor-pointer"
         >
           <ArrowLeft size={22} className="stroke-[2.5]" />
         </button>
+
+        <div className="flex items-center gap-3">
+          <button
+            onClick={handleShareProfile}
+            title={copiedLink ? 'Link Copied!' : 'Share Profile Link'}
+            className="p-1 text-white hover:text-[#EEAA04] drop-shadow-[0_2px_4px_rgba(0,0,0,0.7)] flex items-center justify-center active:scale-95 transition-all cursor-pointer"
+          >
+            {copiedLink ? <Check size={21} className="text-emerald-400 stroke-[2.5]" /> : <Share2 size={21} className="stroke-[2.5]" />}
+          </button>
+          <button
+            onClick={() => setShowInviteModal(true)}
+            title="Invite Friends"
+            className="p-1 text-white hover:text-[#EEAA04] drop-shadow-[0_2px_4px_rgba(0,0,0,0.7)] flex items-center justify-center active:scale-95 transition-all cursor-pointer"
+          >
+            <UserPlus size={21} className="stroke-[2.5]" />
+          </button>
+        </div>
       </div>
 
       {/* Centered Profile Identity */}
@@ -358,10 +375,8 @@ export default function Profile() {
             <div className="bg-white rounded-2xl border border-[#E6E6D2] shadow-xs divide-y divide-[#F2F2E6] overflow-hidden">
               {/* Wallet Balance with inline Deposit & Withdraw to M-Pesa actions */}
               <div className="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3.5">
-                <div className="flex items-center gap-3.5 min-w-0">
-                  <span className="w-11 h-11 rounded-xl bg-emerald-50 text-[#006C54] flex items-center justify-center shrink-0">
-                    <WalletIcon size={20} />
-                  </span>
+                <div className="flex items-center gap-3 min-w-0">
+                  <WalletIcon size={22} className="text-[#006C54] shrink-0 stroke-[2.2]" />
                   <div className="min-w-0">
                     <p className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Wallet Balance</p>
                     <p className="font-display font-extrabold text-2xl text-slate-900 tracking-tight leading-tight">
@@ -373,14 +388,14 @@ export default function Profile() {
                 <div className="flex items-center gap-2 self-start sm:self-center">
                   <button
                     onClick={() => setPanel(panel === 'deposit' ? 'none' : 'deposit')}
-                    className="px-3.5 py-1.5 rounded-xl bg-[#006C54] hover:bg-[#005441] text-white text-xs font-bold transition-all shadow-xs active:scale-95 flex items-center gap-1.5"
+                    className="px-3.5 py-1.5 rounded-xl bg-[#006C54] hover:bg-[#005441] text-white text-xs font-bold transition-all shadow-xs active:scale-95 flex items-center gap-1.5 cursor-pointer"
                   >
                     <ArrowDownLeft size={14} />
                     Deposit
                   </button>
                   <button
                     onClick={() => setPanel(panel === 'withdraw' ? 'none' : 'withdraw')}
-                    className="px-3.5 py-1.5 rounded-xl bg-[#F5F5E4] hover:bg-[#E6E6D2] text-slate-800 text-xs font-bold transition-all border border-[#E6E6D2] active:scale-95 flex items-center gap-1.5"
+                    className="px-3.5 py-1.5 rounded-xl bg-[#F5F5E4] hover:bg-[#E6E6D2] text-slate-800 text-xs font-bold transition-all border border-[#E6E6D2] active:scale-95 flex items-center gap-1.5 cursor-pointer"
                   >
                     <ArrowUpRight size={14} />
                     Withdraw
@@ -393,14 +408,9 @@ export default function Profile() {
                 to="/wallet"
                 className="w-full flex items-center justify-between p-4 hover:bg-slate-50/70 active:bg-slate-100/70 transition-colors text-left group"
               >
-                <div className="flex items-center gap-3.5 min-w-0">
-                  <span className="w-10 h-10 rounded-xl bg-[#EEAA04]/15 text-[#8A6500] flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
-                    <Coins size={18} />
-                  </span>
-                  <div className="min-w-0">
-                    <p className="text-sm font-bold text-slate-900 truncate">Mshindi Tokens</p>
-                    <p className="text-xs text-slate-500 font-normal truncate">Consensus room prediction rewards</p>
-                  </div>
+                <div className="min-w-0">
+                  <p className="text-sm font-bold text-slate-900 truncate">Mshindi Tokens</p>
+                  <p className="text-xs text-slate-500 font-normal truncate">Consensus room prediction rewards</p>
                 </div>
 
                 <div className="flex items-center gap-2 shrink-0">
@@ -414,16 +424,11 @@ export default function Profile() {
               {/* Expandable Recent Transactions Row */}
               <button
                 onClick={() => setShowTransactions(!showTransactions)}
-                className="w-full flex items-center justify-between p-4 hover:bg-slate-50/70 active:bg-slate-100/70 transition-colors text-left group"
+                className="w-full flex items-center justify-between p-4 hover:bg-slate-50/70 active:bg-slate-100/70 transition-colors text-left group cursor-pointer"
               >
-                <div className="flex items-center gap-3.5 min-w-0">
-                  <span className="w-10 h-10 rounded-xl bg-slate-100 text-slate-700 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
-                    <Clock size={18} />
-                  </span>
-                  <div className="min-w-0">
-                    <p className="text-sm font-bold text-slate-900 truncate">Recent Transactions</p>
-                    <p className="text-xs text-slate-500 font-normal truncate">View wallet history and statements</p>
-                  </div>
+                <div className="min-w-0">
+                  <p className="text-sm font-bold text-slate-900 truncate">Recent Transactions</p>
+                  <p className="text-xs text-slate-500 font-normal truncate">View wallet history and statements</p>
                 </div>
 
                 <div className="flex items-center gap-1.5 shrink-0">
@@ -488,18 +493,13 @@ export default function Profile() {
             <div className="bg-white rounded-2xl border border-[#E6E6D2] shadow-xs divide-y divide-[#F2F2E6] overflow-hidden">
               <button
                 onClick={() => setShowMyProfileModal(true)}
-                className="w-full flex items-center justify-between p-4 hover:bg-slate-50/70 active:bg-slate-100/70 transition-colors text-left group"
+                className="w-full flex items-center justify-between p-4 hover:bg-slate-50/70 active:bg-slate-100/70 transition-colors text-left group cursor-pointer"
               >
-                <div className="flex items-center gap-3.5 min-w-0">
-                  <span className="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
-                    <TrophyIcon size={18} />
-                  </span>
-                  <div className="min-w-0">
-                    <p className="text-sm font-bold text-slate-900 truncate">Punter Performance</p>
-                    <p className="text-xs text-slate-500 font-normal truncate">
-                      {punterStats.accuracyPct}% accuracy • {punterStats.closestWins} closest-slip wins
-                    </p>
-                  </div>
+                <div className="min-w-0">
+                  <p className="text-sm font-bold text-slate-900 truncate">Punter Performance</p>
+                  <p className="text-xs text-slate-500 font-normal truncate">
+                    {punterStats.accuracyPct}% accuracy • {punterStats.closestWins} closest-slip wins
+                  </p>
                 </div>
 
                 <div className="flex items-center gap-2 shrink-0">
@@ -512,14 +512,9 @@ export default function Profile() {
             {/* ── CARD GROUP 3: Security & Preferences ── */}
             <div className="bg-white rounded-2xl border border-[#E6E6D2] shadow-xs divide-y divide-[#F2F2E6] overflow-hidden">
               <div className="flex items-center justify-between p-4 text-left">
-                <div className="flex items-center gap-3.5 min-w-0">
-                  <span className="w-10 h-10 rounded-xl bg-blue-50 text-blue-700 flex items-center justify-center shrink-0">
-                    <Phone size={18} />
-                  </span>
-                  <div className="min-w-0">
-                    <p className="text-sm font-bold text-slate-900 truncate">Account Phone</p>
-                    <p className="text-xs text-slate-500 font-normal truncate">Verified mobile credentials</p>
-                  </div>
+                <div className="min-w-0">
+                  <p className="text-sm font-bold text-slate-900 truncate">Account Phone</p>
+                  <p className="text-xs text-slate-500 font-normal truncate">Verified mobile credentials</p>
                 </div>
 
                 <span className="font-mono text-xs font-bold text-slate-700 bg-slate-100 px-2.5 py-1 rounded-md shrink-0">
@@ -529,16 +524,11 @@ export default function Profile() {
 
               <button
                 onClick={() => setPanel(panel === 'support' ? 'none' : 'support')}
-                className="w-full flex items-center justify-between p-4 hover:bg-slate-50/70 active:bg-slate-100/70 transition-colors text-left group"
+                className="w-full flex items-center justify-between p-4 hover:bg-slate-50/70 active:bg-slate-100/70 transition-colors text-left group cursor-pointer"
               >
-                <div className="flex items-center gap-3.5 min-w-0">
-                  <span className="w-10 h-10 rounded-xl bg-sky-50 text-sky-700 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
-                    <LifeBuoy size={18} />
-                  </span>
-                  <div className="min-w-0">
-                    <p className="text-sm font-bold text-slate-900 truncate">Support & WhatsApp</p>
-                    <p className="text-xs text-slate-500 font-normal truncate">Direct helpline & rule consultations</p>
-                  </div>
+                <div className="min-w-0">
+                  <p className="text-sm font-bold text-slate-900 truncate">Support & WhatsApp</p>
+                  <p className="text-xs text-slate-500 font-normal truncate">Direct helpline & rule consultations</p>
                 </div>
 
                 <div className="flex items-center gap-1.5 shrink-0">
@@ -551,16 +541,11 @@ export default function Profile() {
 
               <button
                 onClick={() => setPanel(panel === 'close' ? 'none' : 'close')}
-                className="w-full flex items-center justify-between p-4 hover:bg-rose-50/40 active:bg-rose-50 transition-colors text-left group"
+                className="w-full flex items-center justify-between p-4 hover:bg-rose-50/40 active:bg-rose-50 transition-colors text-left group cursor-pointer"
               >
-                <div className="flex items-center gap-3.5 min-w-0">
-                  <span className="w-10 h-10 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
-                    <ShieldAlert size={18} />
-                  </span>
-                  <div className="min-w-0">
-                    <p className="text-sm font-bold text-rose-700 truncate">Close Account</p>
-                    <p className="text-xs text-slate-500 font-normal truncate">Permanent deletion of account credentials</p>
-                  </div>
+                <div className="min-w-0">
+                  <p className="text-sm font-bold text-rose-700 truncate">Close Account</p>
+                  <p className="text-xs text-slate-500 font-normal truncate">Permanent deletion of account credentials</p>
                 </div>
 
                 <ChevronRight size={17} className="text-slate-400 group-hover:text-rose-600 transition-colors shrink-0" />
@@ -568,16 +553,11 @@ export default function Profile() {
 
               <button
                 onClick={handleLogout}
-                className="w-full flex items-center justify-between p-4 hover:bg-slate-50/70 active:bg-slate-100/70 transition-colors text-left group"
+                className="w-full flex items-center justify-between p-4 hover:bg-slate-50/70 active:bg-slate-100/70 transition-colors text-left group cursor-pointer"
               >
-                <div className="flex items-center gap-3.5 min-w-0">
-                  <span className="w-10 h-10 rounded-xl bg-slate-100 text-slate-600 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
-                    <LogOut size={18} />
-                  </span>
-                  <div className="min-w-0">
-                    <p className="text-sm font-bold text-slate-900 truncate">Log Out</p>
-                    <p className="text-xs text-slate-500 font-normal truncate">Sign out of this session safely</p>
-                  </div>
+                <div className="min-w-0">
+                  <p className="text-sm font-bold text-slate-900 truncate">Log Out</p>
+                  <p className="text-xs text-slate-500 font-normal truncate">Sign out of this session safely</p>
                 </div>
 
                 <ChevronRight size={17} className="text-slate-400 group-hover:text-slate-600 transition-colors shrink-0" />
@@ -585,7 +565,7 @@ export default function Profile() {
             </div>
 
             {/* ── Mobile-Only Policies & Legal + Social Links (Terminus of Scrolling) ── */}
-            <div className="pt-6 pb-2 space-y-4 text-center lg:hidden">
+            <div className="pt-6 pb-0 space-y-3.5 text-center lg:hidden -mb-4">
               {/* Policies & Legal (2 compact rows) */}
               <div className="space-y-1.5 text-[11px] font-semibold text-slate-500">
                 <div className="flex items-center justify-center gap-3 flex-wrap">
@@ -655,7 +635,7 @@ export default function Profile() {
                     <Facebook size={14} />
                   </a>
                 </div>
-                <p className="text-[10px] text-slate-400 mt-1">© 2026 MshindiRoom · 18+</p>
+                <p className="text-[10px] text-slate-400 mt-1 mb-0 pb-0">© 2026 MshindiRoom · 18+</p>
               </div>
             </div>
 
