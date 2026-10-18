@@ -19,6 +19,20 @@ export default function Navbar() {
     setProfileOpen(false);
   }, [location.pathname]);
 
+  // Lock background scroll when mobile hamburger is open
+  useEffect(() => {
+    if (open) {
+      const originalBodyOverflow = document.body.style.overflow;
+      const originalHtmlOverflow = document.documentElement.style.overflow;
+      document.body.style.overflow = 'hidden';
+      document.documentElement.style.overflow = 'hidden';
+      return () => {
+        document.body.style.overflow = originalBodyOverflow;
+        document.documentElement.style.overflow = originalHtmlOverflow;
+      };
+    }
+  }, [open]);
+
   function handleLogout() {
     logOut();
     setProfileOpen(false);
@@ -77,6 +91,15 @@ export default function Navbar() {
           />
         )}
       </header>
+
+      {/* Mobile menu backdrop: blocks scroll and interaction on everything behind the menu */}
+      {open && (
+        <div
+          className="fixed inset-0 top-16 z-40 bg-black/20 backdrop-blur-[1px] lg:hidden"
+          onClick={() => setOpen(false)}
+          aria-hidden="true"
+        />
+      )}
 
       {/*
         These two are deliberately siblings of <header>, not children of it: <header> has

@@ -13,6 +13,8 @@ import { refreshFreeMatches } from './lib/freeMatches';
 import { syncJackpotsFromApi } from './lib/mockData';
 import { startDailyHighlightSync } from './lib/footballApi';
 
+import { useCurrentUser } from './lib/authStore';
+
 // Primary Home Route loaded immediately
 import Home from './pages/Home';
 
@@ -121,6 +123,26 @@ function AnimatedRoutes() {
   );
 }
 
+function ConditionalFooter() {
+  const location = useLocation();
+  const currentUser = useCurrentUser();
+
+  // The original footer is only to be on the home page of desktop view and mobile (when not logged in)
+  if (location.pathname !== '/') {
+    return null;
+  }
+
+  if (currentUser) {
+    return (
+      <div className="hidden lg:block">
+        <Footer />
+      </div>
+    );
+  }
+
+  return <Footer />;
+}
+
 function App() {
   // Ensure light theme is strictly enforced across all client sessions
   useEffect(() => {
@@ -159,7 +181,7 @@ function App() {
             <main className="flex-1 flex flex-col w-full pb-[calc(5.25rem+env(safe-area-inset-bottom,0px))] lg:pb-12 overflow-x-hidden">
               <AnimatedRoutes />
             </main>
-            <Footer />
+            <ConditionalFooter />
           </div>
         </div>
       </BrowserRouter>

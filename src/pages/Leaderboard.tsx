@@ -295,13 +295,8 @@ export default function Leaderboard() {
               >
                 {/* Minimalist Card Header */}
                 <div className="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                  <div className="flex items-start gap-3 min-w-0">
-                    <div className="w-10 h-10 rounded-xl bg-slate-100 border border-slate-200 flex items-center justify-center shrink-0 font-black text-slate-800">
-                      <Trophy size={16} className="text-[#8A6500]" />
-                    </div>
-
-                    <div className="min-w-0 space-y-1">
-                      <div className="flex items-center gap-2 flex-wrap text-xs">
+                  <div className="min-w-0 space-y-1">
+                    <div className="flex items-center gap-2 flex-wrap text-xs">
                         {/* Clean Text Bookie Label (No Generic Pill) */}
                         <span className="text-[11px] font-black uppercase tracking-wider text-slate-800">
                           {jackpot.bookie}
@@ -335,7 +330,6 @@ export default function Leaderboard() {
                         {jackpot.deadline} · <span className="text-slate-800 font-bold">{jackpot.participants.toLocaleString()} punters</span>
                       </p>
                     </div>
-                  </div>
 
                   {/* Right Side Prize Pool & Custom Athletic Buttons */}
                   <div className="flex items-center justify-between sm:justify-end gap-3 shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-100">

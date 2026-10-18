@@ -3,7 +3,8 @@ import { useNavigate, Navigate, Link } from 'react-router-dom';
 import {
   Wallet as WalletIcon, ArrowDownLeft, ArrowUpRight, ShieldAlert, LifeBuoy,
   UserPlus, Share2, Trophy as TrophyIcon, Coins, LogOut,
-  ChevronRight, Phone, Clock, ArrowLeft, Check, Sparkles, UserCheck
+  ChevronRight, Phone, Clock, ArrowLeft, Check, Sparkles, UserCheck,
+  Instagram, Facebook
 } from 'lucide-react';
 import SeoHead from '../components/SeoHead';
 import { useAuth, useCurrentUser } from '../lib/authStore';
@@ -228,23 +229,6 @@ export default function Profile() {
         >
           <ArrowLeft size={22} className="stroke-[2.5]" />
         </button>
-
-        <div className="flex items-center gap-3">
-          <button
-            onClick={handleShareProfile}
-            title={copiedLink ? 'Link Copied!' : 'Share Profile Link'}
-            className="p-1 text-white hover:text-[#EEAA04] drop-shadow-[0_2px_4px_rgba(0,0,0,0.7)] flex items-center justify-center active:scale-95 transition-all"
-          >
-            {copiedLink ? <Check size={21} className="text-emerald-400 stroke-[2.5]" /> : <Share2 size={21} className="stroke-[2.5]" />}
-          </button>
-          <button
-            onClick={() => setShowInviteModal(true)}
-            title="Invite Friends"
-            className="p-1 text-white hover:text-[#EEAA04] drop-shadow-[0_2px_4px_rgba(0,0,0,0.7)] flex items-center justify-center active:scale-95 transition-all"
-          >
-            <UserPlus size={21} className="stroke-[2.5]" />
-          </button>
-        </div>
       </div>
 
       {/* Centered Profile Identity */}
@@ -598,6 +582,81 @@ export default function Profile() {
 
                 <ChevronRight size={17} className="text-slate-400 group-hover:text-slate-600 transition-colors shrink-0" />
               </button>
+            </div>
+
+            {/* ── Mobile-Only Policies & Legal + Social Links (Terminus of Scrolling) ── */}
+            <div className="pt-6 pb-2 space-y-4 text-center lg:hidden">
+              {/* Policies & Legal (2 compact rows) */}
+              <div className="space-y-1.5 text-[11px] font-semibold text-slate-500">
+                <div className="flex items-center justify-center gap-3 flex-wrap">
+                  <Link to="/terms" className="hover:text-[#006C54] transition-colors">Terms of Use</Link>
+                  <span className="text-slate-300">·</span>
+                  <Link to="/privacy" className="hover:text-[#006C54] transition-colors">Privacy Policy</Link>
+                  <span className="text-slate-300">·</span>
+                  <Link to="/how-it-works" className="hover:text-[#006C54] transition-colors">How It Works</Link>
+                </div>
+                <div className="flex items-center justify-center gap-3 flex-wrap text-slate-400">
+                  <a href="mailto:support@mshindi.co.ke" className="hover:text-[#006C54] transition-colors">Support &amp; Inquiries</a>
+                  <span className="text-slate-300">·</span>
+                  <span>Responsible Gaming (18+)</span>
+                </div>
+              </div>
+
+              {/* Follow Mshindi Social Icons */}
+              <div className="flex flex-col items-center gap-2 pt-1">
+                <p className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400">Follow Mshindi</p>
+                <div className="flex items-center justify-center gap-2.5">
+                  {/* Instagram */}
+                  <a
+                    href="https://www.instagram.com/mshindiroom?igsh=MWhxZ3B0c2UweWswaw%3D%3D&utm_source=qr"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-8 h-8 rounded-full bg-white hover:bg-[#006C54] hover:text-white border border-slate-300 text-slate-700 active:scale-95 transition-all flex items-center justify-center shrink-0 shadow-xs"
+                    title="Instagram"
+                    aria-label="Instagram"
+                  >
+                    <Instagram size={14} />
+                  </a>
+                  {/* X (Twitter) */}
+                  <a
+                    href="https://x.com/mshindiroom?s=21"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-8 h-8 rounded-full bg-white hover:bg-[#006C54] hover:text-white border border-slate-300 text-slate-700 active:scale-95 transition-all flex items-center justify-center shrink-0 shadow-xs"
+                    title="X (Twitter)"
+                    aria-label="X"
+                  >
+                    <svg viewBox="0 0 24 24" className="w-3 h-3 fill-current">
+                      <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+                    </svg>
+                  </a>
+                  {/* TikTok */}
+                  <a
+                    href="https://www.tiktok.com/@mshindiroom"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-8 h-8 rounded-full bg-white hover:bg-[#006C54] hover:text-white border border-slate-300 text-slate-700 active:scale-95 transition-all flex items-center justify-center shrink-0 shadow-xs"
+                    title="TikTok"
+                    aria-label="TikTok"
+                  >
+                    <svg viewBox="0 0 24 24" className="w-3 h-3 fill-current">
+                      <path d="M12.525 2.25c.01 0 .02.001.03 0h3.587c.078 2.053 1.258 3.868 3.08 4.717.848.397 1.777.614 2.778.63v3.66c-1.391-.01-2.735-.39-3.92-1.085v6.524c0 4.414-3.578 7.992-7.992 7.992S2.096 21.121 2.096 16.707c0-4.322 3.433-7.85 7.734-7.987v3.693c-2.26.13-4.047 2.002-4.047 4.294 0 2.379 1.929 4.307 4.307 4.307 2.378 0 4.307-1.928 4.307-4.307V2.25z" />
+                    </svg>
+                  </a>
+                  {/* Facebook */}
+                  <a
+                    href="https://www.facebook.com/share/18zCYvkaYQ/?mibextid=wwXIfr"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-8 h-8 rounded-full bg-white hover:bg-[#006C54] hover:text-white border border-slate-300 text-slate-700 active:scale-95 transition-all flex items-center justify-center shrink-0 shadow-xs"
+                    title="Facebook"
+                    aria-label="Facebook"
+                  >
+                    <Facebook size={14} />
+                  </a>
+                </div>
+                <p className="text-[10px] text-slate-400 mt-1">© 2026 MshindiRoom · 18+</p>
+              </div>
             </div>
 
           </div>

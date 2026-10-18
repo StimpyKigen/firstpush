@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { Wallet, Menu, X, UserCircle2, ShieldCheck, LogOut, Settings, UserCog, Bell, Swords } from 'lucide-react';
+import { Wallet, Menu, X, UserCircle2, ShieldCheck, LogOut, Settings, Bell, Swords } from 'lucide-react';
 import { isAdminUser, type Account } from '../../lib/authStore';
 import Avatar from '../Avatar';
 import type { NavLinkItem } from './useNavData';
@@ -57,7 +57,7 @@ export function MobileMenuPanel({
           >
             <Avatar name={currentUser.username} seed={currentUser.phone.length} size={28} avatarId={currentUser.avatarId} />
             <span className="truncate flex-1">{currentUser.username}</span>
-            <span className="text-xs text-slate-500 font-normal">View Profile &rarr;</span>
+            <span className="text-xs text-slate-500 font-normal">View Profile</span>
           </Link>
 
           {/* P2P Bets Placed Directly Below View Profile Card */}
@@ -84,12 +84,6 @@ export function MobileMenuPanel({
               <ShieldCheck size={15} /> Jackpot Admin Console
             </button>
           )}
-          <button
-            onClick={onLogout}
-            className="flex items-center justify-center gap-1.5 text-rose-600 text-xs font-bold px-3 py-2.5 rounded-full border border-rose-200 hover:bg-rose-50 active:scale-98 transition-all"
-          >
-            <LogOut size={13} /> Log Out
-          </button>
         </div>
       ) : (
         <div className="flex flex-col gap-2">
@@ -133,24 +127,22 @@ export function MobileMenuPanel({
           Settings
         </p>
 
-        {/* Profile Settings — only when logged in */}
-        {currentUser && (
-          <Link
-            to="/profile"
-            onClick={onNavigate}
-            className="flex items-center gap-2.5 px-3.5 py-3 rounded-xl text-slate-700 hover:text-slate-900 hover:bg-[#F5F5E4] active:bg-[#F5F5E4] font-semibold text-sm transition-all touch-manipulation min-h-[44px]"
-          >
-            <UserCog size={17} className="shrink-0" />
-            <span>Edit Profile</span>
-          </Link>
-        )}
-
         {/* Notification Preferences — always visible */}
         <div className="flex items-center gap-2.5 px-3.5 py-3 rounded-xl text-slate-700 hover:text-slate-900 hover:bg-[#F5F5E4] transition-all cursor-default min-h-[44px]">
           <Bell size={17} className="shrink-0" />
           <span className="text-sm font-semibold">Notifications</span>
           <span className="ml-auto text-[9px] font-extrabold uppercase tracking-wide bg-[#EEAA04]/20 text-[#8A6500] px-1.5 py-0.5 rounded-full shrink-0">Soon</span>
         </div>
+
+        {/* Log Out Button at the very bottom below Notifications */}
+        {currentUser && (
+          <button
+            onClick={onLogout}
+            className="mt-2 w-full flex items-center justify-center gap-1.5 text-rose-600 text-xs font-bold px-3 py-2.5 rounded-xl border border-rose-200 hover:bg-rose-50 active:scale-98 transition-all cursor-pointer"
+          >
+            <LogOut size={13} /> Log Out
+          </button>
+        )}
       </div>
     </div>
   );

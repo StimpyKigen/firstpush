@@ -1,23 +1,17 @@
 import { useState, useMemo, useRef, useEffect, useSyncExternalStore } from 'react';
 import { Link } from 'react-router-dom';
 import {
-  Sparkles, Users, Clock, Unlock, RadioTower, Calendar, Search, X, SearchX,
+  Sparkles, Users, Clock, Unlock, Calendar, Search, X, SearchX,
   Dices, Plus, Check, Flame, MessageSquarePlus, Globe, ChevronDown, Filter, RotateCcw
 } from 'lucide-react';
 import SeoHead from '../components/SeoHead';
-import { freeMatches, freeMatchConsensus, TIER_LABEL, getFreeMatchesSnapshot, getFreeMatchConsensusSnapshot, subscribeToFreeMatches, getIsFreeMatchesSyncing, type FreeMatch } from '../lib/freeMatches';
+import { freeMatches, freeMatchConsensus, getFreeMatchesSnapshot, getFreeMatchConsensusSnapshot, subscribeToFreeMatches, getIsFreeMatchesSyncing, type FreeMatch } from '../lib/freeMatches';
 import { getEffectiveMatchDayFormattedEAT } from '../lib/footballApi';
 import { useBetSlipStore } from '../lib/betSlipStore';
 import { showToast } from '../lib/notificationStore';
 import QuickBetBuilderModal, { type MatchForBuilder } from '../components/QuickBetBuilderModal';
 import { MatchListSkeleton } from '../components/skeleton';
 import { CONTINENTS, getLeagueMetadata, type ContinentId } from '../lib/leagueDirectory';
-
-const tierColor: Record<string, string> = {
-  blockbuster: '#8A6500',
-  continental: '#1876f2',
-  derby: '#e41e3f',
-};
 
 export default function FreeMatches() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -507,8 +501,8 @@ export default function FreeMatches() {
           </button>
         </div>
       ) : (
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredMatches.map((m, i) => {
+        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 sm:gap-6">
+          {filteredMatches.map((m) => {
             const consensus = consensusMap[m.id] || { homePct: 33, drawPct: 34, awayPct: 33, totalVotes: 0 };
             const majority = Math.max(consensus.homePct, consensus.drawPct, consensus.awayPct);
             const majLabel = majority === consensus.homePct ? '1 · Home' : majority === consensus.drawPct ? 'X · Draw' : '2 · Away';
@@ -553,113 +547,103 @@ export default function FreeMatches() {
             return (
               <div
                 key={m.id}
-                className="bg-white border border-slate-200 hover:border-slate-300 rounded-xl p-5 sm:p-6 flex flex-col justify-between gap-4 transition-all hover:shadow-md group"
+                className="bg-white border border-slate-200 hover:border-slate-300 rounded-xl p-2.5 sm:p-5 lg:p-6 flex flex-col justify-between gap-2.5 sm:gap-4 transition-all hover:shadow-md group"
               >
                 <div>
-                  {/* Clean Text Category & Activity Labels (No Pill Capsules) */}
-                  <div className="flex items-center justify-between gap-2 mb-2.5 text-[11px] font-black uppercase tracking-wider">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <span style={{ color: tierColor[m.tier] }}>
-                        {TIER_LABEL[m.tier]}
-                      </span>
-                      {i === 0 && (
-                        <>
-                          <span className="text-slate-300 font-normal">·</span>
-                          <span className="inline-flex items-center gap-1 text-[#006C54] font-black">
-                            <Flame size={12} className="shrink-0" /> #1 Discussed
-                          </span>
-                        </>
-                      )}
-                    </div>
-                    <span className="inline-flex items-center gap-1 text-[11px] font-bold text-slate-500 uppercase tracking-wider shrink-0">
-                      <RadioTower size={11} className="animate-pulse text-[#006C54]" /> Pre-Match
+                  {/* Clean Minimal Header: League & Kickoff Time */}
+                  <div className="flex items-center justify-between gap-1 text-[10px] sm:text-xs font-semibold text-slate-500 pb-1.5 border-b border-slate-100 mb-2 truncate">
+                    <span className="truncate text-slate-700 font-bold max-w-[90px] sm:max-w-none">{m.competition}</span>
+                    <span className="flex items-center gap-1 shrink-0 text-slate-500 font-mono text-[10px] sm:text-xs">
+                      <Clock size={10} className="text-slate-400 sm:w-3 sm:h-3" />
+                      {m.kickoff}
                     </span>
                   </div>
 
-                  {/* Team Names and Match Header */}
+                  {/* Team Names and Crests */}
                   <Link to={`/free/${m.id}`} className="block group-hover:text-[#006C54] transition-colors">
-                    <h3 className="font-display font-black text-base sm:text-lg text-slate-900 leading-snug flex items-center gap-2 flex-wrap">
-                      {m.homeLogo && <img src={m.homeLogo} alt="" loading="lazy" decoding="async" referrerPolicy="no-referrer" className="w-5 h-5 object-contain inline shrink-0" />}
-                      <span>{m.home}</span>
-                      <span className="text-slate-400 text-xs font-normal">v</span>
-                      {m.awayLogo && <img src={m.awayLogo} alt="" loading="lazy" decoding="async" referrerPolicy="no-referrer" className="w-5 h-5 object-contain inline shrink-0" />}
-                      <span>{m.away}</span>
-                    </h3>
-                    <p className="text-xs text-slate-500 mt-1 font-semibold">{m.competition}</p>
+                    <div className="space-y-1 sm:space-y-1.5">
+                      <div className="flex items-center gap-1.5 min-w-0">
+                        {m.homeLogo && <img src={m.homeLogo} alt="" loading="lazy" decoding="async" referrerPolicy="no-referrer" className="w-3.5 h-3.5 sm:w-5 sm:h-5 object-contain shrink-0" />}
+                        <span className="font-display font-extrabold text-[11px] sm:text-sm text-slate-900 truncate leading-snug">{m.home}</span>
+                      </div>
+                      <div className="flex items-center gap-1.5 min-w-0">
+                        {m.awayLogo && <img src={m.awayLogo} alt="" loading="lazy" decoding="async" referrerPolicy="no-referrer" className="w-3.5 h-3.5 sm:w-5 sm:h-5 object-contain shrink-0" />}
+                        <span className="font-display font-extrabold text-[11px] sm:text-sm text-slate-900 truncate leading-snug">{m.away}</span>
+                      </div>
+                    </div>
                   </Link>
 
-                  <p className="text-xs text-slate-600 mt-2 leading-relaxed line-clamp-2">{m.blurb}</p>
-
-                  <div className="flex items-center justify-between text-xs text-slate-500 pt-3 mt-3 border-t border-slate-100">
-                    <span className="flex items-center gap-1.5 font-medium"><Clock size={12} className="text-slate-400" /> {m.kickoff}</span>
-                    <span className="flex items-center gap-1 font-bold text-slate-800"><Users size={12} className="text-[#006C54] shrink-0" /> {consensus.totalVotes.toLocaleString()} discussing</span>
+                  {/* Discussing punters count */}
+                  <div className="flex items-center gap-1 text-[10px] sm:text-xs text-slate-400 font-medium mt-1.5">
+                    <Users size={10} className="text-[#006C54] shrink-0 sm:w-3 sm:h-3" />
+                    <span className="truncate">{consensus.totalVotes.toLocaleString()} discussing</span>
                   </div>
 
                   {/* Custom Athletic Odds Grid */}
-                  <div className="mt-3.5">
-                    <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 block mb-1.5">
-                      Match Result (1X2):
+                  <div className="mt-2 sm:mt-3">
+                    <span className="text-[9px] sm:text-[10px] font-black uppercase tracking-wider text-slate-400 block mb-1">
+                      1X2:
                     </span>
-                    <div className="grid grid-cols-3 gap-2 text-center font-mono">
+                    <div className="grid grid-cols-3 gap-1 sm:gap-2 text-center font-mono">
                       <button
                         onClick={(e) => handleQuickToggleOdd('Match Result (1X2)', `${m.home} Win (1)`, hOdds, e)}
-                        className={`rounded-md py-2 px-1.5 border transition-all duration-150 active:scale-[0.98] touch-manipulation min-h-[46px] flex flex-col items-center justify-center gap-0.5 cursor-pointer ${
+                        className={`rounded-md py-1.5 px-0.5 sm:py-2 sm:px-1.5 border transition-all duration-150 active:scale-[0.98] touch-manipulation min-h-[36px] sm:min-h-[46px] flex flex-col items-center justify-center gap-0.5 cursor-pointer ${
                           isHomeSelected
                             ? 'bg-[#006C54] text-white font-black border-[#005441] shadow-xs'
                             : 'bg-slate-50 hover:bg-slate-100 text-slate-800 border-slate-200 hover:border-slate-400'
                         }`}
                       >
-                        <span className={`text-[9px] font-black uppercase tracking-wider block leading-none ${isHomeSelected ? 'text-white/80' : 'text-slate-500'}`}>1 (HOME)</span>
-                        <span className={`font-black text-xs sm:text-sm ${isHomeSelected ? 'text-white' : 'text-slate-900'}`}>{hOdds.toFixed(2)}</span>
+                        <span className={`text-[8px] sm:text-[9px] font-black uppercase tracking-wider block leading-none ${isHomeSelected ? 'text-white/80' : 'text-slate-500'}`}>1</span>
+                        <span className={`font-black text-[11px] sm:text-sm ${isHomeSelected ? 'text-white' : 'text-slate-900'}`}>{hOdds.toFixed(2)}</span>
                       </button>
 
                       <button
                         onClick={(e) => handleQuickToggleOdd('Match Result (1X2)', 'Draw (X)', dOdds, e)}
-                        className={`rounded-md py-2 px-1.5 border transition-all duration-150 active:scale-[0.98] touch-manipulation min-h-[46px] flex flex-col items-center justify-center gap-0.5 cursor-pointer ${
+                        className={`rounded-md py-1.5 px-0.5 sm:py-2 sm:px-1.5 border transition-all duration-150 active:scale-[0.98] touch-manipulation min-h-[36px] sm:min-h-[46px] flex flex-col items-center justify-center gap-0.5 cursor-pointer ${
                           isDrawSelected
                             ? 'bg-[#006C54] text-white font-black border-[#005441] shadow-xs'
                             : 'bg-slate-50 hover:bg-slate-100 text-slate-800 border-slate-200 hover:border-slate-400'
                         }`}
                       >
-                        <span className={`text-[9px] font-black uppercase tracking-wider block leading-none ${isDrawSelected ? 'text-white/80' : 'text-slate-500'}`}>X (DRAW)</span>
-                        <span className={`font-black text-xs sm:text-sm ${isDrawSelected ? 'text-white' : 'text-slate-900'}`}>{dOdds.toFixed(2)}</span>
+                        <span className={`text-[8px] sm:text-[9px] font-black uppercase tracking-wider block leading-none ${isDrawSelected ? 'text-white/80' : 'text-slate-500'}`}>X</span>
+                        <span className={`font-black text-[11px] sm:text-sm ${isDrawSelected ? 'text-white' : 'text-slate-900'}`}>{dOdds.toFixed(2)}</span>
                       </button>
 
                       <button
                         onClick={(e) => handleQuickToggleOdd('Match Result (1X2)', `${m.away} Win (2)`, aOdds, e)}
-                        className={`rounded-md py-2 px-1.5 border transition-all duration-150 active:scale-[0.98] touch-manipulation min-h-[46px] flex flex-col items-center justify-center gap-0.5 cursor-pointer ${
+                        className={`rounded-md py-1.5 px-0.5 sm:py-2 sm:px-1.5 border transition-all duration-150 active:scale-[0.98] touch-manipulation min-h-[36px] sm:min-h-[46px] flex flex-col items-center justify-center gap-0.5 cursor-pointer ${
                           isAwaySelected
                             ? 'bg-[#006C54] text-white font-black border-[#005441] shadow-xs'
                             : 'bg-slate-50 hover:bg-slate-100 text-slate-800 border-slate-200 hover:border-slate-400'
                         }`}
                       >
-                        <span className={`text-[9px] font-black uppercase tracking-wider block leading-none ${isAwaySelected ? 'text-white/80' : 'text-slate-500'}`}>2 (AWAY)</span>
-                        <span className={`font-black text-xs sm:text-sm ${isAwaySelected ? 'text-white' : 'text-slate-900'}`}>{aOdds.toFixed(2)}</span>
+                        <span className={`text-[8px] sm:text-[9px] font-black uppercase tracking-wider block leading-none ${isAwaySelected ? 'text-white/80' : 'text-slate-500'}`}>2</span>
+                        <span className={`font-black text-[11px] sm:text-sm ${isAwaySelected ? 'text-white' : 'text-slate-900'}`}>{aOdds.toFixed(2)}</span>
                       </button>
                     </div>
                   </div>
 
                   {/* Consensus strip */}
-                  <div className="flex items-center justify-between rounded-md bg-slate-50 border border-slate-200 px-3 py-2 mt-3 text-xs">
-                    <span className="font-semibold text-slate-600">Crowd Consensus</span>
-                    <span className="font-display font-black text-[#006C54] text-xs sm:text-sm font-mono">{majLabel} · {majority}%</span>
+                  <div className="flex items-center justify-between rounded-md bg-slate-50 border border-slate-200 px-2 py-1 sm:px-3 sm:py-2 mt-2 sm:mt-3 text-[10px] sm:text-xs">
+                    <span className="font-semibold text-slate-500 truncate mr-1">Consensus</span>
+                    <span className="font-display font-black text-[#006C54] text-[10px] sm:text-sm font-mono shrink-0">{majLabel} · {majority}%</span>
                   </div>
                 </div>
 
                 {/* Custom Dual Action Buttons (Unified Height & Cohesive Sports Styling) */}
-                <div className="grid grid-cols-2 gap-2 pt-2 border-t border-slate-100">
+                <div className="grid grid-cols-2 gap-1.5 sm:gap-2 pt-2 border-t border-slate-100">
                   <Link
                     to={`/free/${m.id}`}
-                    className="h-10 px-3.5 rounded-md border border-slate-300 bg-white hover:bg-slate-50 hover:border-slate-800 text-slate-800 font-bold uppercase tracking-wider text-xs transition-all flex items-center justify-center gap-2 active:scale-[0.98] shadow-2xs group/btn cursor-pointer"
+                    className="h-8 sm:h-10 px-2 sm:px-3.5 rounded-md border border-slate-300 bg-white hover:bg-slate-50 hover:border-slate-800 text-slate-800 font-bold uppercase tracking-wider text-[10px] sm:text-xs transition-all flex items-center justify-center gap-1 sm:gap-2 active:scale-[0.98] shadow-2xs group/btn cursor-pointer"
                   >
-                    <MessageSquarePlus size={14} className="text-[#006C54] group-hover/btn:scale-110 transition-transform shrink-0" />
+                    <MessageSquarePlus size={12} className="text-[#006C54] group-hover/btn:scale-110 transition-transform shrink-0 sm:w-3.5 sm:h-3.5" />
                     <span>Discuss</span>
                   </Link>
 
                   <button
                     type="button"
                     onClick={() => setSelectedMatchForBuilder(m)}
-                    className={`h-10 px-3.5 rounded-md font-extrabold uppercase tracking-wider text-xs transition-all active:scale-[0.98] shadow-2xs flex items-center justify-center gap-2 cursor-pointer ${
+                    className={`h-8 sm:h-10 px-2 sm:px-3.5 rounded-md font-extrabold uppercase tracking-wider text-[10px] sm:text-xs transition-all active:scale-[0.98] shadow-2xs flex items-center justify-center gap-1 sm:gap-2 cursor-pointer ${
                       matchLegs.length > 0
                         ? 'bg-[#006C54] hover:bg-[#005441] text-white border border-[#005441]'
                         : 'bg-slate-900 hover:bg-slate-800 text-white border border-slate-900'
@@ -667,13 +651,13 @@ export default function FreeMatches() {
                   >
                     {matchLegs.length > 0 ? (
                       <>
-                        <Check size={14} className="shrink-0 stroke-[3]" />
-                        <span>Builder ({matchLegs.length})</span>
+                        <Check size={12} className="shrink-0 stroke-[3] sm:w-3.5 sm:h-3.5" />
+                        <span className="truncate">Builder ({matchLegs.length})</span>
                       </>
                     ) : (
                       <>
-                        <Dices size={14} className="shrink-0" />
-                        <span>+ Builder</span>
+                        <Dices size={12} className="shrink-0 sm:w-3.5 sm:h-3.5" />
+                        <span className="truncate">+ Build</span>
                       </>
                     )}
                   </button>

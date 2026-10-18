@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import {
-  ArrowLeft, X, Search, UserPlus, UserCheck, Share2, Dices, Clapperboard
+  X, Search, UserPlus, UserCheck, Dices, Clapperboard
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import SeoHead from '../components/SeoHead';
@@ -61,26 +61,9 @@ export default function BetSlipRoom() {
       />
       {/* Header Navigation */}
       <div className="flex items-center justify-between gap-3 mb-6">
-        <Link to="/" className="inline-flex items-center gap-2 text-xs sm:text-sm font-bold uppercase tracking-wider text-slate-500 hover:text-[#006C54] transition-colors">
-          <ArrowLeft size={16} /> Back to Matches
+        <Link to="/" className="text-xs sm:text-sm font-bold uppercase tracking-wider text-slate-500 hover:text-[#006C54] transition-colors">
+          Back
         </Link>
-
-        <div className="flex items-center gap-2.5">
-          {currentUser && (
-            <button
-              onClick={() => setSelectedProfileUser(currentUser.username)}
-              className="bg-white hover:bg-slate-50 border border-slate-300 text-slate-800 text-xs font-bold uppercase tracking-wider px-4 py-1.5 rounded-full shadow-xs active:scale-95 transition-all flex items-center gap-1.5"
-            >
-              <Share2 size={13} className="text-[#006C54]" /> My Profile Link
-            </button>
-          )}
-          <button
-            onClick={() => setShowInviteModal(true)}
-            className="bg-[#006C54] hover:bg-[#005441] text-white text-xs font-bold uppercase tracking-wider px-4 py-1.5 rounded-full shadow-xs active:scale-95 transition-all flex items-center gap-1.5"
-          >
-            <UserPlus size={13} /> Invite Friends
-          </button>
-        </div>
       </div>
 
       <div className="mb-8 text-center sm:text-left">

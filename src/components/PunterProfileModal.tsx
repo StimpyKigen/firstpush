@@ -88,8 +88,8 @@ export default function PunterProfileModal({ username, onClose }: PunterProfileM
           </div>
 
           <div className="min-w-0 flex-1">
-            <div className="flex items-center gap-2 flex-wrap">
-              <h2 className="font-display font-bold text-xl text-cream truncate">{username}</h2>
+            <h2 className="font-display font-bold text-xl text-cream truncate">{username}</h2>
+            <div className="flex items-center gap-1.5 mt-1">
               <StarRating rating={stats.stars} size={14} />
             </div>
 
@@ -104,9 +104,9 @@ export default function PunterProfileModal({ username, onClose }: PunterProfileM
           </div>
         </div>
 
-        {/* Action Row */}
-        <div className="flex items-center gap-2 pt-1">
-          {!isSelf ? (
+        {/* Action Row - only for other punters, omitted for own profile */}
+        {!isSelf && (
+          <div className="flex items-center gap-2 pt-1">
             <button
               onClick={handleToggleFollow}
               className={`flex-1 py-2.5 px-4 rounded-xl font-bold text-xs flex items-center justify-center gap-2 transition-all ${
@@ -118,29 +118,8 @@ export default function PunterProfileModal({ username, onClose }: PunterProfileM
               {isFollowing ? <UserCheck size={15} /> : <UserPlus size={15} />}
               {isFollowing ? 'Following' : 'Follow Punter'}
             </button>
-          ) : (
-            <div className="flex-1 py-2 px-3 rounded-xl bg-gold/10 border border-gold/30 text-gold text-xs font-semibold text-center">
-              Your Profile
-            </div>
-          )}
-
-          <button
-            onClick={handleCopyProfileLink}
-            className="py-2.5 px-3 rounded-xl bg-panel hover:bg-panel-2 border border-line text-cream-dim hover:text-cream font-semibold text-xs flex items-center gap-1.5 transition-colors"
-            title="Copy Profile Link"
-          >
-            {copiedLink ? <Check size={14} className="text-emerald-2" /> : <Copy size={14} />}
-            {copiedLink ? 'Copied' : 'Share Link'}
-          </button>
-
-          <button
-            onClick={handleShareWhatsapp}
-            className="p-2.5 rounded-xl bg-emerald-2/15 border border-emerald-2/30 text-emerald-2 hover:bg-emerald-2/25 transition-colors"
-            title="Share via WhatsApp"
-          >
-            <Share2 size={15} />
-          </button>
-        </div>
+          </div>
+        )}
 
         {/* Non-messaging banner */}
         <div className="bg-ink-2 border border-dashed border-line/80 rounded-xl p-3 flex items-center gap-2.5 text-[11px] text-cream-dim">
@@ -150,25 +129,15 @@ export default function PunterProfileModal({ username, onClose }: PunterProfileM
           </span>
         </div>
 
-        {/* Stats Grid */}
+        {/* Stats Grid - with icons omitted, keeping clean wordings & figures */}
         <div className="grid grid-cols-2 gap-3 pt-1">
-          <div className="bg-panel border border-line rounded-xl p-3.5 flex items-center gap-3">
-            <span className="w-9 h-9 rounded-lg bg-emerald-2/10 border border-emerald-2/30 flex items-center justify-center shrink-0">
-              <Target size={16} className="text-emerald-2" />
-            </span>
-            <div>
-              <p className="font-display font-extrabold text-cream text-base">{stats.accuracyPct}%</p>
-              <p className="text-[11px] text-cream-dim">Pick Accuracy</p>
-            </div>
+          <div className="bg-panel border border-line rounded-xl p-3.5">
+            <p className="font-display font-extrabold text-cream text-xl leading-tight">{stats.accuracyPct}%</p>
+            <p className="text-xs text-cream-dim font-medium mt-0.5">Pick Accuracy</p>
           </div>
-          <div className="bg-panel border border-line rounded-xl p-3.5 flex items-center gap-3">
-            <span className="w-9 h-9 rounded-lg bg-gold/10 border border-gold/30 flex items-center justify-center shrink-0">
-              <Trophy size={16} className="text-gold" />
-            </span>
-            <div>
-              <p className="font-display font-extrabold text-cream text-base">{stats.closestWins}</p>
-              <p className="text-[11px] text-cream-dim">Closest-Slip Wins</p>
-            </div>
+          <div className="bg-panel border border-line rounded-xl p-3.5">
+            <p className="font-display font-extrabold text-cream text-xl leading-tight">{stats.closestWins}</p>
+            <p className="text-xs text-cream-dim font-medium mt-0.5">Closest-Slip Wins</p>
           </div>
         </div>
 
