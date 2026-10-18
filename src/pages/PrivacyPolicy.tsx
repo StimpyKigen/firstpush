@@ -2,6 +2,7 @@ import { motion } from 'motion/react';
 import { Shield, Lock, Eye, Database, UserCheck, Bell, Mail, FileText } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import SeoHead from '../components/SeoHead';
+import BackNavButton from '../components/BackNavButton';
 
 export default function PrivacyPolicy() {
   return (
@@ -11,6 +12,9 @@ export default function PrivacyPolicy() {
         description="MshindiRoom Privacy Policy: Learn how we protect user data, respect privacy rights, and ensure transparent community guidelines."
         canonicalUrl="https://mshindi.co.ke/privacy"
       />
+      <div className="mb-6">
+        <BackNavButton fallbackUrl="/" label="Back" />
+      </div>
       <motion.div
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}

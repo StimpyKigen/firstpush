@@ -7,6 +7,7 @@ import {
 import { useAuth, useCurrentUser } from '../lib/authStore';
 import { usePvP, type Side } from '../lib/p2pStore';
 import Avatar from '../components/Avatar';
+import BackNavButton from '../components/BackNavButton';
 
 const statusMeta = {
   awaiting_opponent: { label: 'Awaiting Opponent', color: '#8A6500', icon: Hourglass },
@@ -51,9 +52,9 @@ export default function BetDetail() {
 
   return (
     <div className="max-w-2xl mx-auto px-4 sm:px-6 py-8">
-      <Link to="/p2p" className="inline-flex items-center gap-1.5 text-sm text-cream-dim hover:text-cream mb-6">
-        <ArrowLeft size={15} /> All P2P Bets
-      </Link>
+      <div className="mb-6">
+        <BackNavButton fallbackUrl="/p2p" label="All P2P Bets" />
+      </div>
 
       <div className="bg-panel border border-line rounded-2xl p-6 sm:p-8 mb-6">
         <div className="flex items-center justify-between gap-3 mb-4">

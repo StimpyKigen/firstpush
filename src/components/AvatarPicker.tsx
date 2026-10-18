@@ -481,7 +481,7 @@ export default function AvatarPicker({ selected, onSelect, userStats }: AvatarPi
 
       {/* Lock Requirement Modal */}
       {lockedModalItem && (
-        <Modal isOpen={true} overlayClassName="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in">
+        <Modal isOpen={true} onClose={() => setLockedModalItem(null)} overlayClassName="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in">
           <div className="w-full max-w-sm bg-panel border border-amber-500/40 rounded-2xl p-6 text-center shadow-2xl space-y-4">
             <div className="w-16 h-16 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400 flex items-center justify-center mx-auto">
               <Lock size={32} />
@@ -511,7 +511,7 @@ export default function AvatarPicker({ selected, onSelect, userStats }: AvatarPi
 
       {/* Admin Upload Modal */}
       {showAdminModal && (
-        <Modal isOpen={true} overlayClassName="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in">
+        <Modal isOpen={true} onClose={() => setShowAdminModal(false)} overlayClassName="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in">
           <div className="w-full max-w-md bg-panel border border-emerald-500/40 rounded-2xl p-6 shadow-2xl space-y-4">
             <div className="flex items-center justify-between border-b border-line pb-3">
               <h3 className="font-display font-bold text-cream text-base flex items-center gap-2">

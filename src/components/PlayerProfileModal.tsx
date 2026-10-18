@@ -18,7 +18,7 @@ export default function PlayerProfileModal({ username, onClose }: PlayerProfileM
   const rpMeta = calculateStarsFromRp(profile.rp);
 
   return (
-    <Modal isOpen={true} overlayClassName="fixed inset-0 z-50 flex items-center justify-center p-4 bg-ink/80 backdrop-blur-md animate-fade-in overflow-y-auto">
+    <Modal isOpen={true} onClose={onClose} overlayClassName="fixed inset-0 z-50 flex items-center justify-center p-4 bg-ink/80 backdrop-blur-md animate-fade-in overflow-y-auto">
       <div className="relative w-full max-w-2xl bg-panel border border-gold/30 rounded-2xl shadow-2xl overflow-hidden my-8">
         
         {/* Top Decorative Banner */}

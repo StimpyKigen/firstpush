@@ -1,4 +1,5 @@
 import type { MouseEvent, ReactNode } from 'react';
+import { useBackToClose } from '../../lib/useBackToClose';
 
 interface ModalProps {
   isOpen: boolean;
@@ -11,6 +12,8 @@ interface ModalProps {
 }
 
 export default function Modal({ isOpen, onClose, overlayClassName, closeOnOverlayClick = false, children }: ModalProps) {
+  useBackToClose(isOpen && typeof onClose === 'function', onClose);
+
   if (!isOpen) return null;
 
   function handleOverlayClick(e: MouseEvent<HTMLDivElement>) {

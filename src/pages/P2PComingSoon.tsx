@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import { Swords, ShieldCheck, Scale, Users, Bell, ArrowLeft, Sparkles } from 'lucide-react';
 import { useState } from 'react';
 import SeoHead from '../components/SeoHead';
+import BackNavButton from '../components/BackNavButton';
 
 export default function P2PComingSoon() {
   const [notifyEmail, setNotifyEmail] = useState('');
@@ -19,9 +20,9 @@ export default function P2PComingSoon() {
         description="P2P betting on MshindiRoom: Challenge friends directly with custom stakes and escrow settlement."
         canonicalUrl="https://mshindi.co.ke/p2p"
       />
-      <Link to="/" className="inline-flex items-center gap-1.5 text-sm text-cream-dim hover:text-cream mb-8">
-        <ArrowLeft size={15} /> Back home
-      </Link>
+      <div className="mb-8">
+        <BackNavButton fallbackUrl="/" label="Back home" />
+      </div>
 
       <div className="text-center mb-10 animate-rise">
         <div className="w-16 h-16 mx-auto rounded-2xl bg-gold/10 border border-gold/30 flex items-center justify-center mb-5 animate-float-slow">

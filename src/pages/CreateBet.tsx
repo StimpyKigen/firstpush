@@ -6,6 +6,7 @@ import { usePvP, type BetCategory } from '../lib/p2pStore';
 import { useWallet } from '../lib/store';
 import { moderateText } from '../lib/contentModeration';
 import ModerationWarningBox from '../components/ModerationWarningBox';
+import BackNavButton from '../components/BackNavButton';
 
 const categories: BetCategory[] = ['Sports', 'Politics', 'Gaming', 'Weather', 'Pop Culture', 'Custom'];
 
@@ -115,9 +116,9 @@ export default function CreateBet() {
 
   return (
     <div className="max-w-2xl mx-auto px-4 sm:px-6 py-10">
-      <Link to="/p2p" className="inline-flex items-center gap-1.5 text-sm text-cream-dim hover:text-cream mb-6">
-        <ArrowLeft size={15} /> All P2P Bets
-      </Link>
+      <div className="mb-6">
+        <BackNavButton fallbackUrl="/p2p" label="All P2P Bets" />
+      </div>
 
       <div className="text-center mb-8">
         <span className="inline-flex items-center gap-1.5 bg-panel border border-gold/30 text-gold text-xs font-bold px-3 py-1.5 rounded-full mb-4">

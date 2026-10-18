@@ -99,7 +99,7 @@ export default function QuickBetBuilderModal({
 
   return (
     <AnimatePresence>
-      <Modal isOpen={true} overlayClassName="fixed inset-0 z-50 flex items-center justify-center p-2.5 sm:p-4 bg-black/80 backdrop-blur-sm overflow-y-auto">
+      <Modal isOpen={true} onClose={onClose} overlayClassName="fixed inset-0 z-50 flex items-center justify-center p-2.5 sm:p-4 bg-black/80 backdrop-blur-sm overflow-y-auto">
         <motion.div
           initial={{ opacity: 0, scale: 0.95, y: 10 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}

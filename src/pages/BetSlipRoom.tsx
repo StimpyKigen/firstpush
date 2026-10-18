@@ -15,6 +15,7 @@ import Avatar from '../components/Avatar';
 import StarRating from '../components/StarRating';
 import PunterProfileModal from '../components/PunterProfileModal';
 import InviteModal from '../components/InviteModal';
+import BackNavButton from '../components/BackNavButton';
 import { showToast } from '../lib/notificationStore';
 
 
@@ -61,9 +62,7 @@ export default function BetSlipRoom() {
       />
       {/* Header Navigation */}
       <div className="flex items-center justify-between gap-3 mb-6">
-        <Link to="/" className="text-xs sm:text-sm font-bold uppercase tracking-wider text-slate-500 hover:text-[#006C54] transition-colors">
-          Back
-        </Link>
+        <BackNavButton fallbackUrl="/" label="Back" />
       </div>
 
       <div className="mb-8 text-center sm:text-left">

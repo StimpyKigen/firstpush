@@ -5,6 +5,7 @@ import DesktopNav from './nav/DesktopNav';
 import { MobileHeaderControls, MobileMenuPanel } from './nav/MobileHeader';
 import MobileBottomNav from './nav/MobileBottomNav';
 import { useNavData } from './nav/useNavData';
+import { useBackToClose } from '../lib/useBackToClose';
 
 export default function Navbar() {
   const location = useLocation();
@@ -18,6 +19,10 @@ export default function Navbar() {
     setOpen(false);
     setProfileOpen(false);
   }, [location.pathname]);
+
+  // Intercept back button to dismiss mobile hamburger menu and desktop dropdown first
+  useBackToClose(open, () => setOpen(false));
+  useBackToClose(profileOpen, () => setProfileOpen(false));
 
   // Lock background scroll when mobile hamburger is open
   useEffect(() => {

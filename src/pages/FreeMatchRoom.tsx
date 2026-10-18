@@ -10,6 +10,7 @@ import OutcomeBar from '../components/OutcomeBar';
 import DiscussionPanel from '../components/DiscussionPanel';
 import { useBetSlipStore } from '../lib/betSlipStore';
 import QuickBetBuilderModal from '../components/QuickBetBuilderModal';
+import BackNavButton from '../components/BackNavButton';
 import { RoomDetailSkeleton } from '../components/skeleton';
 
 const tierColor: Record<string, string> = {
@@ -113,9 +114,9 @@ export default function FreeMatchRoom() {
           "description": match.blurb || `Free match prediction and consensus discussion room for ${match.home} vs ${match.away}`
         }}
       />
-      <Link to="/free" className="inline-flex items-center gap-1.5 text-sm text-cream-dim hover:text-cream mb-6">
-        <ArrowLeft size={15} /> All free matches
-      </Link>
+      <div className="mb-6">
+        <BackNavButton fallbackUrl="/free" label="All free matches" />
+      </div>
 
       <div className="bg-white border border-slate-200 rounded-2xl p-6 sm:p-8 mb-6 shadow-xs">
         {/* Clean Text Informational Metadata (No Generic Pills) */}

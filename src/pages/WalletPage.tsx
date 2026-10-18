@@ -5,6 +5,7 @@ import { useWallet } from '../lib/store';
 import { useCurrentUser } from '../lib/authStore';
 import { RECEIVER_MPESA_NUMBER, RECEIVER_NAME, isValidMpesaCode, normalizeCode } from '../lib/mpesa';
 import InviteModal from '../components/InviteModal';
+import BackNavButton from '../components/BackNavButton';
 
 const presets = [50, 100, 250, 500, 1000];
 
@@ -103,6 +104,9 @@ export default function WalletPage() {
         description="Manage your MshindiRoom wallet, top up via M-Pesa, view token rewards & track transaction history."
         noIndex={true}
       />
+      <div className="mb-6">
+        <BackNavButton fallbackUrl="/" label="Back" />
+      </div>
       <div className="text-center mb-8">
         <div className="w-14 h-14 mx-auto rounded-full bg-[#006C54] flex items-center justify-center mb-3 text-white shadow-xs">
           <WalletIcon size={26} />

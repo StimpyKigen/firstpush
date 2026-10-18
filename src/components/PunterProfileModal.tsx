@@ -68,7 +68,7 @@ export default function PunterProfileModal({ username, onClose }: PunterProfileM
   }
 
   return (
-    <Modal isOpen={true} overlayClassName="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in overflow-y-auto">
+    <Modal isOpen={true} onClose={onClose} overlayClassName="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in overflow-y-auto">
       <div className="bg-ink border border-line rounded-2xl max-w-lg w-full p-5 sm:p-6 my-8 space-y-5 shadow-2xl relative">
         <button
           onClick={onClose}

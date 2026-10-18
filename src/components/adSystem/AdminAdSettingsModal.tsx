@@ -66,7 +66,7 @@ export default function AdminAdSettingsModal({ isOpen, onClose }: AdminAdSetting
   const completionRate = analytics.served > 0 ? Math.round((analytics.completed / analytics.served) * 100) : 100;
 
   return (
-    <Modal isOpen={isOpen} overlayClassName="fixed inset-0 z-50 flex items-center justify-center p-4 bg-ink/80 backdrop-blur-md overflow-y-auto">
+    <Modal isOpen={isOpen} onClose={onClose} overlayClassName="fixed inset-0 z-50 flex items-center justify-center p-4 bg-ink/80 backdrop-blur-md overflow-y-auto">
       <div className="relative w-full max-w-3xl bg-panel border border-line rounded-2xl shadow-2xl overflow-hidden my-8 animate-rise">
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-line bg-ink-2">

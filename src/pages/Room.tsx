@@ -1,7 +1,8 @@
-import { useState, useSyncExternalStore } from 'react';
+import { useState, useEffect, useSyncExternalStore } from 'react';
 import { useParams, Link, Navigate } from 'react-router-dom';
 import { ArrowLeft, Users, Clock, MessageSquarePlus, Trophy, ChevronDown, CheckCircle2, XCircle, RadioTower, Sparkles, Edit3, ListChecks } from 'lucide-react';
 import SeoHead from '../components/SeoHead';
+import { scrollIntoViewIfNeeded } from '../lib/viewportScroll';
 import { getJackpot, subscribeToJackpots, getJackpotsSnapshot } from '../lib/mockData';
 import { BOOKIE_THEME, Conviction, GamblerPick, Outcome } from '../lib/types';
 import { useWallet } from '../lib/store';
@@ -17,6 +18,7 @@ import Avatar from '../components/Avatar';
 import StarRating from '../components/StarRating';
 import { getPunterStats, getStarRating } from '../lib/punterRatings';
 import { useAutoCollapse } from '../lib/useAutoCollapse';
+import BackNavButton from '../components/BackNavButton';
 import { RoomDetailSkeleton } from '../components/skeleton';
 
 const CONVICTIONS: Conviction[] = ['Banker', 'Value Pick', 'Long Shot'];
@@ -130,9 +132,9 @@ export default function Room() {
           }
         }}
       />
-      <Link to="/" className="inline-flex items-center gap-1.5 text-sm text-cream-dim hover:text-cream mb-6">
-        <ArrowLeft size={15} /> All rooms
-      </Link>
+      <div className="mb-6">
+        <BackNavButton fallbackUrl="/" label="All Jackpot Rooms" />
+      </div>
 
       {/* Header */}
       <div className="bg-white border border-slate-200 rounded-2xl p-6 sm:p-8 mb-8 shadow-xs relative">
@@ -364,6 +366,13 @@ function RoomMatchCard({
   const containerRef = useAutoCollapse<HTMLDivElement>(open, () => {
     onToggleOpen();
   }, 75);
+
+  // Viewport-aware scroll: bring active match leg into view smoothly
+  useEffect(() => {
+    if (open && containerRef.current) {
+      scrollIntoViewIfNeeded(containerRef.current);
+    }
+  }, [open]);
 
   const allPicks: GamblerPick[] = [...(consensus?.picks || [])];
   if (myPickRecord && !allPicks.some((p) => p.username === username)) {

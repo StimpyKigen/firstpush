@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate, Navigate, Link } from 'react-router-dom';
 import {
   Wallet as WalletIcon, ArrowDownLeft, ArrowUpRight, ShieldAlert, LifeBuoy,
@@ -7,6 +7,8 @@ import {
   Instagram, Facebook
 } from 'lucide-react';
 import SeoHead from '../components/SeoHead';
+import { scrollIntoViewIfNeeded } from '../lib/viewportScroll';
+import { useBackToClose } from '../lib/useBackToClose';
 import { useAuth, useCurrentUser } from '../lib/authStore';
 import { useWallet } from '../lib/store';
 import { useFollowStore } from '../lib/followStore';
@@ -20,11 +22,13 @@ import DepositPanel from './profile/DepositPanel';
 import WithdrawPanel from './profile/WithdrawPanel';
 import SupportPanel from './profile/SupportPanel';
 import CloseAccountPanel from './profile/CloseAccountPanel';
+import { useSmartBack } from '../components/BackNavButton';
 
 type Panel = 'none' | 'deposit' | 'withdraw' | 'close' | 'support';
 
 export default function Profile() {
   const navigate = useNavigate();
+  const handleBack = useSmartBack('/');
   const currentUser = useCurrentUser();
   const logOut = useAuth((s) => s.logOut);
   const closeAccount = useAuth((s) => s.closeAccount);
@@ -45,6 +49,27 @@ export default function Profile() {
   const [showMyProfileModal, setShowMyProfileModal] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
   const [showTransactions, setShowTransactions] = useState(false);
+
+  // Viewport-aware scroll and back-to-close refs
+  const panelContainerRef = useRef<HTMLDivElement>(null);
+  const transactionsContainerRef = useRef<HTMLDivElement>(null);
+
+  // Intercept back button to close open inline panel first
+  useBackToClose(panel !== 'none', () => setPanel('none'));
+
+  // Viewport-aware scroll: bring active panel into view smoothly if clipped
+  useEffect(() => {
+    if (panel !== 'none' && panelContainerRef.current) {
+      scrollIntoViewIfNeeded(panelContainerRef.current);
+    }
+  }, [panel]);
+
+  // Viewport-aware scroll: bring transactions table into view smoothly
+  useEffect(() => {
+    if (showTransactions && transactionsContainerRef.current) {
+      scrollIntoViewIfNeeded(transactionsContainerRef.current);
+    }
+  }, [showTransactions]);
 
   // Deposit state
   const [depositAmount, setDepositAmount] = useState(100);
@@ -223,7 +248,7 @@ export default function Profile() {
       {/* Top action row */}
       <div className="relative z-10 flex items-center justify-between p-4 sm:p-5 pb-0">
         <button
-          onClick={() => navigate(-1)}
+          onClick={handleBack}
           aria-label="Back"
           className="p-1 text-white hover:text-[#EEAA04] drop-shadow-[0_2px_4px_rgba(0,0,0,0.7)] flex items-center justify-center active:scale-95 transition-all cursor-pointer"
         >
@@ -312,8 +337,10 @@ export default function Profile() {
           <div className="lg:col-span-7 xl:col-span-7 space-y-4">
             
             {/* Active Inline Drawer Panels */}
-            {panel === 'deposit' && (
-              <div className="animate-rise">
+            {panel !== 'none' && (
+              <div ref={panelContainerRef} className="space-y-4">
+                {panel === 'deposit' && (
+                  <div className="animate-rise">
                 <DepositPanel
                   depositAmount={depositAmount}
                   setDepositAmount={setDepositAmount}
@@ -368,6 +395,8 @@ export default function Profile() {
                   onSubmit={submitCloseAccount}
                   onClose={() => setPanel('none')}
                 />
+              </div>
+            )}
               </div>
             )}
 
@@ -445,7 +474,7 @@ export default function Profile() {
 
             {/* Expandable Transaction History List */}
             {showTransactions && (
-              <div className="bg-white rounded-2xl border border-[#E6E6D2] p-5 shadow-xs animate-rise space-y-3">
+              <div ref={transactionsContainerRef} className="bg-white rounded-2xl border border-[#E6E6D2] p-5 shadow-xs animate-rise space-y-3">
                 <div className="flex items-center justify-between pb-2.5 border-b border-[#F2F2E6]">
                   <h3 className="font-display font-bold text-sm text-slate-900">Wallet Statements</h3>
                   <span className="text-xs text-slate-500">{transactions.length} total entries</span>

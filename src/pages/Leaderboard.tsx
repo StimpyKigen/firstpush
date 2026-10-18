@@ -16,6 +16,7 @@ import { getPunterStats, getStarRating } from '../lib/punterRatings';
 import { getRoomStatusInfo, type DisplayRoomStatus } from '../lib/roomStatus';
 import { computeRoomPerformanceAndLeaderboard } from '../lib/leaderboardEngine';
 import { LeaderboardSkeleton } from '../components/skeleton';
+import { scrollIntoViewIfNeeded } from '../lib/viewportScroll';
 
 const BOOKIE_BADGE_STYLE: Record<string, { bg: string; text: string; border: string }> = {
   SportPesa: { bg: 'bg-blue-50', text: 'text-blue-800', border: 'border-blue-200' },
@@ -95,10 +96,16 @@ export default function Leaderboard() {
   const userStats = getPunterStats(currentUsername);
 
   function toggleRoomExpand(roomId: string) {
-    setExpandedRooms((prev) => ({
-      ...prev,
-      [roomId]: prev[roomId] === true ? false : true, // toggle expand
-    }));
+    setExpandedRooms((prev) => {
+      const isNowExpanded = prev[roomId] !== true;
+      if (isNowExpanded) {
+        scrollIntoViewIfNeeded(document.getElementById(`room-leaderboard-${roomId}`));
+      }
+      return {
+        ...prev,
+        [roomId]: isNowExpanded,
+      };
+    });
   }
 
   if (allJackpots.length === 0) {

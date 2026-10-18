@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import { Unlock, MessagesSquare, Trophy, ShieldCheck, Sparkles, Lock, CalendarDays, Target, Dices, Layers, Copy, Share2, CheckCircle2 } from 'lucide-react';
 import StarRating from '../components/StarRating';
 import SeoHead from '../components/SeoHead';
+import BackNavButton from '../components/BackNavButton';
 
 const steps = [
   {
@@ -103,6 +104,11 @@ export default function HowItWorks() {
         structuredData={faqSchema}
       />
       
+      {/* Back Button */}
+      <div className="mb-6">
+        <BackNavButton fallbackUrl="/" label="Back" />
+      </div>
+
       {/* Header */}
       <div className="text-center mb-14">
         <span className="inline-flex items-center gap-1.5 bg-[#006C54] text-[#EEAA04] border border-[#005441] text-xs font-bold uppercase tracking-wider px-3.5 py-1.5 rounded-full mb-4 shadow-xs">

@@ -2,6 +2,7 @@ import { motion } from 'motion/react';
 import { ShieldCheck, Scale, AlertTriangle, UserX, Award, FileText, CheckCircle2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import SeoHead from '../components/SeoHead';
+import BackNavButton from '../components/BackNavButton';
 
 export default function TermsOfService() {
   return (
@@ -11,6 +12,9 @@ export default function TermsOfService() {
         description="MshindiRoom Terms of Service: Read our terms, community guidelines, non-gambling platform notice, and user responsibilities."
         canonicalUrl="https://mshindi.co.ke/terms"
       />
+      <div className="mb-6">
+        <BackNavButton fallbackUrl="/" label="Back" />
+      </div>
       <motion.div
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}

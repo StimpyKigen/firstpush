@@ -164,7 +164,7 @@ export default function AdminModerationDashboard() {
 
       {/* Add / Edit Entry Modal */}
       {isEditModalOpen && (
-        <Modal isOpen={true} overlayClassName="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4 animate-fadeIn">
+        <Modal isOpen={true} onClose={() => setIsEditModalOpen(false)} overlayClassName="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4 animate-fadeIn">
           <div className="bg-panel border border-gold/40 rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl p-6 space-y-5 animate-scaleUp">
             <div className="flex items-center justify-between border-b border-line pb-3">
               <div className="flex items-center gap-2">
@@ -298,7 +298,7 @@ export default function AdminModerationDashboard() {
 
       {/* Import JSON Modal */}
       {isImportModalOpen && (
-        <Modal isOpen={true} overlayClassName="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4 animate-fadeIn">
+        <Modal isOpen={true} onClose={() => setIsImportModalOpen(false)} overlayClassName="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4 animate-fadeIn">
           <div className="bg-panel border border-gold/40 rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl p-6 space-y-4 animate-scaleUp">
             <div className="flex items-center justify-between border-b border-line pb-3">
               <div className="flex items-center gap-2">
