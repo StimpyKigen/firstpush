@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Smartphone, Lock, User, AlertCircle, CheckCircle2, ArrowRight, Eye, EyeOff, Gift } from 'lucide-react';
 import { useAuth, isValidPhone, isValidUsername, isValidPin } from '../lib/authStore';
 import { useWallet } from '../lib/store';
-import { AVATAR_CATALOG } from '../lib/avatarCatalog';
+import { getRandomGlyphAvatar } from '../lib/avatarCatalog';
 import { saveUserProfileToFirestore } from '../lib/firebasePhoneAuth';
 import { validateUsername } from '../lib/contentModeration';
 
@@ -79,8 +79,8 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onSwitchToLogin }) =
     }
 
     setIsLoading(true);
-    const defaultAvatar = AVATAR_CATALOG[0].id;
-    const res = signUp(phone, pin, cleanUsername, defaultAvatar);
+    const assignedAvatar = getRandomGlyphAvatar().id;
+    const res = signUp(phone, pin, cleanUsername, assignedAvatar);
     setIsLoading(false);
 
     if (!res.ok) {
@@ -88,7 +88,7 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onSwitchToLogin }) =
       return;
     }
 
-    saveUserProfileToFirestore(phone, cleanUsername, defaultAvatar);
+    saveUserProfileToFirestore(phone, cleanUsername, assignedAvatar);
 
     // Credit referral tokens if invited
     if (referredBy) {

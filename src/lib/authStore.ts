@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { getRandomGlyphAvatar } from './avatarCatalog';
 
 export interface Account {
   phone: string; // canonical form: 2547XXXXXXXX / 2541XXXXXXXX
@@ -165,7 +166,9 @@ export const useAuth = create<AuthState>()(
           return { ok: false, error: 'That username is already taken. Try another one.' };
         }
         const pinHash = hashPin(norm, pin);
-        const account: Account = { phone: norm, pinHash, username: username.trim(), createdAt: new Date().toISOString(), avatarId };
+        // Automatically assign a random DiceBear glyph avatar upon successful sign up
+        const assignedAvatar = avatarId || getRandomGlyphAvatar().id;
+        const account: Account = { phone: norm, pinHash, username: username.trim(), createdAt: new Date().toISOString(), avatarId: assignedAvatar };
         set((state) => ({ accounts: [...state.accounts, account], currentPhone: norm }));
         return { ok: true };
       },
@@ -216,12 +219,8 @@ export const useAuth = create<AuthState>()(
         return { ok: true };
       },
 
-      setAvatar: (avatarId) => {
-        const { currentPhone } = get();
-        if (!currentPhone) return;
-        set((state) => ({
-          accounts: state.accounts.map((a) => (a.phone === currentPhone ? { ...a, avatarId } : a)),
-        }));
+      setAvatar: (_avatarId) => {
+        // Avatars are immutable and automatically assigned upon sign-up; editing is disabled
       },
     }),
     { name: 'mshindi-auth' }

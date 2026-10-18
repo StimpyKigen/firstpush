@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useNavigate, Navigate, Link } from 'react-router-dom';
 import {
   Wallet as WalletIcon, ArrowDownLeft, ArrowUpRight, ShieldAlert, LifeBuoy,
-  ImageIcon, Pencil, UserPlus, Share2, Trophy as TrophyIcon, Coins, LogOut,
+  UserPlus, Share2, Trophy as TrophyIcon, Coins, LogOut,
   ChevronRight, Phone, Clock, ArrowLeft, Check, Sparkles, UserCheck
 } from 'lucide-react';
 import SeoHead from '../components/SeoHead';
@@ -15,20 +15,18 @@ import StarRating from '../components/StarRating';
 import InviteModal from '../components/InviteModal';
 import PunterProfileModal from '../components/PunterProfileModal';
 import { getPunterStats } from '../lib/punterRatings';
-import AvatarPanel from './profile/AvatarPanel';
 import DepositPanel from './profile/DepositPanel';
 import WithdrawPanel from './profile/WithdrawPanel';
 import SupportPanel from './profile/SupportPanel';
 import CloseAccountPanel from './profile/CloseAccountPanel';
 
-type Panel = 'none' | 'deposit' | 'withdraw' | 'close' | 'support' | 'avatar';
+type Panel = 'none' | 'deposit' | 'withdraw' | 'close' | 'support';
 
 export default function Profile() {
   const navigate = useNavigate();
   const currentUser = useCurrentUser();
   const logOut = useAuth((s) => s.logOut);
   const closeAccount = useAuth((s) => s.closeAccount);
-  const setAvatar = useAuth((s) => s.setAvatar);
 
   const balance = useWallet((s) => s.balance);
   const mshindiTokens = useWallet((s) => s.mshindiTokens);
@@ -42,8 +40,6 @@ export default function Profile() {
   const getFollowingCount = useFollowStore((s) => s.getFollowingCount);
 
   const [panel, setPanel] = useState<Panel>('none');
-  const [pendingAvatarId, setPendingAvatarId] = useState<string | undefined>(currentUser?.avatarId);
-  const [avatarSaved, setAvatarSaved] = useState(false);
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [showMyProfileModal, setShowMyProfileModal] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
@@ -100,13 +96,6 @@ export default function Profile() {
   function setClosePin(v: string) {
     setClosePinRaw(v);
     setCloseError('');
-  }
-
-  function saveAvatar() {
-    if (!pendingAvatarId) return;
-    setAvatar(pendingAvatarId);
-    setAvatarSaved(true);
-    setTimeout(() => { setAvatarSaved(false); setPanel('none'); }, 1400);
   }
 
   function copyNumber() {
@@ -235,51 +224,39 @@ export default function Profile() {
         <button
           onClick={() => navigate(-1)}
           aria-label="Back"
-          className="w-9 h-9 rounded-full bg-black/40 hover:bg-black/60 border border-white/10 text-white/90 flex items-center justify-center active:scale-95 transition-all"
+          className="p-1 text-white hover:text-[#EEAA04] drop-shadow-[0_2px_4px_rgba(0,0,0,0.7)] flex items-center justify-center active:scale-95 transition-all"
         >
-          <ArrowLeft size={16} />
+          <ArrowLeft size={22} className="stroke-[2.5]" />
         </button>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
           <button
             onClick={handleShareProfile}
             title={copiedLink ? 'Link Copied!' : 'Share Profile Link'}
-            className="w-9 h-9 rounded-full bg-black/40 hover:bg-black/60 border border-white/10 text-white/90 flex items-center justify-center active:scale-95 transition-all"
+            className="p-1 text-white hover:text-[#EEAA04] drop-shadow-[0_2px_4px_rgba(0,0,0,0.7)] flex items-center justify-center active:scale-95 transition-all"
           >
-            {copiedLink ? <Check size={15} className="text-emerald-400" /> : <Share2 size={15} />}
+            {copiedLink ? <Check size={21} className="text-emerald-400 stroke-[2.5]" /> : <Share2 size={21} className="stroke-[2.5]" />}
           </button>
           <button
             onClick={() => setShowInviteModal(true)}
             title="Invite Friends"
-            className="w-9 h-9 rounded-full bg-black/40 hover:bg-black/60 border border-white/10 text-white/90 flex items-center justify-center active:scale-95 transition-all"
+            className="p-1 text-white hover:text-[#EEAA04] drop-shadow-[0_2px_4px_rgba(0,0,0,0.7)] flex items-center justify-center active:scale-95 transition-all"
           >
-            <UserPlus size={15} />
+            <UserPlus size={21} className="stroke-[2.5]" />
           </button>
         </div>
       </div>
 
       {/* Centered Profile Identity */}
       <div className="relative z-10 flex flex-col items-center text-center px-4 pt-2 pb-6 sm:pb-7">
-        {/* Squircle Avatar with Edit Badge */}
-        <div className="relative group mb-3">
-          <button
-            onClick={() => {
-              setPendingAvatarId(currentUser.avatarId);
-              setPanel(panel === 'avatar' ? 'none' : 'avatar');
-            }}
-            className="block relative focus:outline-none focus:ring-2 focus:ring-[#EEAA04] rounded-2xl transition-transform active:scale-95"
-            title="Change Avatar"
-          >
-            <Avatar
-              name={currentUser.username}
-              seed={currentUser.phone.length}
-              size={82}
-              avatarId={currentUser.avatarId}
-            />
-            <span className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-[#EEAA04] text-slate-950 border-2 border-[#091a13] flex items-center justify-center shadow-md group-hover:scale-110 transition-transform">
-              <Pencil size={11} strokeWidth={2.5} />
-            </span>
-          </button>
+        {/* Squircle Avatar without edit badge */}
+        <div className="relative mb-3">
+          <Avatar
+            name={currentUser.username}
+            seed={currentUser.phone.length}
+            size={84}
+            avatarId={currentUser.avatarId}
+          />
         </div>
 
         {/* Username */}
@@ -287,17 +264,10 @@ export default function Profile() {
           {currentUser.username}
         </h1>
 
-        {/* Subtitle / Punter Credentials Motto */}
-        <div className="flex items-center justify-center gap-2 mt-1.5 flex-wrap">
-          <StarRating rating={punterStats.stars} size={14} />
-          <span className="text-[11px] font-bold text-[#EEAA04] uppercase tracking-wider bg-[#EEAA04]/15 border border-[#EEAA04]/30 px-2 py-0.5 rounded-full">
-            {punterStats.tierName}
-          </span>
+        {/* Star Rating directly below username */}
+        <div className="flex items-center justify-center mt-2">
+          <StarRating rating={punterStats.stars} size={15} />
         </div>
-
-        <p className="text-xs text-white/70 max-w-xs mt-2 italic font-normal leading-relaxed">
-          "Focused picks in consensus rooms. Let the winning slips speak."
-        </p>
 
         {/* Social / Accuracy Stats Pills */}
         <div className="flex items-center justify-center gap-3 mt-4 pt-4 border-t border-white/10 w-full max-w-sm">
@@ -335,54 +305,12 @@ export default function Profile() {
           {/* Left Column: Hero Cover Card on Desktop / Standalone Hero on Mobile */}
           <div className="lg:col-span-5 xl:col-span-5 lg:sticky lg:top-20 space-y-4">
             {HeroCoverCard}
-
-            {/* Desktop Quick Wallet Highlight Card */}
-            <div className="hidden lg:flex items-center justify-between p-4.5 rounded-2xl bg-white border border-[#E6E6D2] shadow-xs">
-              <div className="flex items-center gap-3">
-                <span className="w-10 h-10 rounded-xl bg-emerald-50 text-[#006C54] flex items-center justify-center shrink-0">
-                  <WalletIcon size={18} />
-                </span>
-                <div>
-                  <p className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Wallet Balance</p>
-                  <p className="font-display font-extrabold text-xl text-slate-900 leading-tight">
-                    Ksh {balance.toLocaleString()}
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => setPanel(panel === 'deposit' ? 'none' : 'deposit')}
-                  className="px-3.5 py-1.5 rounded-full bg-[#006C54] hover:bg-[#005441] text-white text-xs font-bold transition-colors shadow-xs active:scale-95"
-                >
-                  Deposit
-                </button>
-                <button
-                  onClick={() => setPanel(panel === 'withdraw' ? 'none' : 'withdraw')}
-                  className="px-3.5 py-1.5 rounded-full bg-[#F5F5E4] hover:bg-[#E6E6D2] text-slate-800 text-xs font-bold transition-colors border border-[#E6E6D2] active:scale-95"
-                >
-                  Withdraw
-                </button>
-              </div>
-            </div>
           </div>
 
           {/* Right Column: Active Interactive Panels & iOS Grouped Cards */}
           <div className="lg:col-span-7 xl:col-span-7 space-y-4">
             
             {/* Active Inline Drawer Panels */}
-            {panel === 'avatar' && (
-              <div className="animate-rise">
-                <AvatarPanel
-                  pendingAvatarId={pendingAvatarId}
-                  setPendingAvatarId={setPendingAvatarId}
-                  avatarSaved={avatarSaved}
-                  onSave={saveAvatar}
-                  onClose={() => setPanel('none')}
-                />
-              </div>
-            )}
-
             {panel === 'deposit' && (
               <div className="animate-rise">
                 <DepositPanel
@@ -442,53 +370,41 @@ export default function Profile() {
               </div>
             )}
 
-            {/* ── CARD GROUP 1: Wallet & Finances ── */}
+            {/* ── CARD GROUP 1: Unified Wallet, Cashout & Mshindi Tokens ── */}
             <div className="bg-white rounded-2xl border border-[#E6E6D2] shadow-xs divide-y divide-[#F2F2E6] overflow-hidden">
-              <button
-                onClick={() => setPanel(panel === 'deposit' ? 'none' : 'deposit')}
-                className="w-full flex items-center justify-between p-4 hover:bg-slate-50/70 active:bg-slate-100/70 transition-colors text-left group"
-              >
+              {/* Wallet Balance with inline Deposit & Withdraw to M-Pesa actions */}
+              <div className="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3.5">
                 <div className="flex items-center gap-3.5 min-w-0">
-                  <span className="w-10 h-10 rounded-xl bg-emerald-50 text-[#006C54] flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
-                    <WalletIcon size={18} />
+                  <span className="w-11 h-11 rounded-xl bg-emerald-50 text-[#006C54] flex items-center justify-center shrink-0">
+                    <WalletIcon size={20} />
                   </span>
                   <div className="min-w-0">
-                    <p className="text-sm font-bold text-slate-900 truncate">Wallet Balance</p>
-                    <p className="text-xs text-slate-500 font-normal truncate">Deposit M-Pesa funds for entry fees</p>
+                    <p className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Wallet Balance</p>
+                    <p className="font-display font-extrabold text-2xl text-slate-900 tracking-tight leading-tight">
+                      Ksh {balance.toLocaleString()}
+                    </p>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-2 shrink-0">
-                  <span className="font-mono font-extrabold text-sm text-[#006C54]">
-                    Ksh {balance.toLocaleString()}
-                  </span>
-                  <span className="hidden sm:inline-block px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-[#006C54]/10 text-[#006C54]">
+                <div className="flex items-center gap-2 self-start sm:self-center">
+                  <button
+                    onClick={() => setPanel(panel === 'deposit' ? 'none' : 'deposit')}
+                    className="px-3.5 py-1.5 rounded-xl bg-[#006C54] hover:bg-[#005441] text-white text-xs font-bold transition-all shadow-xs active:scale-95 flex items-center gap-1.5"
+                  >
+                    <ArrowDownLeft size={14} />
                     Deposit
-                  </span>
-                  <ChevronRight size={17} className="text-slate-400 group-hover:text-slate-600 transition-colors" />
+                  </button>
+                  <button
+                    onClick={() => setPanel(panel === 'withdraw' ? 'none' : 'withdraw')}
+                    className="px-3.5 py-1.5 rounded-xl bg-[#F5F5E4] hover:bg-[#E6E6D2] text-slate-800 text-xs font-bold transition-all border border-[#E6E6D2] active:scale-95 flex items-center gap-1.5"
+                  >
+                    <ArrowUpRight size={14} />
+                    Withdraw
+                  </button>
                 </div>
-              </button>
+              </div>
 
-              <button
-                onClick={() => setPanel(panel === 'withdraw' ? 'none' : 'withdraw')}
-                className="w-full flex items-center justify-between p-4 hover:bg-slate-50/70 active:bg-slate-100/70 transition-colors text-left group"
-              >
-                <div className="flex items-center gap-3.5 min-w-0">
-                  <span className="w-10 h-10 rounded-xl bg-amber-50 text-amber-700 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
-                    <ArrowUpRight size={18} />
-                  </span>
-                  <div className="min-w-0">
-                    <p className="text-sm font-bold text-slate-900 truncate">Withdraw to M-Pesa</p>
-                    <p className="text-xs text-slate-500 font-normal truncate">Instant payout to your mobile phone</p>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-1.5 shrink-0">
-                  <span className="text-xs font-semibold text-slate-500">Cashout</span>
-                  <ChevronRight size={17} className="text-slate-400 group-hover:text-slate-600 transition-colors" />
-                </div>
-              </button>
-
+              {/* Mshindi Tokens (MT) Row */}
               <Link
                 to="/wallet"
                 className="w-full flex items-center justify-between p-4 hover:bg-slate-50/70 active:bg-slate-100/70 transition-colors text-left group"
@@ -499,18 +415,19 @@ export default function Profile() {
                   </span>
                   <div className="min-w-0">
                     <p className="text-sm font-bold text-slate-900 truncate">Mshindi Tokens</p>
-                    <p className="text-xs text-slate-500 font-normal truncate">Earn MT points through consensus picks</p>
+                    <p className="text-xs text-slate-500 font-normal truncate">Consensus room prediction rewards</p>
                   </div>
                 </div>
 
                 <div className="flex items-center gap-2 shrink-0">
-                  <span className="font-mono font-bold text-xs text-[#8A6500] bg-[#EEAA04]/20 px-2 py-0.5 rounded-full">
+                  <span className="font-mono font-bold text-xs text-[#8A6500] bg-[#EEAA04]/20 px-2.5 py-0.5 rounded-full">
                     {mshindiTokens} MT
                   </span>
                   <ChevronRight size={17} className="text-slate-400 group-hover:text-slate-600 transition-colors" />
                 </div>
               </Link>
 
+              {/* Expandable Recent Transactions Row */}
               <button
                 onClick={() => setShowTransactions(!showTransactions)}
                 className="w-full flex items-center justify-between p-4 hover:bg-slate-50/70 active:bg-slate-100/70 transition-colors text-left group"
@@ -583,33 +500,8 @@ export default function Profile() {
               </div>
             )}
 
-            {/* ── CARD GROUP 2: Identity & Punter Performance ── */}
+            {/* ── CARD GROUP 2: Punter Performance ── */}
             <div className="bg-white rounded-2xl border border-[#E6E6D2] shadow-xs divide-y divide-[#F2F2E6] overflow-hidden">
-              <button
-                onClick={() => {
-                  setPendingAvatarId(currentUser.avatarId);
-                  setPanel(panel === 'avatar' ? 'none' : 'avatar');
-                }}
-                className="w-full flex items-center justify-between p-4 hover:bg-slate-50/70 active:bg-slate-100/70 transition-colors text-left group"
-              >
-                <div className="flex items-center gap-3.5 min-w-0">
-                  <span className="w-10 h-10 rounded-xl bg-purple-50 text-purple-700 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
-                    <ImageIcon size={18} />
-                  </span>
-                  <div className="min-w-0">
-                    <p className="text-sm font-bold text-slate-900 truncate">Choose Avatar</p>
-                    <p className="text-xs text-slate-500 font-normal truncate">160+ presets, Glyphs & custom SVG</p>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-2 shrink-0">
-                  <span className="text-xs font-bold text-[#EEAA04] bg-[#EEAA04]/15 px-2.5 py-0.5 rounded-full">
-                    Change
-                  </span>
-                  <ChevronRight size={17} className="text-slate-400 group-hover:text-slate-600 transition-colors" />
-                </div>
-              </button>
-
               <button
                 onClick={() => setShowMyProfileModal(true)}
                 className="w-full flex items-center justify-between p-4 hover:bg-slate-50/70 active:bg-slate-100/70 transition-colors text-left group"
@@ -628,26 +520,6 @@ export default function Profile() {
 
                 <div className="flex items-center gap-2 shrink-0">
                   <StarRating rating={punterStats.stars} size={13} />
-                  <ChevronRight size={17} className="text-slate-400 group-hover:text-slate-600 transition-colors" />
-                </div>
-              </button>
-
-              <button
-                onClick={() => setShowInviteModal(true)}
-                className="w-full flex items-center justify-between p-4 hover:bg-slate-50/70 active:bg-slate-100/70 transition-colors text-left group"
-              >
-                <div className="flex items-center gap-3.5 min-w-0">
-                  <span className="w-10 h-10 rounded-xl bg-emerald-50 text-[#006C54] flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
-                    <UserPlus size={18} />
-                  </span>
-                  <div className="min-w-0">
-                    <p className="text-sm font-bold text-slate-900 truncate">Invite Friends</p>
-                    <p className="text-xs text-slate-500 font-normal truncate">Share referral code & invite punters</p>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-1.5 shrink-0">
-                  <span className="text-xs font-semibold text-slate-500">Earn MT</span>
                   <ChevronRight size={17} className="text-slate-400 group-hover:text-slate-600 transition-colors" />
                 </div>
               </button>

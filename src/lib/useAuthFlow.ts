@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth, isValidPhone, isValidUsername } from './authStore';
 import { useWallet } from './store';
-import { AVATAR_CATALOG } from './avatarCatalog';
+import { getRandomGlyphAvatar } from './avatarCatalog';
 import { sendFirebasePhoneOtp, verifyFirebaseOtpCode, saveUserProfileToFirestore } from './firebasePhoneAuth';
 import { validateUsername } from './contentModeration';
 import type { ConfirmationResult } from 'firebase/auth';
@@ -23,7 +23,7 @@ export function useAuthFlow() {
   const [pin, setPinRaw] = useState('');
   const [confirmPin, setConfirmPinRaw] = useState('');
   const [username, setUsernameRaw] = useState('');
-  const [avatarId, setAvatarId] = useState(AVATAR_CATALOG[0].id);
+  const [avatarId, setAvatarId] = useState(() => getRandomGlyphAvatar().id);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [step, setStep] = useState<AuthStep>(1);
@@ -84,7 +84,7 @@ export function useAuthFlow() {
     setPinRaw('');
     setConfirmPinRaw('');
     setUsernameRaw('');
-    setAvatarId(AVATAR_CATALOG[0].id);
+    setAvatarId(getRandomGlyphAvatar().id);
     setError('');
     setSuccess('');
     setStep(1);
@@ -196,7 +196,8 @@ export function useAuthFlow() {
       setError('That username is already taken.');
       return;
     }
-    setStep(3);
+    // Avatars are automatically assigned from DiceBear Glyphs; complete sign up directly
+    handleSignup();
   }
 
   function handleSignup() {
