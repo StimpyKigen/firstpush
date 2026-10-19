@@ -222,7 +222,7 @@ let lastFetchedTime = 0;
 
 // Hydrate initial cache from sessionStorage for instant zero-latency loads
 try {
-  const stored = typeof sessionStorage !== 'undefined' ? sessionStorage.getItem('mshindi_football_cache') : null;
+  const stored = typeof sessionStorage !== 'undefined' ? sessionStorage.getItem('mshindi_football_cache_v2') : null;
   if (stored) {
     const parsed = JSON.parse(stored);
     if (Array.isArray(parsed) && parsed.length > 0) {
@@ -354,7 +354,7 @@ export async function fetchDailyHighlightFixtures(): Promise<HighlightFixture[]>
           lastFetchedTime = Date.now();
           try {
             if (typeof sessionStorage !== 'undefined') {
-              sessionStorage.setItem('mshindi_football_cache', JSON.stringify(mapped));
+              sessionStorage.setItem('mshindi_football_cache_v2', JSON.stringify(mapped));
             }
           } catch {
             // ignore storage error
@@ -529,7 +529,7 @@ export async function fetchDailyHighlightFixtures(): Promise<HighlightFixture[]>
     lastFetchedTime = Date.now();
     try {
       if (typeof sessionStorage !== 'undefined') {
-        sessionStorage.setItem('mshindi_football_cache', JSON.stringify(fixtures));
+        sessionStorage.setItem('mshindi_football_cache_v2', JSON.stringify(fixtures));
       }
     } catch {
       // ignore storage error
