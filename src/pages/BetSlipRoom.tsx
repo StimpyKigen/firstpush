@@ -100,7 +100,7 @@ export default function BetSlipRoom() {
       <div
         role="tablist"
         aria-label="Slip room view modes"
-        className="relative flex items-center p-1 sm:p-1.5 bg-[#FAF9F5] border border-[#E5E3DC] rounded-full w-full max-w-md sm:max-w-xl mx-auto sm:mx-0 mb-8 shadow-[0_2px_8px_rgba(0,0,0,0.03)] select-none"
+        className="relative flex items-center p-1 sm:p-1.5 bg-[#FFFFF0] border border-[#D4D4C0] rounded-full w-full max-w-md sm:max-w-xl mx-auto sm:mx-0 mb-8 shadow-[0_2px_8px_rgba(0,0,0,0.03)] select-none"
       >
         {/* Tab 1: Bet Builder */}
         <div className="relative flex-1 flex items-center min-w-0">
@@ -127,7 +127,7 @@ export default function BetSlipRoom() {
               <span className="truncate">Bet Builder</span>
             </span>
           </button>
-          <div className="w-px h-4 min-[380px]:h-5 bg-[#E2DFD8] shrink-0 mx-0.5" aria-hidden="true" />
+          <div className="w-px h-4 min-[380px]:h-5 bg-[#D4D4C0] shrink-0 mx-0.5" aria-hidden="true" />
         </div>
 
         {/* Tab 2: SlipFeed */}
@@ -155,7 +155,7 @@ export default function BetSlipRoom() {
               <span className="truncate">SlipFeed</span>
             </span>
           </button>
-          <div className="w-px h-4 min-[380px]:h-5 bg-[#E2DFD8] shrink-0 mx-0.5" aria-hidden="true" />
+          <div className="w-px h-4 min-[380px]:h-5 bg-[#D4D4C0] shrink-0 mx-0.5" aria-hidden="true" />
         </div>
 
         {/* Tab 3: Find Punters */}
@@ -212,7 +212,7 @@ export default function BetSlipRoom() {
               value={punterSearchQuery}
               onChange={(e) => setPunterSearchQuery(e.target.value)}
               placeholder="Search punters by username (e.g. Mwangi, Kip_Punter)..."
-              className="w-full bg-white border border-slate-300 focus:border-[#006C54] focus:ring-2 focus:ring-[#006C54]/15 rounded-full pl-11 pr-10 py-3.5 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none shadow-xs transition-all"
+              className="w-full bg-[#FFFFF0] border border-[#D4D4C0] focus:border-[#006C54] focus:ring-2 focus:ring-[#006C54]/15 rounded-full pl-11 pr-10 py-3.5 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none shadow-xs transition-all"
             />
             {punterSearchQuery && (
               <button

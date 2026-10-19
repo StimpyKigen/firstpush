@@ -229,12 +229,12 @@ export default function FreeMatches() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search team or fixture (e.g. Arsenal, Real Madrid, Chelsea)..."
-              className="w-full bg-white border border-slate-300 focus:border-[#006C54] focus:ring-2 focus:ring-[#006C54]/15 rounded-full pl-11 pr-10 py-3 text-sm text-slate-900 placeholder:text-slate-400 shadow-xs focus:outline-none transition-all"
+              className="w-full bg-[#FFFFF0] border border-[#D4D4C0] focus:border-[#006C54] focus:ring-2 focus:ring-[#006C54]/15 rounded-full pl-11 pr-10 py-3 text-sm text-slate-900 placeholder:text-slate-400 shadow-xs focus:outline-none transition-all"
             />
             {searchQuery && (
               <button
                 onClick={() => setSearchQuery('')}
-                className="absolute right-3.5 p-1 rounded-full hover:bg-slate-100 text-slate-400 hover:text-slate-700 transition-colors"
+                className="absolute right-3.5 p-1 rounded-full hover:bg-slate-100 text-slate-400 hover:text-slate-700 transition-colors cursor-pointer"
                 title="Clear search"
               >
                 <X size={15} />
@@ -242,8 +242,8 @@ export default function FreeMatches() {
             )}
           </div>
 
-          {/* Aesthetic iOS-Style Dropdowns (Optimized for Mobile & Desktop) */}
-          <div className="grid grid-cols-1 sm:grid-cols-12 gap-2.5 pt-1">
+          {/* Aesthetic Pill-Style Dropdowns (Optimized for Mobile & Desktop) */}
+          <div className="grid grid-cols-1 sm:grid-cols-12 gap-3 pt-1">
             {/* Dropdown 1: Continent & Ranked League Filter */}
             <div className="sm:col-span-7 relative" ref={leagueDropdownRef}>
               <button
@@ -252,29 +252,29 @@ export default function FreeMatches() {
                   setIsLeagueDropdownOpen((prev) => !prev);
                   setIsSortDropdownOpen(false);
                 }}
-                className={`w-full bg-white border rounded-2xl px-4 py-2.5 text-xs font-bold text-slate-800 flex items-center justify-between gap-2.5 transition-all shadow-xs hover:border-[#006C54] ${
-                  isLeagueDropdownOpen ? 'border-[#006C54] ring-2 ring-[#006C54]/10' : 'border-slate-200'
+                className={`w-full bg-[#FFFFF0] border rounded-full px-5 py-2.5 sm:py-3 text-xs font-bold text-slate-800 flex items-center justify-between gap-3 transition-all shadow-xs hover:border-[#006C54] cursor-pointer ${
+                  isLeagueDropdownOpen ? 'border-[#006C54] ring-2 ring-[#006C54]/15' : 'border-[#D4D4C0]'
                 }`}
                 aria-expanded={isLeagueDropdownOpen}
               >
-                <div className="flex items-center gap-2 min-w-0">
-                  <span className="text-base shrink-0">{currentLeagueLabel.flag}</span>
+                <div className="flex items-center gap-3 min-w-0">
+                  <Globe size={18} className="text-[#006C54] shrink-0" strokeWidth={2} />
                   <div className="text-left truncate">
-                    <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block leading-none mb-0.5">
+                    <span className="text-[10.5px] sm:text-[11px] text-slate-500 font-semibold tracking-tight block leading-tight mb-0.5">
                       League / Continent
                     </span>
-                    <span className="truncate block font-black text-slate-900">
+                    <span className="truncate block font-bold text-xs sm:text-sm text-slate-900">
                       {currentLeagueLabel.title}
                     </span>
                   </div>
                 </div>
-                <div className="flex items-center gap-1.5 shrink-0">
+                <div className="flex items-center gap-2 shrink-0">
                   {leagueFilter !== 'all' && (
                     <span className="w-2 h-2 rounded-full bg-[#006C54]" />
                   )}
                   <ChevronDown
-                    size={15}
-                    className={`text-slate-400 transition-transform duration-200 ${
+                    size={16}
+                    className={`text-slate-500 transition-transform duration-200 ${
                       isLeagueDropdownOpen ? 'rotate-180 text-[#006C54]' : ''
                     }`}
                   />
@@ -283,23 +283,23 @@ export default function FreeMatches() {
 
               {/* iOS Styled Dropdown Menu */}
               {isLeagueDropdownOpen && (
-                <div className="absolute left-0 right-0 mt-2 bg-white/95 backdrop-blur-xl border border-slate-200/90 rounded-2xl shadow-2xl py-2 z-50 max-h-[360px] overflow-y-auto overscroll-contain text-xs divide-y divide-slate-100">
+                <div className="absolute left-0 right-0 mt-2 bg-[#FFFFF0] border border-[#D4D4C0] rounded-2xl shadow-2xl py-2 z-50 max-h-[360px] overflow-y-auto overscroll-contain text-xs divide-y divide-[#E6E6D2]">
                   {/* Option: All Continents */}
                   <div className="p-1">
                     <button
                       type="button"
                       onClick={() => handleLeagueFilterChange('all')}
-                      className={`w-full px-3 py-2 rounded-xl text-left flex items-center justify-between transition-colors ${
+                      className={`w-full px-3 py-2 rounded-xl text-left flex items-center justify-between transition-colors cursor-pointer ${
                         leagueFilter === 'all'
                           ? 'bg-[#006C54]/10 text-[#006C54] font-black'
-                          : 'hover:bg-slate-100 text-slate-700 font-semibold'
+                          : 'hover:bg-[#F5F5E4] text-slate-700 font-semibold'
                       }`}
                     >
                       <span className="flex items-center gap-2">
                         <span>🌍</span> All Continents &amp; Leagues
                       </span>
                       <div className="flex items-center gap-1.5">
-                        <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-100 text-slate-500 font-bold">
+                        <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-[#F5F5E4] border border-[#E6E6D2] text-slate-600 font-bold">
                           {upcomingMatches.length}
                         </span>
                         {leagueFilter === 'all' && <Check size={14} className="text-[#006C54]" />}
@@ -320,10 +320,10 @@ export default function FreeMatches() {
                       <button
                         type="button"
                         onClick={() => handleLeagueFilterChange(`continent:${continent.id}`)}
-                        className={`w-full px-3 py-1.5 rounded-lg text-left flex items-center justify-between transition-colors mb-0.5 ${
+                        className={`w-full px-3 py-1.5 rounded-lg text-left flex items-center justify-between transition-colors mb-0.5 cursor-pointer ${
                           leagueFilter === `continent:${continent.id}`
                             ? 'bg-[#006C54]/10 text-[#006C54] font-black'
-                            : 'hover:bg-slate-100 text-slate-700 font-medium'
+                            : 'hover:bg-[#F5F5E4] text-slate-700 font-medium'
                         }`}
                       >
                         <span className="text-[11px] font-bold">All {continent.name} Fixtures</span>
@@ -341,15 +341,15 @@ export default function FreeMatches() {
                               key={league.name}
                               type="button"
                               onClick={() => handleLeagueFilterChange(`league:${league.name}`)}
-                              className={`w-full px-3 py-1.5 rounded-lg text-left flex items-center justify-between transition-colors pl-6 ${
+                              className={`w-full px-3 py-1.5 rounded-lg text-left flex items-center justify-between transition-colors pl-6 cursor-pointer ${
                                 isSelected
                                   ? 'bg-[#006C54]/10 text-[#006C54] font-black'
-                                  : 'hover:bg-slate-100 text-slate-600 font-medium'
+                                  : 'hover:bg-[#F5F5E4] text-slate-600 font-medium'
                               }`}
                             >
                               <span className="truncate pr-2 text-xs">{league.name}</span>
                               <div className="flex items-center gap-1.5 shrink-0">
-                                <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-100 text-slate-500 font-bold">
+                                <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-[#F5F5E4] border border-[#E6E6D2] text-slate-600 font-bold">
                                   {league.count}
                                 </span>
                                 {isSelected && <Check size={13} className="text-[#006C54]" />}
@@ -372,29 +372,29 @@ export default function FreeMatches() {
                   setIsSortDropdownOpen((prev) => !prev);
                   setIsLeagueDropdownOpen(false);
                 }}
-                className={`w-full bg-white border rounded-2xl px-4 py-2.5 text-xs font-bold text-slate-800 flex items-center justify-between gap-2.5 transition-all shadow-xs hover:border-[#006C54] ${
-                  isSortDropdownOpen ? 'border-[#006C54] ring-2 ring-[#006C54]/10' : 'border-slate-200'
+                className={`w-full bg-[#FFFFF0] border rounded-full px-5 py-2.5 sm:py-3 text-xs font-bold text-slate-800 flex items-center justify-between gap-3 transition-all shadow-xs hover:border-[#006C54] cursor-pointer ${
+                  isSortDropdownOpen ? 'border-[#006C54] ring-2 ring-[#006C54]/15' : 'border-[#D4D4C0]'
                 }`}
                 aria-expanded={isSortDropdownOpen}
               >
-                <div className="flex items-center gap-2 min-w-0">
+                <div className="flex items-center gap-3 min-w-0">
                   {sortBy === 'popular' ? (
-                    <Flame size={16} className="text-[#006C54] shrink-0" />
+                    <Flame size={18} className="text-[#006C54] shrink-0" />
                   ) : (
-                    <Clock size={16} className="text-[#8A6500] shrink-0" />
+                    <Clock size={18} className="text-[#8A6500] shrink-0" />
                   )}
                   <div className="text-left truncate">
-                    <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block leading-none mb-0.5">
+                    <span className="text-[10.5px] sm:text-[11px] text-slate-500 font-semibold tracking-tight block leading-tight mb-0.5">
                       Filter &amp; Sort By
                     </span>
-                    <span className="truncate block font-black text-slate-900">
+                    <span className="truncate block font-bold text-xs sm:text-sm text-slate-900">
                       {sortBy === 'popular' ? 'Most Popular' : 'Start Time'}
                     </span>
                   </div>
                 </div>
                 <ChevronDown
-                  size={15}
-                  className={`text-slate-400 transition-transform duration-200 shrink-0 ${
+                  size={16}
+                  className={`text-slate-500 transition-transform duration-200 shrink-0 ${
                     isSortDropdownOpen ? 'rotate-180 text-[#006C54]' : ''
                   }`}
                 />
@@ -402,17 +402,17 @@ export default function FreeMatches() {
 
               {/* iOS Styled Sort Dropdown Menu */}
               {isSortDropdownOpen && (
-                <div className="absolute right-0 left-0 mt-2 bg-white/95 backdrop-blur-xl border border-slate-200/90 rounded-2xl shadow-2xl py-2 z-50 text-xs">
+                <div className="absolute right-0 left-0 mt-2 bg-[#FFFFF0] border border-[#D4D4C0] rounded-2xl shadow-2xl py-2 z-50 text-xs divide-y divide-[#E6E6D2]">
                   <div className="px-3 py-1 text-[10px] font-black uppercase tracking-wider text-slate-400">
                     Sort Order
                   </div>
                   <button
                     type="button"
                     onClick={() => handleSortChange('popular')}
-                    className={`w-full px-3 py-2 text-left flex items-center justify-between transition-colors ${
+                    className={`w-full px-3 py-2 text-left flex items-center justify-between transition-colors cursor-pointer ${
                       sortBy === 'popular'
                         ? 'bg-[#006C54]/10 text-[#006C54] font-black'
-                        : 'hover:bg-slate-100 text-slate-700 font-semibold'
+                        : 'hover:bg-[#F5F5E4] text-slate-700 font-semibold'
                     }`}
                   >
                     <div className="flex items-center gap-2">
@@ -428,10 +428,10 @@ export default function FreeMatches() {
                   <button
                     type="button"
                     onClick={() => handleSortChange('time')}
-                    className={`w-full px-3 py-2 text-left flex items-center justify-between transition-colors ${
+                    className={`w-full px-3 py-2 text-left flex items-center justify-between transition-colors cursor-pointer ${
                       sortBy === 'time'
                         ? 'bg-[#006C54]/10 text-[#006C54] font-black'
-                        : 'hover:bg-slate-100 text-slate-700 font-semibold'
+                        : 'hover:bg-[#F5F5E4] text-slate-700 font-semibold'
                     }`}
                   >
                     <div className="flex items-center gap-2">
