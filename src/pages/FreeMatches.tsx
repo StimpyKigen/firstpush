@@ -220,30 +220,30 @@ export default function FreeMatches() {
 
       {/* Interactive Search Bar & iOS-Style Filters */}
       {upcomingMatches.length > 0 && (
-        <div className="mb-8 max-w-3xl mx-auto space-y-3">
+        <div className="mb-6 sm:mb-8 max-w-3xl mx-auto space-y-2 sm:space-y-2.5">
           {/* Search Bar */}
           <div className="relative flex items-center">
-            <Search size={17} className="absolute left-4 text-slate-400 pointer-events-none" />
+            <Search size={15} className="absolute left-3.5 text-slate-400 pointer-events-none" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search team or fixture (e.g. Arsenal, Real Madrid, Chelsea)..."
-              className="w-full bg-[#FFFFF0] border border-[#D4D4C0] focus:border-[#006C54] focus:ring-2 focus:ring-[#006C54]/15 rounded-full pl-11 pr-10 py-3 text-sm text-slate-900 placeholder:text-slate-400 shadow-xs focus:outline-none transition-all"
+              className="w-full bg-[#FFFFF0] border border-[#D4D4C0] focus:border-[#006C54] focus:ring-2 focus:ring-[#006C54]/15 rounded-full pl-9 sm:pl-10 pr-9 py-2 sm:py-2.5 text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 shadow-xs focus:outline-none transition-all"
             />
             {searchQuery && (
               <button
                 onClick={() => setSearchQuery('')}
-                className="absolute right-3.5 p-1 rounded-full hover:bg-slate-100 text-slate-400 hover:text-slate-700 transition-colors cursor-pointer"
+                className="absolute right-3 p-1 rounded-full hover:bg-slate-100 text-slate-400 hover:text-slate-700 transition-colors cursor-pointer"
                 title="Clear search"
               >
-                <X size={15} />
+                <X size={14} />
               </button>
             )}
           </div>
 
           {/* Aesthetic Pill-Style Dropdowns (Optimized for Mobile & Desktop) */}
-          <div className="grid grid-cols-1 sm:grid-cols-12 gap-3 pt-1">
+          <div className="grid grid-cols-1 sm:grid-cols-12 gap-2 sm:gap-2.5 pt-0.5">
             {/* Dropdown 1: Continent & Ranked League Filter */}
             <div className="sm:col-span-7 relative" ref={leagueDropdownRef}>
               <button
@@ -252,28 +252,28 @@ export default function FreeMatches() {
                   setIsLeagueDropdownOpen((prev) => !prev);
                   setIsSortDropdownOpen(false);
                 }}
-                className={`w-full bg-[#FFFFF0] border rounded-full px-5 py-2.5 sm:py-3 text-xs font-bold text-slate-800 flex items-center justify-between gap-3 transition-all shadow-xs hover:border-[#006C54] cursor-pointer ${
+                className={`w-full bg-[#FFFFF0] border rounded-full px-3.5 sm:px-4 py-1.5 sm:py-2 text-xs font-bold text-slate-800 flex items-center justify-between gap-2 sm:gap-2.5 transition-all shadow-xs hover:border-[#006C54] cursor-pointer ${
                   isLeagueDropdownOpen ? 'border-[#006C54] ring-2 ring-[#006C54]/15' : 'border-[#D4D4C0]'
                 }`}
                 aria-expanded={isLeagueDropdownOpen}
               >
-                <div className="flex items-center gap-3 min-w-0">
-                  <Globe size={18} className="text-[#006C54] shrink-0" strokeWidth={2} />
+                <div className="flex items-center gap-2 sm:gap-2.5 min-w-0">
+                  <Globe size={15} className="text-[#006C54] shrink-0" strokeWidth={2} />
                   <div className="text-left truncate">
-                    <span className="text-[10.5px] sm:text-[11px] text-slate-500 font-semibold tracking-tight block leading-tight mb-0.5">
+                    <span className="text-[9.5px] sm:text-[10px] text-slate-500 font-semibold tracking-tight block leading-none mb-0.5">
                       League / Continent
                     </span>
-                    <span className="truncate block font-bold text-xs sm:text-sm text-slate-900">
+                    <span className="truncate block font-bold text-xs sm:text-[13px] text-slate-900">
                       {currentLeagueLabel.title}
                     </span>
                   </div>
                 </div>
-                <div className="flex items-center gap-2 shrink-0">
+                <div className="flex items-center gap-1.5 shrink-0">
                   {leagueFilter !== 'all' && (
-                    <span className="w-2 h-2 rounded-full bg-[#006C54]" />
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#006C54]" />
                   )}
                   <ChevronDown
-                    size={16}
+                    size={14}
                     className={`text-slate-500 transition-transform duration-200 ${
                       isLeagueDropdownOpen ? 'rotate-180 text-[#006C54]' : ''
                     }`}
@@ -283,7 +283,7 @@ export default function FreeMatches() {
 
               {/* iOS Styled Dropdown Menu */}
               {isLeagueDropdownOpen && (
-                <div className="absolute left-0 right-0 mt-2 bg-[#FFFFF0] border border-[#D4D4C0] rounded-2xl shadow-2xl py-2 z-50 max-h-[360px] overflow-y-auto overscroll-contain text-xs divide-y divide-[#E6E6D2]">
+                <div className="absolute left-0 right-0 mt-1.5 bg-[#FFFFF0] border border-[#D4D4C0] rounded-2xl shadow-2xl py-2 z-50 max-h-[360px] overflow-y-auto overscroll-contain text-xs divide-y divide-[#E6E6D2]">
                   {/* Option: All Continents */}
                   <div className="p-1">
                     <button
@@ -372,28 +372,28 @@ export default function FreeMatches() {
                   setIsSortDropdownOpen((prev) => !prev);
                   setIsLeagueDropdownOpen(false);
                 }}
-                className={`w-full bg-[#FFFFF0] border rounded-full px-5 py-2.5 sm:py-3 text-xs font-bold text-slate-800 flex items-center justify-between gap-3 transition-all shadow-xs hover:border-[#006C54] cursor-pointer ${
+                className={`w-full bg-[#FFFFF0] border rounded-full px-3.5 sm:px-4 py-1.5 sm:py-2 text-xs font-bold text-slate-800 flex items-center justify-between gap-2 sm:gap-2.5 transition-all shadow-xs hover:border-[#006C54] cursor-pointer ${
                   isSortDropdownOpen ? 'border-[#006C54] ring-2 ring-[#006C54]/15' : 'border-[#D4D4C0]'
                 }`}
                 aria-expanded={isSortDropdownOpen}
               >
-                <div className="flex items-center gap-3 min-w-0">
+                <div className="flex items-center gap-2 sm:gap-2.5 min-w-0">
                   {sortBy === 'popular' ? (
-                    <Flame size={18} className="text-[#006C54] shrink-0" />
+                    <Flame size={15} className="text-[#006C54] shrink-0" />
                   ) : (
-                    <Clock size={18} className="text-[#8A6500] shrink-0" />
+                    <Clock size={15} className="text-[#8A6500] shrink-0" />
                   )}
                   <div className="text-left truncate">
-                    <span className="text-[10.5px] sm:text-[11px] text-slate-500 font-semibold tracking-tight block leading-tight mb-0.5">
+                    <span className="text-[9.5px] sm:text-[10px] text-slate-500 font-semibold tracking-tight block leading-none mb-0.5">
                       Filter &amp; Sort By
                     </span>
-                    <span className="truncate block font-bold text-xs sm:text-sm text-slate-900">
+                    <span className="truncate block font-bold text-xs sm:text-[13px] text-slate-900">
                       {sortBy === 'popular' ? 'Most Popular' : 'Start Time'}
                     </span>
                   </div>
                 </div>
                 <ChevronDown
-                  size={16}
+                  size={14}
                   className={`text-slate-500 transition-transform duration-200 shrink-0 ${
                     isSortDropdownOpen ? 'rotate-180 text-[#006C54]' : ''
                   }`}
