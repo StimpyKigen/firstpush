@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Hero from './Hero';
 import LoginForm from './LoginForm';
 import RegisterForm from './RegisterForm';
@@ -7,13 +7,31 @@ import './Login.css';
 export const Login: React.FC = () => {
   const [isRegister, setIsRegister] = useState(false);
 
+  // Strictly prevent vertical scrolling on the login page across all viewports
+  useEffect(() => {
+    const originalBodyOverflow = document.body.style.overflow;
+    const originalHtmlOverflow = document.documentElement.style.overflow;
+    document.body.style.overflow = 'hidden';
+    document.documentElement.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = originalBodyOverflow;
+      document.documentElement.style.overflow = originalHtmlOverflow;
+    };
+  }, []);
+
   return (
     <div className="login-page-container">
-      {/* Website Summary (Desktop & Mobile) */}
-      <div className="login-header">
-        <p className="login-header-summary">
-          Kenya&apos;s premier football consensus, community slips &amp; match intelligence platform.
-        </p>
+      {/* Aurora Animated Headline (Desktop & Mobile) */}
+      <div className="content">
+        <h1 className="title">
+          Kenya&apos;s Football consensus, community slips &amp; match intelligence platform.
+          <div className="aurora" aria-hidden="true">
+            <div className="aurora__item" />
+            <div className="aurora__item" />
+            <div className="aurora__item" />
+            <div className="aurora__item" />
+          </div>
+        </h1>
       </div>
 
       {/* Main Animated Card */}
