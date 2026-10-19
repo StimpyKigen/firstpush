@@ -157,43 +157,43 @@ interface RawMatch {
   bookmaker?: string;
 }
 
-// Live upcoming matches from Consensus Engine
+// Manual admin jackpot templates (managed directly by admin)
 const sportpesaMegaLive: RawMatch[] = [
-  { home: 'Arsenal', away: 'Everton', competition: 'Premier League', kickoff: 'Sat 24 Oct · 17:00 EAT', homePct: 52, drawPct: 27 },
-  { home: 'Chelsea', away: 'Tottenham', competition: 'Premier League', kickoff: 'Sat 24 Oct · 19:30 EAT', homePct: 52, drawPct: 27 },
-  { home: 'Liverpool', away: 'Brighton', competition: 'Premier League', kickoff: 'Sun 25 Oct · 17:00 EAT', homePct: 47, drawPct: 26 },
-  { home: 'Manchester Utd', away: 'Bournemouth', competition: 'Premier League', kickoff: 'Sun 25 Oct · 17:00 EAT', homePct: 47, drawPct: 27 },
-  { home: 'Crystal Palace', away: 'Newcastle', competition: 'Premier League', kickoff: 'Sun 25 Oct · 17:00 EAT', homePct: 31, drawPct: 37 },
-  { home: 'Hull', away: 'Brentford', competition: 'Premier League', kickoff: 'Sun 25 Oct · 17:00 EAT', homePct: 41, drawPct: 31 },
-  { home: 'Sunderland', away: 'Leeds', competition: 'Premier League', kickoff: 'Sun 25 Oct · 19:30 EAT', homePct: 31, drawPct: 40 },
-  { home: 'Barcelona', away: 'Real Madrid', competition: 'La Liga', kickoff: 'Sun 25 Oct · 23:00 EAT', homePct: 53, drawPct: 25 },
-  { home: 'Valencia', away: 'Villarreal', competition: 'La Liga', kickoff: 'Sat 24 Oct · 19:30 EAT', homePct: 26, drawPct: 31 },
-  { home: 'Real Sociedad', away: 'Levante', competition: 'La Liga', kickoff: 'Sun 25 Oct · 20:30 EAT', homePct: 52, drawPct: 26 },
-  { home: 'Ath Bilbao', away: 'Getafe', competition: 'La Liga', kickoff: 'Sun 25 Oct · 16:00 EAT', homePct: 47, drawPct: 36 },
-  { home: 'Celta Vigo', away: 'Betis', competition: 'La Liga', kickoff: 'Sun 25 Oct · 18:15 EAT', homePct: 45, drawPct: 27 },
-  { home: 'Sevilla', away: 'Osasuna', competition: 'La Liga', kickoff: 'Mon 26 Oct · 23:00 EAT', homePct: 47, drawPct: 28 },
-  { home: 'Racing Santander', away: 'Espanyol', competition: 'La Liga', kickoff: 'Sat 24 Oct · 17:00 EAT', homePct: 36, drawPct: 32 },
-  { home: 'Aston Villa', away: 'Newcastle', competition: 'Premier League', kickoff: 'Sat 24 Oct · 15:00 EAT', homePct: 42, drawPct: 30 },
-  { home: 'Wolves', away: 'West Ham', competition: 'Premier League', kickoff: 'Sat 24 Oct · 17:00 EAT', homePct: 44, drawPct: 29 },
-  { home: 'Fulham', away: 'Chelsea', competition: 'Premier League', kickoff: 'Sun 25 Oct · 16:00 EAT', homePct: 30, drawPct: 32 },
+  { home: 'Arsenal', away: 'Coventry City', competition: 'English Premier League', kickoff: 'Fri 21 Aug · 22:00 EAT', homePct: 78, drawPct: 14 },
+  { home: 'Trabzonspor', away: 'Al Sadd', competition: 'Club Friendly', kickoff: 'Thu 30 Jul · 20:00 EAT', homePct: 52, drawPct: 26 },
+  { home: 'Sunderland', away: 'Leeds United', competition: 'English Championship', kickoff: 'Sat 15 Aug · 17:00 EAT', homePct: 42, drawPct: 30 },
+  { home: 'Deportivo Alavés', away: 'Getafe', competition: 'Spanish LALIGA', kickoff: 'Sun 16 Aug · 19:00 EAT', homePct: 45, drawPct: 32 },
+  { home: 'Sepsi OSK', away: 'Universitatea Cluj', competition: 'Romania Liga 1', kickoff: 'Sun 14:30 EAT', homePct: 40, drawPct: 30 },
+  { home: 'Ružomberok', away: 'Dunajska Streda', competition: 'Slovakia Super Liga', kickoff: 'Sun 15:00 EAT', homePct: 35, drawPct: 30 },
+  { home: 'Kaspiy', away: 'Zhenys', competition: 'Kazakhstan Premier League', kickoff: 'Sun 15:00 EAT', homePct: 39, drawPct: 30 },
+  { home: 'Norrby IF', away: 'Ostersunds FK', competition: 'Sweden Superettan', kickoff: 'Sun 15:00 EAT', homePct: 29, drawPct: 30 },
+  { home: 'Sogndal', away: 'Ranheim', competition: 'Norway 1. Div.', kickoff: 'Sun 15:00 EAT', homePct: 33, drawPct: 30 },
+  { home: 'KFUM Oslo', away: 'Molde', competition: 'Norway Eliteserien', kickoff: 'Sun 15:00 EAT', homePct: 34, drawPct: 30 },
+  { home: 'FK Jablonec', away: 'Sigma Olomouc', competition: 'Czech Fortuna Liga', kickoff: 'Sun 15:30 EAT', homePct: 33, drawPct: 30 },
+  { home: 'Soroksar', away: 'Mezokovesd-Zsory', competition: 'Hungary NB II', kickoff: 'Sun 17:00 EAT', homePct: 28, drawPct: 30 },
+  { home: 'Puszcza Niepolomice', away: 'Polonia Warszawa', competition: 'Poland I Liga', kickoff: 'Sun 17:30 EAT', homePct: 47, drawPct: 30 },
+  { home: 'Agropecuario', away: 'San Martin S.J.', competition: 'Argentina Primera Nacional', kickoff: 'Sun 18:00 EAT', homePct: 27, drawPct: 30 },
+  { home: 'Atletico Tucuman', away: 'Independiente Rivadavia', competition: 'Argentina Liga Profesional', kickoff: 'Sun 18:00 EAT', homePct: 34, drawPct: 30 },
+  { home: 'All Boys', away: 'Defensores De Belgrano', competition: 'Argentina Primera Nacional', kickoff: 'Sun 18:00 EAT', homePct: 40, drawPct: 31 },
+  { home: 'Wisla Krakow', away: 'GKS Katowice', competition: 'Poland Ekstraklasa', kickoff: 'Sun 18:15 EAT', homePct: 45, drawPct: 31 },
 ];
 
 const betikaMidweekLive: RawMatch[] = [
-  { home: 'Barcelona', away: 'Real Madrid', competition: 'La Liga', kickoff: 'Sun 25 Oct · 23:00 EAT', homePct: 53, drawPct: 25 },
-  { home: 'Chelsea', away: 'Tottenham', competition: 'Premier League', kickoff: 'Sat 24 Oct · 19:30 EAT', homePct: 52, drawPct: 27 },
-  { home: 'Arsenal', away: 'Everton', competition: 'Premier League', kickoff: 'Sat 24 Oct · 17:00 EAT', homePct: 52, drawPct: 27 },
-  { home: 'Liverpool', away: 'Brighton', competition: 'Premier League', kickoff: 'Sun 25 Oct · 17:00 EAT', homePct: 47, drawPct: 26 },
-  { home: 'Manchester Utd', away: 'Bournemouth', competition: 'Premier League', kickoff: 'Sun 25 Oct · 17:00 EAT', homePct: 47, drawPct: 27 },
-  { home: 'Valencia', away: 'Villarreal', competition: 'La Liga', kickoff: 'Sat 24 Oct · 19:30 EAT', homePct: 26, drawPct: 31 },
-  { home: 'Crystal Palace', away: 'Newcastle', competition: 'Premier League', kickoff: 'Sun 25 Oct · 17:00 EAT', homePct: 31, drawPct: 37 },
-  { home: 'Real Sociedad', away: 'Levante', competition: 'La Liga', kickoff: 'Sun 25 Oct · 20:30 EAT', homePct: 52, drawPct: 26 },
-  { home: 'Ath Bilbao', away: 'Getafe', competition: 'La Liga', kickoff: 'Sun 25 Oct · 16:00 EAT', homePct: 47, drawPct: 36 },
-  { home: 'Celta Vigo', away: 'Betis', competition: 'La Liga', kickoff: 'Sun 25 Oct · 18:15 EAT', homePct: 45, drawPct: 27 },
-  { home: 'Sunderland', away: 'Leeds', competition: 'Premier League', kickoff: 'Sun 25 Oct · 19:30 EAT', homePct: 31, drawPct: 40 },
-  { home: 'Sevilla', away: 'Osasuna', competition: 'La Liga', kickoff: 'Mon 26 Oct · 23:00 EAT', homePct: 47, drawPct: 28 },
-  { home: 'Hull', away: 'Brentford', competition: 'Premier League', kickoff: 'Sun 25 Oct · 17:00 EAT', homePct: 41, drawPct: 31 },
-  { home: 'Racing Santander', away: 'Espanyol', competition: 'La Liga', kickoff: 'Sat 24 Oct · 17:00 EAT', homePct: 36, drawPct: 32 },
-  { home: 'Wolves', away: 'West Ham', competition: 'Premier League', kickoff: 'Sat 24 Oct · 17:00 EAT', homePct: 44, drawPct: 29 },
+  { home: 'Arsenal', away: 'Coventry City', competition: 'English Premier League', kickoff: 'Fri 21 Aug · 22:00 EAT', homePct: 78, drawPct: 14 },
+  { home: 'Trabzonspor', away: 'Al Sadd', competition: 'Club Friendly', kickoff: 'Thu 30 Jul · 20:00 EAT', homePct: 52, drawPct: 26 },
+  { home: 'Sunderland', away: 'Leeds United', competition: 'English Championship', kickoff: 'Sat 15 Aug · 17:00 EAT', homePct: 42, drawPct: 30 },
+  { home: 'Deportivo Alavés', away: 'Getafe', competition: 'Spanish LALIGA', kickoff: 'Sun 16 Aug · 19:00 EAT', homePct: 45, drawPct: 32 },
+  { home: 'FC Orenburg', away: 'FC Rostov', competition: 'Russia Premier League', kickoff: 'Sun 11:30 EAT', homePct: 38, drawPct: 30 },
+  { home: 'Aarhus', away: 'Brondby', competition: 'Danish Superliga', kickoff: 'Sat 16:00 EAT', homePct: 42, drawPct: 30 },
+  { home: 'Servette FC', away: 'FC Basel 1893', competition: 'Swiss Super League', kickoff: 'Sat 16:00 EAT', homePct: 40, drawPct: 30 },
+  { home: 'FC Luzern', away: 'FC Thun', competition: 'Swiss Super League', kickoff: 'Sat 18:30 EAT', homePct: 30, drawPct: 30 },
+  { home: 'Estudiantes de Rio Cuarto', away: 'Tigre', competition: 'Argentina Primera Nacional', kickoff: 'Sat 17:45 EAT', homePct: 32, drawPct: 30 },
+  { home: 'Newells Old Boys', away: 'Talleres Cordoba', competition: 'Argentina Liga Profesional', kickoff: 'Sat 20:00 EAT', homePct: 34, drawPct: 30 },
+  { home: 'Dinamo Bucuresti', away: 'Universitatea Craiova', competition: 'Romania Liga 1', kickoff: 'Sat 17:30 EAT', homePct: 39, drawPct: 30 },
+  { home: 'Internacional de Bogota', away: 'America de Cali', competition: 'Colombia Primera A', kickoff: 'Sun 19:00 EAT', homePct: 32, drawPct: 30 },
+  { home: 'Bahia', away: 'Corinthians', competition: 'Brazil Serie A', kickoff: 'Sun 19:00 EAT', homePct: 35, drawPct: 30 },
+  { home: 'Gremio', away: 'Fluminense', competition: 'Brazil Serie A', kickoff: 'Sun 21:30 EAT', homePct: 37, drawPct: 30 },
+  { home: 'Sligo Rovers', away: 'Drogheda United', competition: 'Ireland Premier Division', kickoff: 'Sat 18:45 EAT', homePct: 29, drawPct: 30 },
 ];
 
 const sportpesaMidweekSettled: RawMatch[] = [
@@ -536,124 +536,8 @@ export function getJackpot(id: string): Jackpot | undefined {
 }
 
 export async function syncJackpotsFromApi() {
-  try {
-    let marketFixtures: any[] = [];
-    try {
-      const controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
-      const timeoutId = controller ? setTimeout(() => controller.abort(), 4000) : null;
-      const res = await fetch('/api/sports/daily-fixtures', controller ? { signal: controller.signal } : {});
-      if (timeoutId) clearTimeout(timeoutId);
-      if (res.ok) {
-        const d = await res.json();
-        if (d && d.success && Array.isArray(d.fixtures) && d.fixtures.length > 0) {
-          marketFixtures = d.fixtures;
-        }
-      }
-    } catch {
-      // Ignore network/proxy error and use live fixtures
-    }
-
-    let spMegaMatches: RawMatch[] = [];
-    let betikaMidweekMatches: RawMatch[] = [];
-
-    if (marketFixtures.length >= 10) {
-      spMegaMatches = marketFixtures.slice(0, 17).map((f) => ({
-        home: f.home,
-        away: f.away,
-        competition: f.competition || 'Premier League',
-        kickoff: f.kickoff,
-        homePct: f.homePct,
-        drawPct: f.drawPct,
-        homeOdds: f.homeOdds,
-        drawOdds: f.drawOdds,
-        awayOdds: f.awayOdds,
-        bookmaker: 'Market Consensus',
-      }));
-
-      betikaMidweekMatches = marketFixtures.slice(0, 15).map((f) => ({
-        home: f.home,
-        away: f.away,
-        competition: f.competition || 'Premier League',
-        kickoff: f.kickoff,
-        homePct: f.homePct,
-        drawPct: f.drawPct,
-        homeOdds: f.homeOdds,
-        drawOdds: f.drawOdds,
-        awayOdds: f.awayOdds,
-        bookmaker: 'Market Consensus',
-      }));
-    } else {
-      const [spMegaMirror, betikaMidweekMirror] = await Promise.all([
-        fetchSportpesaMegaMirror(),
-        fetchBetikaMidweekMirror(),
-      ]);
-
-      spMegaMatches = spMegaMirror.fixtures.length > 0
-        ? spMegaMirror.fixtures.map((f, i) => ({
-            home: f.home,
-            away: f.away,
-            competition: f.competition,
-            kickoff: f.kickoff,
-            homePct: f.homePct || (45 + (i % 5) * 4),
-            drawPct: f.drawPct || 30,
-          }))
-        : sportpesaMegaLive;
-
-      betikaMidweekMatches = betikaMidweekMirror.fixtures.length > 0
-        ? betikaMidweekMirror.fixtures.map((f, i) => ({
-            home: f.home,
-            away: f.away,
-            competition: f.competition,
-            kickoff: f.kickoff,
-            homePct: f.homePct || (42 + (i % 6) * 3),
-            drawPct: f.drawPct || 30,
-          }))
-        : betikaMidweekLive;
-    }
-
-    const updatedMega = makeJackpotFromLive(
-      'sp-mega-live',
-      'SportPesa',
-      'Mega Jackpot Pro',
-      '17 Games · Live Mirrored',
-      'open',
-      JACKPOT_ENTRY_FEE,
-      spMegaMirror.prizeMoney,
-      `Begins: ${spMegaMirror.startTime}`,
-      12480,
-      spMegaMatches,
-      spMegaMirror.syncedAt,
-      16
-    );
-
-    const updatedMidweek = makeJackpotFromLive(
-      'bet-midweek-live',
-      'Betika',
-      'Midweek Jackpot',
-      '15 Games · Live Mirrored',
-      'open',
-      JACKPOT_ENTRY_FEE,
-      betikaMidweekMirror.prizeMoney,
-      `Begins: ${betikaMidweekMirror.startTime}`,
-      9840,
-      betikaMidweekMatches,
-      betikaMidweekMirror.syncedAt,
-      20
-    );
-
-    const spIdx = activeJackpots.findIndex((j) => j.id === 'sp-mega-live');
-    if (spIdx >= 0) {
-      activeJackpots[spIdx] = updatedMega;
-    }
-
-    const betIdx = activeJackpots.findIndex((j) => j.id === 'bet-midweek-live');
-    if (betIdx >= 0) {
-      activeJackpots[betIdx] = updatedMidweek;
-    }
-
-    deduplicateJackpots();
-    emitJackpotsChange();
-  } catch (err) {
-    console.warn('Sync jackpot mirror error:', err);
-  }
+  // Jackpot consensus rooms are entered and managed manually by admin
+  // Preserve admin custom jackpot rooms without automated API override
+  purgeOldJackpots();
+  emitJackpotsChange();
 }

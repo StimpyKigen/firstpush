@@ -1,5 +1,6 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useSyncExternalStore } from 'react';
 import { getCombinedBuilderFixtures, type BuilderFixture } from './builderFixtures';
+import { subscribeToFreeMatches, getFreeMatchesSnapshot } from './freeMatches';
 import { useBetSlipStore } from './betSlipStore';
 import { useCurrentUser } from './authStore';
 import { showToast } from './notificationStore';
@@ -29,7 +30,8 @@ export function useBetBuilder(onPublished?: () => void) {
   const [bookieCode, setBookieCode] = useState('');
   const [bookieLink, setBookieLink] = useState('');
 
-  const fixtures = useMemo(() => getCombinedBuilderFixtures(), []);
+  const freeSnap = useSyncExternalStore(subscribeToFreeMatches, getFreeMatchesSnapshot, getFreeMatchesSnapshot);
+  const fixtures = useMemo(() => getCombinedBuilderFixtures(), [freeSnap]);
 
   // Filter fixtures
   const filteredFixtures = useMemo(() => {
