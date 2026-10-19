@@ -16,7 +16,7 @@ export const NAV_LINKS: NavLinkItem[] = [
   { to: '/free', label: 'Free Matches', icon: Unlock },
   { to: '/slips', label: 'Bet Builder', icon: Dices },
   { to: '/p2p', label: 'P2P Bets', icon: Swords, soon: true },
-  { to: '/leaderboard', label: 'Leaderboards', icon: Trophy },
+  { to: '/leaderboard', label: 'Jackpot Room', icon: Trophy },
 ];
 
 /** Consolidates the store reads Navbar and its desktop/mobile presentations need. */

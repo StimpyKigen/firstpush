@@ -104,6 +104,7 @@ function AnimatedRoutes() {
             <Route path="/free" element={<FreeMatches />} />
             <Route path="/free/:id" element={<FreeMatchRoom />} />
             <Route path="/leaderboard" element={<Leaderboard />} />
+            <Route path="/jackpot" element={<Leaderboard />} />
             <Route path="/how-it-works" element={<HowItWorks />} />
             <Route path="/wallet" element={<WalletPage />} />
             <Route path="/auth" element={<Auth />} />

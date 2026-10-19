@@ -13,6 +13,9 @@ export default function Navbar() {
   const [open, setOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const [adminModalOpen, setAdminModalOpen] = useState(false);
+  const isAuthPage = location.pathname.startsWith('/auth') || location.pathname === '/login';
+  const isProfilePage = location.pathname.startsWith('/profile');
+  const hideMobileMenu = isAuthPage || (Boolean(currentUser) && isProfilePage);
 
   // Close menus on route change
   useEffect(() => {
@@ -78,13 +81,15 @@ export default function Navbar() {
             onLogout={handleLogout}
           />
 
-          <MobileHeaderControls
-            open={open}
-            setOpen={setOpen}
-          />
+          {!hideMobileMenu && (
+            <MobileHeaderControls
+              open={open}
+              setOpen={setOpen}
+            />
+          )}
         </div>
 
-        {open && (
+        {!hideMobileMenu && open && (
           <MobileMenuPanel
             links={links}
             pathname={location.pathname}
@@ -98,7 +103,7 @@ export default function Navbar() {
       </header>
 
       {/* Mobile menu backdrop: blocks scroll and interaction on everything behind the menu */}
-      {open && (
+      {!hideMobileMenu && open && (
         <div
           className="fixed inset-0 top-16 z-40 bg-black/20 backdrop-blur-[1px] lg:hidden"
           onClick={() => setOpen(false)}

@@ -26,7 +26,7 @@ export default function MobileBottomNav({ pathname, builderLegsCount, currentUse
     { to: '/', label: 'Home', icon: Home, isActive: pathname === '/' },
     { to: '/free', label: 'Matches', icon: Unlock, isActive: pathname.startsWith('/free') },
     { to: '/slips', label: 'Slips', icon: Dices, isActive: pathname.startsWith('/slips'), badge: builderLegsCount },
-    { to: '/leaderboard', label: 'Ranks', icon: Trophy, isActive: pathname.startsWith('/leaderboard') },
+    { to: '/leaderboard', label: 'Jackpot', icon: Trophy, isActive: pathname.startsWith('/leaderboard') || pathname.startsWith('/jackpot') },
     {
       to: currentUser ? '/profile' : '/auth',
       label: currentUser ? 'Profile' : 'Log In',

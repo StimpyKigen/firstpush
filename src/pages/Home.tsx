@@ -1,48 +1,11 @@
-import { useMemo, useState, useSyncExternalStore } from 'react';
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Search, Lock, ArrowRight, SlidersHorizontal, Flame, Archive, CheckCircle2 } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 import SeoHead from '../components/SeoHead';
-import { subscribeToJackpots, getJackpotsSnapshot } from '../lib/mockData';
-import { isAdminUser, useCurrentUser } from '../lib/authStore';
-import type { Bookie, RoomStatus } from '../lib/types';
-import JackpotCard from '../components/JackpotCard';
-import JackpotAdminModal from '../components/JackpotAdminModal';
-import { SkeletonImage, JackpotGridSkeleton } from '../components/skeleton';
-
-const bookies: (Bookie | 'All')[] = ['All', 'SportPesa', 'Betika', 'Odibets', 'Mozzart'];
+import { SkeletonImage } from '../components/skeleton';
 
 export default function Home() {
-  const [bookie, setBookie] = useState<Bookie | 'All'>('All');
-  const [status, setStatus] = useState<RoomStatus | 'All'>('All');
-  const [query, setQuery] = useState('');
-  const [viewTab, setViewTab] = useState<'active' | 'archive'>('active');
   const [heroSlide, setHeroSlide] = useState(0);
-  const [isAdminModalOpen, setIsAdminModalOpen] = useState(false);
-  const currentUser = useCurrentUser();
-  const isAuthorizedAdmin = isAdminUser(currentUser);
-
-  const activeJackpots = useSyncExternalStore(subscribeToJackpots, getJackpotsSnapshot, getJackpotsSnapshot);
-
-  const activeRooms = useMemo(() => activeJackpots.filter((j) => j.status !== 'settled'), [activeJackpots]);
-  const archivedRooms = useMemo(() => activeJackpots.filter((j) => j.status === 'settled'), [activeJackpots]);
-
-  const statusOptions: (RoomStatus | 'All')[] = useMemo(() => {
-    if (viewTab === 'active') {
-      return ['All', 'open', 'locked'];
-    }
-    return ['All', 'settled'];
-  }, [viewTab]);
-
-  const filtered = useMemo(() => {
-    return activeJackpots.filter((j) => {
-      if (viewTab === 'active' && j.status === 'settled') return false;
-      if (viewTab === 'archive' && j.status !== 'settled') return false;
-      if (bookie !== 'All' && j.bookie !== bookie) return false;
-      if (status !== 'All' && j.status !== status) return false;
-      if (query && !`${j.name} ${j.bookie} ${j.gameweek}`.toLowerCase().includes(query.toLowerCase())) return false;
-      return true;
-    });
-  }, [activeJackpots, viewTab, bookie, status, query]);
 
   return (
     <div className="bg-[#FFFFF0] text-slate-900">
@@ -133,13 +96,13 @@ export default function Home() {
               </p>
 
               <div className="flex flex-wrap items-center gap-3 mt-8">
-                <a
-                  href="#rooms"
+                <Link
+                  to="/leaderboard"
                   className="btn-primary"
                 >
                   <span>Jackpot rooms</span>
                   <ArrowRight size={15} />
-                </a>
+                </Link>
                 <Link
                   to="/free"
                   className="btn-secondary"
@@ -190,211 +153,6 @@ export default function Home() {
           </div>
         </div>
       </section>
-
-      {/* =========================================================================
-          JACKPOT ROOMS & ARCHIVE ARENA (CORE FUNCTIONALITY)
-          Clean white cards with real mockData, filters, search, and admin controls
-          ========================================================================= */}
-      <section id="rooms" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-8">
-          <div>
-            <h2 className="font-display font-black text-2xl sm:text-3xl lg:text-4xl text-slate-900 flex items-center gap-2.5">
-              <Lock size={22} className="text-[#006C54]" />
-              <span>Jackpot Consensus Rooms</span>
-            </h2>
-            <p className="text-xs sm:text-sm text-slate-500 mt-1">
-              {viewTab === 'active'
-                ? 'Showing unplayed and ongoing jackpot rooms. Settled rooms are automatically archived.'
-                : 'Jackpot Archives: Review completed rooms, final winning slips, and historical leaderboards.'}
-            </p>
-          </div>
-
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-            {isAuthorizedAdmin && (
-              <button
-                onClick={() => setIsAdminModalOpen(true)}
-                className="h-10 px-4 rounded-md bg-white hover:bg-slate-50 border border-slate-300 text-slate-800 text-xs font-black uppercase tracking-wider inline-flex items-center gap-2 active:scale-95 transition-all shadow-2xs cursor-pointer"
-              >
-                <SlidersHorizontal size={14} className="text-[#006C54]" />
-                <span>Jackpot Admin Console</span>
-              </button>
-            )}
-
-            <div className="relative">
-              <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
-              <input
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                placeholder="Search rooms..."
-                className="bg-white border border-slate-200 rounded-full pl-9 pr-4 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#006C54] w-full sm:w-64 shadow-xs transition-all"
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* View Mode Navigation Tabs: Active vs Archive */}
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 mb-6 bg-white border border-slate-200 rounded-2xl p-2 shadow-xs">
-          <div className="flex items-center gap-2 min-w-0">
-            <button
-              onClick={() => {
-                setViewTab('active');
-                setStatus('All');
-              }}
-              className={`px-5 py-2 rounded-xl font-display font-black text-xs sm:text-sm flex items-center gap-2 transition-all active:scale-95 ${
-                viewTab === 'active'
-                  ? 'bg-[#006C54] text-white shadow-xs'
-                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
-              }`}
-            >
-              <Flame size={15} />
-              <span>Active Rooms</span>
-              <span className={`text-[10px] px-2 py-0.5 rounded-full font-mono font-bold ${
-                viewTab === 'active' ? 'bg-white text-[#006C54]' : 'bg-slate-100 text-slate-600'
-              }`}>
-                {activeRooms.length}
-              </span>
-            </button>
-
-            <button
-              onClick={() => {
-                setViewTab('archive');
-                setStatus('All');
-              }}
-              className={`px-5 py-2 rounded-xl font-display font-black text-xs sm:text-sm flex items-center gap-2 transition-all active:scale-95 ${
-                viewTab === 'archive'
-                  ? 'bg-[#006C54] text-white shadow-xs'
-                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
-              }`}
-            >
-              <Archive size={15} />
-              <span>Archives</span>
-              <span className={`text-[10px] px-2 py-0.5 rounded-full font-mono font-bold ${
-                viewTab === 'archive' ? 'bg-white text-[#006C54]' : 'bg-slate-100 text-slate-600'
-              }`}>
-                {archivedRooms.length}
-              </span>
-            </button>
-          </div>
-
-          <div className="text-xs text-slate-500 px-3 py-1 flex items-center gap-2 font-mono shrink-0">
-            {viewTab === 'active' ? (
-              <span className="flex items-center gap-1.5 text-emerald-700 font-bold">
-                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                <span>Showing live &amp; upcoming rooms</span>
-              </span>
-            ) : (
-              <span className="flex items-center gap-1.5 text-slate-600 font-bold">
-                <CheckCircle2 size={13} className="text-emerald-600" />
-                <span>Showing completed &amp; settled archives</span>
-              </span>
-            )}
-          </div>
-        </div>
-
-        {/* Bookie Filter Pills */}
-        <div className="flex items-center gap-2 mb-3.5 overflow-x-auto no-scrollbar pb-1 -mx-4 px-4 sm:mx-0 sm:px-0 flex-nowrap sm:flex-wrap">
-          {bookies.map((b) => (
-            <button
-              key={b}
-              onClick={() => setBookie(b)}
-              className={`px-4 py-2 rounded-full text-xs font-bold border transition-all shrink-0 whitespace-nowrap active:scale-95 ${
-                bookie === b
-                  ? 'bg-[#006C54] border-[#006C54] text-white shadow-xs font-black'
-                  : 'border-slate-200 text-slate-600 bg-white hover:border-slate-300 hover:bg-slate-50'
-              }`}
-            >
-              {b}
-            </button>
-          ))}
-        </div>
-
-        {/* Status Filter Pills */}
-        <div className="flex items-center gap-2 mb-8 overflow-x-auto no-scrollbar pb-1 -mx-4 px-4 sm:mx-0 sm:px-0 flex-nowrap sm:flex-wrap">
-          {statusOptions.map((s) => (
-            <button
-              key={s}
-              onClick={() => setStatus(s)}
-              className={`px-4 py-2 rounded-full text-xs font-bold border capitalize transition-all shrink-0 whitespace-nowrap active:scale-95 ${
-                status === s
-                  ? 'bg-slate-900 border-slate-900 text-white shadow-xs font-black'
-                  : 'border-slate-200 text-slate-600 bg-white hover:border-slate-300 hover:bg-slate-50'
-              }`}
-            >
-              {s === 'All' ? (viewTab === 'active' ? 'All Active' : 'All Settled') : s}
-            </button>
-          ))}
-        </div>
-
-        {/* Archive Banner when in Archive mode */}
-        {viewTab === 'archive' && (
-          <div className="bg-white border border-slate-200 rounded-2xl p-5 mb-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-sm animate-rise">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center text-slate-700 shrink-0">
-                <Archive size={20} />
-              </div>
-              <div>
-                <h3 className="font-display font-black text-base text-slate-900">Jackpot Archives &amp; Settlement History</h3>
-                <p className="text-xs text-slate-500 mt-0.5 leading-relaxed">
-                  Settled jackpot rooms are retained for up to 90 days. You can review verified crowd accuracy, winning leg slips, and historical gameweek leaderboards.
-                </p>
-              </div>
-            </div>
-            <button
-              onClick={() => {
-                setViewTab('active');
-                setStatus('All');
-              }}
-              className="px-4 py-2 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-800 text-xs font-bold transition-all shrink-0"
-            >
-              ← Back to Active Rooms
-            </button>
-          </div>
-        )}
-
-        {activeJackpots.length === 0 ? (
-          <JackpotGridSkeleton count={6} />
-        ) : filtered.length === 0 ? (
-          <div className="text-center py-16 px-4 bg-white border border-slate-200 rounded-2xl max-w-xl mx-auto space-y-4 shadow-xs">
-            <span className="w-12 h-12 rounded-2xl bg-emerald-50 text-[#006C54] flex items-center justify-center mx-auto">
-              <SlidersHorizontal size={24} />
-            </span>
-            <div>
-              <h3 className="font-display font-black text-lg text-slate-900">
-                {viewTab === 'active' ? 'No Active Jackpot Rooms Found' : 'No Archived Rooms Found'}
-              </h3>
-              <p className="text-xs text-slate-500 mt-1 max-w-md mx-auto">
-                {viewTab === 'active'
-                  ? 'All active jackpot rooms have concluded or are pending publication. You can check past results in the Archives!'
-                  : 'No settled jackpot rooms match your search or filter selection.'}
-              </p>
-            </div>
-            {viewTab === 'active' && archivedRooms.length > 0 && (
-              <button
-                onClick={() => {
-                  setViewTab('archive');
-                  setStatus('All');
-                }}
-                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-[#006C54] hover:bg-[#005441] text-white font-bold text-xs shadow-xs transition-all"
-              >
-                <Archive size={15} />
-                <span>Browse {archivedRooms.length} Archived Rooms</span>
-              </button>
-            )}
-          </div>
-        ) : (
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filtered.map((j, i) => (
-              <JackpotCard key={j.id} jackpot={j} index={i} />
-            ))}
-          </div>
-        )}
-
-      </section>
-
-      <JackpotAdminModal
-        isOpen={isAdminModalOpen}
-        onClose={() => setIsAdminModalOpen(false)}
-      />
     </div>
   );
 }
