@@ -8,6 +8,8 @@
 
 import fs from 'fs';
 import path from 'path';
+import os from 'os';
+import { BUNDLED_SPORTS_CATALOGUE } from '../data/bundledSportsCatalogue';
 
 export interface DiscoveredLeague {
   league: string;
@@ -150,25 +152,48 @@ export function getLocalDateStringEAT(dateInput: Date | string | number = new Da
 }
 
 /**
- * Load initial state from persistent disk cache
+ * Load initial state from bundled catalogue and persistent disk cache
  */
 function loadDiskCache(): void {
+  // 1. Immediately seed in-memory store from bundled catalogue (guarantees 0ms cold-start response in serverless)
+  if (discoveredLeagues.length === 0 && Array.isArray(BUNDLED_SPORTS_CATALOGUE.leagues)) {
+    discoveredLeagues = [...BUNDLED_SPORTS_CATALOGUE.leagues] as unknown as DiscoveredLeague[];
+  }
+  if (fixturesStore.size === 0 && Array.isArray(BUNDLED_SPORTS_CATALOGUE.fixtures)) {
+    (BUNDLED_SPORTS_CATALOGUE.fixtures as unknown as MarketFixture[]).forEach((f) => {
+      if (f && f.id) {
+        fixturesStore.set(f.id, f);
+      }
+    });
+    lastSyncTimestamp = new Date().toISOString();
+  }
+
+  // 2. Hydrate from runtime disk cache if present
   try {
-    if (!fs.existsSync(CACHE_DIR)) {
-      fs.mkdirSync(CACHE_DIR, { recursive: true });
+    const isVercel = Boolean(process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME);
+    const targetDir = isVercel ? path.join(os.tmpdir(), '.mshindi-cache') : CACHE_DIR;
+
+    if (!fs.existsSync(targetDir)) {
+      try {
+        fs.mkdirSync(targetDir, { recursive: true });
+      } catch {
+        // Safe to ignore in strict read-only environments
+      }
       return;
     }
 
-    if (fs.existsSync(LEAGUES_CACHE_FILE)) {
-      const leaguesRaw = fs.readFileSync(LEAGUES_CACHE_FILE, 'utf-8');
+    const leaguesFile = path.join(targetDir, 'sports_leagues.json');
+    if (fs.existsSync(leaguesFile)) {
+      const leaguesRaw = fs.readFileSync(leaguesFile, 'utf-8');
       const parsedLeagues = JSON.parse(leaguesRaw);
       if (Array.isArray(parsedLeagues) && parsedLeagues.length > 0) {
         discoveredLeagues = parsedLeagues;
       }
     }
 
-    if (fs.existsSync(FIXTURES_CACHE_FILE)) {
-      const fixturesRaw = fs.readFileSync(FIXTURES_CACHE_FILE, 'utf-8');
+    const fixturesFile = path.join(targetDir, 'sports_fixtures.json');
+    if (fs.existsSync(fixturesFile)) {
+      const fixturesRaw = fs.readFileSync(fixturesFile, 'utf-8');
       const parsedFixtures = JSON.parse(fixturesRaw);
       if (Array.isArray(parsedFixtures) && parsedFixtures.length > 0) {
         parsedFixtures.forEach((f: MarketFixture) => {
@@ -180,7 +205,7 @@ function loadDiskCache(): void {
       }
     }
   } catch (err) {
-    console.warn('Could not load sports disk cache:', err);
+    // Disk cache read is optional since bundled catalogue is always seeded
   }
 }
 
@@ -189,20 +214,35 @@ function loadDiskCache(): void {
  */
 function saveDiskCache(): void {
   try {
-    if (!fs.existsSync(CACHE_DIR)) {
-      fs.mkdirSync(CACHE_DIR, { recursive: true });
+    const isVercel = Boolean(process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME);
+    const targetDir = isVercel ? path.join(os.tmpdir(), '.mshindi-cache') : CACHE_DIR;
+
+    if (!fs.existsSync(targetDir)) {
+      try {
+        fs.mkdirSync(targetDir, { recursive: true });
+      } catch {
+        return;
+      }
     }
 
     if (discoveredLeagues.length > 0) {
-      fs.writeFileSync(LEAGUES_CACHE_FILE, JSON.stringify(discoveredLeagues, null, 2), 'utf-8');
+      try {
+        fs.writeFileSync(path.join(targetDir, 'sports_leagues.json'), JSON.stringify(discoveredLeagues, null, 2), 'utf-8');
+      } catch {
+        // Ignore write failures in read-only environments
+      }
     }
 
     if (fixturesStore.size > 0) {
       const flat = Array.from(fixturesStore.values());
-      fs.writeFileSync(FIXTURES_CACHE_FILE, JSON.stringify(flat, null, 2), 'utf-8');
+      try {
+        fs.writeFileSync(path.join(targetDir, 'sports_fixtures.json'), JSON.stringify(flat, null, 2), 'utf-8');
+      } catch {
+        // Ignore write failures in read-only environments
+      }
     }
-  } catch (err) {
-    console.warn('Could not save sports disk cache:', err);
+  } catch {
+    // Non-fatal
   }
 }
 
@@ -528,12 +568,14 @@ export function queryMarketFixtures(options: {
 }
 
 /**
- * Returns complete rolling catalogue for client hydration (with immediate cache return)
+ * Returns complete rolling catalogue for client hydration (instant 0ms response)
  */
 export async function getDailyMarketHighlights(): Promise<MarketFixture[]> {
-  // If store is completely empty, perform initial eager discovery & sync
+  // If store is completely empty, ensure seed cache is loaded
   if (fixturesStore.size === 0) {
-    await executeRollingSyncCycle();
+    loadDiskCache();
+    // Trigger background sync cycle without blocking client response
+    void executeRollingSyncCycle().catch(() => {});
   }
 
   return queryMarketFixtures({ scope: 'all' });
