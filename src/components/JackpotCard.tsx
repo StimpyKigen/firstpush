@@ -110,11 +110,11 @@ export default function JackpotCard({ jackpot, index }: { jackpot: Jackpot; inde
         >
           {unlocked ? (
             <>
-              <Unlock size={14} /> Unlocked: View Picks &rarr;
+              <Unlock size={14} /> Unlocked: View Picks
             </>
           ) : (
             <>
-              <Lock size={14} /> Unlock for Ksh {jackpot.entryFee} &rarr;
+              <Lock size={14} /> Unlock for Ksh {jackpot.entryFee}
             </>
           )}
         </div>

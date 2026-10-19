@@ -3,7 +3,7 @@ import { useSearchParams, Link } from 'react-router-dom';
 import {
   Trophy, Crown, Medal, Flame, Clock, CheckCircle2, Users, Search,
   Filter, Target, ExternalLink,
-  Layers, ChevronUp, ChevronDown, Lock, SlidersHorizontal, Archive
+  Layers, ChevronUp, ChevronDown, SlidersHorizontal, Archive
 } from 'lucide-react';
 import SeoHead from '../components/SeoHead';
 import { subscribeToJackpots, getJackpotsSnapshot } from '../lib/mockData';
@@ -184,9 +184,61 @@ export default function Leaderboard() {
       />
 
       {/* =========================================================================
-          TOP SEGMENTED PILL SWITCHER: JACKPOT ROOMS (DOMINANT) vs LEADERBOARD
+          TOP SEGMENTED SWITCHER: JACKPOT ROOMS (DOMINANT) vs LEADERBOARD
           ========================================================================= */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      {/* Mobile View: Minimalist Clean Bar (Inspired by Picture 1) */}
+      <div className="block sm:hidden bg-white border border-slate-200 rounded-xl p-2 shadow-xs space-y-2">
+        <div className="grid grid-cols-2 divide-x divide-slate-100 text-center">
+          <button
+            type="button"
+            onClick={() => handleTabChange('rooms')}
+            className={`py-1.5 px-2 text-xs flex items-center justify-center gap-1.5 transition-colors ${
+              mainTab === 'rooms'
+                ? 'text-[#006C54] font-black'
+                : 'text-slate-500 font-semibold hover:text-slate-700'
+            }`}
+          >
+            <span>Jackpot Rooms</span>
+            <span className={`text-[10px] font-mono px-1.5 py-0.5 rounded-full font-bold ${
+              mainTab === 'rooms' ? 'bg-emerald-50 text-[#006C54]' : 'bg-slate-100 text-slate-500'
+            }`}>
+              {activeRooms.length}
+            </span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => handleTabChange('leaderboard')}
+            className={`py-1.5 px-2 text-xs flex items-center justify-center gap-1.5 transition-colors ${
+              mainTab === 'leaderboard'
+                ? 'text-[#006C54] font-black'
+                : 'text-slate-500 font-semibold hover:text-slate-700'
+            }`}
+          >
+            <span>Leaderboards &amp; Ranks</span>
+          </button>
+        </div>
+
+        {/* Compact Mobile Stats Strip */}
+        <div className="border-t border-slate-100 pt-1.5 px-1 flex items-center justify-between text-[11px]">
+          <div className="flex items-center gap-1">
+            <span className="text-slate-400 font-medium">Joined:</span>
+            <strong className="text-slate-800 font-bold">{totalRoomsJoined}</strong>
+          </div>
+          <div className="w-px h-3 bg-slate-200" />
+          <div className="flex items-center gap-1">
+            <span className="text-slate-400 font-medium">Accuracy:</span>
+            <strong className="text-[#006C54] font-bold">{overallAccuracy}%</strong>
+          </div>
+          <div className="w-px h-3 bg-slate-200" />
+          <div className="flex items-center gap-0.5 text-[#8A6500] font-bold">
+            <span>{userStats.stars}★</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Desktop View: Pill Switcher & Stats (sm: and up) */}
+      <div className="hidden sm:flex sm:flex-row sm:items-center justify-between gap-4">
         <div className="inline-flex items-center p-1 bg-[#F5F5E4] border border-[#D4D4C0] rounded-full shadow-2xs self-start">
           <button
             type="button"
@@ -248,9 +300,8 @@ export default function Leaderboard() {
         <div className="space-y-6 animate-rise">
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
             <div>
-              <h1 className="font-display font-black text-2xl sm:text-3xl lg:text-4xl text-slate-900 flex items-center gap-2.5">
-                <Lock size={22} className="text-[#006C54]" />
-                <span>Jackpot Consensus Rooms</span>
+              <h1 className="font-display font-black text-2xl sm:text-3xl lg:text-4xl text-slate-900">
+                Jackpot Consensus Rooms
               </h1>
               <p className="text-xs sm:text-sm text-slate-500 mt-1">
                 {roomViewTab === 'active'
@@ -282,24 +333,24 @@ export default function Leaderboard() {
             </div>
           </div>
 
-          {/* View Mode Navigation Tabs: Active vs Archive */}
+          {/* View Mode Navigation Tabs: Active vs Archive (Text Highlight Without Green Pill) */}
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-white border border-slate-200 rounded-2xl p-2 shadow-xs">
-            <div className="flex items-center gap-2 min-w-0">
+            <div className="flex items-center gap-1 min-w-0">
               <button
                 onClick={() => {
                   setRoomViewTab('active');
                   setRoomStatus('All');
                 }}
-                className={`px-5 py-2 rounded-xl font-display font-black text-xs sm:text-sm flex items-center gap-2 transition-all active:scale-95 ${
+                className={`px-4 py-2 font-display text-xs sm:text-sm flex items-center gap-2 transition-all active:scale-95 ${
                   roomViewTab === 'active'
-                    ? 'bg-[#006C54] text-white shadow-xs'
-                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+                    ? 'text-[#006C54] font-black'
+                    : 'text-slate-500 font-bold hover:text-slate-800'
                 }`}
               >
-                <Flame size={15} />
+                <Flame size={15} className={roomViewTab === 'active' ? 'text-[#006C54]' : 'text-slate-400'} />
                 <span>Active Rooms</span>
                 <span className={`text-[10px] px-2 py-0.5 rounded-full font-mono font-bold ${
-                  roomViewTab === 'active' ? 'bg-white text-[#006C54]' : 'bg-slate-100 text-slate-600'
+                  roomViewTab === 'active' ? 'bg-emerald-50 text-[#006C54]' : 'bg-slate-100 text-slate-500'
                 }`}>
                   {activeRooms.length}
                 </span>
@@ -310,16 +361,16 @@ export default function Leaderboard() {
                   setRoomViewTab('archive');
                   setRoomStatus('All');
                 }}
-                className={`px-5 py-2 rounded-xl font-display font-black text-xs sm:text-sm flex items-center gap-2 transition-all active:scale-95 ${
+                className={`px-4 py-2 font-display text-xs sm:text-sm flex items-center gap-2 transition-all active:scale-95 ${
                   roomViewTab === 'archive'
-                    ? 'bg-[#006C54] text-white shadow-xs'
-                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+                    ? 'text-[#006C54] font-black'
+                    : 'text-slate-500 font-bold hover:text-slate-800'
                 }`}
               >
-                <Archive size={15} />
+                <Archive size={15} className={roomViewTab === 'archive' ? 'text-[#006C54]' : 'text-slate-400'} />
                 <span>Archives</span>
                 <span className={`text-[10px] px-2 py-0.5 rounded-full font-mono font-bold ${
-                  roomViewTab === 'archive' ? 'bg-white text-[#006C54]' : 'bg-slate-100 text-slate-600'
+                  roomViewTab === 'archive' ? 'bg-emerald-50 text-[#006C54]' : 'bg-slate-100 text-slate-500'
                 }`}>
                   {archivedRooms.length}
                 </span>
@@ -447,9 +498,8 @@ export default function Leaderboard() {
         <div className="space-y-6 animate-rise">
           <div className="bg-white border border-slate-200 rounded-2xl p-6 sm:p-7 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-5 shadow-xs">
             <div>
-              <h2 className="font-display font-black text-2xl sm:text-3xl text-slate-900 tracking-tight flex items-center gap-2.5">
-                <Trophy size={24} className="text-[#EEAA04]" />
-                <span>Room Standings &amp; Rankings</span>
+              <h2 className="font-display font-black text-2xl sm:text-3xl text-slate-900 tracking-tight">
+                Room Standings &amp; Rankings
               </h2>
               <p className="text-xs sm:text-sm text-slate-600 mt-1 max-w-xl leading-relaxed">
                 Independent standings per jackpot room. Select any room to expand its rankings, participant slips &amp; live leg hits.
@@ -601,27 +651,30 @@ export default function Leaderboard() {
                   >
                     {/* Minimalist Card Header */}
                     <div className="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                      <div className="min-w-0 space-y-1">
-                        <div className="flex items-center gap-2 flex-wrap text-xs">
-                          <span className="text-[11px] font-black uppercase tracking-wider text-slate-800">
-                            {jackpot.bookie}
-                          </span>
+                      <div className="min-w-0 space-y-1 flex-1">
+                        <div className="flex items-center justify-between gap-2">
+                          <div className="flex items-center gap-2 flex-wrap text-xs">
+                            <span className="text-[11px] font-black uppercase tracking-wider text-slate-800">
+                              {jackpot.bookie}
+                            </span>
 
-                          <span className="text-slate-300">·</span>
+                            {userPerf.participated && (
+                              <>
+                                <span className="text-slate-300">·</span>
+                                <span className="text-[11px] font-black uppercase tracking-wider text-[#006C54] flex items-center gap-1">
+                                  <Target size={11} /> My Picked Room
+                                </span>
+                              </>
+                            )}
+                          </div>
 
-                          <span className="text-[11px] font-bold uppercase tracking-wider flex items-center gap-1.5 text-slate-600">
-                            <span className={`w-1.5 h-1.5 rounded-full ${statusInfo.dotClass}`} />
-                            {statusInfo.label}
-                          </span>
-
-                          {userPerf.participated && (
-                            <>
-                              <span className="text-slate-300">·</span>
-                              <span className="text-[11px] font-black uppercase tracking-wider text-[#006C54] flex items-center gap-1">
-                                <Target size={11} /> My Picked Room
-                              </span>
-                            </>
-                          )}
+                          {/* Mobile Right-Side Status Indicator */}
+                          <div className="sm:hidden">
+                            <span className="text-[11px] font-bold uppercase tracking-wider flex items-center gap-1.5 text-slate-600">
+                              <span className={`w-1.5 h-1.5 rounded-full ${statusInfo.dotClass}`} />
+                              {statusInfo.label}
+                            </span>
+                          </div>
                         </div>
 
                         <h3 className="font-display font-black text-base sm:text-lg text-slate-900 truncate flex items-center gap-1.5 uppercase">
@@ -634,8 +687,16 @@ export default function Leaderboard() {
                         </p>
                       </div>
 
-                      {/* Right Side Prize Pool & Custom Athletic Buttons */}
-                      <div className="flex items-center justify-between sm:justify-end gap-3 shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-100">
+                      {/* Right Side Prize Pool, Desktop Status & Custom Side-by-Side Text Buttons */}
+                      <div className="flex items-center justify-between sm:justify-end gap-3 sm:gap-4 shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-100">
+                        {/* Desktop Status Indicator (Right Side) */}
+                        <div className="hidden sm:block">
+                          <span className="text-[11px] font-bold uppercase tracking-wider flex items-center gap-1.5 text-slate-600">
+                            <span className={`w-1.5 h-1.5 rounded-full ${statusInfo.dotClass}`} />
+                            {statusInfo.label}
+                          </span>
+                        </div>
+
                         <div className="text-left sm:text-right">
                           <span className="text-[9px] uppercase font-black text-slate-400 tracking-wider">Bookie Jackpot</span>
                           <p className="font-display font-black text-[#8A6500] text-base sm:text-lg leading-none">
@@ -643,21 +704,27 @@ export default function Leaderboard() {
                           </p>
                         </div>
 
-                        <div className="flex items-center gap-2">
+                        {/* Side-by-Side Text Buttons with No Pill Background */}
+                        <div className="flex items-center gap-3">
                           <Link
                             to={`/room/${jackpot.id}`}
-                            className="h-9 px-3.5 rounded-full bg-[#006C54] hover:bg-[#005441] text-white font-bold text-xs flex items-center gap-1.5 transition-all shadow-xs active:scale-95"
+                            className="text-xs font-bold text-slate-600 hover:text-[#006C54] flex items-center gap-1 transition-colors py-1"
                           >
                             <span>Enter Room</span>
                             <ExternalLink size={12} />
                           </Link>
 
                           <button
+                            type="button"
                             onClick={() => toggleRoomExpand(jackpot.id)}
-                            className="h-9 px-3.5 rounded-full bg-white hover:bg-slate-50 border border-slate-300 text-slate-800 text-xs font-bold transition-all flex items-center gap-1.5 shadow-2xs active:scale-95 cursor-pointer"
+                            className={`text-xs font-bold flex items-center gap-1 transition-colors cursor-pointer py-1 ${
+                              isExpanded
+                                ? 'text-[#006C54] font-black'
+                                : 'text-slate-600 hover:text-slate-900'
+                            }`}
                           >
                             <span>{isExpanded ? 'Hide' : 'Standings'}</span>
-                            {isExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+                            {isExpanded ? <ChevronUp size={14} className="text-[#006C54]" /> : <ChevronDown size={14} />}
                           </button>
                         </div>
                       </div>
