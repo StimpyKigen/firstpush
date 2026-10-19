@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Smartphone, Lock, AlertCircle, CheckCircle2, ArrowRight, Eye, EyeOff } from 'lucide-react';
+import { Smartphone, Lock, AlertCircle, CheckCircle2, ArrowRight, Eye, EyeOff, Check } from 'lucide-react';
 import { useAuth, isValidPhone, normalizePhone } from '../lib/authStore';
 import { saveUserProfileToFirestore } from '../lib/firebasePhoneAuth';
 
@@ -12,11 +12,11 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSwitchToRegister }) => {
   const navigate = useNavigate();
   const logIn = useAuth((s) => s.logIn);
   const isPhoneRegistered = useAuth((s) => s.isPhoneRegistered);
-  const accounts = useAuth((s) => s.accounts);
 
   const [phone, setPhone] = useState('');
   const [pin, setPin] = useState('');
   const [showPin, setShowPin] = useState(false);
+  const [rememberMe, setRememberMe] = useState(true);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -60,18 +60,6 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSwitchToRegister }) => {
     setTimeout(() => {
       navigate('/');
     }, 800);
-  };
-
-  const handleDemoFill = () => {
-    // Fill demo account if available, or create quick demo credentials
-    if (accounts.length > 0) {
-      setPhone(accounts[0].phone);
-      setPin(accounts[0].pin);
-    } else {
-      setPhone('0743304579');
-      setPin('1234');
-    }
-    setError('');
   };
 
   return (
@@ -147,13 +135,18 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSwitchToRegister }) => {
         </div>
 
         <div className="form-aux-links">
-          <button
-            type="button"
-            onClick={handleDemoFill}
-            className="text-link demo-link"
-          >
-            Demo Fill
-          </button>
+          <label className="remember-me-label">
+            <input
+              type="checkbox"
+              checked={rememberMe}
+              onChange={(e) => setRememberMe(e.target.checked)}
+              className="sr-only"
+            />
+            <span className={`remember-me-box ${rememberMe ? 'checked' : ''}`} aria-hidden="true">
+              {rememberMe && <Check size={11} strokeWidth={3} />}
+            </span>
+            <span className="remember-me-text">Keep me logged in</span>
+          </label>
           <button
             type="button"
             onClick={onSwitchToRegister}
