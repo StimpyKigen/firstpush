@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import {
-  X, Search, UserPlus, UserCheck, Dices, Clapperboard
+  X, Search, UserPlus, UserCheck, Dices
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import SeoHead from '../components/SeoHead';
@@ -17,6 +17,28 @@ import PunterProfileModal from '../components/PunterProfileModal';
 import InviteModal from '../components/InviteModal';
 import BackNavButton from '../components/BackNavButton';
 import { showToast } from '../lib/notificationStore';
+
+function ClapperPlayIcon({ className, size = 16 }: { className?: string; size?: number }) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+    >
+      <path d="M20.2 6 3 11l-.9-2.4c-.4-1.1.2-2.4 1.3-2.8l13.7-4.9c1.1-.4 2.4.2 2.8 1.3Z" />
+      <path d="m6.2 5.3 3.1 3.9" />
+      <path d="m12.4 3.4 3.1 4" />
+      <path d="M3 11h18v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z" />
+      <polygon points="10.5 13.5 15 16 10.5 18.5" fill="currentColor" stroke="none" />
+    </svg>
+  );
+}
 
 
 
@@ -74,41 +96,94 @@ export default function BetSlipRoom() {
         </p>
       </div>
 
-      {/* Main Mode Tabs (ESPN Pill Navigation) */}
-      <div className="flex items-center justify-center p-1.5 bg-white border border-slate-300 rounded-full max-w-xl mx-auto sm:mx-0 mb-8 shadow-xs">
-        <button
-          onClick={() => setActiveTab('builder')}
-          className={`flex-1 py-2 px-4 rounded-full text-xs font-black uppercase tracking-wider transition-all flex items-center justify-center gap-2 active:scale-95 ${
-            activeTab === 'builder'
-              ? 'bg-[#006C54] text-white shadow-xs'
-              : 'text-slate-600 hover:text-slate-900'
-          }`}
-        >
-          <Dices size={15} />
-          Bet Builder
-        </button>
-        <button
-          onClick={() => setActiveTab('slips')}
-          className={`flex-1 py-2 px-4 rounded-full text-xs font-black uppercase tracking-wider transition-all flex items-center justify-center gap-2 active:scale-95 ${
-            activeTab === 'slips'
-              ? 'bg-[#006C54] text-white shadow-xs'
-              : 'text-slate-600 hover:text-slate-900'
-          }`}
-        >
-          <Clapperboard size={15} />
-          SlipFeed
-        </button>
-        <button
-          onClick={() => setActiveTab('punters')}
-          className={`flex-1 py-2 px-4 rounded-full text-xs font-black uppercase tracking-wider transition-all flex items-center justify-center gap-2 active:scale-95 ${
-            activeTab === 'punters'
-              ? 'bg-[#006C54] text-white shadow-xs'
-              : 'text-slate-600 hover:text-slate-900'
-          }`}
-        >
-          <Search size={15} />
-          Find Punters
-        </button>
+      {/* Main Mode Tabs (Floating Segmented Control Indicator) */}
+      <div
+        role="tablist"
+        aria-label="Slip room view modes"
+        className="relative flex items-center p-1 sm:p-1.5 bg-[#FAF9F5] border border-[#E5E3DC] rounded-full w-full max-w-md sm:max-w-xl mx-auto sm:mx-0 mb-8 shadow-[0_2px_8px_rgba(0,0,0,0.03)] select-none"
+      >
+        {/* Tab 1: Bet Builder */}
+        <div className="relative flex-1 flex items-center min-w-0">
+          <button
+            type="button"
+            role="tab"
+            aria-selected={activeTab === 'builder'}
+            onClick={() => setActiveTab('builder')}
+            className={`relative z-10 w-full flex items-center justify-center py-2 sm:py-2.5 px-1 min-[380px]:px-2.5 sm:px-4 rounded-full text-[11px] min-[360px]:text-[12px] min-[400px]:text-[13px] sm:text-sm font-bold tracking-tight transition-colors duration-150 cursor-pointer active:scale-[0.98] ${
+              activeTab === 'builder'
+                ? 'text-white'
+                : 'text-slate-800 hover:text-slate-950'
+            }`}
+          >
+            {activeTab === 'builder' && (
+              <motion.div
+                layoutId="activeSlipTabIndicator"
+                className="absolute inset-0 bg-[#00875A] rounded-full shadow-[0_1px_3px_rgba(0,108,84,0.3)]"
+                transition={{ type: 'spring', stiffness: 500, damping: 36 }}
+              />
+            )}
+            <span className="relative z-10 flex items-center justify-center gap-1 min-[380px]:gap-2 whitespace-nowrap truncate">
+              <Dices className="w-3.5 h-3.5 min-[380px]:w-4 min-[380px]:h-4 shrink-0 stroke-[2.2]" />
+              <span className="truncate">Bet Builder</span>
+            </span>
+          </button>
+          <div className="w-px h-4 min-[380px]:h-5 bg-[#E2DFD8] shrink-0 mx-0.5" aria-hidden="true" />
+        </div>
+
+        {/* Tab 2: SlipFeed */}
+        <div className="relative flex-1 flex items-center min-w-0">
+          <button
+            type="button"
+            role="tab"
+            aria-selected={activeTab === 'slips'}
+            onClick={() => setActiveTab('slips')}
+            className={`relative z-10 w-full flex items-center justify-center py-2 sm:py-2.5 px-1 min-[380px]:px-2.5 sm:px-4 rounded-full text-[11px] min-[360px]:text-[12px] min-[400px]:text-[13px] sm:text-sm font-bold tracking-tight transition-colors duration-150 cursor-pointer active:scale-[0.98] ${
+              activeTab === 'slips'
+                ? 'text-white'
+                : 'text-slate-800 hover:text-slate-950'
+            }`}
+          >
+            {activeTab === 'slips' && (
+              <motion.div
+                layoutId="activeSlipTabIndicator"
+                className="absolute inset-0 bg-[#00875A] rounded-full shadow-[0_1px_3px_rgba(0,108,84,0.3)]"
+                transition={{ type: 'spring', stiffness: 500, damping: 36 }}
+              />
+            )}
+            <span className="relative z-10 flex items-center justify-center gap-1 min-[380px]:gap-2 whitespace-nowrap truncate">
+              <ClapperPlayIcon className="w-3.5 h-3.5 min-[380px]:w-4 min-[380px]:h-4 shrink-0" size={16} />
+              <span className="truncate">SlipFeed</span>
+            </span>
+          </button>
+          <div className="w-px h-4 min-[380px]:h-5 bg-[#E2DFD8] shrink-0 mx-0.5" aria-hidden="true" />
+        </div>
+
+        {/* Tab 3: Find Punters */}
+        <div className="relative flex-1 flex items-center min-w-0">
+          <button
+            type="button"
+            role="tab"
+            aria-selected={activeTab === 'punters'}
+            onClick={() => setActiveTab('punters')}
+            className={`relative z-10 w-full flex items-center justify-center py-2 sm:py-2.5 px-1 min-[380px]:px-2.5 sm:px-4 rounded-full text-[11px] min-[360px]:text-[12px] min-[400px]:text-[13px] sm:text-sm font-bold tracking-tight transition-colors duration-150 cursor-pointer active:scale-[0.98] ${
+              activeTab === 'punters'
+                ? 'text-white'
+                : 'text-slate-800 hover:text-slate-950'
+            }`}
+          >
+            {activeTab === 'punters' && (
+              <motion.div
+                layoutId="activeSlipTabIndicator"
+                className="absolute inset-0 bg-[#00875A] rounded-full shadow-[0_1px_3px_rgba(0,108,84,0.3)]"
+                transition={{ type: 'spring', stiffness: 500, damping: 36 }}
+              />
+            )}
+            <span className="relative z-10 flex items-center justify-center gap-1 min-[380px]:gap-2 whitespace-nowrap truncate">
+              <Search className="w-3.5 h-3.5 min-[380px]:w-4 min-[380px]:h-4 shrink-0 stroke-[2.2]" />
+              <span className="truncate">Find Punters</span>
+            </span>
+          </button>
+        </div>
       </div>
 
       {/* TAB 1: BET BUILDER */}
