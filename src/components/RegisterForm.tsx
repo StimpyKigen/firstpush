@@ -11,7 +11,7 @@ interface RegisterFormProps {
   onSwitchToLogin?: () => void;
 }
 
-export const RegisterForm: React.FC<RegisterFormProps> = ({ onSwitchToLogin }) => {
+export const RegisterForm: React.FC<RegisterFormProps> = ({ onSwitchToLogin: _onSwitchToLogin }) => {
   const navigate = useNavigate();
   const signUp = useAuth((s) => s.signUp);
   const isPhoneRegistered = useAuth((s) => s.isPhoneRegistered);
@@ -224,13 +224,6 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onSwitchToLogin }) =
           <span className="terms-micro">
             By signing up you agree to MshindiRoom terms.
           </span>
-          <button
-            type="button"
-            onClick={onSwitchToLogin}
-            className="text-link mobile-only-switch"
-          >
-            Already registered?
-          </button>
         </div>
 
         <button

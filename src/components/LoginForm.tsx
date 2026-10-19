@@ -8,7 +8,7 @@ interface LoginFormProps {
   onSwitchToRegister?: () => void;
 }
 
-export const LoginForm: React.FC<LoginFormProps> = ({ onSwitchToRegister }) => {
+export const LoginForm: React.FC<LoginFormProps> = ({ onSwitchToRegister: _onSwitchToRegister }) => {
   const navigate = useNavigate();
   const logIn = useAuth((s) => s.logIn);
   const isPhoneRegistered = useAuth((s) => s.isPhoneRegistered);
@@ -147,13 +147,6 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSwitchToRegister }) => {
             </span>
             <span className="remember-me-text">Keep me logged in</span>
           </label>
-          <button
-            type="button"
-            onClick={onSwitchToRegister}
-            className="text-link mobile-only-switch"
-          >
-            Create account
-          </button>
         </div>
 
         <button
