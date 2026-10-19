@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
 import Hero from './Hero';
 import LoginForm from './LoginForm';
 import RegisterForm from './RegisterForm';
@@ -10,19 +9,8 @@ export const Login: React.FC = () => {
 
   return (
     <div className="login-page-container">
-      {/* Brand Header: Logo & Brief Website Summary (Desktop & Mobile) */}
+      {/* Website Summary (Desktop & Mobile) */}
       <div className="login-header">
-        <Link to="/" className="login-header-logo-link" aria-label="MshindiRoom Home">
-          <img
-            src="/images/logo.png"
-            alt="MshindiRoom"
-            className="login-header-logo"
-            width="210"
-            height="28"
-            loading="eager"
-            decoding="async"
-          />
-        </Link>
         <p className="login-header-summary">
           Kenya&apos;s premier football consensus, community slips &amp; match intelligence platform.
         </p>
