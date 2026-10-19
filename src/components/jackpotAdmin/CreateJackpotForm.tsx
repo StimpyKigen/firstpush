@@ -1,5 +1,6 @@
 import { Plus, Globe, Layers, DollarSign, Calendar, Bot, RefreshCw, Sparkles, Check, AlertCircle, Trash2 } from 'lucide-react';
 import { KENYAN_BETTING_SITES, type MajorKenyanBookie, type ExtractedMatch } from '../../lib/useJackpotAdminForm';
+import { getBookieTheme } from '../../lib/bookies';
 
 interface CreateJackpotFormProps {
   selectedBookie: MajorKenyanBookie;
@@ -50,6 +51,8 @@ export default function CreateJackpotForm({
   onClose,
   onPublish,
 }: CreateJackpotFormProps) {
+  const currentTheme = getBookieTheme(selectedBookie);
+
   return (
     <>
       {/* Section Heading for Publishing New Room */}
@@ -60,31 +63,93 @@ export default function CreateJackpotForm({
         <p className="text-xs text-cream-dim">Configure site, bookie jackpot amount, fixtures, or use AI text auto-parser</p>
       </div>
 
+      {/* Quick Visual Logo Chips for Supported Bookmakers */}
+      <div className="space-y-1.5">
+        <label className="block text-[11px] font-bold text-cream-dim uppercase tracking-wider">
+          Select Betting Site With Official Logo
+        </label>
+        <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
+          {KENYAN_BETTING_SITES.slice(0, 8).map((site) => {
+            const isSelected = selectedBookie === site;
+            const t = getBookieTheme(site);
+            return (
+              <button
+                key={site}
+                type="button"
+                onClick={() => {
+                  setSelectedBookie(site);
+                  if (site === 'SportPesa') setJackpotName('Mega Jackpot Pro');
+                  else if (site === 'Betika') setJackpotName('Midweek Jackpot');
+                  else if (site === 'MozzartBet') setJackpotName('Super Grand Jackpot');
+                  else if (site === 'SportyBet') setJackpotName('Sporty 12 Jackpot');
+                  else if (site === 'BetPawa') setJackpotName('pawa6 Mega Jackpot');
+                  else if (site === '1xBet') setJackpotName('Toto 15 Jackpot');
+                  else if (site === '22Bet') setJackpotName('Football Mania Jackpot');
+                  else setJackpotName(`${site} Weekly Jackpot`);
+                }}
+                className={`flex items-center gap-2 px-2.5 py-1.5 rounded-xl border text-xs font-bold transition-all shrink-0 ${
+                  isSelected
+                    ? 'border-gold bg-gold/15 text-cream ring-1 ring-gold/40 shadow-sm'
+                    : 'border-line/70 bg-ink-2/60 text-cream-dim hover:text-cream hover:border-line'
+                }`}
+              >
+                <div
+                  className="w-5 h-5 rounded-md flex items-center justify-center p-0.5 overflow-hidden border shrink-0"
+                  style={{ background: t.iconBg, borderColor: t.border }}
+                >
+                  <img src={t.logo} alt={site} className="w-full h-full object-contain" />
+                </div>
+                <span>{site}</span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
       {/* Top Config Grid */}
       <div className="grid sm:grid-cols-2 md:grid-cols-4 gap-4">
-        {/* Dropdown for Betting Site Names */}
+        {/* Dropdown for Betting Site Names with Live Logo Preview */}
         <div>
-          <label className="block text-xs font-bold text-cream-dim mb-1.5 flex items-center gap-1">
-            <Globe size={13} className="text-gold" /> Betting Site Name
+          <label className="block text-xs font-bold text-cream-dim mb-1.5 flex items-center justify-between">
+            <span className="flex items-center gap-1">
+              <Globe size={13} className="text-gold" /> Betting Site
+            </span>
+            <span className="text-[10px] text-cream-dim uppercase font-mono">Logo Loaded</span>
           </label>
-          <select
-            value={selectedBookie}
-            onChange={(e) => {
-              const b = e.target.value as MajorKenyanBookie;
-              setSelectedBookie(b);
-              if (b === 'SportPesa') setJackpotName('Mega Jackpot Pro');
-              else if (b === 'Betika') setJackpotName('Midweek Jackpot');
-              else if (b === 'MozzartBet') setJackpotName('Super Grand Jackpot');
-              else setJackpotName(`${b} Weekly Jackpot`);
-            }}
-            className="w-full bg-ink-2 border border-line rounded-xl px-3 py-2.5 text-sm text-cream font-semibold focus:outline-none focus:border-gold"
-          >
-            {KENYAN_BETTING_SITES.map((site) => (
-              <option key={site} value={site}>
-                {site}
-              </option>
-            ))}
-          </select>
+          <div className="flex items-center gap-2">
+            <div
+              className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 border p-1 shadow-sm overflow-hidden"
+              style={{ background: currentTheme.iconBg, borderColor: currentTheme.border }}
+            >
+              <img
+                src={currentTheme.logo}
+                alt={selectedBookie}
+                className="w-full h-full object-contain rounded-md"
+              />
+            </div>
+            <select
+              value={selectedBookie}
+              onChange={(e) => {
+                const b = e.target.value as MajorKenyanBookie;
+                setSelectedBookie(b);
+                if (b === 'SportPesa') setJackpotName('Mega Jackpot Pro');
+                else if (b === 'Betika') setJackpotName('Midweek Jackpot');
+                else if (b === 'MozzartBet') setJackpotName('Super Grand Jackpot');
+                else if (b === 'SportyBet') setJackpotName('Sporty 12 Jackpot');
+                else if (b === 'BetPawa') setJackpotName('pawa6 Mega Jackpot');
+                else if (b === '1xBet') setJackpotName('Toto 15 Jackpot');
+                else if (b === '22Bet') setJackpotName('Football Mania Jackpot');
+                else setJackpotName(`${b} Weekly Jackpot`);
+              }}
+              className="flex-1 bg-ink-2 border border-line rounded-xl px-3 py-2 text-sm text-cream font-semibold focus:outline-none focus:border-gold"
+            >
+              {KENYAN_BETTING_SITES.map((site) => (
+                <option key={site} value={site}>
+                  {site}
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
 
         {/* Number of legs dropdown (13 to 17) */}

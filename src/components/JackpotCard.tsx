@@ -1,13 +1,13 @@
 import { Link } from 'react-router-dom';
 import { Users, Lock, Unlock, Clock, CheckCircle2, RadioTower, MessageSquarePlus } from 'lucide-react';
 import type { Jackpot } from '../lib/types';
-import { BOOKIE_THEME } from '../lib/types';
 import { useWallet } from '../lib/store';
 import { getTotalSharedPicksCount } from '../lib/mockData';
+import { getBookieTheme } from '../lib/bookies';
 
 export default function JackpotCard({ jackpot, index }: { jackpot: Jackpot; index: number; key?: any }) {
   const unlocked = useWallet((s) => s.isRoomUnlocked(jackpot.id));
-  const theme = BOOKIE_THEME[jackpot.bookie];
+  const bookieTheme = getBookieTheme(jackpot.bookie);
   const totalSharedPicks = getTotalSharedPicksCount(jackpot);
 
   const statusBadge = {
@@ -19,17 +19,32 @@ export default function JackpotCard({ jackpot, index }: { jackpot: Jackpot; inde
   return (
     <Link
       to={`/room/${jackpot.id}`}
-      className="animate-rise group relative flex flex-col bg-white border border-slate-200 rounded-xl overflow-hidden hover:border-slate-300 hover:shadow-md transition-all active:scale-[0.985] touch-manipulation hover:-translate-y-1"
-      style={{ animationDelay: `${index * 50}ms` }}
+      className="animate-rise group relative flex flex-col border rounded-xl overflow-hidden hover:shadow-md transition-all active:scale-[0.985] touch-manipulation hover:-translate-y-1"
+      style={{
+        animationDelay: `${index * 50}ms`,
+        background: `linear-gradient(180deg, ${bookieTheme.fadedBg} 0%, #ffffff 50%)`,
+        borderColor: bookieTheme.border,
+      }}
     >
       <div className="p-5 sm:p-6 flex flex-col gap-4 flex-1">
         <div className="flex items-start justify-between gap-3">
           <div className="flex items-center gap-3">
             <div
-              className="w-11 h-11 rounded-lg flex items-center justify-center font-display font-black text-sm shrink-0 shadow-xs"
-              style={{ background: theme.bg, color: theme.text }}
+              className="w-11 h-11 rounded-lg flex items-center justify-center shrink-0 shadow-xs overflow-hidden border p-1"
+              style={{ background: bookieTheme.iconBg, borderColor: bookieTheme.border }}
             >
-              {jackpot.bookie.slice(0, 2).toUpperCase()}
+              <img
+                src={bookieTheme.logo}
+                alt={jackpot.bookie}
+                className="w-full h-full object-contain rounded-md select-none"
+                loading="lazy"
+                onError={(e) => {
+                  e.currentTarget.style.display = 'none';
+                  if (e.currentTarget.parentElement) {
+                    e.currentTarget.parentElement.innerText = jackpot.bookie.slice(0, 2).toUpperCase();
+                  }
+                }}
+              />
             </div>
             <div>
               <p className="text-[11px] text-slate-500 font-bold uppercase tracking-wider">{jackpot.bookie}</p>

@@ -20,8 +20,19 @@ import { computeRoomPerformanceAndLeaderboard } from '../lib/leaderboardEngine';
 import { LeaderboardSkeleton, JackpotGridSkeleton } from '../components/skeleton';
 import { scrollIntoViewIfNeeded } from '../lib/viewportScroll';
 import type { Bookie, RoomStatus } from '../lib/types';
+import { getBookieTheme } from '../lib/bookies';
 
-const jackpotBookies: (Bookie | 'All')[] = ['All', 'SportPesa', 'Betika', 'Odibets', 'Mozzart'];
+const jackpotBookies: (Bookie | 'All')[] = [
+  'All',
+  'SportPesa',
+  'Betika',
+  'MozzartBet',
+  'Odibets',
+  'SportyBet',
+  'BetPawa',
+  '1xBet',
+  '22Bet',
+];
 
 const BOOKIE_BADGE_STYLE: Record<string, { bg: string; text: string; border: string }> = {
   SportPesa: { bg: 'bg-blue-50', text: 'text-blue-800', border: 'border-blue-200' },
@@ -392,21 +403,29 @@ export default function Leaderboard() {
             </div>
           </div>
 
-          {/* Bookie Filter Pills */}
+          {/* Bookie Filter Pills With Logos */}
           <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1 -mx-4 px-4 sm:mx-0 sm:px-0 flex-nowrap sm:flex-wrap">
-            {jackpotBookies.map((b) => (
-              <button
-                key={b}
-                onClick={() => setRoomBookie(b)}
-                className={`px-4 py-2 rounded-full text-xs font-bold border transition-all shrink-0 whitespace-nowrap active:scale-95 ${
-                  roomBookie === b
-                    ? 'bg-[#006C54] border-[#006C54] text-white shadow-xs font-black'
-                    : 'border-slate-200 text-slate-600 bg-white hover:border-slate-300 hover:bg-slate-50'
-                }`}
-              >
-                {b}
-              </button>
-            ))}
+            {jackpotBookies.map((b) => {
+              const t = b !== 'All' ? getBookieTheme(b) : null;
+              return (
+                <button
+                  key={b}
+                  onClick={() => setRoomBookie(b)}
+                  className={`px-3 sm:px-4 py-1.5 rounded-full text-xs font-bold border transition-all shrink-0 whitespace-nowrap active:scale-95 flex items-center gap-1.5 ${
+                    roomBookie === b
+                      ? 'bg-[#006C54] border-[#006C54] text-white shadow-xs font-black'
+                      : 'border-slate-200 text-slate-600 bg-white hover:border-slate-300 hover:bg-slate-50'
+                  }`}
+                >
+                  {t && (
+                    <div className="w-3.5 h-3.5 rounded-full overflow-hidden shrink-0 border border-slate-200 bg-white p-0.2">
+                      <img src={t.logo} alt={b} className="w-full h-full object-contain" />
+                    </div>
+                  )}
+                  <span>{b}</span>
+                </button>
+              );
+            })}
           </div>
 
           {/* Status Filter Pills */}
@@ -581,24 +600,32 @@ export default function Leaderboard() {
               </div>
             </div>
 
-            {/* Bookie Pill Selection */}
+            {/* Bookie Pill Selection With Logos */}
             <div className="flex items-center gap-1.5 overflow-x-auto pt-2 border-t border-slate-100 scrollbar-none">
               <span className="text-[11px] font-black uppercase tracking-wider text-slate-400 flex items-center gap-1 shrink-0 mr-1">
                 <Filter size={11} /> Bookie:
               </span>
-              {['all', 'SportPesa', 'Betika', 'MozzartBet', 'Shabiki', 'Odibets'].map((b) => (
-                <button
-                  key={b}
-                  onClick={() => setSelectedBookie(b)}
-                  className={`px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider border transition-all shrink-0 ${
-                    selectedBookie.toLowerCase() === b.toLowerCase()
-                      ? 'bg-[#006C54] border-[#006C54] text-white shadow-xs'
-                      : 'bg-white border-slate-200 text-slate-600 hover:border-[#006C54] hover:text-[#006C54]'
-                  }`}
-                >
-                  {b === 'all' ? 'All' : b}
-                </button>
-              ))}
+              {['all', 'SportPesa', 'Betika', 'MozzartBet', 'Odibets', 'SportyBet', 'BetPawa', '1xBet', '22Bet'].map((b) => {
+                const t = b !== 'all' ? getBookieTheme(b) : null;
+                return (
+                  <button
+                    key={b}
+                    onClick={() => setSelectedBookie(b)}
+                    className={`px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider border transition-all shrink-0 flex items-center gap-1.5 ${
+                      selectedBookie.toLowerCase() === b.toLowerCase()
+                        ? 'bg-[#006C54] border-[#006C54] text-white shadow-xs'
+                        : 'bg-white border-slate-200 text-slate-600 hover:border-[#006C54] hover:text-[#006C54]'
+                    }`}
+                  >
+                    {t && (
+                      <div className="w-3 h-3 rounded-full overflow-hidden shrink-0 border border-slate-200 bg-white">
+                        <img src={t.logo} alt={b} className="w-full h-full object-contain" />
+                      </div>
+                    )}
+                    <span>{b === 'all' ? 'All' : b}</span>
+                  </button>
+                );
+              })}
             </div>
           </div>
 
@@ -637,6 +664,7 @@ export default function Leaderboard() {
 
                 const isExpanded = expandedRooms[jackpot.id] === true;
                 const statusInfo = getRoomStatusInfo(jackpot);
+                const cardTheme = getBookieTheme(jackpot.bookie);
 
                 const completedCount = statusInfo.completedCount;
                 const totalMatches = statusInfo.totalCount;
@@ -645,15 +673,25 @@ export default function Leaderboard() {
                   <div
                     key={jackpot.id}
                     id={`room-leaderboard-${jackpot.id}`}
-                    className={`bg-white border rounded-xl overflow-hidden transition-all hover:shadow-md ${
-                      userPerf.participated ? 'border-[#006C54] ring-1 ring-[#006C54]/20' : 'border-slate-200 hover:border-[#006C54]'
+                    className={`border rounded-xl overflow-hidden transition-all hover:shadow-md ${
+                      userPerf.participated ? 'border-[#006C54] ring-1 ring-[#006C54]/20' : 'hover:border-[#006C54]'
                     }`}
+                    style={{
+                      background: `linear-gradient(180deg, ${cardTheme.fadedBg} 0%, #ffffff 40%)`,
+                      borderColor: userPerf.participated ? '#006C54' : cardTheme.border,
+                    }}
                   >
                     {/* Minimalist Card Header */}
                     <div className="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                       <div className="min-w-0 space-y-1 flex-1">
                         <div className="flex items-center justify-between gap-2">
                           <div className="flex items-center gap-2 flex-wrap text-xs">
+                            <div
+                              className="w-4 h-4 rounded flex items-center justify-center p-0.5 overflow-hidden border shrink-0 shadow-2xs"
+                              style={{ background: cardTheme.iconBg, borderColor: cardTheme.border }}
+                            >
+                              <img src={cardTheme.logo} alt={jackpot.bookie} className="w-full h-full object-contain" />
+                            </div>
                             <span className="text-[11px] font-black uppercase tracking-wider text-slate-800">
                               {jackpot.bookie}
                             </span>

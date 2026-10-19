@@ -8,11 +8,13 @@ export const KENYAN_BETTING_SITES = [
   'Betika',
   'MozzartBet',
   'Odibets',
+  'SportyBet',
+  'BetPawa',
+  '1xBet',
+  '22Bet',
   'Shabiki',
   'BangBet',
   'PariPesa',
-  '22Bet',
-  '1xBet',
   'BetAfriq',
 ] as const;
 
@@ -181,8 +183,18 @@ export function useJackpotAdminForm() {
       : selectedBookie.includes('Betika')
       ? 'Betika'
       : selectedBookie.includes('Mozzart')
-      ? 'Mozzart'
-      : 'Odibets';
+      ? 'MozzartBet'
+      : selectedBookie.includes('Odibets')
+      ? 'Odibets'
+      : selectedBookie.includes('Sporty')
+      ? 'SportyBet'
+      : selectedBookie.includes('Pawa')
+      ? 'BetPawa'
+      : selectedBookie.includes('1x')
+      ? '1xBet'
+      : selectedBookie.includes('22')
+      ? '22Bet'
+      : 'SportPesa';
 
     const rawMatches = matches.map((m) => ({
       home: m.home,

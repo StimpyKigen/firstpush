@@ -2,6 +2,7 @@ import { Radio, Trash2, Zap, CheckCircle2, RotateCcw } from 'lucide-react';
 import { clearAllJackpots, deleteAdminJackpot, updateJackpotMatchResult, autoSimulateNextLegResult } from '../../lib/mockData';
 import { showToast } from '../../lib/notificationStore';
 import type { Jackpot, Outcome } from '../../lib/types';
+import { getBookieTheme } from '../../lib/bookies';
 
 interface LiveRoomsResultsManagerProps {
   publishedJackpots: Jackpot[];
@@ -53,6 +54,7 @@ export default function LiveRoomsResultsManager({
             {publishedJackpots.map((jp) => {
               const completedCount = jp.matches.filter((m) => m.result !== undefined).length;
               const isSelected = (selectedResultRoomId || publishedJackpots[0]?.id) === jp.id;
+              const t = getBookieTheme(jp.bookie);
               return (
                 <button
                   key={jp.id}
@@ -64,6 +66,12 @@ export default function LiveRoomsResultsManager({
                       : 'bg-panel border border-line text-cream-dim hover:text-cream'
                   }`}
                 >
+                  <div
+                    className="w-4 h-4 rounded flex items-center justify-center p-0.5 overflow-hidden border shrink-0"
+                    style={{ background: t.iconBg, borderColor: t.border }}
+                  >
+                    <img src={t.logo} alt={jp.bookie} className="w-full h-full object-contain" />
+                  </div>
                   <span>{jp.name}</span>
                   <span className={`text-[10px] px-1.5 py-0.2 rounded font-mono ${
                     completedCount === jp.matches.length

@@ -4,7 +4,8 @@ import { ArrowLeft, Users, Clock, MessageSquarePlus, Trophy, ChevronDown, CheckC
 import SeoHead from '../components/SeoHead';
 import { scrollIntoViewIfNeeded } from '../lib/viewportScroll';
 import { getJackpot, subscribeToJackpots, getJackpotsSnapshot } from '../lib/mockData';
-import { BOOKIE_THEME, Conviction, GamblerPick, Outcome } from '../lib/types';
+import { Conviction, GamblerPick, Outcome } from '../lib/types';
+import { getBookieTheme } from '../lib/bookies';
 import { useWallet } from '../lib/store';
 import { useAuth, useCurrentUser } from '../lib/authStore';
 import { useUserPicks } from '../lib/userPicksStore';
@@ -51,7 +52,7 @@ export default function Room() {
     return <Navigate to="/" replace />;
   }
 
-  const theme = BOOKIE_THEME[jackpot.bookie];
+  const bookieTheme = getBookieTheme(jackpot.bookie);
   const isUnlocked = unlocked || unlockedLocal;
 
   // Slip progress calculations
@@ -137,14 +138,30 @@ export default function Room() {
       </div>
 
       {/* Header */}
-      <div className="bg-white border border-slate-200 rounded-2xl p-6 sm:p-8 mb-8 shadow-xs relative">
+      <div
+        className="border rounded-2xl p-6 sm:p-8 mb-8 shadow-xs relative"
+        style={{
+          background: `linear-gradient(180deg, ${bookieTheme.fadedBg} 0%, #ffffff 65%)`,
+          borderColor: bookieTheme.border,
+        }}
+      >
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <div
-              className="w-12 h-12 rounded-xl flex items-center justify-center font-display font-black text-sm shrink-0"
-              style={{ background: theme.bg, color: theme.text }}
+              className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0 shadow-xs overflow-hidden border p-1"
+              style={{ background: bookieTheme.iconBg, borderColor: bookieTheme.border }}
             >
-              {jackpot.bookie.slice(0, 2).toUpperCase()}
+              <img
+                src={bookieTheme.logo}
+                alt={jackpot.bookie}
+                className="w-full h-full object-contain rounded-lg select-none"
+                onError={(e) => {
+                  e.currentTarget.style.display = 'none';
+                  if (e.currentTarget.parentElement) {
+                    e.currentTarget.parentElement.innerText = jackpot.bookie.slice(0, 2).toUpperCase();
+                  }
+                }}
+              />
             </div>
             <div>
               <p className="text-xs text-slate-500 font-bold uppercase tracking-wider">{jackpot.bookie} · {jackpot.gameweek}</p>

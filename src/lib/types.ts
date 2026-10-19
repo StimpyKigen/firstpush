@@ -1,4 +1,13 @@
-export type Bookie = 'SportPesa' | 'Betika' | 'Odibets' | 'Mozzart';
+export type Bookie =
+  | 'SportPesa'
+  | 'Betika'
+  | 'Odibets'
+  | 'Mozzart'
+  | 'MozzartBet'
+  | 'SportyBet'
+  | 'BetPawa'
+  | '1xBet'
+  | '22Bet';
 
 export type Outcome = '1' | 'X' | '2';
 
@@ -82,8 +91,13 @@ export interface Jackpot {
 }
 
 export const BOOKIE_THEME: Record<Bookie, { bg: string; text: string; ring: string }> = {
-  SportPesa: { bg: '#0e5c36', text: '#ffffff', ring: '#1fae6f' },
-  Betika: { bg: '#7a1c1c', text: '#ffe9c7', ring: '#ef5b5b' },
-  Odibets: { bg: '#123a6b', text: '#dbe9ff', ring: '#3b82f6' },
-  Mozzart: { bg: '#5c1a4a', text: '#f7dcf0', ring: '#d84fb0' },
+  SportPesa: { bg: '#0A3B8C', text: '#ffffff', ring: '#1fae6f' },
+  Betika: { bg: '#1F3888', text: '#ffe9c7', ring: '#ef5b5b' },
+  Odibets: { bg: '#22C55E', text: '#ffffff', ring: '#3b82f6' },
+  Mozzart: { bg: '#6D28D9', text: '#ffffff', ring: '#d84fb0' },
+  MozzartBet: { bg: '#6D28D9', text: '#ffffff', ring: '#d84fb0' },
+  SportyBet: { bg: '#DC2626', text: '#ffffff', ring: '#f87171' },
+  BetPawa: { bg: '#65A30D', text: '#ffffff', ring: '#a3e635' },
+  '1xBet': { bg: '#0284C7', text: '#ffffff', ring: '#38bdf8' },
+  '22Bet': { bg: '#0D9488', text: '#ffffff', ring: '#2dd4bf' },
 };
