@@ -199,7 +199,7 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onSwitchToLogin }) =
               inputMode="numeric"
               pattern="[0-9]*"
               maxLength={4}
-              placeholder="Confirm PIN"
+              placeholder="Confirm"
               value={confirmPin}
               onChange={(e) => {
                 setConfirmPin(e.target.value.replace(/\D/g, '').slice(0, 4));

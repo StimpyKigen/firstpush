@@ -1,6 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { X } from 'lucide-react';
 import Hero from './Hero';
 import LoginForm from './LoginForm';
 import RegisterForm from './RegisterForm';
@@ -9,27 +8,24 @@ import './Login.css';
 export const Login: React.FC = () => {
   const [isRegister, setIsRegister] = useState(false);
 
-  // Lock body from scrolling or bouncing while on the auth interface
-  useEffect(() => {
-    const originalOverflow = document.body.style.overflow;
-    const originalOverscroll = document.body.style.overscrollBehavior;
-
-    document.body.style.overflow = 'hidden';
-    document.body.style.overscrollBehavior = 'none';
-
-    return () => {
-      document.body.style.overflow = originalOverflow;
-      document.body.style.overscrollBehavior = originalOverscroll;
-    };
-  }, []);
-
   return (
     <div className="login-page-container">
-      {/* Mobile top exit button */}
-      <div className="mobile-top-bar">
-        <Link to="/" className="mobile-close-btn" aria-label="Return to home">
-          <X size={18} />
+      {/* Brand Header: Logo & Brief Website Summary (Desktop & Mobile) */}
+      <div className="login-header">
+        <Link to="/" className="login-header-logo-link" aria-label="MshindiRoom Home">
+          <img
+            src="/images/logo.png"
+            alt="MshindiRoom"
+            className="login-header-logo"
+            width="210"
+            height="28"
+            loading="eager"
+            decoding="async"
+          />
         </Link>
+        <p className="login-header-summary">
+          Kenya&apos;s premier football consensus, community slips &amp; match intelligence platform.
+        </p>
       </div>
 
       {/* Main Animated Card */}

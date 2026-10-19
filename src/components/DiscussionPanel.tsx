@@ -137,7 +137,7 @@ export default function DiscussionPanel({
             placeholder="Why this pick? Share key stats, injury news, form analysis..."
             rows={2}
             disabled={disabled}
-            className={`w-full bg-slate-50 border rounded-md px-3.5 py-2.5 text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:bg-white transition-all resize-none ${
+            className={`w-full bg-slate-50 border rounded-md px-3.5 py-2.5 text-xs text-slate-900 placeholder:text-slate-400 placeholder:text-xs placeholder:leading-relaxed focus:outline-none focus:bg-white transition-all resize-none leading-relaxed ${
               !modResult.isAllowed ? 'border-rose-500 bg-rose-50/50' : 'border-slate-300 focus:border-[#006C54]'
             }`}
           />
