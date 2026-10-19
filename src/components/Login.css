@@ -27,6 +27,10 @@
   background-color: var(--bg);
 }
 
+.login-page-container::after {
+  display: none;
+}
+
 /* Eliminate main bottom padding on auth view to guarantee zero vertical scroll */
 main:has(.login-page-container) {
   padding-bottom: 0 !important;
@@ -631,11 +635,11 @@ html:has(.login-page-container) {
     min-height: calc(100dvh - 64px - 52px - env(safe-area-inset-bottom, 0px)) !important;
     max-height: calc(100dvh - 64px - 52px - env(safe-area-inset-bottom, 0px)) !important;
     margin: 0;
-    padding: 8px 12px !important;
+    padding: 6px 12px !important;
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: space-evenly !important;
+    justify-content: space-between !important;
     overflow: hidden !important;
     overflow-y: hidden !important;
     z-index: 1;
@@ -643,11 +647,26 @@ html:has(.login-page-container) {
     box-sizing: border-box;
   }
 
+  /* Symmetrical lower flex spacer: locks login card in true vertical center */
+  .login-page-container::after {
+    content: '' !important;
+    display: block !important;
+    flex: 1 1 0% !important;
+    pointer-events: none !important;
+    width: 100% !important;
+  }
+
+  /* Upper flex zone: centers headline text in the middle ground above card */
   .content {
+    flex: 1 1 0% !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
     margin: 0 auto !important;
     max-width: 360px !important;
     padding: 0 10px !important;
-    flex-shrink: 0 !important;
+    min-height: 0 !important;
   }
 
   .title {
@@ -661,7 +680,7 @@ html:has(.login-page-container) {
     display: none !important;
   }
 
-  /* Entire card on mobile is the dark green football pitch - borderless */
+  /* Entire card on mobile is the dark green football pitch - borderless and centered */
   .card {
     width: calc(100% - 24px) !important;
     max-width: 380px !important;
@@ -674,7 +693,7 @@ html:has(.login-page-container) {
       0 8px 24px -4px rgba(0, 70, 50, 0.3),
       0 0 1px 1px rgba(0, 0, 0, 0.08) !important;
     margin: 0 auto !important;
-    flex-shrink: 0 !important;
+    flex: 0 0 auto !important;
     overflow: hidden !important;
     display: flex !important;
     flex-direction: column !important;
