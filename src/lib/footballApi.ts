@@ -5,6 +5,8 @@ export interface HighlightFixture {
   homeLogo?: string;
   awayLogo?: string;
   competition: string;
+  leagueCode?: string;
+  country?: string;
   kickoff: string;
   kickoffIso?: string;
   tier: 'blockbuster' | 'continental' | 'derby';
@@ -22,6 +24,10 @@ export interface HighlightFixture {
   homeScore?: number | null;
   awayScore?: number | null;
   result?: '1' | 'X' | '2';
+  bttsYesPct?: number;
+  over15Pct?: number;
+  over25Pct?: number;
+  over35Pct?: number;
 }
 
 export function parseAmericanToDecimalOdds(moneylineStr?: string | number): number | null {
@@ -74,9 +80,9 @@ export function buildBlurb(home: string, away: string, competition: string, stat
 let cachedFixtures: HighlightFixture[] = [];
 let lastFetchedTime = 0;
 
-// Hydrate initial cache from sessionStorage for instant zero-latency loads
+// Hydrate initial cache from localStorage/sessionStorage for instant zero-latency loads
 try {
-  const stored = typeof sessionStorage !== 'undefined' ? sessionStorage.getItem('mshindi_football_cache_v2') : null;
+  const stored = typeof localStorage !== 'undefined' ? localStorage.getItem('mshindi_football_cache_v3') : null;
   if (stored) {
     const parsed = JSON.parse(stored);
     if (Array.isArray(parsed) && parsed.length > 0) {
@@ -120,6 +126,17 @@ export function getEffectiveMatchDayEAT(dateObj: Date = new Date()): string {
   return `${yyyy}-${mm}-${dd}`;
 }
 
+export function getLocalDateStringEAT(dateInput: Date | string | number = new Date()): string {
+  const d = typeof dateInput === 'string' || typeof dateInput === 'number' ? new Date(dateInput) : dateInput;
+  if (Number.isNaN(d.getTime())) return '';
+  return new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Africa/Nairobi',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).format(d);
+}
+
 export function getEffectiveMatchDayFormattedEAT(dateObj: Date = new Date()): string {
   const matchDayStr = getEffectiveMatchDayEAT(dateObj);
   const [y, m, d] = matchDayStr.split('-').map(Number);
@@ -133,8 +150,8 @@ export function getEffectiveMatchDayFormattedEAT(dateObj: Date = new Date()): st
 }
 
 export async function fetchDailyHighlightFixtures(): Promise<HighlightFixture[]> {
-  // Return cached if fetched less than 60s ago to conserve user data bandwidth
-  if (cachedFixtures.length > 0 && Date.now() - lastFetchedTime < 60_000) {
+  // Return cached if fetched less than 45s ago to conserve user data bandwidth
+  if (cachedFixtures.length > 0 && Date.now() - lastFetchedTime < 45_000) {
     return cachedFixtures;
   }
 
@@ -149,7 +166,8 @@ export async function fetchDailyHighlightFixtures(): Promise<HighlightFixture[]>
 
   try {
     const controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
-    const timeoutId = controller ? setTimeout(() => controller.abort(), 8000) : null;
+    // 25s timeout allows cold starts on Render/Vercel to complete without premature abort
+    const timeoutId = controller ? setTimeout(() => controller.abort(), 25000) : null;
     const res = await fetch('/api/sports/daily-fixtures', controller ? { signal: controller.signal } : {});
     if (timeoutId) clearTimeout(timeoutId);
 
@@ -165,6 +183,8 @@ export async function fetchDailyHighlightFixtures(): Promise<HighlightFixture[]>
             home: m.home,
             away: m.away,
             competition: m.competition || 'Premier League',
+            leagueCode: m.leagueCode,
+            country: m.country,
             kickoff: m.kickoff,
             kickoffIso: m.kickoffIso,
             tier,
@@ -178,9 +198,13 @@ export async function fetchDailyHighlightFixtures(): Promise<HighlightFixture[]>
             bookmaker: 'Market Consensus',
             syncedAt: `Live Consensus · ${syncTimeLabel}`,
             status: m.status || 'pre',
-            displayClock: m.status === 'in' ? 'LIVE' : m.status === 'post' ? 'FT' : '',
-            homeScore: null,
-            awayScore: null,
+            displayClock: m.displayClock || (m.status === 'in' ? 'LIVE' : m.status === 'post' ? 'FT' : ''),
+            homeScore: m.homeScore !== undefined ? m.homeScore : null,
+            awayScore: m.awayScore !== undefined ? m.awayScore : null,
+            bttsYesPct: m.bttsYesPct,
+            over15Pct: m.over15Pct,
+            over25Pct: m.over25Pct,
+            over35Pct: m.over35Pct,
           };
         });
 
@@ -188,8 +212,8 @@ export async function fetchDailyHighlightFixtures(): Promise<HighlightFixture[]>
           cachedFixtures = mapped;
           lastFetchedTime = Date.now();
           try {
-            if (typeof sessionStorage !== 'undefined') {
-              sessionStorage.setItem('mshindi_football_cache_v2', JSON.stringify(mapped));
+            if (typeof localStorage !== 'undefined') {
+              localStorage.setItem('mshindi_football_cache_v3', JSON.stringify(mapped));
             }
           } catch {
             // ignore storage error

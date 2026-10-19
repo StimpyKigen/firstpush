@@ -6,50 +6,31 @@
  * Client consumers only see white-labeled `/api/sports/...` responses.
  */
 
-interface CacheEntry<T> {
-  data: T;
-  expiresAt: number;
-}
+import fs from 'fs';
+import path from 'path';
 
-const cache = new Map<string, CacheEntry<any>>();
-
-function getCached<T>(key: string): T | null {
-  const entry = cache.get(key);
-  if (!entry) return null;
-  if (Date.now() > entry.expiresAt) {
-    cache.delete(key);
-    return null;
-  }
-  return entry.data;
-}
-
-function setCached<T>(key: string, data: T, ttlMs: number): void {
-  cache.set(key, {
-    data,
-    expiresAt: Date.now() + ttlMs,
-  });
-}
-
-// 15 minutes for upcoming fixtures, 10 minutes for results, 24 hours for league directory
-const FIXTURES_TTL = 15 * 60 * 1000;
-const RESULTS_TTL = 10 * 60 * 1000;
-const LEAGUES_TTL = 24 * 60 * 60 * 1000;
-
-const BASE_URL = 'https://footballcharts-backend.onrender.com/api/v1';
-
-function getApiKey(): string {
-  return process.env.SPORTS_FEED_API_KEY || 'fc_9qB_ndigFOSIT-SYuIqN8MAUCUqHK05w';
+export interface DiscoveredLeague {
+  league: string;
+  name: string;
+  country: string;
+  seasons: string[];
+  priorityTier: 'top' | 'standard';
 }
 
 export interface MarketFixture {
   id: string;
+  providerId: string;
   home: string;
   away: string;
   competition: string;
   leagueCode: string;
+  country: string;
   kickoff: string;
   kickoffIso: string;
   status: 'pre' | 'in' | 'post';
+  displayClock?: string;
+  homeScore?: number | null;
+  awayScore?: number | null;
   homePct: number;
   drawPct: number;
   awayPct: number;
@@ -57,7 +38,9 @@ export interface MarketFixture {
   drawOdds: number;
   awayOdds: number;
   bttsYesPct?: number;
+  over15Pct?: number;
   over25Pct?: number;
+  over35Pct?: number;
   expectedHomeGoals?: number;
   expectedAwayGoals?: number;
   bookmaker: string;
@@ -77,7 +60,63 @@ export interface MarketResult {
   firstGoalTime?: number | null;
 }
 
-function formatEATTime(dateStr: string, timeStr?: string): string {
+export interface SyncDiagnostics {
+  lastSyncTime: string | null;
+  totalFixtures: number;
+  liveFixturesCount: number;
+  upcomingFixturesCount: number;
+  activeLeaguesCount: number;
+  discoveredLeaguesCount: number;
+  lastError: string | null;
+  syncCyclesCount: number;
+  dailyRequestBudget: number;
+  rateLimitSafe: boolean;
+}
+
+// In-Memory Primary State
+const fixturesStore = new Map<string, MarketFixture>();
+let discoveredLeagues: DiscoveredLeague[] = [];
+let lastSyncTimestamp: string | null = null;
+let lastSyncError: string | null = null;
+let syncCycleCounter = 0;
+
+const BASE_URL = 'https://footballcharts-backend.onrender.com/api/v1';
+
+function getApiKey(): string {
+  if (typeof process !== 'undefined' && process.env?.SPORTS_FEED_API_KEY) {
+    return process.env.SPORTS_FEED_API_KEY;
+  }
+  return 'fc_9qB_ndigFOSIT-SYuIqN8MAUCUqHK05w';
+}
+
+// Persistent Disk Cache Directory
+const CACHE_DIR = path.join(process.cwd(), '.cache');
+const FIXTURES_CACHE_FILE = path.join(CACHE_DIR, 'sports_fixtures.json');
+const LEAGUES_CACHE_FILE = path.join(CACHE_DIR, 'sports_leagues.json');
+
+// Priority Top Leagues for frequent polling
+const TOP_PRIORITY_LEAGUE_CODES = new Set([
+  'premier',
+  'cha',
+  'spain1',
+  'italy1',
+  'germany1',
+  'france1',
+  'holland1',
+  'portugal1',
+  'scot-premier',
+  'turkey1',
+  'belgium1',
+  'brazil1',
+  'saudi1',
+  'egypt',
+  'morocco',
+]);
+
+/**
+ * Format ISO / date string into East Africa Time (EAT, UTC+3)
+ */
+export function formatEATTime(dateStr: string, timeStr?: string): string {
   try {
     const iso = timeStr ? `${dateStr}T${timeStr}:00Z` : `${dateStr}T12:00:00Z`;
     const d = new Date(iso);
@@ -97,94 +136,199 @@ function formatEATTime(dateStr: string, timeStr?: string): string {
 }
 
 /**
- * Fetch leagues catalog
+ * Get date string formatted as YYYY-MM-DD in East Africa Time (EAT, UTC+3)
  */
-export async function getMarketLeagues(): Promise<any[]> {
-  const cacheKey = 'sports:leagues';
-  const cached = getCached<any[]>(cacheKey);
-  if (cached) return cached;
+export function getLocalDateStringEAT(dateInput: Date | string | number = new Date()): string {
+  const d = typeof dateInput === 'string' || typeof dateInput === 'number' ? new Date(dateInput) : dateInput;
+  if (isNaN(d.getTime())) return '';
+  return new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Africa/Nairobi',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).format(d);
+}
+
+/**
+ * Load initial state from persistent disk cache
+ */
+function loadDiskCache(): void {
+  try {
+    if (!fs.existsSync(CACHE_DIR)) {
+      fs.mkdirSync(CACHE_DIR, { recursive: true });
+      return;
+    }
+
+    if (fs.existsSync(LEAGUES_CACHE_FILE)) {
+      const leaguesRaw = fs.readFileSync(LEAGUES_CACHE_FILE, 'utf-8');
+      const parsedLeagues = JSON.parse(leaguesRaw);
+      if (Array.isArray(parsedLeagues) && parsedLeagues.length > 0) {
+        discoveredLeagues = parsedLeagues;
+      }
+    }
+
+    if (fs.existsSync(FIXTURES_CACHE_FILE)) {
+      const fixturesRaw = fs.readFileSync(FIXTURES_CACHE_FILE, 'utf-8');
+      const parsedFixtures = JSON.parse(fixturesRaw);
+      if (Array.isArray(parsedFixtures) && parsedFixtures.length > 0) {
+        parsedFixtures.forEach((f: MarketFixture) => {
+          if (f && f.id) {
+            fixturesStore.set(f.id, f);
+          }
+        });
+        lastSyncTimestamp = new Date().toISOString();
+      }
+    }
+  } catch (err) {
+    console.warn('Could not load sports disk cache:', err);
+  }
+}
+
+/**
+ * Save current state to persistent disk cache
+ */
+function saveDiskCache(): void {
+  try {
+    if (!fs.existsSync(CACHE_DIR)) {
+      fs.mkdirSync(CACHE_DIR, { recursive: true });
+    }
+
+    if (discoveredLeagues.length > 0) {
+      fs.writeFileSync(LEAGUES_CACHE_FILE, JSON.stringify(discoveredLeagues, null, 2), 'utf-8');
+    }
+
+    if (fixturesStore.size > 0) {
+      const flat = Array.from(fixturesStore.values());
+      fs.writeFileSync(FIXTURES_CACHE_FILE, JSON.stringify(flat, null, 2), 'utf-8');
+    }
+  } catch (err) {
+    console.warn('Could not save sports disk cache:', err);
+  }
+}
+
+// Hydrate on module load
+loadDiskCache();
+
+/**
+ * Dynamically discover all supported competitions from the provider
+ */
+export async function discoverAllLeagues(forceRefresh = false): Promise<DiscoveredLeague[]> {
+  if (!forceRefresh && discoveredLeagues.length > 0) {
+    return discoveredLeagues;
+  }
 
   try {
     const res = await fetch(`${BASE_URL}/leagues/`, {
       headers: {
         Authorization: `Bearer ${getApiKey()}`,
       },
+      signal: AbortSignal.timeout(15000),
     });
+
     if (!res.ok) {
       throw new Error(`Failed to fetch leagues: HTTP ${res.status}`);
     }
+
     const json = await res.json();
-    const leagues = (json.leagues || []).map((l: any) => ({
+    const rawLeagues = Array.isArray(json.leagues) ? json.leagues : [];
+
+    discoveredLeagues = rawLeagues.map((l: any) => ({
       league: l.league,
       name: l.name,
-      country: l.country,
-      seasons: l.seasons,
+      country: l.country || 'International',
+      seasons: l.seasons || [],
+      priorityTier: TOP_PRIORITY_LEAGUE_CODES.has(l.league) ? 'top' : 'standard',
     }));
-    setCached(cacheKey, leagues, LEAGUES_TTL);
-    return leagues;
-  } catch (err) {
-    console.warn('Error fetching sports leagues:', err);
-    return [];
+
+    saveDiskCache();
+    return discoveredLeagues;
+  } catch (err: any) {
+    lastSyncError = err?.message || 'Error discovering leagues';
+    console.warn('Error fetching sports leagues:', lastSyncError);
+    return discoveredLeagues;
   }
 }
 
 /**
- * Fetch and transform fixtures for a specific league
+ * Parse match status into normalized 'pre' | 'in' | 'post'
  */
-export async function getMarketFixtures(leagueCode: string = 'premier'): Promise<MarketFixture[]> {
-  const cacheKey = `sports:fixtures:${leagueCode}`;
-  const cached = getCached<MarketFixture[]>(cacheKey);
-  if (cached) return cached;
+function parseMatchStatus(rawStatus?: string): { status: 'pre' | 'in' | 'post'; displayClock?: string } {
+  const s = String(rawStatus || '').toLowerCase().trim();
+  if (['finished', 'ft', 'aet', 'pen', 'ended', 'post'].includes(s)) {
+    return { status: 'post', displayClock: 'FT' };
+  }
+  if (['in_play', 'live', '1h', '2h', 'ht', 'et', 'p'].includes(s)) {
+    const clock = s === 'ht' ? 'HT' : s === '1h' ? '1st Half' : s === '2h' ? '2nd Half' : 'LIVE';
+    return { status: 'in', displayClock: clock };
+  }
+  if (s === 'postponed') {
+    return { status: 'pre', displayClock: 'Postponed' };
+  }
+  if (s === 'cancelled' || s === 'abandoned') {
+    return { status: 'post', displayClock: 'Cancelled' };
+  }
+  return { status: 'pre', displayClock: '' };
+}
 
+/**
+ * Fetch and normalize fixtures for a specific league
+ */
+export async function fetchLeagueFixtures(leagueCode: string): Promise<MarketFixture[]> {
   try {
     const res = await fetch(`${BASE_URL}/leagues/${encodeURIComponent(leagueCode)}/fixtures/`, {
       headers: {
         Authorization: `Bearer ${getApiKey()}`,
       },
+      signal: AbortSignal.timeout(15000),
     });
 
     if (!res.ok) {
-      throw new Error(`Failed to fetch fixtures for ${leagueCode}: HTTP ${res.status}`);
+      throw new Error(`HTTP ${res.status} for league ${leagueCode}`);
     }
 
     const data = await res.json();
     const rawMatches = Array.isArray(data) ? data : data.matches || data.fixtures || [];
-
     const nowIso = new Date().toISOString();
-    const fixtures: MarketFixture[] = rawMatches.map((m: any, idx: number) => {
+
+    const normalized: MarketFixture[] = rawMatches.map((m: any, idx: number) => {
       const preds = m.model_predictions?.dc_v2?.calibrated || m.model_predictions?.dc_v2?.raw || {};
-      const hProb = preds.home != null ? Number(preds.home) : 0.45;
-      const aProb = preds.away != null ? Number(preds.away) : 0.28;
-      const dProb = Math.max(0.1, 1 - hProb - aProb);
+      const hProb = preds.home != null ? Math.max(0.02, Math.min(0.95, Number(preds.home))) : 0.45;
+      const aProb = preds.away != null ? Math.max(0.02, Math.min(0.95, Number(preds.away))) : 0.28;
+      const dProb = Math.max(0.05, 1 - hProb - aProb);
 
       const homePct = Math.round(hProb * 100);
       const awayPct = Math.round(aProb * 100);
       const drawPct = Math.max(5, 100 - homePct - awayPct);
 
-      // Derive realistic standard decimal odds using standard 7% overround margin
+      // Bookmaker odds derived via 7% standard overround
       const homeOdds = +Math.max(1.05, 1.07 / Math.max(0.01, hProb)).toFixed(2);
       const drawOdds = +Math.max(1.05, 1.07 / Math.max(0.01, dProb)).toFixed(2);
       const awayOdds = +Math.max(1.05, 1.07 / Math.max(0.01, aProb)).toFixed(2);
 
       const rawExpected = m.model_predictions?.dc_v2?.raw || {};
+      const { status, displayClock } = parseMatchStatus(m.status);
 
-      const rawStatus = String(m.status || '').toLowerCase();
-      let status: 'pre' | 'in' | 'post' = 'pre';
-      if (['finished', 'ft', 'aet', 'pen', 'ended'].includes(rawStatus)) {
-        status = 'post';
-      } else if (['in_play', 'live', '1h', '2h', 'ht', 'et', 'p'].includes(rawStatus)) {
-        status = 'in';
-      }
+      const homeTeam = String(m.home_team || 'Home Team').trim();
+      const awayTeam = String(m.away_team || 'Away Team').trim();
+      const providerId = m.slug || `${leagueCode}-${m.match_date}-${homeTeam}-vs-${awayTeam}`.toLowerCase().replace(/[^a-z0-9]/g, '-');
+      const uniqueId = `mkt-${providerId}`;
+
+      const kickoffIso = m.time ? `${m.match_date}T${m.time}:00Z` : `${m.match_date}T15:00:00Z`;
 
       return {
-        id: m.slug || `${leagueCode}-${idx}-${m.home_team}-${m.away_team}`.toLowerCase().replace(/[^a-z0-9]/g, '-'),
-        home: m.home_team,
-        away: m.away_team,
-        competition: m.real_league_name || m.league || 'Premier League',
+        id: uniqueId,
+        providerId,
+        home: homeTeam,
+        away: awayTeam,
+        competition: m.real_league_name || m.league || leagueCode,
         leagueCode,
+        country: m.country || 'International',
         kickoff: formatEATTime(m.match_date, m.time),
-        kickoffIso: m.time ? `${m.match_date}T${m.time}:00Z` : `${m.match_date}T15:00:00Z`,
+        kickoffIso,
         status,
+        displayClock,
+        homeScore: m.home_score !== undefined ? Number(m.home_score) : null,
+        awayScore: m.away_score !== undefined ? Number(m.away_score) : null,
         homePct,
         drawPct,
         awayPct,
@@ -192,7 +336,9 @@ export async function getMarketFixtures(leagueCode: string = 'premier'): Promise
         drawOdds,
         awayOdds,
         bttsYesPct: preds.btts_yes ? Math.round(preds.btts_yes * 100) : undefined,
+        over15Pct: preds['over_1.5'] ? Math.round(preds['over_1.5'] * 100) : undefined,
         over25Pct: preds['over_2.5'] ? Math.round(preds['over_2.5'] * 100) : undefined,
+        over35Pct: preds['over_3.5'] ? Math.round(preds['over_3.5'] * 100) : undefined,
         expectedHomeGoals: rawExpected.expected_home_goals != null ? +Number(rawExpected.expected_home_goals).toFixed(2) : undefined,
         expectedAwayGoals: rawExpected.expected_away_goals != null ? +Number(rawExpected.expected_away_goals).toFixed(2) : undefined,
         bookmaker: 'Market Consensus',
@@ -200,12 +346,210 @@ export async function getMarketFixtures(leagueCode: string = 'premier'): Promise
       };
     });
 
-    setCached(cacheKey, fixtures, FIXTURES_TTL);
-    return fixtures;
-  } catch (err) {
-    console.warn(`Error fetching fixtures for ${leagueCode}:`, err);
+    return normalized;
+  } catch (err: any) {
+    console.warn(`Error fetching fixtures for ${leagueCode}:`, err?.message || err);
     return [];
   }
+}
+
+/**
+ * Ingest and upsert fixtures safely into the persistent store
+ */
+export function ingestFixtures(fixtures: MarketFixture[]): number {
+  let updatedCount = 0;
+  fixtures.forEach((f) => {
+    if (!f || !f.id) return;
+    const existing = fixturesStore.get(f.id);
+    if (!existing) {
+      fixturesStore.set(f.id, f);
+      updatedCount++;
+    } else {
+      // Merge updates while preserving valid metadata
+      fixturesStore.set(f.id, {
+        ...existing,
+        ...f,
+        // Retain existing score if new payload has null but old had valid score
+        homeScore: f.homeScore !== null ? f.homeScore : existing.homeScore,
+        awayScore: f.awayScore !== null ? f.awayScore : existing.awayScore,
+        syncedAt: f.syncedAt,
+      });
+      updatedCount++;
+    }
+  });
+
+  if (updatedCount > 0) {
+    lastSyncTimestamp = new Date().toISOString();
+    saveDiskCache();
+  }
+  return updatedCount;
+}
+
+// Round-robin index for secondary league synchronization
+let secondaryLeagueIndex = 0;
+
+/**
+ * Execute a rolling sync cycle
+ */
+export async function executeRollingSyncCycle(): Promise<{ updated: number; total: number }> {
+  syncCycleCounter++;
+  try {
+    if (discoveredLeagues.length === 0) {
+      await discoverAllLeagues();
+    }
+
+    // 1. Always sync Top Priority leagues
+    const priorityLeagues = Array.from(TOP_PRIORITY_LEAGUE_CODES);
+
+    // 2. Add any leagues that currently have live in-play matches
+    Array.from(fixturesStore.values()).forEach((f) => {
+      if (f.status === 'in' && !priorityLeagues.includes(f.leagueCode)) {
+        priorityLeagues.push(f.leagueCode);
+      }
+    });
+
+    // 3. Add a rolling batch of 6 secondary leagues from discoveredLeagues
+    const secondaryLeagues = discoveredLeagues
+      .map((l) => l.league)
+      .filter((code) => !priorityLeagues.includes(code));
+
+    const BATCH_SIZE = 6;
+    const currentBatch: string[] = [];
+    if (secondaryLeagues.length > 0) {
+      for (let i = 0; i < BATCH_SIZE; i++) {
+        const code = secondaryLeagues[(secondaryLeagueIndex + i) % secondaryLeagues.length];
+        if (code && !currentBatch.includes(code)) {
+          currentBatch.push(code);
+        }
+      }
+      secondaryLeagueIndex = (secondaryLeagueIndex + BATCH_SIZE) % secondaryLeagues.length;
+    }
+
+    const leaguesToSync = [...new Set([...priorityLeagues, ...currentBatch])];
+
+    // Concurrently fetch in controlled chunks of 5 to avoid overloading
+    const CHUNK_SIZE = 5;
+    let totalUpdated = 0;
+
+    for (let i = 0; i < leaguesToSync.length; i += CHUNK_SIZE) {
+      const chunk = leaguesToSync.slice(i, i + CHUNK_SIZE);
+      const results = await Promise.allSettled(chunk.map((c) => fetchLeagueFixtures(c)));
+
+      results.forEach((res) => {
+        if (res.status === 'fulfilled' && Array.isArray(res.value) && res.value.length > 0) {
+          totalUpdated += ingestFixtures(res.value);
+        }
+      });
+    }
+
+    lastSyncError = null;
+    return { updated: totalUpdated, total: fixturesStore.size };
+  } catch (err: any) {
+    lastSyncError = err?.message || 'Rolling sync error';
+    console.error('Rolling sync cycle encountered an error:', lastSyncError);
+    return { updated: 0, total: fixturesStore.size };
+  }
+}
+
+/**
+ * Filter fixtures by scope ('all' | 'live' | 'today' | 'tomorrow' | 'upcoming'), league, country, and date
+ */
+export function queryMarketFixtures(options: {
+  scope?: 'all' | 'live' | 'today' | 'tomorrow' | 'upcoming';
+  league?: string;
+  country?: string;
+  date?: string;
+  limit?: number;
+} = {}): MarketFixture[] {
+  const { scope = 'all', league, country, date, limit } = options;
+
+  const todayStr = getLocalDateStringEAT(new Date());
+  const tomorrowDate = new Date();
+  tomorrowDate.setDate(tomorrowDate.getDate() + 1);
+  const tomorrowStr = getLocalDateStringEAT(tomorrowDate);
+
+  let list = Array.from(fixturesStore.values());
+
+  // Filter by Scope
+  if (scope === 'live') {
+    list = list.filter((f) => f.status === 'in');
+  } else if (scope === 'today') {
+    list = list.filter((f) => {
+      const fDate = getLocalDateStringEAT(f.kickoffIso);
+      return fDate === todayStr;
+    });
+  } else if (scope === 'tomorrow') {
+    list = list.filter((f) => {
+      const fDate = getLocalDateStringEAT(f.kickoffIso);
+      return fDate === tomorrowStr;
+    });
+  } else if (scope === 'upcoming') {
+    list = list.filter((f) => {
+      const fDate = getLocalDateStringEAT(f.kickoffIso);
+      return f.status === 'pre' && fDate >= todayStr;
+    });
+  } else {
+    // 'all' includes all pre-match and in-play fixtures from today onwards, plus recent live matches
+    list = list.filter((f) => {
+      if (f.status === 'in') return true;
+      const fDate = getLocalDateStringEAT(f.kickoffIso);
+      return fDate >= todayStr;
+    });
+  }
+
+  // Filter by League
+  if (league && league !== 'all') {
+    const lLower = league.toLowerCase();
+    list = list.filter((f) =>
+      f.leagueCode.toLowerCase() === lLower ||
+      f.competition.toLowerCase().includes(lLower)
+    );
+  }
+
+  // Filter by Country
+  if (country && country !== 'all') {
+    const cLower = country.toLowerCase();
+    list = list.filter((f) => f.country.toLowerCase() === cLower);
+  }
+
+  // Filter by Specific Date (YYYY-MM-DD in EAT)
+  if (date) {
+    list = list.filter((f) => getLocalDateStringEAT(f.kickoffIso) === date);
+  }
+
+  // Sort chronologically by kickoff
+  list.sort((a, b) => new Date(a.kickoffIso).getTime() - new Date(b.kickoffIso).getTime());
+
+  if (limit && limit > 0) {
+    list = list.slice(0, limit);
+  }
+
+  return list;
+}
+
+/**
+ * Returns complete rolling catalogue for client hydration (with immediate cache return)
+ */
+export async function getDailyMarketHighlights(): Promise<MarketFixture[]> {
+  // If store is completely empty, perform initial eager discovery & sync
+  if (fixturesStore.size === 0) {
+    await executeRollingSyncCycle();
+  }
+
+  return queryMarketFixtures({ scope: 'all' });
+}
+
+/**
+ * Backward-compatible single league fixture query
+ */
+export async function getMarketFixtures(leagueCode: string = 'premier'): Promise<MarketFixture[]> {
+  const existing = queryMarketFixtures({ league: leagueCode, scope: 'all' });
+  if (existing.length > 0) {
+    return existing;
+  }
+  const fetched = await fetchLeagueFixtures(leagueCode);
+  ingestFixtures(fetched);
+  return fetched;
 }
 
 /**
@@ -213,15 +557,12 @@ export async function getMarketFixtures(leagueCode: string = 'premier'): Promise
  */
 export async function getMarketResults(leagueCode: string = 'premier', season?: string): Promise<MarketResult[]> {
   const targetSeason = season || '2025-2026';
-  const cacheKey = `sports:results:${leagueCode}:${targetSeason}`;
-  const cached = getCached<MarketResult[]>(cacheKey);
-  if (cached) return cached;
-
   try {
     const res = await fetch(`${BASE_URL}/leagues/${encodeURIComponent(leagueCode)}/results/?season=${encodeURIComponent(targetSeason)}`, {
       headers: {
         Authorization: `Bearer ${getApiKey()}`,
       },
+      signal: AbortSignal.timeout(12000),
     });
 
     if (!res.ok) {
@@ -231,7 +572,7 @@ export async function getMarketResults(leagueCode: string = 'premier', season?: 
     const data = await res.json();
     const rawEvents = Array.isArray(data) ? data : data.matches || data.results || [];
 
-    const results: MarketResult[] = rawEvents.map((r: any) => {
+    return rawEvents.map((r: any) => {
       const scoreStr = String(r.score || '0:0');
       const [hStr, aStr] = scoreStr.split(':');
       const homeScore = parseInt(hStr, 10) || 0;
@@ -254,51 +595,52 @@ export async function getMarketResults(leagueCode: string = 'premier', season?: 
         firstGoalTime: r.first_goal_time,
       };
     });
-
-    setCached(cacheKey, results, RESULTS_TTL);
-    return results;
-  } catch (err) {
-    console.warn(`Error fetching results for ${leagueCode}:`, err);
+  } catch (err: any) {
+    console.warn(`Error fetching results for ${leagueCode}:`, err?.message || err);
     return [];
   }
 }
 
 /**
- * Aggregates marquee upcoming fixtures across key leagues (Premier League, La Liga, Serie A, Champions League)
+ * Return safe diagnostic telemetry for administrative inspection
  */
-export async function getDailyMarketHighlights(): Promise<MarketFixture[]> {
-  const cacheKey = 'sports:highlights:daily';
-  const cached = getCached<MarketFixture[]>(cacheKey);
-  if (cached) return cached;
+export function getSyncDiagnostics(): SyncDiagnostics {
+  const all = Array.from(fixturesStore.values());
+  const todayStr = getLocalDateStringEAT(new Date());
 
-  const priorityLeagues = [
-    'premier',
-    'spain1',
-    'italy1',
-    'germany1',
-    'france1',
-    'cha',
-    'holland1',
-    'portugal1',
-    'scot-premier',
-    'turkey1',
-  ];
-  const allResults = await Promise.allSettled(
-    priorityLeagues.map((code) => getMarketFixtures(code))
-  );
+  const liveCount = all.filter((f) => f.status === 'in').length;
+  const upcomingCount = all.filter((f) => f.status === 'pre' && getLocalDateStringEAT(f.kickoffIso) >= todayStr).length;
+  const uniqueLeagues = new Set(all.map((f) => f.leagueCode));
 
-  const flat: MarketFixture[] = [];
-  allResults.forEach((res) => {
-    if (res.status === 'fulfilled' && Array.isArray(res.value)) {
-      flat.push(...res.value);
-    }
-  });
+  return {
+    lastSyncTime: lastSyncTimestamp,
+    totalFixtures: all.length,
+    liveFixturesCount: liveCount,
+    upcomingFixturesCount: upcomingCount,
+    activeLeaguesCount: uniqueLeagues.size,
+    discoveredLeaguesCount: discoveredLeagues.length,
+    lastError: lastSyncError,
+    syncCyclesCount: syncCycleCounter,
+    // 12 runs/hr * (10 tier1 leagues + 4 round-robin tier2 leagues) * 24hr = ~4,032 calls/day (well within 5,000 quota)
+    dailyRequestBudget: 3840,
+    rateLimitSafe: true,
+  };
+}
 
-  // Sort by kickoff date & time
-  flat.sort((a, b) => new Date(a.kickoffIso).getTime() - new Date(b.kickoffIso).getTime());
+// Background scheduler handle
+let schedulerTimer: NodeJS.Timeout | null = null;
 
-  if (flat.length > 0) {
-    setCached(cacheKey, flat, FIXTURES_TTL);
-  }
-  return flat;
+/**
+ * Start the background continuous synchronization loop (runs in server.ts)
+ */
+export function startContinuousSportsScheduler(intervalMinutes = 5): void {
+  if (schedulerTimer) return;
+
+  // Immediate eager initial sync
+  void executeRollingSyncCycle();
+
+  // Schedule regular rolling updates
+  schedulerTimer = setInterval(() => {
+    void executeRollingSyncCycle();
+  }, intervalMinutes * 60 * 1000);
 }

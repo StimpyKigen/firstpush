@@ -17,20 +17,71 @@ export default defineConfig(() => {
         name: 'sports-api-dev-middleware',
         configureServer(server) {
           server.middlewares.use(async (req, res, next) => {
-            if (req.url && req.url.startsWith('/api/sports/daily-fixtures')) {
-              try {
-                const { getDailyMarketHighlights } = await server.ssrLoadModule('/src/lib/sportsFeedService.ts');
-                const highlights = await getDailyMarketHighlights();
-                res.setHeader('Content-Type', 'application/json');
-                res.setHeader('Access-Control-Allow-Origin', '*');
-                res.end(JSON.stringify({ success: true, count: highlights.length, fixtures: highlights }));
-                return;
-              } catch (err) {
-                console.error('Error in dev sports API middleware:', err);
-                res.statusCode = 500;
-                res.setHeader('Content-Type', 'application/json');
-                res.end(JSON.stringify({ success: false, error: String(err) }));
-                return;
+            if (req.url) {
+              const url = new URL(req.url, 'http://localhost');
+              if (url.pathname === '/api/sports/daily-fixtures') {
+                try {
+                  const { getDailyMarketHighlights } = await server.ssrLoadModule('/src/lib/sportsFeedService.ts');
+                  const highlights = await getDailyMarketHighlights();
+                  res.setHeader('Content-Type', 'application/json');
+                  res.setHeader('Access-Control-Allow-Origin', '*');
+                  res.end(JSON.stringify({ success: true, count: highlights.length, fixtures: highlights }));
+                  return;
+                } catch (err) {
+                  res.statusCode = 500;
+                  res.setHeader('Content-Type', 'application/json');
+                  res.end(JSON.stringify({ success: false, error: String(err) }));
+                  return;
+                }
+              }
+              if (url.pathname === '/api/sports/fixtures') {
+                try {
+                  const { queryMarketFixtures } = await server.ssrLoadModule('/src/lib/sportsFeedService.ts');
+                  const scope = (url.searchParams.get('scope') as any) || 'all';
+                  const league = url.searchParams.get('league') || undefined;
+                  const country = url.searchParams.get('country') || undefined;
+                  const date = url.searchParams.get('date') || undefined;
+                  const fixtures = queryMarketFixtures({ scope, league, country, date });
+                  res.setHeader('Content-Type', 'application/json');
+                  res.setHeader('Access-Control-Allow-Origin', '*');
+                  res.end(JSON.stringify({ success: true, count: fixtures.length, fixtures }));
+                  return;
+                } catch (err) {
+                  res.statusCode = 500;
+                  res.setHeader('Content-Type', 'application/json');
+                  res.end(JSON.stringify({ success: false, error: String(err) }));
+                  return;
+                }
+              }
+              if (url.pathname === '/api/sports/leagues') {
+                try {
+                  const { discoverAllLeagues } = await server.ssrLoadModule('/src/lib/sportsFeedService.ts');
+                  const leagues = await discoverAllLeagues();
+                  res.setHeader('Content-Type', 'application/json');
+                  res.setHeader('Access-Control-Allow-Origin', '*');
+                  res.end(JSON.stringify({ success: true, count: leagues.length, leagues }));
+                  return;
+                } catch (err) {
+                  res.statusCode = 500;
+                  res.setHeader('Content-Type', 'application/json');
+                  res.end(JSON.stringify({ success: false, error: String(err) }));
+                  return;
+                }
+              }
+              if (url.pathname === '/api/sports/status') {
+                try {
+                  const { getSyncDiagnostics } = await server.ssrLoadModule('/src/lib/sportsFeedService.ts');
+                  const diagnostics = getSyncDiagnostics();
+                  res.setHeader('Content-Type', 'application/json');
+                  res.setHeader('Access-Control-Allow-Origin', '*');
+                  res.end(JSON.stringify({ success: true, diagnostics }));
+                  return;
+                } catch (err) {
+                  res.statusCode = 500;
+                  res.setHeader('Content-Type', 'application/json');
+                  res.end(JSON.stringify({ success: false, error: String(err) }));
+                  return;
+                }
               }
             }
             next();

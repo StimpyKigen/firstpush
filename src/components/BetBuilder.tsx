@@ -480,6 +480,12 @@ function BuilderFixtureItem({
         <div className="min-w-0 flex-1">
           <div className="flex items-center justify-between gap-2 text-[10px] uppercase font-bold text-cream-dim">
             <div className="flex items-center gap-1.5 min-w-0 flex-wrap">
+              {fixture.status === 'in' && (
+                <span className="bg-rose-500/20 text-rose-400 border border-rose-500/40 text-[9px] font-black px-1.5 py-0.5 rounded-full flex items-center gap-1 animate-pulse">
+                  <span className="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
+                  LIVE {fixture.homeScore !== null && fixture.awayScore !== null ? `${fixture.homeScore} - ${fixture.awayScore}` : ''}
+                </span>
+              )}
               <span className="text-gold">{fixture.competition}</span>
               <span>•</span>
               <span className="shrink-0">{fixture.kickoff}</span>

@@ -2,22 +2,39 @@ import { useState, useMemo, useRef, useEffect, useSyncExternalStore } from 'reac
 import { Link } from 'react-router-dom';
 import {
   Sparkles, Users, Clock, Unlock, Calendar, Search, X, SearchX,
-  Dices, Plus, Check, Flame, MessageSquarePlus, Globe, ChevronDown, Filter, RotateCcw
+  Dices, Plus, Check, Flame, MessageSquarePlus, Globe, ChevronDown, Filter, RotateCcw,
+  Radio, RadioTower, Trophy
 } from 'lucide-react';
 import SeoHead from '../components/SeoHead';
-import { freeMatches, freeMatchConsensus, getFreeMatchesSnapshot, getFreeMatchConsensusSnapshot, subscribeToFreeMatches, getIsFreeMatchesSyncing, getHasFreeMatchesSynced, type FreeMatch } from '../lib/freeMatches';
-import { getEffectiveMatchDayFormattedEAT } from '../lib/footballApi';
+import {
+  freeMatches,
+  freeMatchConsensus,
+  getFreeMatchesSnapshot,
+  getFreeMatchConsensusSnapshot,
+  subscribeToFreeMatches,
+  getIsFreeMatchesSyncing,
+  getHasFreeMatchesSynced,
+  type FreeMatch
+} from '../lib/freeMatches';
+import {
+  getLocalDateStringEAT,
+  getEffectiveMatchDayFormattedEAT,
+} from '../lib/footballApi';
 import { useBetSlipStore } from '../lib/betSlipStore';
 import { showToast } from '../lib/notificationStore';
 import QuickBetBuilderModal, { type MatchForBuilder } from '../components/QuickBetBuilderModal';
 import { MatchListSkeleton } from '../components/skeleton';
 import { CONTINENTS, getLeagueMetadata, type ContinentId } from '../lib/leagueDirectory';
 
+type ScopeTab = 'all' | 'live' | 'today' | 'tomorrow' | 'upcoming';
+
 export default function FreeMatches() {
+  const [activeTab, setActiveTab] = useState<ScopeTab>('all');
+  const [selectedDate, setSelectedDate] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedMatchForBuilder, setSelectedMatchForBuilder] = useState<MatchForBuilder | null>(null);
 
-  // Saveable filters: Continent & League, and Sort filter
+  // League filter & Sort by
   const [leagueFilter, setLeagueFilter] = useState<string>(() => {
     try {
       return localStorage.getItem('mshindi_freematch_league_filter') || 'all';
@@ -26,14 +43,7 @@ export default function FreeMatches() {
     }
   });
 
-  const [sortBy, setSortBy] = useState<'popular' | 'time'>(() => {
-    try {
-      const saved = localStorage.getItem('mshindi_freematch_sort_filter');
-      return saved === 'time' ? 'time' : 'popular';
-    } catch {
-      return 'popular';
-    }
-  });
+  const [sortBy, setSortBy] = useState<'popular' | 'time'>('time');
 
   const [isLeagueDropdownOpen, setIsLeagueDropdownOpen] = useState(false);
   const [isSortDropdownOpen, setIsSortDropdownOpen] = useState(false);
@@ -61,40 +71,120 @@ export default function FreeMatches() {
     } catch {}
   };
 
-  const handleSortChange = (val: 'popular' | 'time') => {
-    setSortBy(val);
-    setIsSortDropdownOpen(false);
-    try {
-      localStorage.setItem('mshindi_freematch_sort_filter', val);
-    } catch {}
-  };
-
   const resetFilters = () => {
     setSearchQuery('');
     handleLeagueFilterChange('all');
-    handleSortChange('popular');
+    setSelectedDate('all');
+    setActiveTab('all');
+    setSortBy('time');
   };
 
   const matches = useSyncExternalStore(subscribeToFreeMatches, getFreeMatchesSnapshot, getFreeMatchesSnapshot);
   const consensusMap = useSyncExternalStore(subscribeToFreeMatches, getFreeMatchConsensusSnapshot, getFreeMatchConsensusSnapshot);
-  const activeDayLabel = getEffectiveMatchDayFormattedEAT(new Date());
 
   const builderLegs = useBetSlipStore((s) => s.builderLegs);
   const toggleBuilderLeg = useBetSlipStore((s) => s.toggleBuilderLeg);
 
-  const upcomingMatches = matches.filter((m) => {
-    // Exclude matches that have already started or concluded
-    if (m.status === 'in' || m.status === 'post') return false;
-    if (m.kickoffIso) {
-      const kTime = new Date(m.kickoffIso).getTime();
-      if (!Number.isNaN(kTime) && kTime <= Date.now()) {
-        return false;
-      }
-    }
-    return true;
-  });
+  // Timezone boundary dates (EAT)
+  const todayDateStr = getLocalDateStringEAT(new Date());
+  const tomorrowDateObj = new Date();
+  tomorrowDateObj.setDate(tomorrowDateObj.getDate() + 1);
+  const tomorrowDateStr = getLocalDateStringEAT(tomorrowDateObj);
+  const activeDayLabel = getEffectiveMatchDayFormattedEAT(new Date());
 
-  // Build Continent -> Ranked Leagues map from upcomingMatches
+  // Scope Counts
+  const counts = useMemo(() => {
+    let live = 0;
+    let today = 0;
+    let tomorrow = 0;
+    let upcoming = 0;
+
+    matches.forEach((m) => {
+      const dStr = m.kickoffIso ? getLocalDateStringEAT(m.kickoffIso) : '';
+      if (m.status === 'in') {
+        live++;
+      }
+      if (dStr === todayDateStr) {
+        today++;
+      } else if (dStr === tomorrowDateStr) {
+        tomorrow++;
+      } else if (dStr > tomorrowDateStr) {
+        upcoming++;
+      }
+    });
+
+    return {
+      all: matches.length,
+      live,
+      today,
+      tomorrow,
+      upcoming,
+    };
+  }, [matches, todayDateStr, tomorrowDateStr]);
+
+  // Available dates for horizontal date bar
+  const availableDates = useMemo(() => {
+    const dateMap = new Map<string, number>();
+    matches.forEach((m) => {
+      if (m.kickoffIso) {
+        const dStr = getLocalDateStringEAT(m.kickoffIso);
+        if (dStr >= todayDateStr) {
+          dateMap.set(dStr, (dateMap.get(dStr) || 0) + 1);
+        }
+      }
+    });
+
+    return Array.from(dateMap.entries())
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([dStr, count]) => {
+        const [y, m, d] = dStr.split('-').map(Number);
+        const utcDate = new Date(Date.UTC(y, m - 1, d, 12, 0, 0));
+        let label = new Intl.DateTimeFormat('en', {
+          timeZone: 'UTC',
+          weekday: 'short',
+          month: 'short',
+          day: 'numeric',
+        }).format(utcDate);
+
+        if (dStr === todayDateStr) label = 'Today';
+        else if (dStr === tomorrowDateStr) label = 'Tomorrow';
+
+        return {
+          dStr,
+          label,
+          count,
+        };
+      });
+  }, [matches, todayDateStr, tomorrowDateStr]);
+
+  // Filter matches by selected Tab & Date
+  const scopedMatches = useMemo(() => {
+    return matches.filter((m) => {
+      const dStr = m.kickoffIso ? getLocalDateStringEAT(m.kickoffIso) : '';
+
+      // Date selector overrides tab if explicitly selected
+      if (selectedDate !== 'all') {
+        return dStr === selectedDate;
+      }
+
+      if (activeTab === 'live') {
+        return m.status === 'in';
+      }
+      if (activeTab === 'today') {
+        return dStr === todayDateStr;
+      }
+      if (activeTab === 'tomorrow') {
+        return dStr === tomorrowDateStr;
+      }
+      if (activeTab === 'upcoming') {
+        return dStr > tomorrowDateStr;
+      }
+      // 'all' includes all pre-match and in-play fixtures
+      return m.status === 'in' || dStr >= todayDateStr;
+    });
+  }, [matches, activeTab, selectedDate, todayDateStr, tomorrowDateStr]);
+
+  // Build Continent -> Ranked Leagues map from scopedMatches
   const groupedContinents = useMemo(() => {
     const continentMap = new Map<ContinentId, Map<string, { count: number; rank: number }>>();
 
@@ -104,7 +194,7 @@ export default function FreeMatches() {
       }
     }
 
-    upcomingMatches.forEach((m) => {
+    scopedMatches.forEach((m) => {
       const meta = getLeagueMetadata(m.competition);
       const cMap = continentMap.get(meta.continent) || continentMap.get('europe')!;
       const existing = cMap.get(meta.standardName) || { count: 0, rank: meta.rank };
@@ -128,7 +218,7 @@ export default function FreeMatches() {
         leagues,
       };
     });
-  }, [upcomingMatches]);
+  }, [scopedMatches]);
 
   const currentLeagueLabel = useMemo(() => {
     if (leagueFilter === 'all') return { title: 'All Continents & Leagues', flag: '🌍' };
@@ -146,8 +236,9 @@ export default function FreeMatches() {
     return { title: 'All Continents & Leagues', flag: '🌍' };
   }, [leagueFilter]);
 
+  // Search and league filtering
   const query = searchQuery.trim().toLowerCase();
-  const filteredMatches = upcomingMatches
+  const filteredMatches = scopedMatches
     .filter((m) => {
       // 1. Text Search Filter
       if (query) {
@@ -155,6 +246,7 @@ export default function FreeMatches() {
           m.home.toLowerCase().includes(query) ||
           m.away.toLowerCase().includes(query) ||
           m.competition.toLowerCase().includes(query) ||
+          (m.country && m.country.toLowerCase().includes(query)) ||
           (m.blurb && m.blurb.toLowerCase().includes(query));
         if (!matchesQuery) return false;
       }
@@ -170,7 +262,8 @@ export default function FreeMatches() {
       if (leagueFilter.startsWith('league:')) {
         const targetLeague = leagueFilter.replace('league:', '');
         return meta.standardName.toLowerCase() === targetLeague.toLowerCase() ||
-               m.competition.toLowerCase() === targetLeague.toLowerCase();
+               m.competition.toLowerCase() === targetLeague.toLowerCase() ||
+               m.competition.toLowerCase().includes(targetLeague.toLowerCase());
       }
       return true;
     })
@@ -180,338 +273,440 @@ export default function FreeMatches() {
         const timeB = b.kickoffIso ? new Date(b.kickoffIso).getTime() : Infinity;
         if (timeA !== timeB) return timeA - timeB;
       }
-      // Default: Most Popular (consensus votes descending)
+      // Most Popular (consensus votes descending)
       const votesA = consensusMap[a.id]?.totalVotes ?? 0;
       const votesB = consensusMap[b.id]?.totalVotes ?? 0;
       return votesB - votesA;
     });
 
+  const handleTabClick = (tab: ScopeTab) => {
+    setActiveTab(tab);
+    setSelectedDate('all');
+  };
+
+  const handleDateClick = (dateStr: string) => {
+    if (selectedDate === dateStr) {
+      setSelectedDate('all');
+    } else {
+      setSelectedDate(dateStr);
+    }
+  };
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
       <SeoHead
-        title="Free Football Matches & Live Discussion Rooms"
-        description="Free discussion rooms for UEFA Champions League, Premier League, Europa League & top derbies. See community consensus, crowd splits & expert punter picks."
+        title="Live Football Fixtures, Odds & Consensus Slate"
+        description="Browse all upcoming and live football matches across top leagues. Compare crowd consensus, odds, and build custom multi-match bet builder slips."
         canonicalUrl="https://mshindi.co.ke/free"
       />
-      
-      {/* Editorial Page Header */}
-      <div className="text-center mb-8 sm:mb-10">
-        <div className="flex items-center justify-center gap-2.5 flex-wrap mb-3 text-xs font-bold uppercase tracking-wider text-slate-500">
+
+      {/* Editorial Header */}
+      <div className="text-center mb-6 sm:mb-8">
+        <div className="flex items-center justify-center gap-2.5 flex-wrap mb-2.5 text-xs font-bold uppercase tracking-wider text-slate-500">
           <span className="inline-flex items-center gap-1.5 text-slate-700">
-            <Unlock size={13} className="text-[#006C54]" /> Always free · No paywall
+            <Unlock size={13} className="text-[#006C54]" /> Always Free · No Paywall
           </span>
           <span className="text-slate-300 font-normal">·</span>
           <span className="inline-flex items-center gap-1.5 text-[#006C54] font-black">
-            <Flame size={13} /> Ranked by Activity
+            <Radio size={13} className="animate-pulse" /> Live Market Feed
           </span>
           <span className="text-slate-300 font-normal">·</span>
           <span className="inline-flex items-center gap-1.5 text-slate-600">
-            <Calendar size={13} className="text-slate-400" /> Today&apos;s Slate ({activeDayLabel} EAT)
+            <Calendar size={13} className="text-slate-400" /> All Times in EAT (UTC+3)
           </span>
         </div>
 
         <h1 className="font-display font-black text-3xl sm:text-5xl text-slate-900 tracking-tight uppercase">
           Match Slate &amp; Consensus
         </h1>
-        <p className="text-slate-600 mt-2 sm:mt-3 max-w-3xl mx-auto text-xs sm:text-sm leading-relaxed">
-          Comprehensive match center for the <strong className="text-slate-900 font-bold">UEFA Champions League</strong>, <strong className="text-slate-900 font-bold">Premier League</strong>, and European derbies. Compare punter consensus splits and crowd picks before kickoff. Next slate updates at <span className="text-[#006C54] font-bold font-mono">03:00 AM EAT</span>.
+        <p className="text-slate-600 mt-2 max-w-3xl mx-auto text-xs sm:text-sm leading-relaxed">
+          Comprehensive sportsbook-grade fixture catalogue across all supported competitions. Browse live in-play games, today&apos;s slate, and rolling upcoming fixtures with calibrated crowd consensus splits.
         </p>
       </div>
 
-      {/* Interactive Search Bar & iOS-Style Filters */}
-      {upcomingMatches.length > 0 && (
-        <div className="mb-6 sm:mb-8 max-w-3xl mx-auto space-y-2 sm:space-y-2.5">
-          {/* Search Bar */}
-          <div className="relative flex items-center">
-            <Search size={15} className="absolute left-3.5 text-slate-400 pointer-events-none" />
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search team or fixture (e.g. Arsenal, Real Madrid, Chelsea)..."
-              className="w-full bg-[#FFFFF0] border border-[#D4D4C0] focus:border-[#006C54] focus:ring-2 focus:ring-[#006C54]/15 rounded-full pl-9 sm:pl-10 pr-9 py-2 sm:py-2.5 text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 shadow-xs focus:outline-none transition-all"
-            />
-            {searchQuery && (
-              <button
-                onClick={() => setSearchQuery('')}
-                className="absolute right-3 p-1 rounded-full hover:bg-slate-100 text-slate-400 hover:text-slate-700 transition-colors cursor-pointer"
-                title="Clear search"
-              >
-                <X size={14} />
-              </button>
-            )}
-          </div>
+      {/* SPORTSBOOK SCOPE NAVIGATION TABS */}
+      <div className="max-w-3xl mx-auto mb-4">
+        <div className="flex items-center justify-center p-1 bg-[#F5F5E4] rounded-2xl border border-[#D4D4C0] shadow-xs gap-1 flex-wrap sm:flex-nowrap">
+          <button
+            type="button"
+            onClick={() => handleTabClick('all')}
+            className={`flex-1 min-w-[70px] sm:min-w-0 py-2 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+              activeTab === 'all' && selectedDate === 'all'
+                ? 'bg-[#006C54] text-white shadow-xs'
+                : 'text-slate-700 hover:text-slate-900 hover:bg-white/60'
+            }`}
+          >
+            <span>All Fixtures</span>
+            <span className={`text-[10px] font-mono px-1.5 py-0.2 rounded-full font-bold ${
+              activeTab === 'all' && selectedDate === 'all' ? 'bg-white/20 text-white' : 'bg-slate-200 text-slate-700'
+            }`}>
+              {counts.all}
+            </span>
+          </button>
 
-          {/* Aesthetic Pill-Style Dropdowns (Optimized for Mobile & Desktop) */}
-          <div className="grid grid-cols-1 sm:grid-cols-12 gap-2 sm:gap-2.5 pt-0.5">
-            {/* Dropdown 1: Continent & Ranked League Filter */}
-            <div className="sm:col-span-7 relative" ref={leagueDropdownRef}>
+          <button
+            type="button"
+            onClick={() => handleTabClick('live')}
+            className={`flex-1 min-w-[70px] sm:min-w-0 py-2 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+              activeTab === 'live'
+                ? 'bg-red-600 text-white shadow-xs'
+                : 'text-slate-700 hover:text-slate-900 hover:bg-white/60'
+            }`}
+          >
+            <span className="relative flex h-2 w-2">
+              <span className={`animate-ping absolute inline-flex h-full w-full rounded-full ${counts.live > 0 ? 'bg-red-400' : 'bg-slate-400'} opacity-75`}></span>
+              <span className={`relative inline-flex rounded-full h-2 w-2 ${counts.live > 0 ? 'bg-red-500' : 'bg-slate-400'}`}></span>
+            </span>
+            <span>Live</span>
+            <span className={`text-[10px] font-mono px-1.5 py-0.2 rounded-full font-bold ${
+              activeTab === 'live' ? 'bg-white/20 text-white' : 'bg-slate-200 text-slate-700'
+            }`}>
+              {counts.live}
+            </span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => handleTabClick('today')}
+            className={`flex-1 min-w-[70px] sm:min-w-0 py-2 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+              activeTab === 'today' && selectedDate === 'all'
+                ? 'bg-[#006C54] text-white shadow-xs'
+                : 'text-slate-700 hover:text-slate-900 hover:bg-white/60'
+            }`}
+          >
+            <span>Today</span>
+            <span className={`text-[10px] font-mono px-1.5 py-0.2 rounded-full font-bold ${
+              activeTab === 'today' && selectedDate === 'all' ? 'bg-white/20 text-white' : 'bg-slate-200 text-slate-700'
+            }`}>
+              {counts.today}
+            </span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => handleTabClick('tomorrow')}
+            className={`flex-1 min-w-[70px] sm:min-w-0 py-2 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+              activeTab === 'tomorrow' && selectedDate === 'all'
+                ? 'bg-[#006C54] text-white shadow-xs'
+                : 'text-slate-700 hover:text-slate-900 hover:bg-white/60'
+            }`}
+          >
+            <span>Tomorrow</span>
+            <span className={`text-[10px] font-mono px-1.5 py-0.2 rounded-full font-bold ${
+              activeTab === 'tomorrow' && selectedDate === 'all' ? 'bg-white/20 text-white' : 'bg-slate-200 text-slate-700'
+            }`}>
+              {counts.tomorrow}
+            </span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => handleTabClick('upcoming')}
+            className={`flex-1 min-w-[70px] sm:min-w-0 py-2 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+              activeTab === 'upcoming' && selectedDate === 'all'
+                ? 'bg-[#006C54] text-white shadow-xs'
+                : 'text-slate-700 hover:text-slate-900 hover:bg-white/60'
+            }`}
+          >
+            <span>Upcoming</span>
+            <span className={`text-[10px] font-mono px-1.5 py-0.2 rounded-full font-bold ${
+              activeTab === 'upcoming' && selectedDate === 'all' ? 'bg-white/20 text-white' : 'bg-slate-200 text-slate-700'
+            }`}>
+              {counts.upcoming}
+            </span>
+          </button>
+        </div>
+      </div>
+
+      {/* HORIZONTAL DATE SELECTOR PILLS */}
+      {availableDates.length > 0 && activeTab !== 'live' && (
+        <div className="max-w-4xl mx-auto mb-6">
+          <div className="flex items-center gap-2 overflow-x-auto pb-1.5 scrollbar-none">
+            <button
+              type="button"
+              onClick={() => setSelectedDate('all')}
+              className={`shrink-0 text-xs font-bold px-3 py-1.5 rounded-full border transition-all cursor-pointer ${
+                selectedDate === 'all'
+                  ? 'bg-[#006C54] text-white border-[#006C54] shadow-xs'
+                  : 'bg-[#FFFFF0] border-[#D4D4C0] text-slate-700 hover:border-[#006C54]'
+              }`}
+            >
+              All Dates
+            </button>
+            {availableDates.map((d) => (
               <button
+                key={d.dStr}
                 type="button"
-                onClick={() => {
-                  setIsLeagueDropdownOpen((prev) => !prev);
-                  setIsSortDropdownOpen(false);
-                }}
-                className={`w-full bg-[#FFFFF0] border rounded-full px-3.5 sm:px-4 py-1.5 sm:py-2 text-xs font-bold text-slate-800 flex items-center justify-between gap-2 sm:gap-2.5 transition-all shadow-xs hover:border-[#006C54] cursor-pointer ${
-                  isLeagueDropdownOpen ? 'border-[#006C54] ring-2 ring-[#006C54]/15' : 'border-[#D4D4C0]'
+                onClick={() => handleDateClick(d.dStr)}
+                className={`shrink-0 text-xs font-bold px-3 py-1.5 rounded-full border transition-all flex items-center gap-1.5 cursor-pointer ${
+                  selectedDate === d.dStr
+                    ? 'bg-[#006C54] text-white border-[#006C54] shadow-xs font-extrabold'
+                    : 'bg-[#FFFFF0] border-[#D4D4C0] text-slate-700 hover:border-[#006C54]'
                 }`}
-                aria-expanded={isLeagueDropdownOpen}
               >
-                <div className="flex items-center gap-2 sm:gap-2.5 min-w-0">
-                  <Globe size={15} className="text-[#006C54] shrink-0" strokeWidth={2} />
-                  <div className="text-left truncate">
-                    <span className="text-[9.5px] sm:text-[10px] text-slate-500 font-semibold tracking-tight block leading-none mb-0.5">
-                      League / Continent
-                    </span>
-                    <span className="truncate block font-bold text-xs sm:text-[13px] text-slate-900">
-                      {currentLeagueLabel.title}
-                    </span>
-                  </div>
-                </div>
-                <div className="flex items-center gap-1.5 shrink-0">
-                  {leagueFilter !== 'all' && (
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#006C54]" />
-                  )}
-                  <ChevronDown
-                    size={14}
-                    className={`text-slate-500 transition-transform duration-200 ${
-                      isLeagueDropdownOpen ? 'rotate-180 text-[#006C54]' : ''
-                    }`}
-                  />
-                </div>
+                <span>{d.label}</span>
+                <span className={`text-[10px] font-mono px-1.5 py-0.2 rounded-full font-bold ${
+                  selectedDate === d.dStr ? 'bg-white/20 text-white' : 'bg-slate-200 text-slate-700'
+                }`}>
+                  {d.count}
+                </span>
               </button>
-
-              {/* iOS Styled Dropdown Menu */}
-              {isLeagueDropdownOpen && (
-                <div className="absolute left-0 right-0 mt-1.5 bg-[#FFFFF0] border border-[#D4D4C0] rounded-2xl shadow-2xl py-2 z-50 max-h-[360px] overflow-y-auto overscroll-contain text-xs divide-y divide-[#E6E6D2]">
-                  {/* Option: All Continents */}
-                  <div className="p-1">
-                    <button
-                      type="button"
-                      onClick={() => handleLeagueFilterChange('all')}
-                      className={`w-full px-3 py-2 rounded-xl text-left flex items-center justify-between transition-colors cursor-pointer ${
-                        leagueFilter === 'all'
-                          ? 'bg-[#006C54]/10 text-[#006C54] font-black'
-                          : 'hover:bg-[#F5F5E4] text-slate-700 font-semibold'
-                      }`}
-                    >
-                      <span className="flex items-center gap-2">
-                        <span>🌍</span> All Continents &amp; Leagues
-                      </span>
-                      <div className="flex items-center gap-1.5">
-                        <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-[#F5F5E4] border border-[#E6E6D2] text-slate-600 font-bold">
-                          {upcomingMatches.length}
-                        </span>
-                        {leagueFilter === 'all' && <Check size={14} className="text-[#006C54]" />}
-                      </div>
-                    </button>
-                  </div>
-
-                  {/* Grouped by Continent & Ranked Leagues */}
-                  {groupedContinents.map((continent) => (
-                    <div key={continent.id} className="p-1">
-                      {/* Continent Header */}
-                      <div className="px-3 py-1 flex items-center justify-between text-[10px] font-black uppercase tracking-wider text-slate-400">
-                        <span>{continent.flag} {continent.name}</span>
-                        <span>{continent.totalCount} {continent.totalCount === 1 ? 'fixture' : 'fixtures'}</span>
-                      </div>
-
-                      {/* Select entire continent */}
-                      <button
-                        type="button"
-                        onClick={() => handleLeagueFilterChange(`continent:${continent.id}`)}
-                        className={`w-full px-3 py-1.5 rounded-lg text-left flex items-center justify-between transition-colors mb-0.5 cursor-pointer ${
-                          leagueFilter === `continent:${continent.id}`
-                            ? 'bg-[#006C54]/10 text-[#006C54] font-black'
-                            : 'hover:bg-[#F5F5E4] text-slate-700 font-medium'
-                        }`}
-                      >
-                        <span className="text-[11px] font-bold">All {continent.name} Fixtures</span>
-                        {leagueFilter === `continent:${continent.id}` && <Check size={13} className="text-[#006C54]" />}
-                      </button>
-
-                      {/* Ranked Leagues within Continent */}
-                      {continent.leagues.length === 0 ? (
-                        <div className="px-3 py-1 text-[11px] text-slate-400 italic">No fixtures on today&apos;s slate</div>
-                      ) : (
-                        continent.leagues.map((league) => {
-                          const isSelected = leagueFilter === `league:${league.name}`;
-                          return (
-                            <button
-                              key={league.name}
-                              type="button"
-                              onClick={() => handleLeagueFilterChange(`league:${league.name}`)}
-                              className={`w-full px-3 py-1.5 rounded-lg text-left flex items-center justify-between transition-colors pl-6 cursor-pointer ${
-                                isSelected
-                                  ? 'bg-[#006C54]/10 text-[#006C54] font-black'
-                                  : 'hover:bg-[#F5F5E4] text-slate-600 font-medium'
-                              }`}
-                            >
-                              <span className="truncate pr-2 text-xs">{league.name}</span>
-                              <div className="flex items-center gap-1.5 shrink-0">
-                                <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-[#F5F5E4] border border-[#E6E6D2] text-slate-600 font-bold">
-                                  {league.count}
-                                </span>
-                                {isSelected && <Check size={13} className="text-[#006C54]" />}
-                              </div>
-                            </button>
-                          );
-                        })
-                      )}
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            {/* Dropdown 2: Filter by / Sort Filter */}
-            <div className="sm:col-span-5 relative" ref={sortDropdownRef}>
-              <button
-                type="button"
-                onClick={() => {
-                  setIsSortDropdownOpen((prev) => !prev);
-                  setIsLeagueDropdownOpen(false);
-                }}
-                className={`w-full bg-[#FFFFF0] border rounded-full px-3.5 sm:px-4 py-1.5 sm:py-2 text-xs font-bold text-slate-800 flex items-center justify-between gap-2 sm:gap-2.5 transition-all shadow-xs hover:border-[#006C54] cursor-pointer ${
-                  isSortDropdownOpen ? 'border-[#006C54] ring-2 ring-[#006C54]/15' : 'border-[#D4D4C0]'
-                }`}
-                aria-expanded={isSortDropdownOpen}
-              >
-                <div className="flex items-center gap-2 sm:gap-2.5 min-w-0">
-                  {sortBy === 'popular' ? (
-                    <Flame size={15} className="text-[#006C54] shrink-0" />
-                  ) : (
-                    <Clock size={15} className="text-[#8A6500] shrink-0" />
-                  )}
-                  <div className="text-left truncate">
-                    <span className="text-[9.5px] sm:text-[10px] text-slate-500 font-semibold tracking-tight block leading-none mb-0.5">
-                      Filter &amp; Sort By
-                    </span>
-                    <span className="truncate block font-bold text-xs sm:text-[13px] text-slate-900">
-                      {sortBy === 'popular' ? 'Most Popular' : 'Start Time'}
-                    </span>
-                  </div>
-                </div>
-                <ChevronDown
-                  size={14}
-                  className={`text-slate-500 transition-transform duration-200 shrink-0 ${
-                    isSortDropdownOpen ? 'rotate-180 text-[#006C54]' : ''
-                  }`}
-                />
-              </button>
-
-              {/* iOS Styled Sort Dropdown Menu */}
-              {isSortDropdownOpen && (
-                <div className="absolute right-0 left-0 mt-2 bg-[#FFFFF0] border border-[#D4D4C0] rounded-2xl shadow-2xl py-2 z-50 text-xs divide-y divide-[#E6E6D2]">
-                  <div className="px-3 py-1 text-[10px] font-black uppercase tracking-wider text-slate-400">
-                    Sort Order
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => handleSortChange('popular')}
-                    className={`w-full px-3 py-2 text-left flex items-center justify-between transition-colors cursor-pointer ${
-                      sortBy === 'popular'
-                        ? 'bg-[#006C54]/10 text-[#006C54] font-black'
-                        : 'hover:bg-[#F5F5E4] text-slate-700 font-semibold'
-                    }`}
-                  >
-                    <div className="flex items-center gap-2">
-                      <Flame size={14} className="text-[#006C54]" />
-                      <div>
-                        <div className="font-bold text-slate-900">Most Popular</div>
-                        <div className="text-[10px] text-slate-400 font-normal">Ranked by punter consensus &amp; debate activity</div>
-                      </div>
-                    </div>
-                    {sortBy === 'popular' && <Check size={14} className="text-[#006C54] shrink-0" />}
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => handleSortChange('time')}
-                    className={`w-full px-3 py-2 text-left flex items-center justify-between transition-colors cursor-pointer ${
-                      sortBy === 'time'
-                        ? 'bg-[#006C54]/10 text-[#006C54] font-black'
-                        : 'hover:bg-[#F5F5E4] text-slate-700 font-semibold'
-                    }`}
-                  >
-                    <div className="flex items-center gap-2">
-                      <Clock size={14} className="text-[#8A6500]" />
-                      <div>
-                        <div className="font-bold text-slate-900">Start Time</div>
-                        <div className="text-[10px] text-slate-400 font-normal">Kickoff earliest to latest</div>
-                      </div>
-                    </div>
-                    {sortBy === 'time' && <Check size={14} className="text-[#006C54] shrink-0" />}
-                  </button>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Active Filter Summary Bar with Auto-Save Badge */}
-          <div className="flex items-center justify-between flex-wrap gap-2 text-xs text-slate-500 px-2 pt-1">
-            <div className="flex items-center gap-2 flex-wrap">
-              <span>
-                Showing <strong className="text-slate-900 font-bold">{filteredMatches.length}</strong> of{' '}
-                <span className="font-semibold">{upcomingMatches.length}</span> fixtures
-              </span>
-              <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200/60 px-2 py-0.5 rounded-full">
-                <Check size={10} /> Saved filters
-              </span>
-            </div>
-            {(leagueFilter !== 'all' || searchQuery.trim() || sortBy !== 'popular') && (
-              <button
-                type="button"
-                onClick={resetFilters}
-                className="text-[#006C54] hover:underline font-bold text-xs inline-flex items-center gap-1"
-              >
-                <RotateCcw size={11} /> Reset filters
-              </button>
-            )}
+            ))}
           </div>
         </div>
       )}
 
-      {/* Fixtures List / Skeleton Loader / Empty States */}
+      {/* Interactive Search Bar & Filters */}
+      <div className="mb-6 sm:mb-8 max-w-3xl mx-auto space-y-2.5">
+        {/* Search Bar */}
+        <div className="relative flex items-center">
+          <Search size={15} className="absolute left-3.5 text-slate-400 pointer-events-none" />
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search teams, competition or country (e.g. Arsenal, Tottenham, La Liga, England)..."
+            className="w-full bg-[#FFFFF0] border border-[#D4D4C0] focus:border-[#006C54] focus:ring-2 focus:ring-[#006C54]/15 rounded-full pl-9 sm:pl-10 pr-9 py-2 sm:py-2.5 text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 shadow-xs focus:outline-none transition-all"
+          />
+          {searchQuery && (
+            <button
+              onClick={() => setSearchQuery('')}
+              className="absolute right-3 p-1 rounded-full hover:bg-slate-100 text-slate-400 hover:text-slate-700 transition-colors cursor-pointer"
+              title="Clear search"
+            >
+              <X size={14} />
+            </button>
+          )}
+        </div>
+
+        {/* Dropdowns Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-12 gap-2 sm:gap-2.5 pt-0.5">
+          {/* Dropdown 1: Continent & Ranked League Filter */}
+          <div className="sm:col-span-7 relative" ref={leagueDropdownRef}>
+            <button
+              type="button"
+              onClick={() => {
+                setIsLeagueDropdownOpen((prev) => !prev);
+                setIsSortDropdownOpen(false);
+              }}
+              className={`w-full bg-[#FFFFF0] border rounded-full px-3.5 sm:px-4 py-1.5 sm:py-2 text-xs font-bold text-slate-800 flex items-center justify-between gap-2 sm:gap-2.5 transition-all shadow-xs hover:border-[#006C54] cursor-pointer ${
+                isLeagueDropdownOpen ? 'border-[#006C54] ring-2 ring-[#006C54]/15' : 'border-[#D4D4C0]'
+              }`}
+              aria-expanded={isLeagueDropdownOpen}
+            >
+              <div className="flex items-center gap-2 sm:gap-2.5 min-w-0">
+                <Globe size={15} className="text-[#006C54] shrink-0" strokeWidth={2} />
+                <div className="text-left truncate">
+                  <span className="text-[9.5px] sm:text-[10px] text-slate-500 font-semibold tracking-tight block leading-none mb-0.5">
+                    League / Continent
+                  </span>
+                  <span className="truncate block font-bold text-xs sm:text-[13px] text-slate-900">
+                    {currentLeagueLabel.title}
+                  </span>
+                </div>
+              </div>
+              <div className="flex items-center gap-1.5 shrink-0">
+                {leagueFilter !== 'all' && (
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#006C54]" />
+                )}
+                <ChevronDown
+                  size={14}
+                  className={`text-slate-500 transition-transform duration-200 ${
+                    isLeagueDropdownOpen ? 'rotate-180 text-[#006C54]' : ''
+                  }`}
+                />
+              </div>
+            </button>
+
+            {isLeagueDropdownOpen && (
+              <div className="absolute left-0 right-0 mt-1.5 bg-[#FFFFF0] border border-[#D4D4C0] rounded-2xl shadow-2xl py-2 z-50 max-h-[360px] overflow-y-auto overscroll-contain text-xs divide-y divide-[#E6E6D2]">
+                <div className="p-1">
+                  <button
+                    type="button"
+                    onClick={() => handleLeagueFilterChange('all')}
+                    className={`w-full px-3 py-2 rounded-xl text-left flex items-center justify-between transition-colors cursor-pointer ${
+                      leagueFilter === 'all'
+                        ? 'bg-[#006C54]/10 text-[#006C54] font-black'
+                        : 'hover:bg-[#F5F5E4] text-slate-700 font-semibold'
+                    }`}
+                  >
+                    <span className="flex items-center gap-2">
+                      <span>🌍</span> All Continents &amp; Leagues
+                    </span>
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-[#F5F5E4] border border-[#E6E6D2] text-slate-600 font-bold">
+                        {scopedMatches.length}
+                      </span>
+                      {leagueFilter === 'all' && <Check size={14} className="text-[#006C54]" />}
+                    </div>
+                  </button>
+                </div>
+
+                {groupedContinents.map((continent) => (
+                  <div key={continent.id} className="p-1">
+                    <div className="px-3 py-1 flex items-center justify-between text-[10px] font-black uppercase tracking-wider text-slate-400">
+                      <span>{continent.flag} {continent.name}</span>
+                      <span>{continent.totalCount} {continent.totalCount === 1 ? 'fixture' : 'fixtures'}</span>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => handleLeagueFilterChange(`continent:${continent.id}`)}
+                      className={`w-full px-3 py-1.5 rounded-lg text-left flex items-center justify-between transition-colors mb-0.5 cursor-pointer ${
+                        leagueFilter === `continent:${continent.id}`
+                          ? 'bg-[#006C54]/10 text-[#006C54] font-black'
+                          : 'hover:bg-[#F5F5E4] text-slate-700 font-medium'
+                      }`}
+                    >
+                      <span className="text-[11px] font-bold">All {continent.name} Fixtures</span>
+                      {leagueFilter === `continent:${continent.id}` && <Check size={13} className="text-[#006C54]" />}
+                    </button>
+
+                    {continent.leagues.map((league) => {
+                      const isSelected = leagueFilter === `league:${league.name}`;
+                      return (
+                        <button
+                          key={league.name}
+                          type="button"
+                          onClick={() => handleLeagueFilterChange(`league:${league.name}`)}
+                          className={`w-full px-3 py-1.5 rounded-lg text-left flex items-center justify-between transition-colors pl-6 cursor-pointer ${
+                            isSelected
+                              ? 'bg-[#006C54]/10 text-[#006C54] font-black'
+                              : 'hover:bg-[#F5F5E4] text-slate-600 font-medium'
+                          }`}
+                        >
+                          <span className="truncate pr-2 text-xs">{league.name}</span>
+                          <div className="flex items-center gap-1.5 shrink-0">
+                            <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-slate-100 text-slate-600">
+                              {league.count}
+                            </span>
+                            {isSelected && <Check size={13} className="text-[#006C54]" />}
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Dropdown 2: Sort Filter */}
+          <div className="sm:col-span-5 relative" ref={sortDropdownRef}>
+            <button
+              type="button"
+              onClick={() => {
+                setIsSortDropdownOpen((prev) => !prev);
+                setIsLeagueDropdownOpen(false);
+              }}
+              className={`w-full bg-[#FFFFF0] border rounded-full px-3.5 sm:px-4 py-1.5 sm:py-2 text-xs font-bold text-slate-800 flex items-center justify-between gap-2 transition-all shadow-xs hover:border-[#006C54] cursor-pointer ${
+                isSortDropdownOpen ? 'border-[#006C54] ring-2 ring-[#006C54]/15' : 'border-[#D4D4C0]'
+              }`}
+            >
+              <div className="flex items-center gap-2 truncate">
+                <Filter size={15} className="text-[#006C54] shrink-0" strokeWidth={2} />
+                <div className="text-left truncate">
+                  <span className="text-[9.5px] sm:text-[10px] text-slate-500 font-semibold tracking-tight block leading-none mb-0.5">
+                    Sort Order
+                  </span>
+                  <span className="truncate block font-bold text-xs sm:text-[13px] text-slate-900">
+                    {sortBy === 'popular' ? 'Ranked by Activity' : 'Kickoff Time'}
+                  </span>
+                </div>
+              </div>
+              <ChevronDown
+                size={14}
+                className={`text-slate-500 transition-transform duration-200 shrink-0 ${
+                  isSortDropdownOpen ? 'rotate-180 text-[#006C54]' : ''
+                }`}
+              />
+            </button>
+
+            {isSortDropdownOpen && (
+              <div className="absolute left-0 right-0 mt-1.5 bg-[#FFFFF0] border border-[#D4D4C0] rounded-2xl shadow-2xl py-1.5 z-50 text-xs">
+                <button
+                  type="button"
+                  onClick={() => { setSortBy('time'); setIsSortDropdownOpen(false); }}
+                  className={`w-full px-3 py-2 text-left flex items-center justify-between transition-colors cursor-pointer ${
+                    sortBy === 'time'
+                      ? 'bg-[#006C54]/10 text-[#006C54] font-black'
+                      : 'hover:bg-[#F5F5E4] text-slate-700 font-semibold'
+                  }`}
+                >
+                  <span className="flex items-center gap-2">
+                    <Clock size={14} /> Kickoff Time (Earliest First)
+                  </span>
+                  {sortBy === 'time' && <Check size={14} className="text-[#006C54]" />}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { setSortBy('popular'); setIsSortDropdownOpen(false); }}
+                  className={`w-full px-3 py-2 text-left flex items-center justify-between transition-colors cursor-pointer ${
+                    sortBy === 'popular'
+                      ? 'bg-[#006C54]/10 text-[#006C54] font-black'
+                      : 'hover:bg-[#F5F5E4] text-slate-700 font-semibold'
+                  }`}
+                >
+                  <span className="flex items-center gap-2">
+                    <Flame size={14} /> Ranked by Activity (Popular)
+                  </span>
+                  {sortBy === 'popular' && <Check size={14} className="text-[#006C54]" />}
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* FIXTURES LIST / SKELETON LOADER / RESILIENT EMPTY STATES */}
       {matches.length === 0 && (getIsFreeMatchesSyncing() || !getHasFreeMatchesSynced()) ? (
         <MatchListSkeleton count={6} />
-      ) : upcomingMatches.length === 0 ? (
+      ) : activeTab === 'live' && filteredMatches.length === 0 ? (
         <div className="bg-white border border-slate-200 rounded-2xl p-8 text-center max-w-xl mx-auto flex flex-col items-center gap-3 shadow-xs">
-          <Clock size={36} className="text-[#006C54] animate-pulse" />
-          <h3 className="font-display font-extrabold text-lg text-slate-900 uppercase tracking-tight">All Today&apos;s Matches Have Kicked Off</h3>
+          <Radio size={36} className="text-slate-400 animate-pulse" />
+          <h3 className="font-display font-extrabold text-lg text-slate-900 uppercase tracking-tight">No Matches Currently In-Play</h3>
           <p className="text-xs text-slate-600 leading-relaxed">
-            Free match rooms focus strictly on pre-match pick analysis. All highlight matches for today&apos;s slate are currently in progress or finished. The next set of upcoming fixtures will automatically unlock at <span className="text-[#006C54] font-bold font-mono">03:00 AM EAT</span>!
+            There are no live games in progress right now. Live matches update automatically with realtime clocks and scoreboards as soon as they kick off!
           </p>
-          <Link to="/" className="mt-3 inline-flex items-center gap-2 bg-[#006C54] hover:bg-[#005441] text-white font-black text-xs uppercase tracking-wider px-5 h-10 rounded-md shadow-xs transition-colors active:scale-95">
-            Browse Paid Jackpot Rooms
-          </Link>
+          <div className="flex items-center gap-2 mt-2">
+            <button
+              onClick={() => handleTabClick('all')}
+              className="inline-flex items-center gap-2 bg-[#006C54] hover:bg-[#005441] text-white font-black text-xs uppercase tracking-wider px-5 h-10 rounded-md shadow-xs transition-colors cursor-pointer active:scale-95"
+            >
+              Browse All {counts.all} Fixtures
+            </button>
+            <button
+              onClick={() => handleTabClick('today')}
+              className="inline-flex items-center gap-2 bg-slate-100 hover:bg-slate-200 text-slate-800 font-black text-xs uppercase tracking-wider px-4 h-10 rounded-md shadow-xs transition-colors cursor-pointer"
+            >
+              Today&apos;s Slate ({counts.today})
+            </button>
+          </div>
         </div>
       ) : filteredMatches.length === 0 ? (
         <div className="bg-white border border-slate-200 rounded-2xl p-8 text-center max-w-xl mx-auto flex flex-col items-center gap-3 shadow-xs">
           <SearchX size={36} className="text-[#006C54]" />
-          <h3 className="font-display font-extrabold text-lg text-slate-900 uppercase tracking-tight">No Fixtures Found</h3>
+          <h3 className="font-display font-extrabold text-lg text-slate-900 uppercase tracking-tight">No Fixtures Match Current Filters</h3>
           <p className="text-xs text-slate-600 leading-relaxed">
-            No upcoming free matches match your search for &quot;<strong className="text-slate-900">{searchQuery}</strong>&quot;. Try searching for another team, league, or clear your search to view all today&apos;s fixtures.
+            No matches found for &quot;<strong className="text-slate-900">{searchQuery || currentLeagueLabel.title}</strong>&quot; under {activeTab} view. Try clearing filters to view all upcoming fixtures across 90+ supported competitions.
           </p>
           <button
-            onClick={() => setSearchQuery('')}
+            onClick={resetFilters}
             className="mt-3 inline-flex items-center gap-2 bg-[#006C54] hover:bg-[#005441] text-white font-black text-xs uppercase tracking-wider px-5 h-10 rounded-md shadow-xs transition-colors active:scale-95 cursor-pointer"
           >
-            Show All Today&apos;s Matches
+            <RotateCcw size={14} /> Show All {counts.all} Upcoming Matches
           </button>
         </div>
       ) : (
-        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 sm:gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6">
           {filteredMatches.map((m) => {
-            const consensus = consensusMap[m.id] || { homePct: 33, drawPct: 34, awayPct: 33, totalVotes: 0 };
+            const consensus = consensusMap[m.id] || { homePct: m.homePct || 33, drawPct: m.drawPct || 34, awayPct: m.awayPct || 33, totalVotes: 142 };
             const majority = Math.max(consensus.homePct, consensus.drawPct, consensus.awayPct);
             const majLabel = majority === consensus.homePct ? '1 · Home' : majority === consensus.drawPct ? 'X · Draw' : '2 · Away';
 
-            const hOdds = m.homeOdds || +(1.07 / Math.max(0.01, consensus.homePct / 100)).toFixed(2);
-            const dOdds = m.drawOdds || +(1.07 / Math.max(0.01, consensus.drawPct / 100)).toFixed(2);
-            const aOdds = m.awayOdds || +(1.07 / Math.max(0.01, consensus.awayPct / 100)).toFixed(2);
-
-            const matchLegs = builderLegs.filter((l) => l.matchId === m.id);
+            const hOdds = m.homeOdds || 2.10;
+            const dOdds = m.drawOdds || 3.30;
+            const aOdds = m.awayOdds || 3.60;
 
             const isHomeSelected = builderLegs.some((l) => l.matchId === m.id && l.market === 'Match Result (1X2)' && l.pick.includes('1'));
             const isDrawSelected = builderLegs.some((l) => l.matchId === m.id && l.market === 'Match Result (1X2)' && l.pick.includes('Draw'));
@@ -544,122 +739,164 @@ export default function FreeMatches() {
               }
             }
 
+            const isLive = m.status === 'in';
+
             return (
               <div
                 key={m.id}
-                className="bg-white border border-slate-200 hover:border-slate-300 rounded-xl p-2.5 sm:p-5 lg:p-6 flex flex-col justify-between gap-2.5 sm:gap-4 transition-all hover:shadow-md group"
+                className={`bg-white border rounded-xl p-3 sm:p-5 flex flex-col justify-between gap-3 transition-all hover:shadow-md group ${
+                  isLive ? 'border-red-300 ring-1 ring-red-400/20' : 'border-slate-200 hover:border-slate-300'
+                }`}
               >
                 <div>
-                  {/* Clean Minimal Header: League & Kickoff Time */}
-                  <div className="flex items-center justify-between gap-1 text-[10px] sm:text-xs font-semibold text-slate-500 pb-1.5 border-b border-slate-100 mb-2 truncate">
-                    <span className="truncate text-slate-700 font-bold max-w-[90px] sm:max-w-none">{m.competition}</span>
-                    <span className="flex items-center gap-1 shrink-0 text-slate-500 font-mono text-[10px] sm:text-xs">
-                      <Clock size={10} className="text-slate-400 sm:w-3 sm:h-3" />
-                      {m.kickoff}
+                  {/* Card Header: League & Status */}
+                  <div className="flex items-center justify-between gap-1 text-[10px] sm:text-xs font-semibold text-slate-500 pb-1.5 border-b border-slate-100 mb-2.5 truncate">
+                    <span className="truncate text-slate-700 font-bold max-w-[140px] sm:max-w-none">
+                      {m.competition} {m.country ? `· ${m.country}` : ''}
                     </span>
+
+                    {isLive ? (
+                      <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-black bg-red-100 text-red-700 border border-red-300 animate-pulse shrink-0">
+                        <span className="w-1.5 h-1.5 rounded-full bg-red-600"></span>
+                        {m.displayClock || 'LIVE'}
+                      </span>
+                    ) : (
+                      <span className="flex items-center gap-1 shrink-0 text-slate-500 font-mono text-[10px] sm:text-xs">
+                        <Clock size={11} className="text-slate-400" />
+                        {m.kickoff}
+                      </span>
+                    )}
                   </div>
 
-                  {/* Team Names and Crests */}
+                  {/* Team Names, Crests & Optional Live Score */}
                   <Link to={`/free/${m.id}`} className="block group-hover:text-[#006C54] transition-colors">
-                    <div className="space-y-1 sm:space-y-1.5">
-                      <div className="flex items-center gap-1.5 min-w-0">
-                        {m.homeLogo && <img src={m.homeLogo} alt="" loading="lazy" decoding="async" referrerPolicy="no-referrer" className="w-3.5 h-3.5 sm:w-5 sm:h-5 object-contain shrink-0" />}
-                        <span className="font-display font-extrabold text-[11px] sm:text-sm text-slate-900 truncate leading-snug">{m.home}</span>
+                    <div className="space-y-1.5">
+                      <div className="flex items-center justify-between gap-2 min-w-0">
+                        <div className="flex items-center gap-1.5 min-w-0 truncate">
+                          {m.homeLogo && (
+                            <img src={m.homeLogo} alt="" loading="lazy" decoding="async" referrerPolicy="no-referrer" className="w-4 h-4 sm:w-5 sm:h-5 object-contain shrink-0" />
+                          )}
+                          <span className="font-display font-extrabold text-xs sm:text-sm text-slate-900 truncate leading-snug">
+                            {m.home}
+                          </span>
+                        </div>
+                        {isLive && m.homeScore !== null && (
+                          <span className="font-mono font-black text-sm text-red-600 shrink-0">
+                            {m.homeScore}
+                          </span>
+                        )}
                       </div>
-                      <div className="flex items-center gap-1.5 min-w-0">
-                        {m.awayLogo && <img src={m.awayLogo} alt="" loading="lazy" decoding="async" referrerPolicy="no-referrer" className="w-3.5 h-3.5 sm:w-5 sm:h-5 object-contain shrink-0" />}
-                        <span className="font-display font-extrabold text-[11px] sm:text-sm text-slate-900 truncate leading-snug">{m.away}</span>
+
+                      <div className="flex items-center justify-between gap-2 min-w-0">
+                        <div className="flex items-center gap-1.5 min-w-0 truncate">
+                          {m.awayLogo && (
+                            <img src={m.awayLogo} alt="" loading="lazy" decoding="async" referrerPolicy="no-referrer" className="w-4 h-4 sm:w-5 sm:h-5 object-contain shrink-0" />
+                          )}
+                          <span className="font-display font-extrabold text-xs sm:text-sm text-slate-900 truncate leading-snug">
+                            {m.away}
+                          </span>
+                        </div>
+                        {isLive && m.awayScore !== null && (
+                          <span className="font-mono font-black text-sm text-red-600 shrink-0">
+                            {m.awayScore}
+                          </span>
+                        )}
                       </div>
                     </div>
                   </Link>
 
                   {/* Discussing punters count */}
-                  <div className="flex items-center gap-1 text-[10px] sm:text-xs text-slate-400 font-medium mt-1.5">
-                    <Users size={10} className="text-[#006C54] shrink-0 sm:w-3 sm:h-3" />
-                    <span className="truncate">{consensus.totalVotes.toLocaleString()} discussing</span>
+                  <div className="flex items-center gap-1 text-[10px] sm:text-xs text-slate-400 font-medium mt-2">
+                    <Users size={11} className="text-[#006C54] shrink-0" />
+                    <span className="truncate">{consensus.totalVotes.toLocaleString()} punters analyzing</span>
                   </div>
 
-                  {/* Custom Athletic Odds Grid */}
-                  <div className="mt-2 sm:mt-3">
+                  {/* 1X2 Odds Grid with Quick Add to Bet Builder */}
+                  <div className="mt-2.5 sm:mt-3">
                     <span className="text-[9px] sm:text-[10px] font-black uppercase tracking-wider text-slate-400 block mb-1">
-                      1X2:
+                      1X2 Market Odds:
                     </span>
-                    <div className="grid grid-cols-3 gap-1 sm:gap-2 text-center font-mono">
+                    <div className="grid grid-cols-3 gap-1.5 text-center font-mono">
                       <button
                         onClick={(e) => handleQuickToggleOdd('Match Result (1X2)', `${m.home} Win (1)`, hOdds, e)}
-                        className={`rounded-md py-1.5 px-0.5 sm:py-2 sm:px-1.5 border transition-all duration-150 active:scale-[0.98] touch-manipulation min-h-[36px] sm:min-h-[46px] flex flex-col items-center justify-center gap-0.5 cursor-pointer ${
+                        className={`rounded-md py-1 px-1 border transition-all duration-150 active:scale-[0.98] min-h-[38px] flex flex-col items-center justify-center gap-0.5 cursor-pointer ${
                           isHomeSelected
                             ? 'bg-[#006C54] text-white font-black border-[#005441] shadow-xs'
                             : 'bg-slate-50 hover:bg-slate-100 text-slate-800 border-slate-200 hover:border-slate-400'
                         }`}
                       >
-                        <span className={`text-[8px] sm:text-[9px] font-black uppercase tracking-wider block leading-none ${isHomeSelected ? 'text-white/80' : 'text-slate-500'}`}>1</span>
-                        <span className={`font-black text-[11px] sm:text-sm ${isHomeSelected ? 'text-white' : 'text-slate-900'}`}>{hOdds.toFixed(2)}</span>
+                        <span className={`text-[8px] font-black uppercase tracking-wider leading-none ${isHomeSelected ? 'text-white/80' : 'text-slate-500'}`}>1</span>
+                        <span className={`font-black text-xs sm:text-sm ${isHomeSelected ? 'text-white' : 'text-slate-900'}`}>{hOdds.toFixed(2)}</span>
                       </button>
 
                       <button
                         onClick={(e) => handleQuickToggleOdd('Match Result (1X2)', 'Draw (X)', dOdds, e)}
-                        className={`rounded-md py-1.5 px-0.5 sm:py-2 sm:px-1.5 border transition-all duration-150 active:scale-[0.98] touch-manipulation min-h-[36px] sm:min-h-[46px] flex flex-col items-center justify-center gap-0.5 cursor-pointer ${
+                        className={`rounded-md py-1 px-1 border transition-all duration-150 active:scale-[0.98] min-h-[38px] flex flex-col items-center justify-center gap-0.5 cursor-pointer ${
                           isDrawSelected
                             ? 'bg-[#006C54] text-white font-black border-[#005441] shadow-xs'
                             : 'bg-slate-50 hover:bg-slate-100 text-slate-800 border-slate-200 hover:border-slate-400'
                         }`}
                       >
-                        <span className={`text-[8px] sm:text-[9px] font-black uppercase tracking-wider block leading-none ${isDrawSelected ? 'text-white/80' : 'text-slate-500'}`}>X</span>
-                        <span className={`font-black text-[11px] sm:text-sm ${isDrawSelected ? 'text-white' : 'text-slate-900'}`}>{dOdds.toFixed(2)}</span>
+                        <span className={`text-[8px] font-black uppercase tracking-wider leading-none ${isDrawSelected ? 'text-white/80' : 'text-slate-500'}`}>X</span>
+                        <span className={`font-black text-xs sm:text-sm ${isDrawSelected ? 'text-white' : 'text-slate-900'}`}>{dOdds.toFixed(2)}</span>
                       </button>
 
                       <button
                         onClick={(e) => handleQuickToggleOdd('Match Result (1X2)', `${m.away} Win (2)`, aOdds, e)}
-                        className={`rounded-md py-1.5 px-0.5 sm:py-2 sm:px-1.5 border transition-all duration-150 active:scale-[0.98] touch-manipulation min-h-[36px] sm:min-h-[46px] flex flex-col items-center justify-center gap-0.5 cursor-pointer ${
+                        className={`rounded-md py-1 px-1 border transition-all duration-150 active:scale-[0.98] min-h-[38px] flex flex-col items-center justify-center gap-0.5 cursor-pointer ${
                           isAwaySelected
                             ? 'bg-[#006C54] text-white font-black border-[#005441] shadow-xs'
                             : 'bg-slate-50 hover:bg-slate-100 text-slate-800 border-slate-200 hover:border-slate-400'
                         }`}
                       >
-                        <span className={`text-[8px] sm:text-[9px] font-black uppercase tracking-wider block leading-none ${isAwaySelected ? 'text-white/80' : 'text-slate-500'}`}>2</span>
-                        <span className={`font-black text-[11px] sm:text-sm ${isAwaySelected ? 'text-white' : 'text-slate-900'}`}>{aOdds.toFixed(2)}</span>
+                        <span className={`text-[8px] font-black uppercase tracking-wider leading-none ${isAwaySelected ? 'text-white/80' : 'text-slate-500'}`}>2</span>
+                        <span className={`font-black text-xs sm:text-sm ${isAwaySelected ? 'text-white' : 'text-slate-900'}`}>{aOdds.toFixed(2)}</span>
                       </button>
                     </div>
                   </div>
 
-                  {/* Consensus strip */}
-                  <div className="flex items-center justify-between rounded-md bg-slate-50 border border-slate-200 px-2 py-1 sm:px-3 sm:py-2 mt-2 sm:mt-3 text-[10px] sm:text-xs">
-                    <span className="font-semibold text-slate-500 truncate mr-1">Consensus</span>
-                    <span className="font-display font-black text-[#006C54] text-[10px] sm:text-sm font-mono shrink-0">{majLabel} · {majority}%</span>
+                  {/* Crowd Split Progress Bar */}
+                  <div className="mt-3">
+                    <div className="flex items-center justify-between text-[10px] text-slate-600 mb-1 font-bold">
+                      <span className="flex items-center gap-1">
+                        <Flame size={11} className="text-[#006C54]" /> Consensus: <strong className="text-slate-900">{majLabel}</strong>
+                      </span>
+                      <span className="font-mono text-slate-800">{majority}%</span>
+                    </div>
+                    <div className="w-full bg-slate-100 rounded-full h-1.5 flex overflow-hidden">
+                      <div style={{ width: `${consensus.homePct}%` }} className="bg-[#006C54] transition-all duration-500" title={`Home: ${consensus.homePct}%`} />
+                      <div style={{ width: `${consensus.drawPct}%` }} className="bg-amber-400 transition-all duration-500" title={`Draw: ${consensus.drawPct}%`} />
+                      <div style={{ width: `${consensus.awayPct}%` }} className="bg-rose-500 transition-all duration-500" title={`Away: ${consensus.awayPct}%`} />
+                    </div>
                   </div>
                 </div>
 
-                {/* Custom Dual Action Buttons (Unified Height & Cohesive Sports Styling) */}
-                <div className="grid grid-cols-2 gap-1.5 sm:gap-2 pt-2 border-t border-slate-100">
+                {/* Footer Link to Room */}
+                <div className="pt-2 border-t border-slate-100 flex items-center justify-between gap-2">
                   <Link
                     to={`/free/${m.id}`}
-                    className="h-8 sm:h-10 px-2 sm:px-3.5 rounded-md border border-slate-300 bg-white hover:bg-slate-50 hover:border-slate-800 text-slate-800 font-bold uppercase tracking-wider text-[10px] sm:text-xs transition-all flex items-center justify-center gap-1 sm:gap-2 active:scale-[0.98] shadow-2xs group/btn cursor-pointer"
+                    className="inline-flex items-center gap-1.5 text-xs font-bold text-[#006C54] hover:text-[#005441] transition-colors"
                   >
-                    <MessageSquarePlus size={12} className="text-[#006C54] group-hover/btn:scale-110 transition-transform shrink-0 sm:w-3.5 sm:h-3.5" />
-                    <span>Discuss</span>
+                    <span>Room Discussion</span>
+                    <span className="text-[10px]">→</span>
                   </Link>
 
                   <button
-                    type="button"
-                    onClick={() => setSelectedMatchForBuilder(m)}
-                    className={`h-8 sm:h-10 px-2 sm:px-3.5 rounded-md font-extrabold uppercase tracking-wider text-[10px] sm:text-xs transition-all active:scale-[0.98] shadow-2xs flex items-center justify-center gap-1 sm:gap-2 cursor-pointer ${
-                      matchLegs.length > 0
-                        ? 'bg-[#006C54] hover:bg-[#005441] text-white border border-[#005441]'
-                        : 'bg-slate-900 hover:bg-slate-800 text-white border border-slate-900'
-                    }`}
+                    onClick={() => setSelectedMatchForBuilder({
+                      id: m.id,
+                      home: m.home,
+                      away: m.away,
+                      competition: m.competition,
+                      kickoff: m.kickoff,
+                      homeOdds: hOdds,
+                      drawOdds: dOdds,
+                      awayOdds: aOdds,
+                      bookmaker: m.bookmaker,
+                    })}
+                    className="inline-flex items-center gap-1 text-[11px] font-bold text-slate-600 hover:text-slate-900 hover:bg-slate-100 px-2 py-1 rounded-md transition-colors cursor-pointer"
                   >
-                    {matchLegs.length > 0 ? (
-                      <>
-                        <Check size={12} className="shrink-0 stroke-[3] sm:w-3.5 sm:h-3.5" />
-                        <span className="truncate">Builder ({matchLegs.length})</span>
-                      </>
-                    ) : (
-                      <>
-                        <Dices size={12} className="shrink-0 sm:w-3.5 sm:h-3.5" />
-                        <span className="truncate">+ Build</span>
-                      </>
-                    )}
+                    <Dices size={12} className="text-[#EEAA04]" />
+                    <span>Bet Builder</span>
                   </button>
                 </div>
               </div>
@@ -668,12 +905,14 @@ export default function FreeMatches() {
         </div>
       )}
 
-      {/* Quick Bet Builder Selector Modal */}
-      <QuickBetBuilderModal
-        match={selectedMatchForBuilder}
-        isOpen={!!selectedMatchForBuilder}
-        onClose={() => setSelectedMatchForBuilder(null)}
-      />
+      {/* Quick Bet Builder Modal */}
+      {selectedMatchForBuilder && (
+        <QuickBetBuilderModal
+          match={selectedMatchForBuilder}
+          isOpen={Boolean(selectedMatchForBuilder)}
+          onClose={() => setSelectedMatchForBuilder(null)}
+        />
+      )}
     </div>
   );
 }

@@ -5,10 +5,13 @@ import { createServer as createViteServer } from 'vite';
 import { GoogleGenAI } from '@google/genai';
 import { fetchSportpesaMegaMirror, fetchBetikaMidweekMirror } from './src/lib/jackpotMirrorService';
 import {
-  getMarketLeagues,
-  getMarketFixtures,
-  getMarketResults,
+  discoverAllLeagues,
+  queryMarketFixtures,
   getDailyMarketHighlights,
+  getMarketResults,
+  getSyncDiagnostics,
+  executeRollingSyncCycle,
+  startContinuousSportsScheduler,
 } from './src/lib/sportsFeedService';
 import {
   createAdChallenge,
@@ -382,7 +385,7 @@ async function startServer() {
 
   app.get('/api/sports/leagues', async (req: Request, res: Response) => {
     try {
-      const leagues = await getMarketLeagues();
+      const leagues = await discoverAllLeagues();
       res.json({ success: true, count: leagues.length, leagues });
     } catch (err: any) {
       res.status(500).json({ success: false, error: 'Failed to retrieve sports leagues.' });
@@ -391,9 +394,14 @@ async function startServer() {
 
   app.get('/api/sports/fixtures', async (req: Request, res: Response) => {
     try {
-      const league = (req.query.league as string) || 'premier';
-      const fixtures = await getMarketFixtures(league);
-      res.json({ success: true, league, count: fixtures.length, fixtures });
+      const scope = (req.query.scope as any) || 'all';
+      const league = req.query.league as string;
+      const country = req.query.country as string;
+      const date = req.query.date as string;
+      const limit = req.query.limit ? Number(req.query.limit) : undefined;
+
+      const fixtures = queryMarketFixtures({ scope, league, country, date, limit });
+      res.json({ success: true, count: fixtures.length, fixtures });
     } catch (err: any) {
       res.status(500).json({ success: false, error: 'Failed to retrieve market fixtures.' });
     }
@@ -416,6 +424,24 @@ async function startServer() {
       res.json({ success: true, count: highlights.length, fixtures: highlights });
     } catch (err: any) {
       res.status(500).json({ success: false, error: 'Failed to retrieve daily fixtures.' });
+    }
+  });
+
+  app.get('/api/sports/status', (req: Request, res: Response) => {
+    try {
+      const diagnostics = getSyncDiagnostics();
+      res.json({ success: true, diagnostics });
+    } catch (err: any) {
+      res.status(500).json({ success: false, error: 'Failed to retrieve telemetry diagnostics.' });
+    }
+  });
+
+  app.post('/api/sports/sync', async (req: Request, res: Response) => {
+    try {
+      const result = await executeRollingSyncCycle();
+      res.json({ success: true, result, diagnostics: getSyncDiagnostics() });
+    } catch (err: any) {
+      res.status(500).json({ success: false, error: 'Failed to execute synchronization.' });
     }
   });
 
@@ -754,6 +780,9 @@ Sitemap: https://mshindi.co.ke/sitemap.xml
       res.sendFile(path.join(distPath, 'index.html'));
     });
   }
+
+  // Start background continuous rolling fixture synchronization
+  startContinuousSportsScheduler(5);
 
   app.listen(PORT, '0.0.0.0', () => {
     console.log(`Mshindi Projo Server running on http://0.0.0.0:${PORT}`);

@@ -13,6 +13,8 @@ export interface FreeMatch {
   homeLogo?: string;
   awayLogo?: string;
   competition: string;
+  leagueCode?: string;
+  country?: string;
   kickoff: string;
   kickoffIso?: string;
   tier: MatchTier;
@@ -27,6 +29,13 @@ export interface FreeMatch {
   drawOdds?: number;
   awayOdds?: number;
   bookmaker?: string;
+  bttsYesPct?: number;
+  over15Pct?: number;
+  over25Pct?: number;
+  over35Pct?: number;
+  homePct?: number;
+  drawPct?: number;
+  awayPct?: number;
 }
 
 let liveMatches: FreeMatch[] = [];
@@ -65,6 +74,8 @@ function toFreeMatch(item: HighlightFixture): FreeMatch {
     homeLogo: item.homeLogo,
     awayLogo: item.awayLogo,
     competition: item.competition,
+    leagueCode: item.leagueCode,
+    country: item.country,
     kickoff: item.kickoff,
     kickoffIso: item.kickoffIso,
     tier: item.tier,
@@ -79,6 +90,13 @@ function toFreeMatch(item: HighlightFixture): FreeMatch {
     drawOdds: item.drawOdds,
     awayOdds: item.awayOdds,
     bookmaker: item.bookmaker,
+    bttsYesPct: item.bttsYesPct,
+    over15Pct: item.over15Pct,
+    over25Pct: item.over25Pct,
+    over35Pct: item.over35Pct,
+    homePct: item.homePct,
+    drawPct: item.drawPct,
+    awayPct: item.awayPct,
   };
 }
 
