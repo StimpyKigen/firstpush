@@ -13,7 +13,6 @@ interface BetBuilderProps {
   onPublished?: () => void;
 }
 
-const LEAGUES = ['All Leagues', 'English Premier League', 'Spanish LALIGA', 'Italian Serie A', 'German Bundesliga', 'Kenyan Premier League'];
 const TAG_PRESETS = ['Bet Builder', 'Value Pick', 'Multibet', 'EPL', 'Weekend Parlay', 'High Confidence'];
 const BOOKMAKER_OPTIONS = ['SportPesa', 'Betika', '22Bet', '1xBet', 'MozzartBet', 'PariPesa', 'Shabiki', 'Odibets', 'Betway', 'Other'];
 
@@ -23,6 +22,7 @@ export default function BetBuilder({ onPublished }: BetBuilderProps) {
     setSearchQuery,
     selectedLeague,
     setSelectedLeague,
+    availableLeagues,
     expandedFixtureId,
     setExpandedFixtureId,
     simulatedStake,
@@ -103,7 +103,7 @@ export default function BetBuilder({ onPublished }: BetBuilderProps) {
 
         {/* League Chips */}
         <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none">
-          {LEAGUES.map((league) => (
+          {availableLeagues.map((league) => (
             <button
               key={league}
               onClick={() => setSelectedLeague(league)}

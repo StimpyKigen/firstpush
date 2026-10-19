@@ -1,4 +1,4 @@
-import { getFreeMatchesSnapshot, type FreeMatch } from './freeMatches';
+import { getFreeMatchesSnapshot } from './freeMatches';
 
 export interface BuilderFixture {
   id: string;
@@ -19,215 +19,13 @@ export interface BuilderFixture {
   awayProb: number;
 }
 
-const EXPANDED_BUILDER_FIXTURES: BuilderFixture[] = [
-  {
-    id: 'bm-1',
-    homeTeam: 'Arsenal',
-    awayTeam: 'Everton',
-    competition: 'English Premier League',
-    kickoff: 'Sat 24 Oct · 17:00 EAT',
-    homeOdds: 2.05,
-    drawOdds: 3.96,
-    awayOdds: 5.23,
-    homeProb: 0.52,
-    drawProb: 0.27,
-    awayProb: 0.21,
-    bookmaker: 'Market Consensus',
-  },
-  {
-    id: 'bm-2',
-    homeTeam: 'Chelsea',
-    awayTeam: 'Tottenham',
-    competition: 'English Premier League',
-    kickoff: 'Sat 24 Oct · 19:30 EAT',
-    homeOdds: 2.05,
-    drawOdds: 3.96,
-    awayOdds: 5.23,
-    homeProb: 0.52,
-    drawProb: 0.27,
-    awayProb: 0.21,
-    bookmaker: 'Market Consensus',
-  },
-  {
-    id: 'bm-3',
-    homeTeam: 'Barcelona',
-    awayTeam: 'Real Madrid',
-    competition: 'Spanish La Liga',
-    kickoff: 'Sun 25 Oct · 23:00 EAT',
-    homeOdds: 2.02,
-    drawOdds: 4.28,
-    awayOdds: 4.86,
-    homeProb: 0.53,
-    drawProb: 0.25,
-    awayProb: 0.22,
-    bookmaker: 'Market Consensus',
-  },
-  {
-    id: 'bm-4',
-    homeTeam: 'Liverpool',
-    awayTeam: 'Brighton',
-    competition: 'English Premier League',
-    kickoff: 'Sun 25 Oct · 17:00 EAT',
-    homeOdds: 2.27,
-    drawOdds: 4.12,
-    awayOdds: 3.97,
-    homeProb: 0.47,
-    drawProb: 0.26,
-    awayProb: 0.27,
-    bookmaker: 'Market Consensus',
-  },
-  {
-    id: 'bm-5',
-    homeTeam: 'Manchester Utd',
-    awayTeam: 'Bournemouth',
-    competition: 'English Premier League',
-    kickoff: 'Sun 25 Oct · 17:00 EAT',
-    homeOdds: 2.27,
-    drawOdds: 3.96,
-    awayOdds: 4.12,
-    homeProb: 0.47,
-    drawProb: 0.27,
-    awayProb: 0.26,
-    bookmaker: 'Market Consensus',
-  },
-  {
-    id: 'bm-6',
-    homeTeam: 'Valencia',
-    awayTeam: 'Villarreal',
-    competition: 'Spanish La Liga',
-    kickoff: 'Sat 24 Oct · 19:30 EAT',
-    homeOdds: 4.12,
-    drawOdds: 3.45,
-    awayOdds: 2.48,
-    homeProb: 0.26,
-    drawProb: 0.31,
-    awayProb: 0.43,
-    bookmaker: 'Market Consensus',
-  },
-  {
-    id: 'bm-7',
-    homeTeam: 'Crystal Palace',
-    awayTeam: 'Newcastle',
-    competition: 'English Premier League',
-    kickoff: 'Sun 25 Oct · 17:00 EAT',
-    homeOdds: 3.45,
-    drawOdds: 2.89,
-    awayOdds: 3.34,
-    homeProb: 0.31,
-    drawProb: 0.37,
-    awayProb: 0.32,
-    bookmaker: 'Market Consensus',
-  },
-  {
-    id: 'bm-8',
-    homeTeam: 'Real Sociedad',
-    awayTeam: 'Levante',
-    competition: 'Spanish La Liga',
-    kickoff: 'Sun 25 Oct · 20:30 EAT',
-    homeOdds: 2.05,
-    drawOdds: 4.12,
-    awayOdds: 4.86,
-    homeProb: 0.52,
-    drawProb: 0.26,
-    awayProb: 0.22,
-    bookmaker: 'Market Consensus',
-  },
-  {
-    id: 'bm-9',
-    homeTeam: 'Ath Bilbao',
-    awayTeam: 'Getafe',
-    competition: 'Spanish La Liga',
-    kickoff: 'Sun 25 Oct · 16:00 EAT',
-    homeOdds: 2.27,
-    drawOdds: 2.97,
-    awayOdds: 6.15,
-    homeProb: 0.47,
-    drawProb: 0.36,
-    awayProb: 0.17,
-    bookmaker: 'Market Consensus',
-  },
-  {
-    id: 'bm-10',
-    homeTeam: 'Celta Vigo',
-    awayTeam: 'Betis',
-    competition: 'Spanish La Liga',
-    kickoff: 'Sun 25 Oct · 18:15 EAT',
-    homeOdds: 2.38,
-    drawOdds: 3.96,
-    awayOdds: 3.82,
-    homeProb: 0.45,
-    drawProb: 0.27,
-    awayProb: 0.28,
-    bookmaker: 'Market Consensus',
-  },
-  {
-    id: 'bm-11',
-    homeTeam: 'Sunderland',
-    awayTeam: 'Leeds',
-    competition: 'English Premier League',
-    kickoff: 'Sun 25 Oct · 19:30 EAT',
-    homeOdds: 3.45,
-    drawOdds: 2.68,
-    awayOdds: 3.66,
-    homeProb: 0.31,
-    drawProb: 0.40,
-    awayProb: 0.29,
-    bookmaker: 'Market Consensus',
-  },
-  {
-    id: 'bm-12',
-    homeTeam: 'Sevilla',
-    awayTeam: 'Osasuna',
-    competition: 'Spanish La Liga',
-    kickoff: 'Mon 26 Oct · 23:00 EAT',
-    homeOdds: 2.27,
-    drawOdds: 3.82,
-    awayOdds: 4.28,
-    homeProb: 0.47,
-    drawProb: 0.28,
-    awayProb: 0.25,
-    bookmaker: 'Market Consensus',
-  },
-  {
-    id: 'bm-13',
-    homeTeam: 'Hull',
-    awayTeam: 'Brentford',
-    competition: 'English Premier League',
-    kickoff: 'Sun 25 Oct · 17:00 EAT',
-    homeOdds: 2.61,
-    drawOdds: 3.45,
-    awayOdds: 3.82,
-    homeProb: 0.41,
-    drawProb: 0.31,
-    awayProb: 0.28,
-    bookmaker: 'Market Consensus',
-  },
-  {
-    id: 'bm-14',
-    homeTeam: 'Racing Santander',
-    awayTeam: 'Espanyol',
-    competition: 'Spanish La Liga',
-    kickoff: 'Sat 24 Oct · 17:00 EAT',
-    homeOdds: 2.97,
-    drawOdds: 3.34,
-    awayOdds: 3.34,
-    homeProb: 0.36,
-    drawProb: 0.32,
-    awayProb: 0.32,
-    bookmaker: 'Market Consensus',
-  },
-];
-
 export function getCombinedBuilderFixtures(): BuilderFixture[] {
   const freeSnap = getFreeMatchesSnapshot();
-  const result: BuilderFixture[] = [];
-
-  // 1. Live Free Matches (from Market Consensus Engine) have highest priority
-  freeSnap.forEach((m) => {
+  return freeSnap.map((m) => {
     const hOdds = m.homeOdds || 2.00;
     const dOdds = m.drawOdds || 3.30;
     const aOdds = m.awayOdds || 3.80;
-    result.push({
+    return {
       id: m.id,
       homeTeam: m.home,
       awayTeam: m.away,
@@ -243,17 +41,8 @@ export function getCombinedBuilderFixtures(): BuilderFixture[] {
       homeProb: +(1 / hOdds).toFixed(2),
       drawProb: +(1 / dOdds).toFixed(2),
       awayProb: +(1 / aOdds).toFixed(2),
-    });
+    };
   });
-
-  // 2. Supplement with additional fixtures from the live market catalog
-  EXPANDED_BUILDER_FIXTURES.forEach((f) => {
-    if (!result.some((existing) => existing.id === f.id || (existing.homeTeam.toLowerCase() === f.homeTeam.toLowerCase() && existing.awayTeam.toLowerCase() === f.awayTeam.toLowerCase()))) {
-      result.push(f);
-    }
-  });
-
-  return result;
 }
 
 // Calculate realistic odds for various markets based on real bookmaker odds or probabilities

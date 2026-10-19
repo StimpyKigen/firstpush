@@ -148,7 +148,7 @@ export async function getMarketFixtures(leagueCode: string = 'premier'): Promise
     }
 
     const data = await res.json();
-    const rawMatches = Array.isArray(data) ? data : data.fixtures || [];
+    const rawMatches = Array.isArray(data) ? data : data.matches || data.fixtures || [];
 
     const nowIso = new Date().toISOString();
     const fixtures: MarketFixture[] = rawMatches.map((m: any, idx: number) => {
@@ -168,6 +168,14 @@ export async function getMarketFixtures(leagueCode: string = 'premier'): Promise
 
       const rawExpected = m.model_predictions?.dc_v2?.raw || {};
 
+      const rawStatus = String(m.status || '').toLowerCase();
+      let status: 'pre' | 'in' | 'post' = 'pre';
+      if (['finished', 'ft', 'aet', 'pen', 'ended'].includes(rawStatus)) {
+        status = 'post';
+      } else if (['in_play', 'live', '1h', '2h', 'ht', 'et', 'p'].includes(rawStatus)) {
+        status = 'in';
+      }
+
       return {
         id: m.slug || `${leagueCode}-${idx}-${m.home_team}-${m.away_team}`.toLowerCase().replace(/[^a-z0-9]/g, '-'),
         home: m.home_team,
@@ -176,7 +184,7 @@ export async function getMarketFixtures(leagueCode: string = 'premier'): Promise
         leagueCode,
         kickoff: formatEATTime(m.match_date, m.time),
         kickoffIso: m.time ? `${m.match_date}T${m.time}:00Z` : `${m.match_date}T15:00:00Z`,
-        status: m.status === 'finished' ? 'post' : m.status === 'in_play' ? 'in' : 'pre',
+        status,
         homePct,
         drawPct,
         awayPct,
@@ -221,7 +229,7 @@ export async function getMarketResults(leagueCode: string = 'premier', season?: 
     }
 
     const data = await res.json();
-    const rawEvents = Array.isArray(data) ? data : data.results || [];
+    const rawEvents = Array.isArray(data) ? data : data.matches || data.results || [];
 
     const results: MarketResult[] = rawEvents.map((r: any) => {
       const scoreStr = String(r.score || '0:0');
@@ -263,15 +271,34 @@ export async function getDailyMarketHighlights(): Promise<MarketFixture[]> {
   const cached = getCached<MarketFixture[]>(cacheKey);
   if (cached) return cached;
 
-  const priorityLeagues = ['premier', 'spain1', 'italy1', 'germany1', 'france1'];
-  const allResults = await Promise.all(
+  const priorityLeagues = [
+    'premier',
+    'spain1',
+    'italy1',
+    'germany1',
+    'france1',
+    'cha',
+    'holland1',
+    'portugal1',
+    'scot-premier',
+    'turkey1',
+  ];
+  const allResults = await Promise.allSettled(
     priorityLeagues.map((code) => getMarketFixtures(code))
   );
 
-  const flat = allResults.flat();
+  const flat: MarketFixture[] = [];
+  allResults.forEach((res) => {
+    if (res.status === 'fulfilled' && Array.isArray(res.value)) {
+      flat.push(...res.value);
+    }
+  });
+
   // Sort by kickoff date & time
   flat.sort((a, b) => new Date(a.kickoffIso).getTime() - new Date(b.kickoffIso).getTime());
 
-  setCached(cacheKey, flat, FIXTURES_TTL);
+  if (flat.length > 0) {
+    setCached(cacheKey, flat, FIXTURES_TTL);
+  }
   return flat;
 }

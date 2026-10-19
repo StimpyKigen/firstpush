@@ -5,7 +5,7 @@ import {
   Dices, Plus, Check, Flame, MessageSquarePlus, Globe, ChevronDown, Filter, RotateCcw
 } from 'lucide-react';
 import SeoHead from '../components/SeoHead';
-import { freeMatches, freeMatchConsensus, getFreeMatchesSnapshot, getFreeMatchConsensusSnapshot, subscribeToFreeMatches, getIsFreeMatchesSyncing, type FreeMatch } from '../lib/freeMatches';
+import { freeMatches, freeMatchConsensus, getFreeMatchesSnapshot, getFreeMatchConsensusSnapshot, subscribeToFreeMatches, getIsFreeMatchesSyncing, getHasFreeMatchesSynced, type FreeMatch } from '../lib/freeMatches';
 import { getEffectiveMatchDayFormattedEAT } from '../lib/footballApi';
 import { useBetSlipStore } from '../lib/betSlipStore';
 import { showToast } from '../lib/notificationStore';
@@ -473,7 +473,7 @@ export default function FreeMatches() {
       )}
 
       {/* Fixtures List / Skeleton Loader / Empty States */}
-      {matches.length === 0 && getIsFreeMatchesSyncing() ? (
+      {matches.length === 0 && (getIsFreeMatchesSyncing() || !getHasFreeMatchesSynced()) ? (
         <MatchListSkeleton count={6} />
       ) : upcomingMatches.length === 0 ? (
         <div className="bg-white border border-slate-200 rounded-2xl p-8 text-center max-w-xl mx-auto flex flex-col items-center gap-3 shadow-xs">

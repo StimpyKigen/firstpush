@@ -1,6 +1,14 @@
 import { getDailyMarketHighlights } from '../../src/lib/sportsFeedService';
 
 export default async function handler(req: any, res: any) {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
+
   try {
     const highlights = await getDailyMarketHighlights();
     res.setHeader('Cache-Control', 's-maxage=900, stale-while-revalidate=1800');

@@ -13,6 +13,30 @@ export default defineConfig(() => {
         fastRefresh: !isHmrDisabled,
       } as any),
       tailwindcss(),
+      {
+        name: 'sports-api-dev-middleware',
+        configureServer(server) {
+          server.middlewares.use(async (req, res, next) => {
+            if (req.url && req.url.startsWith('/api/sports/daily-fixtures')) {
+              try {
+                const { getDailyMarketHighlights } = await server.ssrLoadModule('/src/lib/sportsFeedService.ts');
+                const highlights = await getDailyMarketHighlights();
+                res.setHeader('Content-Type', 'application/json');
+                res.setHeader('Access-Control-Allow-Origin', '*');
+                res.end(JSON.stringify({ success: true, count: highlights.length, fixtures: highlights }));
+                return;
+              } catch (err) {
+                console.error('Error in dev sports API middleware:', err);
+                res.statusCode = 500;
+                res.setHeader('Content-Type', 'application/json');
+                res.end(JSON.stringify({ success: false, error: String(err) }));
+                return;
+              }
+            }
+            next();
+          });
+        },
+      },
     ],
     resolve: {
       alias: {

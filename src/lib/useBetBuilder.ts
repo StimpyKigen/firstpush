@@ -33,10 +33,23 @@ export function useBetBuilder(onPublished?: () => void) {
   const freeSnap = useSyncExternalStore(subscribeToFreeMatches, getFreeMatchesSnapshot, getFreeMatchesSnapshot);
   const fixtures = useMemo(() => getCombinedBuilderFixtures(), [freeSnap]);
 
+  // Derive available leagues dynamically from actual live fixtures
+  const availableLeagues = useMemo(() => {
+    const set = new Set<string>();
+    fixtures.forEach((f) => {
+      if (f.competition) set.add(f.competition);
+    });
+    return ['All Leagues', ...Array.from(set).sort()];
+  }, [fixtures]);
+
   // Filter fixtures
   const filteredFixtures = useMemo(() => {
     return fixtures.filter((f) => {
-      const matchesLeague = selectedLeague === 'All Leagues' || f.competition === selectedLeague;
+      const matchesLeague =
+        selectedLeague === 'All Leagues' ||
+        f.competition.toLowerCase() === selectedLeague.toLowerCase() ||
+        f.competition.toLowerCase().includes(selectedLeague.toLowerCase()) ||
+        selectedLeague.toLowerCase().includes(f.competition.toLowerCase());
       const q = searchQuery.toLowerCase().trim();
       const matchesSearch = !q || f.homeTeam.toLowerCase().includes(q) || f.awayTeam.toLowerCase().includes(q) || f.competition.toLowerCase().includes(q);
       return matchesLeague && matchesSearch;
@@ -142,6 +155,7 @@ export function useBetBuilder(onPublished?: () => void) {
     setSearchQuery,
     selectedLeague,
     setSelectedLeague,
+    availableLeagues,
     expandedFixtureId,
     setExpandedFixtureId,
     simulatedStake,

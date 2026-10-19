@@ -1,6 +1,6 @@
 import type { MatchConsensus } from './types';
 import { buildConsensus } from './consensusEngine';
-import { fetchDailyHighlightFixtures, getEffectiveMatchDayFormattedEAT, type HighlightFixture } from './footballApi';
+import { fetchDailyHighlightFixtures, type HighlightFixture } from './footballApi';
 
 const listeners = new Set<() => void>();
 
@@ -29,79 +29,8 @@ export interface FreeMatch {
   bookmaker?: string;
 }
 
-function getDynamicFallbackMatches(): FreeMatch[] {
-  const activeDayLabel = getEffectiveMatchDayFormattedEAT(new Date());
-  return [
-    {
-      id: 'free-m1',
-      home: 'Barcelona',
-      away: 'Real Madrid',
-      competition: 'Spanish La Liga',
-      kickoff: `${activeDayLabel} · 23:00 EAT`,
-      tier: 'derby',
-      blurb: 'El Clásico: Barcelona host Real Madrid in a colossal title clash with millions tracking consensus.',
-      syncedAt: 'Live Consensus Feed',
-      homeOdds: 2.02,
-      drawOdds: 4.28,
-      awayOdds: 4.86,
-      bookmaker: 'Market Consensus',
-    },
-    {
-      id: 'free-m2',
-      home: 'Chelsea',
-      away: 'Tottenham',
-      competition: 'English Premier League',
-      kickoff: `${activeDayLabel} · 19:30 EAT`,
-      tier: 'derby',
-      blurb: 'London Derby: Stamford Bridge under the floodlights as Chelsea battle Spurs for top-four positioning.',
-      syncedAt: 'Live Consensus Feed',
-      homeOdds: 2.05,
-      drawOdds: 3.96,
-      awayOdds: 5.23,
-      bookmaker: 'Market Consensus',
-    },
-    {
-      id: 'free-m3',
-      home: 'Arsenal',
-      away: 'Everton',
-      competition: 'English Premier League',
-      kickoff: `${activeDayLabel} · 17:00 EAT`,
-      tier: 'blockbuster',
-      blurb: 'Arsenal look to control tempo at the Emirates with strong community consensus backing them.',
-      syncedAt: 'Live Consensus Feed',
-      homeOdds: 2.05,
-      drawOdds: 3.96,
-      awayOdds: 5.23,
-      bookmaker: 'Market Consensus',
-    },
-    {
-      id: 'free-m4',
-      home: 'Liverpool',
-      away: 'Brighton',
-      competition: 'English Premier League',
-      kickoff: `${activeDayLabel} · 17:00 EAT`,
-      tier: 'blockbuster',
-      blurb: 'High-octane clash at Anfield with both sides known for intense attacking football.',
-      syncedAt: 'Live Consensus Feed',
-      homeOdds: 2.27,
-      drawOdds: 4.12,
-      awayOdds: 3.97,
-      bookmaker: 'Market Consensus',
-    },
-  ];
-}
-
-const RAW_PCT = [
-  { homePct: 53, drawPct: 25 },
-  { homePct: 52, drawPct: 27 },
-  { homePct: 52, drawPct: 27 },
-  { homePct: 47, drawPct: 26 },
-];
-
-let liveMatches: FreeMatch[] = getDynamicFallbackMatches();
-let liveConsensus: Record<string, MatchConsensus> = Object.fromEntries(
-  liveMatches.map((m, i) => [m.id, buildConsensus(m.id, i * 13 + 41, RAW_PCT[i].homePct, RAW_PCT[i].drawPct)]),
-) as Record<string, MatchConsensus>;
+let liveMatches: FreeMatch[] = [];
+let liveConsensus: Record<string, MatchConsensus> = {};
 
 export const freeMatches: FreeMatch[] = liveMatches;
 export const freeMatchConsensus: Record<string, MatchConsensus> = liveConsensus;
@@ -169,17 +98,17 @@ export async function refreshFreeMatches() {
   emitFreeMatchesChange();
   try {
     const fixtures = await fetchDailyHighlightFixtures();
-    if (fixtures.length === 0) {
-      const fallbacks = getDynamicFallbackMatches();
-      liveMatches = fallbacks;
-      liveConsensus = Object.fromEntries(
-        fallbacks.map((m, i) => [m.id, buildConsensus(m.id, i * 13 + 41, RAW_PCT[i].homePct, RAW_PCT[i].drawPct)]),
-      ) as Record<string, MatchConsensus>;
-    } else {
+    if (fixtures.length > 0) {
       liveMatches = fixtures.map((fixture) => toFreeMatch(fixture));
       liveConsensus = Object.fromEntries(
-        liveMatches.map((match, index) => [match.id, buildConsensus(match.id, index * 17 + 7, fixtures[index].homePct, fixtures[index].drawPct)]),
+        liveMatches.map((match, index) => [
+          match.id,
+          buildConsensus(match.id, index * 17 + 7, fixtures[index].homePct, fixtures[index].drawPct),
+        ]),
       ) as Record<string, MatchConsensus>;
+    } else {
+      liveMatches = [];
+      liveConsensus = {};
     }
 
     freeMatches.splice(0, freeMatches.length, ...liveMatches);
