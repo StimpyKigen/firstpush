@@ -623,19 +623,19 @@ html:has(.login-page-container) {
 
   /* Page background is signature clean ivory canvas (#FFFFF0) — Strict No-Scroll */
   .login-page-container {
-    --fs: clamp(1.05rem, 4.2vw, 1.25rem);
-    --ls: -0.02em;
+    --fs: clamp(1.22rem, 5vw, 1.48rem);
+    --ls: -0.025em;
     position: relative;
     width: 100%;
     height: calc(100dvh - 64px - 52px - env(safe-area-inset-bottom, 0px)) !important;
     min-height: calc(100dvh - 64px - 52px - env(safe-area-inset-bottom, 0px)) !important;
     max-height: calc(100dvh - 64px - 52px - env(safe-area-inset-bottom, 0px)) !important;
     margin: 0;
-    padding: 6px 12px !important;
+    padding: 8px 12px !important;
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
+    justify-content: space-evenly !important;
     overflow: hidden !important;
     overflow-y: hidden !important;
     z-index: 1;
@@ -644,16 +644,16 @@ html:has(.login-page-container) {
   }
 
   .content {
-    margin: 0 auto 22px auto !important;
-    max-width: 350px !important;
-    padding: 0 8px !important;
+    margin: 0 auto !important;
+    max-width: 360px !important;
+    padding: 0 10px !important;
     flex-shrink: 0 !important;
   }
 
   .title {
     font-size: var(--fs) !important;
-    line-height: 1.25 !important;
-    max-width: 340px !important;
+    line-height: 1.22 !important;
+    max-width: 350px !important;
     text-wrap: balance !important;
   }
 
@@ -674,6 +674,7 @@ html:has(.login-page-container) {
       0 8px 24px -4px rgba(0, 70, 50, 0.3),
       0 0 1px 1px rgba(0, 0, 0, 0.08) !important;
     margin: 0 auto !important;
+    flex-shrink: 0 !important;
     overflow: hidden !important;
     display: flex !important;
     flex-direction: column !important;
