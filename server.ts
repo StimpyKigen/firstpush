@@ -4,6 +4,12 @@ import { createServer as createViteServer } from 'vite';
 import { GoogleGenAI } from '@google/genai';
 import { fetchSportpesaMegaMirror, fetchBetikaMidweekMirror } from './src/lib/jackpotMirrorService';
 import {
+  getMarketLeagues,
+  getMarketFixtures,
+  getMarketResults,
+  getDailyMarketHighlights,
+} from './src/lib/sportsFeedService';
+import {
   createAdChallenge,
   verifyAndGrantRewardToken,
   authorizeRoomAccess,
@@ -366,6 +372,49 @@ async function startServer() {
     } catch (err: any) {
       console.error('Jackpot Mirror API Error:', err);
       res.status(500).json({ error: err?.message || 'Failed to fetch mirrored jackpot data' });
+    }
+  });
+
+  // =========================================================================
+  // SECURE SPORTS MARKET INTELLIGENCE & CONSENSUS ODDS API ENDPOINTS
+  // =========================================================================
+
+  app.get('/api/sports/leagues', async (req: Request, res: Response) => {
+    try {
+      const leagues = await getMarketLeagues();
+      res.json({ success: true, count: leagues.length, leagues });
+    } catch (err: any) {
+      res.status(500).json({ success: false, error: 'Failed to retrieve sports leagues.' });
+    }
+  });
+
+  app.get('/api/sports/fixtures', async (req: Request, res: Response) => {
+    try {
+      const league = (req.query.league as string) || 'premier';
+      const fixtures = await getMarketFixtures(league);
+      res.json({ success: true, league, count: fixtures.length, fixtures });
+    } catch (err: any) {
+      res.status(500).json({ success: false, error: 'Failed to retrieve market fixtures.' });
+    }
+  });
+
+  app.get('/api/sports/results', async (req: Request, res: Response) => {
+    try {
+      const league = (req.query.league as string) || 'premier';
+      const season = req.query.season as string;
+      const results = await getMarketResults(league, season);
+      res.json({ success: true, league, count: results.length, results });
+    } catch (err: any) {
+      res.status(500).json({ success: false, error: 'Failed to retrieve match results.' });
+    }
+  });
+
+  app.get('/api/sports/daily-fixtures', async (req: Request, res: Response) => {
+    try {
+      const highlights = await getDailyMarketHighlights();
+      res.json({ success: true, count: highlights.length, fixtures: highlights });
+    } catch (err: any) {
+      res.status(500).json({ success: false, error: 'Failed to retrieve daily fixtures.' });
     }
   });
 

@@ -303,9 +303,6 @@ export async function fetchDailyHighlightFixtures(): Promise<HighlightFixture[]>
     'https://www.thesportsdb.com/api/v1/json/3/eventsnextleague.php?id=4335',
   ];
 
-  const fixtures: HighlightFixture[] = [];
-  const seenMatches = new Set<string>();
-
   const syncTimeLabel = new Intl.DateTimeFormat('en', {
     timeZone: 'Africa/Nairobi',
     month: 'short',
@@ -314,6 +311,66 @@ export async function fetchDailyHighlightFixtures(): Promise<HighlightFixture[]>
     minute: '2-digit',
     hour12: false,
   }).format(new Date()) + ' EAT';
+
+  // 1. Try secure backend Market Consensus engine first (calibrated odds & probabilities across major leagues)
+  try {
+    const controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
+    const timeoutId = controller ? setTimeout(() => controller.abort(), 4000) : null;
+    const mktRes = await fetch('/api/sports/daily-fixtures', controller ? { signal: controller.signal } : {});
+    if (timeoutId) clearTimeout(timeoutId);
+
+    if (mktRes.ok) {
+      const data = await mktRes.json();
+      if (data && data.success && Array.isArray(data.fixtures) && data.fixtures.length > 0) {
+        const mapped: HighlightFixture[] = data.fixtures.map((m: any) => {
+          const tier = inferTier(m.competition || 'Premier League', m.home, m.away);
+          const blurb = buildBlurb(m.home, m.away, m.competition || 'Premier League', m.status);
+          return {
+            id: `mkt-${m.id}`,
+            home: m.home,
+            away: m.away,
+            competition: m.competition || 'Premier League',
+            kickoff: m.kickoff,
+            kickoffIso: m.kickoffIso,
+            tier,
+            blurb,
+            homePct: m.homePct,
+            drawPct: m.drawPct,
+            awayPct: m.awayPct,
+            homeOdds: m.homeOdds,
+            drawOdds: m.drawOdds,
+            awayOdds: m.awayOdds,
+            bookmaker: 'Market Consensus',
+            syncedAt: `Live Consensus · ${syncTimeLabel}`,
+            status: m.status || 'pre',
+            displayClock: m.status === 'in' ? 'LIVE' : m.status === 'post' ? 'FT' : '',
+            homeScore: null,
+            awayScore: null,
+          };
+        });
+
+        if (mapped.length > 0) {
+          cachedFixtures = mapped;
+          lastFetchedTime = Date.now();
+          try {
+            if (typeof sessionStorage !== 'undefined') {
+              sessionStorage.setItem('mshindi_football_cache', JSON.stringify(mapped));
+            }
+          } catch {
+            // ignore storage error
+          }
+          return cachedFixtures;
+        }
+      }
+    }
+  } catch (err) {
+    // Non-blocking fallback to secondary providers
+    console.warn('Market Consensus feed notice, continuing to fallback feeds:', err);
+  }
+
+  // 2. Fetch Primary scoreboard as secondary fallback (1 fast lightweight request)
+  const fixtures: HighlightFixture[] = [];
+  const seenMatches = new Set<string>();
 
   // Helper: check if a fixture belongs to today's effective match day (until 3 AM EAT cutoff)
   const isMatchForToday = (isoDateString?: string, statusState?: string) => {
@@ -326,7 +383,6 @@ export async function fetchDailyHighlightFixtures(): Promise<HighlightFixture[]>
     return fixMatchDay <= currentMatchDay;
   };
 
-  // 1. Fetch Primary scoreboard (1 fast lightweight request)
   try {
     const primaryRes = await fetch(primaryUrl);
     if (primaryRes.ok) {
