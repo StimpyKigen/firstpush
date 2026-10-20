@@ -191,7 +191,83 @@ export function getHighlightRank(fixture: {
  * 2. Kickoff time (ascending, earliest upcoming first)
  * 3. Stable deterministic tie-breaker (fixture ID)
  */
-export function sortHighlightsComparator<T extends { competition: string; status?: any; statusText?: any; kickoffIso?: any; id: string }>(
+/**
+ * Parse any fixture kickoff representation into UTC epoch milliseconds.
+ * Returns null if missing, empty, or invalid (NaN).
+ * Handles:
+ * - ISO strings with UTC 'Z' (e.g. "2026-10-20T14:30:00Z")
+ * - ISO strings with explicit timezone offsets (e.g. "2026-10-20T17:30:00+03:00", "2026-10-20T10:30:00-04:00")
+ * - Epoch timestamps (seconds or milliseconds)
+ * - Date objects
+ */
+export function parseFixtureKickoffMs(
+  fixture: { kickoffIso?: any; kickoff?: any } | null | undefined
+): number | null {
+  if (!fixture) return null;
+
+  const candidates = [fixture.kickoffIso, fixture.kickoff];
+  for (const val of candidates) {
+    if (val === undefined || val === null || val === '') continue;
+
+    if (typeof val === 'number') {
+      if (isNaN(val)) continue;
+      // If unix timestamp in seconds (< 1e11), convert to milliseconds
+      return val < 1e11 ? val * 1000 : val;
+    }
+
+    if (typeof val === 'string') {
+      const trimmed = val.trim();
+      if (!trimmed) continue;
+      const parsed = Date.parse(trimmed);
+      if (!isNaN(parsed)) {
+        return parsed;
+      }
+    }
+
+    if (val instanceof Date) {
+      const ms = val.getTime();
+      if (!isNaN(ms)) return ms;
+    }
+  }
+
+  return null;
+}
+
+/**
+ * Formats a Date or timestamp into 'YYYY-MM-DD' according to the user's local device clock / timezone.
+ * Uses local calendar year, month, and day (getFullYear, getMonth, getDate).
+ * Never hardcodes UTC or a specific external timezone.
+ */
+export function getDeviceLocalDateString(dateInput: Date | string | number = new Date()): string {
+  const d = typeof dateInput === 'string' || typeof dateInput === 'number' ? new Date(dateInput) : dateInput;
+  if (isNaN(d.getTime())) return '';
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+/**
+ * Formats a fixture's kickoff into HH:mm in the user's local device timezone.
+ */
+export function formatDeviceLocalTime(kickoffIso?: string, fallback: string = ''): string {
+  if (!kickoffIso) return fallback;
+  const d = new Date(kickoffIso);
+  if (isNaN(d.getTime())) return fallback;
+  return new Intl.DateTimeFormat(undefined, {
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  }).format(d);
+}
+
+/**
+ * Highlights ordering comparator:
+ * 1. Competition prestige + status score (descending)
+ * 2. Kickoff time (ascending, earliest upcoming first)
+ * 3. Stable deterministic tie-breaker (fixture ID)
+ */
+export function sortHighlightsComparator<T extends { competition: string; status?: any; statusText?: any; kickoffIso?: any; kickoff?: any; id: string }>(
   a: T,
   b: T
 ): number {
@@ -203,8 +279,8 @@ export function sortHighlightsComparator<T extends { competition: string; status
   }
 
   // Secondary: kickoff timestamp (earliest first)
-  const timeA = a.kickoffIso ? new Date(a.kickoffIso).getTime() : Infinity;
-  const timeB = b.kickoffIso ? new Date(b.kickoffIso).getTime() : Infinity;
+  const timeA = parseFixtureKickoffMs(a) ?? Infinity;
+  const timeB = parseFixtureKickoffMs(b) ?? Infinity;
   if (timeA !== timeB) {
     return timeA - timeB;
   }
@@ -217,12 +293,12 @@ export function sortHighlightsComparator<T extends { competition: string; status
  * STRICT RULE: Chronological ONLY by kickoff time, earliest first.
  * Zero prestige weighting.
  */
-export function sortUpcomingComparator<T extends { kickoffIso?: any; id: string }>(
+export function sortUpcomingComparator<T extends { kickoffIso?: any; kickoff?: any; id: string }>(
   a: T,
   b: T
 ): number {
-  const timeA = a.kickoffIso ? new Date(a.kickoffIso).getTime() : Infinity;
-  const timeB = b.kickoffIso ? new Date(b.kickoffIso).getTime() : Infinity;
+  const timeA = parseFixtureKickoffMs(a) ?? Infinity;
+  const timeB = parseFixtureKickoffMs(b) ?? Infinity;
   if (timeA !== timeB) {
     return timeA - timeB; // Strictly chronological
   }
@@ -231,12 +307,32 @@ export function sortUpcomingComparator<T extends { kickoffIso?: any; id: string 
 
 /**
  * Check if fixture is eligible for the Upcoming tab:
- * - Must be not-yet-started (pre/scheduled).
- * - Excludes live, completed, postponed, and cancelled fixtures.
+ * - Must be not-yet-started (status normalized to 'pre').
+ * - Strictly excludes live ('in'), completed ('post'), postponed, cancelled, abandoned, and suspended fixtures.
+ * - Must have a valid future kickoff timestamp relative to the device clock (nowMs).
+ * - A fixture starting at exactly the current instant (kickoffMs === nowMs) or in the past is strictly excluded.
+ * - Missing or invalid timestamps are safely excluded and never crash.
  */
-export function isUpcomingEligible(fixture: { status?: any; statusText?: any }): boolean {
+export function isUpcomingEligible(
+  fixture: { status?: any; statusText?: any; kickoffIso?: any; kickoff?: any } | null | undefined,
+  nowMs: number = Date.now()
+): boolean {
+  if (!fixture) return false;
+
+  // 1. Normalized status check: only 'pre' (scheduled / unstarted) is eligible
   const norm = normalizeMatchStatus(fixture.status, fixture.statusText);
-  return norm === 'pre';
+  if (norm !== 'pre') {
+    return false;
+  }
+
+  // 2. Parse kickoff timestamp to UTC epoch milliseconds
+  const kickoffMs = parseFixtureKickoffMs(fixture);
+  if (kickoffMs === null) {
+    return false;
+  }
+
+  // 3. Device clock real-time check: strictly future
+  return kickoffMs > nowMs;
 }
 
 /**

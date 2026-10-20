@@ -761,12 +761,7 @@ export function queryMarketFixtures(options: {
       return f.status === 'pre' && fDate >= todayStr;
     });
   } else {
-    // 'all' includes all pre-match and in-play fixtures from today onwards, plus recent live matches
-    list = list.filter((f) => {
-      if (f.status === 'in') return true;
-      const fDate = getLocalDateStringEAT(f.kickoffIso);
-      return fDate >= todayStr;
-    });
+    // 'all' delivers full catalogue to client; client's real-time device clock handles local timezone date grouping and upcoming cutoff
   }
 
   // Filter by League

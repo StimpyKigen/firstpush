@@ -16,10 +16,6 @@ import {
   getHasFreeMatchesSynced,
   type FreeMatch
 } from '../lib/freeMatches';
-import {
-  getLocalDateStringEAT,
-  getEffectiveMatchDayFormattedEAT,
-} from '../lib/footballApi';
 import { useBetSlipStore } from '../lib/betSlipStore';
 import { showToast } from '../lib/notificationStore';
 import QuickBetBuilderModal, { type MatchForBuilder } from '../components/QuickBetBuilderModal';
@@ -32,6 +28,7 @@ import {
   sortUpcomingComparator,
   isUpcomingEligible,
   isHighlightsEligible,
+  getDeviceLocalDateString,
 } from '../lib/competitionPriority';
 
 type ScopeTab = 'highlights' | 'live' | 'upcoming' | 'today' | 'tomorrow' | 'all';
@@ -120,12 +117,28 @@ export default function FreeMatches() {
     }
   };
 
-  // Timezone boundary dates (EAT)
-  const todayDateStr = getLocalDateStringEAT(new Date());
-  const tomorrowDateObj = new Date();
-  tomorrowDateObj.setDate(tomorrowDateObj.getDate() + 1);
-  const tomorrowDateStr = getLocalDateStringEAT(tomorrowDateObj);
-  const activeDayLabel = getEffectiveMatchDayFormattedEAT(new Date());
+  // Real-time device clock state, refreshed periodically (every 15 seconds)
+  // Ensures fixtures whose kickoff time arrives drop out of Upcoming automatically without a full page reload.
+  const [deviceNow, setDeviceNow] = useState<number>(() => Date.now());
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setDeviceNow(Date.now());
+    }, 15000); // 15-second tick
+
+    return () => {
+      clearInterval(timer);
+    };
+  }, []);
+
+  // Timezone boundary dates computed from the user's real-time device clock and local timezone.
+  // Updates automatically when midnight passes while the page is left open.
+  const todayDateStr = useMemo(() => getDeviceLocalDateString(deviceNow), [deviceNow]);
+  const tomorrowDateStr = useMemo(() => {
+    const d = new Date(deviceNow);
+    d.setDate(d.getDate() + 1);
+    return getDeviceLocalDateString(d);
+  }, [deviceNow]);
 
   // Scope Counts
   const counts = useMemo(() => {
@@ -136,7 +149,7 @@ export default function FreeMatches() {
     let highlights = 0;
 
     matches.forEach((m) => {
-      const dStr = m.kickoffIso ? getLocalDateStringEAT(m.kickoffIso) : '';
+      const dStr = m.kickoffIso ? getDeviceLocalDateString(m.kickoffIso) : '';
       const norm = normalizeMatchStatus(m.status, m.displayClock);
 
       if (norm === 'in') {
@@ -145,13 +158,13 @@ export default function FreeMatches() {
       if (isHighlightsEligible(m)) {
         highlights++;
       }
-      if (isUpcomingEligible(m)) {
+      if (isUpcomingEligible(m, deviceNow)) {
         upcoming++;
-      }
-      if (dStr === todayDateStr) {
-        today++;
-      } else if (dStr === tomorrowDateStr) {
-        tomorrow++;
+        if (dStr === todayDateStr) {
+          today++;
+        } else if (dStr === tomorrowDateStr) {
+          tomorrow++;
+        }
       }
     });
 
@@ -163,16 +176,23 @@ export default function FreeMatches() {
       today,
       tomorrow,
     };
-  }, [matches, todayDateStr, tomorrowDateStr]);
+  }, [matches, deviceNow, todayDateStr, tomorrowDateStr]);
 
   // Available dates for horizontal date bar
   const availableDates = useMemo(() => {
     const dateMap = new Map<string, number>();
     matches.forEach((m) => {
       if (m.kickoffIso) {
-        const dStr = getLocalDateStringEAT(m.kickoffIso);
+        const dStr = getDeviceLocalDateString(m.kickoffIso);
         if (dStr >= todayDateStr) {
-          dateMap.set(dStr, (dateMap.get(dStr) || 0) + 1);
+          // If viewing upcoming/today/tomorrow, count only eligible upcoming fixtures for each date
+          if (activeTab === 'upcoming' || activeTab === 'today' || activeTab === 'tomorrow') {
+            if (isUpcomingEligible(m, deviceNow)) {
+              dateMap.set(dStr, (dateMap.get(dStr) || 0) + 1);
+            }
+          } else {
+            dateMap.set(dStr, (dateMap.get(dStr) || 0) + 1);
+          }
         }
       }
     });
@@ -180,17 +200,20 @@ export default function FreeMatches() {
     return Array.from(dateMap.entries())
       .sort(([a], [b]) => a.localeCompare(b))
       .map(([dStr, count]) => {
-        const [y, m, d] = dStr.split('-').map(Number);
-        const utcDate = new Date(Date.UTC(y, m - 1, d, 12, 0, 0));
-        let label = new Intl.DateTimeFormat('en', {
-          timeZone: 'UTC',
-          weekday: 'short',
-          month: 'short',
-          day: 'numeric',
-        }).format(utcDate);
-
-        if (dStr === todayDateStr) label = 'Today';
-        else if (dStr === tomorrowDateStr) label = 'Tomorrow';
+        let label = 'Date';
+        if (dStr === todayDateStr) {
+          label = 'Today';
+        } else if (dStr === tomorrowDateStr) {
+          label = 'Tomorrow';
+        } else {
+          const [y, m, d] = dStr.split('-').map(Number);
+          const localDate = new Date(y, m - 1, d, 12, 0, 0);
+          label = new Intl.DateTimeFormat(undefined, {
+            weekday: 'short',
+            month: 'short',
+            day: 'numeric',
+          }).format(localDate);
+        }
 
         return {
           dStr,
@@ -198,17 +221,22 @@ export default function FreeMatches() {
           count,
         };
       });
-  }, [matches, todayDateStr, tomorrowDateStr]);
+  }, [matches, activeTab, deviceNow, todayDateStr, tomorrowDateStr]);
 
   // Filter matches by selected Tab & Date
   const scopedMatches = useMemo(() => {
     return matches.filter((m) => {
-      const dStr = m.kickoffIso ? getLocalDateStringEAT(m.kickoffIso) : '';
+      const dStr = m.kickoffIso ? getDeviceLocalDateString(m.kickoffIso) : '';
       const norm = normalizeMatchStatus(m.status, m.displayClock);
 
       // Date selector overrides tab if explicitly selected
       if (selectedDate !== 'all') {
-        return dStr === selectedDate;
+        if (dStr !== selectedDate) return false;
+        // If filtering a specific date on Upcoming, enforce real-time upcoming cutoff
+        if (activeTab === 'upcoming') {
+          return isUpcomingEligible(m, deviceNow);
+        }
+        return true;
       }
 
       if (activeTab === 'live') {
@@ -218,18 +246,18 @@ export default function FreeMatches() {
         return isHighlightsEligible(m);
       }
       if (activeTab === 'upcoming') {
-        return isUpcomingEligible(m);
+        return isUpcomingEligible(m, deviceNow);
       }
       if (activeTab === 'today') {
-        return dStr === todayDateStr;
+        return dStr === todayDateStr && isUpcomingEligible(m, deviceNow);
       }
       if (activeTab === 'tomorrow') {
-        return dStr === tomorrowDateStr;
+        return dStr === tomorrowDateStr && isUpcomingEligible(m, deviceNow);
       }
       // 'all' includes all valid fixtures
       return true;
     });
-  }, [matches, activeTab, selectedDate, todayDateStr, tomorrowDateStr]);
+  }, [matches, activeTab, selectedDate, deviceNow, todayDateStr, tomorrowDateStr]);
 
   // Build Continent -> Ranked Leagues map from ALL matches available in the catalog!
   const groupedContinents = useMemo(() => {
@@ -316,8 +344,15 @@ export default function FreeMatches() {
       return true;
     })
     .sort((a, b) => {
-      // 1. Upcoming tab is strictly chronological (earliest kickoff first, zero prestige weighting)
-      if (activeTab === 'upcoming' || sortBy === 'time') {
+      // 1. Upcoming tab, today tab, tomorrow tab, specific date on Upcoming, or sortBy === 'time'
+      // is strictly chronological (earliest kickoff first, zero prestige weighting)
+      if (
+        activeTab === 'upcoming' ||
+        activeTab === 'today' ||
+        activeTab === 'tomorrow' ||
+        sortBy === 'time' ||
+        (selectedDate !== 'all' && activeTab !== 'highlights')
+      ) {
         return sortUpcomingComparator(a, b);
       }
       // 2. Highlights tab or highlights sort order ranks by competition prestige hierarchy
@@ -337,7 +372,7 @@ export default function FreeMatches() {
     setSelectedDate('all');
     if (tab === 'highlights') {
       setSortBy('highlights');
-    } else if (tab === 'upcoming') {
+    } else if (tab === 'upcoming' || tab === 'today' || tab === 'tomorrow') {
       setSortBy('time');
     }
   };

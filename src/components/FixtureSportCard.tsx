@@ -20,6 +20,7 @@ import {
   type SportScoreStandings
 } from '../lib/sportscoreService';
 import { getMatchScorePresentation } from '../lib/matchStatus';
+import { formatDeviceLocalTime } from '../lib/competitionPriority';
 
 interface FixtureSportCardProps {
   match: FreeMatch;
@@ -72,7 +73,7 @@ export default function FixtureSportCard({
   const scorePres = getMatchScorePresentation(
     sportDetail?.status || match.status,
     sportDetail?.status_text || match.displayClock,
-    match.kickoff,
+    formatDeviceLocalTime(match.kickoffIso, match.kickoff),
     sportDetail?.home_score ?? match.homeScore,
     sportDetail?.away_score ?? match.awayScore
   );
