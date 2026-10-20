@@ -25,6 +25,7 @@ import { showToast } from '../lib/notificationStore';
 import QuickBetBuilderModal, { type MatchForBuilder } from '../components/QuickBetBuilderModal';
 import { MatchListSkeleton } from '../components/skeleton';
 import { CONTINENTS, getLeagueMetadata, type ContinentId } from '../lib/leagueDirectory';
+import FixtureSportCard from '../components/FixtureSportCard';
 
 type ScopeTab = 'all' | 'live' | 'today' | 'tomorrow' | 'upcoming';
 
@@ -84,6 +85,33 @@ export default function FreeMatches() {
 
   const builderLegs = useBetSlipStore((s) => s.builderLegs);
   const toggleBuilderLeg = useBetSlipStore((s) => s.toggleBuilderLeg);
+
+  const handleToggleLeg = (m: FreeMatch, market: string, pick: string, odds: number, e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    const legId = `${m.id}-${market}-${pick}`;
+    const exists = builderLegs.some((l) => l.id === legId);
+
+    toggleBuilderLeg({
+      id: legId,
+      matchId: m.id,
+      homeTeam: m.home,
+      awayTeam: m.away,
+      competition: m.competition,
+      kickoff: m.kickoff,
+      market,
+      pick,
+      odds,
+      status: 'pending',
+    });
+
+    if (exists) {
+      showToast({ type: 'info', title: 'Pick Removed', message: `Removed ${pick} from Bet Builder` });
+    } else {
+      showToast({ type: 'success', title: 'Added to Bet Builder!', message: `Added ${pick} (@ ${odds.toFixed(2)}x)` });
+    }
+  };
 
   // Timezone boundary dates (EAT)
   const todayDateStr = getLocalDateStringEAT(new Date());
@@ -699,209 +727,25 @@ export default function FreeMatches() {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6">
-          {filteredMatches.map((m) => {
-            const consensus = consensusMap[m.id] || { homePct: m.homePct || 33, drawPct: m.drawPct || 34, awayPct: m.awayPct || 33, totalVotes: 142 };
-            const majority = Math.max(consensus.homePct, consensus.drawPct, consensus.awayPct);
-            const majLabel = majority === consensus.homePct ? '1 · Home' : majority === consensus.drawPct ? 'X · Draw' : '2 · Away';
-
-            const hOdds = m.homeOdds || 2.10;
-            const dOdds = m.drawOdds || 3.30;
-            const aOdds = m.awayOdds || 3.60;
-
-            const isHomeSelected = builderLegs.some((l) => l.matchId === m.id && l.market === 'Match Result (1X2)' && l.pick.includes('1'));
-            const isDrawSelected = builderLegs.some((l) => l.matchId === m.id && l.market === 'Match Result (1X2)' && l.pick.includes('Draw'));
-            const isAwaySelected = builderLegs.some((l) => l.matchId === m.id && l.market === 'Match Result (1X2)' && l.pick.includes('2'));
-
-            function handleQuickToggleOdd(market: string, pick: string, odds: number, e: React.MouseEvent) {
-              e.preventDefault();
-              e.stopPropagation();
-
-              const legId = `${m.id}-${market}-${pick}`;
-              const exists = builderLegs.some((l) => l.id === legId);
-
-              toggleBuilderLeg({
-                id: legId,
-                matchId: m.id,
-                homeTeam: m.home,
-                awayTeam: m.away,
-                competition: m.competition,
-                kickoff: m.kickoff,
-                market,
-                pick,
-                odds,
-                status: 'pending',
-              });
-
-              if (exists) {
-                showToast({ type: 'info', title: 'Pick Removed', message: `Removed ${pick} from Bet Builder` });
-              } else {
-                showToast({ type: 'success', title: 'Added to Bet Builder!', message: `Added ${pick} (@ ${odds.toFixed(2)}x)` });
+          {filteredMatches.map((m) => (
+            <FixtureSportCard
+              key={m.id}
+              match={m}
+              consensus={
+                consensusMap[m.id] || {
+                  homePct: m.homePct || 33,
+                  drawPct: m.drawPct || 34,
+                  awayPct: m.awayPct || 33,
+                  totalVotes: 142,
+                  picks: [],
+                  matchId: m.id,
+                }
               }
-            }
-
-            const isLive = m.status === 'in';
-
-            return (
-              <div
-                key={m.id}
-                className={`bg-white border rounded-xl p-3 sm:p-5 flex flex-col justify-between gap-3 transition-all hover:shadow-md group ${
-                  isLive ? 'border-red-300 ring-1 ring-red-400/20' : 'border-slate-200 hover:border-slate-300'
-                }`}
-              >
-                <div>
-                  {/* Card Header: League & Status */}
-                  <div className="flex items-center justify-between gap-1 text-[10px] sm:text-xs font-semibold text-slate-500 pb-1.5 border-b border-slate-100 mb-2.5 truncate">
-                    <span className="truncate text-slate-700 font-bold max-w-[140px] sm:max-w-none">
-                      {m.competition} {m.country ? `· ${m.country}` : ''}
-                    </span>
-
-                    {isLive ? (
-                      <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-black bg-red-100 text-red-700 border border-red-300 animate-pulse shrink-0">
-                        <span className="w-1.5 h-1.5 rounded-full bg-red-600"></span>
-                        {m.displayClock || 'LIVE'}
-                      </span>
-                    ) : (
-                      <span className="flex items-center gap-1 shrink-0 text-slate-500 font-mono text-[10px] sm:text-xs">
-                        <Clock size={11} className="text-slate-400" />
-                        {m.kickoff}
-                      </span>
-                    )}
-                  </div>
-
-                  {/* Team Names, Crests & Optional Live Score */}
-                  <Link to={`/free/${m.id}`} className="block group-hover:text-[#006C54] transition-colors">
-                    <div className="space-y-1.5">
-                      <div className="flex items-center justify-between gap-2 min-w-0">
-                        <div className="flex items-center gap-1.5 min-w-0 truncate">
-                          {m.homeLogo && (
-                            <img src={m.homeLogo} alt="" loading="lazy" decoding="async" referrerPolicy="no-referrer" className="w-4 h-4 sm:w-5 sm:h-5 object-contain shrink-0" />
-                          )}
-                          <span className="font-display font-extrabold text-xs sm:text-sm text-slate-900 truncate leading-snug">
-                            {m.home}
-                          </span>
-                        </div>
-                        {isLive && m.homeScore !== null && (
-                          <span className="font-mono font-black text-sm text-red-600 shrink-0">
-                            {m.homeScore}
-                          </span>
-                        )}
-                      </div>
-
-                      <div className="flex items-center justify-between gap-2 min-w-0">
-                        <div className="flex items-center gap-1.5 min-w-0 truncate">
-                          {m.awayLogo && (
-                            <img src={m.awayLogo} alt="" loading="lazy" decoding="async" referrerPolicy="no-referrer" className="w-4 h-4 sm:w-5 sm:h-5 object-contain shrink-0" />
-                          )}
-                          <span className="font-display font-extrabold text-xs sm:text-sm text-slate-900 truncate leading-snug">
-                            {m.away}
-                          </span>
-                        </div>
-                        {isLive && m.awayScore !== null && (
-                          <span className="font-mono font-black text-sm text-red-600 shrink-0">
-                            {m.awayScore}
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                  </Link>
-
-                  {/* Discussing punters count */}
-                  <div className="flex items-center gap-1 text-[10px] sm:text-xs text-slate-400 font-medium mt-2">
-                    <Users size={11} className="text-[#006C54] shrink-0" />
-                    <span className="truncate">{consensus.totalVotes.toLocaleString()} punters analyzing</span>
-                  </div>
-
-                  {/* 1X2 Odds Grid with Quick Add to Bet Builder */}
-                  <div className="mt-2.5 sm:mt-3">
-                    <span className="text-[9px] sm:text-[10px] font-black uppercase tracking-wider text-slate-400 block mb-1">
-                      1X2 Market Odds:
-                    </span>
-                    <div className="grid grid-cols-3 gap-1.5 text-center font-mono">
-                      <button
-                        onClick={(e) => handleQuickToggleOdd('Match Result (1X2)', `${m.home} Win (1)`, hOdds, e)}
-                        className={`rounded-md py-1 px-1 border transition-all duration-150 active:scale-[0.98] min-h-[38px] flex flex-col items-center justify-center gap-0.5 cursor-pointer ${
-                          isHomeSelected
-                            ? 'bg-[#006C54] text-white font-black border-[#005441] shadow-xs'
-                            : 'bg-slate-50 hover:bg-slate-100 text-slate-800 border-slate-200 hover:border-slate-400'
-                        }`}
-                      >
-                        <span className={`text-[8px] font-black uppercase tracking-wider leading-none ${isHomeSelected ? 'text-white/80' : 'text-slate-500'}`}>1</span>
-                        <span className={`font-black text-xs sm:text-sm ${isHomeSelected ? 'text-white' : 'text-slate-900'}`}>{hOdds.toFixed(2)}</span>
-                      </button>
-
-                      <button
-                        onClick={(e) => handleQuickToggleOdd('Match Result (1X2)', 'Draw (X)', dOdds, e)}
-                        className={`rounded-md py-1 px-1 border transition-all duration-150 active:scale-[0.98] min-h-[38px] flex flex-col items-center justify-center gap-0.5 cursor-pointer ${
-                          isDrawSelected
-                            ? 'bg-[#006C54] text-white font-black border-[#005441] shadow-xs'
-                            : 'bg-slate-50 hover:bg-slate-100 text-slate-800 border-slate-200 hover:border-slate-400'
-                        }`}
-                      >
-                        <span className={`text-[8px] font-black uppercase tracking-wider leading-none ${isDrawSelected ? 'text-white/80' : 'text-slate-500'}`}>X</span>
-                        <span className={`font-black text-xs sm:text-sm ${isDrawSelected ? 'text-white' : 'text-slate-900'}`}>{dOdds.toFixed(2)}</span>
-                      </button>
-
-                      <button
-                        onClick={(e) => handleQuickToggleOdd('Match Result (1X2)', `${m.away} Win (2)`, aOdds, e)}
-                        className={`rounded-md py-1 px-1 border transition-all duration-150 active:scale-[0.98] min-h-[38px] flex flex-col items-center justify-center gap-0.5 cursor-pointer ${
-                          isAwaySelected
-                            ? 'bg-[#006C54] text-white font-black border-[#005441] shadow-xs'
-                            : 'bg-slate-50 hover:bg-slate-100 text-slate-800 border-slate-200 hover:border-slate-400'
-                        }`}
-                      >
-                        <span className={`text-[8px] font-black uppercase tracking-wider leading-none ${isAwaySelected ? 'text-white/80' : 'text-slate-500'}`}>2</span>
-                        <span className={`font-black text-xs sm:text-sm ${isAwaySelected ? 'text-white' : 'text-slate-900'}`}>{aOdds.toFixed(2)}</span>
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* Crowd Split Progress Bar */}
-                  <div className="mt-3">
-                    <div className="flex items-center justify-between text-[10px] text-slate-600 mb-1 font-bold">
-                      <span className="flex items-center gap-1">
-                        <Flame size={11} className="text-[#006C54]" /> Consensus: <strong className="text-slate-900">{majLabel}</strong>
-                      </span>
-                      <span className="font-mono text-slate-800">{majority}%</span>
-                    </div>
-                    <div className="w-full bg-slate-100 rounded-full h-1.5 flex overflow-hidden">
-                      <div style={{ width: `${consensus.homePct}%` }} className="bg-[#006C54] transition-all duration-500" title={`Home: ${consensus.homePct}%`} />
-                      <div style={{ width: `${consensus.drawPct}%` }} className="bg-amber-400 transition-all duration-500" title={`Draw: ${consensus.drawPct}%`} />
-                      <div style={{ width: `${consensus.awayPct}%` }} className="bg-rose-500 transition-all duration-500" title={`Away: ${consensus.awayPct}%`} />
-                    </div>
-                  </div>
-                </div>
-
-                {/* Footer Link to Room */}
-                <div className="pt-2 border-t border-slate-100 flex items-center justify-between gap-2">
-                  <Link
-                    to={`/free/${m.id}`}
-                    className="inline-flex items-center gap-1.5 text-xs font-bold text-[#006C54] hover:text-[#005441] transition-colors"
-                  >
-                    <span>Room Discussion</span>
-                    <span className="text-[10px]">→</span>
-                  </Link>
-
-                  <button
-                    onClick={() => setSelectedMatchForBuilder({
-                      id: m.id,
-                      home: m.home,
-                      away: m.away,
-                      competition: m.competition,
-                      kickoff: m.kickoff,
-                      homeOdds: hOdds,
-                      drawOdds: dOdds,
-                      awayOdds: aOdds,
-                      bookmaker: m.bookmaker,
-                    })}
-                    className="inline-flex items-center gap-1 text-[11px] font-bold text-slate-600 hover:text-slate-900 hover:bg-slate-100 px-2 py-1 rounded-md transition-colors cursor-pointer"
-                  >
-                    <Dices size={12} className="text-[#EEAA04]" />
-                    <span>Bet Builder</span>
-                  </button>
-                </div>
-              </div>
-            );
-          })}
+              builderLegs={builderLegs}
+              onToggleLeg={(market, pick, odds, e) => handleToggleLeg(m, market, pick, odds, e)}
+              onOpenBetBuilder={(matchData) => setSelectedMatchForBuilder(matchData)}
+            />
+          ))}
         </div>
       )}
 

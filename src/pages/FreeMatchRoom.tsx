@@ -12,6 +12,7 @@ import { useBetSlipStore } from '../lib/betSlipStore';
 import QuickBetBuilderModal from '../components/QuickBetBuilderModal';
 import BackNavButton from '../components/BackNavButton';
 import { RoomDetailSkeleton } from '../components/skeleton';
+import SportScoreMatchCenter from '../components/SportScoreMatchCenter';
 
 const tierColor: Record<string, string> = {
   blockbuster: '#8A6500',
@@ -180,13 +181,14 @@ export default function FreeMatchRoom() {
           </div>
         </div>
 
-        <p className="text-sm text-slate-600 mt-3 leading-relaxed max-w-2xl">{match.blurb}</p>
-
-        <div className="flex flex-wrap gap-x-6 gap-y-2 mt-5 pt-5 border-t border-slate-200 text-xs font-semibold text-slate-500">
+        <div className="flex flex-wrap gap-x-6 gap-y-2 mt-4 pt-4 border-t border-slate-200 text-xs font-semibold text-slate-500">
           <span className="flex items-center gap-1.5"><Clock size={14} className="text-slate-400" /> {match.kickoff}</span>
           <span className="flex items-center gap-1.5"><Users size={14} className="text-[#006C54]" /> {consensus.totalVotes.toLocaleString()} punters discussing</span>
         </div>
       </div>
+
+      {/* SportScore Match Center (Lineups, Incidents, Details, Standings, Live Tracker) */}
+      <SportScoreMatchCenter match={match} />
 
       {/* Shared Picks Prior to Closure Highlight Banner */}
       <div className="mb-6 bg-white border border-slate-200 rounded-2xl p-4 sm:p-5 flex items-center justify-between gap-3 shadow-xs">

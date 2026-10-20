@@ -445,6 +445,65 @@ async function startServer() {
     }
   });
 
+  app.get('/api/sports/match-detail', async (req: Request, res: Response) => {
+    try {
+      const slug = req.query.slug as string;
+      if (!slug) {
+        return res.status(400).json({ error: 'Match slug is required.' });
+      }
+
+      const upstreamRes = await fetch(
+        `https://sportscore.com/api/widget/match/?sport=football&slug=${encodeURIComponent(slug)}`,
+        {
+          headers: {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
+            Accept: 'application/json',
+          },
+        }
+      );
+
+      if (!upstreamRes.ok) {
+        return res.status(upstreamRes.status).json({ error: 'SportScore match detail not found.' });
+      }
+
+      const data = await upstreamRes.json();
+      res.setHeader('Cache-Control', 's-maxage=60, stale-while-revalidate=300');
+      return res.json(data);
+    } catch (err: any) {
+      return res.status(500).json({ error: 'Failed to fetch match details.' });
+    }
+  });
+
+  app.get('/api/sports/standings', async (req: Request, res: Response) => {
+    try {
+      const slug = req.query.slug as string;
+      if (!slug) {
+        return res.status(400).json({ error: 'Competition slug is required.' });
+      }
+
+      const upstreamRes = await fetch(
+        `https://sportscore.com/api/widget/standings/?sport=football&slug=${encodeURIComponent(slug)}`,
+        {
+          headers: {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
+            Accept: 'application/json',
+          },
+        }
+      );
+
+      if (!upstreamRes.ok) {
+        return res.status(upstreamRes.status).json({ error: 'SportScore standings not found.' });
+      }
+
+      const data = await upstreamRes.json();
+      res.setHeader('Cache-Control', 's-maxage=300, stale-while-revalidate=900');
+      return res.json(data);
+    } catch (err: any) {
+      return res.status(500).json({ error: 'Failed to fetch standings.' });
+    }
+  });
+
+
   // Gemini AI Ava 24/7 Support Specialist API
   app.post('/api/gemini/support-chat', async (req, res) => {
     try {

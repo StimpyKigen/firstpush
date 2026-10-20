@@ -1,3 +1,8 @@
 {
-  "mcpServers": {}
+  "mcpServers": {
+    "sportscore": {
+      "command": "cmd.exe",
+      "args": ["/c", "npx", "-y", "sportscore-mcp"]
+    }
+  }
 }
