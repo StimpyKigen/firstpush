@@ -1,1996 +1,9 @@
+/**
+ * Pre-bundled static snapshot of sports market intelligence & fixture catalogue.
+ * Automatically hydrated during local sync cycles and fallback cold-starts.
+ */
+
 export const BUNDLED_SPORTS_CATALOGUE = {
-  "leagues": [
-    {
-      "league": "myanmar-u20-league",
-      "name": "Myanmar U20 League",
-      "country": "International",
-      "seasons": [
-        "2026-2027",
-        "2025-2026"
-      ],
-      "priorityTier": "standard"
-    },
-    {
-      "league": "indonesian-super-league",
-      "name": "Indonesian Super League",
-      "country": "International",
-      "seasons": [
-        "2026-2027",
-        "2025-2026"
-      ],
-      "priorityTier": "standard"
-    },
-    {
-      "league": "malaysia-a1-semi-pro-league",
-      "name": "Malaysia A1 Semi-Pro League",
-      "country": "International",
-      "seasons": [
-        "2026-2027",
-        "2025-2026"
-      ],
-      "priorityTier": "standard"
-    },
-    {
-      "league": "bangladesh-federation-cup",
-      "name": "Bangladesh Federation Cup",
-      "country": "International",
-      "seasons": [
-        "2026-2027",
-        "2025-2026"
-      ],
-      "priorityTier": "standard"
-    },
-    {
-      "league": "mml-w",
-      "name": "MML W",
-      "country": "International",
-      "seasons": [
-        "2026-2027",
-        "2025-2026"
-      ],
-      "priorityTier": "standard"
-    },
-    {
-      "league": "uzbekistan-pro-league",
-      "name": "Uzbekistan Pro League",
-      "country": "International",
-      "seasons": [
-        "2026-2027",
-        "2025-2026"
-      ],
-      "priorityTier": "standard"
-    },
-    {
-      "league": "danish-u19-youth-league",
-      "name": "Danish U19 Youth League",
-      "country": "International",
-      "seasons": [
-        "2026-2027",
-        "2025-2026"
-      ],
-      "priorityTier": "standard"
-    },
-    {
-      "league": "costa-rica-primera-division",
-      "name": "Costa Rica Primera Division",
-      "country": "International",
-      "seasons": [
-        "2026-2027",
-        "2025-2026"
-      ],
-      "priorityTier": "standard"
-    },
-    {
-      "league": "mexico-liga-mx-femenil",
-      "name": "Mexico Liga MX Femenil",
-      "country": "International",
-      "seasons": [
-        "2026-2027",
-        "2025-2026"
-      ],
-      "priorityTier": "standard"
-    },
-    {
-      "league": "conmebol-copa-libertadores-femenino",
-      "name": "CONMEBOL Copa Libertadores Femenino",
-      "country": "South America",
-      "seasons": [
-        "2026-2027",
-        "2025-2026"
-      ],
-      "priorityTier": "standard"
-    },
-    {
-      "league": "argentine-division-1",
-      "name": "Argentine Division 1",
-      "country": "International",
-      "seasons": [
-        "2026-2027",
-        "2025-2026"
-      ],
-      "priorityTier": "standard"
-    },
-    {
-      "league": "guatemala-liga-nacional",
-      "name": "Guatemala Liga Nacional",
-      "country": "International",
-      "seasons": [
-        "2026-2027",
-        "2025-2026"
-      ],
-      "priorityTier": "standard"
-    },
-    {
-      "league": "panamanian-liga-de-futbol",
-      "name": "Panamanian Liga de Futbol",
-      "country": "International",
-      "seasons": [
-        "2026-2027",
-        "2025-2026"
-      ],
-      "priorityTier": "standard"
-    },
-    {
-      "league": "jamaica-premier-league",
-      "name": "Jamaica Premier League",
-      "country": "International",
-      "seasons": [
-        "2026-2027",
-        "2025-2026"
-      ],
-      "priorityTier": "top"
-    },
-    {
-      "league": "categoria-primera-a",
-      "name": "Categoría Primera A",
-      "country": "International",
-      "seasons": [
-        "2026-2027",
-        "2025-2026"
-      ],
-      "priorityTier": "standard"
-    },
-    {
-      "league": "costa-rica-2-liga",
-      "name": "Costa Rica 2.Liga",
-      "country": "International",
-      "seasons": [
-        "2026-2027",
-        "2025-2026"
-      ],
-      "priorityTier": "standard"
-    },
-    {
-      "league": "mex-liga-premier",
-      "name": "MEX Liga Premier",
-      "country": "International",
-      "seasons": [
-        "2026-2027",
-        "2025-2026"
-      ],
-      "priorityTier": "top"
-    },
-    {
-      "league": "thai-fa-cup",
-      "name": "Thai FA Cup",
-      "country": "International",
-      "seasons": [
-        "2026-2027",
-        "2025-2026"
-      ],
-      "priorityTier": "standard"
-    },
-    {
-      "league": "ukrainian-youth-team-championship",
-      "name": "Ukrainian Youth Team Championship",
-      "country": "International",
-      "seasons": [
-        "2026-2027",
-        "2025-2026"
-      ],
-      "priorityTier": "standard"
-    },
-    {
-      "league": "international-friendly",
-      "name": "International Friendly",
-      "country": "International",
-      "seasons": [
-        "2026-2027",
-        "2025-2026"
-      ],
-      "priorityTier": "standard"
-    },
-    {
-      "league": "paraguayan-reserve-league",
-      "name": "Paraguayan Reserve League",
-      "country": "International",
-      "seasons": [
-        "2026-2027",
-        "2025-2026"
-      ],
-      "priorityTier": "standard"
-    },
-    {
-      "league": "afc-challenge-league",
-      "name": "AFC Challenge League",
-      "country": "Asia",
-      "seasons": [
-        "2026-2027",
-        "2025-2026"
-      ],
-      "priorityTier": "standard"
-    },
-    {
-      "league": "uefa-youth-league",
-      "name": "UEFA Youth League",
-      "country": "Europe",
-      "seasons": [
-        "2026-2027",
-        "2025-2026"
-      ],
-      "priorityTier": "top"
-    },
-    {
-      "league": "israel-youth-league",
-      "name": "Israel Youth League",
-      "country": "International",
-      "seasons": [
-        "2026-2027",
-        "2025-2026"
-      ],
-      "priorityTier": "standard"
-    },
-    {
-      "league": "dr-congo-vodacom-ligue-1",
-      "name": "DR Congo Vodacom Ligue 1",
-      "country": "International",
-      "seasons": [
-        "2026-2027",
-        "2025-2026"
-      ],
-      "priorityTier": "standard"
-    },
-    {
-      "league": "armenian-first-league",
-      "name": "Armenian First League",
-      "country": "International",
-      "seasons": [
-        "2026-2027",
-        "2025-2026"
-      ],
-      "priorityTier": "standard"
-    },
-    {
-      "league": "iran-azadegan-league",
-      "name": "Iran Azadegan League",
-      "country": "International",
-      "seasons": [
-        "2026-2027",
-        "2025-2026"
-      ],
-      "priorityTier": "standard"
-    },
-    {
-      "league": "singapore-reserves-league",
-      "name": "Singapore Reserves League",
-      "country": "International",
-      "seasons": [
-        "2026-2027",
-        "2025-2026"
-      ],
-      "priorityTier": "standard"
-    },
-    {
-      "league": "tajikistan-higher-league",
-      "name": "Tajikistan Higher League",
-      "country": "International",
-      "seasons": [
-        "2026-2027",
-        "2025-2026"
-      ],
-      "priorityTier": "standard"
-    },
-    {
-      "league": "sweden-folksam-u21-allsvenskan-sodra",
-      "name": "Sweden Folksam U21 Allsvenskan Sodra",
-      "country": "International",
-      "seasons": [
-        "2026-2027",
-        "2025-2026"
-      ],
-      "priorityTier": "standard"
-    },
-    {
-      "league": "english-u21-professional-development-league-2",
-      "name": "English U21 Professional Development League 2",
-      "country": "International",
-      "seasons": [
-        "2026-2027",
-        "2025-2026"
-      ],
-      "priorityTier": "standard"
-    },
-    {
-      "league": "kenyan-premier-league",
-      "name": "Kenyan Premier League",
-      "country": "International",
-      "seasons": [
-        "2026-2027",
-        "2025-2026"
-      ],
-      "priorityTier": "top"
-    },
-    {
-      "league": "ethiopia-premier-league",
-      "name": "Ethiopia Premier League",
-      "country": "International",
-      "seasons": [
-        "2026-2027",
-        "2025-2026"
-      ],
-      "priorityTier": "top"
-    },
-    {
-      "league": "iraq-premier-division",
-      "name": "Iraq Premier Division",
-      "country": "International",
-      "seasons": [
-        "2026-2027",
-        "2025-2026"
-      ],
-      "priorityTier": "top"
-    },
-    {
-      "league": "argentine-youth-league",
-      "name": "Argentine Youth League",
-      "country": "International",
-      "seasons": [
-        "2026-2027",
-        "2025-2026"
-      ],
-      "priorityTier": "standard"
-    },
-    {
-      "league": "english-reserve-league",
-      "name": "English Reserve League",
-      "country": "International",
-      "seasons": [
-        "2026-2027",
-        "2025-2026"
-      ],
-      "priorityTier": "standard"
-    },
-    {
-      "league": "uganda-premier-league",
-      "name": "Uganda Premier League",
-      "country": "International",
-      "seasons": [
-        "2026-2027",
-        "2025-2026"
-      ],
-      "priorityTier": "top"
-    },
-    {
-      "league": "caf-champions-league",
-      "name": "CAF Champions League",
-      "country": "Africa",
-      "seasons": [
-        "2026-2027",
-        "2025-2026"
-      ],
-      "priorityTier": "standard"
-    },
-    {
-      "league": "libyan-premier-league",
-      "name": "Libyan Premier League",
-      "country": "International",
-      "seasons": [
-        "2026-2027",
-        "2025-2026"
-      ],
-      "priorityTier": "top"
-    },
-    {
-      "league": "turkmenistanyn-yokary-ligasy",
-      "name": "Türkmenistanyn Yokary Ligasy",
-      "country": "International",
-      "seasons": [
-        "2026-2027",
-        "2025-2026"
-      ],
-      "priorityTier": "standard"
-    },
-    {
-      "league": "jor-c-u20",
-      "name": "JOR C U20",
-      "country": "International",
-      "seasons": [
-        "2026-2027",
-        "2025-2026"
-      ],
-      "priorityTier": "standard"
-    },
-    {
-      "league": "italian-serie-c",
-      "name": "Italian Serie C",
-      "country": "International",
-      "seasons": [
-        "2026-2027",
-        "2025-2026"
-      ],
-      "priorityTier": "standard"
-    },
-    {
-      "league": "uzbekistan-cup",
-      "name": "Uzbekistan Cup",
-      "country": "International",
-      "seasons": [
-        "2026-2027",
-        "2025-2026"
-      ],
-      "priorityTier": "standard"
-    },
-    {
-      "league": "liberia-national-women-s-league",
-      "name": "Liberia National Women's League",
-      "country": "International",
-      "seasons": [
-        "2026-2027",
-        "2025-2026"
-      ],
-      "priorityTier": "standard"
-    },
-    {
-      "league": "german-regionalliga",
-      "name": "German Regionalliga",
-      "country": "International",
-      "seasons": [
-        "2026-2027",
-        "2025-2026"
-      ],
-      "priorityTier": "standard"
-    },
-    {
-      "league": "portuguese-u23-league",
-      "name": "Portuguese U23 League",
-      "country": "International",
-      "seasons": [
-        "2026-2027",
-        "2025-2026"
-      ],
-      "priorityTier": "standard"
-    },
-    {
-      "league": "egyptian-premier-league",
-      "name": "Egyptian Premier League",
-      "country": "International",
-      "seasons": [
-        "2026-2027",
-        "2025-2026"
-      ],
-      "priorityTier": "top"
-    },
-    {
-      "league": "uruguay-reserve-league",
-      "name": "Uruguay Reserve League",
-      "country": "International",
-      "seasons": [
-        "2026-2027",
-        "2025-2026"
-      ],
-      "priorityTier": "standard"
-    },
-    {
-      "league": "romanian-liga-ii",
-      "name": "Romanian Liga II",
-      "country": "International",
-      "seasons": [
-        "2026-2027",
-        "2025-2026"
-      ],
-      "priorityTier": "standard"
-    },
-    {
-      "league": "saudi-arabia-division-1",
-      "name": "Saudi Arabia Division 1",
-      "country": "International",
-      "seasons": [
-        "2026-2027",
-        "2025-2026"
-      ],
-      "priorityTier": "standard"
-    },
-    {
-      "league": "gff-u-17-gulf-cup",
-      "name": "GFF U-17 Gulf Cup",
-      "country": "International",
-      "seasons": [
-        "2026-2027",
-        "2025-2026"
-      ],
-      "priorityTier": "standard"
-    },
-    {
-      "league": "uzbekistan-super-league",
-      "name": "Uzbekistan Super League",
-      "country": "International",
-      "seasons": [
-        "2026-2027",
-        "2025-2026"
-      ],
-      "priorityTier": "standard"
-    },
-    {
-      "league": "saudi-professional-league",
-      "name": "Saudi Professional League",
-      "country": "International",
-      "seasons": [
-        "2026-2027",
-        "2025-2026"
-      ],
-      "priorityTier": "standard"
-    },
-    {
-      "league": "fifa-u17-women-s-world-cup",
-      "name": "FIFA U17 Women's World Cup",
-      "country": "International",
-      "seasons": [
-        "2026-2027",
-        "2025-2026"
-      ],
-      "priorityTier": "standard"
-    },
-    {
-      "league": "slovak-cup",
-      "name": "Slovak Cup",
-      "country": "International",
-      "seasons": [
-        "2026-2027",
-        "2025-2026"
-      ],
-      "priorityTier": "standard"
-    },
-    {
-      "league": "fifa-futsal-world-cup-qualification-uefa",
-      "name": "FIFA Futsal World Cup qualification (UEFA)",
-      "country": "Europe",
-      "seasons": [
-        "2026-2027",
-        "2025-2026"
-      ],
-      "priorityTier": "top"
-    },
-    {
-      "league": "mex-u21",
-      "name": "MEX U21",
-      "country": "International",
-      "seasons": [
-        "2026-2027",
-        "2025-2026"
-      ],
-      "priorityTier": "standard"
-    },
-    {
-      "league": "colombian-regional-league",
-      "name": "Colombian Regional League",
-      "country": "International",
-      "seasons": [
-        "2026-2027",
-        "2025-2026"
-      ],
-      "priorityTier": "standard"
-    },
-    {
-      "league": "ivory-coast-premier-division",
-      "name": "Ivory Coast Premier Division",
-      "country": "International",
-      "seasons": [
-        "2026-2027",
-        "2025-2026"
-      ],
-      "priorityTier": "top"
-    },
-    {
-      "league": "bahrain-division-2",
-      "name": "Bahrain Division 2",
-      "country": "International",
-      "seasons": [
-        "2026-2027",
-        "2025-2026"
-      ],
-      "priorityTier": "standard"
-    },
-    {
-      "league": "croatian-cup",
-      "name": "Croatian Cup",
-      "country": "International",
-      "seasons": [
-        "2026-2027",
-        "2025-2026"
-      ],
-      "priorityTier": "standard"
-    },
-    {
-      "league": "norwegian-women-s-cup",
-      "name": "Norwegian Women's Cup",
-      "country": "International",
-      "seasons": [
-        "2026-2027",
-        "2025-2026"
-      ],
-      "priorityTier": "standard"
-    },
-    {
-      "league": "caf-u17-championship",
-      "name": "CAF U17 Championship",
-      "country": "Africa",
-      "seasons": [
-        "2026-2027",
-        "2025-2026"
-      ],
-      "priorityTier": "standard"
-    },
-    {
-      "league": "maldives-premier-league",
-      "name": "Maldives Premier League",
-      "country": "International",
-      "seasons": [
-        "2026-2027",
-        "2025-2026"
-      ],
-      "priorityTier": "top"
-    },
-    {
-      "league": "mex-u19",
-      "name": "MEX U19",
-      "country": "International",
-      "seasons": [
-        "2026-2027",
-        "2025-2026"
-      ],
-      "priorityTier": "standard"
-    },
-    {
-      "league": "mexico-liga-mx",
-      "name": "Mexico Liga MX",
-      "country": "International",
-      "seasons": [
-        "2026-2027",
-        "2025-2026"
-      ],
-      "priorityTier": "standard"
-    },
-    {
-      "league": "conmebol-copa-sudamericana",
-      "name": "CONMEBOL Copa Sudamericana",
-      "country": "South America",
-      "seasons": [
-        "2026-2027",
-        "2025-2026"
-      ],
-      "priorityTier": "standard"
-    },
-    {
-      "league": "concacaf-central-american-cup",
-      "name": "CONCACAF Central American Cup",
-      "country": "Africa",
-      "seasons": [
-        "2026-2027",
-        "2025-2026"
-      ],
-      "priorityTier": "standard"
-    },
-    {
-      "league": "costarica-women-s-primera-division",
-      "name": "CostaRica Women's Primera Division",
-      "country": "International",
-      "seasons": [
-        "2026-2027",
-        "2025-2026"
-      ],
-      "priorityTier": "standard"
-    },
-    {
-      "league": "women-empowerment-league",
-      "name": "Women Empowerment League",
-      "country": "International",
-      "seasons": [
-        "2026-2027",
-        "2025-2026"
-      ],
-      "priorityTier": "standard"
-    },
-    {
-      "league": "japanese-j2-league",
-      "name": "Japanese J2 League",
-      "country": "International",
-      "seasons": [
-        "2026-2027",
-        "2025-2026"
-      ],
-      "priorityTier": "standard"
-    },
-    {
-      "league": "japanese-j3-league",
-      "name": "Japanese J3 League",
-      "country": "International",
-      "seasons": [
-        "2026-2027",
-        "2025-2026"
-      ],
-      "priorityTier": "standard"
-    },
-    {
-      "league": "cfa-member-champions-league",
-      "name": "CFA Member Champions League",
-      "country": "International",
-      "seasons": [
-        "2026-2027",
-        "2025-2026"
-      ],
-      "priorityTier": "standard"
-    },
-    {
-      "league": "romanian-superliga-feminina",
-      "name": "Romanian SuperLiga Feminină",
-      "country": "International",
-      "seasons": [
-        "2026-2027",
-        "2025-2026"
-      ],
-      "priorityTier": "standard"
-    },
-    {
-      "league": "czech-third-league",
-      "name": "Czech Third League",
-      "country": "International",
-      "seasons": [
-        "2026-2027",
-        "2025-2026"
-      ],
-      "priorityTier": "standard"
-    },
-    {
-      "league": "japanese-j1-league",
-      "name": "Japanese J1 League",
-      "country": "International",
-      "seasons": [
-        "2026-2027",
-        "2025-2026"
-      ],
-      "priorityTier": "standard"
-    },
-    {
-      "league": "ukrainian-u19-liga",
-      "name": "Ukrainian U19 Liga",
-      "country": "International",
-      "seasons": [
-        "2026-2027",
-        "2025-2026"
-      ],
-      "priorityTier": "standard"
-    },
-    {
-      "league": "hk-u22l",
-      "name": "HK U22L",
-      "country": "International",
-      "seasons": [
-        "2026-2027",
-        "2025-2026"
-      ],
-      "priorityTier": "standard"
-    },
-    {
-      "league": "azerbaijan-first-division",
-      "name": "Azerbaijan First Division",
-      "country": "International",
-      "seasons": [
-        "2026-2027",
-        "2025-2026"
-      ],
-      "priorityTier": "standard"
-    },
-    {
-      "league": "uefa-european-u17-women-s-championship",
-      "name": "UEFA European U17 Women's Championship",
-      "country": "Europe",
-      "seasons": [
-        "2026-2027",
-        "2025-2026"
-      ],
-      "priorityTier": "top"
-    },
-    {
-      "league": "singapore-premier-league",
-      "name": "Singapore Premier League",
-      "country": "International",
-      "seasons": [
-        "2026-2027",
-        "2025-2026"
-      ],
-      "priorityTier": "top"
-    },
-    {
-      "league": "bih-pl-rs",
-      "name": "BIH PL-RS",
-      "country": "International",
-      "seasons": [
-        "2026-2027",
-        "2025-2026"
-      ],
-      "priorityTier": "standard"
-    },
-    {
-      "league": "belarusian-women-s-premier-league",
-      "name": "Belarusian Women's Premier League",
-      "country": "International",
-      "seasons": [
-        "2026-2027",
-        "2025-2026"
-      ],
-      "priorityTier": "top"
-    },
-    {
-      "league": "italian-serie-d",
-      "name": "Italian Serie D",
-      "country": "International",
-      "seasons": [
-        "2026-2027",
-        "2025-2026"
-      ],
-      "priorityTier": "standard"
-    },
-    {
-      "league": "fra-lc-w",
-      "name": "FRA LC W",
-      "country": "International",
-      "seasons": [
-        "2026-2027",
-        "2025-2026"
-      ],
-      "priorityTier": "standard"
-    },
-    {
-      "league": "svk-wd1",
-      "name": "SVK WD1",
-      "country": "International",
-      "seasons": [
-        "2026-2027",
-        "2025-2026"
-      ],
-      "priorityTier": "standard"
-    },
-    {
-      "league": "norwegian-women-s-1-divisjon",
-      "name": "Norwegian Women's 1.Divisjon",
-      "country": "International",
-      "seasons": [
-        "2026-2027",
-        "2025-2026"
-      ],
-      "priorityTier": "standard"
-    },
-    {
-      "league": "norwegian-3-divisjon",
-      "name": "Norwegian 3.Divisjon",
-      "country": "International",
-      "seasons": [
-        "2026-2027",
-        "2025-2026"
-      ],
-      "priorityTier": "standard"
-    },
-    {
-      "league": "estonian-premium-liiga",
-      "name": "Estonian Premium Liiga",
-      "country": "International",
-      "seasons": [
-        "2026-2027",
-        "2025-2026"
-      ],
-      "priorityTier": "standard"
-    },
-    {
-      "league": "spanish-tercera-division-rfef",
-      "name": "Spanish Tercera División RFEF",
-      "country": "International",
-      "seasons": [
-        "2026-2027",
-        "2025-2026"
-      ],
-      "priorityTier": "standard"
-    },
-    {
-      "league": "united-states-open-cup",
-      "name": "United States Open Cup",
-      "country": "International",
-      "seasons": [
-        "2026-2027",
-        "2025-2026"
-      ],
-      "priorityTier": "standard"
-    },
-    {
-      "league": "conmebol-copa-libertadores",
-      "name": "CONMEBOL Copa Libertadores",
-      "country": "South America",
-      "seasons": [
-        "2026-2027",
-        "2025-2026"
-      ],
-      "priorityTier": "standard"
-    },
-    {
-      "league": "colombian-copa-betplay-dimayor",
-      "name": "Colombian Copa BetPlay DIMAYOR",
-      "country": "International",
-      "seasons": [
-        "2026-2027",
-        "2025-2026"
-      ],
-      "priorityTier": "standard"
-    },
-    {
-      "league": "bolivian-copa-lfpb",
-      "name": "Bolivian Copa LFPB",
-      "country": "International",
-      "seasons": [
-        "2026-2027",
-        "2025-2026"
-      ],
-      "priorityTier": "standard"
-    },
-    {
-      "league": "el-salvador-primera-division",
-      "name": "El Salvador Primera Division",
-      "country": "International",
-      "seasons": [
-        "2026-2027",
-        "2025-2026"
-      ],
-      "priorityTier": "standard"
-    },
-    {
-      "league": "indian-bangalore-super-division",
-      "name": "Indian Bangalore Super Division",
-      "country": "International",
-      "seasons": [
-        "2026-2027",
-        "2025-2026"
-      ],
-      "priorityTier": "standard"
-    },
-    {
-      "league": "aus-champ",
-      "name": "Aus Champ",
-      "country": "International",
-      "seasons": [
-        "2026-2027",
-        "2025-2026"
-      ],
-      "priorityTier": "standard"
-    },
-    {
-      "league": "kazakhstan-division-1",
-      "name": "Kazakhstan Division 1",
-      "country": "International",
-      "seasons": [
-        "2026-2027",
-        "2025-2026"
-      ],
-      "priorityTier": "standard"
-    },
-    {
-      "league": "vietnam-national-first-class-league",
-      "name": "Vietnam National First Class League",
-      "country": "International",
-      "seasons": [
-        "2026-2027",
-        "2025-2026"
-      ],
-      "priorityTier": "standard"
-    },
-    {
-      "league": "uefa-european-u17-football-championship",
-      "name": "UEFA European U17 Football Championship",
-      "country": "Europe",
-      "seasons": [
-        "2026-2027",
-        "2025-2026"
-      ],
-      "priorityTier": "top"
-    },
-    {
-      "league": "latvian-1-liga",
-      "name": "Latvian 1.Liga",
-      "country": "International",
-      "seasons": [
-        "2026-2027",
-        "2025-2026"
-      ],
-      "priorityTier": "standard"
-    },
-    {
-      "league": "saudi-arabia-youth-league",
-      "name": "Saudi Arabia Youth League",
-      "country": "International",
-      "seasons": [
-        "2026-2027",
-        "2025-2026"
-      ],
-      "priorityTier": "standard"
-    },
-    {
-      "league": "jordan-league-division-1",
-      "name": "Jordan League Division 1",
-      "country": "International",
-      "seasons": [
-        "2026-2027",
-        "2025-2026"
-      ],
-      "priorityTier": "standard"
-    },
-    {
-      "league": "syrian-premier-league",
-      "name": "Syrian Premier League",
-      "country": "International",
-      "seasons": [
-        "2026-2027",
-        "2025-2026"
-      ],
-      "priorityTier": "top"
-    },
-    {
-      "league": "vietnam-national-champion-league",
-      "name": "Vietnam National Champion League",
-      "country": "International",
-      "seasons": [
-        "2026-2027",
-        "2025-2026"
-      ],
-      "priorityTier": "standard"
-    },
-    {
-      "league": "egyptian-division-2",
-      "name": "Egyptian Division 2",
-      "country": "International",
-      "seasons": [
-        "2026-2027",
-        "2025-2026"
-      ],
-      "priorityTier": "standard"
-    },
-    {
-      "league": "liberia-first-division",
-      "name": "Liberia First Division",
-      "country": "International",
-      "seasons": [
-        "2026-2027",
-        "2025-2026"
-      ],
-      "priorityTier": "standard"
-    },
-    {
-      "league": "united-arab-emirates-u21",
-      "name": "United Arab Emirates U21",
-      "country": "International",
-      "seasons": [
-        "2026-2027",
-        "2025-2026"
-      ],
-      "priorityTier": "standard"
-    },
-    {
-      "league": "united-arab-emirates-president-cup",
-      "name": "United Arab Emirates President Cup",
-      "country": "International",
-      "seasons": [
-        "2026-2027",
-        "2025-2026"
-      ],
-      "priorityTier": "standard"
-    },
-    {
-      "league": "iran-pro-league",
-      "name": "Iran Pro League",
-      "country": "International",
-      "seasons": [
-        "2026-2027",
-        "2025-2026"
-      ],
-      "priorityTier": "standard"
-    },
-    {
-      "league": "qatar-stars-league",
-      "name": "Qatar Stars League",
-      "country": "International",
-      "seasons": [
-        "2026-2027",
-        "2025-2026"
-      ],
-      "priorityTier": "standard"
-    },
-    {
-      "league": "iraq-stars-league",
-      "name": "Iraq Stars League",
-      "country": "International",
-      "seasons": [
-        "2026-2027",
-        "2025-2026"
-      ],
-      "priorityTier": "standard"
-    },
-    {
-      "league": "uefa-europa-conference-league",
-      "name": "UEFA Europa Conference League",
-      "country": "Europe",
-      "seasons": [
-        "2026-2027",
-        "2025-2026"
-      ],
-      "priorityTier": "top"
-    },
-    {
-      "league": "estonian-cup",
-      "name": "Estonian Cup",
-      "country": "International",
-      "seasons": [
-        "2026-2027",
-        "2025-2026"
-      ],
-      "priorityTier": "standard"
-    },
-    {
-      "league": "jordan-premier-league",
-      "name": "Jordan Premier League",
-      "country": "International",
-      "seasons": [
-        "2026-2027",
-        "2025-2026"
-      ],
-      "priorityTier": "top"
-    },
-    {
-      "league": "finnish-ykkosliiga",
-      "name": "Finnish Ykkosliiga",
-      "country": "International",
-      "seasons": [
-        "2026-2027",
-        "2025-2026"
-      ],
-      "priorityTier": "standard"
-    },
-    {
-      "league": "israel-women-s-first-national",
-      "name": "Israel Women's First National",
-      "country": "International",
-      "seasons": [
-        "2026-2027",
-        "2025-2026"
-      ],
-      "priorityTier": "standard"
-    },
-    {
-      "league": "estonian-esiliiga",
-      "name": "Estonian Esiliiga",
-      "country": "International",
-      "seasons": [
-        "2026-2027",
-        "2025-2026"
-      ],
-      "priorityTier": "standard"
-    },
-    {
-      "league": "malta-premier-league",
-      "name": "Malta Premier League",
-      "country": "International",
-      "seasons": [
-        "2026-2027",
-        "2025-2026"
-      ],
-      "priorityTier": "top"
-    },
-    {
-      "league": "bahrain-premier-league",
-      "name": "Bahrain Premier League",
-      "country": "International",
-      "seasons": [
-        "2026-2027",
-        "2025-2026"
-      ],
-      "priorityTier": "top"
-    },
-    {
-      "league": "caf-u20-africa-cup-of-nations-qualification",
-      "name": "CAF U20 Africa Cup of Nations qualification",
-      "country": "Africa",
-      "seasons": [
-        "2026-2027",
-        "2025-2026"
-      ],
-      "priorityTier": "standard"
-    },
-    {
-      "league": "uefa-europa-league",
-      "name": "UEFA Europa League",
-      "country": "Europe",
-      "seasons": [
-        "2026-2027",
-        "2025-2026"
-      ],
-      "priorityTier": "top"
-    },
-    {
-      "league": "argentine-reserve-league",
-      "name": "Argentine Reserve League",
-      "country": "International",
-      "seasons": [
-        "2026-2027",
-        "2025-2026"
-      ],
-      "priorityTier": "standard"
-    },
-    {
-      "league": "malta-women-s-division-1",
-      "name": "Malta Women's Division 1",
-      "country": "International",
-      "seasons": [
-        "2026-2027",
-        "2025-2026"
-      ],
-      "priorityTier": "standard"
-    },
-    {
-      "league": "ecuadorian-campeonato-serie-b",
-      "name": "Ecuadorian Campeonato Serie B",
-      "country": "International",
-      "seasons": [
-        "2026-2027",
-        "2025-2026"
-      ],
-      "priorityTier": "standard"
-    },
-    {
-      "league": "mexico-ascenso-mx",
-      "name": "Mexico Ascenso MX",
-      "country": "International",
-      "seasons": [
-        "2026-2027",
-        "2025-2026"
-      ],
-      "priorityTier": "standard"
-    },
-    {
-      "league": "cfa-women-s-league-one",
-      "name": "CFA Women's League One",
-      "country": "International",
-      "seasons": [
-        "2026-2027",
-        "2025-2026"
-      ],
-      "priorityTier": "standard"
-    },
-    {
-      "league": "new-zealand-football-championship",
-      "name": "New Zealand Football Championship",
-      "country": "International",
-      "seasons": [
-        "2026-2027",
-        "2025-2026"
-      ],
-      "priorityTier": "standard"
-    },
-    {
-      "league": "new-zealand-women-s-premier-division",
-      "name": "New Zealand Women's Premier Division",
-      "country": "International",
-      "seasons": [
-        "2026-2027",
-        "2025-2026"
-      ],
-      "priorityTier": "top"
-    },
-    {
-      "league": "chinese-football-league-2",
-      "name": "Chinese Football League 2",
-      "country": "International",
-      "seasons": [
-        "2026-2027",
-        "2025-2026"
-      ],
-      "priorityTier": "standard"
-    },
-    {
-      "league": "ukrainian-first-league",
-      "name": "Ukrainian First League",
-      "country": "International",
-      "seasons": [
-        "2026-2027",
-        "2025-2026"
-      ],
-      "priorityTier": "standard"
-    },
-    {
-      "league": "women-s-national-league",
-      "name": "Women's National League",
-      "country": "International",
-      "seasons": [
-        "2026-2027",
-        "2025-2026"
-      ],
-      "priorityTier": "standard"
-    },
-    {
-      "league": "indonesian-championship",
-      "name": "Indonesian Championship",
-      "country": "International",
-      "seasons": [
-        "2026-2027",
-        "2025-2026"
-      ],
-      "priorityTier": "standard"
-    },
-    {
-      "league": "bangladesh-premier-league",
-      "name": "Bangladesh Premier League",
-      "country": "International",
-      "seasons": [
-        "2026-2027",
-        "2025-2026"
-      ],
-      "priorityTier": "top"
-    },
-    {
-      "league": "australia-a-league",
-      "name": "Australia A-League",
-      "country": "International",
-      "seasons": [
-        "2026-2027",
-        "2025-2026"
-      ],
-      "priorityTier": "standard"
-    },
-    {
-      "league": "ukrainian-premier-league",
-      "name": "Ukrainian Premier League",
-      "country": "International",
-      "seasons": [
-        "2026-2027",
-        "2025-2026"
-      ],
-      "priorityTier": "top"
-    },
-    {
-      "league": "israel-b-league",
-      "name": "Israel B League",
-      "country": "International",
-      "seasons": [
-        "2026-2027",
-        "2025-2026"
-      ],
-      "priorityTier": "standard"
-    },
-    {
-      "league": "rus-m-league",
-      "name": "RUS M-League",
-      "country": "International",
-      "seasons": [
-        "2026-2027",
-        "2025-2026"
-      ],
-      "priorityTier": "standard"
-    },
-    {
-      "league": "rus-d3b",
-      "name": "RUS D3B",
-      "country": "International",
-      "seasons": [
-        "2026-2027",
-        "2025-2026"
-      ],
-      "priorityTier": "standard"
-    },
-    {
-      "league": "azerbaijan-premier-league",
-      "name": "Azerbaijan Premier League",
-      "country": "International",
-      "seasons": [
-        "2026-2027",
-        "2025-2026"
-      ],
-      "priorityTier": "top"
-    },
-    {
-      "league": "ukrainian-second-league",
-      "name": "Ukrainian Second League",
-      "country": "International",
-      "seasons": [
-        "2026-2027",
-        "2025-2026"
-      ],
-      "priorityTier": "standard"
-    },
-    {
-      "league": "moldovan-liga-1",
-      "name": "Moldovan Liga 1",
-      "country": "International",
-      "seasons": [
-        "2026-2027",
-        "2025-2026"
-      ],
-      "priorityTier": "standard"
-    },
-    {
-      "league": "burundi-premier-league",
-      "name": "Burundi Premier League",
-      "country": "International",
-      "seasons": [
-        "2026-2027",
-        "2025-2026"
-      ],
-      "priorityTier": "top"
-    },
-    {
-      "league": "english-u21-premier-league",
-      "name": "English U21 Premier League",
-      "country": "International",
-      "seasons": [
-        "2026-2027",
-        "2025-2026"
-      ],
-      "priorityTier": "top"
-    },
-    {
-      "league": "turkish-women-s-super-league",
-      "name": "Turkish Women's Super League",
-      "country": "International",
-      "seasons": [
-        "2026-2027",
-        "2025-2026"
-      ],
-      "priorityTier": "standard"
-    },
-    {
-      "league": "chinese-football-assorciation-u-20-league",
-      "name": "Chinese Football Assorciation U-20 League",
-      "country": "International",
-      "seasons": [
-        "2026-2027",
-        "2025-2026"
-      ],
-      "priorityTier": "standard"
-    },
-    {
-      "league": "chongqing-city-football-super-league",
-      "name": "Chongqing City Football Super League",
-      "country": "International",
-      "seasons": [
-        "2026-2027",
-        "2025-2026"
-      ],
-      "priorityTier": "standard"
-    },
-    {
-      "league": "hubei-city-football-league",
-      "name": "Hubei City Football League",
-      "country": "International",
-      "seasons": [
-        "2026-2027",
-        "2025-2026"
-      ],
-      "priorityTier": "standard"
-    },
-    {
-      "league": "armenian-premier-league",
-      "name": "Armenian Premier League",
-      "country": "International",
-      "seasons": [
-        "2026-2027",
-        "2025-2026"
-      ],
-      "priorityTier": "top"
-    },
-    {
-      "league": "turkish-third-league",
-      "name": "Turkish Third League",
-      "country": "International",
-      "seasons": [
-        "2026-2027",
-        "2025-2026"
-      ],
-      "priorityTier": "standard"
-    },
-    {
-      "league": "albanian-division-1",
-      "name": "Albanian Division 1",
-      "country": "International",
-      "seasons": [
-        "2026-2027",
-        "2025-2026"
-      ],
-      "priorityTier": "standard"
-    },
-    {
-      "league": "indian-super-league",
-      "name": "Indian Super League",
-      "country": "International",
-      "seasons": [
-        "2026-2027",
-        "2025-2026"
-      ],
-      "priorityTier": "standard"
-    },
-    {
-      "league": "north-macedonia-first-football-league",
-      "name": "North Macedonia First Football League",
-      "country": "International",
-      "seasons": [
-        "2026-2027",
-        "2025-2026"
-      ],
-      "priorityTier": "standard"
-    },
-    {
-      "league": "serbian-mozzart-bet-prva-liga",
-      "name": "Serbian Mozzart Bet Prva Liga",
-      "country": "International",
-      "seasons": [
-        "2026-2027",
-        "2025-2026"
-      ],
-      "priorityTier": "standard"
-    },
-    {
-      "league": "saudi-arabia-division-2",
-      "name": "Saudi Arabia Division 2",
-      "country": "International",
-      "seasons": [
-        "2026-2027",
-        "2025-2026"
-      ],
-      "priorityTier": "standard"
-    },
-    {
-      "league": "lebanese-premier-league",
-      "name": "Lebanese Premier League",
-      "country": "International",
-      "seasons": [
-        "2026-2027",
-        "2025-2026"
-      ],
-      "priorityTier": "top"
-    },
-    {
-      "league": "poland-liga-2",
-      "name": "Poland Liga 2",
-      "country": "International",
-      "seasons": [
-        "2026-2027",
-        "2025-2026"
-      ],
-      "priorityTier": "standard"
-    },
-    {
-      "league": "oman-professional-league",
-      "name": "Oman Professional League",
-      "country": "International",
-      "seasons": [
-        "2026-2027",
-        "2025-2026"
-      ],
-      "priorityTier": "standard"
-    },
-    {
-      "league": "israel-leumit-league",
-      "name": "Israel Leumit League",
-      "country": "International",
-      "seasons": [
-        "2026-2027",
-        "2025-2026"
-      ],
-      "priorityTier": "standard"
-    },
-    {
-      "league": "bulgarian-vtora-liga",
-      "name": "Bulgarian Vtora Liga",
-      "country": "International",
-      "seasons": [
-        "2026-2027",
-        "2025-2026"
-      ],
-      "priorityTier": "standard"
-    },
-    {
-      "league": "malawi-premier-league",
-      "name": "Malawi Premier League",
-      "country": "International",
-      "seasons": [
-        "2026-2027",
-        "2025-2026"
-      ],
-      "priorityTier": "top"
-    },
-    {
-      "league": "tanzanian-premier-league",
-      "name": "Tanzanian Premier League",
-      "country": "International",
-      "seasons": [
-        "2026-2027",
-        "2025-2026"
-      ],
-      "priorityTier": "top"
-    },
-    {
-      "league": "croatian-first-football-league",
-      "name": "Croatian First Football League",
-      "country": "International",
-      "seasons": [
-        "2026-2027",
-        "2025-2026"
-      ],
-      "priorityTier": "standard"
-    },
-    {
-      "league": "italian-campionato-primavera-1",
-      "name": "Italian Campionato Primavera 1",
-      "country": "International",
-      "seasons": [
-        "2026-2027",
-        "2025-2026"
-      ],
-      "priorityTier": "standard"
-    },
-    {
-      "league": "slovenia-cup",
-      "name": "Slovenia Cup",
-      "country": "International",
-      "seasons": [
-        "2026-2027",
-        "2025-2026"
-      ],
-      "priorityTier": "standard"
-    },
-    {
-      "league": "motsepe-foundation-championship",
-      "name": "Motsepe Foundation Championship",
-      "country": "International",
-      "seasons": [
-        "2026-2027",
-        "2025-2026"
-      ],
-      "priorityTier": "standard"
-    },
-    {
-      "league": "tunisian-professional-league-1",
-      "name": "Tunisian Professional League 1",
-      "country": "International",
-      "seasons": [
-        "2026-2027",
-        "2025-2026"
-      ],
-      "priorityTier": "standard"
-    },
-    {
-      "league": "georgia-erovnuli-liga",
-      "name": "Georgia Erovnuli Liga",
-      "country": "International",
-      "seasons": [
-        "2026-2027",
-        "2025-2026"
-      ],
-      "priorityTier": "standard"
-    },
-    {
-      "league": "rwandan-national-league",
-      "name": "Rwandan National League",
-      "country": "International",
-      "seasons": [
-        "2026-2027",
-        "2025-2026"
-      ],
-      "priorityTier": "standard"
-    },
-    {
-      "league": "algerian-ligue-professionnelle-1",
-      "name": "Algerian Ligue Professionnelle 1",
-      "country": "International",
-      "seasons": [
-        "2026-2027",
-        "2025-2026"
-      ],
-      "priorityTier": "standard"
-    },
-    {
-      "league": "belarusian-premier-league",
-      "name": "Belarusian Premier League",
-      "country": "International",
-      "seasons": [
-        "2026-2027",
-        "2025-2026"
-      ],
-      "priorityTier": "top"
-    },
-    {
-      "league": "brazilian-serie-b",
-      "name": "Brazilian Serie B",
-      "country": "International",
-      "seasons": [
-        "2026-2027",
-        "2025-2026"
-      ],
-      "priorityTier": "standard"
-    },
-    {
-      "league": "united-states-women-s-national-soccer-league",
-      "name": "United States Women's National Soccer League",
-      "country": "International",
-      "seasons": [
-        "2026-2027",
-        "2025-2026"
-      ],
-      "priorityTier": "standard"
-    },
-    {
-      "league": "honduras-primera-division",
-      "name": "Honduras Primera Division",
-      "country": "International",
-      "seasons": [
-        "2026-2027",
-        "2025-2026"
-      ],
-      "priorityTier": "standard"
-    },
-    {
-      "league": "australia-w-league",
-      "name": "Australia W-League",
-      "country": "International",
-      "seasons": [
-        "2026-2027",
-        "2025-2026"
-      ],
-      "priorityTier": "standard"
-    },
-    {
-      "league": "japanese-football-league",
-      "name": "Japanese Football League",
-      "country": "International",
-      "seasons": [
-        "2026-2027",
-        "2025-2026"
-      ],
-      "priorityTier": "standard"
-    },
-    {
-      "league": "korean-k-league-1",
-      "name": "Korean K League 1",
-      "country": "International",
-      "seasons": [
-        "2026-2027",
-        "2025-2026"
-      ],
-      "priorityTier": "standard"
-    },
-    {
-      "league": "korean-k-league-2",
-      "name": "Korean K League 2",
-      "country": "International",
-      "seasons": [
-        "2026-2027",
-        "2025-2026"
-      ],
-      "priorityTier": "standard"
-    },
-    {
-      "league": "russian-first-league",
-      "name": "Russian First League",
-      "country": "International",
-      "seasons": [
-        "2026-2027",
-        "2025-2026"
-      ],
-      "priorityTier": "standard"
-    },
-    {
-      "league": "russian-women-s-premier-league",
-      "name": "Russian Women's Premier League",
-      "country": "International",
-      "seasons": [
-        "2026-2027",
-        "2025-2026"
-      ],
-      "priorityTier": "top"
-    },
-    {
-      "league": "chinese-football-league-1",
-      "name": "Chinese Football League 1",
-      "country": "International",
-      "seasons": [
-        "2026-2027",
-        "2025-2026"
-      ],
-      "priorityTier": "standard"
-    },
-    {
-      "league": "hunan-football-league",
-      "name": "Hunan Football League",
-      "country": "International",
-      "seasons": [
-        "2026-2027",
-        "2025-2026"
-      ],
-      "priorityTier": "standard"
-    },
-    {
-      "league": "chinese-taiwan-mulan-football-league",
-      "name": "Chinese Taiwan Mulan Football League",
-      "country": "International",
-      "seasons": [
-        "2026-2027",
-        "2025-2026"
-      ],
-      "priorityTier": "standard"
-    },
-    {
-      "league": "ganzhou-city-football-super-league",
-      "name": "Ganzhou City Football Super League",
-      "country": "International",
-      "seasons": [
-        "2026-2027",
-        "2025-2026"
-      ],
-      "priorityTier": "standard"
-    },
-    {
-      "league": "chinese-football-super-league",
-      "name": "Chinese Football Super League",
-      "country": "International",
-      "seasons": [
-        "2026-2027",
-        "2025-2026"
-      ],
-      "priorityTier": "standard"
-    },
-    {
-      "league": "czech-u19-league",
-      "name": "Czech U19 League",
-      "country": "International",
-      "seasons": [
-        "2026-2027",
-        "2025-2026"
-      ],
-      "priorityTier": "standard"
-    },
-    {
-      "league": "chinese-hong-kong-senior-challenge-shield",
-      "name": "Chinese Hong Kong Senior Challenge Shield",
-      "country": "International",
-      "seasons": [
-        "2026-2027",
-        "2025-2026"
-      ],
-      "priorityTier": "standard"
-    },
-    {
-      "league": "cfa-women-s-super-league",
-      "name": "CFA Women's Super League",
-      "country": "International",
-      "seasons": [
-        "2026-2027",
-        "2025-2026"
-      ],
-      "priorityTier": "standard"
-    },
-    {
-      "league": "poland-mloda-ekstraklasa",
-      "name": "Poland Mloda Ekstraklasa",
-      "country": "International",
-      "seasons": [
-        "2026-2027",
-        "2025-2026"
-      ],
-      "priorityTier": "standard"
-    },
-    {
-      "league": "ger-jbh",
-      "name": "GER JBH",
-      "country": "International",
-      "seasons": [
-        "2026-2027",
-        "2025-2026"
-      ],
-      "priorityTier": "standard"
-    },
-    {
-      "league": "czech-cambrinus-women-s-liga",
-      "name": "Czech Cambrinus Women's Liga",
-      "country": "International",
-      "seasons": [
-        "2026-2027",
-        "2025-2026"
-      ],
-      "priorityTier": "standard"
-    },
-    {
-      "league": "myanmar-professional-league",
-      "name": "Myanmar Professional League",
-      "country": "International",
-      "seasons": [
-        "2026-2027",
-        "2025-2026"
-      ],
-      "priorityTier": "standard"
-    },
-    {
-      "league": "hungary-u19-a-league",
-      "name": "Hungary U19 A League",
-      "country": "International",
-      "seasons": [
-        "2026-2027",
-        "2025-2026"
-      ],
-      "priorityTier": "standard"
-    },
-    {
-      "league": "hungary-nemzeti-bajnoksug-iii",
-      "name": "Hungary Nemzeti Bajnoksug III",
-      "country": "International",
-      "seasons": [
-        "2026-2027",
-        "2025-2026"
-      ],
-      "priorityTier": "standard"
-    },
-    {
-      "league": "esiliiga-b",
-      "name": "Esiliiga B",
-      "country": "International",
-      "seasons": [
-        "2026-2027",
-        "2025-2026"
-      ],
-      "priorityTier": "standard"
-    },
-    {
-      "league": "estonian-women-s-meistri-liiga",
-      "name": "Estonian Women's Meistri Liiga",
-      "country": "International",
-      "seasons": [
-        "2026-2027",
-        "2025-2026"
-      ],
-      "priorityTier": "standard"
-    },
-    {
-      "league": "russian-premier-league",
-      "name": "Russian Premier League",
-      "country": "International",
-      "seasons": [
-        "2026-2027",
-        "2025-2026"
-      ],
-      "priorityTier": "top"
-    },
-    {
-      "league": "latvian-higher-league",
-      "name": "Latvian Higher League",
-      "country": "International",
-      "seasons": [
-        "2026-2027",
-        "2025-2026"
-      ],
-      "priorityTier": "standard"
-    },
-    {
-      "league": "turkish-second-league",
-      "name": "Turkish Second League",
-      "country": "International",
-      "seasons": [
-        "2026-2027",
-        "2025-2026"
-      ],
-      "priorityTier": "standard"
-    }
-  ],
   "fixtures": [
     {
       "id": "mkt-ss-yadanarbon-fc-u20-vs-dagon-star-united-u20",
@@ -2894,8 +907,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "kickoff": "Tue, 20 Oct, 14:00 EAT",
       "kickoffIso": "2026-10-20T11:00:00+00:00",
       "status": "in",
-      "displayClock": "1st half",
-      "homeScore": 0,
+      "displayClock": "2nd half",
+      "homeScore": 2,
       "awayScore": 0,
       "homePct": 37,
       "drawPct": 23,
@@ -2906,7 +919,7 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 61,
       "over25Pct": 51,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T12:17:29.457Z"
     },
     {
       "id": "mkt-ss-slavia-praha-u19-vs-fenerbahce-u19",
@@ -2921,9 +934,9 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "kickoff": "Tue, 20 Oct, 14:00 EAT",
       "kickoffIso": "2026-10-20T11:00:00+00:00",
       "status": "in",
-      "displayClock": "1st half",
+      "displayClock": "2nd half",
       "homeScore": 1,
-      "awayScore": 0,
+      "awayScore": 2,
       "homePct": 38,
       "drawPct": 23,
       "awayPct": 39,
@@ -2933,7 +946,7 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 62,
       "over25Pct": 52,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T12:17:29.457Z"
     },
     {
       "id": "mkt-ss-borussia-dortmund-u19-vs-sabah-baku-u19",
@@ -2948,7 +961,7 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "kickoff": "Tue, 20 Oct, 14:00 EAT",
       "kickoffIso": "2026-10-20T11:00:00+00:00",
       "status": "in",
-      "displayClock": "1st half",
+      "displayClock": "2nd half",
       "homeScore": 0,
       "awayScore": 0,
       "homePct": 51,
@@ -2960,7 +973,7 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 63,
       "over25Pct": 55,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T12:17:29.457Z"
     },
     {
       "id": "mkt-ss-hapoel-nir-ramat-hasharon-u19-vs-beitar-jerusalem-oren-u19",
@@ -3540,10 +1553,10 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "country": "Europe",
       "kickoff": "Tue, 20 Oct, 15:00 EAT",
       "kickoffIso": "2026-10-20T12:00:00+00:00",
-      "status": "pre",
-      "displayClock": "",
-      "homeScore": null,
-      "awayScore": null,
+      "status": "in",
+      "displayClock": "1st half",
+      "homeScore": 0,
+      "awayScore": 0,
       "homePct": 38,
       "drawPct": 26,
       "awayPct": 36,
@@ -3553,7 +1566,7 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 58,
       "over25Pct": 62,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T12:17:29.457Z"
     },
     {
       "id": "mkt-ss-napoli-u19-vs-bodo-glimt-u19",
@@ -3567,10 +1580,10 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "country": "Europe",
       "kickoff": "Tue, 20 Oct, 15:00 EAT",
       "kickoffIso": "2026-10-20T12:00:00+00:00",
-      "status": "pre",
-      "displayClock": "",
-      "homeScore": null,
-      "awayScore": null,
+      "status": "in",
+      "displayClock": "1st half",
+      "homeScore": 0,
+      "awayScore": 0,
       "homePct": 44,
       "drawPct": 17,
       "awayPct": 39,
@@ -3580,7 +1593,7 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 60,
       "over25Pct": 56,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T12:17:29.457Z"
     },
     {
       "id": "mkt-ss-barcelona-u19-vs-paris-saint-germain-u19",
@@ -3594,10 +1607,10 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "country": "Europe",
       "kickoff": "Tue, 20 Oct, 15:00 EAT",
       "kickoffIso": "2026-10-20T12:00:00+00:00",
-      "status": "pre",
-      "displayClock": "",
-      "homeScore": null,
-      "awayScore": null,
+      "status": "in",
+      "displayClock": "1st half",
+      "homeScore": 0,
+      "awayScore": 0,
       "homePct": 54,
       "drawPct": 17,
       "awayPct": 29,
@@ -3607,7 +1620,7 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 54,
       "over25Pct": 48,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T12:17:29.457Z"
     },
     {
       "id": "mkt-ss-sheger-ketema-vs-ethio-electric-fc",
@@ -3931,7 +1944,7 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 57,
       "over25Pct": 49,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T12:17:29.457Z"
     },
     {
       "id": "mkt-ss-blessing-fc-vs-tanganyika",
@@ -3985,7 +1998,7 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 59,
       "over25Pct": 65,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T12:17:29.457Z"
     },
     {
       "id": "mkt-ss-as-dauphins-noirs-vs-ac-rangers",
@@ -4793,7 +2806,7 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 53,
       "over25Pct": 59,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T12:17:29.457Z"
     },
     {
       "id": "mkt-ss-manchester-city-u19-vs-aek-athens-u19",
@@ -4820,7 +2833,7 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 67,
       "over25Pct": 55,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T12:17:29.457Z"
     },
     {
       "id": "mkt-ss-hapoel-haifa-u19-vs-hapoel-kiryat-shmona-u19",
@@ -22057,6 +20070,2248 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "over25Pct": 65,
       "bookmaker": "Market Consensus",
       "syncedAt": "2026-10-20T11:12:44.817Z"
+    },
+    {
+      "id": "mkt-ss-fenerbahce-vs-slavia-praha",
+      "providerId": "fenerbahce-vs-slavia-praha",
+      "home": "Fenerbahce",
+      "away": "SK Slavia Praha",
+      "homeLogo": "https://img.thesports.com/football/team/dff00f1fd4a7dd2feac000b462416867.png",
+      "awayLogo": "https://img.thesports.com/football/team/2080ede2c5d09638a7188913c81075ef.png",
+      "competition": "UEFA Champions League",
+      "leagueCode": "uefa-champions-league",
+      "country": "Europe",
+      "kickoff": "Tue, 20 Oct, 19:45 EAT",
+      "kickoffIso": "2026-10-20T16:45:00+00:00",
+      "status": "pre",
+      "displayClock": "",
+      "homeScore": null,
+      "awayScore": null,
+      "homePct": 53,
+      "drawPct": 20,
+      "awayPct": 27,
+      "homeOdds": 2.02,
+      "drawOdds": 5.35,
+      "awayOdds": 3.96,
+      "bttsYesPct": 65,
+      "over25Pct": 57,
+      "bookmaker": "Market Consensus",
+      "syncedAt": "2026-10-20T12:17:29.457Z"
+    },
+    {
+      "id": "mkt-ss-sabah-baku-vs-borussia-dortmund",
+      "providerId": "sabah-baku-vs-borussia-dortmund",
+      "home": "Sabah Baku",
+      "away": "Borussia Dortmund",
+      "homeLogo": "https://img.thesports.com/football/team/44cc5a54d7859b9d062a6f56a39819f8.png",
+      "awayLogo": "https://img.thesports.com/football/team/bbfacbdbe67705172c6414d7e9c21b58.png",
+      "competition": "UEFA Champions League",
+      "leagueCode": "uefa-champions-league",
+      "country": "Europe",
+      "kickoff": "Tue, 20 Oct, 19:45 EAT",
+      "kickoffIso": "2026-10-20T16:45:00+00:00",
+      "status": "pre",
+      "displayClock": "",
+      "homeScore": null,
+      "awayScore": null,
+      "homePct": 55,
+      "drawPct": 17,
+      "awayPct": 28,
+      "homeOdds": 1.95,
+      "drawOdds": 6.29,
+      "awayOdds": 3.82,
+      "bttsYesPct": 55,
+      "over25Pct": 49,
+      "bookmaker": "Market Consensus",
+      "syncedAt": "2026-10-20T12:17:29.457Z"
+    },
+    {
+      "id": "mkt-ss-slovan-bratislava-vs-as-roma",
+      "providerId": "slovan-bratislava-vs-as-roma",
+      "home": "AS Roma",
+      "away": "Slovan Bratislava",
+      "homeLogo": "https://img.thesports.com/football/team/7a192686d30c1ad031d2fb605eaf2f2a.png",
+      "awayLogo": "https://img.thesports.com/football/team/8e220a74791be9e0eb13507f0ce444db.png",
+      "competition": "UEFA Champions League",
+      "leagueCode": "uefa-champions-league",
+      "country": "Europe",
+      "kickoff": "Tue, 20 Oct, 22:00 EAT",
+      "kickoffIso": "2026-10-20T19:00:00+00:00",
+      "status": "pre",
+      "displayClock": "",
+      "homeScore": null,
+      "awayScore": null,
+      "homePct": 42,
+      "drawPct": 23,
+      "awayPct": 35,
+      "homeOdds": 2.55,
+      "drawOdds": 4.65,
+      "awayOdds": 3.06,
+      "bttsYesPct": 66,
+      "over25Pct": 56,
+      "bookmaker": "Market Consensus",
+      "syncedAt": "2026-10-20T12:17:29.457Z"
+    },
+    {
+      "id": "mkt-ss-fc-porto-vs-psv-eindhoven",
+      "providerId": "fc-porto-vs-psv-eindhoven",
+      "home": "FC Porto",
+      "away": "PSV Eindhoven",
+      "homeLogo": "https://img.thesports.com/football/team/83aa826e3c45d5047a8c917fb0b41a5e.png",
+      "awayLogo": "https://img.thesports.com/football/team/cad5af4d1ff0e6f3119af3d273d95d31.png",
+      "competition": "UEFA Champions League",
+      "leagueCode": "uefa-champions-league",
+      "country": "Europe",
+      "kickoff": "Tue, 20 Oct, 22:00 EAT",
+      "kickoffIso": "2026-10-20T19:00:00+00:00",
+      "status": "pre",
+      "displayClock": "",
+      "homeScore": null,
+      "awayScore": null,
+      "homePct": 41,
+      "drawPct": 20,
+      "awayPct": 39,
+      "homeOdds": 2.61,
+      "drawOdds": 5.35,
+      "awayOdds": 2.74,
+      "bttsYesPct": 53,
+      "over25Pct": 63,
+      "bookmaker": "Market Consensus",
+      "syncedAt": "2026-10-20T12:17:29.457Z"
+    },
+    {
+      "id": "mkt-ss-manchester-city-vs-aek-athens",
+      "providerId": "manchester-city-vs-aek-athens",
+      "home": "Manchester City",
+      "away": "AEK Athens",
+      "homeLogo": "https://img.thesports.com/football/team/c4a6528a2ee147b99c9885ef24385a4e.png",
+      "awayLogo": "https://img.thesports.com/football/team/12dcc69bef67aa2a93107e940ee89144.png",
+      "competition": "UEFA Champions League",
+      "leagueCode": "uefa-champions-league",
+      "country": "Europe",
+      "kickoff": "Tue, 20 Oct, 22:00 EAT",
+      "kickoffIso": "2026-10-20T19:00:00+00:00",
+      "status": "pre",
+      "displayClock": "",
+      "homeScore": null,
+      "awayScore": null,
+      "homePct": 63,
+      "drawPct": 5,
+      "awayPct": 42,
+      "homeOdds": 1.7,
+      "drawOdds": 8.92,
+      "awayOdds": 2.55,
+      "bttsYesPct": 59,
+      "over25Pct": 49,
+      "bookmaker": "Market Consensus",
+      "syncedAt": "2026-10-20T12:17:29.457Z"
+    },
+    {
+      "id": "mkt-ss-napoli-vs-fk-bodoglimt",
+      "providerId": "napoli-vs-fk-bodoglimt",
+      "home": "Napoli",
+      "away": "FK Bodo/Glimt",
+      "homeLogo": "https://img.thesports.com/football/team/37ed13d27edccd30e053167962c02b3a.png",
+      "awayLogo": "https://img.thesports.com/football/team/98854ab97eadf3d2c7c6d657ad99df96.png",
+      "competition": "UEFA Champions League",
+      "leagueCode": "uefa-champions-league",
+      "country": "Europe",
+      "kickoff": "Tue, 20 Oct, 22:00 EAT",
+      "kickoffIso": "2026-10-20T19:00:00+00:00",
+      "status": "pre",
+      "displayClock": "",
+      "homeScore": null,
+      "awayScore": null,
+      "homePct": 47,
+      "drawPct": 26,
+      "awayPct": 27,
+      "homeOdds": 2.28,
+      "drawOdds": 4.12,
+      "awayOdds": 3.96,
+      "bttsYesPct": 67,
+      "over25Pct": 53,
+      "bookmaker": "Market Consensus",
+      "syncedAt": "2026-10-20T12:17:29.457Z"
+    },
+    {
+      "id": "mkt-ss-liverpool-vs-villarreal-cf",
+      "providerId": "liverpool-vs-villarreal-cf",
+      "home": "Liverpool",
+      "away": "Villarreal CF",
+      "homeLogo": "https://img.thesports.com/football/team/1cb3d08adac0e2dc1c4f10429d055bfe.png",
+      "awayLogo": "https://img.thesports.com/football/team/aee62af96a956756cc29fe4831286357.png",
+      "competition": "UEFA Champions League",
+      "leagueCode": "uefa-champions-league",
+      "country": "Europe",
+      "kickoff": "Tue, 20 Oct, 22:00 EAT",
+      "kickoffIso": "2026-10-20T19:00:00+00:00",
+      "status": "pre",
+      "displayClock": "",
+      "homeScore": null,
+      "awayScore": null,
+      "homePct": 60,
+      "drawPct": 5,
+      "awayPct": 45,
+      "homeOdds": 1.78,
+      "drawOdds": 8.92,
+      "awayOdds": 2.38,
+      "bttsYesPct": 56,
+      "over25Pct": 64,
+      "bookmaker": "Market Consensus",
+      "syncedAt": "2026-10-20T12:17:29.457Z"
+    },
+    {
+      "id": "mkt-ss-fc-barcelona-vs-paris-saint-germain",
+      "providerId": "fc-barcelona-vs-paris-saint-germain",
+      "home": "Paris Saint Germain",
+      "away": "FC Barcelona",
+      "homeLogo": "https://img.thesports.com/football/team/3b720f181ce9993f9422d276acf7b292.png",
+      "awayLogo": "https://img.thesports.com/football/team/f378eb1ea04e53999b89051aa3244de6.png",
+      "competition": "UEFA Champions League",
+      "leagueCode": "uefa-champions-league",
+      "country": "Europe",
+      "kickoff": "Tue, 20 Oct, 22:00 EAT",
+      "kickoffIso": "2026-10-20T19:00:00+00:00",
+      "status": "pre",
+      "displayClock": "",
+      "homeScore": null,
+      "awayScore": null,
+      "homePct": 41,
+      "drawPct": 17,
+      "awayPct": 42,
+      "homeOdds": 2.61,
+      "drawOdds": 6.29,
+      "awayOdds": 2.55,
+      "bttsYesPct": 57,
+      "over25Pct": 53,
+      "bookmaker": "Market Consensus",
+      "syncedAt": "2026-10-20T12:17:29.457Z"
+    },
+    {
+      "id": "mkt-ss-atletico-madrid-vs-vfb-stuttgart",
+      "providerId": "atletico-madrid-vs-vfb-stuttgart",
+      "home": "VfB Stuttgart",
+      "away": "Atletico Madrid",
+      "homeLogo": "https://img.thesports.com/football/team/bfdd500484330d63a723cbc396df762c.png",
+      "awayLogo": "https://img.thesports.com/football/team/390977b0421bce136c562057ea171ecf.png",
+      "competition": "UEFA Champions League",
+      "leagueCode": "uefa-champions-league",
+      "country": "Europe",
+      "kickoff": "Tue, 20 Oct, 22:00 EAT",
+      "kickoffIso": "2026-10-20T19:00:00+00:00",
+      "status": "pre",
+      "displayClock": "",
+      "homeScore": null,
+      "awayScore": null,
+      "homePct": 38,
+      "drawPct": 17,
+      "awayPct": 45,
+      "homeOdds": 2.82,
+      "drawOdds": 6.29,
+      "awayOdds": 2.38,
+      "bttsYesPct": 54,
+      "over25Pct": 50,
+      "bookmaker": "Market Consensus",
+      "syncedAt": "2026-10-20T12:17:29.457Z"
     }
-  ]
+  ],
+  "leagues": [
+    {
+      "league": "myanmar-u20-league",
+      "name": "Myanmar U20 League",
+      "country": "International",
+      "seasons": [
+        "2026-2027",
+        "2025-2026"
+      ],
+      "priorityTier": "standard"
+    },
+    {
+      "league": "indonesian-super-league",
+      "name": "Indonesian Super League",
+      "country": "International",
+      "seasons": [
+        "2026-2027",
+        "2025-2026"
+      ],
+      "priorityTier": "standard"
+    },
+    {
+      "league": "malaysia-a1-semi-pro-league",
+      "name": "Malaysia A1 Semi-Pro League",
+      "country": "International",
+      "seasons": [
+        "2026-2027",
+        "2025-2026"
+      ],
+      "priorityTier": "standard"
+    },
+    {
+      "league": "bangladesh-federation-cup",
+      "name": "Bangladesh Federation Cup",
+      "country": "International",
+      "seasons": [
+        "2026-2027",
+        "2025-2026"
+      ],
+      "priorityTier": "standard"
+    },
+    {
+      "league": "mml-w",
+      "name": "MML W",
+      "country": "International",
+      "seasons": [
+        "2026-2027",
+        "2025-2026"
+      ],
+      "priorityTier": "standard"
+    },
+    {
+      "league": "uzbekistan-pro-league",
+      "name": "Uzbekistan Pro League",
+      "country": "International",
+      "seasons": [
+        "2026-2027",
+        "2025-2026"
+      ],
+      "priorityTier": "standard"
+    },
+    {
+      "league": "danish-u19-youth-league",
+      "name": "Danish U19 Youth League",
+      "country": "International",
+      "seasons": [
+        "2026-2027",
+        "2025-2026"
+      ],
+      "priorityTier": "standard"
+    },
+    {
+      "league": "costa-rica-primera-division",
+      "name": "Costa Rica Primera Division",
+      "country": "International",
+      "seasons": [
+        "2026-2027",
+        "2025-2026"
+      ],
+      "priorityTier": "standard"
+    },
+    {
+      "league": "mexico-liga-mx-femenil",
+      "name": "Mexico Liga MX Femenil",
+      "country": "International",
+      "seasons": [
+        "2026-2027",
+        "2025-2026"
+      ],
+      "priorityTier": "standard"
+    },
+    {
+      "league": "conmebol-copa-libertadores-femenino",
+      "name": "CONMEBOL Copa Libertadores Femenino",
+      "country": "South America",
+      "seasons": [
+        "2026-2027",
+        "2025-2026"
+      ],
+      "priorityTier": "standard"
+    },
+    {
+      "league": "argentine-division-1",
+      "name": "Argentine Division 1",
+      "country": "International",
+      "seasons": [
+        "2026-2027",
+        "2025-2026"
+      ],
+      "priorityTier": "standard"
+    },
+    {
+      "league": "guatemala-liga-nacional",
+      "name": "Guatemala Liga Nacional",
+      "country": "International",
+      "seasons": [
+        "2026-2027",
+        "2025-2026"
+      ],
+      "priorityTier": "standard"
+    },
+    {
+      "league": "panamanian-liga-de-futbol",
+      "name": "Panamanian Liga de Futbol",
+      "country": "International",
+      "seasons": [
+        "2026-2027",
+        "2025-2026"
+      ],
+      "priorityTier": "standard"
+    },
+    {
+      "league": "jamaica-premier-league",
+      "name": "Jamaica Premier League",
+      "country": "International",
+      "seasons": [
+        "2026-2027",
+        "2025-2026"
+      ],
+      "priorityTier": "top"
+    },
+    {
+      "league": "categoria-primera-a",
+      "name": "Categoría Primera A",
+      "country": "International",
+      "seasons": [
+        "2026-2027",
+        "2025-2026"
+      ],
+      "priorityTier": "standard"
+    },
+    {
+      "league": "costa-rica-2-liga",
+      "name": "Costa Rica 2.Liga",
+      "country": "International",
+      "seasons": [
+        "2026-2027",
+        "2025-2026"
+      ],
+      "priorityTier": "standard"
+    },
+    {
+      "league": "mex-liga-premier",
+      "name": "MEX Liga Premier",
+      "country": "International",
+      "seasons": [
+        "2026-2027",
+        "2025-2026"
+      ],
+      "priorityTier": "top"
+    },
+    {
+      "league": "thai-fa-cup",
+      "name": "Thai FA Cup",
+      "country": "International",
+      "seasons": [
+        "2026-2027",
+        "2025-2026"
+      ],
+      "priorityTier": "standard"
+    },
+    {
+      "league": "ukrainian-youth-team-championship",
+      "name": "Ukrainian Youth Team Championship",
+      "country": "International",
+      "seasons": [
+        "2026-2027",
+        "2025-2026"
+      ],
+      "priorityTier": "standard"
+    },
+    {
+      "league": "international-friendly",
+      "name": "International Friendly",
+      "country": "International",
+      "seasons": [
+        "2026-2027",
+        "2025-2026"
+      ],
+      "priorityTier": "standard"
+    },
+    {
+      "league": "paraguayan-reserve-league",
+      "name": "Paraguayan Reserve League",
+      "country": "International",
+      "seasons": [
+        "2026-2027",
+        "2025-2026"
+      ],
+      "priorityTier": "standard"
+    },
+    {
+      "league": "afc-challenge-league",
+      "name": "AFC Challenge League",
+      "country": "Asia",
+      "seasons": [
+        "2026-2027",
+        "2025-2026"
+      ],
+      "priorityTier": "standard"
+    },
+    {
+      "league": "uefa-youth-league",
+      "name": "UEFA Youth League",
+      "country": "Europe",
+      "seasons": [
+        "2026-2027",
+        "2025-2026"
+      ],
+      "priorityTier": "top"
+    },
+    {
+      "league": "israel-youth-league",
+      "name": "Israel Youth League",
+      "country": "International",
+      "seasons": [
+        "2026-2027",
+        "2025-2026"
+      ],
+      "priorityTier": "standard"
+    },
+    {
+      "league": "dr-congo-vodacom-ligue-1",
+      "name": "DR Congo Vodacom Ligue 1",
+      "country": "International",
+      "seasons": [
+        "2026-2027",
+        "2025-2026"
+      ],
+      "priorityTier": "standard"
+    },
+    {
+      "league": "armenian-first-league",
+      "name": "Armenian First League",
+      "country": "International",
+      "seasons": [
+        "2026-2027",
+        "2025-2026"
+      ],
+      "priorityTier": "standard"
+    },
+    {
+      "league": "iran-azadegan-league",
+      "name": "Iran Azadegan League",
+      "country": "International",
+      "seasons": [
+        "2026-2027",
+        "2025-2026"
+      ],
+      "priorityTier": "standard"
+    },
+    {
+      "league": "singapore-reserves-league",
+      "name": "Singapore Reserves League",
+      "country": "International",
+      "seasons": [
+        "2026-2027",
+        "2025-2026"
+      ],
+      "priorityTier": "standard"
+    },
+    {
+      "league": "tajikistan-higher-league",
+      "name": "Tajikistan Higher League",
+      "country": "International",
+      "seasons": [
+        "2026-2027",
+        "2025-2026"
+      ],
+      "priorityTier": "standard"
+    },
+    {
+      "league": "sweden-folksam-u21-allsvenskan-sodra",
+      "name": "Sweden Folksam U21 Allsvenskan Sodra",
+      "country": "International",
+      "seasons": [
+        "2026-2027",
+        "2025-2026"
+      ],
+      "priorityTier": "standard"
+    },
+    {
+      "league": "english-u21-professional-development-league-2",
+      "name": "English U21 Professional Development League 2",
+      "country": "International",
+      "seasons": [
+        "2026-2027",
+        "2025-2026"
+      ],
+      "priorityTier": "standard"
+    },
+    {
+      "league": "kenyan-premier-league",
+      "name": "Kenyan Premier League",
+      "country": "International",
+      "seasons": [
+        "2026-2027",
+        "2025-2026"
+      ],
+      "priorityTier": "top"
+    },
+    {
+      "league": "ethiopia-premier-league",
+      "name": "Ethiopia Premier League",
+      "country": "International",
+      "seasons": [
+        "2026-2027",
+        "2025-2026"
+      ],
+      "priorityTier": "top"
+    },
+    {
+      "league": "iraq-premier-division",
+      "name": "Iraq Premier Division",
+      "country": "International",
+      "seasons": [
+        "2026-2027",
+        "2025-2026"
+      ],
+      "priorityTier": "top"
+    },
+    {
+      "league": "argentine-youth-league",
+      "name": "Argentine Youth League",
+      "country": "International",
+      "seasons": [
+        "2026-2027",
+        "2025-2026"
+      ],
+      "priorityTier": "standard"
+    },
+    {
+      "league": "english-reserve-league",
+      "name": "English Reserve League",
+      "country": "International",
+      "seasons": [
+        "2026-2027",
+        "2025-2026"
+      ],
+      "priorityTier": "standard"
+    },
+    {
+      "league": "uganda-premier-league",
+      "name": "Uganda Premier League",
+      "country": "International",
+      "seasons": [
+        "2026-2027",
+        "2025-2026"
+      ],
+      "priorityTier": "top"
+    },
+    {
+      "league": "caf-champions-league",
+      "name": "CAF Champions League",
+      "country": "Africa",
+      "seasons": [
+        "2026-2027",
+        "2025-2026"
+      ],
+      "priorityTier": "standard"
+    },
+    {
+      "league": "libyan-premier-league",
+      "name": "Libyan Premier League",
+      "country": "International",
+      "seasons": [
+        "2026-2027",
+        "2025-2026"
+      ],
+      "priorityTier": "top"
+    },
+    {
+      "league": "turkmenistanyn-yokary-ligasy",
+      "name": "Türkmenistanyn Yokary Ligasy",
+      "country": "International",
+      "seasons": [
+        "2026-2027",
+        "2025-2026"
+      ],
+      "priorityTier": "standard"
+    },
+    {
+      "league": "jor-c-u20",
+      "name": "JOR C U20",
+      "country": "International",
+      "seasons": [
+        "2026-2027",
+        "2025-2026"
+      ],
+      "priorityTier": "standard"
+    },
+    {
+      "league": "italian-serie-c",
+      "name": "Italian Serie C",
+      "country": "International",
+      "seasons": [
+        "2026-2027",
+        "2025-2026"
+      ],
+      "priorityTier": "standard"
+    },
+    {
+      "league": "uzbekistan-cup",
+      "name": "Uzbekistan Cup",
+      "country": "International",
+      "seasons": [
+        "2026-2027",
+        "2025-2026"
+      ],
+      "priorityTier": "standard"
+    },
+    {
+      "league": "liberia-national-women-s-league",
+      "name": "Liberia National Women's League",
+      "country": "International",
+      "seasons": [
+        "2026-2027",
+        "2025-2026"
+      ],
+      "priorityTier": "standard"
+    },
+    {
+      "league": "german-regionalliga",
+      "name": "German Regionalliga",
+      "country": "International",
+      "seasons": [
+        "2026-2027",
+        "2025-2026"
+      ],
+      "priorityTier": "standard"
+    },
+    {
+      "league": "portuguese-u23-league",
+      "name": "Portuguese U23 League",
+      "country": "International",
+      "seasons": [
+        "2026-2027",
+        "2025-2026"
+      ],
+      "priorityTier": "standard"
+    },
+    {
+      "league": "egyptian-premier-league",
+      "name": "Egyptian Premier League",
+      "country": "International",
+      "seasons": [
+        "2026-2027",
+        "2025-2026"
+      ],
+      "priorityTier": "top"
+    },
+    {
+      "league": "uruguay-reserve-league",
+      "name": "Uruguay Reserve League",
+      "country": "International",
+      "seasons": [
+        "2026-2027",
+        "2025-2026"
+      ],
+      "priorityTier": "standard"
+    },
+    {
+      "league": "romanian-liga-ii",
+      "name": "Romanian Liga II",
+      "country": "International",
+      "seasons": [
+        "2026-2027",
+        "2025-2026"
+      ],
+      "priorityTier": "standard"
+    },
+    {
+      "league": "saudi-arabia-division-1",
+      "name": "Saudi Arabia Division 1",
+      "country": "International",
+      "seasons": [
+        "2026-2027",
+        "2025-2026"
+      ],
+      "priorityTier": "standard"
+    },
+    {
+      "league": "gff-u-17-gulf-cup",
+      "name": "GFF U-17 Gulf Cup",
+      "country": "International",
+      "seasons": [
+        "2026-2027",
+        "2025-2026"
+      ],
+      "priorityTier": "standard"
+    },
+    {
+      "league": "uzbekistan-super-league",
+      "name": "Uzbekistan Super League",
+      "country": "International",
+      "seasons": [
+        "2026-2027",
+        "2025-2026"
+      ],
+      "priorityTier": "standard"
+    },
+    {
+      "league": "saudi-professional-league",
+      "name": "Saudi Professional League",
+      "country": "International",
+      "seasons": [
+        "2026-2027",
+        "2025-2026"
+      ],
+      "priorityTier": "standard"
+    },
+    {
+      "league": "fifa-u17-women-s-world-cup",
+      "name": "FIFA U17 Women's World Cup",
+      "country": "International",
+      "seasons": [
+        "2026-2027",
+        "2025-2026"
+      ],
+      "priorityTier": "standard"
+    },
+    {
+      "league": "slovak-cup",
+      "name": "Slovak Cup",
+      "country": "International",
+      "seasons": [
+        "2026-2027",
+        "2025-2026"
+      ],
+      "priorityTier": "standard"
+    },
+    {
+      "league": "fifa-futsal-world-cup-qualification-uefa",
+      "name": "FIFA Futsal World Cup qualification (UEFA)",
+      "country": "Europe",
+      "seasons": [
+        "2026-2027",
+        "2025-2026"
+      ],
+      "priorityTier": "top"
+    },
+    {
+      "league": "mex-u21",
+      "name": "MEX U21",
+      "country": "International",
+      "seasons": [
+        "2026-2027",
+        "2025-2026"
+      ],
+      "priorityTier": "standard"
+    },
+    {
+      "league": "colombian-regional-league",
+      "name": "Colombian Regional League",
+      "country": "International",
+      "seasons": [
+        "2026-2027",
+        "2025-2026"
+      ],
+      "priorityTier": "standard"
+    },
+    {
+      "league": "ivory-coast-premier-division",
+      "name": "Ivory Coast Premier Division",
+      "country": "International",
+      "seasons": [
+        "2026-2027",
+        "2025-2026"
+      ],
+      "priorityTier": "top"
+    },
+    {
+      "league": "bahrain-division-2",
+      "name": "Bahrain Division 2",
+      "country": "International",
+      "seasons": [
+        "2026-2027",
+        "2025-2026"
+      ],
+      "priorityTier": "standard"
+    },
+    {
+      "league": "croatian-cup",
+      "name": "Croatian Cup",
+      "country": "International",
+      "seasons": [
+        "2026-2027",
+        "2025-2026"
+      ],
+      "priorityTier": "standard"
+    },
+    {
+      "league": "norwegian-women-s-cup",
+      "name": "Norwegian Women's Cup",
+      "country": "International",
+      "seasons": [
+        "2026-2027",
+        "2025-2026"
+      ],
+      "priorityTier": "standard"
+    },
+    {
+      "league": "caf-u17-championship",
+      "name": "CAF U17 Championship",
+      "country": "Africa",
+      "seasons": [
+        "2026-2027",
+        "2025-2026"
+      ],
+      "priorityTier": "standard"
+    },
+    {
+      "league": "maldives-premier-league",
+      "name": "Maldives Premier League",
+      "country": "International",
+      "seasons": [
+        "2026-2027",
+        "2025-2026"
+      ],
+      "priorityTier": "top"
+    },
+    {
+      "league": "mex-u19",
+      "name": "MEX U19",
+      "country": "International",
+      "seasons": [
+        "2026-2027",
+        "2025-2026"
+      ],
+      "priorityTier": "standard"
+    },
+    {
+      "league": "mexico-liga-mx",
+      "name": "Mexico Liga MX",
+      "country": "International",
+      "seasons": [
+        "2026-2027",
+        "2025-2026"
+      ],
+      "priorityTier": "standard"
+    },
+    {
+      "league": "conmebol-copa-sudamericana",
+      "name": "CONMEBOL Copa Sudamericana",
+      "country": "South America",
+      "seasons": [
+        "2026-2027",
+        "2025-2026"
+      ],
+      "priorityTier": "standard"
+    },
+    {
+      "league": "concacaf-central-american-cup",
+      "name": "CONCACAF Central American Cup",
+      "country": "Africa",
+      "seasons": [
+        "2026-2027",
+        "2025-2026"
+      ],
+      "priorityTier": "standard"
+    },
+    {
+      "league": "costarica-women-s-primera-division",
+      "name": "CostaRica Women's Primera Division",
+      "country": "International",
+      "seasons": [
+        "2026-2027",
+        "2025-2026"
+      ],
+      "priorityTier": "standard"
+    },
+    {
+      "league": "women-empowerment-league",
+      "name": "Women Empowerment League",
+      "country": "International",
+      "seasons": [
+        "2026-2027",
+        "2025-2026"
+      ],
+      "priorityTier": "standard"
+    },
+    {
+      "league": "japanese-j2-league",
+      "name": "Japanese J2 League",
+      "country": "International",
+      "seasons": [
+        "2026-2027",
+        "2025-2026"
+      ],
+      "priorityTier": "standard"
+    },
+    {
+      "league": "japanese-j3-league",
+      "name": "Japanese J3 League",
+      "country": "International",
+      "seasons": [
+        "2026-2027",
+        "2025-2026"
+      ],
+      "priorityTier": "standard"
+    },
+    {
+      "league": "cfa-member-champions-league",
+      "name": "CFA Member Champions League",
+      "country": "International",
+      "seasons": [
+        "2026-2027",
+        "2025-2026"
+      ],
+      "priorityTier": "standard"
+    },
+    {
+      "league": "romanian-superliga-feminina",
+      "name": "Romanian SuperLiga Feminină",
+      "country": "International",
+      "seasons": [
+        "2026-2027",
+        "2025-2026"
+      ],
+      "priorityTier": "standard"
+    },
+    {
+      "league": "czech-third-league",
+      "name": "Czech Third League",
+      "country": "International",
+      "seasons": [
+        "2026-2027",
+        "2025-2026"
+      ],
+      "priorityTier": "standard"
+    },
+    {
+      "league": "japanese-j1-league",
+      "name": "Japanese J1 League",
+      "country": "International",
+      "seasons": [
+        "2026-2027",
+        "2025-2026"
+      ],
+      "priorityTier": "standard"
+    },
+    {
+      "league": "ukrainian-u19-liga",
+      "name": "Ukrainian U19 Liga",
+      "country": "International",
+      "seasons": [
+        "2026-2027",
+        "2025-2026"
+      ],
+      "priorityTier": "standard"
+    },
+    {
+      "league": "hk-u22l",
+      "name": "HK U22L",
+      "country": "International",
+      "seasons": [
+        "2026-2027",
+        "2025-2026"
+      ],
+      "priorityTier": "standard"
+    },
+    {
+      "league": "azerbaijan-first-division",
+      "name": "Azerbaijan First Division",
+      "country": "International",
+      "seasons": [
+        "2026-2027",
+        "2025-2026"
+      ],
+      "priorityTier": "standard"
+    },
+    {
+      "league": "uefa-european-u17-women-s-championship",
+      "name": "UEFA European U17 Women's Championship",
+      "country": "Europe",
+      "seasons": [
+        "2026-2027",
+        "2025-2026"
+      ],
+      "priorityTier": "top"
+    },
+    {
+      "league": "singapore-premier-league",
+      "name": "Singapore Premier League",
+      "country": "International",
+      "seasons": [
+        "2026-2027",
+        "2025-2026"
+      ],
+      "priorityTier": "top"
+    },
+    {
+      "league": "bih-pl-rs",
+      "name": "BIH PL-RS",
+      "country": "International",
+      "seasons": [
+        "2026-2027",
+        "2025-2026"
+      ],
+      "priorityTier": "standard"
+    },
+    {
+      "league": "belarusian-women-s-premier-league",
+      "name": "Belarusian Women's Premier League",
+      "country": "International",
+      "seasons": [
+        "2026-2027",
+        "2025-2026"
+      ],
+      "priorityTier": "top"
+    },
+    {
+      "league": "italian-serie-d",
+      "name": "Italian Serie D",
+      "country": "International",
+      "seasons": [
+        "2026-2027",
+        "2025-2026"
+      ],
+      "priorityTier": "standard"
+    },
+    {
+      "league": "fra-lc-w",
+      "name": "FRA LC W",
+      "country": "International",
+      "seasons": [
+        "2026-2027",
+        "2025-2026"
+      ],
+      "priorityTier": "standard"
+    },
+    {
+      "league": "svk-wd1",
+      "name": "SVK WD1",
+      "country": "International",
+      "seasons": [
+        "2026-2027",
+        "2025-2026"
+      ],
+      "priorityTier": "standard"
+    },
+    {
+      "league": "norwegian-women-s-1-divisjon",
+      "name": "Norwegian Women's 1.Divisjon",
+      "country": "International",
+      "seasons": [
+        "2026-2027",
+        "2025-2026"
+      ],
+      "priorityTier": "standard"
+    },
+    {
+      "league": "norwegian-3-divisjon",
+      "name": "Norwegian 3.Divisjon",
+      "country": "International",
+      "seasons": [
+        "2026-2027",
+        "2025-2026"
+      ],
+      "priorityTier": "standard"
+    },
+    {
+      "league": "estonian-premium-liiga",
+      "name": "Estonian Premium Liiga",
+      "country": "International",
+      "seasons": [
+        "2026-2027",
+        "2025-2026"
+      ],
+      "priorityTier": "standard"
+    },
+    {
+      "league": "spanish-tercera-division-rfef",
+      "name": "Spanish Tercera División RFEF",
+      "country": "International",
+      "seasons": [
+        "2026-2027",
+        "2025-2026"
+      ],
+      "priorityTier": "standard"
+    },
+    {
+      "league": "united-states-open-cup",
+      "name": "United States Open Cup",
+      "country": "International",
+      "seasons": [
+        "2026-2027",
+        "2025-2026"
+      ],
+      "priorityTier": "standard"
+    },
+    {
+      "league": "conmebol-copa-libertadores",
+      "name": "CONMEBOL Copa Libertadores",
+      "country": "South America",
+      "seasons": [
+        "2026-2027",
+        "2025-2026"
+      ],
+      "priorityTier": "standard"
+    },
+    {
+      "league": "colombian-copa-betplay-dimayor",
+      "name": "Colombian Copa BetPlay DIMAYOR",
+      "country": "International",
+      "seasons": [
+        "2026-2027",
+        "2025-2026"
+      ],
+      "priorityTier": "standard"
+    },
+    {
+      "league": "bolivian-copa-lfpb",
+      "name": "Bolivian Copa LFPB",
+      "country": "International",
+      "seasons": [
+        "2026-2027",
+        "2025-2026"
+      ],
+      "priorityTier": "standard"
+    },
+    {
+      "league": "el-salvador-primera-division",
+      "name": "El Salvador Primera Division",
+      "country": "International",
+      "seasons": [
+        "2026-2027",
+        "2025-2026"
+      ],
+      "priorityTier": "standard"
+    },
+    {
+      "league": "indian-bangalore-super-division",
+      "name": "Indian Bangalore Super Division",
+      "country": "International",
+      "seasons": [
+        "2026-2027",
+        "2025-2026"
+      ],
+      "priorityTier": "standard"
+    },
+    {
+      "league": "aus-champ",
+      "name": "Aus Champ",
+      "country": "International",
+      "seasons": [
+        "2026-2027",
+        "2025-2026"
+      ],
+      "priorityTier": "standard"
+    },
+    {
+      "league": "kazakhstan-division-1",
+      "name": "Kazakhstan Division 1",
+      "country": "International",
+      "seasons": [
+        "2026-2027",
+        "2025-2026"
+      ],
+      "priorityTier": "standard"
+    },
+    {
+      "league": "vietnam-national-first-class-league",
+      "name": "Vietnam National First Class League",
+      "country": "International",
+      "seasons": [
+        "2026-2027",
+        "2025-2026"
+      ],
+      "priorityTier": "standard"
+    },
+    {
+      "league": "uefa-european-u17-football-championship",
+      "name": "UEFA European U17 Football Championship",
+      "country": "Europe",
+      "seasons": [
+        "2026-2027",
+        "2025-2026"
+      ],
+      "priorityTier": "top"
+    },
+    {
+      "league": "latvian-1-liga",
+      "name": "Latvian 1.Liga",
+      "country": "International",
+      "seasons": [
+        "2026-2027",
+        "2025-2026"
+      ],
+      "priorityTier": "standard"
+    },
+    {
+      "league": "saudi-arabia-youth-league",
+      "name": "Saudi Arabia Youth League",
+      "country": "International",
+      "seasons": [
+        "2026-2027",
+        "2025-2026"
+      ],
+      "priorityTier": "standard"
+    },
+    {
+      "league": "jordan-league-division-1",
+      "name": "Jordan League Division 1",
+      "country": "International",
+      "seasons": [
+        "2026-2027",
+        "2025-2026"
+      ],
+      "priorityTier": "standard"
+    },
+    {
+      "league": "syrian-premier-league",
+      "name": "Syrian Premier League",
+      "country": "International",
+      "seasons": [
+        "2026-2027",
+        "2025-2026"
+      ],
+      "priorityTier": "top"
+    },
+    {
+      "league": "vietnam-national-champion-league",
+      "name": "Vietnam National Champion League",
+      "country": "International",
+      "seasons": [
+        "2026-2027",
+        "2025-2026"
+      ],
+      "priorityTier": "standard"
+    },
+    {
+      "league": "egyptian-division-2",
+      "name": "Egyptian Division 2",
+      "country": "International",
+      "seasons": [
+        "2026-2027",
+        "2025-2026"
+      ],
+      "priorityTier": "standard"
+    },
+    {
+      "league": "liberia-first-division",
+      "name": "Liberia First Division",
+      "country": "International",
+      "seasons": [
+        "2026-2027",
+        "2025-2026"
+      ],
+      "priorityTier": "standard"
+    },
+    {
+      "league": "united-arab-emirates-u21",
+      "name": "United Arab Emirates U21",
+      "country": "International",
+      "seasons": [
+        "2026-2027",
+        "2025-2026"
+      ],
+      "priorityTier": "standard"
+    },
+    {
+      "league": "united-arab-emirates-president-cup",
+      "name": "United Arab Emirates President Cup",
+      "country": "International",
+      "seasons": [
+        "2026-2027",
+        "2025-2026"
+      ],
+      "priorityTier": "standard"
+    },
+    {
+      "league": "iran-pro-league",
+      "name": "Iran Pro League",
+      "country": "International",
+      "seasons": [
+        "2026-2027",
+        "2025-2026"
+      ],
+      "priorityTier": "standard"
+    },
+    {
+      "league": "qatar-stars-league",
+      "name": "Qatar Stars League",
+      "country": "International",
+      "seasons": [
+        "2026-2027",
+        "2025-2026"
+      ],
+      "priorityTier": "standard"
+    },
+    {
+      "league": "iraq-stars-league",
+      "name": "Iraq Stars League",
+      "country": "International",
+      "seasons": [
+        "2026-2027",
+        "2025-2026"
+      ],
+      "priorityTier": "standard"
+    },
+    {
+      "league": "uefa-europa-conference-league",
+      "name": "UEFA Europa Conference League",
+      "country": "Europe",
+      "seasons": [
+        "2026-2027",
+        "2025-2026"
+      ],
+      "priorityTier": "top"
+    },
+    {
+      "league": "estonian-cup",
+      "name": "Estonian Cup",
+      "country": "International",
+      "seasons": [
+        "2026-2027",
+        "2025-2026"
+      ],
+      "priorityTier": "standard"
+    },
+    {
+      "league": "jordan-premier-league",
+      "name": "Jordan Premier League",
+      "country": "International",
+      "seasons": [
+        "2026-2027",
+        "2025-2026"
+      ],
+      "priorityTier": "top"
+    },
+    {
+      "league": "finnish-ykkosliiga",
+      "name": "Finnish Ykkosliiga",
+      "country": "International",
+      "seasons": [
+        "2026-2027",
+        "2025-2026"
+      ],
+      "priorityTier": "standard"
+    },
+    {
+      "league": "israel-women-s-first-national",
+      "name": "Israel Women's First National",
+      "country": "International",
+      "seasons": [
+        "2026-2027",
+        "2025-2026"
+      ],
+      "priorityTier": "standard"
+    },
+    {
+      "league": "estonian-esiliiga",
+      "name": "Estonian Esiliiga",
+      "country": "International",
+      "seasons": [
+        "2026-2027",
+        "2025-2026"
+      ],
+      "priorityTier": "standard"
+    },
+    {
+      "league": "malta-premier-league",
+      "name": "Malta Premier League",
+      "country": "International",
+      "seasons": [
+        "2026-2027",
+        "2025-2026"
+      ],
+      "priorityTier": "top"
+    },
+    {
+      "league": "bahrain-premier-league",
+      "name": "Bahrain Premier League",
+      "country": "International",
+      "seasons": [
+        "2026-2027",
+        "2025-2026"
+      ],
+      "priorityTier": "top"
+    },
+    {
+      "league": "caf-u20-africa-cup-of-nations-qualification",
+      "name": "CAF U20 Africa Cup of Nations qualification",
+      "country": "Africa",
+      "seasons": [
+        "2026-2027",
+        "2025-2026"
+      ],
+      "priorityTier": "standard"
+    },
+    {
+      "league": "uefa-europa-league",
+      "name": "UEFA Europa League",
+      "country": "Europe",
+      "seasons": [
+        "2026-2027",
+        "2025-2026"
+      ],
+      "priorityTier": "top"
+    },
+    {
+      "league": "argentine-reserve-league",
+      "name": "Argentine Reserve League",
+      "country": "International",
+      "seasons": [
+        "2026-2027",
+        "2025-2026"
+      ],
+      "priorityTier": "standard"
+    },
+    {
+      "league": "malta-women-s-division-1",
+      "name": "Malta Women's Division 1",
+      "country": "International",
+      "seasons": [
+        "2026-2027",
+        "2025-2026"
+      ],
+      "priorityTier": "standard"
+    },
+    {
+      "league": "ecuadorian-campeonato-serie-b",
+      "name": "Ecuadorian Campeonato Serie B",
+      "country": "International",
+      "seasons": [
+        "2026-2027",
+        "2025-2026"
+      ],
+      "priorityTier": "standard"
+    },
+    {
+      "league": "mexico-ascenso-mx",
+      "name": "Mexico Ascenso MX",
+      "country": "International",
+      "seasons": [
+        "2026-2027",
+        "2025-2026"
+      ],
+      "priorityTier": "standard"
+    },
+    {
+      "league": "cfa-women-s-league-one",
+      "name": "CFA Women's League One",
+      "country": "International",
+      "seasons": [
+        "2026-2027",
+        "2025-2026"
+      ],
+      "priorityTier": "standard"
+    },
+    {
+      "league": "new-zealand-football-championship",
+      "name": "New Zealand Football Championship",
+      "country": "International",
+      "seasons": [
+        "2026-2027",
+        "2025-2026"
+      ],
+      "priorityTier": "standard"
+    },
+    {
+      "league": "new-zealand-women-s-premier-division",
+      "name": "New Zealand Women's Premier Division",
+      "country": "International",
+      "seasons": [
+        "2026-2027",
+        "2025-2026"
+      ],
+      "priorityTier": "top"
+    },
+    {
+      "league": "chinese-football-league-2",
+      "name": "Chinese Football League 2",
+      "country": "International",
+      "seasons": [
+        "2026-2027",
+        "2025-2026"
+      ],
+      "priorityTier": "standard"
+    },
+    {
+      "league": "ukrainian-first-league",
+      "name": "Ukrainian First League",
+      "country": "International",
+      "seasons": [
+        "2026-2027",
+        "2025-2026"
+      ],
+      "priorityTier": "standard"
+    },
+    {
+      "league": "women-s-national-league",
+      "name": "Women's National League",
+      "country": "International",
+      "seasons": [
+        "2026-2027",
+        "2025-2026"
+      ],
+      "priorityTier": "standard"
+    },
+    {
+      "league": "indonesian-championship",
+      "name": "Indonesian Championship",
+      "country": "International",
+      "seasons": [
+        "2026-2027",
+        "2025-2026"
+      ],
+      "priorityTier": "standard"
+    },
+    {
+      "league": "bangladesh-premier-league",
+      "name": "Bangladesh Premier League",
+      "country": "International",
+      "seasons": [
+        "2026-2027",
+        "2025-2026"
+      ],
+      "priorityTier": "top"
+    },
+    {
+      "league": "australia-a-league",
+      "name": "Australia A-League",
+      "country": "International",
+      "seasons": [
+        "2026-2027",
+        "2025-2026"
+      ],
+      "priorityTier": "standard"
+    },
+    {
+      "league": "ukrainian-premier-league",
+      "name": "Ukrainian Premier League",
+      "country": "International",
+      "seasons": [
+        "2026-2027",
+        "2025-2026"
+      ],
+      "priorityTier": "top"
+    },
+    {
+      "league": "israel-b-league",
+      "name": "Israel B League",
+      "country": "International",
+      "seasons": [
+        "2026-2027",
+        "2025-2026"
+      ],
+      "priorityTier": "standard"
+    },
+    {
+      "league": "rus-m-league",
+      "name": "RUS M-League",
+      "country": "International",
+      "seasons": [
+        "2026-2027",
+        "2025-2026"
+      ],
+      "priorityTier": "standard"
+    },
+    {
+      "league": "rus-d3b",
+      "name": "RUS D3B",
+      "country": "International",
+      "seasons": [
+        "2026-2027",
+        "2025-2026"
+      ],
+      "priorityTier": "standard"
+    },
+    {
+      "league": "azerbaijan-premier-league",
+      "name": "Azerbaijan Premier League",
+      "country": "International",
+      "seasons": [
+        "2026-2027",
+        "2025-2026"
+      ],
+      "priorityTier": "top"
+    },
+    {
+      "league": "ukrainian-second-league",
+      "name": "Ukrainian Second League",
+      "country": "International",
+      "seasons": [
+        "2026-2027",
+        "2025-2026"
+      ],
+      "priorityTier": "standard"
+    },
+    {
+      "league": "moldovan-liga-1",
+      "name": "Moldovan Liga 1",
+      "country": "International",
+      "seasons": [
+        "2026-2027",
+        "2025-2026"
+      ],
+      "priorityTier": "standard"
+    },
+    {
+      "league": "burundi-premier-league",
+      "name": "Burundi Premier League",
+      "country": "International",
+      "seasons": [
+        "2026-2027",
+        "2025-2026"
+      ],
+      "priorityTier": "top"
+    },
+    {
+      "league": "english-u21-premier-league",
+      "name": "English U21 Premier League",
+      "country": "International",
+      "seasons": [
+        "2026-2027",
+        "2025-2026"
+      ],
+      "priorityTier": "top"
+    },
+    {
+      "league": "turkish-women-s-super-league",
+      "name": "Turkish Women's Super League",
+      "country": "International",
+      "seasons": [
+        "2026-2027",
+        "2025-2026"
+      ],
+      "priorityTier": "standard"
+    },
+    {
+      "league": "chinese-football-assorciation-u-20-league",
+      "name": "Chinese Football Assorciation U-20 League",
+      "country": "International",
+      "seasons": [
+        "2026-2027",
+        "2025-2026"
+      ],
+      "priorityTier": "standard"
+    },
+    {
+      "league": "chongqing-city-football-super-league",
+      "name": "Chongqing City Football Super League",
+      "country": "International",
+      "seasons": [
+        "2026-2027",
+        "2025-2026"
+      ],
+      "priorityTier": "standard"
+    },
+    {
+      "league": "hubei-city-football-league",
+      "name": "Hubei City Football League",
+      "country": "International",
+      "seasons": [
+        "2026-2027",
+        "2025-2026"
+      ],
+      "priorityTier": "standard"
+    },
+    {
+      "league": "armenian-premier-league",
+      "name": "Armenian Premier League",
+      "country": "International",
+      "seasons": [
+        "2026-2027",
+        "2025-2026"
+      ],
+      "priorityTier": "top"
+    },
+    {
+      "league": "turkish-third-league",
+      "name": "Turkish Third League",
+      "country": "International",
+      "seasons": [
+        "2026-2027",
+        "2025-2026"
+      ],
+      "priorityTier": "standard"
+    },
+    {
+      "league": "albanian-division-1",
+      "name": "Albanian Division 1",
+      "country": "International",
+      "seasons": [
+        "2026-2027",
+        "2025-2026"
+      ],
+      "priorityTier": "standard"
+    },
+    {
+      "league": "indian-super-league",
+      "name": "Indian Super League",
+      "country": "International",
+      "seasons": [
+        "2026-2027",
+        "2025-2026"
+      ],
+      "priorityTier": "standard"
+    },
+    {
+      "league": "north-macedonia-first-football-league",
+      "name": "North Macedonia First Football League",
+      "country": "International",
+      "seasons": [
+        "2026-2027",
+        "2025-2026"
+      ],
+      "priorityTier": "standard"
+    },
+    {
+      "league": "serbian-mozzart-bet-prva-liga",
+      "name": "Serbian Mozzart Bet Prva Liga",
+      "country": "International",
+      "seasons": [
+        "2026-2027",
+        "2025-2026"
+      ],
+      "priorityTier": "standard"
+    },
+    {
+      "league": "saudi-arabia-division-2",
+      "name": "Saudi Arabia Division 2",
+      "country": "International",
+      "seasons": [
+        "2026-2027",
+        "2025-2026"
+      ],
+      "priorityTier": "standard"
+    },
+    {
+      "league": "lebanese-premier-league",
+      "name": "Lebanese Premier League",
+      "country": "International",
+      "seasons": [
+        "2026-2027",
+        "2025-2026"
+      ],
+      "priorityTier": "top"
+    },
+    {
+      "league": "poland-liga-2",
+      "name": "Poland Liga 2",
+      "country": "International",
+      "seasons": [
+        "2026-2027",
+        "2025-2026"
+      ],
+      "priorityTier": "standard"
+    },
+    {
+      "league": "oman-professional-league",
+      "name": "Oman Professional League",
+      "country": "International",
+      "seasons": [
+        "2026-2027",
+        "2025-2026"
+      ],
+      "priorityTier": "standard"
+    },
+    {
+      "league": "israel-leumit-league",
+      "name": "Israel Leumit League",
+      "country": "International",
+      "seasons": [
+        "2026-2027",
+        "2025-2026"
+      ],
+      "priorityTier": "standard"
+    },
+    {
+      "league": "bulgarian-vtora-liga",
+      "name": "Bulgarian Vtora Liga",
+      "country": "International",
+      "seasons": [
+        "2026-2027",
+        "2025-2026"
+      ],
+      "priorityTier": "standard"
+    },
+    {
+      "league": "malawi-premier-league",
+      "name": "Malawi Premier League",
+      "country": "International",
+      "seasons": [
+        "2026-2027",
+        "2025-2026"
+      ],
+      "priorityTier": "top"
+    },
+    {
+      "league": "tanzanian-premier-league",
+      "name": "Tanzanian Premier League",
+      "country": "International",
+      "seasons": [
+        "2026-2027",
+        "2025-2026"
+      ],
+      "priorityTier": "top"
+    },
+    {
+      "league": "croatian-first-football-league",
+      "name": "Croatian First Football League",
+      "country": "International",
+      "seasons": [
+        "2026-2027",
+        "2025-2026"
+      ],
+      "priorityTier": "standard"
+    },
+    {
+      "league": "italian-campionato-primavera-1",
+      "name": "Italian Campionato Primavera 1",
+      "country": "International",
+      "seasons": [
+        "2026-2027",
+        "2025-2026"
+      ],
+      "priorityTier": "standard"
+    },
+    {
+      "league": "slovenia-cup",
+      "name": "Slovenia Cup",
+      "country": "International",
+      "seasons": [
+        "2026-2027",
+        "2025-2026"
+      ],
+      "priorityTier": "standard"
+    },
+    {
+      "league": "motsepe-foundation-championship",
+      "name": "Motsepe Foundation Championship",
+      "country": "International",
+      "seasons": [
+        "2026-2027",
+        "2025-2026"
+      ],
+      "priorityTier": "standard"
+    },
+    {
+      "league": "tunisian-professional-league-1",
+      "name": "Tunisian Professional League 1",
+      "country": "International",
+      "seasons": [
+        "2026-2027",
+        "2025-2026"
+      ],
+      "priorityTier": "standard"
+    },
+    {
+      "league": "georgia-erovnuli-liga",
+      "name": "Georgia Erovnuli Liga",
+      "country": "International",
+      "seasons": [
+        "2026-2027",
+        "2025-2026"
+      ],
+      "priorityTier": "standard"
+    },
+    {
+      "league": "rwandan-national-league",
+      "name": "Rwandan National League",
+      "country": "International",
+      "seasons": [
+        "2026-2027",
+        "2025-2026"
+      ],
+      "priorityTier": "standard"
+    },
+    {
+      "league": "algerian-ligue-professionnelle-1",
+      "name": "Algerian Ligue Professionnelle 1",
+      "country": "International",
+      "seasons": [
+        "2026-2027",
+        "2025-2026"
+      ],
+      "priorityTier": "standard"
+    },
+    {
+      "league": "belarusian-premier-league",
+      "name": "Belarusian Premier League",
+      "country": "International",
+      "seasons": [
+        "2026-2027",
+        "2025-2026"
+      ],
+      "priorityTier": "top"
+    },
+    {
+      "league": "brazilian-serie-b",
+      "name": "Brazilian Serie B",
+      "country": "International",
+      "seasons": [
+        "2026-2027",
+        "2025-2026"
+      ],
+      "priorityTier": "standard"
+    },
+    {
+      "league": "united-states-women-s-national-soccer-league",
+      "name": "United States Women's National Soccer League",
+      "country": "International",
+      "seasons": [
+        "2026-2027",
+        "2025-2026"
+      ],
+      "priorityTier": "standard"
+    },
+    {
+      "league": "honduras-primera-division",
+      "name": "Honduras Primera Division",
+      "country": "International",
+      "seasons": [
+        "2026-2027",
+        "2025-2026"
+      ],
+      "priorityTier": "standard"
+    },
+    {
+      "league": "australia-w-league",
+      "name": "Australia W-League",
+      "country": "International",
+      "seasons": [
+        "2026-2027",
+        "2025-2026"
+      ],
+      "priorityTier": "standard"
+    },
+    {
+      "league": "japanese-football-league",
+      "name": "Japanese Football League",
+      "country": "International",
+      "seasons": [
+        "2026-2027",
+        "2025-2026"
+      ],
+      "priorityTier": "standard"
+    },
+    {
+      "league": "korean-k-league-1",
+      "name": "Korean K League 1",
+      "country": "International",
+      "seasons": [
+        "2026-2027",
+        "2025-2026"
+      ],
+      "priorityTier": "standard"
+    },
+    {
+      "league": "korean-k-league-2",
+      "name": "Korean K League 2",
+      "country": "International",
+      "seasons": [
+        "2026-2027",
+        "2025-2026"
+      ],
+      "priorityTier": "standard"
+    },
+    {
+      "league": "russian-first-league",
+      "name": "Russian First League",
+      "country": "International",
+      "seasons": [
+        "2026-2027",
+        "2025-2026"
+      ],
+      "priorityTier": "standard"
+    },
+    {
+      "league": "russian-women-s-premier-league",
+      "name": "Russian Women's Premier League",
+      "country": "International",
+      "seasons": [
+        "2026-2027",
+        "2025-2026"
+      ],
+      "priorityTier": "top"
+    },
+    {
+      "league": "chinese-football-league-1",
+      "name": "Chinese Football League 1",
+      "country": "International",
+      "seasons": [
+        "2026-2027",
+        "2025-2026"
+      ],
+      "priorityTier": "standard"
+    },
+    {
+      "league": "hunan-football-league",
+      "name": "Hunan Football League",
+      "country": "International",
+      "seasons": [
+        "2026-2027",
+        "2025-2026"
+      ],
+      "priorityTier": "standard"
+    },
+    {
+      "league": "chinese-taiwan-mulan-football-league",
+      "name": "Chinese Taiwan Mulan Football League",
+      "country": "International",
+      "seasons": [
+        "2026-2027",
+        "2025-2026"
+      ],
+      "priorityTier": "standard"
+    },
+    {
+      "league": "ganzhou-city-football-super-league",
+      "name": "Ganzhou City Football Super League",
+      "country": "International",
+      "seasons": [
+        "2026-2027",
+        "2025-2026"
+      ],
+      "priorityTier": "standard"
+    },
+    {
+      "league": "chinese-football-super-league",
+      "name": "Chinese Football Super League",
+      "country": "International",
+      "seasons": [
+        "2026-2027",
+        "2025-2026"
+      ],
+      "priorityTier": "standard"
+    },
+    {
+      "league": "czech-u19-league",
+      "name": "Czech U19 League",
+      "country": "International",
+      "seasons": [
+        "2026-2027",
+        "2025-2026"
+      ],
+      "priorityTier": "standard"
+    },
+    {
+      "league": "chinese-hong-kong-senior-challenge-shield",
+      "name": "Chinese Hong Kong Senior Challenge Shield",
+      "country": "International",
+      "seasons": [
+        "2026-2027",
+        "2025-2026"
+      ],
+      "priorityTier": "standard"
+    },
+    {
+      "league": "cfa-women-s-super-league",
+      "name": "CFA Women's Super League",
+      "country": "International",
+      "seasons": [
+        "2026-2027",
+        "2025-2026"
+      ],
+      "priorityTier": "standard"
+    },
+    {
+      "league": "poland-mloda-ekstraklasa",
+      "name": "Poland Mloda Ekstraklasa",
+      "country": "International",
+      "seasons": [
+        "2026-2027",
+        "2025-2026"
+      ],
+      "priorityTier": "standard"
+    },
+    {
+      "league": "ger-jbh",
+      "name": "GER JBH",
+      "country": "International",
+      "seasons": [
+        "2026-2027",
+        "2025-2026"
+      ],
+      "priorityTier": "standard"
+    },
+    {
+      "league": "czech-cambrinus-women-s-liga",
+      "name": "Czech Cambrinus Women's Liga",
+      "country": "International",
+      "seasons": [
+        "2026-2027",
+        "2025-2026"
+      ],
+      "priorityTier": "standard"
+    },
+    {
+      "league": "myanmar-professional-league",
+      "name": "Myanmar Professional League",
+      "country": "International",
+      "seasons": [
+        "2026-2027",
+        "2025-2026"
+      ],
+      "priorityTier": "standard"
+    },
+    {
+      "league": "hungary-u19-a-league",
+      "name": "Hungary U19 A League",
+      "country": "International",
+      "seasons": [
+        "2026-2027",
+        "2025-2026"
+      ],
+      "priorityTier": "standard"
+    },
+    {
+      "league": "hungary-nemzeti-bajnoksug-iii",
+      "name": "Hungary Nemzeti Bajnoksug III",
+      "country": "International",
+      "seasons": [
+        "2026-2027",
+        "2025-2026"
+      ],
+      "priorityTier": "standard"
+    },
+    {
+      "league": "esiliiga-b",
+      "name": "Esiliiga B",
+      "country": "International",
+      "seasons": [
+        "2026-2027",
+        "2025-2026"
+      ],
+      "priorityTier": "standard"
+    },
+    {
+      "league": "estonian-women-s-meistri-liiga",
+      "name": "Estonian Women's Meistri Liiga",
+      "country": "International",
+      "seasons": [
+        "2026-2027",
+        "2025-2026"
+      ],
+      "priorityTier": "standard"
+    },
+    {
+      "league": "russian-premier-league",
+      "name": "Russian Premier League",
+      "country": "International",
+      "seasons": [
+        "2026-2027",
+        "2025-2026"
+      ],
+      "priorityTier": "top"
+    },
+    {
+      "league": "latvian-higher-league",
+      "name": "Latvian Higher League",
+      "country": "International",
+      "seasons": [
+        "2026-2027",
+        "2025-2026"
+      ],
+      "priorityTier": "standard"
+    },
+    {
+      "league": "turkish-second-league",
+      "name": "Turkish Second League",
+      "country": "International",
+      "seasons": [
+        "2026-2027",
+        "2025-2026"
+      ],
+      "priorityTier": "standard"
+    },
+    {
+      "league": "uefa-champions-league",
+      "name": "UEFA Champions League",
+      "country": "Europe",
+      "priorityTier": "top"
+    }
+  ],
+  "lastUpdated": "2026-10-20T12:17:29.457Z"
 };

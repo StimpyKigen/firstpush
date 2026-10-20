@@ -19,6 +19,7 @@ import {
   type SportScoreMatchDetail,
   type SportScoreStandings
 } from '../lib/sportscoreService';
+import { getMatchScorePresentation } from '../lib/matchStatus';
 
 interface FixtureSportCardProps {
   match: FreeMatch;
@@ -68,7 +69,15 @@ export default function FixtureSportCard({
   const dOdds = match.drawOdds || 3.30;
   const aOdds = match.awayOdds || 3.60;
 
-  const isLive = match.status === 'in' || (sportDetail?.status === 'in');
+  const scorePres = getMatchScorePresentation(
+    sportDetail?.status || match.status,
+    sportDetail?.status_text || match.displayClock,
+    match.kickoff,
+    sportDetail?.home_score ?? match.homeScore,
+    sportDetail?.away_score ?? match.awayScore
+  );
+
+  const isLive = scorePres.isLive;
 
   const majority = Math.max(consensus.homePct, consensus.drawPct, consensus.awayPct);
   const majLabel = majority === consensus.homePct ? '1 · Home' : majority === consensus.drawPct ? 'X · Draw' : '2 · Away';
@@ -188,15 +197,27 @@ export default function FixtureSportCard({
             </span>
           </div>
 
-          {isLive ? (
+          {scorePres.isLive ? (
             <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-black bg-red-100 text-red-700 border border-red-300 animate-pulse shrink-0">
               <span className="w-1.5 h-1.5 rounded-full bg-red-600" />
-              {match.displayClock || sportDetail?.status_text || 'LIVE'}
+              {scorePres.badgeText}
+            </span>
+          ) : scorePres.badgeVariant === 'halftime' ? (
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-black bg-amber-100 text-amber-800 border border-amber-300 shrink-0">
+              HT · Half Time
+            </span>
+          ) : scorePres.badgeVariant === 'finished' ? (
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-black bg-slate-100 text-slate-700 border border-slate-300 shrink-0 font-mono">
+              FT
+            </span>
+          ) : scorePres.isPostponedOrCancelled ? (
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-black bg-rose-50 text-rose-700 border border-rose-200 shrink-0 uppercase tracking-wider">
+              {scorePres.badgeText}
             </span>
           ) : (
             <span className="flex items-center gap-1 shrink-0 text-slate-500 font-mono text-[11px]">
               <Clock size={11} className="text-slate-400" />
-              {match.kickoff}
+              {scorePres.badgeText}
             </span>
           )}
         </div>
@@ -225,9 +246,9 @@ export default function FixtureSportCard({
                   {match.home}
                 </span>
               </div>
-              {(isLive || match.homeScore !== null || sportDetail?.home_score !== null) && (
+              {scorePres.shouldShowScore && (
                 <span className="font-mono font-black text-sm text-slate-900 shrink-0">
-                  {match.homeScore ?? sportDetail?.home_score ?? 0}
+                  {scorePres.homeScoreDisplay}
                 </span>
               )}
             </div>
@@ -253,9 +274,9 @@ export default function FixtureSportCard({
                   {match.away}
                 </span>
               </div>
-              {(isLive || match.awayScore !== null || sportDetail?.away_score !== null) && (
+              {scorePres.shouldShowScore && (
                 <span className="font-mono font-black text-sm text-slate-900 shrink-0">
-                  {match.awayScore ?? sportDetail?.away_score ?? 0}
+                  {scorePres.awayScoreDisplay}
                 </span>
               )}
             </div>

@@ -26,11 +26,18 @@ import QuickBetBuilderModal, { type MatchForBuilder } from '../components/QuickB
 import { MatchListSkeleton } from '../components/skeleton';
 import { CONTINENTS, getLeagueMetadata, type ContinentId } from '../lib/leagueDirectory';
 import FixtureSportCard from '../components/FixtureSportCard';
+import { normalizeMatchStatus } from '../lib/matchStatus';
+import {
+  sortHighlightsComparator,
+  sortUpcomingComparator,
+  isUpcomingEligible,
+  isHighlightsEligible,
+} from '../lib/competitionPriority';
 
-type ScopeTab = 'all' | 'live' | 'today' | 'tomorrow' | 'upcoming';
+type ScopeTab = 'highlights' | 'live' | 'upcoming' | 'today' | 'tomorrow' | 'all';
 
 export default function FreeMatches() {
-  const [activeTab, setActiveTab] = useState<ScopeTab>('all');
+  const [activeTab, setActiveTab] = useState<ScopeTab>('highlights');
   const [selectedDate, setSelectedDate] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedMatchForBuilder, setSelectedMatchForBuilder] = useState<MatchForBuilder | null>(null);
@@ -44,7 +51,7 @@ export default function FreeMatches() {
     }
   });
 
-  const [sortBy, setSortBy] = useState<'popular' | 'time'>('time');
+  const [sortBy, setSortBy] = useState<'highlights' | 'time' | 'popular'>('highlights');
 
   const [isLeagueDropdownOpen, setIsLeagueDropdownOpen] = useState(false);
   const [isSortDropdownOpen, setIsSortDropdownOpen] = useState(false);
@@ -76,8 +83,8 @@ export default function FreeMatches() {
     setSearchQuery('');
     handleLeagueFilterChange('all');
     setSelectedDate('all');
-    setActiveTab('all');
-    setSortBy('time');
+    setActiveTab('highlights');
+    setSortBy('highlights');
   };
 
   const matches = useSyncExternalStore(subscribeToFreeMatches, getFreeMatchesSnapshot, getFreeMatchesSnapshot);
@@ -126,27 +133,35 @@ export default function FreeMatches() {
     let today = 0;
     let tomorrow = 0;
     let upcoming = 0;
+    let highlights = 0;
 
     matches.forEach((m) => {
       const dStr = m.kickoffIso ? getLocalDateStringEAT(m.kickoffIso) : '';
-      if (m.status === 'in') {
+      const norm = normalizeMatchStatus(m.status, m.displayClock);
+
+      if (norm === 'in') {
         live++;
+      }
+      if (isHighlightsEligible(m)) {
+        highlights++;
+      }
+      if (isUpcomingEligible(m)) {
+        upcoming++;
       }
       if (dStr === todayDateStr) {
         today++;
       } else if (dStr === tomorrowDateStr) {
         tomorrow++;
-      } else if (dStr > tomorrowDateStr) {
-        upcoming++;
       }
     });
 
     return {
       all: matches.length,
+      highlights,
       live,
+      upcoming,
       today,
       tomorrow,
-      upcoming,
     };
   }, [matches, todayDateStr, tomorrowDateStr]);
 
@@ -189,6 +204,7 @@ export default function FreeMatches() {
   const scopedMatches = useMemo(() => {
     return matches.filter((m) => {
       const dStr = m.kickoffIso ? getLocalDateStringEAT(m.kickoffIso) : '';
+      const norm = normalizeMatchStatus(m.status, m.displayClock);
 
       // Date selector overrides tab if explicitly selected
       if (selectedDate !== 'all') {
@@ -196,7 +212,13 @@ export default function FreeMatches() {
       }
 
       if (activeTab === 'live') {
-        return m.status === 'in';
+        return norm === 'in';
+      }
+      if (activeTab === 'highlights') {
+        return isHighlightsEligible(m);
+      }
+      if (activeTab === 'upcoming') {
+        return isUpcomingEligible(m);
       }
       if (activeTab === 'today') {
         return dStr === todayDateStr;
@@ -204,15 +226,12 @@ export default function FreeMatches() {
       if (activeTab === 'tomorrow') {
         return dStr === tomorrowDateStr;
       }
-      if (activeTab === 'upcoming') {
-        return dStr > tomorrowDateStr;
-      }
-      // 'all' includes all pre-match and in-play fixtures
-      return m.status === 'in' || dStr >= todayDateStr;
+      // 'all' includes all valid fixtures
+      return true;
     });
   }, [matches, activeTab, selectedDate, todayDateStr, tomorrowDateStr]);
 
-  // Build Continent -> Ranked Leagues map from scopedMatches
+  // Build Continent -> Ranked Leagues map from ALL matches available in the catalog!
   const groupedContinents = useMemo(() => {
     const continentMap = new Map<ContinentId, Map<string, { count: number; rank: number }>>();
 
@@ -222,7 +241,8 @@ export default function FreeMatches() {
       }
     }
 
-    scopedMatches.forEach((m) => {
+    // Populate from all matches in catalogue to ensure UEFA Champions League is always accessible
+    matches.forEach((m) => {
       const meta = getLeagueMetadata(m.competition);
       const cMap = continentMap.get(meta.continent) || continentMap.get('europe')!;
       const existing = cMap.get(meta.standardName) || { count: 0, rank: meta.rank };
@@ -246,7 +266,7 @@ export default function FreeMatches() {
         leagues,
       };
     });
-  }, [scopedMatches]);
+  }, [matches]);
 
   const currentLeagueLabel = useMemo(() => {
     if (leagueFilter === 'all') return { title: 'All Continents & Leagues', flag: '🌍' };
@@ -296,20 +316,30 @@ export default function FreeMatches() {
       return true;
     })
     .sort((a, b) => {
-      if (sortBy === 'time') {
-        const timeA = a.kickoffIso ? new Date(a.kickoffIso).getTime() : Infinity;
-        const timeB = b.kickoffIso ? new Date(b.kickoffIso).getTime() : Infinity;
-        if (timeA !== timeB) return timeA - timeB;
+      // 1. Upcoming tab is strictly chronological (earliest kickoff first, zero prestige weighting)
+      if (activeTab === 'upcoming' || sortBy === 'time') {
+        return sortUpcomingComparator(a, b);
       }
-      // Most Popular (consensus votes descending)
+      // 2. Highlights tab or highlights sort order ranks by competition prestige hierarchy
+      if (activeTab === 'highlights' || sortBy === 'highlights') {
+        return sortHighlightsComparator(a, b);
+      }
+      // 3. Most Popular (consensus votes descending)
       const votesA = consensusMap[a.id]?.totalVotes ?? 0;
       const votesB = consensusMap[b.id]?.totalVotes ?? 0;
-      return votesB - votesA;
+      if (votesB !== votesA) return votesB - votesA;
+
+      return sortUpcomingComparator(a, b);
     });
 
   const handleTabClick = (tab: ScopeTab) => {
     setActiveTab(tab);
     setSelectedDate('all');
+    if (tab === 'highlights') {
+      setSortBy('highlights');
+    } else if (tab === 'upcoming') {
+      setSortBy('time');
+    }
   };
 
   const handleDateClick = (dateStr: string) => {
@@ -357,25 +387,26 @@ export default function FreeMatches() {
         <div className="flex items-center justify-center p-1 bg-[#F5F5E4] rounded-2xl border border-[#D4D4C0] shadow-xs gap-1 flex-wrap sm:flex-nowrap">
           <button
             type="button"
-            onClick={() => handleTabClick('all')}
-            className={`flex-1 min-w-[70px] sm:min-w-0 py-2 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
-              activeTab === 'all' && selectedDate === 'all'
+            onClick={() => handleTabClick('highlights')}
+            className={`flex-1 min-w-[75px] sm:min-w-0 py-2 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+              activeTab === 'highlights' && selectedDate === 'all'
                 ? 'bg-[#006C54] text-white shadow-xs'
                 : 'text-slate-700 hover:text-slate-900 hover:bg-white/60'
             }`}
           >
-            <span>All Fixtures</span>
+            <Sparkles size={13} className={activeTab === 'highlights' ? 'text-amber-300' : 'text-amber-600'} />
+            <span>Highlights</span>
             <span className={`text-[10px] font-mono px-1.5 py-0.2 rounded-full font-bold ${
-              activeTab === 'all' && selectedDate === 'all' ? 'bg-white/20 text-white' : 'bg-slate-200 text-slate-700'
+              activeTab === 'highlights' && selectedDate === 'all' ? 'bg-white/20 text-white' : 'bg-slate-200 text-slate-700'
             }`}>
-              {counts.all}
+              {counts.highlights}
             </span>
           </button>
 
           <button
             type="button"
             onClick={() => handleTabClick('live')}
-            className={`flex-1 min-w-[70px] sm:min-w-0 py-2 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+            className={`flex-1 min-w-[65px] sm:min-w-0 py-2 px-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
               activeTab === 'live'
                 ? 'bg-red-600 text-white shadow-xs'
                 : 'text-slate-700 hover:text-slate-900 hover:bg-white/60'
@@ -395,8 +426,26 @@ export default function FreeMatches() {
 
           <button
             type="button"
+            onClick={() => handleTabClick('upcoming')}
+            className={`flex-1 min-w-[75px] sm:min-w-0 py-2 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+              activeTab === 'upcoming' && selectedDate === 'all'
+                ? 'bg-[#006C54] text-white shadow-xs'
+                : 'text-slate-700 hover:text-slate-900 hover:bg-white/60'
+            }`}
+          >
+            <Clock size={13} />
+            <span>Upcoming</span>
+            <span className={`text-[10px] font-mono px-1.5 py-0.2 rounded-full font-bold ${
+              activeTab === 'upcoming' && selectedDate === 'all' ? 'bg-white/20 text-white' : 'bg-slate-200 text-slate-700'
+            }`}>
+              {counts.upcoming}
+            </span>
+          </button>
+
+          <button
+            type="button"
             onClick={() => handleTabClick('today')}
-            className={`flex-1 min-w-[70px] sm:min-w-0 py-2 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+            className={`flex-1 min-w-[65px] sm:min-w-0 py-2 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
               activeTab === 'today' && selectedDate === 'all'
                 ? 'bg-[#006C54] text-white shadow-xs'
                 : 'text-slate-700 hover:text-slate-900 hover:bg-white/60'
@@ -429,18 +478,18 @@ export default function FreeMatches() {
 
           <button
             type="button"
-            onClick={() => handleTabClick('upcoming')}
-            className={`flex-1 min-w-[70px] sm:min-w-0 py-2 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
-              activeTab === 'upcoming' && selectedDate === 'all'
+            onClick={() => handleTabClick('all')}
+            className={`flex-1 min-w-[65px] sm:min-w-0 py-2 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+              activeTab === 'all' && selectedDate === 'all'
                 ? 'bg-[#006C54] text-white shadow-xs'
                 : 'text-slate-700 hover:text-slate-900 hover:bg-white/60'
             }`}
           >
-            <span>Upcoming</span>
+            <span>All</span>
             <span className={`text-[10px] font-mono px-1.5 py-0.2 rounded-full font-bold ${
-              activeTab === 'upcoming' && selectedDate === 'all' ? 'bg-white/20 text-white' : 'bg-slate-200 text-slate-700'
+              activeTab === 'all' && selectedDate === 'all' ? 'bg-white/20 text-white' : 'bg-slate-200 text-slate-700'
             }`}>
-              {counts.upcoming}
+              {counts.all}
             </span>
           </button>
         </div>
@@ -638,7 +687,11 @@ export default function FreeMatches() {
                     Sort Order
                   </span>
                   <span className="truncate block font-bold text-xs sm:text-[13px] text-slate-900">
-                    {sortBy === 'popular' ? 'Ranked by Activity' : 'Kickoff Time'}
+                    {sortBy === 'highlights'
+                      ? 'Prestige (Highlights)'
+                      : sortBy === 'popular'
+                      ? 'Ranked by Activity'
+                      : 'Kickoff Time'}
                   </span>
                 </div>
               </div>
@@ -652,6 +705,20 @@ export default function FreeMatches() {
 
             {isSortDropdownOpen && (
               <div className="absolute left-0 right-0 mt-1.5 bg-[#FFFFF0] border border-[#D4D4C0] rounded-2xl shadow-2xl py-1.5 z-50 text-xs">
+                <button
+                  type="button"
+                  onClick={() => { setSortBy('highlights'); setIsSortDropdownOpen(false); }}
+                  className={`w-full px-3 py-2 text-left flex items-center justify-between transition-colors cursor-pointer ${
+                    sortBy === 'highlights'
+                      ? 'bg-[#006C54]/10 text-[#006C54] font-black'
+                      : 'hover:bg-[#F5F5E4] text-slate-700 font-semibold'
+                  }`}
+                >
+                  <span className="flex items-center gap-2">
+                    <Sparkles size={14} className="text-amber-500" /> Competition Prestige (Highlights)
+                  </span>
+                  {sortBy === 'highlights' && <Check size={14} className="text-[#006C54]" />}
+                </button>
                 <button
                   type="button"
                   onClick={() => { setSortBy('time'); setIsSortDropdownOpen(false); }}
@@ -718,12 +785,25 @@ export default function FreeMatches() {
           <p className="text-xs text-slate-600 leading-relaxed">
             No matches found for &quot;<strong className="text-slate-900">{searchQuery || currentLeagueLabel.title}</strong>&quot; under {activeTab} view. Try clearing filters to view all upcoming fixtures across 90+ supported competitions.
           </p>
-          <button
-            onClick={resetFilters}
-            className="mt-3 inline-flex items-center gap-2 bg-[#006C54] hover:bg-[#005441] text-white font-black text-xs uppercase tracking-wider px-5 h-10 rounded-md shadow-xs transition-colors active:scale-95 cursor-pointer"
-          >
-            <RotateCcw size={14} /> Show All {counts.all} Upcoming Matches
-          </button>
+          <div className="flex flex-col sm:flex-row items-center gap-2 mt-3">
+            {leagueFilter !== 'all' && (
+              <button
+                onClick={() => {
+                  setActiveTab('all');
+                  setSelectedDate('all');
+                }}
+                className="inline-flex items-center gap-2 bg-[#F5F5E4] hover:bg-[#E6E6D2] text-[#006C54] font-black text-xs uppercase tracking-wider px-4 h-10 rounded-md shadow-2xs transition-colors cursor-pointer"
+              >
+                View All {currentLeagueLabel.title} Across All Dates
+              </button>
+            )}
+            <button
+              onClick={resetFilters}
+              className="inline-flex items-center gap-2 bg-[#006C54] hover:bg-[#005441] text-white font-black text-xs uppercase tracking-wider px-5 h-10 rounded-md shadow-xs transition-colors active:scale-95 cursor-pointer"
+            >
+              <RotateCcw size={14} /> Reset All Filters ({counts.all} matches)
+            </button>
+          </div>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6">

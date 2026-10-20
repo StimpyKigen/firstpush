@@ -20,7 +20,7 @@ export interface FreeMatch {
   tier: MatchTier;
   blurb: string;
   syncedAt: string;
-  status?: 'pre' | 'in' | 'post';
+  status?: 'pre' | 'in' | 'post' | 'postponed' | 'cancelled' | 'abandoned' | 'suspended';
   displayClock?: string;
   homeScore?: number | null;
   awayScore?: number | null;

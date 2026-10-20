@@ -6,7 +6,7 @@ export interface BuilderFixture {
   awayTeam: string;
   competition: string;
   kickoff: string;
-  status?: 'pre' | 'in' | 'post';
+  status?: 'pre' | 'in' | 'post' | 'postponed' | 'cancelled' | 'abandoned' | 'suspended';
   homeScore?: number | null;
   awayScore?: number | null;
   homeOdds?: number;

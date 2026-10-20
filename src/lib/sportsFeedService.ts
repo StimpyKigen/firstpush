@@ -10,6 +10,7 @@ import fs from 'fs';
 import path from 'path';
 import os from 'os';
 import { BUNDLED_SPORTS_CATALOGUE } from '../data/bundledSportsCatalogue';
+import { normalizeMatchStatus } from './matchStatus';
 
 export interface DiscoveredLeague {
   league: string;
@@ -31,7 +32,7 @@ export interface MarketFixture {
   country: string;
   kickoff: string;
   kickoffIso: string;
-  status: 'pre' | 'in' | 'post';
+  status: 'pre' | 'in' | 'post' | 'postponed' | 'cancelled' | 'abandoned' | 'suspended';
   displayClock?: string;
   homeScore?: number | null;
   awayScore?: number | null;
@@ -439,22 +440,63 @@ export function normalizeSportScoreMatch(m: any, nowIso: string, isLiveForce = f
 
   let slug = '';
   if (m.url) {
-    const parts = m.url.split('/');
-    slug = parts[3] || parts[2] || '';
+    const parts = m.url.split('/').filter(Boolean);
+    // e.g. ["football", "match", "paris-saint-germain-vs-fc-barcelona", "3glrw7hnx23jqdy"]
+    if (parts.length >= 4) {
+      slug = `${parts[2]}-${parts[3]}`;
+    } else if (parts.length >= 3) {
+      slug = parts[2];
+    } else if (parts.length >= 1) {
+      slug = parts[parts.length - 1];
+    }
   }
   if (!slug) slug = `${slugify(home)}-vs-${slugify(away)}`;
 
   const isoTime = m.time || nowIso;
   const kickoffEAT = formatEATTime(isoTime.slice(0, 10), isoTime.slice(11, 16));
 
-  let status: 'pre' | 'in' | 'post' = 'pre';
+  const rawStatus = isLiveForce ? 'live' : m.status;
+  const normalizedStatus = normalizeMatchStatus(rawStatus, m.status_text);
+
+  let status: 'pre' | 'in' | 'post' | 'postponed' | 'cancelled' | 'abandoned' | 'suspended' = 'pre';
   let displayClock = '';
-  if (isLiveForce || m.status === 'live' || m.status === 'in') {
+
+  if (normalizedStatus === 'in') {
     status = 'in';
     displayClock = m.status_text || 'LIVE';
-  } else if (m.status === 'finished' || m.status === 'post') {
+  } else if (normalizedStatus === 'post') {
     status = 'post';
     displayClock = 'FT';
+  } else if (normalizedStatus === 'postponed') {
+    status = 'postponed';
+    displayClock = 'POSTPONED';
+  } else if (normalizedStatus === 'cancelled') {
+    status = 'cancelled';
+    displayClock = 'CANCELLED';
+  } else if (normalizedStatus === 'abandoned') {
+    status = 'abandoned';
+    displayClock = 'ABANDONED';
+  } else if (normalizedStatus === 'suspended') {
+    status = 'suspended';
+    displayClock = 'SUSPENDED';
+  } else {
+    status = 'pre';
+    displayClock = '';
+  }
+
+  // Scores: STRICT INVARIANT:
+  // For 'pre' (scheduled) or postponed/cancelled, scores MUST be null!
+  // Only for 'in' (live) or 'post' (finished) do we parse scores!
+  let homeScore: number | null = null;
+  let awayScore: number | null = null;
+
+  if (status === 'in' || status === 'post') {
+    if (m.home_score !== null && m.home_score !== undefined && m.home_score !== '') {
+      homeScore = Number(m.home_score);
+    }
+    if (m.away_score !== null && m.away_score !== undefined && m.away_score !== '') {
+      awayScore = Number(m.away_score);
+    }
   }
 
   const hash = Math.abs((home.length * 19 + away.length * 37) % 100);
@@ -494,8 +536,8 @@ export function normalizeSportScoreMatch(m: any, nowIso: string, isLiveForce = f
     kickoffIso: isoTime,
     status,
     displayClock,
-    homeScore: m.home_score !== null && m.home_score !== undefined ? Number(m.home_score) : null,
-    awayScore: m.away_score !== null && m.away_score !== undefined ? Number(m.away_score) : null,
+    homeScore,
+    awayScore,
     homePct,
     drawPct,
     awayPct,
@@ -541,7 +583,37 @@ export async function syncSportScoreCatalog(): Promise<number> {
       // non-fatal
     }
 
-    // 2. Rolling dates
+    // 2. Priority major competitions (ensures UEFA Champions League, Europa, etc. are never truncated)
+    const prioritySlugs = [
+      'uefa-champions-league',
+      'uefa-europa-league',
+      'uefa-europa-conference-league',
+      'uefa-youth-league',
+      'premier-league',
+      'la-liga',
+      'serie-a',
+      'bundesliga',
+      'ligue-1',
+      'caf-champions-league'
+    ];
+
+    const compPromises = prioritySlugs.map(async (slug) => {
+      try {
+        const res = await fetch(`https://sportscore.com/api/v1/fixtures/?sport=football&competition=${slug}`, {
+          headers: { 'User-Agent': 'Mozilla/5.0' },
+          signal: AbortSignal.timeout(6000),
+        });
+        if (res.ok) {
+          const json = await res.json();
+          return (json.matches || []).map((m: any) => normalizeSportScoreMatch(m, nowIso, false));
+        }
+      } catch {
+        return [];
+      }
+      return [];
+    });
+
+    // 3. Rolling dates
     const datePromises = dates.map(async (dStr) => {
       try {
         const res = await fetch(`https://sportscore.com/api/v1/fixtures/?sport=football&date=${dStr}&limit=200`, {
@@ -558,8 +630,16 @@ export async function syncSportScoreCatalog(): Promise<number> {
       return [];
     });
 
-    const results = await Promise.all(datePromises);
-    results.forEach((arr) => {
+    const [priorityResults, dateResults] = await Promise.all([
+      Promise.all(compPromises),
+      Promise.all(datePromises),
+    ]);
+
+    priorityResults.forEach((arr) => {
+      sportScoreFixtures.push(...arr);
+    });
+
+    dateResults.forEach((arr) => {
       sportScoreFixtures.push(...arr);
     });
 
