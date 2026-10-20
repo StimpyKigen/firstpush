@@ -177,8 +177,9 @@ async function runTestSuite() {
 
   // CRITERION 11: Combined filters (intersection) & reset restore default
   console.log('\nTest 11: Combined filters intersection');
+  const referenceTime = new Date('2026-10-20T12:00:00Z').getTime();
   const combined = BUNDLED_SPORTS_CATALOGUE.fixtures.filter(f => {
-    const isUpcoming = isUpcomingEligible(f);
+    const isUpcoming = isUpcomingEligible(f, referenceTime);
     const meta = getLeagueMetadata(f.competition);
     const isUcl = meta.standardName === 'UEFA Champions League';
     return isUpcoming && isUcl;
