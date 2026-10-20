@@ -60,27 +60,35 @@ export default function FixtureSportCard({
       : '2 · Away';
 
   return (
-    <div className="group relative overflow-hidden bg-[#FFFFF0] border border-[#DCDCC8] hover:border-[#006C54]/50 rounded-2xl p-4 sm:p-5 flex flex-col justify-between transition-all duration-200 shadow-[0_1px_4px_rgba(0,0,0,0.03)] hover:shadow-[0_4px_14px_rgba(0,108,84,0.08)]">
+    <div
+      className={`group relative overflow-hidden border rounded-2xl p-4 sm:p-5 flex flex-col justify-between transition-all duration-200 ${
+        banner
+          ? `${banner.cardBg || 'bg-gradient-to-b from-[#E3EFFE] via-[#F0F6FE] to-[#FFFFF0]'} ${banner.borderColor || 'border-[#7BA7F8]'} ${banner.borderHoverColor || 'hover:border-[#0A3B8C]'} ${banner.shadow || 'shadow-[0_2px_12px_rgba(10,59,140,0.09)] hover:shadow-[0_4px_18px_rgba(10,59,140,0.16)]'}`
+          : 'bg-[#FFFFF0] border-[#DCDCC8] hover:border-[#006C54]/50 shadow-[0_1px_4px_rgba(0,0,0,0.03)] hover:shadow-[0_4px_14px_rgba(0,108,84,0.08)]'
+      }`}
+    >
       {/* Dynamic Faded Competition Background Banner */}
       {banner && (
         <div
           className="absolute inset-0 pointer-events-none overflow-hidden rounded-2xl z-0"
           aria-hidden="true"
         >
+          {/* Subtle rich blue base tint */}
+          <div className="absolute inset-0 bg-gradient-to-b from-[#0A3B8C]/12 via-[#0A3B8C]/4 to-transparent" />
           {/* Banner Artwork gracefully scaled for desktop & mobile */}
           <img
             src={banner.bannerUrl}
             alt=""
             loading="lazy"
             decoding="async"
-            className="w-full h-full object-cover object-center scale-100 transition-transform duration-700 ease-out group-hover:scale-105"
+            className="w-full h-full object-cover object-[right_top] scale-100 transition-transform duration-700 ease-out group-hover:scale-105"
             style={{
-              opacity: banner.overlayOpacity ?? 0.16,
+              opacity: banner.overlayOpacity ?? 0.52,
             }}
           />
           {/* Soft gradient wash to seamlessly blend artwork into the warm ivory base */}
           <div
-            className={`absolute inset-0 bg-gradient-to-b ${banner.gradientOverlay || 'from-[#FFFFF0]/70 via-[#FFFFF0]/85 to-[#FFFFF0]/92'}`}
+            className={`absolute inset-0 bg-gradient-to-b ${banner.gradientOverlay || 'from-transparent via-[#EDF4FE]/35 to-[#FFFFF0]/80'}`}
           />
         </div>
       )}
@@ -189,6 +197,8 @@ export default function FixtureSportCard({
               className={`rounded-xl py-1.5 px-1 border transition-all duration-150 active:scale-[0.98] min-h-[40px] flex flex-col items-center justify-center gap-0.5 cursor-pointer ${
                 isHomeSelected
                   ? 'bg-[#006C54] text-white font-black border-[#005441] shadow-xs'
+                  : banner
+                  ? 'bg-white/85 hover:bg-white text-slate-800 border-[#CCE0FA] hover:border-[#0A3B8C]'
                   : 'bg-[#FFFFF0] hover:bg-[#F5F5E4] text-slate-800 border-[#E6E6D2] hover:border-[#006C54]'
               }`}
             >
@@ -210,6 +220,8 @@ export default function FixtureSportCard({
               className={`rounded-xl py-1.5 px-1 border transition-all duration-150 active:scale-[0.98] min-h-[40px] flex flex-col items-center justify-center gap-0.5 cursor-pointer ${
                 isDrawSelected
                   ? 'bg-[#006C54] text-white font-black border-[#005441] shadow-xs'
+                  : banner
+                  ? 'bg-white/85 hover:bg-white text-slate-800 border-[#CCE0FA] hover:border-[#0A3B8C]'
                   : 'bg-[#FFFFF0] hover:bg-[#F5F5E4] text-slate-800 border-[#E6E6D2] hover:border-[#006C54]'
               }`}
             >
@@ -231,6 +243,8 @@ export default function FixtureSportCard({
               className={`rounded-xl py-1.5 px-1 border transition-all duration-150 active:scale-[0.98] min-h-[40px] flex flex-col items-center justify-center gap-0.5 cursor-pointer ${
                 isAwaySelected
                   ? 'bg-[#006C54] text-white font-black border-[#005441] shadow-xs'
+                  : banner
+                  ? 'bg-white/85 hover:bg-white text-slate-800 border-[#CCE0FA] hover:border-[#0A3B8C]'
                   : 'bg-[#FFFFF0] hover:bg-[#F5F5E4] text-slate-800 border-[#E6E6D2] hover:border-[#006C54]'
               }`}
             >
@@ -256,7 +270,7 @@ export default function FixtureSportCard({
             </span>
             <span className="font-mono text-slate-800">{majority}%</span>
           </div>
-          <div className="w-full bg-[#E6E6D2] rounded-full h-1.5 flex overflow-hidden">
+          <div className={`w-full rounded-full h-1.5 flex overflow-hidden ${banner ? 'bg-[#DDE8F8]' : 'bg-[#E6E6D2]'}`}>
             <div
               style={{ width: `${consensus.homePct}%` }}
               className="bg-[#006C54] transition-all duration-500"
@@ -277,7 +291,8 @@ export default function FixtureSportCard({
       </div>
 
       {/* Card Footer: Details & Discussion Link & Borderless Bet Builder Button */}
-      <div className="relative z-10 pt-3 mt-3 border-t border-[#F0F0E4] flex items-center justify-between gap-2">
+      <div className={`relative z-10 pt-3 mt-3 border-t flex items-center justify-between gap-2 ${banner ? 'border-[#D9E7F9]' : 'border-[#F0F0E4]'}`}>
+
         <Link
           to={`/free/${match.id}`}
           className="inline-flex items-center gap-1 text-xs font-bold text-[#006C54] hover:text-[#005441] transition-colors"
