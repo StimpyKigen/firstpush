@@ -7,6 +7,7 @@ import type { FreeMatch } from '../lib/freeMatches';
 import type { MatchConsensus } from '../lib/types';
 import { getMatchScorePresentation } from '../lib/matchStatus';
 import { formatKickoffDateTime24h } from '../lib/competitionPriority';
+import { getCompetitionBanner } from '../lib/competitionBanners';
 
 interface FixtureSportCardProps {
   match: FreeMatch;
@@ -23,6 +24,9 @@ export default function FixtureSportCard({
   onToggleLeg,
   onOpenBetBuilder,
 }: FixtureSportCardProps) {
+  // Competition background banner (e.g. UEFA Champions League)
+  const banner = getCompetitionBanner(match.competition);
+
   // Quick Bet Builder selection states
   const isHomeSelected = builderLegs.some(
     (l) => l.matchId === match.id && l.market === 'Match Result (1X2)' && l.pick.includes('1')
@@ -56,8 +60,32 @@ export default function FixtureSportCard({
       : '2 · Away';
 
   return (
-    <div className="bg-[#FFFFF0] border border-[#DCDCC8] hover:border-[#006C54]/50 rounded-2xl p-4 sm:p-5 flex flex-col justify-between transition-all duration-200 shadow-[0_1px_4px_rgba(0,0,0,0.03)] hover:shadow-[0_4px_14px_rgba(0,108,84,0.08)]">
-      <div>
+    <div className="group relative overflow-hidden bg-[#FFFFF0] border border-[#DCDCC8] hover:border-[#006C54]/50 rounded-2xl p-4 sm:p-5 flex flex-col justify-between transition-all duration-200 shadow-[0_1px_4px_rgba(0,0,0,0.03)] hover:shadow-[0_4px_14px_rgba(0,108,84,0.08)]">
+      {/* Dynamic Faded Competition Background Banner */}
+      {banner && (
+        <div
+          className="absolute inset-0 pointer-events-none overflow-hidden rounded-2xl z-0"
+          aria-hidden="true"
+        >
+          {/* Banner Artwork gracefully scaled for desktop & mobile */}
+          <img
+            src={banner.bannerUrl}
+            alt=""
+            loading="lazy"
+            decoding="async"
+            className="w-full h-full object-cover object-center scale-100 transition-transform duration-700 ease-out group-hover:scale-105"
+            style={{
+              opacity: banner.overlayOpacity ?? 0.16,
+            }}
+          />
+          {/* Soft gradient wash to seamlessly blend artwork into the warm ivory base */}
+          <div
+            className={`absolute inset-0 bg-gradient-to-b ${banner.gradientOverlay || 'from-[#FFFFF0]/70 via-[#FFFFF0]/85 to-[#FFFFF0]/92'}`}
+          />
+        </div>
+      )}
+
+      <div className="relative z-10">
         {/* Card Header: League Info & Kickoff/Score Badge */}
         <div className="flex items-center justify-between gap-2 mb-3 text-xs">
           <div className="min-w-0">
@@ -249,7 +277,7 @@ export default function FixtureSportCard({
       </div>
 
       {/* Card Footer: Details & Discussion Link & Borderless Bet Builder Button */}
-      <div className="pt-3 mt-3 border-t border-[#F0F0E4] flex items-center justify-between gap-2">
+      <div className="relative z-10 pt-3 mt-3 border-t border-[#F0F0E4] flex items-center justify-between gap-2">
         <Link
           to={`/free/${match.id}`}
           className="inline-flex items-center gap-1 text-xs font-bold text-[#006C54] hover:text-[#005441] transition-colors"
