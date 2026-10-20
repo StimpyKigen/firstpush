@@ -1,6 +1,6 @@
 import { useState, useSyncExternalStore } from 'react';
 import { useParams, Navigate } from 'react-router-dom';
-import { Users, Clock, CheckCircle2, RadioTower, Unlock, Trophy, Activity } from 'lucide-react';
+import { Users, Clock, CheckCircle2, RadioTower, Unlock } from 'lucide-react';
 import SeoHead from '../components/SeoHead';
 import {
   getFreeMatchesSnapshot,
@@ -105,37 +105,40 @@ export default function FreeMatchRoom() {
         <BackNavButton fallbackUrl="/free" label="All free matches" />
       </div>
 
-      {/* MATCH DETAILS & FAN DISCUSSION TAB INDICATOR (Middle position on top of first card) */}
+      {/* MATCH DETAILS & FAN DISCUSSION TAB INDICATOR (Matching Reference Photo) */}
       <div className="flex justify-center mb-6">
-        <div className="inline-flex items-center bg-[#F2F2DE] border border-[#DDDDCB] rounded-full p-1 shadow-[0_2px_8px_rgba(0,0,0,0.03)]">
+        <div className="inline-flex items-center gap-4 sm:gap-6 py-1.5 px-4">
           <button
             type="button"
             onClick={() => setRoomTab('details')}
-            className={`rounded-full px-5 sm:px-7 py-2 text-xs sm:text-sm font-bold flex items-center gap-2 cursor-pointer transition-all duration-200 select-none ${
+            className={`text-sm sm:text-base transition-colors flex items-center gap-2 cursor-pointer select-none ${
               roomTab === 'details'
-                ? 'bg-gradient-to-r from-[#175A38] to-[#257840] text-white shadow-[0_2px_8px_rgba(23,90,56,0.35)]'
-                : 'text-slate-700 hover:text-slate-900 hover:bg-white/50'
+                ? 'font-bold text-[#006C54]'
+                : 'font-semibold text-slate-500 hover:text-slate-800'
             }`}
           >
-            <Activity size={14} className={roomTab === 'details' ? 'text-white' : 'text-slate-500'} />
             <span>Match Details</span>
           </button>
+
+          {/* Vertical Divider */}
+          <div className="h-4 sm:h-5 w-[1px] bg-slate-300 shrink-0" aria-hidden="true" />
 
           <button
             type="button"
             onClick={() => setRoomTab('discussion')}
-            className={`rounded-full px-5 sm:px-7 py-2 text-xs sm:text-sm font-bold flex items-center gap-2 cursor-pointer transition-all duration-200 select-none ${
+            className={`text-sm sm:text-base transition-colors flex items-center gap-2 cursor-pointer select-none ${
               roomTab === 'discussion'
-                ? 'bg-gradient-to-r from-[#175A38] to-[#257840] text-white shadow-[0_2px_8px_rgba(23,90,56,0.35)]'
-                : 'text-slate-700 hover:text-slate-900 hover:bg-white/50'
+                ? 'font-bold text-[#006C54]'
+                : 'font-semibold text-slate-500 hover:text-slate-800'
             }`}
           >
-            <Users size={14} className={roomTab === 'discussion' ? 'text-white' : 'text-slate-500'} />
             <span>Fan Discussion</span>
             {consensus && (
               <span
                 className={`text-[11px] font-mono px-2 py-0.5 rounded-full font-bold transition-colors ${
-                  roomTab === 'discussion' ? 'bg-[#3E8B58] text-white' : 'bg-[#E2E2CE] text-slate-700'
+                  roomTab === 'discussion'
+                    ? 'bg-[#E8F5EE] text-[#006C54]'
+                    : 'bg-slate-100 text-slate-500'
                 }`}
               >
                 {consensus.totalVotes}
@@ -158,15 +161,14 @@ export default function FreeMatchRoom() {
           </span>
         </div>
 
-        {/* Team Names and League Name at the bottom of the teams */}
+        {/* Team Names and League Name at the bottom of the teams (smaller grey font, no trophy) */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <h1 className="font-display font-black text-2xl sm:text-4xl text-slate-900 leading-tight uppercase tracking-tight">
               {match.home} <span className="text-slate-400 font-normal">v</span> {match.away}
             </h1>
-            <div className="flex items-center gap-1.5 mt-2">
-              <Trophy size={14} className="text-[#006C54] shrink-0" />
-              <span className="text-sm font-extrabold text-[#006C54] tracking-wide uppercase">
+            <div className="mt-1.5">
+              <span className="text-xs sm:text-sm font-semibold text-slate-500 tracking-wide">
                 {match.competition}
               </span>
             </div>

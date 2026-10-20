@@ -441,55 +441,52 @@ export default function FreeMatches() {
 
       {/* APPLE-INSPIRED MATCH FILTERS TOOLBAR (PHOTO B) */}
       <div className="max-w-4xl mx-auto mb-6 sm:mb-8">
-        {/* ROW 1 — Match Status Segmented Control */}
-        <div className="flex justify-center mb-3 sm:mb-4">
-          <div className="inline-flex items-center bg-[#F2F2DE] border border-[#DDDDCB] rounded-full p-1 shadow-[0_2px_8px_rgba(0,0,0,0.03)]">
+        {/* ROW 1 — Match Status Inline Tab Switcher (Matching Reference Photo) */}
+        <div className="flex justify-center mb-4 sm:mb-5">
+          <div className="inline-flex items-center gap-3 sm:gap-5 py-1.5 px-3">
             {/* Upcoming Tab */}
             <button
               type="button"
               onClick={() => handleTabClick('upcoming')}
-              className={`rounded-full px-4 sm:px-6 py-2 sm:py-2.5 text-xs sm:text-sm font-bold flex items-center gap-2 cursor-pointer transition-all duration-200 select-none ${
+              className={`text-sm sm:text-base transition-colors flex items-center gap-2 cursor-pointer select-none ${
                 activeTab === 'upcoming'
-                  ? 'bg-gradient-to-r from-[#175A38] to-[#257840] text-white shadow-[0_2px_8px_rgba(23,90,56,0.35)]'
-                  : 'text-slate-700 hover:text-slate-900 hover:bg-white/50'
+                  ? 'font-bold text-[#006C54]'
+                  : 'font-semibold text-slate-500 hover:text-slate-800'
               }`}
             >
-              <Calendar
-                size={15}
-                className={`shrink-0 transition-colors ${
-                  activeTab === 'upcoming' ? 'text-white' : 'text-slate-500'
-                }`}
-              />
               <span>Upcoming</span>
               <span
                 className={`text-[11px] font-mono px-2 py-0.5 rounded-full font-bold transition-colors ${
                   activeTab === 'upcoming'
-                    ? 'bg-[#3E8B58] text-white'
-                    : 'bg-[#E2E2CE] text-slate-700'
+                    ? 'bg-[#E8F5EE] text-[#006C54]'
+                    : 'bg-slate-100 text-slate-500'
                 }`}
               >
                 {counts.upcoming}
               </span>
             </button>
 
+            {/* Vertical Divider */}
+            <div className="h-4 sm:h-5 w-[1px] bg-slate-300 shrink-0" aria-hidden="true" />
+
             {/* Live Tab */}
             <button
               type="button"
               onClick={() => handleTabClick('live')}
-              className={`rounded-full px-4 sm:px-6 py-2 sm:py-2.5 text-xs sm:text-sm font-bold flex items-center gap-2 cursor-pointer transition-all duration-200 select-none ${
+              className={`text-sm sm:text-base transition-colors flex items-center gap-2 cursor-pointer select-none ${
                 activeTab === 'live'
-                  ? 'bg-gradient-to-r from-[#175A38] to-[#257840] text-white shadow-[0_2px_8px_rgba(23,90,56,0.35)]'
-                  : 'text-slate-700 hover:text-slate-900 hover:bg-white/50'
+                  ? 'font-bold text-[#006C54]'
+                  : 'font-semibold text-slate-500 hover:text-slate-800'
               }`}
             >
-              <span className="relative flex h-2.5 w-2.5 shrink-0">
+              <span className="relative flex h-2 w-2 shrink-0">
                 <span
                   className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${
                     counts.live > 0 ? 'bg-red-400' : 'bg-slate-400'
                   }`}
                 />
                 <span
-                  className={`relative inline-flex rounded-full h-2.5 w-2.5 ring-2 ring-white/60 ${
+                  className={`relative inline-flex rounded-full h-2 w-2 ${
                     counts.live > 0 ? 'bg-red-500' : 'bg-slate-400'
                   }`}
                 />
@@ -498,8 +495,8 @@ export default function FreeMatches() {
               <span
                 className={`text-[11px] font-mono px-2 py-0.5 rounded-full font-bold transition-colors ${
                   activeTab === 'live'
-                    ? 'bg-[#3E8B58] text-white'
-                    : 'bg-[#E2E2CE] text-slate-700'
+                    ? 'bg-[#E8F5EE] text-[#006C54]'
+                    : 'bg-slate-100 text-slate-500'
                 }`}
               >
                 {counts.live}

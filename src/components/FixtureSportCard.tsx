@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import {
-  Clock, Users, Flame, Dices, Trophy, ArrowRight
+  Clock, Users, Flame, Dices, ArrowRight
 } from 'lucide-react';
 import type { FreeMatch } from '../lib/freeMatches';
 import type { MatchConsensus } from '../lib/types';
@@ -60,9 +60,8 @@ export default function FixtureSportCard({
       <div>
         {/* Card Header: League Info & Kickoff/Score Badge */}
         <div className="flex items-center justify-between gap-2 mb-3 text-xs">
-          <div className="flex items-center gap-1.5 min-w-0">
-            <Trophy size={13} className="text-[#006C54] shrink-0" />
-            <span className="font-extrabold text-[11px] text-slate-700 truncate uppercase tracking-wider">
+          <div className="min-w-0">
+            <span className="font-semibold text-[10.5px] text-slate-500 truncate block">
               {match.competition}
             </span>
           </div>
