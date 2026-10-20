@@ -13,8 +13,8 @@
  *                   & High-Profile Domestic Leagues (Liga Portugal, Eredivisie, Championship, Saudi Pro League, Brasileirão, MLS, Liga MX).
  * Tier 6 (500 pts): UEFA Elite Youth League & UEFA Women's Champions League.
  * Tier 7 (400 pts): Major Domestic Cups (FA Cup, Copa del Rey, DFB Pokal, Coppa Italia) & Recognized National Top Flights (Egyptian PL, PSL, Kenyan PL).
- * Tier 8 (200 pts): Other National Divisions & Recognized Regional Leagues.
- * Tier 9 (100 pts): Reserve leagues, regional youth, and unranked competitions.
+ * Tier 8 (250 pts): Continental Youth Tournaments (CAF U20, CAF U17, AFC U20) & Regional Tournaments.
+ * Tier 9 (150-200 pts): Other National Divisions, reserve leagues, regional youth, and unranked competitions.
  */
 
 import { normalizeMatchStatus } from './matchStatus';
@@ -45,7 +45,8 @@ export const COMPETITION_HIERARCHY: CompetitionTier[] = [
       /fifa world cup|^world cup/i,
       /uefa european championship|euro\s*20\d\d|euro qualification/i,
       /copa am[eé]rica/i,
-      /africa cup of nations|afcon/i,
+      // Senior AFCON only (exclude U17, U19, U20, U21, U23, youth)
+      /^(?!.*(?:u17|u19|u20|u21|u23|youth))(?:.*(?:africa cup of nations|\bafcon\b))/i,
       /afc asian cup/i,
       /concacaf gold cup/i,
     ],
@@ -121,6 +122,16 @@ export const COMPETITION_HIERARCHY: CompetitionTier[] = [
       /kenyan premier league|fkf/i,
       /moroccan botola/i,
       /j1 league|k league/i,
+    ],
+  },
+  // Tier 8: Continental Youth & Regional Secondary Tournaments
+  {
+    id: 'continental_youth_regional',
+    name: 'Continental Youth & Regional Tournaments',
+    baseScore: 250,
+    patterns: [
+      /caf.*(?:u17|u19|u20|u21|u23|youth)|(?:u17|u19|u20|u21|u23).*caf/i,
+      /concacaf.*(?:u17|u20)|afc.*(?:u17|u20|u23)/i,
     ],
   },
 ];

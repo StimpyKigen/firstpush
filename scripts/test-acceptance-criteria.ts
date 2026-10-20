@@ -115,6 +115,15 @@ async function runTestSuite() {
   assert(elScore > eplScore, 'Europa League ranked ahead of EPL');
   assert(eplScore > domesticScore, 'EPL ranked ahead of lower domestic leagues');
 
+  // Verify CAF U20 falls under Africa and is lower prestige than UEFA competitions
+  const cafU20Score = getCompetitionPriorityScore('CAF U20 Africa Cup of Nations qualification');
+  const cafU20Meta = getLeagueMetadata('CAF U20 Africa Cup of Nations qualification');
+  assert(cafU20Score === 250, `CAF U20 prestige score is 250 (Got: ${cafU20Score})`);
+  assert(cafU20Score < uclScore, 'UEFA Champions League is more prestigious than CAF U20');
+  assert(cafU20Score < elScore, 'UEFA Europa League is more prestigious than CAF U20');
+  assert(cafU20Score < eplScore, 'Top European leagues are more prestigious than CAF U20');
+  assert(cafU20Meta.continent === 'africa', `CAF U20 classified under continent 'africa' (Got: ${cafU20Meta.continent})`);
+
   // CRITERION 7: Highlights ordering is independent of raw API response order
   console.log('\nTest 7: Deterministic Highlights ordering vs API raw order');
   const lowFixture = {

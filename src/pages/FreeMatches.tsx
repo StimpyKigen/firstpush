@@ -1,8 +1,8 @@
 import { useState, useMemo, useRef, useEffect, useSyncExternalStore } from 'react';
 import {
-  Sparkles, Clock, Unlock, Calendar, Search, X, SearchX,
-  Check, Flame, ChevronDown, RotateCcw,
-  Radio, Trophy, Play
+  Unlock, Calendar, Search, X, SearchX,
+  Check, ChevronDown, RotateCcw,
+  Radio, Trophy
 } from 'lucide-react';
 import SeoHead from '../components/SeoHead';
 import {
@@ -30,15 +30,15 @@ import {
   getDeviceLocalDateString,
 } from '../lib/competitionPriority';
 
-type ScopeTab = 'upcoming' | 'live';
+type ScopeTab = 'highlights' | 'live' | 'upcoming';
 
 export default function FreeMatches() {
-  const [activeTab, setActiveTab] = useState<ScopeTab>('upcoming');
+  const [activeTab, setActiveTab] = useState<ScopeTab>('highlights');
   const [selectedDate, setSelectedDate] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedMatchForBuilder, setSelectedMatchForBuilder] = useState<MatchForBuilder | null>(null);
 
-  // League filter & Sort by
+  // League filter
   const [leagueFilter, setLeagueFilter] = useState<string>(() => {
     try {
       return localStorage.getItem('mshindi_freematch_league_filter') || 'all';
@@ -47,17 +47,13 @@ export default function FreeMatches() {
     }
   });
 
-  const [sortBy, setSortBy] = useState<'highlights' | 'time' | 'popular'>('highlights');
-
   // Apple-inspired toolbar dropdown & popover states
   const [isDateDropdownOpen, setIsDateDropdownOpen] = useState(false);
   const [isLeagueDropdownOpen, setIsLeagueDropdownOpen] = useState(false);
-  const [isSortDropdownOpen, setIsSortDropdownOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
 
   const dateDropdownRef = useRef<HTMLDivElement>(null);
   const leagueDropdownRef = useRef<HTMLDivElement>(null);
-  const sortDropdownRef = useRef<HTMLDivElement>(null);
   const searchContainerRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
 
@@ -69,9 +65,6 @@ export default function FreeMatches() {
       }
       if (leagueDropdownRef.current && !leagueDropdownRef.current.contains(target)) {
         setIsLeagueDropdownOpen(false);
-      }
-      if (sortDropdownRef.current && !sortDropdownRef.current.contains(target)) {
-        setIsSortDropdownOpen(false);
       }
       if (searchContainerRef.current && !searchContainerRef.current.contains(target)) {
         if (!searchQuery) {
@@ -86,19 +79,11 @@ export default function FreeMatches() {
   const toggleDateDropdown = () => {
     setIsDateDropdownOpen((prev) => !prev);
     setIsLeagueDropdownOpen(false);
-    setIsSortDropdownOpen(false);
   };
 
   const toggleLeagueDropdown = () => {
     setIsLeagueDropdownOpen((prev) => !prev);
     setIsDateDropdownOpen(false);
-    setIsSortDropdownOpen(false);
-  };
-
-  const toggleSortDropdown = () => {
-    setIsSortDropdownOpen((prev) => !prev);
-    setIsDateDropdownOpen(false);
-    setIsLeagueDropdownOpen(false);
   };
 
   const toggleSearch = () => {
@@ -111,7 +96,6 @@ export default function FreeMatches() {
     });
     setIsDateDropdownOpen(false);
     setIsLeagueDropdownOpen(false);
-    setIsSortDropdownOpen(false);
   };
 
   const handleLeagueFilterChange = (val: string) => {
@@ -127,8 +111,7 @@ export default function FreeMatches() {
     setIsSearchOpen(false);
     handleLeagueFilterChange('all');
     setSelectedDate('all');
-    setActiveTab('upcoming');
-    setSortBy('highlights');
+    setActiveTab('highlights');
   };
 
   const matches = useSyncExternalStore(subscribeToFreeMatches, getFreeMatchesSnapshot, getFreeMatchesSnapshot);
@@ -191,6 +174,7 @@ export default function FreeMatches() {
   const counts = useMemo(() => {
     let live = 0;
     let upcoming = 0;
+    let highlights = 0;
 
     matches.forEach((m) => {
       const norm = normalizeMatchStatus(m.status, m.displayClock);
@@ -200,12 +184,16 @@ export default function FreeMatches() {
       if (isUpcomingEligible(m, deviceNow)) {
         upcoming++;
       }
+      if (isHighlightsEligible(m)) {
+        highlights++;
+      }
     });
 
     return {
       all: matches.length,
       live,
       upcoming,
+      highlights,
     };
   }, [matches, deviceNow]);
 
@@ -215,6 +203,9 @@ export default function FreeMatches() {
       const norm = normalizeMatchStatus(m.status, m.displayClock);
       if (activeTab === 'live') {
         return norm === 'in';
+      }
+      if (activeTab === 'highlights') {
+        return isHighlightsEligible(m);
       }
       return isUpcomingEligible(m, deviceNow);
     }).length;
@@ -230,6 +221,10 @@ export default function FreeMatches() {
           if (activeTab === 'live') {
             const norm = normalizeMatchStatus(m.status, m.displayClock);
             if (norm === 'in') {
+              dateMap.set(dStr, (dateMap.get(dStr) || 0) + 1);
+            }
+          } else if (activeTab === 'highlights') {
+            if (isHighlightsEligible(m)) {
               dateMap.set(dStr, (dateMap.get(dStr) || 0) + 1);
             }
           } else {
@@ -278,9 +273,13 @@ export default function FreeMatches() {
         if (dStr !== selectedDate) return false;
       }
 
-      // 2. Active Tab: Live vs Upcoming
+      // 2. Active Tab: Live vs Highlights vs Upcoming
       if (activeTab === 'live') {
         return norm === 'in';
+      }
+
+      if (activeTab === 'highlights') {
+        return isHighlightsEligible(m);
       }
 
       // Default: Upcoming tab - strictly enforce real-time upcoming cutoff
@@ -373,23 +372,12 @@ export default function FreeMatches() {
       return true;
     })
     .sort((a, b) => {
-      // 1. Kickoff Time: strictly chronological (earliest kickoff first)
-      if (sortBy === 'time') {
+      // Upcoming: strictly chronological by kickoff time (earliest kickoff first)
+      if (activeTab === 'upcoming') {
         return sortUpcomingComparator(a, b);
       }
-      // 2. Highlights: rank by competition prestige hierarchy (Champions League, Premier League, etc.)
-      if (sortBy === 'highlights') {
-        return sortHighlightsComparator(a, b);
-      }
-      // 3. Most Popular: consensus votes descending
-      if (sortBy === 'popular') {
-        const votesA = consensusMap[a.id]?.totalVotes ?? 0;
-        const votesB = consensusMap[b.id]?.totalVotes ?? 0;
-        if (votesB !== votesA) return votesB - votesA;
-        return sortUpcomingComparator(a, b);
-      }
-
-      return sortUpcomingComparator(a, b);
+      // Highlights & Live: rank by competition prestige hierarchy
+      return sortHighlightsComparator(a, b);
     });
 
   const handleTabClick = (tab: ScopeTab) => {
@@ -441,59 +429,59 @@ export default function FreeMatches() {
 
       {/* APPLE-INSPIRED MATCH FILTERS TOOLBAR (PHOTO B) */}
       <div className="max-w-4xl mx-auto mb-6 sm:mb-8">
-        {/* ROW 1 — Match Status Inline Tab Switcher (Matching Reference Photo) */}
-        <div className="flex justify-center mb-4 sm:mb-5">
-          <div className="inline-flex items-center gap-3 sm:gap-5 py-1.5 px-3">
-            {/* Upcoming Tab */}
+        {/* ROW 1 — Match Status Inline Tab Switcher */}
+        <div className="flex justify-center mb-3 sm:mb-4">
+          <div className="inline-flex items-center gap-2.5 sm:gap-4 py-1 px-2.5 sm:px-3">
+            {/* Highlights Tab (Default on page load) */}
             <button
               type="button"
-              onClick={() => handleTabClick('upcoming')}
-              className={`text-sm sm:text-base transition-colors flex items-center gap-2 cursor-pointer select-none ${
-                activeTab === 'upcoming'
+              onClick={() => handleTabClick('highlights')}
+              className={`text-xs sm:text-[13px] transition-colors flex items-center gap-1.5 sm:gap-2 cursor-pointer select-none ${
+                activeTab === 'highlights'
                   ? 'font-bold text-[#006C54]'
-                  : 'font-semibold text-slate-500 hover:text-slate-800'
+                  : 'font-medium text-slate-500 hover:text-slate-800'
               }`}
             >
-              <span>Upcoming</span>
+              <span>Highlights</span>
               <span
-                className={`text-[11px] font-mono px-2 py-0.5 rounded-full font-bold transition-colors ${
-                  activeTab === 'upcoming'
+                className={`text-[10px] sm:text-[11px] font-mono px-1.5 py-0.2 rounded-full font-bold transition-colors ${
+                  activeTab === 'highlights'
                     ? 'bg-[#E8F5EE] text-[#006C54]'
                     : 'bg-slate-100 text-slate-500'
                 }`}
               >
-                {counts.upcoming}
+                {counts.highlights}
               </span>
             </button>
 
-            {/* Vertical Divider */}
-            <div className="h-4 sm:h-5 w-[1px] bg-slate-300 shrink-0" aria-hidden="true" />
+            {/* Vertical Divider 1 */}
+            <div className="h-3 sm:h-3.5 w-[1px] bg-slate-300 shrink-0" aria-hidden="true" />
 
             {/* Live Tab */}
             <button
               type="button"
               onClick={() => handleTabClick('live')}
-              className={`text-sm sm:text-base transition-colors flex items-center gap-2 cursor-pointer select-none ${
+              className={`text-xs sm:text-[13px] transition-colors flex items-center gap-1.5 sm:gap-2 cursor-pointer select-none ${
                 activeTab === 'live'
                   ? 'font-bold text-[#006C54]'
-                  : 'font-semibold text-slate-500 hover:text-slate-800'
+                  : 'font-medium text-slate-500 hover:text-slate-800'
               }`}
             >
-              <span className="relative flex h-2 w-2 shrink-0">
+              <span className="relative flex h-1.5 w-1.5 sm:h-2 sm:w-2 shrink-0">
                 <span
                   className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${
                     counts.live > 0 ? 'bg-red-400' : 'bg-slate-400'
                   }`}
                 />
                 <span
-                  className={`relative inline-flex rounded-full h-2 w-2 ${
+                  className={`relative inline-flex rounded-full h-1.5 w-1.5 sm:h-2 sm:w-2 ${
                     counts.live > 0 ? 'bg-red-500' : 'bg-slate-400'
                   }`}
                 />
               </span>
               <span>Live</span>
               <span
-                className={`text-[11px] font-mono px-2 py-0.5 rounded-full font-bold transition-colors ${
+                className={`text-[10px] sm:text-[11px] font-mono px-1.5 py-0.2 rounded-full font-bold transition-colors ${
                   activeTab === 'live'
                     ? 'bg-[#E8F5EE] text-[#006C54]'
                     : 'bg-slate-100 text-slate-500'
@@ -502,17 +490,42 @@ export default function FreeMatches() {
                 {counts.live}
               </span>
             </button>
+
+            {/* Vertical Divider 2 */}
+            <div className="h-3 sm:h-3.5 w-[1px] bg-slate-300 shrink-0" aria-hidden="true" />
+
+            {/* Upcoming Tab */}
+            <button
+              type="button"
+              onClick={() => handleTabClick('upcoming')}
+              className={`text-xs sm:text-[13px] transition-colors flex items-center gap-1.5 sm:gap-2 cursor-pointer select-none ${
+                activeTab === 'upcoming'
+                  ? 'font-bold text-[#006C54]'
+                  : 'font-medium text-slate-500 hover:text-slate-800'
+              }`}
+            >
+              <span>Upcoming</span>
+              <span
+                className={`text-[10px] sm:text-[11px] font-mono px-1.5 py-0.2 rounded-full font-bold transition-colors ${
+                  activeTab === 'upcoming'
+                    ? 'bg-[#E8F5EE] text-[#006C54]'
+                    : 'bg-slate-100 text-slate-500'
+                }`}
+              >
+                {counts.upcoming}
+              </span>
+            </button>
           </div>
         </div>
 
-        {/* ROW 2 — Filters and Search Toolbar */}
-        <div className="flex items-center justify-center gap-2 sm:gap-3 flex-wrap sm:flex-nowrap px-1">
+        {/* ROW 2 — Filters and Search Toolbar (Two dropdowns + borderless search icon) */}
+        <div className="flex items-center justify-center gap-1.5 sm:gap-2.5 flex-wrap sm:flex-nowrap px-1">
           {/* Control 1: Dates Dropdown */}
           <div className="relative" ref={dateDropdownRef}>
             <button
               type="button"
               onClick={toggleDateDropdown}
-              className={`h-10 sm:h-11 px-3.5 sm:px-4 rounded-full bg-[#FFFFF0] border text-xs sm:text-sm font-semibold flex items-center gap-2 transition-all shadow-[0_1px_4px_rgba(0,0,0,0.03)] hover:shadow-[0_2px_8px_rgba(0,108,84,0.08)] cursor-pointer select-none ${
+              className={`h-8 sm:h-8.5 px-3 sm:px-3.5 rounded-full bg-[#FFFFF0] border text-xs sm:text-[13px] font-semibold flex items-center gap-1.5 sm:gap-2 transition-all shadow-[0_1px_3px_rgba(0,0,0,0.03)] hover:shadow-[0_2px_6px_rgba(0,108,84,0.08)] cursor-pointer select-none ${
                 isDateDropdownOpen || selectedDate !== 'all'
                   ? 'border-[#006C54] text-[#006C54] ring-2 ring-[#006C54]/15'
                   : 'border-[#DCDCC8] text-slate-800 hover:border-[#006C54]'
@@ -520,13 +533,13 @@ export default function FreeMatches() {
               aria-expanded={isDateDropdownOpen}
               aria-label="Filter by match date"
             >
-              <Calendar size={15} className="text-[#006C54] shrink-0" />
+              <Calendar size={13.5} className="text-[#006C54] shrink-0" />
               <span>{selectedDate === 'all' ? 'Dates' : selectedDateLabel}</span>
               {selectedDate !== 'all' && (
                 <span className="w-1.5 h-1.5 rounded-full bg-[#006C54] shrink-0" />
               )}
               <ChevronDown
-                size={14}
+                size={13}
                 className={`text-slate-500 transition-transform duration-200 shrink-0 ${
                   isDateDropdownOpen ? 'rotate-180 text-[#006C54]' : ''
                 }`}
@@ -598,7 +611,7 @@ export default function FreeMatches() {
             <button
               type="button"
               onClick={toggleLeagueDropdown}
-              className={`h-10 sm:h-11 px-3.5 sm:px-4 rounded-full bg-[#FFFFF0] border text-xs sm:text-sm font-semibold flex items-center gap-2 transition-all shadow-[0_1px_4px_rgba(0,0,0,0.03)] hover:shadow-[0_2px_8px_rgba(0,108,84,0.08)] cursor-pointer select-none max-w-[200px] sm:max-w-[260px] ${
+              className={`h-8 sm:h-8.5 px-3 sm:px-3.5 rounded-full bg-[#FFFFF0] border text-xs sm:text-[13px] font-semibold flex items-center gap-1.5 sm:gap-2 transition-all shadow-[0_1px_3px_rgba(0,0,0,0.03)] hover:shadow-[0_2px_6px_rgba(0,108,84,0.08)] cursor-pointer select-none max-w-[190px] sm:max-w-[240px] ${
                 isLeagueDropdownOpen || leagueFilter !== 'all'
                   ? 'border-[#006C54] text-[#006C54] ring-2 ring-[#006C54]/15'
                   : 'border-[#DCDCC8] text-slate-800 hover:border-[#006C54]'
@@ -606,7 +619,7 @@ export default function FreeMatches() {
               aria-expanded={isLeagueDropdownOpen}
               aria-label="Filter by competition or league"
             >
-              <Trophy size={15} className="text-[#006C54] shrink-0" />
+              <Trophy size={13.5} className="text-[#006C54] shrink-0" />
               <span className="truncate">
                 {leagueFilter === 'all' ? 'Leagues' : currentLeagueLabel.title}
               </span>
@@ -614,7 +627,7 @@ export default function FreeMatches() {
                 <span className="w-1.5 h-1.5 rounded-full bg-[#006C54] shrink-0" />
               )}
               <ChevronDown
-                size={14}
+                size={13}
                 className={`text-slate-500 transition-transform duration-200 shrink-0 ${
                   isLeagueDropdownOpen ? 'rotate-180 text-[#006C54]' : ''
                 }`}
@@ -695,104 +708,15 @@ export default function FreeMatches() {
             )}
           </div>
 
-          {/* Control 3: Highlights (Sort) Dropdown */}
-          <div className="relative" ref={sortDropdownRef}>
-            <button
-              type="button"
-              onClick={toggleSortDropdown}
-              className={`h-10 sm:h-11 px-3.5 sm:px-4 rounded-full bg-[#FFFFF0] border text-xs sm:text-sm font-semibold flex items-center gap-2 transition-all shadow-[0_1px_4px_rgba(0,0,0,0.03)] hover:shadow-[0_2px_8px_rgba(0,108,84,0.08)] cursor-pointer select-none ${
-                isSortDropdownOpen || sortBy !== 'highlights'
-                  ? 'border-[#006C54] text-[#006C54] ring-2 ring-[#006C54]/15'
-                  : 'border-[#DCDCC8] text-slate-800 hover:border-[#006C54]'
-              }`}
-              aria-expanded={isSortDropdownOpen}
-              aria-label="Sort and highlight options"
-            >
-              <Play size={13} className="text-[#006C54] fill-[#006C54] shrink-0" />
-              <span>Highlights</span>
-              {sortBy !== 'highlights' && (
-                <span className="w-1.5 h-1.5 rounded-full bg-[#006C54] shrink-0" />
-              )}
-              <ChevronDown
-                size={14}
-                className={`text-slate-500 transition-transform duration-200 shrink-0 ${
-                  isSortDropdownOpen ? 'rotate-180 text-[#006C54]' : ''
-                }`}
-              />
-            </button>
-
-            {/* Highlights Sort Dropdown Menu */}
-            {isSortDropdownOpen && (
-              <div className="absolute left-1/2 -translate-x-1/2 sm:right-0 sm:left-auto sm:translate-x-0 mt-2 w-64 sm:w-72 bg-[#FFFFF0] border border-[#DCDCC8] rounded-2xl shadow-2xl py-2 z-50 text-xs">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setSortBy('highlights');
-                    setIsSortDropdownOpen(false);
-                  }}
-                  className={`w-full px-3 py-2 text-left flex items-center justify-between transition-colors cursor-pointer ${
-                    sortBy === 'highlights'
-                      ? 'bg-[#006C54]/10 text-[#006C54] font-black'
-                      : 'hover:bg-[#F5F5E4] text-slate-700 font-semibold'
-                  }`}
-                >
-                  <span className="flex items-center gap-2">
-                    <Sparkles size={14} className="text-amber-500 shrink-0" />
-                    <span>Competition Prestige (Highlights)</span>
-                  </span>
-                  {sortBy === 'highlights' && <Check size={14} className="text-[#006C54]" />}
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => {
-                    setSortBy('time');
-                    setIsSortDropdownOpen(false);
-                  }}
-                  className={`w-full px-3 py-2 text-left flex items-center justify-between transition-colors cursor-pointer ${
-                    sortBy === 'time'
-                      ? 'bg-[#006C54]/10 text-[#006C54] font-black'
-                      : 'hover:bg-[#F5F5E4] text-slate-700 font-semibold'
-                  }`}
-                >
-                  <span className="flex items-center gap-2">
-                    <Clock size={14} className="text-slate-600 shrink-0" />
-                    <span>Kickoff Time (Earliest First)</span>
-                  </span>
-                  {sortBy === 'time' && <Check size={14} className="text-[#006C54]" />}
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => {
-                    setSortBy('popular');
-                    setIsSortDropdownOpen(false);
-                  }}
-                  className={`w-full px-3 py-2 text-left flex items-center justify-between transition-colors cursor-pointer ${
-                    sortBy === 'popular'
-                      ? 'bg-[#006C54]/10 text-[#006C54] font-black'
-                      : 'hover:bg-[#F5F5E4] text-slate-700 font-semibold'
-                  }`}
-                >
-                  <span className="flex items-center gap-2">
-                    <Flame size={14} className="text-orange-500 shrink-0" />
-                    <span>Ranked by Activity (Popular)</span>
-                  </span>
-                  {sortBy === 'popular' && <Check size={14} className="text-[#006C54]" />}
-                </button>
-              </div>
-            )}
-          </div>
-
-          {/* Control 4: Search Icon Button */}
+          {/* Control 3: Search Icon Button (Borderless, clean icon) */}
           <div className="relative" ref={searchContainerRef}>
             <button
               type="button"
               onClick={toggleSearch}
-              className={`h-10 w-10 sm:h-11 sm:w-11 rounded-full bg-[#FFFFF0] border flex items-center justify-center shrink-0 transition-all shadow-[0_1px_4px_rgba(0,0,0,0.03)] hover:shadow-[0_2px_8px_rgba(0,108,84,0.08)] cursor-pointer select-none ${
+              className={`p-1.5 sm:p-2 rounded-lg flex items-center justify-center shrink-0 transition-colors cursor-pointer select-none ${
                 isSearchOpen || searchQuery
-                  ? 'border-[#006C54] bg-[#006C54]/10 text-[#006C54] ring-2 ring-[#006C54]/15'
-                  : 'border-[#DCDCC8] text-[#006C54] hover:border-[#006C54]'
+                  ? 'bg-[#006C54]/15 text-[#006C54]'
+                  : 'text-[#006C54] hover:text-[#005441] hover:bg-[#006C54]/10'
               }`}
               aria-label="Search matches"
               title="Search matches"
@@ -840,7 +764,7 @@ export default function FreeMatches() {
         )}
 
         {/* ACTIVE FILTER TAGS ROW */}
-        {(selectedDate !== 'all' || leagueFilter !== 'all' || searchQuery || sortBy !== 'highlights') && (
+        {(selectedDate !== 'all' || leagueFilter !== 'all' || searchQuery) && (
           <div className="flex items-center justify-center flex-wrap gap-1.5 mt-3 text-xs">
             {selectedDate !== 'all' && (
               <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-[#006C54]/10 border border-[#006C54]/20 text-[#006C54] font-semibold text-[11px]">
@@ -876,19 +800,6 @@ export default function FreeMatches() {
                   onClick={() => setSearchQuery('')}
                   className="hover:text-red-600 transition-colors cursor-pointer"
                   aria-label="Clear search filter"
-                >
-                  <X size={12} />
-                </button>
-              </span>
-            )}
-            {sortBy !== 'highlights' && (
-              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-slate-200/80 border border-slate-300 text-slate-700 font-semibold text-[11px]">
-                <span>Sorted: {sortBy === 'time' ? 'Kickoff Time' : 'Popular'}</span>
-                <button
-                  type="button"
-                  onClick={() => setSortBy('highlights')}
-                  className="hover:text-red-600 transition-colors cursor-pointer"
-                  aria-label="Reset sort to prestige"
                 >
                   <X size={12} />
                 </button>

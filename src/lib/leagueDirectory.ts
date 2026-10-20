@@ -73,7 +73,8 @@ const LEAGUE_STRENGTH_MAP: Array<{ pattern: RegExp; rank: number; continent: Con
   { pattern: /botola|morocco/i, rank: 5, continent: 'africa', standardName: 'Moroccan Botola Pro' },
   { pattern: /kenyan premier league|kenya premier|fkf/i, rank: 6, continent: 'africa', standardName: 'Kenyan Premier League' },
   { pattern: /nigeria|npfl/i, rank: 7, continent: 'africa', standardName: 'Nigerian NPFL' },
-  { pattern: /caf|africa|ghana|tanzania|zambia|tunisia|algeria/i, rank: 8, continent: 'africa', standardName: 'Other African Leagues' },
+  { pattern: /caf.*(?:u17|u19|u20|u21|u23|youth)|(?:u17|u19|u20|u21|u23).*caf/i, rank: 8, continent: 'africa', standardName: 'CAF Youth Championships' },
+  { pattern: /caf|africa|ghana|tanzania|zambia|tunisia|algeria/i, rank: 9, continent: 'africa', standardName: 'Other African Leagues' },
 
   // Asia
   { pattern: /afc champions league|afc elite/i, rank: 1, continent: 'asia', standardName: 'AFC Champions League' },
