@@ -262,6 +262,37 @@ export function formatDeviceLocalTime(kickoffIso?: string, fallback: string = ''
 }
 
 /**
+ * Formats a fixture's kickoff into DD/MM HH:mm in the user's local device timezone (24h system).
+ * Example: "21/10 19:45"
+ */
+export function formatKickoffDateTime24h(kickoffIso?: string, fallback: string = ''): string {
+  if (kickoffIso) {
+    const d = new Date(kickoffIso);
+    if (!isNaN(d.getTime())) {
+      const day = String(d.getDate()).padStart(2, '0');
+      const month = String(d.getMonth() + 1).padStart(2, '0');
+      const hours = String(d.getHours()).padStart(2, '0');
+      const minutes = String(d.getMinutes()).padStart(2, '0');
+      return `${day}/${month} ${hours}:${minutes}`;
+    }
+  }
+
+  if (fallback) {
+    const d = new Date(fallback);
+    if (!isNaN(d.getTime())) {
+      const day = String(d.getDate()).padStart(2, '0');
+      const month = String(d.getMonth() + 1).padStart(2, '0');
+      const hours = String(d.getHours()).padStart(2, '0');
+      const minutes = String(d.getMinutes()).padStart(2, '0');
+      return `${day}/${month} ${hours}:${minutes}`;
+    }
+    return fallback;
+  }
+
+  return '';
+}
+
+/**
  * Highlights ordering comparator:
  * 1. Competition prestige + status score (descending)
  * 2. Kickoff time (ascending, earliest upcoming first)

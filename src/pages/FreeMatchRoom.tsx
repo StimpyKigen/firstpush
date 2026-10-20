@@ -1,24 +1,21 @@
 import { useState, useSyncExternalStore } from 'react';
-import { useParams, Link, Navigate } from 'react-router-dom';
-import { ArrowLeft, Users, Clock, CheckCircle2, RadioTower, Unlock, Dices, Check } from 'lucide-react';
+import { useParams, Navigate } from 'react-router-dom';
+import { Users, Clock, CheckCircle2, RadioTower, Unlock, Trophy, Activity } from 'lucide-react';
 import SeoHead from '../components/SeoHead';
-import { getFreeMatchesSnapshot, getFreeMatchConsensusSnapshot, subscribeToFreeMatches, TIER_LABEL } from '../lib/freeMatches';
+import {
+  getFreeMatchesSnapshot,
+  getFreeMatchConsensusSnapshot,
+  subscribeToFreeMatches
+} from '../lib/freeMatches';
 import { GamblerPick, Outcome } from '../lib/types';
-import { useAuth, useCurrentUser } from '../lib/authStore';
+import { useCurrentUser } from '../lib/authStore';
 import { useUserPicks } from '../lib/userPicksStore';
 import OutcomeBar from '../components/OutcomeBar';
 import DiscussionPanel from '../components/DiscussionPanel';
-import { useBetSlipStore } from '../lib/betSlipStore';
-import QuickBetBuilderModal from '../components/QuickBetBuilderModal';
 import BackNavButton from '../components/BackNavButton';
 import { RoomDetailSkeleton } from '../components/skeleton';
 import SportScoreMatchCenter from '../components/SportScoreMatchCenter';
-
-const tierColor: Record<string, string> = {
-  blockbuster: '#8A6500',
-  continental: '#1876f2',
-  derby: '#e41e3f',
-};
+import { formatKickoffDateTime24h } from '../lib/competitionPriority';
 
 export default function FreeMatchRoom() {
   const { id } = useParams();
@@ -30,6 +27,9 @@ export default function FreeMatchRoom() {
   const username = currentUser?.username || 'Guest Punter';
   const { savePick, getPick } = useUserPicks();
 
+  // Tab indicator state: 'details' vs 'discussion'
+  const [roomTab, setRoomTab] = useState<'details' | 'discussion'>('details');
+
   const roomId = `free-${id}`;
   const myPickRecord = match ? getPick(roomId, match.id) : undefined;
 
@@ -38,9 +38,6 @@ export default function FreeMatchRoom() {
   const [isEditing, setIsEditing] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [toastMsg, setToastMsg] = useState<string | null>(null);
-  const [showBuilderModal, setShowBuilderModal] = useState(false);
-
-  const builderLegs = useBetSlipStore((s) => s.builderLegs);
 
   if (!match) {
     if (matches.length === 0) {
@@ -51,19 +48,6 @@ export default function FreeMatchRoom() {
   const consensus = consensusMap[match.id];
 
   const outcomeColor = myPickRecord?.pick === '1' ? '#006C54' : myPickRecord?.pick === 'X' ? '#8A6500' : '#e41e3f';
-
-  const startEdit = () => {
-    if (myPickRecord) {
-      if (myPickRecord.editCount >= 2) {
-        setErrorMsg('You have reached the limit of 2 edits for this match pick.');
-        return;
-      }
-      setSelectedOutcome(myPickRecord.pick);
-      setReasoning(myPickRecord.reasoning);
-    }
-    setErrorMsg(null);
-    setIsEditing(true);
-  };
 
   const handlePostPick = () => {
     if (!reasoning.trim()) {
@@ -115,36 +99,82 @@ export default function FreeMatchRoom() {
           "description": match.blurb || `Free match prediction and consensus discussion room for ${match.home} vs ${match.away}`
         }}
       />
-      <div className="mb-6">
+
+      {/* Back to All Free Matches Navigation */}
+      <div className="mb-4">
         <BackNavButton fallbackUrl="/free" label="All free matches" />
       </div>
 
-      <div className="bg-white border border-slate-200 rounded-2xl p-6 sm:p-8 mb-6 shadow-xs">
-        {/* Clean Text Informational Metadata (No Generic Pills) */}
-        <div className="flex flex-wrap items-center gap-2.5 mb-3 text-xs font-bold uppercase tracking-wider">
-          <span style={{ color: tierColor[match.tier] }} className="font-black">
-            {TIER_LABEL[match.tier]}
+      {/* MATCH DETAILS & FAN DISCUSSION TAB INDICATOR (Middle position on top of first card) */}
+      <div className="flex justify-center mb-6">
+        <div className="inline-flex items-center bg-[#F2F2DE] border border-[#DDDDCB] rounded-full p-1 shadow-[0_2px_8px_rgba(0,0,0,0.03)]">
+          <button
+            type="button"
+            onClick={() => setRoomTab('details')}
+            className={`rounded-full px-5 sm:px-7 py-2 text-xs sm:text-sm font-bold flex items-center gap-2 cursor-pointer transition-all duration-200 select-none ${
+              roomTab === 'details'
+                ? 'bg-gradient-to-r from-[#175A38] to-[#257840] text-white shadow-[0_2px_8px_rgba(23,90,56,0.35)]'
+                : 'text-slate-700 hover:text-slate-900 hover:bg-white/50'
+            }`}
+          >
+            <Activity size={14} className={roomTab === 'details' ? 'text-white' : 'text-slate-500'} />
+            <span>Match Details</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setRoomTab('discussion')}
+            className={`rounded-full px-5 sm:px-7 py-2 text-xs sm:text-sm font-bold flex items-center gap-2 cursor-pointer transition-all duration-200 select-none ${
+              roomTab === 'discussion'
+                ? 'bg-gradient-to-r from-[#175A38] to-[#257840] text-white shadow-[0_2px_8px_rgba(23,90,56,0.35)]'
+                : 'text-slate-700 hover:text-slate-900 hover:bg-white/50'
+            }`}
+          >
+            <Users size={14} className={roomTab === 'discussion' ? 'text-white' : 'text-slate-500'} />
+            <span>Fan Discussion</span>
+            {consensus && (
+              <span
+                className={`text-[11px] font-mono px-2 py-0.5 rounded-full font-bold transition-colors ${
+                  roomTab === 'discussion' ? 'bg-[#3E8B58] text-white' : 'bg-[#E2E2CE] text-slate-700'
+                }`}
+              >
+                {consensus.totalVotes}
+              </span>
+            )}
+          </button>
+        </div>
+      </div>
+
+      {/* FIRST CARD: Match Title, League, and Kickoff Time (Tier text & Bet Builder button removed) */}
+      <div className="bg-[#FFFFF0] border border-[#DCDCC8] rounded-2xl p-6 sm:p-8 mb-6 shadow-xs">
+        {/* Header Metadata */}
+        <div className="flex flex-wrap items-center gap-2.5 mb-3 text-xs font-bold uppercase tracking-wider text-slate-500">
+          <span className="text-slate-700 inline-flex items-center gap-1.5 font-bold">
+            <Unlock size={13} className="text-[#006C54]" /> Free Match Room
           </span>
           <span className="text-slate-300 font-normal">·</span>
-          <span className="text-slate-600 inline-flex items-center gap-1.5 font-bold">
-            <Unlock size={13} className="text-[#006C54]" /> Free Match Room · Open Discussion
-          </span>
-          <span className="text-slate-300 font-normal">·</span>
-          <span className="text-slate-400 font-semibold inline-flex items-center gap-1.5">
-            <RadioTower size={12} className="animate-pulse text-[#006C54]" /> Synced {match.syncedAt}
+          <span className="text-slate-500 font-semibold inline-flex items-center gap-1.5">
+            <RadioTower size={12} className="animate-pulse text-[#006C54]" /> Live Match Centre
           </span>
         </div>
 
+        {/* Team Names and League Name at the bottom of the teams */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <h1 className="font-display font-black text-2xl sm:text-4xl text-slate-900 leading-tight uppercase tracking-tight">
               {match.home} <span className="text-slate-400 font-normal">v</span> {match.away}
             </h1>
-            <p className="text-sm font-semibold text-slate-500 mt-1">{match.competition}</p>
+            <div className="flex items-center gap-1.5 mt-2">
+              <Trophy size={14} className="text-[#006C54] shrink-0" />
+              <span className="text-sm font-extrabold text-[#006C54] tracking-wide uppercase">
+                {match.competition}
+              </span>
+            </div>
           </div>
 
-          <div className="flex items-center gap-2.5 flex-wrap self-start sm:self-auto">
-            {myPickRecord && (
+          {/* User's Pick Badge if picked */}
+          {myPickRecord && (
+            <div className="flex items-center gap-2.5 flex-wrap self-start sm:self-auto">
               <div
                 className="inline-flex items-center gap-1.5 text-xs font-black uppercase tracking-wider px-3 py-1.5 rounded-md"
                 style={{
@@ -156,59 +186,19 @@ export default function FreeMatchRoom() {
                 <CheckCircle2 size={14} />
                 YOUR PICK: {myPickRecord.pick}
               </div>
-            )}
-
-            <button
-              onClick={() => setShowBuilderModal(true)}
-              className={`h-10 px-4 rounded-md font-extrabold uppercase tracking-wider text-xs transition-all active:scale-[0.98] shadow-2xs flex items-center justify-center gap-2 cursor-pointer ${
-                builderLegs.some((l) => l.matchId === match.id)
-                  ? 'bg-[#006C54] hover:bg-[#005441] text-white border border-[#005441]'
-                  : 'bg-slate-900 hover:bg-slate-800 text-white border border-slate-900'
-              }`}
-            >
-              {builderLegs.some((l) => l.matchId === match.id) ? (
-                <>
-                  <Check size={14} className="shrink-0 stroke-[3]" />
-                  <span>In Bet Builder ({builderLegs.filter((l) => l.matchId === match.id).length})</span>
-                </>
-              ) : (
-                <>
-                  <Dices size={14} className="shrink-0" />
-                  <span>Add to Bet Builder</span>
-                </>
-              )}
-            </button>
-          </div>
+            </div>
+          )}
         </div>
 
-        <div className="flex flex-wrap gap-x-6 gap-y-2 mt-4 pt-4 border-t border-slate-200 text-xs font-semibold text-slate-500">
-          <span className="flex items-center gap-1.5"><Clock size={14} className="text-slate-400" /> {match.kickoff}</span>
-          <span className="flex items-center gap-1.5"><Users size={14} className="text-[#006C54]" /> {consensus.totalVotes.toLocaleString()} punters discussing</span>
-        </div>
-      </div>
-
-      {/* SportScore Match Center (Lineups, Incidents, Details, Standings, Live Tracker) */}
-      <SportScoreMatchCenter match={match} />
-
-      {/* Shared Picks Prior to Closure Highlight Banner */}
-      <div className="mb-6 bg-white border border-slate-200 rounded-2xl p-4 sm:p-5 flex items-center justify-between gap-3 shadow-xs">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-[#006C54]/10 text-[#006C54] flex items-center justify-center font-bold shrink-0">
-            <Users size={20} />
-          </div>
-          <div>
-            <h3 className="font-display font-black text-slate-900 text-sm sm:text-base uppercase tracking-tight">
-              Community Picks &amp; Consensus Split
-            </h3>
-            <p className="text-xs text-slate-500">
-              Predictions and reasoning shared by community punters prior to kickoff closure.
-            </p>
-          </div>
-        </div>
-        <div className="bg-slate-50 border border-slate-200 px-4 py-1.5 rounded-xl text-center shrink-0">
-          <span className="text-[10px] uppercase font-black tracking-wider text-slate-400 block">Shared Picks</span>
-          <span className="font-display font-black text-[#006C54] text-base sm:text-lg">
-            {consensus.totalVotes.toLocaleString()}
+        {/* Footer: Date & Time in DD/MM HH:mm (24h system) and Punters Discussing */}
+        <div className="flex flex-wrap gap-x-6 gap-y-2 mt-4 pt-4 border-t border-[#E6E6D2] text-xs font-semibold text-slate-500">
+          <span className="flex items-center gap-1.5 font-mono">
+            <Clock size={14} className="text-slate-400" />
+            {formatKickoffDateTime24h(match.kickoffIso, match.kickoff)}
+          </span>
+          <span className="flex items-center gap-1.5">
+            <Users size={14} className="text-[#006C54]" />
+            {consensus.totalVotes.toLocaleString()} punters discussing
           </span>
         </div>
       </div>
@@ -219,36 +209,70 @@ export default function FreeMatchRoom() {
         </div>
       )}
 
-      <div className="bg-panel border border-line rounded-2xl p-5 sm:p-6 flex flex-col gap-6">
-        <OutcomeBar
-          consensus={consensus}
-          homeOdds={match.homeOdds}
-          drawOdds={match.drawOdds}
-          awayOdds={match.awayOdds}
-          bookmaker={match.bookmaker}
-        />
+      {/* TAB CONTENT 1: MATCH DETAILS (Lineups, Incidents, Details, Standings, Live Pitch Tracker) */}
+      {roomTab === 'details' && (
+        <div className="animate-in fade-in duration-200">
+          <SportScoreMatchCenter match={match} />
+        </div>
+      )}
 
-        {/* Suggestion & Discussion Panel */}
-        <DiscussionPanel
-          picks={allPicks}
-          matchId={match.id}
-          myPick={selectedOutcome}
-          onPickChange={(o) => setSelectedOutcome(o)}
-          myReason={reasoning}
-          onReasonChange={(v) => setReasoning(v)}
-          onSubmit={handlePostPick}
-          submitted={!!myPickRecord}
-          label="Fans' Discussion"
-          onEditPick={(id, pick, r) => savePick(roomId, match.id, pick, r, 'Banker')}
-        />
-      </div>
+      {/* TAB CONTENT 2: FAN DISCUSSION (Community Pick & Consensus, Outcome Bar, Discussion Panel) */}
+      {roomTab === 'discussion' && (
+        <div className="space-y-6 animate-in fade-in duration-200">
+          {/* Community Picks & Consensus Split Banner (Border removed on icon before text) */}
+          <div className="bg-[#FFFFF0] border border-[#DCDCC8] rounded-2xl p-4 sm:p-5 flex items-center justify-between gap-3 shadow-xs">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-[#006C54]/10 text-[#006C54] flex items-center justify-center font-bold shrink-0">
+                <Users size={20} />
+              </div>
+              <div>
+                <h3 className="font-display font-black text-slate-900 text-sm sm:text-base uppercase tracking-tight">
+                  Community Picks &amp; Consensus Split
+                </h3>
+                <p className="text-xs text-slate-500">
+                  Predictions and reasoning shared by community punters prior to kickoff closure.
+                </p>
+              </div>
+            </div>
+            <div className="bg-[#F5F5E4] border border-[#E6E6D2] px-4 py-1.5 rounded-xl text-center shrink-0">
+              <span className="text-[10px] uppercase font-black tracking-wider text-slate-400 block">Shared Picks</span>
+              <span className="font-display font-black text-[#006C54] text-base sm:text-lg">
+                {consensus.totalVotes.toLocaleString()}
+              </span>
+            </div>
+          </div>
 
-      <QuickBetBuilderModal
-        match={match}
-        isOpen={showBuilderModal}
-        onClose={() => setShowBuilderModal(false)}
-      />
+          <div className="bg-[#FFFFF0] border border-[#DCDCC8] rounded-2xl p-5 sm:p-6 flex flex-col gap-6 shadow-xs">
+            {errorMsg && (
+              <div className="p-3 bg-red-50 border border-red-200 rounded-xl text-xs font-bold text-red-700">
+                {errorMsg}
+              </div>
+            )}
+
+            <OutcomeBar
+              consensus={consensus}
+              homeOdds={match.homeOdds}
+              drawOdds={match.drawOdds}
+              awayOdds={match.awayOdds}
+              bookmaker={match.bookmaker}
+            />
+
+            {/* Suggestion & Discussion Panel */}
+            <DiscussionPanel
+              picks={allPicks}
+              matchId={match.id}
+              myPick={selectedOutcome}
+              onPickChange={(o) => setSelectedOutcome(o)}
+              myReason={reasoning}
+              onReasonChange={(v) => setReasoning(v)}
+              onSubmit={handlePostPick}
+              submitted={!!myPickRecord}
+              label="Fans' Discussion"
+              onEditPick={(id, pick, r) => savePick(roomId, match.id, pick, r, 'Banker')}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }
-
