@@ -136,13 +136,25 @@ export const COMPETITION_HIERARCHY: CompetitionTier[] = [
   },
 ];
 
-/**
- * Get deterministic base prestige score for any competition name
- */
-export function getCompetitionPriorityScore(competitionName: string): number {
-  if (!competitionName) return 100;
-  const comp = competitionName.toLowerCase();
+import { resolveCanonicalCompetition, CANONICAL_COMPETITIONS } from './canonicalCompetitions';
 
+/**
+ * Get deterministic base prestige score for any competition name or canonical ID
+ */
+export function getCompetitionPriorityScore(competitionName: string, competitionId?: string, country?: string): number {
+  if (!competitionName && !competitionId) return 100;
+
+  if (competitionId && CANONICAL_COMPETITIONS[competitionId]) {
+    return CANONICAL_COMPETITIONS[competitionId].prestigeScore ?? 150;
+  }
+
+  // Resolve canonical identity with country/competition context
+  const resolved = resolveCanonicalCompetition({ competition: competitionName, country });
+  if (resolved && CANONICAL_COMPETITIONS[resolved.id]) {
+    return CANONICAL_COMPETITIONS[resolved.id].prestigeScore ?? 150;
+  }
+
+  const comp = (competitionName || '').toLowerCase();
   for (const tier of COMPETITION_HIERARCHY) {
     for (const pat of tier.patterns) {
       if (pat.test(comp)) {
@@ -164,12 +176,14 @@ export function getCompetitionPriorityScore(competitionName: string): number {
  */
 export function getHighlightRank(fixture: {
   competition: string;
+  competitionId?: string;
+  country?: string;
   status?: string | null;
   statusText?: string | null;
   kickoffIso?: string | null;
   id: string;
 }): number {
-  const basePrestige = getCompetitionPriorityScore(fixture.competition);
+  const basePrestige = getCompetitionPriorityScore(fixture.competition, fixture.competitionId, fixture.country);
   const status = normalizeMatchStatus(fixture.status, fixture.statusText);
 
   let statusModifier = 0;

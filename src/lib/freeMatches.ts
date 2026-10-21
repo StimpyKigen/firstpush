@@ -13,6 +13,7 @@ export interface FreeMatch {
   homeLogo?: string;
   awayLogo?: string;
   competition: string;
+  competitionId?: string;
   leagueCode?: string;
   country?: string;
   kickoff: string;
@@ -74,6 +75,7 @@ function toFreeMatch(item: HighlightFixture): FreeMatch {
     homeLogo: item.homeLogo,
     awayLogo: item.awayLogo,
     competition: item.competition,
+    competitionId: item.competitionId,
     leagueCode: item.leagueCode,
     country: item.country,
     kickoff: item.kickoff,

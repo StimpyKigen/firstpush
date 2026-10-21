@@ -5,6 +5,7 @@ export interface HighlightFixture {
   homeLogo?: string;
   awayLogo?: string;
   competition: string;
+  competitionId?: string;
   leagueCode?: string;
   country?: string;
   kickoff: string;
@@ -78,20 +79,28 @@ export function buildBlurb(home: string, away: string, competition: string, stat
 }
 
 import { BUNDLED_SPORTS_CATALOGUE } from '../data/bundledSportsCatalogue';
+import { resolveCanonicalCompetition } from './canonicalCompetitions';
 
 function mapBundledToHighlights(): HighlightFixture[] {
   try {
     return (BUNDLED_SPORTS_CATALOGUE.fixtures as unknown as any[]).map((m: any) => {
-      const tier = inferTier(m.competition || 'Premier League', m.home, m.away);
-      const blurb = buildBlurb(m.home, m.away, m.competition || 'Premier League', m.status);
+      const canon = resolveCanonicalCompetition({
+        competition: m.competition,
+        country: m.country,
+        leagueCode: m.leagueCode,
+        providerId: m.providerId || m.id,
+      });
+      const tier = inferTier(canon.name, m.home, m.away);
+      const blurb = buildBlurb(m.home, m.away, canon.name, m.status);
       const fid = m.id?.startsWith('mkt-') ? m.id : `mkt-${m.id || `${m.home}-${m.away}`.toLowerCase().replace(/[^a-z0-9]/g, '-')}`;
       return {
         id: fid,
         home: m.home,
         away: m.away,
-        competition: m.competition || 'Premier League',
+        competition: canon.name,
+        competitionId: m.competitionId || canon.id,
         leagueCode: m.leagueCode,
-        country: m.country,
+        country: canon.country || m.country,
         kickoff: m.kickoff,
         kickoffIso: m.kickoffIso,
         tier,
@@ -217,16 +226,24 @@ export async function fetchDailyHighlightFixtures(): Promise<HighlightFixture[]>
       const data = await res.json();
       if (data && data.success && Array.isArray(data.fixtures) && data.fixtures.length > 0) {
         const mapped: HighlightFixture[] = data.fixtures.map((m: any) => {
-          const tier = inferTier(m.competition || 'Premier League', m.home, m.away);
-          const blurb = buildBlurb(m.home, m.away, m.competition || 'Premier League', m.status);
+          const canon = resolveCanonicalCompetition({
+            competition: m.competition,
+            country: m.country,
+            leagueCode: m.leagueCode,
+            providerId: m.providerId || m.id,
+          });
+          const compName = m.competitionId && m.competition ? m.competition : canon.name;
+          const tier = inferTier(compName, m.home, m.away);
+          const blurb = buildBlurb(m.home, m.away, compName, m.status);
           const fid = m.id?.startsWith('mkt-') ? m.id : `mkt-${m.id || `${m.home}-${m.away}`.toLowerCase().replace(/[^a-z0-9]/g, '-')}`;
           return {
             id: fid,
             home: m.home,
             away: m.away,
-            competition: m.competition || 'Premier League',
+            competition: compName,
+            competitionId: m.competitionId || canon.id,
             leagueCode: m.leagueCode,
-            country: m.country,
+            country: m.country || canon.country,
             kickoff: m.kickoff,
             kickoffIso: m.kickoffIso,
             tier,

@@ -11,6 +11,7 @@ import path from 'path';
 import os from 'os';
 import { BUNDLED_SPORTS_CATALOGUE } from '../data/bundledSportsCatalogue';
 import { normalizeMatchStatus } from './matchStatus';
+import { resolveCanonicalCompetition } from './canonicalCompetitions';
 
 export interface DiscoveredLeague {
   league: string;
@@ -28,6 +29,7 @@ export interface MarketFixture {
   homeLogo?: string;
   awayLogo?: string;
   competition: string;
+  competitionId: string;
   leagueCode: string;
   country: string;
   kickoff: string;
@@ -165,6 +167,15 @@ function loadDiskCache(): void {
   if (fixturesStore.size === 0 && Array.isArray(BUNDLED_SPORTS_CATALOGUE.fixtures)) {
     (BUNDLED_SPORTS_CATALOGUE.fixtures as unknown as MarketFixture[]).forEach((f) => {
       if (f && f.id) {
+        if (!f.competitionId) {
+          const canon = resolveCanonicalCompetition({
+            competition: f.competition,
+            country: f.country,
+            leagueCode: f.leagueCode,
+            providerId: f.providerId || f.id,
+          });
+          f.competitionId = canon.id;
+        }
         fixturesStore.set(f.id, f);
       }
     });
@@ -201,6 +212,15 @@ function loadDiskCache(): void {
       if (Array.isArray(parsedFixtures) && parsedFixtures.length > 0) {
         parsedFixtures.forEach((f: MarketFixture) => {
           if (f && f.id) {
+            if (!f.competitionId) {
+              const canon = resolveCanonicalCompetition({
+                competition: f.competition,
+                country: f.country,
+                leagueCode: f.leagueCode,
+                providerId: f.providerId || f.id,
+              });
+              f.competitionId = canon.id;
+            }
             fixturesStore.set(f.id, f);
           }
         });
@@ -322,7 +342,7 @@ export async function fetchLeagueFixtures(leagueCode: string): Promise<MarketFix
       headers: {
         Authorization: `Bearer ${getApiKey()}`,
       },
-      signal: AbortSignal.timeout(15000),
+      signal: AbortSignal.timeout(35000), // Extended timeout to 35s to prevent Render cold-start aborts
     });
 
     if (!res.ok) {
@@ -356,6 +376,16 @@ export async function fetchLeagueFixtures(leagueCode: string): Promise<MarketFix
       const providerId = m.slug || `${leagueCode}-${m.match_date}-${homeTeam}-vs-${awayTeam}`.toLowerCase().replace(/[^a-z0-9]/g, '-');
       const uniqueId = `mkt-${providerId}`;
 
+      const rawCountry = m.country || (leagueCode === 'premier' ? 'England' : leagueCode === 'spain1' ? 'Spain' : leagueCode === 'italy1' ? 'Italy' : leagueCode === 'germany1' ? 'Germany' : leagueCode === 'france1' ? 'France' : 'International');
+      const rawComp = m.real_league_name || m.league || leagueCode;
+
+      const canon = resolveCanonicalCompetition({
+        competition: rawComp,
+        leagueCode,
+        country: rawCountry,
+        providerId,
+      });
+
       const kickoffIso = m.time ? `${m.match_date}T${m.time}:00Z` : `${m.match_date}T15:00:00Z`;
 
       return {
@@ -363,9 +393,10 @@ export async function fetchLeagueFixtures(leagueCode: string): Promise<MarketFix
         providerId,
         home: homeTeam,
         away: awayTeam,
-        competition: m.real_league_name || m.league || leagueCode,
+        competition: canon.name,
+        competitionId: canon.id,
         leagueCode,
-        country: m.country || 'International',
+        country: canon.country || rawCountry,
         kickoff: formatEATTime(m.match_date, m.time),
         kickoffIso,
         status,
@@ -403,6 +434,16 @@ export function ingestFixtures(fixtures: MarketFixture[]): number {
   let updatedCount = 0;
   fixtures.forEach((f) => {
     if (!f || !f.id) return;
+    if (!f.competitionId) {
+      const canon = resolveCanonicalCompetition({
+        competition: f.competition,
+        country: f.country,
+        leagueCode: f.leagueCode,
+        providerId: f.providerId || f.id,
+      });
+      f.competitionId = canon.id;
+      f.competition = canon.name;
+    }
     const existing = fixturesStore.get(f.id);
     if (!existing) {
       fixturesStore.set(f.id, f);
@@ -522,6 +563,12 @@ export function normalizeSportScoreMatch(m: any, nowIso: string, isLiveForce = f
     ? 'South America'
     : m.country || 'International';
 
+  const canon = resolveCanonicalCompetition({
+    competition: rawComp,
+    country,
+    providerId: slug,
+  });
+
   return {
     id: `mkt-ss-${slug}`,
     providerId: slug,
@@ -529,9 +576,10 @@ export function normalizeSportScoreMatch(m: any, nowIso: string, isLiveForce = f
     away,
     homeLogo: m.home_logo || undefined,
     awayLogo: m.away_logo || undefined,
-    competition: rawComp,
+    competition: canon.name,
+    competitionId: canon.id,
     leagueCode: slugify(rawComp),
-    country,
+    country: canon.country || country,
     kickoff: kickoffEAT,
     kickoffIso: isoTime,
     status,
@@ -764,12 +812,13 @@ export function queryMarketFixtures(options: {
     // 'all' delivers full catalogue to client; client's real-time device clock handles local timezone date grouping and upcoming cutoff
   }
 
-  // Filter by League
+  // Filter by League (supports canonical ID, leagueCode, or exact competition name)
   if (league && league !== 'all') {
     const lLower = league.toLowerCase();
     list = list.filter((f) =>
+      (f.competitionId && f.competitionId.toLowerCase() === lLower) ||
       f.leagueCode.toLowerCase() === lLower ||
-      f.competition.toLowerCase().includes(lLower)
+      f.competition.toLowerCase() === lLower
     );
   }
 

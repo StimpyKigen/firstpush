@@ -289,7 +289,7 @@ export default function FreeMatches() {
 
   // Build Continent -> Ranked Leagues map from ALL matches available in the catalog!
   const groupedContinents = useMemo(() => {
-    const continentMap = new Map<ContinentId, Map<string, { count: number; rank: number }>>();
+    const continentMap = new Map<ContinentId, Map<string, { id: string; name: string; count: number; rank: number }>>();
 
     for (const c of CONTINENTS) {
       if (c.id !== 'all') {
@@ -297,20 +297,19 @@ export default function FreeMatches() {
       }
     }
 
-    // Populate from all matches in catalogue to ensure UEFA Champions League is always accessible
+    // Populate from all matches in catalogue to ensure UEFA Champions League & top flights are cleanly grouped by canonical identity
     matches.forEach((m) => {
-      const meta = getLeagueMetadata(m.competition);
+      const meta = getLeagueMetadata(m.competition, m.country, m.leagueCode, m.competitionId);
       const cMap = continentMap.get(meta.continent) || continentMap.get('europe')!;
-      const existing = cMap.get(meta.standardName) || { count: 0, rank: meta.rank };
+      const existing = cMap.get(meta.canonicalId) || { id: meta.canonicalId, name: meta.standardName, count: 0, rank: meta.rank };
       existing.count += 1;
       existing.rank = meta.rank;
-      cMap.set(meta.standardName, existing);
+      cMap.set(meta.canonicalId, existing);
     });
 
     return CONTINENTS.filter((c) => c.id !== 'all').map((c) => {
       const leaguesMap = continentMap.get(c.id) || new Map();
-      const leagues = Array.from(leaguesMap.entries())
-        .map(([name, data]) => ({ name, count: data.count, rank: data.rank }))
+      const leagues = Array.from(leaguesMap.values())
         .sort((a, b) => a.rank - b.rank || b.count - a.count);
 
       const totalCount = leagues.reduce((sum, l) => sum + l.count, 0);
@@ -332,10 +331,10 @@ export default function FreeMatches() {
       return { title: `All ${c?.name || 'Continent'}`, flag: c?.flag || '🌍' };
     }
     if (leagueFilter.startsWith('league:')) {
-      const lName = leagueFilter.replace('league:', '');
-      const meta = getLeagueMetadata(lName);
+      const target = leagueFilter.replace('league:', '');
+      const meta = getLeagueMetadata(target, undefined, undefined, target);
       const c = CONTINENTS.find((item) => item.id === meta.continent);
-      return { title: lName, flag: c?.flag || '⚽' };
+      return { title: meta.standardName, flag: c?.flag || '⚽' };
     }
     return { title: 'All Continents & Leagues', flag: '🌍' };
   }, [leagueFilter]);
@@ -358,16 +357,18 @@ export default function FreeMatches() {
       // 2. Continent & League Filter
       if (leagueFilter === 'all') return true;
 
-      const meta = getLeagueMetadata(m.competition);
+      const meta = getLeagueMetadata(m.competition, m.country, m.leagueCode, m.competitionId);
       if (leagueFilter.startsWith('continent:')) {
         const targetContinent = leagueFilter.replace('continent:', '');
         return meta.continent === targetContinent;
       }
       if (leagueFilter.startsWith('league:')) {
-        const targetLeague = leagueFilter.replace('league:', '');
-        return meta.standardName.toLowerCase() === targetLeague.toLowerCase() ||
-               m.competition.toLowerCase() === targetLeague.toLowerCase() ||
-               m.competition.toLowerCase().includes(targetLeague.toLowerCase());
+        const target = leagueFilter.replace('league:', '');
+        return (
+          meta.canonicalId === target ||
+          meta.standardName.toLowerCase() === target.toLowerCase() ||
+          (m.competitionId && m.competitionId === target)
+        );
       }
       return true;
     })
@@ -680,12 +681,12 @@ export default function FreeMatches() {
                     </button>
 
                     {continent.leagues.map((league) => {
-                      const isSelected = leagueFilter === `league:${league.name}`;
+                      const isSelected = leagueFilter === `league:${league.id}` || leagueFilter === `league:${league.name}`;
                       return (
                         <button
-                          key={league.name}
+                          key={league.id}
                           type="button"
-                          onClick={() => handleLeagueFilterChange(`league:${league.name}`)}
+                          onClick={() => handleLeagueFilterChange(`league:${league.id}`)}
                           className={`w-full px-3 py-1.5 rounded-lg text-left flex items-center justify-between transition-colors pl-6 cursor-pointer ${
                             isSelected
                               ? 'bg-[#006C54]/10 text-[#006C54] font-black'

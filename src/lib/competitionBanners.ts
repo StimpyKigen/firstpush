@@ -88,7 +88,14 @@ export const COMPETITION_BANNERS: Record<string, CompetitionBannerConfig> = {
  * Returns the banner configuration if the competition matches a registered banner artwork.
  * Matches UEFA Champions League, UEFA Europa League, UEFA Conference League, and English Premier League fixtures.
  */
-export function getCompetitionBanner(competition: string): CompetitionBannerConfig | null {
+export function getCompetitionBanner(competition: string, competitionId?: string): CompetitionBannerConfig | null {
+  if (competitionId) {
+    if (competitionId === 'uefa_champions_league') return COMPETITION_BANNERS.uefa_champions_league;
+    if (competitionId === 'uefa_europa_league') return COMPETITION_BANNERS.uefa_europa_league;
+    if (competitionId === 'uefa_conference_league') return COMPETITION_BANNERS.uefa_conference_league;
+    if (competitionId === 'eng_premier_league') return COMPETITION_BANNERS.premier_league;
+  }
+
   if (!competition) return null;
   const comp = competition.toLowerCase().trim();
 

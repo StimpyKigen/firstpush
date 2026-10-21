@@ -25,7 +25,7 @@ export default function FixtureSportCard({
   onOpenBetBuilder,
 }: FixtureSportCardProps) {
   // Competition background banner (e.g. UEFA Champions League)
-  const banner = getCompetitionBanner(match.competition);
+  const banner = getCompetitionBanner(match.competition, match.competitionId);
 
   // Quick Bet Builder selection states
   const isHomeSelected = builderLegs.some(

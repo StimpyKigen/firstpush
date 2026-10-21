@@ -1,10 +1,543 @@
 /**
  * Pre-bundled static snapshot of sports market intelligence & fixture catalogue.
  * Automatically hydrated during local sync cycles and fallback cold-starts.
+ * Powers canonical competition identification and instant 0ms catalogue responses.
  */
 
 export const BUNDLED_SPORTS_CATALOGUE = {
   "fixtures": [
+    {
+      "id": "mkt-england/premier-league/2026-10-23-ipswich-vs-nottingham",
+      "providerId": "england/premier-league/2026-10-23-ipswich-vs-nottingham",
+      "home": "Ipswich",
+      "away": "Nottingham",
+      "competition": "English Premier League",
+      "competitionId": "eng_premier_league",
+      "leagueCode": "premier",
+      "country": "England",
+      "kickoff": "Fri, 23 Oct, 22:00 EAT",
+      "kickoffIso": "2026-10-23T19:00:00Z",
+      "status": "pre",
+      "displayClock": "",
+      "homeScore": null,
+      "awayScore": null,
+      "homePct": 26,
+      "drawPct": 24,
+      "awayPct": 50,
+      "homeOdds": 4.2,
+      "drawOdds": 4.41,
+      "awayOdds": 2.13,
+      "bttsYesPct": 57,
+      "over15Pct": 79,
+      "over25Pct": 57,
+      "over35Pct": 32,
+      "bookmaker": "Market Consensus",
+      "syncedAt": "2026-10-21T01:49:26.983Z"
+    },
+    {
+      "id": "mkt-england/premier-league/2026-10-24-aston-villa-vs-manchester-city",
+      "providerId": "england/premier-league/2026-10-24-aston-villa-vs-manchester-city",
+      "home": "Aston Villa",
+      "away": "Manchester City",
+      "competition": "English Premier League",
+      "competitionId": "eng_premier_league",
+      "leagueCode": "premier",
+      "country": "England",
+      "kickoff": "Sat, 24 Oct, 14:30 EAT",
+      "kickoffIso": "2026-10-24T11:30:00Z",
+      "status": "pre",
+      "displayClock": "",
+      "homeScore": null,
+      "awayScore": null,
+      "homePct": 25,
+      "drawPct": 23,
+      "awayPct": 52,
+      "homeOdds": 4.26,
+      "drawOdds": 4.58,
+      "awayOdds": 2.08,
+      "bttsYesPct": 57,
+      "over15Pct": 79,
+      "over25Pct": 57,
+      "over35Pct": 32,
+      "bookmaker": "Market Consensus",
+      "syncedAt": "2026-10-21T01:49:26.984Z"
+    },
+    {
+      "id": "mkt-england/premier-league/2026-10-24-arsenal-vs-everton",
+      "providerId": "england/premier-league/2026-10-24-arsenal-vs-everton",
+      "home": "Arsenal",
+      "away": "Everton",
+      "competition": "English Premier League",
+      "competitionId": "eng_premier_league",
+      "leagueCode": "premier",
+      "country": "England",
+      "kickoff": "Sat, 24 Oct, 17:00 EAT",
+      "kickoffIso": "2026-10-24T14:00:00Z",
+      "status": "pre",
+      "displayClock": "",
+      "homeScore": null,
+      "awayScore": null,
+      "homePct": 63,
+      "drawPct": 28,
+      "awayPct": 9,
+      "homeOdds": 1.7,
+      "drawOdds": 3.84,
+      "awayOdds": 11.56,
+      "bttsYesPct": 41,
+      "over15Pct": 67,
+      "over25Pct": 44,
+      "over35Pct": 23,
+      "bookmaker": "Market Consensus",
+      "syncedAt": "2026-10-21T01:49:26.984Z"
+    },
+    {
+      "id": "mkt-england/premier-league/2026-10-24-coventry-vs-fulham",
+      "providerId": "england/premier-league/2026-10-24-coventry-vs-fulham",
+      "home": "Coventry",
+      "away": "Fulham",
+      "competition": "English Premier League",
+      "competitionId": "eng_premier_league",
+      "leagueCode": "premier",
+      "country": "England",
+      "kickoff": "Sat, 24 Oct, 17:00 EAT",
+      "kickoffIso": "2026-10-24T14:00:00Z",
+      "status": "pre",
+      "displayClock": "",
+      "homeScore": null,
+      "awayScore": null,
+      "homePct": 26,
+      "drawPct": 42,
+      "awayPct": 32,
+      "homeOdds": 4.05,
+      "drawOdds": 2.56,
+      "awayOdds": 3.37,
+      "bttsYesPct": 54,
+      "over15Pct": 75,
+      "over25Pct": 49,
+      "over35Pct": 25,
+      "bookmaker": "Market Consensus",
+      "syncedAt": "2026-10-21T01:49:26.984Z"
+    },
+    {
+      "id": "mkt-england/premier-league/2026-10-24-chelsea-vs-tottenham",
+      "providerId": "england/premier-league/2026-10-24-chelsea-vs-tottenham",
+      "home": "Chelsea",
+      "away": "Tottenham",
+      "competition": "English Premier League",
+      "competitionId": "eng_premier_league",
+      "leagueCode": "premier",
+      "country": "England",
+      "kickoff": "Sat, 24 Oct, 19:30 EAT",
+      "kickoffIso": "2026-10-24T16:30:00Z",
+      "status": "pre",
+      "displayClock": "",
+      "homeScore": null,
+      "awayScore": null,
+      "homePct": 52,
+      "drawPct": 27,
+      "awayPct": 21,
+      "homeOdds": 2.05,
+      "drawOdds": 4.05,
+      "awayOdds": 5.02,
+      "bttsYesPct": 59,
+      "over15Pct": 81,
+      "over25Pct": 60,
+      "over35Pct": 36,
+      "bookmaker": "Market Consensus",
+      "syncedAt": "2026-10-21T01:49:26.985Z"
+    },
+    {
+      "id": "mkt-england/premier-league/2026-10-25-liverpool-vs-brighton",
+      "providerId": "england/premier-league/2026-10-25-liverpool-vs-brighton",
+      "home": "Liverpool",
+      "away": "Brighton",
+      "competition": "English Premier League",
+      "competitionId": "eng_premier_league",
+      "leagueCode": "premier",
+      "country": "England",
+      "kickoff": "Sun, 25 Oct, 17:00 EAT",
+      "kickoffIso": "2026-10-25T14:00:00Z",
+      "status": "pre",
+      "displayClock": "",
+      "homeScore": null,
+      "awayScore": null,
+      "homePct": 47,
+      "drawPct": 26,
+      "awayPct": 27,
+      "homeOdds": 2.29,
+      "drawOdds": 4.06,
+      "awayOdds": 3.98,
+      "bttsYesPct": 60,
+      "over15Pct": 81,
+      "over25Pct": 59,
+      "over35Pct": 35,
+      "bookmaker": "Market Consensus",
+      "syncedAt": "2026-10-21T01:49:26.985Z"
+    },
+    {
+      "id": "mkt-england/premier-league/2026-10-25-hull-vs-brentford",
+      "providerId": "england/premier-league/2026-10-25-hull-vs-brentford",
+      "home": "Hull",
+      "away": "Brentford",
+      "competition": "English Premier League",
+      "competitionId": "eng_premier_league",
+      "leagueCode": "premier",
+      "country": "England",
+      "kickoff": "Sun, 25 Oct, 17:00 EAT",
+      "kickoffIso": "2026-10-25T14:00:00Z",
+      "status": "pre",
+      "displayClock": "",
+      "homeScore": null,
+      "awayScore": null,
+      "homePct": 40,
+      "drawPct": 32,
+      "awayPct": 28,
+      "homeOdds": 2.69,
+      "drawOdds": 3.31,
+      "awayOdds": 3.83,
+      "bttsYesPct": 54,
+      "over15Pct": 74,
+      "over25Pct": 45,
+      "over35Pct": 24,
+      "bookmaker": "Market Consensus",
+      "syncedAt": "2026-10-21T01:49:26.986Z"
+    },
+    {
+      "id": "mkt-england/premier-league/2026-10-25-crystal-palace-vs-newcastle",
+      "providerId": "england/premier-league/2026-10-25-crystal-palace-vs-newcastle",
+      "home": "Crystal Palace",
+      "away": "Newcastle",
+      "competition": "English Premier League",
+      "competitionId": "eng_premier_league",
+      "leagueCode": "premier",
+      "country": "England",
+      "kickoff": "Sun, 25 Oct, 17:00 EAT",
+      "kickoffIso": "2026-10-25T14:00:00Z",
+      "status": "pre",
+      "displayClock": "",
+      "homeScore": null,
+      "awayScore": null,
+      "homePct": 31,
+      "drawPct": 38,
+      "awayPct": 31,
+      "homeOdds": 3.45,
+      "drawOdds": 2.81,
+      "awayOdds": 3.46,
+      "bttsYesPct": 58,
+      "over15Pct": 80,
+      "over25Pct": 58,
+      "over35Pct": 33,
+      "bookmaker": "Market Consensus",
+      "syncedAt": "2026-10-21T01:49:26.989Z"
+    },
+    {
+      "id": "mkt-england/premier-league/2026-10-25-manchester-utd-vs-bournemouth",
+      "providerId": "england/premier-league/2026-10-25-manchester-utd-vs-bournemouth",
+      "home": "Manchester Utd",
+      "away": "Bournemouth",
+      "competition": "English Premier League",
+      "competitionId": "eng_premier_league",
+      "leagueCode": "premier",
+      "country": "England",
+      "kickoff": "Sun, 25 Oct, 17:00 EAT",
+      "kickoffIso": "2026-10-25T14:00:00Z",
+      "status": "pre",
+      "displayClock": "",
+      "homeScore": null,
+      "awayScore": null,
+      "homePct": 47,
+      "drawPct": 27,
+      "awayPct": 26,
+      "homeOdds": 2.28,
+      "drawOdds": 3.95,
+      "awayOdds": 4.12,
+      "bttsYesPct": 57,
+      "over15Pct": 80,
+      "over25Pct": 57,
+      "over35Pct": 32,
+      "bookmaker": "Market Consensus",
+      "syncedAt": "2026-10-21T01:49:26.989Z"
+    },
+    {
+      "id": "mkt-england/premier-league/2026-10-25-sunderland-vs-leeds",
+      "providerId": "england/premier-league/2026-10-25-sunderland-vs-leeds",
+      "home": "Sunderland",
+      "away": "Leeds",
+      "competition": "English Premier League",
+      "competitionId": "eng_premier_league",
+      "leagueCode": "premier",
+      "country": "England",
+      "kickoff": "Sun, 25 Oct, 19:30 EAT",
+      "kickoffIso": "2026-10-25T16:30:00Z",
+      "status": "pre",
+      "displayClock": "",
+      "homeScore": null,
+      "awayScore": null,
+      "homePct": 31,
+      "drawPct": 40,
+      "awayPct": 29,
+      "homeOdds": 3.49,
+      "drawOdds": 2.67,
+      "awayOdds": 3.66,
+      "bttsYesPct": 52,
+      "over15Pct": 67,
+      "over25Pct": 44,
+      "over35Pct": 23,
+      "bookmaker": "Market Consensus",
+      "syncedAt": "2026-10-21T01:49:26.990Z"
+    },
+    {
+      "id": "mkt-spain/la-liga/2026-10-23-alaves-vs-malaga",
+      "providerId": "spain/la-liga/2026-10-23-alaves-vs-malaga",
+      "home": "Alaves",
+      "away": "Malaga",
+      "competition": "Spanish La Liga",
+      "competitionId": "esp_la_liga",
+      "leagueCode": "spain1",
+      "country": "Spain",
+      "kickoff": "Fri, 23 Oct, 22:00 EAT",
+      "kickoffIso": "2026-10-23T19:00:00Z",
+      "status": "pre",
+      "displayClock": "",
+      "homeScore": null,
+      "awayScore": null,
+      "homePct": 62,
+      "drawPct": 27,
+      "awayPct": 11,
+      "homeOdds": 1.74,
+      "drawOdds": 3.97,
+      "awayOdds": 9.39,
+      "bttsYesPct": 44,
+      "over15Pct": 75,
+      "over25Pct": 48,
+      "over35Pct": 25,
+      "bookmaker": "Market Consensus",
+      "syncedAt": "2026-10-21T01:49:26.990Z"
+    },
+    {
+      "id": "mkt-spain/la-liga/2026-10-24-rayo-vallecano-vs-elche",
+      "providerId": "spain/la-liga/2026-10-24-rayo-vallecano-vs-elche",
+      "home": "Rayo Vallecano",
+      "away": "Elche",
+      "competition": "Spanish La Liga",
+      "competitionId": "esp_la_liga",
+      "leagueCode": "spain1",
+      "country": "Spain",
+      "kickoff": "Sat, 24 Oct, 15:00 EAT",
+      "kickoffIso": "2026-10-24T12:00:00Z",
+      "status": "pre",
+      "displayClock": "",
+      "homeScore": null,
+      "awayScore": null,
+      "homePct": 47,
+      "drawPct": 28,
+      "awayPct": 25,
+      "homeOdds": 2.29,
+      "drawOdds": 3.81,
+      "awayOdds": 4.26,
+      "bttsYesPct": 53,
+      "over15Pct": 74,
+      "over25Pct": 46,
+      "over35Pct": 24,
+      "bookmaker": "Market Consensus",
+      "syncedAt": "2026-10-21T01:49:26.991Z"
+    },
+    {
+      "id": "mkt-spain/la-liga/2026-10-24-racing-santander-vs-espanyol",
+      "providerId": "spain/la-liga/2026-10-24-racing-santander-vs-espanyol",
+      "home": "Racing Santander",
+      "away": "Espanyol",
+      "competition": "Spanish La Liga",
+      "competitionId": "esp_la_liga",
+      "leagueCode": "spain1",
+      "country": "Spain",
+      "kickoff": "Sat, 24 Oct, 17:15 EAT",
+      "kickoffIso": "2026-10-24T14:15:00Z",
+      "status": "pre",
+      "displayClock": "",
+      "homeScore": null,
+      "awayScore": null,
+      "homePct": 36,
+      "drawPct": 32,
+      "awayPct": 32,
+      "homeOdds": 2.96,
+      "drawOdds": 3.35,
+      "awayOdds": 3.34,
+      "bttsYesPct": 65,
+      "over15Pct": 82,
+      "over25Pct": 61,
+      "over35Pct": 37,
+      "bookmaker": "Market Consensus",
+      "syncedAt": "2026-10-21T01:49:26.991Z"
+    },
+    {
+      "id": "mkt-spain/la-liga/2026-10-24-valencia-vs-villarreal",
+      "providerId": "spain/la-liga/2026-10-24-valencia-vs-villarreal",
+      "home": "Valencia",
+      "away": "Villarreal",
+      "competition": "Spanish La Liga",
+      "competitionId": "esp_la_liga",
+      "leagueCode": "spain1",
+      "country": "Spain",
+      "kickoff": "Sat, 24 Oct, 19:30 EAT",
+      "kickoffIso": "2026-10-24T16:30:00Z",
+      "status": "pre",
+      "displayClock": "",
+      "homeScore": null,
+      "awayScore": null,
+      "homePct": 26,
+      "drawPct": 31,
+      "awayPct": 43,
+      "homeOdds": 4.09,
+      "drawOdds": 3.51,
+      "awayOdds": 2.47,
+      "bttsYesPct": 56,
+      "over15Pct": 79,
+      "over25Pct": 56,
+      "over35Pct": 30,
+      "bookmaker": "Market Consensus",
+      "syncedAt": "2026-10-21T01:49:26.991Z"
+    },
+    {
+      "id": "mkt-spain/la-liga/2026-10-25-ath-bilbao-vs-getafe",
+      "providerId": "spain/la-liga/2026-10-25-ath-bilbao-vs-getafe",
+      "home": "Ath Bilbao",
+      "away": "Getafe",
+      "competition": "Spanish La Liga",
+      "competitionId": "esp_la_liga",
+      "leagueCode": "spain1",
+      "country": "Spain",
+      "kickoff": "Sun, 25 Oct, 16:00 EAT",
+      "kickoffIso": "2026-10-25T13:00:00Z",
+      "status": "pre",
+      "displayClock": "",
+      "homeScore": null,
+      "awayScore": null,
+      "homePct": 47,
+      "drawPct": 36,
+      "awayPct": 17,
+      "homeOdds": 2.28,
+      "drawOdds": 2.99,
+      "awayOdds": 6.2,
+      "bttsYesPct": 20,
+      "over15Pct": 51,
+      "over25Pct": 16,
+      "over35Pct": 2,
+      "bookmaker": "Market Consensus",
+      "syncedAt": "2026-10-21T01:49:26.992Z"
+    },
+    {
+      "id": "mkt-spain/la-liga/2026-10-25-celta-vigo-vs-betis",
+      "providerId": "spain/la-liga/2026-10-25-celta-vigo-vs-betis",
+      "home": "Celta Vigo",
+      "away": "Betis",
+      "competition": "Spanish La Liga",
+      "competitionId": "esp_la_liga",
+      "leagueCode": "spain1",
+      "country": "Spain",
+      "kickoff": "Sun, 25 Oct, 18:15 EAT",
+      "kickoffIso": "2026-10-25T15:15:00Z",
+      "status": "pre",
+      "displayClock": "",
+      "homeScore": null,
+      "awayScore": null,
+      "homePct": 45,
+      "drawPct": 27,
+      "awayPct": 28,
+      "homeOdds": 2.4,
+      "drawOdds": 3.87,
+      "awayOdds": 3.86,
+      "bttsYesPct": 56,
+      "over15Pct": 77,
+      "over25Pct": 55,
+      "over35Pct": 29,
+      "bookmaker": "Market Consensus",
+      "syncedAt": "2026-10-21T01:49:26.992Z"
+    },
+    {
+      "id": "mkt-spain/la-liga/2026-10-25-real-sociedad-vs-levante",
+      "providerId": "spain/la-liga/2026-10-25-real-sociedad-vs-levante",
+      "home": "Real Sociedad",
+      "away": "Levante",
+      "competition": "Spanish La Liga",
+      "competitionId": "esp_la_liga",
+      "leagueCode": "spain1",
+      "country": "Spain",
+      "kickoff": "Sun, 25 Oct, 20:30 EAT",
+      "kickoffIso": "2026-10-25T17:30:00Z",
+      "status": "pre",
+      "displayClock": "",
+      "homeScore": null,
+      "awayScore": null,
+      "homePct": 52,
+      "drawPct": 26,
+      "awayPct": 22,
+      "homeOdds": 2.06,
+      "drawOdds": 4.17,
+      "awayOdds": 4.78,
+      "bttsYesPct": 59,
+      "over15Pct": 81,
+      "over25Pct": 60,
+      "over35Pct": 36,
+      "bookmaker": "Market Consensus",
+      "syncedAt": "2026-10-21T01:49:26.992Z"
+    },
+    {
+      "id": "mkt-spain/la-liga/2026-10-25-barcelona-vs-real-madrid",
+      "providerId": "spain/la-liga/2026-10-25-barcelona-vs-real-madrid",
+      "home": "Barcelona",
+      "away": "Real Madrid",
+      "competition": "Spanish La Liga",
+      "competitionId": "esp_la_liga",
+      "leagueCode": "spain1",
+      "country": "Spain",
+      "kickoff": "Sun, 25 Oct, 23:00 EAT",
+      "kickoffIso": "2026-10-25T20:00:00Z",
+      "status": "pre",
+      "displayClock": "",
+      "homeScore": null,
+      "awayScore": null,
+      "homePct": 53,
+      "drawPct": 25,
+      "awayPct": 22,
+      "homeOdds": 2.04,
+      "drawOdds": 4.24,
+      "awayOdds": 4.83,
+      "bttsYesPct": 62,
+      "over15Pct": 87,
+      "over25Pct": 64,
+      "over35Pct": 44,
+      "bookmaker": "Market Consensus",
+      "syncedAt": "2026-10-21T01:49:26.993Z"
+    },
+    {
+      "id": "mkt-spain/la-liga/2026-10-26-sevilla-vs-osasuna",
+      "providerId": "spain/la-liga/2026-10-26-sevilla-vs-osasuna",
+      "home": "Sevilla",
+      "away": "Osasuna",
+      "competition": "Spanish La Liga",
+      "competitionId": "esp_la_liga",
+      "leagueCode": "spain1",
+      "country": "Spain",
+      "kickoff": "Mon, 26 Oct, 23:00 EAT",
+      "kickoffIso": "2026-10-26T20:00:00Z",
+      "status": "pre",
+      "displayClock": "",
+      "homeScore": null,
+      "awayScore": null,
+      "homePct": 47,
+      "drawPct": 28,
+      "awayPct": 25,
+      "homeOdds": 2.28,
+      "drawOdds": 3.85,
+      "awayOdds": 4.25,
+      "bttsYesPct": 55,
+      "over15Pct": 77,
+      "over25Pct": 52,
+      "over35Pct": 28,
+      "bookmaker": "Market Consensus",
+      "syncedAt": "2026-10-21T01:49:26.993Z"
+    },
     {
       "id": "mkt-ss-yadanarbon-fc-u20-vs-dagon-star-united-u20",
       "providerId": "yadanarbon-fc-u20-vs-dagon-star-united-u20",
@@ -30,7 +563,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 52,
       "over25Pct": 48,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_myanmar_u20_league"
     },
     {
       "id": "mkt-ss-adhyaksa-fc-banten-vs-malut-united",
@@ -57,7 +591,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 58,
       "over25Pct": 62,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_indonesian_super_league"
     },
     {
       "id": "mkt-ss-muft-vs-armed-forces-fc",
@@ -66,9 +601,9 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "away": "MUFT",
       "homeLogo": "https://img.thesports.com/football/team/85ac6ce62dbed59766553b0c316249d8.png",
       "awayLogo": "https://img.thesports.com/football/team/55a1b15a4840796dcbe7cc2478915902.png",
-      "competition": "Malaysia A1 Semi-Pro League",
+      "competition": "Belgian Pro League",
       "leagueCode": "malaysia-a1-semi-pro-league",
-      "country": "International",
+      "country": "Belgium",
       "kickoff": "Tue, 20 Oct, 11:45 EAT",
       "kickoffIso": "2026-10-20T08:45:00+00:00",
       "status": "in",
@@ -84,7 +619,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 53,
       "over25Pct": 63,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "bel_pro_league"
     },
     {
       "id": "mkt-ss-pwd-sports-club-vs-mohammedan-dhaka",
@@ -111,7 +647,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 63,
       "over25Pct": 53,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_bangladesh_federation_cup"
     },
     {
       "id": "mkt-ss-bashundhara-kings-vs-mspcc-city-club",
@@ -138,7 +675,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 66,
       "over25Pct": 62,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_bangladesh_federation_cup"
     },
     {
       "id": "mkt-ss-arambagh-ks-vs-dhaka-wanderers",
@@ -165,7 +703,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 52,
       "over25Pct": 58,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_bangladesh_federation_cup"
     },
     {
       "id": "mkt-ss-myawady-fc-women-vs-thitsar-arman-fc-women",
@@ -192,7 +731,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 62,
       "over25Pct": 58,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_mml_w"
     },
     {
       "id": "mkt-ss-thitsar-arman-fc-u20-vs-mahar-united-u20",
@@ -219,7 +759,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 64,
       "over25Pct": 56,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_myanmar_u20_league"
     },
     {
       "id": "mkt-ss-yaypan-fk-vs-olympic-mobiuz",
@@ -228,9 +769,9 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "away": "Yaypan FK",
       "homeLogo": "https://img.thesports.com/football/team/44c1dadc2be145799eebb39b4dc72984.png",
       "awayLogo": "https://img.thesports.com/football/team/a4f0f6927ad2a2ab41fc8606b0d826cd.png",
-      "competition": "Uzbekistan Pro League",
+      "competition": "Belgian Pro League",
       "leagueCode": "uzbekistan-pro-league",
-      "country": "International",
+      "country": "Belgium",
       "kickoff": "Tue, 20 Oct, 13:00 EAT",
       "kickoffIso": "2026-10-20T10:00:00+00:00",
       "status": "in",
@@ -246,7 +787,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 55,
       "over25Pct": 57,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "bel_pro_league"
     },
     {
       "id": "mkt-ss-brondby-if-u19-vs-herfolge-bku19",
@@ -273,7 +815,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 56,
       "over25Pct": 60,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_danish_u19_youth_league"
     },
     {
       "id": "mkt-ss-sporting-fc-vs-ad-san-carlos",
@@ -282,9 +825,9 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "away": "AD San Carlos",
       "homeLogo": "https://img.thesports.com/football/team/168fd080867baf21c901a7eafd92ad41.png",
       "awayLogo": "https://img.thesports.com/football/team/86a67c4a9b9275a04cd42fe90e5e35e7.png",
-      "competition": "Costa Rica Primera Division",
+      "competition": "Costa Rican Primera División",
       "leagueCode": "costa-rica-primera-division",
-      "country": "International",
+      "country": "Costa Rica",
       "kickoff": "Tue, 20 Oct, 03:00 EAT",
       "kickoffIso": "2026-10-20T00:00:00+00:00",
       "status": "post",
@@ -300,7 +843,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 62,
       "over25Pct": 48,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "cri_primera_division"
     },
     {
       "id": "mkt-ss-toluca-women-vs-santos-laguna-women",
@@ -309,9 +853,9 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "away": "Santos Laguna Women",
       "homeLogo": "https://img.thesports.com/football/team/680f427a2bc69ae676240a60d8aa2bdb.png",
       "awayLogo": "https://img.thesports.com/football/team/018ffc6f0b8298870a01ad4da5f86e7f.png",
-      "competition": "Mexico Liga MX Femenil",
+      "competition": "Mexican Liga MX",
       "leagueCode": "mexico-liga-mx-femenil",
-      "country": "International",
+      "country": "Mexico",
       "kickoff": "Tue, 20 Oct, 03:00 EAT",
       "kickoffIso": "2026-10-20T00:00:00+00:00",
       "status": "post",
@@ -327,7 +871,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 67,
       "over25Pct": 61,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "mex_liga_mx"
     },
     {
       "id": "mkt-ss-club-olimpia-women-vs-deportivo-quito-w",
@@ -336,7 +881,7 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "away": "Club Olimpia Women",
       "homeLogo": "https://img.thesports.com/football/team/152c7bdc46acb378c386939fded13eba.png",
       "awayLogo": "https://img.thesports.com/football/team/6a35a6ffc77c23572104648297fefcd2.png",
-      "competition": "CONMEBOL Copa Libertadores Femenino",
+      "competition": "CONMEBOL Libertadores",
       "leagueCode": "conmebol-copa-libertadores-femenino",
       "country": "South America",
       "kickoff": "Tue, 20 Oct, 03:00 EAT",
@@ -354,7 +899,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 63,
       "over25Pct": 57,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "conmebol_libertadores"
     },
     {
       "id": "mkt-ss-universidad-de-chile-women-vs-libertad-limpeno-women",
@@ -363,7 +909,7 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "away": "Universidad de Chile Women",
       "homeLogo": "https://img.thesports.com/football/team/2b961c89293ee0b99fa12aece98d8132.png",
       "awayLogo": "https://img.thesports.com/football/team/babb454d61e2f388d21c0428c3ef690f.png",
-      "competition": "CONMEBOL Copa Libertadores Femenino",
+      "competition": "CONMEBOL Libertadores",
       "leagueCode": "conmebol-copa-libertadores-femenino",
       "country": "South America",
       "kickoff": "Tue, 20 Oct, 03:00 EAT",
@@ -381,7 +927,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 52,
       "over25Pct": 56,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "conmebol_libertadores"
     },
     {
       "id": "mkt-ss-deportivo-riestra-vs-club-atletico-union",
@@ -408,7 +955,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 62,
       "over25Pct": 56,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_argentine_division_1"
     },
     {
       "id": "mkt-ss-antigua-gfc-vs-xelaju-mc",
@@ -435,7 +983,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 62,
       "over25Pct": 54,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_guatemala_liga_nacional"
     },
     {
       "id": "mkt-ss-sporting-san-miguelito-vs-tauro-fc",
@@ -462,7 +1011,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 66,
       "over25Pct": 62,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_panamanian_liga_de_futbol"
     },
     {
       "id": "mkt-ss-waterhouse-fc-vs-racing-united",
@@ -489,7 +1039,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 64,
       "over25Pct": 58,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_jamaica_premier_league"
     },
     {
       "id": "mkt-ss-mount-pleasant-fa-vs-portmore-united",
@@ -516,7 +1067,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 66,
       "over25Pct": 54,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_jamaica_premier_league"
     },
     {
       "id": "mkt-ss-deportivo-pasto-vs-alianza-futbol-club",
@@ -543,7 +1095,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 60,
       "over25Pct": 64,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_categor_a_primera_a"
     },
     {
       "id": "mkt-ss-team-2y8m4zh1o74ql07-vs-leon-women",
@@ -551,9 +1104,9 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "home": "Leon Women",
       "away": "Atlante W",
       "homeLogo": "https://img.thesports.com/football/team/8e279a6f57d4768f5f1fa3bb28fd3a8a.png",
-      "competition": "Mexico Liga MX Femenil",
+      "competition": "Mexican Liga MX",
       "leagueCode": "mexico-liga-mx-femenil",
-      "country": "International",
+      "country": "Mexico",
       "kickoff": "Tue, 20 Oct, 04:05 EAT",
       "kickoffIso": "2026-10-20T01:05:00+00:00",
       "status": "post",
@@ -569,7 +1122,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 59,
       "over25Pct": 53,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "mex_liga_mx"
     },
     {
       "id": "mkt-ss-union-cocle-vs-veraguas-fc-2",
@@ -596,7 +1150,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 52,
       "over25Pct": 64,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_panamanian_liga_de_futbol"
     },
     {
       "id": "mkt-ss-ad-cofutpa-vs-quepos-cambute-fc",
@@ -605,9 +1160,9 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "away": "Quepos Cambute FC",
       "homeLogo": "https://img.thesports.com/football/team/a14244d8320e4e5add6edd0f137a763c.png",
       "awayLogo": "https://img.thesports.com/football/team/4480af5b58c11c140fc4c23ddf1788d9.png",
-      "competition": "Costa Rica 2.Liga",
+      "competition": "Costa Rican Primera División",
       "leagueCode": "costa-rica-2-liga",
-      "country": "International",
+      "country": "Costa Rica",
       "kickoff": "Tue, 20 Oct, 05:00 EAT",
       "kickoffIso": "2026-10-20T02:00:00+00:00",
       "status": "post",
@@ -623,7 +1178,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 55,
       "over25Pct": 49,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "cri_primera_division"
     },
     {
       "id": "mkt-ss-escorpiones-belen-vs-puntarenas-fc",
@@ -632,9 +1188,9 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "away": "Puntarenas FC",
       "homeLogo": "https://img.thesports.com/football/team/0604e2ebbd9f4650cea0491167ecbd32.png",
       "awayLogo": "https://img.thesports.com/football/team/a31ad1bf3e23ab2698523f207705cc5d.png",
-      "competition": "Costa Rica Primera Division",
+      "competition": "Costa Rican Primera División",
       "leagueCode": "costa-rica-primera-division",
-      "country": "International",
+      "country": "Costa Rica",
       "kickoff": "Tue, 20 Oct, 05:00 EAT",
       "kickoffIso": "2026-10-20T02:00:00+00:00",
       "status": "post",
@@ -650,7 +1206,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 56,
       "over25Pct": 52,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "cri_primera_division"
     },
     {
       "id": "mkt-ss-deportiva-venados-vs-tapachula-soconusco-fc",
@@ -677,7 +1234,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 67,
       "over25Pct": 59,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_mex_liga_premier"
     },
     {
       "id": "mkt-ss-team-dn1m1gh15dlmoep-vs-marines-eureka-fc",
@@ -703,7 +1261,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 61,
       "over25Pct": 57,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_thai_fa_cup"
     },
     {
       "id": "mkt-ss-sukhothai-vs-romklao-united",
@@ -730,7 +1289,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 55,
       "over25Pct": 57,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_thai_fa_cup"
     },
     {
       "id": "mkt-ss-udon-united-vs-lopburi-city-fc",
@@ -757,7 +1317,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 52,
       "over25Pct": 58,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_thai_fa_cup"
     },
     {
       "id": "mkt-ss-ns-see-khwae-city-vs-udon-banjan-united",
@@ -784,7 +1345,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 61,
       "over25Pct": 65,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_thai_fa_cup"
     },
     {
       "id": "mkt-ss-fc-kharkiv-u21-vs-fc-livyi-bereh-u21",
@@ -811,7 +1373,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 52,
       "over25Pct": 62,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_ukrainian_youth_team_championship"
     },
     {
       "id": "mkt-ss-malta-u17-vs-hungary-u17",
@@ -820,7 +1383,7 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "away": "Malta U17",
       "homeLogo": "https://img.thesports.com/football/team/f4de9ac730ef4bbca5a4c12aab03493b.png",
       "awayLogo": "https://img.thesports.com/football/team/2fe756156055028108567fc4d41c51fc.png",
-      "competition": "International Friendly",
+      "competition": "International Friendlies",
       "leagueCode": "international-friendly",
       "country": "International",
       "kickoff": "Tue, 20 Oct, 13:00 EAT",
@@ -838,7 +1401,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 62,
       "over25Pct": 54,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "international_friendly"
     },
     {
       "id": "mkt-ss-nacional-asuncion-reserves-vs-guarani-asuncion-reserves",
@@ -865,7 +1429,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 57,
       "over25Pct": 49,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_paraguayan_reserve_league"
     },
     {
       "id": "mkt-ss-al-nejmeh-sc-vs-al-wathbah",
@@ -892,7 +1457,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 52,
       "over25Pct": 60,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_afc_challenge_league"
     },
     {
       "id": "mkt-ss-fc-porto-u19-vs-psv-eindhoven-u19",
@@ -919,7 +1485,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 61,
       "over25Pct": 51,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T12:17:29.457Z"
+      "syncedAt": "2026-10-20T12:17:29.457Z",
+      "competitionId": "uefa_youth_league"
     },
     {
       "id": "mkt-ss-slavia-praha-u19-vs-fenerbahce-u19",
@@ -946,7 +1513,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 62,
       "over25Pct": 52,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T12:17:29.457Z"
+      "syncedAt": "2026-10-20T12:17:29.457Z",
+      "competitionId": "uefa_youth_league"
     },
     {
       "id": "mkt-ss-borussia-dortmund-u19-vs-sabah-baku-u19",
@@ -973,7 +1541,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 63,
       "over25Pct": 55,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T12:17:29.457Z"
+      "syncedAt": "2026-10-20T12:17:29.457Z",
+      "competitionId": "uefa_youth_league"
     },
     {
       "id": "mkt-ss-hapoel-nir-ramat-hasharon-u19-vs-beitar-jerusalem-oren-u19",
@@ -1000,7 +1569,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 52,
       "over25Pct": 60,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_israel_youth_league"
     },
     {
       "id": "mkt-ss-huasamrong-gateway-vs-mahasarakham-sbt-fc",
@@ -1027,7 +1597,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 65,
       "over25Pct": 57,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_thai_fa_cup"
     },
     {
       "id": "mkt-ss-uthai-thani-forest-vs-nakhon-pathom-fc",
@@ -1054,7 +1625,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 54,
       "over25Pct": 64,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_thai_fa_cup"
     },
     {
       "id": "mkt-ss-chonburi-fc-vs-bfb-pattaya-city",
@@ -1081,7 +1653,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 53,
       "over25Pct": 49,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_thai_fa_cup"
     },
     {
       "id": "mkt-ss-lamphun-warriors-vs-suphanburi-fc",
@@ -1108,7 +1681,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 59,
       "over25Pct": 51,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_thai_fa_cup"
     },
     {
       "id": "mkt-ss-cs-don-bosco-vs-malole",
@@ -1135,7 +1709,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 54,
       "over25Pct": 62,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_dr_congo_vodacom_ligue_1"
     },
     {
       "id": "mkt-ss-pyunik-b-vs-team-3glrw7ho893qdyj",
@@ -1161,7 +1736,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 59,
       "over25Pct": 55,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_armenian_first_league"
     },
     {
       "id": "mkt-ss-mika-ashtarak-vs-araks-ararat",
@@ -1188,7 +1764,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 63,
       "over25Pct": 49,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_armenian_first_league"
     },
     {
       "id": "mkt-ss-besat-kermanshah-fc-vs-pars-jonoubi-jam",
@@ -1215,7 +1792,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 60,
       "over25Pct": 48,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_iran_azadegan_league"
     },
     {
       "id": "mkt-ss-hougang-united-u23-vs-fc-jurong-u23",
@@ -1242,7 +1820,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 59,
       "over25Pct": 53,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_singapore_reserves_league"
     },
     {
       "id": "mkt-ss-shirak-gjumri-b-vs-lernayin-artsakh",
@@ -1269,7 +1848,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 63,
       "over25Pct": 53,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_armenian_first_league"
     },
     {
       "id": "mkt-ss-fc-istaravshan-vs-ravshan-kulob",
@@ -1296,7 +1876,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 67,
       "over25Pct": 59,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_tajikistan_higher_league"
     },
     {
       "id": "mkt-ss-malmo-u21-vs-landskrona-bois-u21",
@@ -1323,7 +1904,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 66,
       "over25Pct": 52,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_sweden_folksam_u21_allsvenskan_sodra"
     },
     {
       "id": "mkt-ss-persatuan-sepakbola-indonesia-jepara-vs-dewa-united-fc",
@@ -1350,7 +1932,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 54,
       "over25Pct": 56,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_indonesian_super_league"
     },
     {
       "id": "mkt-ss-bhayangkara-presisi-indonesia-fc-vs-psim-yogyakarta",
@@ -1377,7 +1960,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 67,
       "over25Pct": 57,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_indonesian_super_league"
     },
     {
       "id": "mkt-ss-cardiff-city-u21-vs-charlton-athletic-u21",
@@ -1404,7 +1988,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 63,
       "over25Pct": 49,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_english_u21_professional_development_league_2"
     },
     {
       "id": "mkt-ss-barnsley-u21-vs-fleetwood-town-u21",
@@ -1431,7 +2016,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 58,
       "over25Pct": 62,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_english_u21_professional_development_league_2"
     },
     {
       "id": "mkt-ss-hull-city-u21-vs-huddersfield-town-u21",
@@ -1458,7 +2044,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 52,
       "over25Pct": 56,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_english_u21_professional_development_league_2"
     },
     {
       "id": "mkt-ss-wigan-athletic-u21-vs-bolton-wanderers-u21",
@@ -1485,7 +2072,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 54,
       "over25Pct": 58,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_english_u21_professional_development_league_2"
     },
     {
       "id": "mkt-ss-kenya-police-fc-vs-afc-leopards",
@@ -1496,7 +2084,7 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "awayLogo": "https://img.thesports.com/football/team/f14df5c3c5849402b8b5fc7d7a7ab829.png",
       "competition": "Kenyan Premier League",
       "leagueCode": "kenyan-premier-league",
-      "country": "International",
+      "country": "Kenya",
       "kickoff": "Tue, 20 Oct, 15:00 EAT",
       "kickoffIso": "2026-10-20T12:00:00+00:00",
       "status": "pre",
@@ -1512,7 +2100,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 65,
       "over25Pct": 59,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "ken_premier_league"
     },
     {
       "id": "mkt-ss-paro-fc-vs-al-ansar-sc",
@@ -1539,7 +2128,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 60,
       "over25Pct": 52,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_afc_challenge_league"
     },
     {
       "id": "mkt-ss-as-roma-u19-vs-slovan-bratislava-u19",
@@ -1566,7 +2156,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 58,
       "over25Pct": 62,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T12:17:29.457Z"
+      "syncedAt": "2026-10-20T12:17:29.457Z",
+      "competitionId": "uefa_youth_league"
     },
     {
       "id": "mkt-ss-napoli-u19-vs-bodo-glimt-u19",
@@ -1593,7 +2184,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 60,
       "over25Pct": 56,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T12:17:29.457Z"
+      "syncedAt": "2026-10-20T12:17:29.457Z",
+      "competitionId": "uefa_youth_league"
     },
     {
       "id": "mkt-ss-barcelona-u19-vs-paris-saint-germain-u19",
@@ -1620,7 +2212,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 54,
       "over25Pct": 48,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T12:17:29.457Z"
+      "syncedAt": "2026-10-20T12:17:29.457Z",
+      "competitionId": "uefa_youth_league"
     },
     {
       "id": "mkt-ss-sheger-ketema-vs-ethio-electric-fc",
@@ -1647,7 +2240,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 56,
       "over25Pct": 52,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_ethiopia_premier_league"
     },
     {
       "id": "mkt-ss-halaba-city-vs-fasil-kenema",
@@ -1674,7 +2268,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 57,
       "over25Pct": 65,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_ethiopia_premier_league"
     },
     {
       "id": "mkt-ss-fc-mk-etancheite-vs-celeste",
@@ -1701,7 +2296,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 61,
       "over25Pct": 55,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_dr_congo_vodacom_ligue_1"
     },
     {
       "id": "mkt-ss-al-shatrah-sc-vs-peshmerga-sulaymaniya-sc",
@@ -1728,7 +2324,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 57,
       "over25Pct": 49,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_iraq_premier_division"
     },
     {
       "id": "mkt-ss-cs-dock-sud-u20-vs-ca-ituzaingo-u20",
@@ -1755,7 +2352,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 65,
       "over25Pct": 53,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_argentine_youth_league"
     },
     {
       "id": "mkt-ss-deportivo-espanol-u20-vs-san-martin-burzaco-u20",
@@ -1782,7 +2380,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 65,
       "over25Pct": 61,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_argentine_youth_league"
     },
     {
       "id": "mkt-ss-argentino-quilmes-u20-vs-argentino-merlo-u20",
@@ -1809,7 +2408,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 58,
       "over25Pct": 50,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_argentine_youth_league"
     },
     {
       "id": "mkt-ss-wycombe-wanderers-r-vs-watford-r",
@@ -1836,7 +2436,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 58,
       "over25Pct": 62,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_english_reserve_league"
     },
     {
       "id": "mkt-ss-hapoel-raanana-roei-u19-vs-maccabi-herzliya-u19",
@@ -1863,7 +2464,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 67,
       "over25Pct": 61,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_israel_youth_league"
     },
     {
       "id": "mkt-ss-swansea-city-u21-vs-coventry-u21",
@@ -1890,7 +2492,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 56,
       "over25Pct": 50,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_english_u21_professional_development_league_2"
     },
     {
       "id": "mkt-ss-maroons-vs-kataka-fc-2",
@@ -1917,7 +2520,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 54,
       "over25Pct": 60,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_uganda_premier_league"
     },
     {
       "id": "mkt-ss-atletico-de-madrid-u19-vs-vfb-stuttgart-u19",
@@ -1944,7 +2548,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 57,
       "over25Pct": 49,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T12:17:29.457Z"
+      "syncedAt": "2026-10-20T12:17:29.457Z",
+      "competitionId": "uefa_youth_league"
     },
     {
       "id": "mkt-ss-blessing-fc-vs-tanganyika",
@@ -1971,7 +2576,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 53,
       "over25Pct": 55,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_dr_congo_vodacom_ligue_1"
     },
     {
       "id": "mkt-ss-simba-sports-club-vs-15-de-agosto-gnq",
@@ -1998,7 +2604,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 59,
       "over25Pct": 65,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T12:17:29.457Z"
+      "syncedAt": "2026-10-20T12:17:29.457Z",
+      "competitionId": "caf_champions_league"
     },
     {
       "id": "mkt-ss-as-dauphins-noirs-vs-ac-rangers",
@@ -2025,7 +2632,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 65,
       "over25Pct": 51,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_dr_congo_vodacom_ligue_1"
     },
     {
       "id": "mkt-ss-al-taawun-vs-al-hilal-2",
@@ -2052,7 +2660,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 55,
       "over25Pct": 61,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_libyan_premier_league"
     },
     {
       "id": "mkt-ss-al-afreky-libya-vs-darnes",
@@ -2079,7 +2688,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 57,
       "over25Pct": 63,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_libyan_premier_league"
     },
     {
       "id": "mkt-ss-sagadam-fk-vs-arkadag-fk",
@@ -2106,7 +2716,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 64,
       "over25Pct": 54,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_t_rkmenistanyn_yokary_ligasy"
     },
     {
       "id": "mkt-ss-ca-claypole-u20-vs-villa-san-carlos-u20",
@@ -2132,7 +2743,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 55,
       "over25Pct": 65,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_argentine_youth_league"
     },
     {
       "id": "mkt-ss-al-hussein-sc-u20-vs-madaris-al-khader-u20",
@@ -2159,7 +2771,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 52,
       "over25Pct": 48,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_jor_c_u20"
     },
     {
       "id": "mkt-ss-blacks-power-fc-vs-ura-kampala",
@@ -2186,7 +2799,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 64,
       "over25Pct": 50,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_uganda_premier_league"
     },
     {
       "id": "mkt-ss-as-dauphins-noirs-vs-etoile-de-kivu",
@@ -2213,7 +2827,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 61,
       "over25Pct": 53,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_dr_congo_vodacom_ligue_1"
     },
     {
       "id": "mkt-ss-naft-bandar-abbas-vs-ario-eslamshahr",
@@ -2240,7 +2855,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 66,
       "over25Pct": 62,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_iran_azadegan_league"
     },
     {
       "id": "mkt-ss-mes-rafsanjan-vs-niroye-zamini",
@@ -2267,7 +2883,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 64,
       "over25Pct": 58,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_iran_azadegan_league"
     },
     {
       "id": "mkt-ss-mes-kerman-vs-shenavar-sazi-qeshm",
@@ -2294,7 +2911,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 67,
       "over25Pct": 61,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_iran_azadegan_league"
     },
     {
       "id": "mkt-ss-fortis-fc-vs-fc-goa",
@@ -2321,7 +2939,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 65,
       "over25Pct": 51,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_afc_challenge_league"
     },
     {
       "id": "mkt-ss-asd-pineto-calcio-vs-ac-reggiana-1919",
@@ -2348,7 +2967,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 61,
       "over25Pct": 65,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_italian_serie_c"
     },
     {
       "id": "mkt-ss-al-ittihad-misurata-vs-al-madina",
@@ -2375,7 +2995,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 57,
       "over25Pct": 53,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_libyan_premier_league"
     },
     {
       "id": "mkt-ss-gulistan-vs-fc-okmk-olmaliq",
@@ -2402,7 +3023,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 53,
       "over25Pct": 57,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_uzbekistan_cup"
     },
     {
       "id": "mkt-ss-real-muja-fc-w-vs-kneeling-warriors-w",
@@ -2429,7 +3051,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 53,
       "over25Pct": 57,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_liberia_national_women_s_league"
     },
     {
       "id": "mkt-ss-team-965mkyhe53zr1ge-vs-maccabi-netanya-u19",
@@ -2456,7 +3079,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 53,
       "over25Pct": 49,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_israel_youth_league"
     },
     {
       "id": "mkt-ss-hapoel-kfar-saba-u19-vs-hapoel-beer-sheva-u19",
@@ -2483,7 +3107,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 61,
       "over25Pct": 51,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_israel_youth_league"
     },
     {
       "id": "mkt-ss-maccabi-haifa-u19-vs-hapoel-rishon-lezion-yehuda-u19",
@@ -2510,7 +3135,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 54,
       "over25Pct": 48,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_israel_youth_league"
     },
     {
       "id": "mkt-ss-maccabi-netanya-u19-vs-maccabi-tel-aviv-shachar-u19",
@@ -2537,7 +3163,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 53,
       "over25Pct": 55,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_israel_youth_league"
     },
     {
       "id": "mkt-ss-koln-am-vs-fc-schalke-04-youth",
@@ -2564,7 +3191,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 67,
       "over25Pct": 61,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_german_regionalliga"
     },
     {
       "id": "mkt-ss-farense-u23-vs-estrela-fc-u23",
@@ -2591,7 +3219,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 61,
       "over25Pct": 49,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_portuguese_u23_league"
     },
     {
       "id": "mkt-ss-uniao-leiria-u23-vs-torreense-u23",
@@ -2618,7 +3247,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 57,
       "over25Pct": 61,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_portuguese_u23_league"
     },
     {
       "id": "mkt-ss-maritimo-u23-vs-famalicao-u23",
@@ -2645,7 +3275,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 61,
       "over25Pct": 57,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_portuguese_u23_league"
     },
     {
       "id": "mkt-ss-rio-ave-u23-vs-portimonense-u23",
@@ -2672,7 +3303,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 53,
       "over25Pct": 49,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_portuguese_u23_league"
     },
     {
       "id": "mkt-ss-team-4jwq2gh1287m0ve-vs-academico-viseu-u23",
@@ -2698,7 +3330,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 57,
       "over25Pct": 53,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_portuguese_u23_league"
     },
     {
       "id": "mkt-ss-zamalek-sc-vs-asyut-petroleum",
@@ -2709,7 +3342,7 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "awayLogo": "https://img.thesports.com/football/team/6ad4e821a96f050ba29f431fbf57801e.png",
       "competition": "Egyptian Premier League",
       "leagueCode": "egyptian-premier-league",
-      "country": "International",
+      "country": "Egypt",
       "kickoff": "Tue, 20 Oct, 17:00 EAT",
       "kickoffIso": "2026-10-20T14:00:00+00:00",
       "status": "pre",
@@ -2725,7 +3358,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 59,
       "over25Pct": 49,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "egy_premier_league"
     },
     {
       "id": "mkt-ss-modern-sport-fc-vs-zed-fc",
@@ -2736,7 +3370,7 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "awayLogo": "https://img.thesports.com/football/team/53f4bc55c48cd39be78fa4fa69645f31.png",
       "competition": "Egyptian Premier League",
       "leagueCode": "egyptian-premier-league",
-      "country": "International",
+      "country": "Egypt",
       "kickoff": "Tue, 20 Oct, 17:00 EAT",
       "kickoffIso": "2026-10-20T14:00:00+00:00",
       "status": "pre",
@@ -2752,7 +3386,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 57,
       "over25Pct": 63,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "egy_premier_league"
     },
     {
       "id": "mkt-ss-fc-istiklol-dushanbe-vs-al-arabi-club-kuw",
@@ -2779,7 +3414,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 56,
       "over25Pct": 50,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_afc_challenge_league"
     },
     {
       "id": "mkt-ss-villarreal-u19-vs-liverpool-u19",
@@ -2806,7 +3442,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 53,
       "over25Pct": 59,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T12:17:29.457Z"
+      "syncedAt": "2026-10-20T12:17:29.457Z",
+      "competitionId": "uefa_youth_league"
     },
     {
       "id": "mkt-ss-manchester-city-u19-vs-aek-athens-u19",
@@ -2833,7 +3470,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 67,
       "over25Pct": 55,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T12:17:29.457Z"
+      "syncedAt": "2026-10-20T12:17:29.457Z",
+      "competitionId": "uefa_youth_league"
     },
     {
       "id": "mkt-ss-hapoel-haifa-u19-vs-hapoel-kiryat-shmona-u19",
@@ -2860,7 +3498,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 64,
       "over25Pct": 50,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_israel_youth_league"
     },
     {
       "id": "mkt-ss-aigles-du-congo-vs-etoile-du-congo",
@@ -2887,7 +3526,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 60,
       "over25Pct": 52,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_dr_congo_vodacom_ligue_1"
     },
     {
       "id": "mkt-ss-boston-river-reserve-vs-nacional-de-montevideo-reserves",
@@ -2914,7 +3554,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 63,
       "over25Pct": 57,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_uruguay_reserve_league"
     },
     {
       "id": "mkt-ss-sogdiana-jizak-vs-fk-andijon",
@@ -2941,7 +3582,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 56,
       "over25Pct": 48,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_uzbekistan_cup"
     },
     {
       "id": "mkt-ss-al-ahli-amman-u20-vs-ittihad-al-ramtha-u20",
@@ -2968,7 +3610,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 64,
       "over25Pct": 58,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_jor_c_u20"
     },
     {
       "id": "mkt-ss-al-wehdat-u20-vs-al-baqaa-u20",
@@ -2995,7 +3638,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 61,
       "over25Pct": 57,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_jor_c_u20"
     },
     {
       "id": "mkt-ss-chindia-targoviste-vs-fcm-targu-mures",
@@ -3022,7 +3666,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 55,
       "over25Pct": 63,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_romanian_liga_ii"
     },
     {
       "id": "mkt-ss-al-najmaksa-vs-hajer",
@@ -3049,7 +3694,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 64,
       "over25Pct": 52,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_saudi_arabia_division_1"
     },
     {
       "id": "mkt-ss-kuwait-u17-vs-egypt-u17",
@@ -3076,7 +3722,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 61,
       "over25Pct": 53,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_gff_u_17_gulf_cup"
     },
     {
       "id": "mkt-ss-buxoro-fk-vs-xorazm-urganch",
@@ -3103,7 +3750,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 55,
       "over25Pct": 57,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_uzbekistan_super_league"
     },
     {
       "id": "mkt-ss-al-diraiyah-vs-al-riyadh",
@@ -3112,9 +3760,9 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "away": "Al Riyadh",
       "homeLogo": "https://img.thesports.com/football/team/ecb7f0a3b58c3e6c3e6f42b8be226e20.png",
       "awayLogo": "https://img.thesports.com/football/team/aa2d8e24a68822387257f31d692c4297.png",
-      "competition": "Saudi Professional League",
+      "competition": "Saudi Pro League",
       "leagueCode": "saudi-professional-league",
-      "country": "International",
+      "country": "Saudi Arabia",
       "kickoff": "Tue, 20 Oct, 18:00 EAT",
       "kickoffIso": "2026-10-20T15:00:00+00:00",
       "status": "pre",
@@ -3130,7 +3778,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 57,
       "over25Pct": 61,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "sau_pro_league"
     },
     {
       "id": "mkt-ss-new-zealand-u17-women-vs-argentina-women-u17",
@@ -3157,7 +3806,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 58,
       "over25Pct": 50,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_fifa_u17_women_s_world_cup"
     },
     {
       "id": "mkt-ss-poland-women-u17-vs-north-korea-u17-women",
@@ -3184,7 +3834,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 63,
       "over25Pct": 49,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_fifa_u17_women_s_world_cup"
     },
     {
       "id": "mkt-ss-al-ittihad-ahli-of-aleppo-vs-ahal-fk",
@@ -3211,7 +3862,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 54,
       "over25Pct": 64,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_afc_challenge_league"
     },
     {
       "id": "mkt-ss-mfk-skalica-vs-tatran-lm",
@@ -3238,7 +3890,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 66,
       "over25Pct": 54,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_slovak_cup"
     },
     {
       "id": "mkt-ss-armenia-indoor-soccer-vs-hungary-indoor-soccer",
@@ -3265,7 +3918,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 64,
       "over25Pct": 52,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_fifa_futsal_world_cup_qualification__uefa_"
     },
     {
       "id": "mkt-ss-kazakhstan-indoor-soccer-vs-belarus-indoor-soccer",
@@ -3292,7 +3946,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 53,
       "over25Pct": 63,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_fifa_futsal_world_cup_qualification__uefa_"
     },
     {
       "id": "mkt-ss-juarez-fc-u21-vs-atlante-u21",
@@ -3319,7 +3974,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 58,
       "over25Pct": 48,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_mex_u21"
     },
     {
       "id": "mkt-ss-leon-u21-vs-tigres-uanl-u21",
@@ -3346,7 +4002,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 53,
       "over25Pct": 57,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_mex_u21"
     },
     {
       "id": "mkt-ss-atletico-san-luis-u21-vs-queretaro-u21",
@@ -3373,7 +4030,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 52,
       "over25Pct": 56,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_mex_u21"
     },
     {
       "id": "mkt-ss-necaxa-u21-vs-chivas-guadalajara-u21",
@@ -3400,7 +4058,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 60,
       "over25Pct": 64,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_mex_u21"
     },
     {
       "id": "mkt-ss-neftchi-fergana-vs-lokomotiv-tashkent",
@@ -3427,7 +4086,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 55,
       "over25Pct": 63,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_uzbekistan_cup"
     },
     {
       "id": "mkt-ss-fc-leones-reserves-vs-medellin-city-fc",
@@ -3454,7 +4114,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 58,
       "over25Pct": 64,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_colombian_regional_league"
     },
     {
       "id": "mkt-ss-al-qadsiah-vs-al-taawoun",
@@ -3463,9 +4124,9 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "away": "Al Qadsiah",
       "homeLogo": "https://img.thesports.com/football/team/440da1fad5d16ada9a9742bf5d14c98e.png",
       "awayLogo": "https://img.thesports.com/football/team/bc74439d19c8bbaa17c57406b120b86d.png",
-      "competition": "Saudi Professional League",
+      "competition": "Saudi Pro League",
       "leagueCode": "saudi-professional-league",
-      "country": "International",
+      "country": "Saudi Arabia",
       "kickoff": "Tue, 20 Oct, 18:10 EAT",
       "kickoffIso": "2026-10-20T15:10:00+00:00",
       "status": "pre",
@@ -3481,7 +4142,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 64,
       "over25Pct": 54,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "sau_pro_league"
     },
     {
       "id": "mkt-ss-al-bukayriyah-vs-al-orobah-fc",
@@ -3508,7 +4170,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 61,
       "over25Pct": 57,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_saudi_arabia_division_1"
     },
     {
       "id": "mkt-ss-hapoel-petah-tikva-nahum-stelmah-u19-vs-as-ashdod-u19",
@@ -3535,7 +4198,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 53,
       "over25Pct": 59,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_israel_youth_league"
     },
     {
       "id": "mkt-ss-fc-hapoel-bnei-ashdod-u19-vs-hapoel-petah-tikva-nahum-stelmah-u19",
@@ -3561,7 +4225,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 61,
       "over25Pct": 57,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_israel_youth_league"
     },
     {
       "id": "mkt-ss-ofc-adiake-vs-us-tchologo",
@@ -3588,7 +4253,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 53,
       "over25Pct": 55,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_ivory_coast_premier_division"
     },
     {
       "id": "mkt-ss-ashdod-ms-u19-vs-hapoel-petah-jikva-nahum-stelmah-u19",
@@ -3615,7 +4281,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 53,
       "over25Pct": 59,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_israel_youth_league"
     },
     {
       "id": "mkt-ss-um-alhassam-vs-isa-town",
@@ -3642,7 +4309,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 63,
       "over25Pct": 53,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_bahrain_division_2"
     },
     {
       "id": "mkt-ss-al-shabbab-vs-al-ittihadbhr",
@@ -3669,7 +4337,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 59,
       "over25Pct": 49,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_bahrain_division_2"
     },
     {
       "id": "mkt-ss-bahrain-sc-vs-al-budaiya",
@@ -3696,7 +4365,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 64,
       "over25Pct": 54,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_bahrain_division_2"
     },
     {
       "id": "mkt-ss-rijeka-vs-karlovac",
@@ -3723,7 +4393,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 62,
       "over25Pct": 50,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_croatian_cup"
     },
     {
       "id": "mkt-ss-sogndal-women-vs-honefoss-women",
@@ -3750,7 +4421,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 53,
       "over25Pct": 59,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_norwegian_women_s_cup"
     },
     {
       "id": "mkt-ss-stabaek-women-vs-kilhemne-women",
@@ -3777,7 +4449,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 54,
       "over25Pct": 60,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_norwegian_women_s_cup"
     },
     {
       "id": "mkt-ss-tromso-women-vs-bodo-glimt-w",
@@ -3804,7 +4477,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 66,
       "over25Pct": 58,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_norwegian_women_s_cup"
     },
     {
       "id": "mkt-ss-hodd-w-vs-aalesund-w",
@@ -3831,7 +4505,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 58,
       "over25Pct": 52,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_norwegian_women_s_cup"
     },
     {
       "id": "mkt-ss-estonia-indoor-soccer-vs-ukraine-indoor-soccer",
@@ -3858,7 +4533,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 64,
       "over25Pct": 52,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_fifa_futsal_world_cup_qualification__uefa_"
     },
     {
       "id": "mkt-ss-ca-estudiantes-caseros-u20-vs-nueva-chicago-u20",
@@ -3885,7 +4561,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 57,
       "over25Pct": 61,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_argentine_youth_league"
     },
     {
       "id": "mkt-ss-ghana-u17-vs-cote-divoire-u17",
@@ -3912,7 +4589,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 52,
       "over25Pct": 48,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_caf_u17_championship"
     },
     {
       "id": "mkt-ss-maziya-sports-and-recreation-club-vs-biss-buru-sc",
@@ -3939,7 +4617,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 59,
       "over25Pct": 65,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_maldives_premier_league"
     },
     {
       "id": "mkt-ss-bushrod-queens-w-vs-world-girls-fc-women",
@@ -3966,7 +4645,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 66,
       "over25Pct": 58,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_liberia_national_women_s_league"
     },
     {
       "id": "mkt-ss-moldova-indoor-soccer-vs-france-indoor-soc",
@@ -3993,7 +4673,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 64,
       "over25Pct": 58,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_fifa_futsal_world_cup_qualification__uefa_"
     },
     {
       "id": "mkt-ss-czechia-republic-indoor-soccer-vs-latvia-indoor-soccer",
@@ -4020,7 +4701,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 62,
       "over25Pct": 58,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_fifa_futsal_world_cup_qualification__uefa_"
     },
     {
       "id": "mkt-ss-chivas-guadalajara-u19-vs-necaxa-u19",
@@ -4047,7 +4729,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 60,
       "over25Pct": 64,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_mex_u19"
     },
     {
       "id": "mkt-ss-necaxa-vs-club-deportivo-guadalajara",
@@ -4056,9 +4739,9 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "away": "Necaxa",
       "homeLogo": "https://img.thesports.com/football/team/872867a492989e6a9a0785cfd0a40680.png",
       "awayLogo": "https://img.thesports.com/football/team/05321a8272ff8e7ff2eb7eae2e0b72a6.png",
-      "competition": "Mexico Liga MX",
+      "competition": "Mexican Liga MX",
       "leagueCode": "mexico-liga-mx",
-      "country": "International",
+      "country": "Mexico",
       "kickoff": "Wed, 21 Oct, 03:07 EAT",
       "kickoffIso": "2026-10-21T00:07:00+00:00",
       "status": "pre",
@@ -4074,7 +4757,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 52,
       "over25Pct": 64,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "mex_liga_mx"
     },
     {
       "id": "mkt-ss-vasco-da-gama-saf-rj-vs-boca-juniors",
@@ -4083,7 +4767,7 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "away": "Boca Juniors",
       "homeLogo": "https://img.thesports.com/football/team/f110dc3a4406e67ecbc46511a7ea83f7.png",
       "awayLogo": "https://img.thesports.com/football/team/dadc7fc58b2f470a8986ee1bee0cccbe.png",
-      "competition": "CONMEBOL Copa Sudamericana",
+      "competition": "CONMEBOL Sudamericana",
       "leagueCode": "conmebol-copa-sudamericana",
       "country": "South America",
       "kickoff": "Wed, 21 Oct, 03:30 EAT",
@@ -4101,7 +4785,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 66,
       "over25Pct": 56,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "conmebol_sudamericana"
     },
     {
       "id": "mkt-ss-atletico-san-luis-vs-queretaro-fc",
@@ -4110,9 +4795,9 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "away": "Queretaro FC",
       "homeLogo": "https://img.thesports.com/football/team/f6c489e1e71d37e301b30df37a43b8a4.png",
       "awayLogo": "https://img.thesports.com/football/team/74eb06ea57f32cb35dcc025665caa97e.png",
-      "competition": "Mexico Liga MX",
+      "competition": "Mexican Liga MX",
       "leagueCode": "mexico-liga-mx",
-      "country": "International",
+      "country": "Mexico",
       "kickoff": "Wed, 21 Oct, 04:00 EAT",
       "kickoffIso": "2026-10-21T01:00:00+00:00",
       "status": "pre",
@@ -4128,7 +4813,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 55,
       "over25Pct": 61,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "mex_liga_mx"
     },
     {
       "id": "mkt-ss-fc-juarez-vs-atlante-fc",
@@ -4137,9 +4823,9 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "away": "Atlante FC",
       "homeLogo": "https://img.thesports.com/football/team/2ef06350057f561b5dce57c7fca99a74.png",
       "awayLogo": "https://img.thesports.com/football/team/ea3dc231c5b640b286b5c609b415f8e1.png",
-      "competition": "Mexico Liga MX",
+      "competition": "Mexican Liga MX",
       "leagueCode": "mexico-liga-mx",
-      "country": "International",
+      "country": "Mexico",
       "kickoff": "Wed, 21 Oct, 04:00 EAT",
       "kickoffIso": "2026-10-21T01:00:00+00:00",
       "status": "pre",
@@ -4155,7 +4841,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 61,
       "over25Pct": 53,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "mex_liga_mx"
     },
     {
       "id": "mkt-ss-millonarios-vs-deportiva-once-caldas",
@@ -4182,7 +4869,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 58,
       "over25Pct": 62,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_categor_a_primera_a"
     },
     {
       "id": "mkt-ss-csd-comunicaciones-vs-malacateco",
@@ -4209,7 +4897,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 55,
       "over25Pct": 61,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_guatemala_liga_nacional"
     },
     {
       "id": "mkt-ss-alianza-san-salvador-vs-marathon",
@@ -4236,7 +4925,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 64,
       "over25Pct": 50,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_concacaf_central_american_cup"
     },
     {
       "id": "mkt-ss-alajuelense-women-vs-saprissa-women",
@@ -4263,7 +4953,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 67,
       "over25Pct": 53,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_costarica_women_s_primera_division"
     },
     {
       "id": "mkt-ss-tigres-uanl-vs-club-leon",
@@ -4272,9 +4963,9 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "away": "Club Leon",
       "homeLogo": "https://img.thesports.com/football/team/a7df6424c12ac9b7a6e5ca3ff953d5b3.png",
       "awayLogo": "https://img.thesports.com/football/team/4695f653aca6ac49ff2baa4a961fa67b.png",
-      "competition": "Mexico Liga MX",
+      "competition": "Mexican Liga MX",
       "leagueCode": "mexico-liga-mx",
-      "country": "International",
+      "country": "Mexico",
       "kickoff": "Wed, 21 Oct, 06:00 EAT",
       "kickoffIso": "2026-10-21T03:00:00+00:00",
       "status": "pre",
@@ -4290,7 +4981,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 62,
       "over25Pct": 54,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "mex_liga_mx"
     },
     {
       "id": "mkt-ss-inac-kobe-leonessa-vs-jef-united-ichihara-chiba-ladies",
@@ -4317,7 +5009,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 62,
       "over25Pct": 56,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_women_empowerment_league"
     },
     {
       "id": "mkt-ss-club-necaxa-women-vs-chivas-guadalajara-women",
@@ -4326,9 +5019,9 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "away": "Club Necaxa Women",
       "homeLogo": "https://img.thesports.com/football/team/1b3145c36b91e56bd3e1329351ad2258.png",
       "awayLogo": "https://img.thesports.com/football/team/1972a91f675413d693c3946315e3f8ac.png",
-      "competition": "Mexico Liga MX Femenil",
+      "competition": "Mexican Liga MX",
       "leagueCode": "mexico-liga-mx-femenil",
-      "country": "International",
+      "country": "Mexico",
       "kickoff": "Wed, 21 Oct, 06:07 EAT",
       "kickoffIso": "2026-10-21T03:07:00+00:00",
       "status": "pre",
@@ -4344,7 +5037,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 57,
       "over25Pct": 61,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "mex_liga_mx"
     },
     {
       "id": "mkt-ss-mynavi-sendai-ladies-vs-as-elfen-saitama",
@@ -4371,7 +5065,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 64,
       "over25Pct": 56,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_women_empowerment_league"
     },
     {
       "id": "mkt-ss-montedio-yamagata-vs-hokkaido-consadole-sapporo",
@@ -4398,7 +5093,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 57,
       "over25Pct": 61,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_japanese_j2_league"
     },
     {
       "id": "mkt-ss-ac-nagano-parceiro-vs-fc-ryukyu-okinawa",
@@ -4425,7 +5121,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 59,
       "over25Pct": 65,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_japanese_j3_league"
     },
     {
       "id": "mkt-ss-fukushima-united-fc-vs-giravanz-kitakyushu",
@@ -4452,7 +5149,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 52,
       "over25Pct": 58,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_japanese_j3_league"
     },
     {
       "id": "mkt-ss-tochigi-sc-vs-reilac-shiga-fc",
@@ -4479,7 +5177,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 65,
       "over25Pct": 57,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_japanese_j3_league"
     },
     {
       "id": "mkt-ss-xingtai-wanshuai-vs-guangdong-wuchuan-youth",
@@ -4506,7 +5205,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 65,
       "over25Pct": 59,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_cfa_member_champions_league"
     },
     {
       "id": "mkt-ss-songkhla-fc-vs-chumphon-united",
@@ -4533,7 +5233,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 64,
       "over25Pct": 50,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_thai_fa_cup"
     },
     {
       "id": "mkt-ss-dome-fc-vs-sisaket-united",
@@ -4560,7 +5261,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 55,
       "over25Pct": 63,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_thai_fa_cup"
     },
     {
       "id": "mkt-ss-kasem-bundit-university-fc-vs-toko-customs-united",
@@ -4587,7 +5289,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 53,
       "over25Pct": 55,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_thai_fa_cup"
     },
     {
       "id": "mkt-ss-universitatea-craiova-w-vs-olimpia-cluj-women",
@@ -4614,7 +5317,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 55,
       "over25Pct": 61,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_romanian_superliga_feminin_"
     },
     {
       "id": "mkt-ss-asu-politehnica-timisoara-women-vs-vasas-odorhei-women",
@@ -4641,7 +5345,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 64,
       "over25Pct": 50,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_romanian_superliga_feminin_"
     },
     {
       "id": "mkt-ss-one-taguig-vs-yangon-united",
@@ -4668,7 +5373,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 53,
       "over25Pct": 65,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_afc_challenge_league"
     },
     {
       "id": "mkt-ss-sparta-praha-b-vs-viktoria-plzen-b",
@@ -4695,7 +5401,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 62,
       "over25Pct": 52,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_czech_third_league"
     },
     {
       "id": "mkt-ss-garudayaksa-fc-vs-bali-united",
@@ -4722,7 +5429,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 63,
       "over25Pct": 57,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_indonesian_super_league"
     },
     {
       "id": "mkt-ss-albirex-niigata-ladies-vs-nojima-stella-kanagawa-sagamihara",
@@ -4749,7 +5457,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 61,
       "over25Pct": 53,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_women_empowerment_league"
     },
     {
       "id": "mkt-ss-shan-united-vs-kasuka-fc",
@@ -4776,7 +5485,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 66,
       "over25Pct": 54,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_afc_challenge_league"
     },
     {
       "id": "mkt-ss-respublika-fa-vs-pakhtakor-ii",
@@ -4785,9 +5495,9 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "away": "Pakhtakor II",
       "homeLogo": "https://img.thesports.com/football/team/662dc29a9e88fb3a347d3c2d70aec0b5.png",
       "awayLogo": "https://img.thesports.com/football/team/4022217a18617e36b2d07e3ccf5cf673.png",
-      "competition": "Uzbekistan Pro League",
+      "competition": "Belgian Pro League",
       "leagueCode": "uzbekistan-pro-league",
-      "country": "International",
+      "country": "Belgium",
       "kickoff": "Wed, 21 Oct, 13:00 EAT",
       "kickoffIso": "2026-10-21T10:00:00+00:00",
       "status": "pre",
@@ -4803,7 +5513,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 63,
       "over25Pct": 49,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "bel_pro_league"
     },
     {
       "id": "mkt-ss-kataller-toyama-vs-rb-omiya-ardija",
@@ -4830,7 +5541,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 60,
       "over25Pct": 52,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_japanese_j2_league"
     },
     {
       "id": "mkt-ss-fc-imabari-vs-vegalta-sendai",
@@ -4857,7 +5569,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 56,
       "over25Pct": 48,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_japanese_j2_league"
     },
     {
       "id": "mkt-ss-machida-zelvia-vs-shimizu-s-pulse",
@@ -4868,7 +5581,7 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "awayLogo": "https://img.thesports.com/football/team/539c489a7bd94dd9d785308fd0f0a6b9.png",
       "competition": "Japanese J1 League",
       "leagueCode": "japanese-j1-league",
-      "country": "International",
+      "country": "Japan",
       "kickoff": "Wed, 21 Oct, 13:00 EAT",
       "kickoffIso": "2026-10-21T10:00:00+00:00",
       "status": "pre",
@@ -4884,7 +5597,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 55,
       "over25Pct": 51,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "jpn_j1_league"
     },
     {
       "id": "mkt-ss-kyoto-sanga-vs-kashima-antlers",
@@ -4895,7 +5609,7 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "awayLogo": "https://img.thesports.com/football/team/90ca524b1b1c17911b1bf8e425c8d96d.png",
       "competition": "Japanese J1 League",
       "leagueCode": "japanese-j1-league",
-      "country": "International",
+      "country": "Japan",
       "kickoff": "Wed, 21 Oct, 13:00 EAT",
       "kickoffIso": "2026-10-21T10:00:00+00:00",
       "status": "pre",
@@ -4911,7 +5625,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 52,
       "over25Pct": 58,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "jpn_j1_league"
     },
     {
       "id": "mkt-ss-sanfrecce-hiroshima-vs-v-varen-nagasaki",
@@ -4922,7 +5637,7 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "awayLogo": "https://img.thesports.com/football/team/c81d5ff7a33a4f6a9312a8703f619352.png",
       "competition": "Japanese J1 League",
       "leagueCode": "japanese-j1-league",
-      "country": "International",
+      "country": "Japan",
       "kickoff": "Wed, 21 Oct, 13:00 EAT",
       "kickoffIso": "2026-10-21T10:00:00+00:00",
       "status": "pre",
@@ -4938,7 +5653,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 59,
       "over25Pct": 55,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "jpn_j1_league"
     },
     {
       "id": "mkt-ss-vissel-kobe-vs-kawasaki-frontale",
@@ -4949,7 +5665,7 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "awayLogo": "https://img.thesports.com/football/team/d85cce27ab583e5b3cead155f02b098a.png",
       "competition": "Japanese J1 League",
       "leagueCode": "japanese-j1-league",
-      "country": "International",
+      "country": "Japan",
       "kickoff": "Wed, 21 Oct, 13:00 EAT",
       "kickoffIso": "2026-10-21T10:00:00+00:00",
       "status": "pre",
@@ -4965,7 +5681,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 66,
       "over25Pct": 60,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "jpn_j1_league"
     },
     {
       "id": "mkt-ss-gamba-osaka-vs-avispa-fukuoka",
@@ -4976,7 +5693,7 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "awayLogo": "https://img.thesports.com/football/team/91008a96b5de8c75376d17057f89890e.png",
       "competition": "Japanese J1 League",
       "leagueCode": "japanese-j1-league",
-      "country": "International",
+      "country": "Japan",
       "kickoff": "Wed, 21 Oct, 13:00 EAT",
       "kickoffIso": "2026-10-21T10:00:00+00:00",
       "status": "pre",
@@ -4992,7 +5709,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 61,
       "over25Pct": 49,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "jpn_j1_league"
     },
     {
       "id": "mkt-ss-kashiwa-reysol-vs-fc-tokyo",
@@ -5003,7 +5721,7 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "awayLogo": "https://img.thesports.com/football/team/d272859d78eb8ca7a14753f4293fbf45.png",
       "competition": "Japanese J1 League",
       "leagueCode": "japanese-j1-league",
-      "country": "International",
+      "country": "Japan",
       "kickoff": "Wed, 21 Oct, 13:00 EAT",
       "kickoffIso": "2026-10-21T10:00:00+00:00",
       "status": "pre",
@@ -5019,7 +5737,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 58,
       "over25Pct": 64,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "jpn_j1_league"
     },
     {
       "id": "mkt-ss-mito-hollyhock-vs-fagiano-okayama",
@@ -5030,7 +5749,7 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "awayLogo": "https://img.thesports.com/football/team/9ead844240532c4e12d3eb45d2087924.png",
       "competition": "Japanese J1 League",
       "leagueCode": "japanese-j1-league",
-      "country": "International",
+      "country": "Japan",
       "kickoff": "Wed, 21 Oct, 13:00 EAT",
       "kickoffIso": "2026-10-21T10:00:00+00:00",
       "status": "pre",
@@ -5046,7 +5765,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 55,
       "over25Pct": 51,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "jpn_j1_league"
     },
     {
       "id": "mkt-ss-cerezo-osaka-vs-nagoya-grampus",
@@ -5057,7 +5777,7 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "awayLogo": "https://img.thesports.com/football/team/ab10ee503e539e55a9a11a9ff202405a.png",
       "competition": "Japanese J1 League",
       "leagueCode": "japanese-j1-league",
-      "country": "International",
+      "country": "Japan",
       "kickoff": "Wed, 21 Oct, 13:00 EAT",
       "kickoffIso": "2026-10-21T10:00:00+00:00",
       "status": "pre",
@@ -5073,7 +5793,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 62,
       "over25Pct": 58,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "jpn_j1_league"
     },
     {
       "id": "mkt-ss-yokohama-f-marinos-vs-tokyo-verdy",
@@ -5084,7 +5805,7 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "awayLogo": "https://img.thesports.com/football/team/2a8adb34e764602183a7bee8f51726e4.png",
       "competition": "Japanese J1 League",
       "leagueCode": "japanese-j1-league",
-      "country": "International",
+      "country": "Japan",
       "kickoff": "Wed, 21 Oct, 13:00 EAT",
       "kickoffIso": "2026-10-21T10:00:00+00:00",
       "status": "pre",
@@ -5100,7 +5821,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 56,
       "over25Pct": 62,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "jpn_j1_league"
     },
     {
       "id": "mkt-ss-tegevajaro-miyazaki-vs-blaublitz-akita",
@@ -5127,7 +5849,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 52,
       "over25Pct": 64,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_japanese_j2_league"
     },
     {
       "id": "mkt-ss-vanraure-hachinohe-fc-vs-tokushima-vortis",
@@ -5154,7 +5877,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 53,
       "over25Pct": 57,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_japanese_j2_league"
     },
     {
       "id": "mkt-ss-albirex-niigata-vs-sagan-tosu",
@@ -5181,7 +5905,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 59,
       "over25Pct": 49,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_japanese_j2_league"
     },
     {
       "id": "mkt-ss-oita-trinita-vs-jubilo-iwata",
@@ -5208,7 +5933,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 60,
       "over25Pct": 48,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_japanese_j2_league"
     },
     {
       "id": "mkt-ss-yokohama-fc-vs-ventforet-kofu",
@@ -5235,7 +5961,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 61,
       "over25Pct": 49,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_japanese_j2_league"
     },
     {
       "id": "mkt-ss-shonan-bellmare-vs-iwaki-fc",
@@ -5262,7 +5989,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 53,
       "over25Pct": 57,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_japanese_j2_league"
     },
     {
       "id": "mkt-ss-tochigi-city-vs-fujieda-myfc",
@@ -5289,7 +6017,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 60,
       "over25Pct": 48,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_japanese_j2_league"
     },
     {
       "id": "mkt-ss-kochi-united-vs-kagoshima-united",
@@ -5316,7 +6045,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 52,
       "over25Pct": 60,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_japanese_j3_league"
     },
     {
       "id": "mkt-ss-fc-osaka-vs-nara-club",
@@ -5343,7 +6073,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 57,
       "over25Pct": 61,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_japanese_j3_league"
     },
     {
       "id": "mkt-ss-zweigen-kanazawa-fc-vs-kamatamare-sanuki",
@@ -5370,7 +6101,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 62,
       "over25Pct": 56,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_japanese_j3_league"
     },
     {
       "id": "mkt-ss-fc-gifu-vs-sc-sagamihara",
@@ -5397,7 +6129,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 66,
       "over25Pct": 62,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_japanese_j3_league"
     },
     {
       "id": "mkt-ss-matsumoto-yamaga-fc-vs-thespa-kusatsu-gunma",
@@ -5424,7 +6157,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 53,
       "over25Pct": 49,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_japanese_j3_league"
     },
     {
       "id": "mkt-ss-ehime-fc-vs-renofa-yamaguchi",
@@ -5451,7 +6185,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 64,
       "over25Pct": 56,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_japanese_j3_league"
     },
     {
       "id": "mkt-ss-roasso-kumamoto-vs-gainare-tottori",
@@ -5478,7 +6213,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 60,
       "over25Pct": 52,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_japanese_j3_league"
     },
     {
       "id": "mkt-ss-shan-united-vs-to-be-confirmed",
@@ -5505,7 +6241,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 64,
       "over25Pct": 50,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_afc_challenge_league"
     },
     {
       "id": "mkt-ss-burapha-united-vs-chiangrai-united",
@@ -5532,7 +6269,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 62,
       "over25Pct": 52,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_thai_fa_cup"
     },
     {
       "id": "mkt-ss-chanthaburi-fc-vs-kasetsart-fc",
@@ -5559,7 +6297,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 66,
       "over25Pct": 58,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_thai_fa_cup"
     },
     {
       "id": "mkt-ss-fc-livyi-bereh-u19-vs-metalurh-zaporozhya-u19",
@@ -5586,7 +6325,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 65,
       "over25Pct": 51,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_ukrainian_u19_liga"
     },
     {
       "id": "mkt-ss-rukh-vynnyky-u19-vs-lnz-cherkasy-u19",
@@ -5613,7 +6353,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 52,
       "over25Pct": 54,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_ukrainian_u19_liga"
     },
     {
       "id": "mkt-ss-fc-kharkiv-u19-vs-karpaty-u19",
@@ -5640,7 +6381,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 63,
       "over25Pct": 57,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_ukrainian_u19_liga"
     },
     {
       "id": "mkt-ss-polissya-zhytomyr-u19-vs-obolon-brovar-kiev-u19",
@@ -5667,7 +6409,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 67,
       "over25Pct": 53,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_ukrainian_u19_liga"
     },
     {
       "id": "mkt-ss-veres-rivne-u19-vs-dinamo-kyiv-u19",
@@ -5694,7 +6437,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 60,
       "over25Pct": 52,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_ukrainian_u19_liga"
     },
     {
       "id": "mkt-ss-lviv-u19-vs-kolos-kovalyovka-u19",
@@ -5720,7 +6464,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 64,
       "over25Pct": 52,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_ukrainian_u19_liga"
     },
     {
       "id": "mkt-ss-gloria-2018-bistrita-nasaud-women-vs-fk-csikszereda-miercurea-ciuc-women",
@@ -5747,7 +6492,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 58,
       "over25Pct": 62,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_romanian_superliga_feminin_"
     },
     {
       "id": "mkt-ss-jef-united-ichihara-chiba-vs-urawa-red-diamonds",
@@ -5758,7 +6504,7 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "awayLogo": "https://img.thesports.com/football/team/9ce2dfe0c36e6a9774eaecf9731375b6.png",
       "competition": "Japanese J1 League",
       "leagueCode": "japanese-j1-league",
-      "country": "International",
+      "country": "Japan",
       "kickoff": "Wed, 21 Oct, 13:30 EAT",
       "kickoffIso": "2026-10-21T10:30:00+00:00",
       "status": "pre",
@@ -5774,7 +6520,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 55,
       "over25Pct": 61,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "jpn_j1_league"
     },
     {
       "id": "mkt-ss-hk-rangers-fc-u22-vs-tai-po-fc-u22",
@@ -5801,7 +6548,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 56,
       "over25Pct": 52,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_hk_u22l"
     },
     {
       "id": "mkt-ss-kowloon-city-u22-vs-eastern-football-team-u22",
@@ -5828,7 +6576,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 65,
       "over25Pct": 59,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_hk_u22l"
     },
     {
       "id": "mkt-ss-como-u19-vs-manchester-united-u19",
@@ -5855,7 +6604,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 65,
       "over25Pct": 59,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "uefa_youth_league"
     },
     {
       "id": "mkt-ss-qarabag-khankendi-vs-mingachevir",
@@ -5882,7 +6632,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 66,
       "over25Pct": 60,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_azerbaijan_first_division"
     },
     {
       "id": "mkt-ss-shahdagh-qusar-vs-sabail-fc",
@@ -5909,7 +6660,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 55,
       "over25Pct": 57,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_azerbaijan_first_division"
     },
     {
       "id": "mkt-ss-warin-chamrap-vs-team-jw2r09h1edgrz84",
@@ -5935,7 +6687,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 63,
       "over25Pct": 49,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_thai_fa_cup"
     },
     {
       "id": "mkt-ss-buriram-united-vs-team-4wyrn4h9j1yq86p",
@@ -5961,7 +6714,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 56,
       "over25Pct": 60,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_thai_fa_cup"
     },
     {
       "id": "mkt-ss-port-fc-vs-rasisalai-united",
@@ -5988,7 +6742,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 67,
       "over25Pct": 57,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_thai_fa_cup"
     },
     {
       "id": "mkt-ss-khonkaen-united-vs-bg-pathum-united",
@@ -6015,7 +6770,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 65,
       "over25Pct": 53,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_thai_fa_cup"
     },
     {
       "id": "mkt-ss-fleet-united-fc-vs-phitsanulok-fc-2015",
@@ -6042,7 +6798,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 52,
       "over25Pct": 64,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_thai_fa_cup"
     },
     {
       "id": "mkt-ss-thap-luang-united-vs-rayong-fc",
@@ -6069,7 +6826,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 60,
       "over25Pct": 50,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_thai_fa_cup"
     },
     {
       "id": "mkt-ss-france-u17-women-vs-israel-women-u17",
@@ -6096,7 +6854,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 52,
       "over25Pct": 54,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_uefa_european_u17_women_s_championship"
     },
     {
       "id": "mkt-ss-tampines-rovers-fc-vs-lion-city-sailors",
@@ -6123,7 +6882,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 61,
       "over25Pct": 65,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_singapore_premier_league"
     },
     {
       "id": "mkt-ss-bentonit-idzhevan-vs-team-vjxm8ghx10lr6od",
@@ -6149,7 +6909,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 55,
       "over25Pct": 61,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_armenian_first_league"
     },
     {
       "id": "mkt-ss-dalian-juxing-shengheng-vs-wuhan-lianzhen",
@@ -6176,7 +6937,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 53,
       "over25Pct": 65,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_cfa_member_champions_league"
     },
     {
       "id": "mkt-ss-jiangsu-changjin-vs-shaanxi-united-soaring",
@@ -6203,7 +6965,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 62,
       "over25Pct": 58,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_cfa_member_champions_league"
     },
     {
       "id": "mkt-ss-ayutthaya-united-vs-muangthong-united",
@@ -6230,7 +6993,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 53,
       "over25Pct": 63,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_thai_fa_cup"
     },
     {
       "id": "mkt-ss-bec-tero-sasana-vs-surin-city-fc",
@@ -6257,7 +7021,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 54,
       "over25Pct": 60,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_thai_fa_cup"
     },
     {
       "id": "mkt-ss-bangkok-vs-nongbua-pitchaya-fc",
@@ -6284,7 +7049,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 56,
       "over25Pct": 48,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_thai_fa_cup"
     },
     {
       "id": "mkt-ss-arema-fc-vs-persatuan-sepakbola-indonesia-jakarta",
@@ -6311,7 +7077,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 55,
       "over25Pct": 57,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_indonesian_super_league"
     },
     {
       "id": "mkt-ss-peterborough-u21-vs-sheffield-wed-u21",
@@ -6338,7 +7105,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 53,
       "over25Pct": 63,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_english_u21_professional_development_league_2"
     },
     {
       "id": "mkt-ss-fk-zvijezda-09-vs-fk-omarska",
@@ -6365,7 +7133,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 56,
       "over25Pct": 48,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_bih_pl_rs"
     },
     {
       "id": "mkt-ss-tainan-city-steel-vs-borneo-fc",
@@ -6392,7 +7161,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 60,
       "over25Pct": 50,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_afc_challenge_league"
     },
     {
       "id": "mkt-ss-lille-u19-vs-galatasaray-u19",
@@ -6419,7 +7189,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 62,
       "over25Pct": 56,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "uefa_youth_league"
     },
     {
       "id": "mkt-ss-fk-minsk-women-vs-lokomotiv-vitebsk-women",
@@ -6446,7 +7217,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 53,
       "over25Pct": 65,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_belarusian_women_s_premier_league"
     },
     {
       "id": "mkt-ss-adama-city-vs-saint-george-sc",
@@ -6473,7 +7245,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 59,
       "over25Pct": 49,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_ethiopia_premier_league"
     },
     {
       "id": "mkt-ss-ethiopia-nigd-bank-vs-hawassa-city",
@@ -6500,7 +7273,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 66,
       "over25Pct": 52,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_ethiopia_premier_league"
     },
     {
       "id": "mkt-ss-bahir-dar-kenema-fc-vs-wolaita-dicha",
@@ -6527,7 +7301,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 54,
       "over25Pct": 62,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_ethiopia_premier_league"
     },
     {
       "id": "mkt-ss-negele-arsi-vs-ethiopia-bunna",
@@ -6554,7 +7329,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 61,
       "over25Pct": 49,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_ethiopia_premier_league"
     },
     {
       "id": "mkt-ss-hadiya-hossana-vs-welwalo-adigrat",
@@ -6581,7 +7357,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 57,
       "over25Pct": 51,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_ethiopia_premier_league"
     },
     {
       "id": "mkt-ss-ethiopian-insurance-vs-sidama-bunna",
@@ -6608,7 +7385,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 67,
       "over25Pct": 61,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_ethiopia_premier_league"
     },
     {
       "id": "mkt-ss-defence-force-eth-vs-gamo-chencha",
@@ -6635,7 +7413,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 61,
       "over25Pct": 51,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_ethiopia_premier_league"
     },
     {
       "id": "mkt-ss-halaba-ketema-vs-fasil-kenema",
@@ -6662,7 +7441,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 63,
       "over25Pct": 49,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_ethiopia_premier_league"
     },
     {
       "id": "mkt-ss-anges-verts-vs-new-jack",
@@ -6689,7 +7469,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 57,
       "over25Pct": 53,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_dr_congo_vodacom_ligue_1"
     },
     {
       "id": "mkt-ss-true-bangkok-united-vs-team-l5ergphpzjdr8k0",
@@ -6715,7 +7496,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 66,
       "over25Pct": 52,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_thai_fa_cup"
     },
     {
       "id": "mkt-ss-pattaya-united-vs-nara-united",
@@ -6742,7 +7524,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 61,
       "over25Pct": 49,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_thai_fa_cup"
     },
     {
       "id": "mkt-ss-pattani-vs-ratchaburi-fc",
@@ -6769,7 +7552,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 58,
       "over25Pct": 54,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_thai_fa_cup"
     },
     {
       "id": "mkt-ss-fc-yala-vs-samut-sakhon-city",
@@ -6796,7 +7580,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 66,
       "over25Pct": 56,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_thai_fa_cup"
     },
     {
       "id": "mkt-ss-fc-rapid-1923-women-vs-farul-constanta-women",
@@ -6823,7 +7608,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 58,
       "over25Pct": 50,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_romanian_superliga_feminin_"
     },
     {
       "id": "mkt-ss-new-jack-vs-celeste",
@@ -6850,7 +7636,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 65,
       "over25Pct": 59,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_dr_congo_vodacom_ligue_1"
     },
     {
       "id": "mkt-ss-fk-kozara-gradiska-vs-laktasi",
@@ -6877,7 +7664,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 55,
       "over25Pct": 57,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_bih_pl_rs"
     },
     {
       "id": "mkt-ss-rudar-prijedor-vs-famos-vojkovici",
@@ -6904,7 +7692,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 55,
       "over25Pct": 51,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_bih_pl_rs"
     },
     {
       "id": "mkt-ss-majevica-vs-sutjeska-foca",
@@ -6931,7 +7720,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 53,
       "over25Pct": 63,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_bih_pl_rs"
     },
     {
       "id": "mkt-ss-slavija-sarajevo-vs-romanija-pale",
@@ -6958,7 +7748,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 59,
       "over25Pct": 51,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_bih_pl_rs"
     },
     {
       "id": "mkt-ss-leotar-vs-villeznevesigne",
@@ -6985,7 +7776,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 57,
       "over25Pct": 63,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_bih_pl_rs"
     },
     {
       "id": "mkt-ss-manila-digger-fc-vs-hang-yuen-fc",
@@ -7012,7 +7804,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 56,
       "over25Pct": 50,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_afc_challenge_league"
     },
     {
       "id": "mkt-ss-kitchee-u22-vs-eastern-district-u22",
@@ -7039,7 +7832,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 59,
       "over25Pct": 63,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_hk_u22l"
     },
     {
       "id": "mkt-ss-lee-man-fc-u22-vs-hong-kong-fc-u22",
@@ -7066,7 +7860,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 62,
       "over25Pct": 52,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_hk_u22l"
     },
     {
       "id": "mkt-ss-bul-fc-vs-nec-fc-bugolobi",
@@ -7093,7 +7888,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 57,
       "over25Pct": 63,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_uganda_premier_league"
     },
     {
       "id": "mkt-ss-lugazi-municipal-fc-vs-express-fc",
@@ -7120,7 +7916,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 67,
       "over25Pct": 61,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_uganda_premier_league"
     },
     {
       "id": "mkt-ss-viking-u19-vs-aston-villa-u19",
@@ -7147,7 +7944,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 59,
       "over25Pct": 49,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "uefa_youth_league"
     },
     {
       "id": "mkt-ss-feyenoord-u19-vs-real-betis-u19",
@@ -7174,7 +7972,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 67,
       "over25Pct": 59,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "uefa_youth_league"
     },
     {
       "id": "mkt-ss-lens-u19-vs-club-brugge-u19",
@@ -7201,7 +8000,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 53,
       "over25Pct": 57,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "uefa_youth_league"
     },
     {
       "id": "mkt-ss-sporting-cp-u19-vs-team-vjxm8ghxz76r6od",
@@ -7228,7 +8028,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 54,
       "over25Pct": 60,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "uefa_youth_league"
     },
     {
       "id": "mkt-ss-tropical-coriano-vs-solbiatese-arno",
@@ -7255,7 +8056,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 65,
       "over25Pct": 53,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_italian_serie_d"
     },
     {
       "id": "mkt-ss-nice-women-vs-auxerre-w",
@@ -7282,7 +8084,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 67,
       "over25Pct": 55,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_fra_lc_w"
     },
     {
       "id": "mkt-ss-fleury-91-women-vs-lens-women",
@@ -7309,7 +8112,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 65,
       "over25Pct": 57,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_fra_lc_w"
     },
     {
       "id": "mkt-ss-lille-women-vs-cannes-as-women",
@@ -7336,7 +8140,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 52,
       "over25Pct": 58,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_fra_lc_w"
     },
     {
       "id": "mkt-ss-montpellier-women-vs-le-havre-women",
@@ -7363,7 +8168,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 61,
       "over25Pct": 53,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_fra_lc_w"
     },
     {
       "id": "mkt-ss-saint-malo-women-vs-rc-roubaix-wervicq-w",
@@ -7390,7 +8196,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 54,
       "over25Pct": 48,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_fra_lc_w"
     },
     {
       "id": "mkt-ss-le-mans-women-vs-rc-saint-etienne-women",
@@ -7417,7 +8224,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 55,
       "over25Pct": 57,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_fra_lc_w"
     },
     {
       "id": "mkt-ss-bourges-foot-18-w-vs-evian-thonon-women",
@@ -7444,7 +8252,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 65,
       "over25Pct": 57,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_fra_lc_w"
     },
     {
       "id": "mkt-ss-toulouse-women-vs-strasbourg-women",
@@ -7471,7 +8280,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 62,
       "over25Pct": 52,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_fra_lc_w"
     },
     {
       "id": "mkt-ss-tj-spartak-myjava-women-vs-as-trencin-women",
@@ -7498,7 +8308,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 59,
       "over25Pct": 49,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_svk_wd1"
     },
     {
       "id": "mkt-ss-al-akhdar-vs-al-sadaqa-fc",
@@ -7525,7 +8336,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 67,
       "over25Pct": 63,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_libyan_premier_league"
     },
     {
       "id": "mkt-ss-altyn-asyr-fc-vs-merw-bsfk",
@@ -7552,7 +8364,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 52,
       "over25Pct": 56,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_t_rkmenistanyn_yokary_ligasy"
     },
     {
       "id": "mkt-ss-aasane-women-vs-kolbotn-women",
@@ -7579,7 +8392,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 63,
       "over25Pct": 49,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_norwegian_women_s_1_divisjon"
     },
     {
       "id": "mkt-ss-airtel-kitara-fc-vs-ntugasaze-fc",
@@ -7606,7 +8420,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 52,
       "over25Pct": 60,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_uganda_premier_league"
     },
     {
       "id": "mkt-ss-shabab-al-ghar-vs-al-magd",
@@ -7633,7 +8448,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 55,
       "over25Pct": 63,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_libyan_premier_league"
     },
     {
       "id": "mkt-ss-nardo-fk-vs-aalesund-fk-b",
@@ -7660,7 +8476,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 63,
       "over25Pct": 55,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_norwegian_3_divisjon"
     },
     {
       "id": "mkt-ss-ittihad-alexandria-sc-vs-ghazl-el-mahallah",
@@ -7671,7 +8488,7 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "awayLogo": "https://img.thesports.com/football/team/99cdb0d731f54cc99b6e06e1488480a3.png",
       "competition": "Egyptian Premier League",
       "leagueCode": "egyptian-premier-league",
-      "country": "International",
+      "country": "Egypt",
       "kickoff": "Wed, 21 Oct, 17:00 EAT",
       "kickoffIso": "2026-10-21T14:00:00+00:00",
       "status": "pre",
@@ -7687,7 +8504,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 52,
       "over25Pct": 48,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "egy_premier_league"
     },
     {
       "id": "mkt-ss-inter-milan-u19-vs-fc-shakhtar-donetsk-u19",
@@ -7714,7 +8532,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 56,
       "over25Pct": 48,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "uefa_youth_league"
     },
     {
       "id": "mkt-ss-bayern-munchen-u19-vs-arsenal-u19",
@@ -7741,7 +8560,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 53,
       "over25Pct": 61,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "uefa_youth_league"
     },
     {
       "id": "mkt-ss-rb-leipzig-u19-vs-real-madrid-u19",
@@ -7768,7 +8588,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 55,
       "over25Pct": 51,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "uefa_youth_league"
     },
     {
       "id": "mkt-ss-as-vita-club-vs-ac-rangers",
@@ -7795,7 +8616,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 54,
       "over25Pct": 56,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_dr_congo_vodacom_ligue_1"
     },
     {
       "id": "mkt-ss-fk-gazalkent-vs-navbahor-namangan",
@@ -7822,7 +8644,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 55,
       "over25Pct": 61,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_uzbekistan_cup"
     },
     {
       "id": "mkt-ss-al-jandal-vs-al-jeel",
@@ -7849,7 +8672,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 54,
       "over25Pct": 60,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_saudi_arabia_division_1"
     },
     {
       "id": "mkt-ss-harju-jk-laagri-vs-fc-flora-tallinn",
@@ -7876,7 +8700,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 65,
       "over25Pct": 53,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_estonian_premium_liiga"
     },
     {
       "id": "mkt-ss-al-anwar-club-vs-al-wehda-mecca",
@@ -7903,7 +8728,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 53,
       "over25Pct": 59,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_saudi_arabia_division_1"
     },
     {
       "id": "mkt-ss-cf-san-bartolome-vs-ud-playas-de-sotavento",
@@ -7930,7 +8756,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 54,
       "over25Pct": 48,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_spanish_tercera_divisi_n_rfef"
     },
     {
       "id": "mkt-ss-norway-u17-women-vs-canada-u17-women",
@@ -7957,7 +8784,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 52,
       "over25Pct": 54,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_fifa_u17_women_s_world_cup"
     },
     {
       "id": "mkt-ss-japan-u17-women-vs-france-u17-women",
@@ -7984,7 +8812,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 65,
       "over25Pct": 53,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_fifa_u17_women_s_world_cup"
     },
     {
       "id": "mkt-ss-team-x7lm7php1xym2wd-vs-cd-union-sur-yaiza",
@@ -8010,7 +8839,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 58,
       "over25Pct": 64,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_spanish_tercera_divisi_n_rfef"
     },
     {
       "id": "mkt-ss-hapoel-katamon-u19-vs-hapoel-tel-aviv-u19",
@@ -8037,7 +8867,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 63,
       "over25Pct": 57,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_israel_youth_league"
     },
     {
       "id": "mkt-ss-universitario-de-deportes-women-vs-belgrano-women",
@@ -8046,7 +8877,7 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "away": "Universitario de Deportes Women",
       "homeLogo": "https://img.thesports.com/football/team/9abec9f6a5288cd5fc4eb80f84673dd9.png",
       "awayLogo": "https://img.thesports.com/football/team/dbba17b0a16d825b9733c7163316825f.png",
-      "competition": "CONMEBOL Copa Libertadores Femenino",
+      "competition": "CONMEBOL Libertadores",
       "leagueCode": "conmebol-copa-libertadores-femenino",
       "country": "South America",
       "kickoff": "Thu, 22 Oct, 03:00 EAT",
@@ -8064,7 +8895,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 65,
       "over25Pct": 61,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "conmebol_libertadores"
     },
     {
       "id": "mkt-ss-palmeiras-sp-women-vs-independiente-del-valle-women",
@@ -8073,7 +8905,7 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "away": "Palmeiras SP Women",
       "homeLogo": "https://img.thesports.com/football/team/e1bbc96360370b787c9104a961b1d6a1.webp",
       "awayLogo": "https://img.thesports.com/football/team/4a06b2d9ddef7ab86ccfe28b0f6e8e14.png",
-      "competition": "CONMEBOL Copa Libertadores Femenino",
+      "competition": "CONMEBOL Libertadores",
       "leagueCode": "conmebol-copa-libertadores-femenino",
       "country": "South America",
       "kickoff": "Thu, 22 Oct, 03:00 EAT",
@@ -8091,7 +8923,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 53,
       "over25Pct": 65,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "conmebol_libertadores"
     },
     {
       "id": "mkt-ss-calor-de-san-pedro-vs-team-l5ergphp98er8k0",
@@ -8117,7 +8950,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 60,
       "over25Pct": 50,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_mex_liga_premier"
     },
     {
       "id": "mkt-ss-st-louis-city-sc-vs-columbus-crew",
@@ -8144,7 +8978,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 64,
       "over25Pct": 52,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_united_states_open_cup"
     },
     {
       "id": "mkt-ss-palmeiras-vs-fluminense-rj",
@@ -8153,7 +8988,7 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "away": "Fluminense - RJ",
       "homeLogo": "https://img.thesports.com/football/team/e6a85b64d28f448601e90857eb799140.png",
       "awayLogo": "https://img.thesports.com/football/team/a6bce9adfac7903426bed2b253991a18.png",
-      "competition": "CONMEBOL Copa Libertadores",
+      "competition": "CONMEBOL Libertadores",
       "leagueCode": "conmebol-copa-libertadores",
       "country": "South America",
       "kickoff": "Thu, 22 Oct, 03:30 EAT",
@@ -8171,7 +9006,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 57,
       "over25Pct": 51,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "conmebol_libertadores"
     },
     {
       "id": "mkt-ss-barranquilla-fc-vs-america-de-cali",
@@ -8198,7 +9034,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 60,
       "over25Pct": 52,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_colombian_copa_betplay_dimayor"
     },
     {
       "id": "mkt-ss-oriente-petrolero-vs-nacional-potosi",
@@ -8225,7 +9062,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 66,
       "over25Pct": 54,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_bolivian_copa_lfpb"
     },
     {
       "id": "mkt-ss-deportivo-saprissa-vs-luis-angel-firpo",
@@ -8252,7 +9090,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 58,
       "over25Pct": 64,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_concacaf_central_american_cup"
     },
     {
       "id": "mkt-ss-club-america-vs-atlas",
@@ -8261,9 +9100,9 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "away": "Club America",
       "homeLogo": "https://img.thesports.com/football/team/a3316e9ee8fe7b3a279a10d61d0b2f87.png",
       "awayLogo": "https://img.thesports.com/football/team/775a930b77d31e8f8a6d6ba8afc17c03.png",
-      "competition": "Mexico Liga MX",
+      "competition": "Mexican Liga MX",
       "leagueCode": "mexico-liga-mx",
-      "country": "International",
+      "country": "Mexico",
       "kickoff": "Thu, 22 Oct, 04:00 EAT",
       "kickoffIso": "2026-10-22T01:00:00+00:00",
       "status": "pre",
@@ -8279,7 +9118,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 59,
       "over25Pct": 51,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "mex_liga_mx"
     },
     {
       "id": "mkt-ss-monterrey-vs-puebla",
@@ -8288,9 +9128,9 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "away": "Rayados de Monterrey",
       "homeLogo": "https://img.thesports.com/football/team/a98bd615308472b65dc82bcc3a2d54fb.png",
       "awayLogo": "https://img.thesports.com/football/team/5c3f819a35454f424d85df5757650f8b.png",
-      "competition": "Mexico Liga MX",
+      "competition": "Mexican Liga MX",
       "leagueCode": "mexico-liga-mx",
-      "country": "International",
+      "country": "Mexico",
       "kickoff": "Thu, 22 Oct, 04:00 EAT",
       "kickoffIso": "2026-10-22T01:00:00+00:00",
       "status": "pre",
@@ -8306,7 +9146,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 58,
       "over25Pct": 48,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "mex_liga_mx"
     },
     {
       "id": "mkt-ss-club-tijuana-vs-toluca",
@@ -8315,9 +9156,9 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "away": "Club Tijuana",
       "homeLogo": "https://img.thesports.com/football/team/725ccd5793be6b4f8dd917170dd17d04.png",
       "awayLogo": "https://img.thesports.com/football/team/6090f28bfc40d2169607b23256e5a151.png",
-      "competition": "Mexico Liga MX",
+      "competition": "Mexican Liga MX",
       "leagueCode": "mexico-liga-mx",
-      "country": "International",
+      "country": "Mexico",
       "kickoff": "Thu, 22 Oct, 04:00 EAT",
       "kickoffIso": "2026-10-22T01:00:00+00:00",
       "status": "pre",
@@ -8333,7 +9174,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 62,
       "over25Pct": 52,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "mex_liga_mx"
     },
     {
       "id": "mkt-ss-jaguares-de-cordoba-vs-independiente-santa-fe",
@@ -8360,7 +9202,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 57,
       "over25Pct": 51,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_categor_a_primera_a"
     },
     {
       "id": "mkt-ss-ad-isidro-metapan-vs-cd-fas",
@@ -8387,7 +9230,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 53,
       "over25Pct": 65,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_el_salvador_primera_division"
     },
     {
       "id": "mkt-ss-cs-cartagines-vs-cd-olimpia",
@@ -8414,7 +9258,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 53,
       "over25Pct": 65,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_concacaf_central_american_cup"
     },
     {
       "id": "mkt-ss-cruz-azul-vs-pachuca",
@@ -8423,9 +9268,9 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "away": "Cruz Azul",
       "homeLogo": "https://img.thesports.com/football/team/cff411edceeeb7c1677d9db65ce47164.png",
       "awayLogo": "https://img.thesports.com/football/team/2addd50487c8f61276d5fff8714f6a5c.png",
-      "competition": "Mexico Liga MX",
+      "competition": "Mexican Liga MX",
       "leagueCode": "mexico-liga-mx",
-      "country": "International",
+      "country": "Mexico",
       "kickoff": "Thu, 22 Oct, 06:00 EAT",
       "kickoffIso": "2026-10-22T03:00:00+00:00",
       "status": "pre",
@@ -8441,7 +9286,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 54,
       "over25Pct": 60,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "mex_liga_mx"
     },
     {
       "id": "mkt-ss-pumas-unam-vs-santos-laguna",
@@ -8450,9 +9296,9 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "away": "Pumas U.N.A.M.",
       "homeLogo": "https://img.thesports.com/football/team/2552214027525015c3545cff636f5e03.png",
       "awayLogo": "https://img.thesports.com/football/team/7654a95374767f93f6bec6a3d4819f76.png",
-      "competition": "Mexico Liga MX",
+      "competition": "Mexican Liga MX",
       "leagueCode": "mexico-liga-mx",
-      "country": "International",
+      "country": "Mexico",
       "kickoff": "Thu, 22 Oct, 06:10 EAT",
       "kickoffIso": "2026-10-22T03:10:00+00:00",
       "status": "pre",
@@ -8468,7 +9314,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 53,
       "over25Pct": 59,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "mex_liga_mx"
     },
     {
       "id": "mkt-ss-bangalore-dream-united-fc-vs-fc-united-stars",
@@ -8495,7 +9342,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 66,
       "over25Pct": 60,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_indian_bangalore_super_division"
     },
     {
       "id": "mkt-ss-phichit-fc-vs-surindra",
@@ -8521,7 +9369,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 58,
       "over25Pct": 52,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_thai_fa_cup"
     },
     {
       "id": "mkt-ss-samui-united-vs-vrn-muangnont",
@@ -8548,7 +9397,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 63,
       "over25Pct": 49,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_thai_fa_cup"
     },
     {
       "id": "mkt-ss-bangkapi-vs-pts-fc",
@@ -8574,7 +9424,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 62,
       "over25Pct": 50,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_thai_fa_cup"
     },
     {
       "id": "mkt-ss-real-bengaluru-vs-team-dn1m1gh15yzmoep",
@@ -8600,7 +9451,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 60,
       "over25Pct": 56,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_indian_bangalore_super_division"
     },
     {
       "id": "mkt-ss-persatuan-sepak-bola-indonesia-kediri-vs-pss-sleman",
@@ -8627,7 +9479,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 61,
       "over25Pct": 49,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_indonesian_super_league"
     },
     {
       "id": "mkt-ss-persatuan-sepakbola-makassar-vs-persebaya-surabaya",
@@ -8654,7 +9507,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 54,
       "over25Pct": 56,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_indonesian_super_league"
     },
     {
       "id": "mkt-ss-queensland-lions-sc-vs-preston-lions",
@@ -8681,7 +9535,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 62,
       "over25Pct": 54,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_aus_champ"
     },
     {
       "id": "mkt-ss-akademiya-ontustik-vs-turan",
@@ -8708,7 +9563,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 63,
       "over25Pct": 57,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_kazakhstan_division_1"
     },
     {
       "id": "mkt-ss-fk-aktobe-ii-vs-astana-b",
@@ -8735,7 +9591,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 60,
       "over25Pct": 54,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_kazakhstan_division_1"
     },
     {
       "id": "mkt-ss-ekibastuzets-vs-fk-taraz",
@@ -8762,7 +9619,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 60,
       "over25Pct": 54,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_kazakhstan_division_1"
     },
     {
       "id": "mkt-ss-fc-shakhtyor-karagandy-vs-kairat-almaty-ii",
@@ -8789,7 +9647,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 62,
       "over25Pct": 58,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_kazakhstan_division_1"
     },
     {
       "id": "mkt-ss-jaiyq-vs-fk-arys",
@@ -8816,7 +9675,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 58,
       "over25Pct": 48,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_kazakhstan_division_1"
     },
     {
       "id": "mkt-ss-khan-tengri-fc-vs-fk-kaspiy-aktau-b",
@@ -8843,7 +9703,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 61,
       "over25Pct": 53,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_kazakhstan_division_1"
     },
     {
       "id": "mkt-ss-fk-yelimay-semey-b-vs-tobol-kostanai-b",
@@ -8870,7 +9731,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 54,
       "over25Pct": 64,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_kazakhstan_division_1"
     },
     {
       "id": "mkt-ss-van-hien-university-vs-dong-thap",
@@ -8897,7 +9759,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 66,
       "over25Pct": 52,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_vietnam_national_first_class_league"
     },
     {
       "id": "mkt-ss-czechia-republic-u17-vs-slovenia-u17",
@@ -8924,7 +9787,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 56,
       "over25Pct": 62,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_uefa_european_u17_football_championship"
     },
     {
       "id": "mkt-ss-belarus-u17-vs-moldova-u17",
@@ -8951,7 +9815,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 52,
       "over25Pct": 64,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_uefa_european_u17_football_championship"
     },
     {
       "id": "mkt-ss-phetchabun-fc-vs-banbueng",
@@ -8978,7 +9843,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 63,
       "over25Pct": 55,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_thai_fa_cup"
     },
     {
       "id": "mkt-ss-lopburi-city-fc-vs-phetchaburi-pbru-fc",
@@ -9005,7 +9871,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 52,
       "over25Pct": 64,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_thai_fa_cup"
     },
     {
       "id": "mkt-ss-bangalore-united-fc-vs-kodagu-fc",
@@ -9032,7 +9899,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 66,
       "over25Pct": 52,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_indian_bangalore_super_division"
     },
     {
       "id": "mkt-ss-pvf-cand-vs-xuan-thien-phu-tho",
@@ -9059,7 +9927,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 58,
       "over25Pct": 50,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_vietnam_national_first_class_league"
     },
     {
       "id": "mkt-ss-cebrayil-vs-pfk-zaqatala",
@@ -9086,7 +9955,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 52,
       "over25Pct": 54,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_azerbaijan_first_division"
     },
     {
       "id": "mkt-ss-al-shimali-vs-baku-sporting-fk",
@@ -9113,7 +9983,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 54,
       "over25Pct": 58,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_azerbaijan_first_division"
     },
     {
       "id": "mkt-ss-karvan-evlakh-vs-fk-moik-baku",
@@ -9140,7 +10011,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 61,
       "over25Pct": 57,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_azerbaijan_first_division"
     },
     {
       "id": "mkt-ss-nonthaburi-united-vs-pt-prachuap-fc",
@@ -9167,7 +10039,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 67,
       "over25Pct": 53,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_thai_fa_cup"
     },
     {
       "id": "mkt-ss-sk-super-nova-ii-vs-tukums-2000-ii",
@@ -9194,7 +10067,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 62,
       "over25Pct": 52,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_latvian_1_liga"
     },
     {
       "id": "mkt-ss-madura-united-vs-persib-bandung",
@@ -9221,7 +10095,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 53,
       "over25Pct": 59,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_indonesian_super_league"
     },
     {
       "id": "mkt-ss-al-hazm-youths-vs-al-ettifaq-youth",
@@ -9248,7 +10123,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 58,
       "over25Pct": 52,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_saudi_arabia_youth_league"
     },
     {
       "id": "mkt-ss-amman-fc-vs-sama-al-sarhan",
@@ -9275,7 +10151,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 66,
       "over25Pct": 56,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_jordan_league_division_1"
     },
     {
       "id": "mkt-ss-al-hilal-syr-vs-al-karamah",
@@ -9302,7 +10179,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 54,
       "over25Pct": 56,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_syrian_premier_league"
     },
     {
       "id": "mkt-ss-cong-an-ha-noi-fc-vs-clb-thanh-hoa",
@@ -9329,7 +10207,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 56,
       "over25Pct": 52,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_vietnam_national_champion_league"
     },
     {
       "id": "mkt-ss-belqas-vs-tanta",
@@ -9356,7 +10235,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 55,
       "over25Pct": 57,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_egyptian_division_2"
     },
     {
       "id": "mkt-ss-maleyat-kafr-el-zayat-vs-kahraba-ismailia",
@@ -9383,7 +10263,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 63,
       "over25Pct": 49,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_egyptian_division_2"
     },
     {
       "id": "mkt-ss-el-dakhlia-sc-vs-al-nasr-cairo",
@@ -9410,7 +10291,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 64,
       "over25Pct": 58,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_egyptian_division_2"
     },
     {
       "id": "mkt-ss-dayrot-vs-el-sekka-el-hadid",
@@ -9437,7 +10319,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 63,
       "over25Pct": 55,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_egyptian_division_2"
     },
     {
       "id": "mkt-ss-wologisi-fc-vs-heaven-eleven",
@@ -9464,7 +10347,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 62,
       "over25Pct": 48,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_liberia_first_division"
     },
     {
       "id": "mkt-ss-fc-fassell-vs-blackman-warriors",
@@ -9491,7 +10375,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 65,
       "over25Pct": 51,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_liberia_first_division"
     },
     {
       "id": "mkt-ss-baladiyat-el-mahalla-vs-telecom-egypt",
@@ -9518,7 +10403,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 59,
       "over25Pct": 63,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_egyptian_division_2"
     },
     {
       "id": "mkt-ss-al-fujairah-u21-vs-al-jazira-u21",
@@ -9545,7 +10431,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 54,
       "over25Pct": 60,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_united_arab_emirates_u21"
     },
     {
       "id": "mkt-ss-al-urooba-u21-vs-al-shahama-u21",
@@ -9571,7 +10458,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 53,
       "over25Pct": 59,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_united_arab_emirates_u21"
     },
     {
       "id": "mkt-ss-emirates-club-u21-vs-al-sharjah-u21",
@@ -9598,7 +10486,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 61,
       "over25Pct": 53,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_united_arab_emirates_u21"
     },
     {
       "id": "mkt-ss-wasl-dubai-u21-vs-madenat-fc-u21",
@@ -9624,7 +10513,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 56,
       "over25Pct": 60,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_united_arab_emirates_u21"
     },
     {
       "id": "mkt-ss-shabab-dubai-u21-vs-al-arabi-umm-al-quwain-u21",
@@ -9651,7 +10541,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 54,
       "over25Pct": 60,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_united_arab_emirates_u21"
     },
     {
       "id": "mkt-ss-fc-bihor-oradea-vs-scolar-resita",
@@ -9678,7 +10569,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 54,
       "over25Pct": 60,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_romanian_liga_ii"
     },
     {
       "id": "mkt-ss-kigezi-homeboys-fc-vs-entebbe-uppc",
@@ -9705,7 +10597,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 58,
       "over25Pct": 62,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_uganda_premier_league"
     },
     {
       "id": "mkt-ss-sc-villa-vs-mbarara-city",
@@ -9732,7 +10625,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 52,
       "over25Pct": 54,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_uganda_premier_league"
     },
     {
       "id": "mkt-ss-al-jazirauae-vs-ajman",
@@ -9759,7 +10653,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 55,
       "over25Pct": 63,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_united_arab_emirates_president_cup"
     },
     {
       "id": "mkt-ss-al-wasl-sc-vs-ittihad-kalba-fc",
@@ -9786,7 +10681,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 54,
       "over25Pct": 58,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_united_arab_emirates_president_cup"
     },
     {
       "id": "mkt-ss-bunyodkor-vs-mashal-muborak",
@@ -9813,7 +10709,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 61,
       "over25Pct": 65,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_uzbekistan_super_league"
     },
     {
       "id": "mkt-ss-sanat-naft-vs-tractor-sc",
@@ -9822,9 +10719,9 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "away": "Sanat-Naft",
       "homeLogo": "https://img.thesports.com/football/team/bf2316e90a47ed6d1181458350b0714b.png",
       "awayLogo": "https://img.thesports.com/football/team/5ade8dae6db0ddae50d8c946a083cd24.png",
-      "competition": "Iran Pro League",
+      "competition": "Belgian Pro League",
       "leagueCode": "iran-pro-league",
-      "country": "International",
+      "country": "Belgium",
       "kickoff": "Thu, 22 Oct, 16:30 EAT",
       "kickoffIso": "2026-10-22T13:30:00+00:00",
       "status": "pre",
@@ -9840,7 +10737,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 54,
       "over25Pct": 56,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "bel_pro_league"
     },
     {
       "id": "mkt-ss-al-ahly-benghazi-vs-al-sharara",
@@ -9867,7 +10765,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 54,
       "over25Pct": 58,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_libyan_premier_league"
     },
     {
       "id": "mkt-ss-al-fayha-vs-al-hazem",
@@ -9876,9 +10775,9 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "away": "Al Fayha",
       "homeLogo": "https://img.thesports.com/football/team/a2246a99fffe73bb4274e59b10d95f2d.png",
       "awayLogo": "https://img.thesports.com/football/team/2b0b85fcec97994a4758002512957d7a.png",
-      "competition": "Saudi Professional League",
+      "competition": "Saudi Pro League",
       "leagueCode": "saudi-professional-league",
-      "country": "International",
+      "country": "Saudi Arabia",
       "kickoff": "Thu, 22 Oct, 16:40 EAT",
       "kickoffIso": "2026-10-22T13:40:00+00:00",
       "status": "pre",
@@ -9894,7 +10793,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 52,
       "over25Pct": 60,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "sau_pro_league"
     },
     {
       "id": "mkt-ss-belgium-women-u16-vs-switzerland-women-u16",
@@ -9903,7 +10803,7 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "away": "Switzerland Women U16",
       "homeLogo": "https://img.thesports.com/football/team/7a57385db064edeb12c332e45f2a3e52.png",
       "awayLogo": "https://img.thesports.com/football/team/73ff1ef859225698c44c4c67c8de2548.png",
-      "competition": "International Friendly",
+      "competition": "International Friendlies",
       "leagueCode": "international-friendly",
       "country": "International",
       "kickoff": "Thu, 22 Oct, 17:00 EAT",
@@ -9921,7 +10821,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 52,
       "over25Pct": 48,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "international_friendly"
     },
     {
       "id": "mkt-ss-al-sadd-vs-al-shahaniya",
@@ -9948,7 +10849,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 63,
       "over25Pct": 53,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_qatar_stars_league"
     },
     {
       "id": "mkt-ss-erbil-sc-vs-zakho-sc",
@@ -9975,7 +10877,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 52,
       "over25Pct": 60,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_iraq_stars_league"
     },
     {
       "id": "mkt-ss-fc-kairat-almaty-vs-panathinaikos",
@@ -9984,7 +10887,7 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "away": "Panathinaikos",
       "homeLogo": "https://img.thesports.com/football/team/3ef04912f88c3166f1a47864cde71949.png",
       "awayLogo": "https://img.thesports.com/football/team/bd7aa5be4c2c9a2f20e6597ee2c1738b.png",
-      "competition": "UEFA Europa Conference League",
+      "competition": "UEFA Conference League",
       "leagueCode": "uefa-europa-conference-league",
       "country": "Europe",
       "kickoff": "Thu, 22 Oct, 17:30 EAT",
@@ -10002,7 +10905,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 57,
       "over25Pct": 61,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "uefa_conference_league"
     },
     {
       "id": "mkt-ss-al-fateh-sc-vs-al-shabab-fc",
@@ -10011,9 +10915,9 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "away": "Al Shabab",
       "homeLogo": "https://img.thesports.com/football/team/ae23ea18931ebe834ef6fe4799572e7f.png",
       "awayLogo": "https://img.thesports.com/football/team/b16d1e3b04364c5cd64203d8b4ef76e2.png",
-      "competition": "Saudi Professional League",
+      "competition": "Saudi Pro League",
       "leagueCode": "saudi-professional-league",
-      "country": "International",
+      "country": "Saudi Arabia",
       "kickoff": "Thu, 22 Oct, 17:45 EAT",
       "kickoffIso": "2026-10-22T14:45:00+00:00",
       "status": "pre",
@@ -10029,7 +10933,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 57,
       "over25Pct": 61,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "sau_pro_league"
     },
     {
       "id": "mkt-ss-united-arab-emirates-u17-vs-oman-u17",
@@ -10056,7 +10961,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 60,
       "over25Pct": 52,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_gff_u_17_gulf_cup"
     },
     {
       "id": "mkt-ss-fc-flora-tallinn-vs-jk-tallinna-kalev-ii",
@@ -10083,7 +10989,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 64,
       "over25Pct": 56,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_estonian_cup"
     },
     {
       "id": "mkt-ss-china-u17-women-vs-samoa-u17-women",
@@ -10110,7 +11017,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 60,
       "over25Pct": 52,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_fifa_u17_women_s_world_cup"
     },
     {
       "id": "mkt-ss-spain-u17-women-vs-australia-women-u17",
@@ -10137,7 +11045,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 60,
       "over25Pct": 64,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_fifa_u17_women_s_world_cup"
     },
     {
       "id": "mkt-ss-al-yarmouk-vs-sahl-horan-sc",
@@ -10164,7 +11073,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 59,
       "over25Pct": 65,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_jordan_league_division_1"
     },
     {
       "id": "mkt-ss-al-sareeh-vs-jerash-club",
@@ -10191,7 +11101,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 66,
       "over25Pct": 54,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_jordan_league_division_1"
     },
     {
       "id": "mkt-ss-al-hussein-sc-irbid-vs-dogra-fc",
@@ -10218,7 +11129,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 67,
       "over25Pct": 53,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_jordan_premier_league"
     },
     {
       "id": "mkt-ss-rops-rovaniemi-vs-kapylan-pallo",
@@ -10245,7 +11157,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 67,
       "over25Pct": 59,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_finnish_ykkosliiga"
     },
     {
       "id": "mkt-ss-hapoel-tel-aviv-women-vs-hapoel-jerusalem-women",
@@ -10272,7 +11185,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 67,
       "over25Pct": 53,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_israel_women_s_first_national"
     },
     {
       "id": "mkt-ss-maccabi-hadera-women-vs-hapoel-raanana-women",
@@ -10299,7 +11213,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 56,
       "over25Pct": 50,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_israel_women_s_first_national"
     },
     {
       "id": "mkt-ss-bnot-netanya-women-vs-maccabi-holon-fc-women",
@@ -10326,7 +11241,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 56,
       "over25Pct": 60,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_israel_women_s_first_national"
     },
     {
       "id": "mkt-ss-qiryat-gat-women-vs-as-tel-aviv-university-women",
@@ -10353,7 +11269,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 60,
       "over25Pct": 52,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_israel_women_s_first_national"
     },
     {
       "id": "mkt-ss-fc-nomme-united-u21-vs-flora-tallinn-ii",
@@ -10380,7 +11297,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 59,
       "over25Pct": 55,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_estonian_esiliiga"
     },
     {
       "id": "mkt-ss-floriana-fc-vs-birkirkara-fc",
@@ -10407,7 +11325,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 64,
       "over25Pct": 58,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_malta_premier_league"
     },
     {
       "id": "mkt-ss-defense-forces-vs-kampala-city-council-fc",
@@ -10434,7 +11353,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 59,
       "over25Pct": 49,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_uganda_premier_league"
     },
     {
       "id": "mkt-ss-aali-fc-vs-najma-manama",
@@ -10461,7 +11381,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 60,
       "over25Pct": 54,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_bahrain_premier_league"
     },
     {
       "id": "mkt-ss-al-riffa-vs-sitra",
@@ -10488,7 +11409,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 63,
       "over25Pct": 49,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_bahrain_premier_league"
     },
     {
       "id": "mkt-ss-al-ain-fc-vs-shabab-al-ahli",
@@ -10515,7 +11437,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 55,
       "over25Pct": 57,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_united_arab_emirates_president_cup"
     },
     {
       "id": "mkt-ss-senegal-u20-vs-sierra-leone-u20",
@@ -10542,7 +11465,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 53,
       "over25Pct": 49,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_caf_u20_africa_cup_of_nations_qualification"
     },
     {
       "id": "mkt-ss-bea-mountain-fc-vs-watanga-fc",
@@ -10569,7 +11493,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 65,
       "over25Pct": 57,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_liberia_first_division"
     },
     {
       "id": "mkt-ss-borough-vs-gardnersville-fc",
@@ -10596,7 +11521,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 67,
       "over25Pct": 57,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_liberia_first_division"
     },
     {
       "id": "mkt-ss-freeport-vs-liscr-fc",
@@ -10623,7 +11549,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 52,
       "over25Pct": 60,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_liberia_first_division"
     },
     {
       "id": "mkt-ss-discoveries-sa-vs-shaita-fc",
@@ -10650,7 +11577,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 61,
       "over25Pct": 65,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_liberia_first_division"
     },
     {
       "id": "mkt-ss-al-nasr-vs-wefaq-ajdabiya",
@@ -10677,7 +11605,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 55,
       "over25Pct": 63,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_libyan_premier_league"
     },
     {
       "id": "mkt-ss-al-gharafa-vs-al-ahli-doha",
@@ -10704,7 +11633,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 52,
       "over25Pct": 56,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_qatar_stars_league"
     },
     {
       "id": "mkt-ss-al-quwa-al-jawiya-vs-al-talaba",
@@ -10731,7 +11661,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 52,
       "over25Pct": 48,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_iraq_stars_league"
     },
     {
       "id": "mkt-ss-lugano-vs-getafe",
@@ -10740,7 +11671,7 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "away": "Lugano",
       "homeLogo": "https://img.thesports.com/football/team/36bf5bf0c8fdf08c1270124808f060e1.png",
       "awayLogo": "https://img.thesports.com/football/team/b452d34b5c021778fedac390fde5e963.png",
-      "competition": "UEFA Europa Conference League",
+      "competition": "UEFA Conference League",
       "leagueCode": "uefa-europa-conference-league",
       "country": "Europe",
       "kickoff": "Thu, 22 Oct, 19:45 EAT",
@@ -10758,7 +11689,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 56,
       "over25Pct": 48,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "uefa_conference_league"
     },
     {
       "id": "mkt-ss-ararat-armenia-fc-vs-az-alkmaar",
@@ -10785,7 +11717,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 65,
       "over25Pct": 51,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "uefa_europa_league"
     },
     {
       "id": "mkt-ss-crvena-zvezda-vs-fc-copenhagen",
@@ -10794,7 +11727,7 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "away": "FC Copenhagen",
       "homeLogo": "https://img.thesports.com/football/team/61a1f9406cde098a265280a3683da9b7.png",
       "awayLogo": "https://img.thesports.com/football/team/629b6f983d0ca3c33f2c4b50b3449314.png",
-      "competition": "UEFA Europa Conference League",
+      "competition": "UEFA Conference League",
       "leagueCode": "uefa-europa-conference-league",
       "country": "Europe",
       "kickoff": "Thu, 22 Oct, 19:45 EAT",
@@ -10812,7 +11745,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 64,
       "over25Pct": 58,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "uefa_conference_league"
     },
     {
       "id": "mkt-ss-dinamo-zagreb-vs-nec-nijmegen",
@@ -10839,7 +11773,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 63,
       "over25Pct": 49,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "uefa_europa_league"
     },
     {
       "id": "mkt-ss-ferencvarosi-tc-vs-scu-torreense",
@@ -10866,7 +11801,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 54,
       "over25Pct": 60,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "uefa_europa_league"
     },
     {
       "id": "mkt-ss-juventus-vs-stade-rennais-fc",
@@ -10893,7 +11829,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 64,
       "over25Pct": 56,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "uefa_europa_league"
     },
     {
       "id": "mkt-ss-sunderland-vs-lech-poznan",
@@ -10920,7 +11857,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 67,
       "over25Pct": 55,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "uefa_europa_league"
     },
     {
       "id": "mkt-ss-bayer-04-leverkusen-vs-ofi-crete-fc",
@@ -10947,7 +11885,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 67,
       "over25Pct": 61,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "uefa_europa_league"
     },
     {
       "id": "mkt-ss-hapoel-beer-sheva-vs-union-saint-gilloise",
@@ -10974,7 +11913,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 61,
       "over25Pct": 57,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "uefa_europa_league"
     },
     {
       "id": "mkt-ss-sturm-graz-vs-marseille",
@@ -11001,7 +11941,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 59,
       "over25Pct": 53,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "uefa_europa_league"
     },
     {
       "id": "mkt-ss-pafos-fc-vs-riga-fc",
@@ -11010,7 +11951,7 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "away": "Riga FC",
       "homeLogo": "https://img.thesports.com/football/team/50c3c3aca72ad7bd05f5b4742ea993d3.png",
       "awayLogo": "https://img.thesports.com/football/team/b7413988c01bdaac56c8118536bdd073.png",
-      "competition": "UEFA Europa Conference League",
+      "competition": "UEFA Conference League",
       "leagueCode": "uefa-europa-conference-league",
       "country": "Europe",
       "kickoff": "Thu, 22 Oct, 19:45 EAT",
@@ -11028,7 +11969,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 63,
       "over25Pct": 59,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "uefa_conference_league"
     },
     {
       "id": "mkt-ss-brighton-hove-albion-vs-fk-jablonec",
@@ -11037,7 +11979,7 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "away": "Brighton Hove Albion",
       "homeLogo": "https://img.thesports.com/football/team/5ad108996fc7f22e8c12cddbc33e1ca7.png",
       "awayLogo": "https://img.thesports.com/football/team/9b43a690d5a09f1e319f036821e8e1d3.png",
-      "competition": "UEFA Europa Conference League",
+      "competition": "UEFA Conference League",
       "leagueCode": "uefa-europa-conference-league",
       "country": "Europe",
       "kickoff": "Thu, 22 Oct, 19:45 EAT",
@@ -11055,7 +11997,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 53,
       "over25Pct": 61,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "uefa_conference_league"
     },
     {
       "id": "mkt-ss-kauno-zalgiris-vs-brann",
@@ -11064,7 +12007,7 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "away": "Brann",
       "homeLogo": "https://img.thesports.com/football/team/fa40a749241f4b8ab3e93d2f5922e5c7.png",
       "awayLogo": "https://img.thesports.com/football/team/448b88beb6cdaf0accf126b280b177d9.png",
-      "competition": "UEFA Europa Conference League",
+      "competition": "UEFA Conference League",
       "leagueCode": "uefa-europa-conference-league",
       "country": "Europe",
       "kickoff": "Thu, 22 Oct, 19:45 EAT",
@@ -11082,7 +12025,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 55,
       "over25Pct": 63,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "uefa_conference_league"
     },
     {
       "id": "mkt-ss-trabzonspor-vs-heart-of-midlothian-fc",
@@ -11091,7 +12035,7 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "away": "Heart of Midlothian F.C.",
       "homeLogo": "https://img.thesports.com/football/team/9dc9c8f928d5cafdc90a747fe0439c2d.png",
       "awayLogo": "https://img.thesports.com/football/team/eaf06359f42dcf69c7ac660731511239.png",
-      "competition": "UEFA Europa Conference League",
+      "competition": "UEFA Conference League",
       "leagueCode": "uefa-europa-conference-league",
       "country": "Europe",
       "kickoff": "Thu, 22 Oct, 19:45 EAT",
@@ -11109,7 +12053,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 53,
       "over25Pct": 55,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "uefa_conference_league"
     },
     {
       "id": "mkt-ss-inter-club-descaldes-vs-cs-universitatea-craiova",
@@ -11118,7 +12063,7 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "away": "CS Universitatea Craiova",
       "homeLogo": "https://img.thesports.com/football/team/808a63c4e021d1ee40dd6d9d07d3baa3.png",
       "awayLogo": "https://img.thesports.com/football/team/d8fef73043961d11ed61a37476a54568.png",
-      "competition": "UEFA Europa Conference League",
+      "competition": "UEFA Conference League",
       "leagueCode": "uefa-europa-conference-league",
       "country": "Europe",
       "kickoff": "Thu, 22 Oct, 19:45 EAT",
@@ -11136,7 +12081,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 59,
       "over25Pct": 63,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "uefa_conference_league"
     },
     {
       "id": "mkt-ss-nordsjaelland-vs-cska-sofia",
@@ -11145,7 +12091,7 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "away": "CSKA Sofia",
       "homeLogo": "https://img.thesports.com/football/team/d63099fdff083541d1ebef9beae90f63.png",
       "awayLogo": "https://img.thesports.com/football/team/3b19cae478679881554914e45d318742.png",
-      "competition": "UEFA Europa Conference League",
+      "competition": "UEFA Conference League",
       "leagueCode": "uefa-europa-conference-league",
       "country": "Europe",
       "kickoff": "Thu, 22 Oct, 19:45 EAT",
@@ -11163,7 +12109,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 53,
       "over25Pct": 65,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "uefa_conference_league"
     },
     {
       "id": "mkt-ss-fc-iberia-1999-tbilisi-vs-mjallby-aif",
@@ -11172,7 +12119,7 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "away": "Mjallby AIF",
       "homeLogo": "https://img.thesports.com/football/team/e80d49b16e8a1ea6b6d38643e1d429b0.png",
       "awayLogo": "https://img.thesports.com/football/team/0ffb7ffab7e1720c91427e75b4a50ace.png",
-      "competition": "UEFA Europa Conference League",
+      "competition": "UEFA Conference League",
       "leagueCode": "uefa-europa-conference-league",
       "country": "Europe",
       "kickoff": "Thu, 22 Oct, 19:45 EAT",
@@ -11190,7 +12137,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 61,
       "over25Pct": 55,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "uefa_conference_league"
     },
     {
       "id": "mkt-ss-bahrain-u17-vs-china-u16",
@@ -11217,7 +12165,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 66,
       "over25Pct": 54,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_gff_u_17_gulf_cup"
     },
     {
       "id": "mkt-ss-al-khaleej-club-vs-al-ahli-sfc",
@@ -11226,9 +12175,9 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "away": "Al Khaleej",
       "homeLogo": "https://img.thesports.com/football/team/a0a227a6100628d3213e1fc321acd4f2.png",
       "awayLogo": "https://img.thesports.com/football/team/6d48cbd483dee74ed9aef387bb082d64.png",
-      "competition": "Saudi Professional League",
+      "competition": "Saudi Pro League",
       "leagueCode": "saudi-professional-league",
-      "country": "International",
+      "country": "Saudi Arabia",
       "kickoff": "Thu, 22 Oct, 21:00 EAT",
       "kickoffIso": "2026-10-22T18:00:00+00:00",
       "status": "pre",
@@ -11244,7 +12193,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 64,
       "over25Pct": 54,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "sau_pro_league"
     },
     {
       "id": "mkt-ss-chile-women-u17-vs-mexico-u17-women",
@@ -11271,7 +12221,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 65,
       "over25Pct": 53,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_fifa_u17_women_s_world_cup"
     },
     {
       "id": "mkt-ss-usa-u17-women-vs-kenya-u17-women",
@@ -11298,7 +12249,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 54,
       "over25Pct": 50,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_fifa_u17_women_s_world_cup"
     },
     {
       "id": "mkt-ss-gimnasia-mendoza-reserves-vs-atletico-tucuman-reserve",
@@ -11325,7 +12277,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 53,
       "over25Pct": 57,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_argentine_reserve_league"
     },
     {
       "id": "mkt-ss-central-cordoba-sde-reserves-vs-deportivo-riestra-reserves",
@@ -11352,7 +12305,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 66,
       "over25Pct": 60,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_argentine_reserve_league"
     },
     {
       "id": "mkt-ss-instituto-ac-cordoba-ii-vs-godoy-cruz-reserves",
@@ -11379,7 +12333,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 64,
       "over25Pct": 60,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_argentine_reserve_league"
     },
     {
       "id": "mkt-ss-huracan-reserves-vs-boca-juniors-reserve",
@@ -11406,7 +12361,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 53,
       "over25Pct": 57,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_argentine_reserve_league"
     },
     {
       "id": "mkt-ss-racing-club-reserves-vs-san-lorenzo-reserves",
@@ -11433,7 +12389,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 56,
       "over25Pct": 50,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_argentine_reserve_league"
     },
     {
       "id": "mkt-ss-barracas-central-reserves-vs-union-santa-fe-reserves",
@@ -11460,7 +12417,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 66,
       "over25Pct": 56,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_argentine_reserve_league"
     },
     {
       "id": "mkt-ss-birkirkara-women-vs-swieqi-united-women",
@@ -11487,7 +12445,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 57,
       "over25Pct": 65,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_malta_women_s_division_1"
     },
     {
       "id": "mkt-ss-gzira-united-vs-hibernians-fc",
@@ -11514,7 +12473,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 63,
       "over25Pct": 49,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_malta_premier_league"
     },
     {
       "id": "mkt-ss-cuenca-juniors-vs-atletico-futbol-club",
@@ -11541,7 +12501,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 58,
       "over25Pct": 54,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_ecuadorian_campeonato_serie_b"
     },
     {
       "id": "mkt-ss-san-antonioecu-vs-ad-nueve-de-octubre",
@@ -11568,7 +12529,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 59,
       "over25Pct": 55,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_ecuadorian_campeonato_serie_b"
     },
     {
       "id": "mkt-ss-vinotinto-fc-vs-cd-independiente-juniors",
@@ -11595,7 +12557,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 58,
       "over25Pct": 48,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_ecuadorian_campeonato_serie_b"
     },
     {
       "id": "mkt-ss-al-gharraf-vs-al-naft-sc",
@@ -11622,7 +12585,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 64,
       "over25Pct": 54,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_iraq_stars_league"
     },
     {
       "id": "mkt-ss-atalanta-vs-afc-ajax",
@@ -11631,7 +12595,7 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "away": "Atalanta",
       "homeLogo": "https://img.thesports.com/football/team/187929503752357480bce47813a9741f.png",
       "awayLogo": "https://img.thesports.com/football/team/43a877bf7a6f4c109f0affbf45d5f19c.png",
-      "competition": "UEFA Europa Conference League",
+      "competition": "UEFA Conference League",
       "leagueCode": "uefa-europa-conference-league",
       "country": "Europe",
       "kickoff": "Thu, 22 Oct, 22:00 EAT",
@@ -11649,7 +12613,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 52,
       "over25Pct": 60,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "uefa_conference_league"
     },
     {
       "id": "mkt-ss-borac-banja-luka-vs-kups",
@@ -11658,7 +12623,7 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "away": "KuPs",
       "homeLogo": "https://img.thesports.com/football/team/538d312c2512ebda3129f105db04e5e5.png",
       "awayLogo": "https://img.thesports.com/football/team/1fced0158de1169e9bc3209f4ab98e84.png",
-      "competition": "UEFA Europa Conference League",
+      "competition": "UEFA Conference League",
       "leagueCode": "uefa-europa-conference-league",
       "country": "Europe",
       "kickoff": "Thu, 22 Oct, 22:00 EAT",
@@ -11676,7 +12641,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 56,
       "over25Pct": 64,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "uefa_conference_league"
     },
     {
       "id": "mkt-ss-sc-freiburg-vs-as-monaco",
@@ -11685,7 +12651,7 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "away": "SC Freiburg",
       "homeLogo": "https://img.thesports.com/football/team/693af0d277fe3179594695614dce8666.png",
       "awayLogo": "https://img.thesports.com/football/team/6508946c9a5fe22a8784b905b25e8c79.png",
-      "competition": "UEFA Europa Conference League",
+      "competition": "UEFA Conference League",
       "leagueCode": "uefa-europa-conference-league",
       "country": "Europe",
       "kickoff": "Thu, 22 Oct, 22:00 EAT",
@@ -11703,7 +12669,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 66,
       "over25Pct": 54,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "uefa_conference_league"
     },
     {
       "id": "mkt-ss-sporting-braga-vs-kaa-gent",
@@ -11712,7 +12679,7 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "away": "KAA Gent",
       "homeLogo": "https://img.thesports.com/football/team/1fe75f826dab40e6e89cbe961c7e9116.png",
       "awayLogo": "https://img.thesports.com/football/team/59e9be1ed056bdc0025f6064316485fe.png",
-      "competition": "UEFA Europa Conference League",
+      "competition": "UEFA Conference League",
       "leagueCode": "uefa-europa-conference-league",
       "country": "Europe",
       "kickoff": "Thu, 22 Oct, 22:00 EAT",
@@ -11730,7 +12697,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 66,
       "over25Pct": 56,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "uefa_conference_league"
     },
     {
       "id": "mkt-ss-red-bull-salzburg-vs-nk-publikum-celje",
@@ -11757,7 +12725,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 56,
       "over25Pct": 64,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "uefa_europa_league"
     },
     {
       "id": "mkt-ss-celtic-fc-vs-rc-celta",
@@ -11784,7 +12753,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 55,
       "over25Pct": 61,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "uefa_europa_league"
     },
     {
       "id": "mkt-ss-lyon-vs-tsg-hoffenheim",
@@ -11811,7 +12781,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 66,
       "over25Pct": 62,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "uefa_europa_league"
     },
     {
       "id": "mkt-ss-jagiellonia-bialystok-vs-anderlecht",
@@ -11838,7 +12809,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 57,
       "over25Pct": 63,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "uefa_europa_league"
     },
     {
       "id": "mkt-ss-lillestrom-vs-real-sociedad",
@@ -11865,7 +12837,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 59,
       "over25Pct": 65,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "uefa_europa_league"
     },
     {
       "id": "mkt-ss-olympiacos-piraeus-vs-ac-sparta-praha",
@@ -11892,7 +12865,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 53,
       "over25Pct": 55,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "uefa_europa_league"
     },
     {
       "id": "mkt-ss-omonia-nicosia-fc-vs-benfica",
@@ -11919,7 +12893,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 54,
       "over25Pct": 58,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "uefa_europa_league"
     },
     {
       "id": "mkt-ss-fc-viktoria-plzen-vs-levski-sofia",
@@ -11946,7 +12921,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 55,
       "over25Pct": 61,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "uefa_europa_league"
     },
     {
       "id": "mkt-ss-besiktas-jk-vs-crystal-palace",
@@ -11973,7 +12949,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 63,
       "over25Pct": 57,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "uefa_europa_league"
     },
     {
       "id": "mkt-ss-bolivar-women-vs-deportivo-quito-w",
@@ -11982,7 +12959,7 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "away": "Bolivar Women",
       "homeLogo": "https://img.thesports.com/football/team/152c7bdc46acb378c386939fded13eba.png",
       "awayLogo": "https://img.thesports.com/football/team/b60961ffdfe326602f8056668355c254.png",
-      "competition": "CONMEBOL Copa Libertadores Femenino",
+      "competition": "CONMEBOL Libertadores",
       "leagueCode": "conmebol-copa-libertadores-femenino",
       "country": "South America",
       "kickoff": "Fri, 23 Oct, 03:00 EAT",
@@ -12000,7 +12977,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 62,
       "over25Pct": 54,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "conmebol_libertadores"
     },
     {
       "id": "mkt-ss-cruzeiro-women-vs-club-olimpia-women",
@@ -12009,7 +12987,7 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "away": "Cruzeiro Women",
       "homeLogo": "https://img.thesports.com/football/team/6a35a6ffc77c23572104648297fefcd2.png",
       "awayLogo": "https://img.thesports.com/football/team/a3786f417bab73cbf4b3a789584ef8f8.png",
-      "competition": "CONMEBOL Copa Libertadores Femenino",
+      "competition": "CONMEBOL Libertadores",
       "leagueCode": "conmebol-copa-libertadores-femenino",
       "country": "South America",
       "kickoff": "Fri, 23 Oct, 03:00 EAT",
@@ -12027,7 +13005,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 64,
       "over25Pct": 54,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "conmebol_libertadores"
     },
     {
       "id": "mkt-ss-estudiantes-la-plata-vs-cr-flamengo",
@@ -12036,7 +13015,7 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "away": "Estudiantes La Plata",
       "homeLogo": "https://img.thesports.com/football/team/f19b2f9fa5b0c72acc262bc4f0d2cd77.png",
       "awayLogo": "https://img.thesports.com/football/team/815c22bf4ba2ec7ac989fe89c0dd6ecc.png",
-      "competition": "CONMEBOL Copa Libertadores",
+      "competition": "CONMEBOL Libertadores",
       "leagueCode": "conmebol-copa-libertadores",
       "country": "South America",
       "kickoff": "Fri, 23 Oct, 03:30 EAT",
@@ -12054,7 +13033,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 59,
       "over25Pct": 63,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "conmebol_libertadores"
     },
     {
       "id": "mkt-ss-cd-cruz-azul-hidalgo-vs-alebrijes-de-oaxaca",
@@ -12081,7 +13061,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 62,
       "over25Pct": 48,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_mexico_ascenso_mx"
     },
     {
       "id": "mkt-ss-deportivo-pasto-vs-atletico-nacional-medellin",
@@ -12108,7 +13089,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 53,
       "over25Pct": 61,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_categor_a_primera_a"
     },
     {
       "id": "mkt-ss-cd-motagua-vs-ld-alajuelense",
@@ -12135,7 +13117,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 60,
       "over25Pct": 56,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_concacaf_central_american_cup"
     },
     {
       "id": "mkt-ss-atlas-women-vs-leon-women",
@@ -12144,9 +13127,9 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "away": "Leon Women",
       "homeLogo": "https://img.thesports.com/football/team/3dc17d0d3fe8cbf2adacc03198f09779.png",
       "awayLogo": "https://img.thesports.com/football/team/8e279a6f57d4768f5f1fa3bb28fd3a8a.png",
-      "competition": "Mexico Liga MX Femenil",
+      "competition": "Mexican Liga MX",
       "leagueCode": "mexico-liga-mx-femenil",
-      "country": "International",
+      "country": "Mexico",
       "kickoff": "Fri, 23 Oct, 04:06 EAT",
       "kickoffIso": "2026-10-23T01:06:00+00:00",
       "status": "pre",
@@ -12162,7 +13145,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 67,
       "over25Pct": 55,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "mex_liga_mx"
     },
     {
       "id": "mkt-ss-parikrma-fc-vs-bengaluru-roots-fc",
@@ -12189,7 +13173,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 53,
       "over25Pct": 61,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_indian_bangalore_super_division"
     },
     {
       "id": "mkt-ss-dalian-football-school-women-vs-shanxi-xihua-women",
@@ -12216,7 +13201,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 54,
       "over25Pct": 56,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_cfa_women_s_league_one"
     },
     {
       "id": "mkt-ss-zhanjiang-yuezhan-women-vs-tianjin-shengde-women",
@@ -12243,7 +13229,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 54,
       "over25Pct": 62,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_cfa_women_s_league_one"
     },
     {
       "id": "mkt-ss-shandong-jinghuaw-vs-team-ednm9whe",
@@ -12270,7 +13257,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 66,
       "over25Pct": 54,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_cfa_women_s_league_one"
     },
     {
       "id": "mkt-ss-ferrymead-bays-vs-cashmere-technical",
@@ -12297,7 +13285,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 52,
       "over25Pct": 62,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_new_zealand_football_championship"
     },
     {
       "id": "mkt-ss-cf-wellington-united-women-vs-waterside-karori-women",
@@ -12324,7 +13313,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 60,
       "over25Pct": 56,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_new_zealand_women_s_premier_division"
     },
     {
       "id": "mkt-ss-hangzhou-linping-wuyue-vs-shanghai-port-b",
@@ -12351,7 +13341,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 55,
       "over25Pct": 57,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_chinese_football_league_2"
     },
     {
       "id": "mkt-ss-fc-chernigiv-vs-ahrobiznes-volochysk",
@@ -12378,7 +13369,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 56,
       "over25Pct": 62,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_ukrainian_first_league"
     },
     {
       "id": "mkt-ss-ho-chi-minh-city-b-women-vs-thai-nguyen-tt-women",
@@ -12405,7 +13397,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 53,
       "over25Pct": 63,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_women_s_national_league"
     },
     {
       "id": "mkt-ss-stride-vs-south-united",
@@ -12432,7 +13425,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 62,
       "over25Pct": 52,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_indian_bangalore_super_division"
     },
     {
       "id": "mkt-ss-persiba-balikpapan-vs-persipura-jayapura",
@@ -12459,7 +13453,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 60,
       "over25Pct": 56,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_indonesian_championship"
     },
     {
       "id": "mkt-ss-south-melbourne-vs-sydney-united-58-fc",
@@ -12486,7 +13481,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 60,
       "over25Pct": 64,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_aus_champ"
     },
     {
       "id": "mkt-ss-apia-leichhardt-tigers-vs-adelaide-city-fc",
@@ -12513,7 +13509,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 54,
       "over25Pct": 48,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_aus_champ"
     },
     {
       "id": "mkt-ss-abahani-limited-dhaka-vs-brothers-union",
@@ -12540,7 +13537,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 63,
       "over25Pct": 55,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_bangladesh_premier_league"
     },
     {
       "id": "mkt-ss-rahmatgonj-mfs-vs-fakirerpool-young-mens-club",
@@ -12567,7 +13565,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 67,
       "over25Pct": 61,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_bangladesh_premier_league"
     },
     {
       "id": "mkt-ss-selangor-pkns-vs-aak-puncak-alam",
@@ -12576,9 +13575,9 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "away": "Selangor PKNS",
       "homeLogo": "https://img.thesports.com/football/team/85bb5c4d49dbfd1a135d45b9378bb013.png",
       "awayLogo": "https://img.thesports.com/football/team/e068323f25e8cb68dbb1038f64fd4d47.png",
-      "competition": "Malaysia A1 Semi-Pro League",
+      "competition": "Belgian Pro League",
       "leagueCode": "malaysia-a1-semi-pro-league",
-      "country": "International",
+      "country": "Belgium",
       "kickoff": "Fri, 23 Oct, 11:45 EAT",
       "kickoffIso": "2026-10-23T08:45:00+00:00",
       "status": "pre",
@@ -12594,7 +13593,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 54,
       "over25Pct": 60,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "bel_pro_league"
     },
     {
       "id": "mkt-ss-brisbane-roar-vs-perth-glory",
@@ -12603,9 +13603,9 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "away": "Perth Glory",
       "homeLogo": "https://img.thesports.com/football/team/1963b39a28bc14ed984423858194208e.png",
       "awayLogo": "https://img.thesports.com/football/team/43f9c122bf617d349407a95d4f709a0d.png",
-      "competition": "Australia A-League",
+      "competition": "Australian A-League",
       "leagueCode": "australia-a-league",
-      "country": "International",
+      "country": "Australia",
       "kickoff": "Fri, 23 Oct, 12:00 EAT",
       "kickoffIso": "2026-10-23T09:00:00+00:00",
       "status": "pre",
@@ -12621,7 +13621,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 58,
       "over25Pct": 48,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "aus_a_league"
     },
     {
       "id": "mkt-ss-metalist-kharkiv-vs-fenix-mariupol",
@@ -12648,7 +13649,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 58,
       "over25Pct": 52,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_ukrainian_first_league"
     },
     {
       "id": "mkt-ss-kudrivka-vs-dynamo-kyiv",
@@ -12675,7 +13677,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 57,
       "over25Pct": 53,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_ukrainian_premier_league"
     },
     {
       "id": "mkt-ss-song-lam-nghe-an-vs-hoang-anh-gia-lai",
@@ -12702,7 +13705,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 67,
       "over25Pct": 63,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_vietnam_national_champion_league"
     },
     {
       "id": "mkt-ss-quang-ninh-vs-khatoco-khanh-hoa",
@@ -12729,7 +13733,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 65,
       "over25Pct": 51,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_vietnam_national_first_class_league"
     },
     {
       "id": "mkt-ss-hapoel-ironi-karmiel-vs-hapoel-nof-hagalil",
@@ -12756,7 +13761,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 66,
       "over25Pct": 58,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_israel_b_league"
     },
     {
       "id": "mkt-ss-ironi-nir-ramat-hasharon-vs-sport-club-dimona",
@@ -12783,7 +13789,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 57,
       "over25Pct": 61,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_israel_b_league"
     },
     {
       "id": "mkt-ss-fk-ural-youth-vs-almaz-antey-youth",
@@ -12810,7 +13817,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 56,
       "over25Pct": 52,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_rus_m_league"
     },
     {
       "id": "mkt-ss-chertanovo-moscow-youth-vs-konopliev-youth",
@@ -12837,7 +13845,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 64,
       "over25Pct": 50,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_rus_m_league"
     },
     {
       "id": "mkt-ss-fc-rodina-moscow-youth-vs-cska-moscow-reserves",
@@ -12864,7 +13873,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 65,
       "over25Pct": 61,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_rus_m_league"
     },
     {
       "id": "mkt-ss-fk-krasnodar-youth-vs-dinamo-moscow-youth",
@@ -12891,7 +13901,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 63,
       "over25Pct": 57,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_rus_m_league"
     },
     {
       "id": "mkt-ss-fakel-youth-vs-fk-rostov-youth",
@@ -12918,7 +13929,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 52,
       "over25Pct": 58,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_rus_m_league"
     },
     {
       "id": "mkt-ss-lokomotiv-moscow-youth-vs-rubin-kazan-reserves",
@@ -12945,7 +13957,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 62,
       "over25Pct": 52,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_rus_m_league"
     },
     {
       "id": "mkt-ss-fc-pari-nizhniy-novgorod-youth-vs-zenit-stpetersburg-youth",
@@ -12972,7 +13985,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 67,
       "over25Pct": 53,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_rus_m_league"
     },
     {
       "id": "mkt-ss-dinamo-makhachkala-youth-vs-spartak-moscow-youth",
@@ -12999,7 +14013,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 56,
       "over25Pct": 62,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_rus_m_league"
     },
     {
       "id": "mkt-ss-fc-saturn-ramenskoe-vs-fc-rodina-m-moscow",
@@ -13026,7 +14041,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 63,
       "over25Pct": 57,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_rus_d3b"
     },
     {
       "id": "mkt-ss-araz-nakhchivan-vs-fk-gilan-gabala",
@@ -13053,7 +14069,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 60,
       "over25Pct": 52,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_azerbaijan_premier_league"
     },
     {
       "id": "mkt-ss-team-k82rekh1kglrepz-vs-nyva-ternopil-b",
@@ -13079,7 +14096,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 55,
       "over25Pct": 63,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_ukrainian_second_league"
     },
     {
       "id": "mkt-ss-cf-univer-comrat-vs-iskra-stal-ribnita",
@@ -13106,7 +14124,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 58,
       "over25Pct": 64,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_moldovan_liga_1"
     },
     {
       "id": "mkt-ss-cf-sparta-selemet-vs-zimbru-chisinau-b",
@@ -13133,7 +14152,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 56,
       "over25Pct": 64,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_moldovan_liga_1"
     },
     {
       "id": "mkt-ss-muzinga-fc-vs-ngozi-city-fc",
@@ -13160,7 +14180,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 59,
       "over25Pct": 65,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_burundi_premier_league"
     },
     {
       "id": "mkt-ss-ipswich-u21-vs-birmingham-u21",
@@ -13187,7 +14208,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 63,
       "over25Pct": 57,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_english_u21_premier_league"
     },
     {
       "id": "mkt-ss-cekmekoy-bilgidogaw-vs-galatasaray-sk-women",
@@ -13214,7 +14236,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 61,
       "over25Pct": 51,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_turkish_women_s_super_league"
     },
     {
       "id": "mkt-ss-al-nejmeh-sc-vs-al-arabi-club-kuw",
@@ -13241,7 +14264,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 60,
       "over25Pct": 54,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_afc_challenge_league"
     },
     {
       "id": "mkt-ss-quy-nhon-united-vs-lam-dong",
@@ -13268,7 +14292,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 53,
       "over25Pct": 57,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_vietnam_national_first_class_league"
     },
     {
       "id": "mkt-ss-henan-fc-u21-vs-hubei-istar-u20",
@@ -13295,7 +14320,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 65,
       "over25Pct": 59,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_chinese_football_assorciation_u_20_league"
     },
     {
       "id": "mkt-ss-team-23xmvkhxn5dqg8n-vs-becamex-ho-chi-minh-city",
@@ -13321,7 +14347,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 67,
       "over25Pct": 57,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_vietnam_national_first_class_league"
     },
     {
       "id": "mkt-ss-liangping-vs-team-vjxm8ghxzn8r6od",
@@ -13348,7 +14375,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 59,
       "over25Pct": 53,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_chongqing_city_football_super_league"
     },
     {
       "id": "mkt-ss-jingzhou-team-vs-wuhan-team",
@@ -13375,7 +14403,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 59,
       "over25Pct": 65,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_hubei_city_football_league"
     },
     {
       "id": "mkt-ss-fk-van-charentsavan-vs-ararat-yerevan",
@@ -13402,7 +14431,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 67,
       "over25Pct": 55,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_armenian_premier_league"
     },
     {
       "id": "mkt-ss-team-8yomo4hzdyyq0j6-vs-kirsehir-koyhizmetleri",
@@ -13428,7 +14458,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 54,
       "over25Pct": 48,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_turkish_third_league"
     },
     {
       "id": "mkt-ss-ks-bylis-vs-pogradeci",
@@ -13455,7 +14486,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 57,
       "over25Pct": 61,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_albanian_division_1"
     },
     {
       "id": "mkt-ss-team-l7oqdeh1-vs-shanghai-port-u21",
@@ -13482,7 +14514,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 52,
       "over25Pct": 56,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_chinese_football_assorciation_u_20_league"
     },
     {
       "id": "mkt-ss-east-bengal-fc-vs-inter-kashi",
@@ -13509,7 +14542,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 63,
       "over25Pct": 57,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_indian_super_league"
     },
     {
       "id": "mkt-ss-barkchi-hisor-vs-fk-parvoz-bobojon-ghafurov",
@@ -13536,7 +14570,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 63,
       "over25Pct": 51,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_tajikistan_higher_league"
     },
     {
       "id": "mkt-ss-fc-istaravshan-vs-sardor-tursunzoda",
@@ -13563,7 +14598,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 61,
       "over25Pct": 53,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_tajikistan_higher_league"
     },
     {
       "id": "mkt-ss-sileks-vs-shkendija-haracine",
@@ -13590,7 +14626,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 52,
       "over25Pct": 56,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_north_macedonia_first_football_league"
     },
     {
       "id": "mkt-ss-backa-topola-vs-teleoptik",
@@ -13617,7 +14654,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 67,
       "over25Pct": 63,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_serbian_mozzart_bet_prva_liga"
     },
     {
       "id": "mkt-ss-ironi-beit-shemesh-vs-hapoel-mahane-yehuda",
@@ -13644,7 +14682,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 54,
       "over25Pct": 58,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_israel_b_league"
     },
     {
       "id": "mkt-ss-hapoel-hadera-vs-maccabi-lroni-kiryat-malakhi",
@@ -13671,7 +14710,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 55,
       "over25Pct": 59,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_israel_b_league"
     },
     {
       "id": "mkt-ss-hapoel-azor-vs-hapoel-herzliya",
@@ -13698,7 +14738,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 64,
       "over25Pct": 50,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_israel_b_league"
     },
     {
       "id": "mkt-ss-ahal-fk-vs-al-ansar-sc",
@@ -13725,7 +14766,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 60,
       "over25Pct": 52,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_afc_challenge_league"
     },
     {
       "id": "mkt-ss-barito-putera-vs-psbs-biak-numfor",
@@ -13752,7 +14794,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 57,
       "over25Pct": 61,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_indonesian_championship"
     },
     {
       "id": "mkt-ss-al-ain-al-atawlah-vs-al-safa",
@@ -13779,7 +14822,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 66,
       "over25Pct": 56,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_saudi_arabia_division_2"
     },
     {
       "id": "mkt-ss-al-sahel-vs-al-rayyan",
@@ -13806,7 +14850,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 57,
       "over25Pct": 61,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_saudi_arabia_division_2"
     },
     {
       "id": "mkt-ss-al-taraji-vs-al-qotah",
@@ -13833,7 +14878,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 55,
       "over25Pct": 61,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_saudi_arabia_division_2"
     },
     {
       "id": "mkt-ss-al-abbassieh-fc-vs-al-ahed-sc",
@@ -13860,7 +14906,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 65,
       "over25Pct": 57,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_lebanese_premier_league"
     },
     {
       "id": "mkt-ss-tripoli-sporting-club-vs-tadamon-sc-sour",
@@ -13887,7 +14934,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 58,
       "over25Pct": 48,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_lebanese_premier_league"
     },
     {
       "id": "mkt-ss-shabana-fc-vs-mombasa-elite",
@@ -13898,7 +14946,7 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "awayLogo": "https://img.thesports.com/football/team/0315dd4986dceffaf71bd3fb208bedb5.png",
       "competition": "Kenyan Premier League",
       "leagueCode": "kenyan-premier-league",
-      "country": "International",
+      "country": "Kenya",
       "kickoff": "Fri, 23 Oct, 15:00 EAT",
       "kickoffIso": "2026-10-23T12:00:00+00:00",
       "status": "pre",
@@ -13914,7 +14962,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 53,
       "over25Pct": 65,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "ken_premier_league"
     },
     {
       "id": "mkt-ss-afc-leopards-vs-3k-fc",
@@ -13925,7 +14974,7 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "awayLogo": "https://img.thesports.com/football/team/f14df5c3c5849402b8b5fc7d7a7ab829.png",
       "competition": "Kenyan Premier League",
       "leagueCode": "kenyan-premier-league",
-      "country": "International",
+      "country": "Kenya",
       "kickoff": "Fri, 23 Oct, 15:00 EAT",
       "kickoffIso": "2026-10-23T12:00:00+00:00",
       "status": "pre",
@@ -13941,7 +14990,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 59,
       "over25Pct": 51,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "ken_premier_league"
     },
     {
       "id": "mkt-ss-ulinzi-stars-nakuru-vs-muranga",
@@ -13952,7 +15002,7 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "awayLogo": "https://img.thesports.com/football/team/a38beb934ab1f2d9700c6dcc7bcd4385.png",
       "competition": "Kenyan Premier League",
       "leagueCode": "kenyan-premier-league",
-      "country": "International",
+      "country": "Kenya",
       "kickoff": "Fri, 23 Oct, 15:00 EAT",
       "kickoffIso": "2026-10-23T12:00:00+00:00",
       "status": "pre",
@@ -13968,7 +15018,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 56,
       "over25Pct": 48,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "ken_premier_league"
     },
     {
       "id": "mkt-ss-mara-sugar-fc-vs-migori-youth",
@@ -13979,7 +15030,7 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "awayLogo": "https://img.thesports.com/football/team/32e03e5b80ebc81e37687a20db4705f4.png",
       "competition": "Kenyan Premier League",
       "leagueCode": "kenyan-premier-league",
-      "country": "International",
+      "country": "Kenya",
       "kickoff": "Fri, 23 Oct, 15:00 EAT",
       "kickoffIso": "2026-10-23T12:00:00+00:00",
       "status": "pre",
@@ -13995,7 +15046,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 63,
       "over25Pct": 49,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "ken_premier_league"
     },
     {
       "id": "mkt-ss-kcb-sc-vs-aps-bomet",
@@ -14006,7 +15058,7 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "awayLogo": "https://img.thesports.com/football/team/a63a265858037349a81e2f1b500df35e.jfif",
       "competition": "Kenyan Premier League",
       "leagueCode": "kenyan-premier-league",
-      "country": "International",
+      "country": "Kenya",
       "kickoff": "Fri, 23 Oct, 15:00 EAT",
       "kickoffIso": "2026-10-23T12:00:00+00:00",
       "status": "pre",
@@ -14022,7 +15074,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 67,
       "over25Pct": 59,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "ken_premier_league"
     },
     {
       "id": "mkt-ss-mathare-united-vs-posta-rangers",
@@ -14033,7 +15086,7 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "awayLogo": "https://img.thesports.com/football/team/4f41a1f185a570db95c26d222db9825a.png",
       "competition": "Kenyan Premier League",
       "leagueCode": "kenyan-premier-league",
-      "country": "International",
+      "country": "Kenya",
       "kickoff": "Fri, 23 Oct, 15:00 EAT",
       "kickoffIso": "2026-10-23T12:00:00+00:00",
       "status": "pre",
@@ -14049,7 +15102,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 67,
       "over25Pct": 59,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "ken_premier_league"
     },
     {
       "id": "mkt-ss-nairobi-united-vs-gor-mahia",
@@ -14060,7 +15114,7 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "awayLogo": "https://img.thesports.com/football/team/05f29f45dbfa3bf432ec69c4fcd49d74.png",
       "competition": "Kenyan Premier League",
       "leagueCode": "kenyan-premier-league",
-      "country": "International",
+      "country": "Kenya",
       "kickoff": "Fri, 23 Oct, 15:00 EAT",
       "kickoffIso": "2026-10-23T12:00:00+00:00",
       "status": "pre",
@@ -14076,7 +15130,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 61,
       "over25Pct": 65,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "ken_premier_league"
     },
     {
       "id": "mkt-ss-kenya-police-fc-vs-kakamega-homeboyz",
@@ -14087,7 +15142,7 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "awayLogo": "https://img.thesports.com/football/team/afdbdb6ab8cc18ffdba28a2740eed3c2.png",
       "competition": "Kenyan Premier League",
       "leagueCode": "kenyan-premier-league",
-      "country": "International",
+      "country": "Kenya",
       "kickoff": "Fri, 23 Oct, 15:00 EAT",
       "kickoffIso": "2026-10-23T12:00:00+00:00",
       "status": "pre",
@@ -14103,7 +15158,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 66,
       "over25Pct": 54,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "ken_premier_league"
     },
     {
       "id": "mkt-ss-bandari-vs-tusker",
@@ -14114,7 +15170,7 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "awayLogo": "https://img.thesports.com/football/team/b1f41dc92801201b751314126bc0939c.png",
       "competition": "Kenyan Premier League",
       "leagueCode": "kenyan-premier-league",
-      "country": "International",
+      "country": "Kenya",
       "kickoff": "Fri, 23 Oct, 15:00 EAT",
       "kickoffIso": "2026-10-23T12:00:00+00:00",
       "status": "pre",
@@ -14130,7 +15186,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 59,
       "over25Pct": 49,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "ken_premier_league"
     },
     {
       "id": "mkt-ss-bac-ninh-vs-the-cong-viettel",
@@ -14157,7 +15214,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 52,
       "over25Pct": 48,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_vietnam_national_champion_league"
     },
     {
       "id": "mkt-ss-al-hilal-youth-vs-al-fath-youth",
@@ -14184,7 +15242,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 67,
       "over25Pct": 59,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_saudi_arabia_youth_league"
     },
     {
       "id": "mkt-ss-al-raed-u20-vs-al-nasr-youth",
@@ -14211,7 +15270,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 58,
       "over25Pct": 48,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_saudi_arabia_youth_league"
     },
     {
       "id": "mkt-ss-al-shabab-youth-vs-team-x7lm7php1dgm2wd",
@@ -14238,7 +15298,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 60,
       "over25Pct": 64,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_saudi_arabia_youth_league"
     },
     {
       "id": "mkt-ss-al-batin-vs-hottain-ksa",
@@ -14265,7 +15326,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 53,
       "over25Pct": 63,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_saudi_arabia_division_2"
     },
     {
       "id": "mkt-ss-al-orubah-youths-vs-al-fayha-youth",
@@ -14292,7 +15354,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 62,
       "over25Pct": 52,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_saudi_arabia_youth_league"
     },
     {
       "id": "mkt-ss-sokol-kleczew-vs-slask-wroclaw-ii",
@@ -14319,7 +15382,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 59,
       "over25Pct": 51,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_poland_liga_2"
     },
     {
       "id": "mkt-ss-obolon-kyiv-vs-polissya-zhytomyr",
@@ -14346,7 +15410,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 66,
       "over25Pct": 60,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_ukrainian_premier_league"
     },
     {
       "id": "mkt-ss-kolos-kovalivka-vs-veres",
@@ -14373,7 +15438,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 54,
       "over25Pct": 62,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_ukrainian_premier_league"
     },
     {
       "id": "mkt-ss-proxy-sc-vs-haras-el-hodood",
@@ -14400,7 +15466,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 53,
       "over25Pct": 57,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_egyptian_division_2"
     },
     {
       "id": "mkt-ss-ismaily-sc-vs-la-viena",
@@ -14427,7 +15494,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 58,
       "over25Pct": 62,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_egyptian_division_2"
     },
     {
       "id": "mkt-ss-aluminium-arak-vs-zob-ahan",
@@ -14436,9 +15504,9 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "away": "Zob Ahan",
       "homeLogo": "https://img.thesports.com/football/team/551b5ae29251af9a23b2af26e27d92c5.png",
       "awayLogo": "https://img.thesports.com/football/team/5aefafa661e2f37f2b39022fa7cad8c6.png",
-      "competition": "Iran Pro League",
+      "competition": "Belgian Pro League",
       "leagueCode": "iran-pro-league",
-      "country": "International",
+      "country": "Belgium",
       "kickoff": "Fri, 23 Oct, 15:30 EAT",
       "kickoffIso": "2026-10-23T12:30:00+00:00",
       "status": "pre",
@@ -14454,7 +15522,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 55,
       "over25Pct": 49,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "bel_pro_league"
     },
     {
       "id": "mkt-ss-gol-gohar-fc-vs-kheybar-khorramabad",
@@ -14463,9 +15532,9 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "away": "Kheybar Khorramabad",
       "homeLogo": "https://img.thesports.com/football/team/69625f17e031ad1fcb33823338b74d95.png",
       "awayLogo": "https://img.thesports.com/football/team/ae71d18a647f7a80c639a3d5b648b70b.png",
-      "competition": "Iran Pro League",
+      "competition": "Belgian Pro League",
       "leagueCode": "iran-pro-league",
-      "country": "International",
+      "country": "Belgium",
       "kickoff": "Fri, 23 Oct, 15:30 EAT",
       "kickoffIso": "2026-10-23T12:30:00+00:00",
       "status": "pre",
@@ -14481,7 +15550,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 67,
       "over25Pct": 61,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "bel_pro_league"
     },
     {
       "id": "mkt-ss-el-mansoura-vs-el-entag-al-harby",
@@ -14508,7 +15578,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 66,
       "over25Pct": 60,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_egyptian_division_2"
     },
     {
       "id": "mkt-ss-fc-masar-vs-pharco",
@@ -14535,7 +15606,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 62,
       "over25Pct": 50,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_egyptian_division_2"
     },
     {
       "id": "mkt-ss-tersana-sc-vs-team-fc-cairo",
@@ -14562,7 +15634,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 53,
       "over25Pct": 65,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_egyptian_division_2"
     },
     {
       "id": "mkt-ss-al-watan-youth-vs-al-ittihad-youth",
@@ -14589,7 +15662,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 62,
       "over25Pct": 52,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_saudi_arabia_youth_league"
     },
     {
       "id": "mkt-ss-wajj-vs-arar-fc",
@@ -14616,7 +15690,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 53,
       "over25Pct": 57,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_saudi_arabia_division_2"
     },
     {
       "id": "mkt-ss-al-qadasiya-youth-vs-muhayil-youth",
@@ -14643,7 +15718,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 64,
       "over25Pct": 52,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_saudi_arabia_youth_league"
     },
     {
       "id": "mkt-ss-team-6ypq3nh127pmd7o-vs-al-qalah",
@@ -14669,7 +15745,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 57,
       "over25Pct": 61,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_saudi_arabia_division_2"
     },
     {
       "id": "mkt-ss-al-faisaly-harmah-youth-vs-al-ula-fc-youths",
@@ -14696,7 +15773,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 59,
       "over25Pct": 49,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_saudi_arabia_youth_league"
     },
     {
       "id": "mkt-ss-bunga-raya-vs-staf-usm-fc",
@@ -14705,9 +15783,9 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "away": "Bunga Raya",
       "homeLogo": "https://img.thesports.com/football/team/2f98066d39fab9c546300f92aeb0fd30.png",
       "awayLogo": "https://img.thesports.com/football/team/529edba85ee448552ab5dec309b301c0.png",
-      "competition": "Malaysia A1 Semi-Pro League",
+      "competition": "Belgian Pro League",
       "leagueCode": "malaysia-a1-semi-pro-league",
-      "country": "International",
+      "country": "Belgium",
       "kickoff": "Fri, 23 Oct, 15:45 EAT",
       "kickoffIso": "2026-10-23T12:45:00+00:00",
       "status": "pre",
@@ -14723,7 +15801,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 67,
       "over25Pct": 55,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "bel_pro_league"
     },
     {
       "id": "mkt-ss-al-ahli-saudi-fc-youth-vs-al-taawoun-youth",
@@ -14750,7 +15829,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 62,
       "over25Pct": 58,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_saudi_arabia_youth_league"
     },
     {
       "id": "mkt-ss-al-shabab-sc-seeb-vs-smail",
@@ -14777,7 +15857,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 66,
       "over25Pct": 58,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_oman_professional_league"
     },
     {
       "id": "mkt-ss-al-msnaa-vs-ibri-scc",
@@ -14804,7 +15885,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 52,
       "over25Pct": 60,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_oman_professional_league"
     },
     {
       "id": "mkt-ss-ahli-al-fujirah-vs-al-wahdauae",
@@ -14831,7 +15913,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 54,
       "over25Pct": 60,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_united_arab_emirates_president_cup"
     },
     {
       "id": "mkt-ss-maccabi-ahi-nazareth-vs-maccabi-kiryat-gat",
@@ -14858,7 +15941,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 66,
       "over25Pct": 60,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_israel_leumit_league"
     },
     {
       "id": "mkt-ss-sportist-svoge-vs-fk-chernomorets-1919-burgas",
@@ -14885,7 +15969,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 67,
       "over25Pct": 61,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_bulgarian_vtora_liga"
     },
     {
       "id": "mkt-ss-yantra-gabrovo-vs-cska-sofia-b",
@@ -14912,7 +15997,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 66,
       "over25Pct": 58,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_bulgarian_vtora_liga"
     },
     {
       "id": "mkt-ss-marek-dupnitza-vs-vihren-sandanski",
@@ -14939,7 +16025,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 58,
       "over25Pct": 52,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_bulgarian_vtora_liga"
     },
     {
       "id": "mkt-ss-blue-eagles-vs-ekhaya-fc",
@@ -14966,7 +16053,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 66,
       "over25Pct": 54,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_malawi_premier_league"
     },
     {
       "id": "mkt-ss-polisi-tanzania-fc-vs-pamba-jiji",
@@ -14993,7 +16081,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 64,
       "over25Pct": 60,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_tanzanian_premier_league"
     },
     {
       "id": "mkt-ss-nk-dubrava-vs-kustosija",
@@ -15020,7 +16109,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 61,
       "over25Pct": 53,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_croatian_first_football_league"
     },
     {
       "id": "mkt-ss-jadran-lp-vs-mladost-zdralovi",
@@ -15047,7 +16137,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 57,
       "over25Pct": 49,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_croatian_first_football_league"
     },
     {
       "id": "mkt-ss-hnk-cibalia-vs-dinamo-zagreb-ii",
@@ -15074,7 +16165,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 63,
       "over25Pct": 59,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_croatian_first_football_league"
     },
     {
       "id": "mkt-ss-nk-sesvete-vs-hrvace",
@@ -15101,7 +16193,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 64,
       "over25Pct": 60,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_croatian_first_football_league"
     },
     {
       "id": "mkt-ss-kiryat-yam-sc-vs-bnei-yehuda-tel-aviv",
@@ -15128,7 +16221,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 65,
       "over25Pct": 55,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_israel_leumit_league"
     },
     {
       "id": "mkt-ss-hapoel-raanana-vs-hapoel-akko",
@@ -15155,7 +16249,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 63,
       "over25Pct": 57,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_israel_leumit_league"
     },
     {
       "id": "mkt-ss-hapoel-kfar-saba-vs-hapoel-afula",
@@ -15182,7 +16277,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 52,
       "over25Pct": 60,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_israel_leumit_league"
     },
     {
       "id": "mkt-ss-hapoel-rishon-lezion-vs-hapoel-kfar-shalem",
@@ -15209,7 +16305,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 66,
       "over25Pct": 58,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_israel_leumit_league"
     },
     {
       "id": "mkt-ss-ironi-modiin-vs-maccabi-bnei-reineh",
@@ -15236,7 +16333,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 67,
       "over25Pct": 61,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_israel_leumit_league"
     },
     {
       "id": "mkt-ss-maccabi-herzliya-vs-maccabi-kabilio-jaffa",
@@ -15263,7 +16361,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 53,
       "over25Pct": 57,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_israel_leumit_league"
     },
     {
       "id": "mkt-ss-kafr-qasim-vs-ashdod-ms",
@@ -15290,7 +16389,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 59,
       "over25Pct": 53,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_israel_leumit_league"
     },
     {
       "id": "mkt-ss-atalanta-u20-vs-lazio-u20-2",
@@ -15317,7 +16417,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 65,
       "over25Pct": 55,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_italian_campionato_primavera_1"
     },
     {
       "id": "mkt-ss-bistrica-vs-nk-bilje",
@@ -15344,7 +16445,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 52,
       "over25Pct": 60,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_slovenia_cup"
     },
     {
       "id": "mkt-ss-chadormalu-sc-vs-esteghlal-tehran",
@@ -15353,9 +16455,9 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "away": "Esteghlal Tehran",
       "homeLogo": "https://img.thesports.com/football/team/03f36d7d96e09864bdd83b4b0bb6da64.png",
       "awayLogo": "https://img.thesports.com/football/team/48f908d6c42e0bf4e9f83c4841d76bea.png",
-      "competition": "Iran Pro League",
+      "competition": "Belgian Pro League",
       "leagueCode": "iran-pro-league",
-      "country": "International",
+      "country": "Belgium",
       "kickoff": "Fri, 23 Oct, 16:15 EAT",
       "kickoffIso": "2026-10-23T13:15:00+00:00",
       "status": "pre",
@@ -15371,7 +16473,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 59,
       "over25Pct": 51,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "bel_pro_league"
     },
     {
       "id": "mkt-ss-fortis-fc-vs-regar-tadaz-tursunzoda",
@@ -15398,7 +16501,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 57,
       "over25Pct": 61,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_afc_challenge_league"
     },
     {
       "id": "mkt-ss-al-nassr-fc-vs-al-faisaly-harmah",
@@ -15407,9 +16511,9 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "away": "Al Nassr",
       "homeLogo": "https://img.thesports.com/football/team/4e9f55c1006ca24b2b535054a52187e8.png",
       "awayLogo": "https://img.thesports.com/football/team/0d9975f7e846a1ecb099f4cd62d1b8f7.png",
-      "competition": "Saudi Professional League",
+      "competition": "Saudi Pro League",
       "leagueCode": "saudi-professional-league",
-      "country": "International",
+      "country": "Saudi Arabia",
       "kickoff": "Fri, 23 Oct, 16:30 EAT",
       "kickoffIso": "2026-10-23T13:30:00+00:00",
       "status": "pre",
@@ -15425,7 +16529,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 58,
       "over25Pct": 62,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "sau_pro_league"
     },
     {
       "id": "mkt-ss-upington-city-vs-midlands-wanderers-fc",
@@ -15452,7 +16557,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 52,
       "over25Pct": 56,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_motsepe_foundation_championship"
     },
     {
       "id": "mkt-ss-casric-stars-vs-highbury",
@@ -15479,7 +16585,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 60,
       "over25Pct": 54,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_motsepe_foundation_championship"
     },
     {
       "id": "mkt-ss-as-marsa-vs-cshammam-lif",
@@ -15506,7 +16613,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 53,
       "over25Pct": 63,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_tunisian_professional_league_1"
     },
     {
       "id": "mkt-ss-us-ben-guerdane-vs-stade-tunisien",
@@ -15533,7 +16641,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 55,
       "over25Pct": 51,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_tunisian_professional_league_1"
     },
     {
       "id": "mkt-ss-es-hamam-sousse-vs-cabizertin",
@@ -15560,7 +16669,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 55,
       "over25Pct": 59,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_tunisian_professional_league_1"
     },
     {
       "id": "mkt-ss-jeunesse-sportive-omrane-vs-olympique-de-beja",
@@ -15587,7 +16697,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 57,
       "over25Pct": 61,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_tunisian_professional_league_1"
     },
     {
       "id": "mkt-ss-royal-vision-vs-association-sportif-inter-star",
@@ -15614,7 +16725,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 58,
       "over25Pct": 50,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_burundi_premier_league"
     },
     {
       "id": "mkt-ss-gagra-fc-vs-spaeri-fc",
@@ -15641,7 +16753,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 55,
       "over25Pct": 61,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_georgia_erovnuli_liga"
     },
     {
       "id": "mkt-ss-termez-surkhon-vs-buxoro-fk",
@@ -15668,7 +16781,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 61,
       "over25Pct": 65,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_uzbekistan_super_league"
     },
     {
       "id": "mkt-ss-neftchi-fergana-vs-pakhtakor",
@@ -15695,7 +16809,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 62,
       "over25Pct": 56,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_uzbekistan_super_league"
     },
     {
       "id": "mkt-ss-braga-u23-vs-benfica-u23",
@@ -15722,7 +16837,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 66,
       "over25Pct": 54,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_portuguese_u23_league"
     },
     {
       "id": "mkt-ss-al-hilal-omdurman-vs-etincelles",
@@ -15749,7 +16865,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 65,
       "over25Pct": 51,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_rwandan_national_league"
     },
     {
       "id": "mkt-ss-fc-istiklol-dushanbe-vs-al-wathbah",
@@ -15776,7 +16893,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 60,
       "over25Pct": 48,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_afc_challenge_league"
     },
     {
       "id": "mkt-ss-flamurtari-vs-beselidhja-lezhe",
@@ -15803,7 +16921,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 54,
       "over25Pct": 58,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_albanian_division_1"
     },
     {
       "id": "mkt-ss-al-salt-vs-al-ramtha-sc",
@@ -15830,7 +16949,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 65,
       "over25Pct": 53,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_jordan_premier_league"
     },
     {
       "id": "mkt-ss-fc-floresti-vs-flacara-falesti",
@@ -15857,7 +16977,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 52,
       "over25Pct": 58,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_moldovan_liga_1"
     },
     {
       "id": "mkt-ss-js-el-biar-vs-mc-oran",
@@ -15884,7 +17005,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 53,
       "over25Pct": 61,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_algerian_ligue_professionnelle_1"
     },
     {
       "id": "mkt-ss-olympique-akbou-vs-cs-constantine",
@@ -15911,7 +17033,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 55,
       "over25Pct": 51,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_algerian_ligue_professionnelle_1"
     },
     {
       "id": "mkt-ss-fc-baranovichi-vs-fc-minsk",
@@ -15938,7 +17061,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 58,
       "over25Pct": 64,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_belarusian_premier_league"
     },
     {
       "id": "mkt-ss-al-shamal-vs-qatar-sc",
@@ -15965,7 +17089,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 64,
       "over25Pct": 58,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_qatar_stars_league"
     },
     {
       "id": "mkt-ss-duhok-sc-vs-karbalaa",
@@ -15992,7 +17117,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 57,
       "over25Pct": 61,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_iraq_stars_league"
     },
     {
       "id": "mkt-ss-scottland-fc-vs-petro-atletico-de-luanda",
@@ -16019,7 +17145,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 52,
       "over25Pct": 48,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "caf_champions_league"
     },
     {
       "id": "mkt-ss-criciuma-vs-sport-club-do-recife",
@@ -16046,7 +17173,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 64,
       "over25Pct": 52,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_brazilian_serie_b"
     },
     {
       "id": "mkt-ss-houston-dash-women-vs-chicago-red-stars-women",
@@ -16073,7 +17201,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 55,
       "over25Pct": 51,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_united_states_women_s_national_soccer_league"
     },
     {
       "id": "mkt-ss-team-4jwq2gh12eym0ve-vs-inter-fa",
@@ -16100,7 +17229,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 52,
       "over25Pct": 56,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_el_salvador_primera_division"
     },
     {
       "id": "mkt-ss-chapulineros-vs-tritones-vallarta-mfc",
@@ -16127,7 +17257,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 57,
       "over25Pct": 53,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_mex_liga_premier"
     },
     {
       "id": "mkt-ss-atletico-tucuman-vs-club-atletico-tigre",
@@ -16154,7 +17285,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 57,
       "over25Pct": 65,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_argentine_division_1"
     },
     {
       "id": "mkt-ss-fc-juarez-vs-necaxa",
@@ -16163,9 +17295,9 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "away": "FC Juarez",
       "homeLogo": "https://img.thesports.com/football/team/05321a8272ff8e7ff2eb7eae2e0b72a6.png",
       "awayLogo": "https://img.thesports.com/football/team/2ef06350057f561b5dce57c7fca99a74.png",
-      "competition": "Mexico Liga MX",
+      "competition": "Mexican Liga MX",
       "leagueCode": "mexico-liga-mx",
-      "country": "International",
+      "country": "Mexico",
       "kickoff": "Sat, 24 Oct, 04:00 EAT",
       "kickoffIso": "2026-10-24T01:00:00+00:00",
       "status": "pre",
@@ -16181,7 +17313,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 67,
       "over25Pct": 59,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "mex_liga_mx"
     },
     {
       "id": "mkt-ss-tepatitlan-fc-vs-cancun-fc",
@@ -16208,7 +17341,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 52,
       "over25Pct": 56,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_mexico_ascenso_mx"
     },
     {
       "id": "mkt-ss-auckland-city-vs-auckland-united",
@@ -16235,7 +17369,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 54,
       "over25Pct": 50,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_new_zealand_football_championship"
     },
     {
       "id": "mkt-ss-aguilas-doradas-vs-atletico-junior-barranquilla",
@@ -16262,7 +17397,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 59,
       "over25Pct": 63,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_categor_a_primera_a"
     },
     {
       "id": "mkt-ss-utah-royals-women-vs-seattle-reign-w",
@@ -16289,7 +17425,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 56,
       "over25Pct": 64,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_united_states_women_s_national_soccer_league"
     },
     {
       "id": "mkt-ss-cd-arabe-unido-vs-tauro-fc",
@@ -16316,7 +17453,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 66,
       "over25Pct": 56,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_panamanian_liga_de_futbol"
     },
     {
       "id": "mkt-ss-estrella-roja-vs-olancho-fc",
@@ -16343,7 +17481,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 59,
       "over25Pct": 65,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_honduras_primera_division"
     },
     {
       "id": "mkt-ss-portland-thorns-fc-women-vs-north-carolina-courage-women",
@@ -16370,7 +17509,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 64,
       "over25Pct": 50,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_united_states_women_s_national_soccer_league"
     },
     {
       "id": "mkt-ss-atletico-san-luis-vs-atlante-fc",
@@ -16379,9 +17519,9 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "away": "Atletico San Luis",
       "homeLogo": "https://img.thesports.com/football/team/ea3dc231c5b640b286b5c609b415f8e1.png",
       "awayLogo": "https://img.thesports.com/football/team/f6c489e1e71d37e301b30df37a43b8a4.png",
-      "competition": "Mexico Liga MX",
+      "competition": "Mexican Liga MX",
       "leagueCode": "mexico-liga-mx",
-      "country": "International",
+      "country": "Mexico",
       "kickoff": "Sat, 24 Oct, 06:00 EAT",
       "kickoffIso": "2026-10-24T03:00:00+00:00",
       "status": "pre",
@@ -16397,7 +17537,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 55,
       "over25Pct": 49,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "mex_liga_mx"
     },
     {
       "id": "mkt-ss-ntv-tokyo-verdy-beleza-vs-as-elfen-saitama",
@@ -16424,7 +17565,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 62,
       "over25Pct": 58,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_women_empowerment_league"
     },
     {
       "id": "mkt-ss-unam-pumas-women-vs-tijuana-women",
@@ -16433,9 +17575,9 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "away": "Unam Pumas Women",
       "homeLogo": "https://img.thesports.com/football/team/d69f7b4e5781756f141810f0716bcbe6.png",
       "awayLogo": "https://img.thesports.com/football/team/920c76f9a745c87b6d43aaeb8483a960.png",
-      "competition": "Mexico Liga MX Femenil",
+      "competition": "Mexican Liga MX",
       "leagueCode": "mexico-liga-mx-femenil",
-      "country": "International",
+      "country": "Mexico",
       "kickoff": "Sat, 24 Oct, 06:10 EAT",
       "kickoffIso": "2026-10-24T03:10:00+00:00",
       "status": "pre",
@@ -16451,7 +17593,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 59,
       "over25Pct": 51,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "mex_liga_mx"
     },
     {
       "id": "mkt-ss-brisbane-roar-women-vs-ws-wanderers-women",
@@ -16478,7 +17621,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 65,
       "over25Pct": 57,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_australia_w_league"
     },
     {
       "id": "mkt-ss-macarthur-fc-vs-newcastle-jets",
@@ -16487,9 +17631,9 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "away": "Macarthur FC",
       "homeLogo": "https://img.thesports.com/football/team/296c68ac5ad3ff621c10c6ebfb9954ca.png",
       "awayLogo": "https://img.thesports.com/football/team/cfa3dbe7828b0928285c243375cbae24.png",
-      "competition": "Australia A-League",
+      "competition": "Australian A-League",
       "leagueCode": "australia-a-league",
-      "country": "International",
+      "country": "Australia",
       "kickoff": "Sat, 24 Oct, 07:00 EAT",
       "kickoffIso": "2026-10-24T04:00:00+00:00",
       "status": "pre",
@@ -16505,7 +17649,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 62,
       "over25Pct": 58,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "aus_a_league"
     },
     {
       "id": "mkt-ss-albirex-niigata-ladies-vs-jef-united-ichihara-chiba-ladies",
@@ -16532,7 +17677,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 54,
       "over25Pct": 50,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_women_empowerment_league"
     },
     {
       "id": "mkt-ss-verspah-oita-vs-reinmeer-aomori-fc",
@@ -16559,7 +17705,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 58,
       "over25Pct": 62,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_japanese_football_league"
     },
     {
       "id": "mkt-ss-maruyasu-okazaki-vs-briobecca-urayasu",
@@ -16586,7 +17733,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 53,
       "over25Pct": 63,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_japanese_football_league"
     },
     {
       "id": "mkt-ss-criacao-shinjuku-vs-minebea-mitsumi-fc",
@@ -16613,7 +17761,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 58,
       "over25Pct": 64,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_japanese_football_league"
     },
     {
       "id": "mkt-ss-veertien-mie-vs-j-lease-fc",
@@ -16640,7 +17789,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 54,
       "over25Pct": 64,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_japanese_football_league"
     },
     {
       "id": "mkt-ss-canberra-united-women-vs-central-coast-mariners-women-2",
@@ -16667,7 +17817,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 61,
       "over25Pct": 57,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_australia_w_league"
     },
     {
       "id": "mkt-ss-avondale-fc-vs-broadmeadow-magic",
@@ -16694,7 +17845,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 58,
       "over25Pct": 50,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_aus_champ"
     },
     {
       "id": "mkt-ss-oakleigh-cannons-vs-marconi-stallions",
@@ -16721,7 +17873,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 67,
       "over25Pct": 63,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_aus_champ"
     },
     {
       "id": "mkt-ss-gangwon-football-club-vs-football-club-seoul",
@@ -16748,7 +17901,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 58,
       "over25Pct": 52,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_korean_k_league_1"
     },
     {
       "id": "mkt-ss-jeju-sk-fc-vs-incheon-united-club",
@@ -16775,7 +17929,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 67,
       "over25Pct": 61,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_korean_k_league_1"
     },
     {
       "id": "mkt-ss-jeonbuk-hyundai-motors-vs-fc-anyang",
@@ -16802,7 +17957,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 57,
       "over25Pct": 61,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_korean_k_league_1"
     },
     {
       "id": "mkt-ss-gimcheon-sangmu-football-club-vs-daejeon-citizen",
@@ -16829,7 +17985,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 63,
       "over25Pct": 49,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_korean_k_league_1"
     },
     {
       "id": "mkt-ss-ulsan-hd-fc-vs-pohang-steelers",
@@ -16856,7 +18013,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 52,
       "over25Pct": 58,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_korean_k_league_1"
     },
     {
       "id": "mkt-ss-bucheon-fc-1995-vs-gwangju-football-club",
@@ -16883,7 +18041,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 66,
       "over25Pct": 56,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_korean_k_league_1"
     },
     {
       "id": "mkt-ss-jeonnam-dragons-vs-daegu-football-club",
@@ -16910,7 +18069,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 60,
       "over25Pct": 64,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_korean_k_league_2"
     },
     {
       "id": "mkt-ss-ska-khabarovsk-vs-yenisey-krasnoyarsk",
@@ -16937,7 +18097,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 57,
       "over25Pct": 63,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_russian_first_league"
     },
     {
       "id": "mkt-ss-mynavi-sendai-ladies-vs-nojima-stella-kanagawa-sagamihara",
@@ -16964,7 +18125,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 53,
       "over25Pct": 49,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_women_empowerment_league"
     },
     {
       "id": "mkt-ss-urawa-red-diamonds-ladies-vs-inac-kobe-leonessa",
@@ -16991,7 +18153,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 61,
       "over25Pct": 53,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_women_empowerment_league"
     },
     {
       "id": "mkt-ss-sanfrecce-hiroshima-vs-shimizu-s-pulse",
@@ -17002,7 +18165,7 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "awayLogo": "https://img.thesports.com/football/team/fa4105f0408ef893d941e70ae003ab4c.png",
       "competition": "Japanese J1 League",
       "leagueCode": "japanese-j1-league",
-      "country": "International",
+      "country": "Japan",
       "kickoff": "Sat, 24 Oct, 08:00 EAT",
       "kickoffIso": "2026-10-24T05:00:00+00:00",
       "status": "pre",
@@ -17018,7 +18181,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 52,
       "over25Pct": 64,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "jpn_j1_league"
     },
     {
       "id": "mkt-ss-fujieda-myfc-vs-tokushima-vortis",
@@ -17045,7 +18209,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 56,
       "over25Pct": 50,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_japanese_j2_league"
     },
     {
       "id": "mkt-ss-yokohama-fc-vs-rb-omiya-ardija",
@@ -17072,7 +18237,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 64,
       "over25Pct": 50,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_japanese_j2_league"
     },
     {
       "id": "mkt-ss-fc-osaka-vs-kagoshima-united",
@@ -17099,7 +18265,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 64,
       "over25Pct": 56,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_japanese_j3_league"
     },
     {
       "id": "mkt-ss-kamatamare-sanuki-vs-thespa-kusatsu-gunma",
@@ -17126,7 +18293,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 61,
       "over25Pct": 57,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_japanese_j3_league"
     },
     {
       "id": "mkt-ss-tochigi-sc-vs-sc-sagamihara",
@@ -17153,7 +18321,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 53,
       "over25Pct": 65,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_japanese_j3_league"
     },
     {
       "id": "mkt-ss-fc-ryukyu-okinawa-vs-nara-club",
@@ -17180,7 +18349,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 52,
       "over25Pct": 48,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_japanese_j3_league"
     },
     {
       "id": "mkt-ss-ryazan-vdv-women-vs-yenisey-krasnoyarsk-women",
@@ -17207,7 +18377,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 55,
       "over25Pct": 61,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_russian_women_s_premier_league"
     },
     {
       "id": "mkt-ss-western-sydney-vs-auckland-fc",
@@ -17216,9 +18387,9 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "away": "Auckland FC",
       "homeLogo": "https://img.thesports.com/football/team/9054259e823c101ccfe523cd527c2e5b.png",
       "awayLogo": "https://img.thesports.com/football/team/6eae40b446299cfb06316430ae387475.png",
-      "competition": "Australia A-League",
+      "competition": "Australian A-League",
       "leagueCode": "australia-a-league",
-      "country": "International",
+      "country": "Australia",
       "kickoff": "Sat, 24 Oct, 09:00 EAT",
       "kickoffIso": "2026-10-24T06:00:00+00:00",
       "status": "pre",
@@ -17234,7 +18405,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 56,
       "over25Pct": 50,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "aus_a_league"
     },
     {
       "id": "mkt-ss-kashiwa-reysol-vs-kashima-antlers",
@@ -17245,7 +18417,7 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "awayLogo": "https://img.thesports.com/football/team/d272859d78eb8ca7a14753f4293fbf45.png",
       "competition": "Japanese J1 League",
       "leagueCode": "japanese-j1-league",
-      "country": "International",
+      "country": "Japan",
       "kickoff": "Sat, 24 Oct, 09:00 EAT",
       "kickoffIso": "2026-10-24T06:00:00+00:00",
       "status": "pre",
@@ -17261,7 +18433,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 55,
       "over25Pct": 51,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "jpn_j1_league"
     },
     {
       "id": "mkt-ss-tokyo-verdy-vs-avispa-fukuoka",
@@ -17272,7 +18445,7 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "awayLogo": "https://img.thesports.com/football/team/bf0e2229b39b6cb6fd17e9d0f3fb747e.png",
       "competition": "Japanese J1 League",
       "leagueCode": "japanese-j1-league",
-      "country": "International",
+      "country": "Japan",
       "kickoff": "Sat, 24 Oct, 09:00 EAT",
       "kickoffIso": "2026-10-24T06:00:00+00:00",
       "status": "pre",
@@ -17288,7 +18461,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 63,
       "over25Pct": 57,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "jpn_j1_league"
     },
     {
       "id": "mkt-ss-machida-zelvia-vs-vissel-kobe",
@@ -17299,7 +18473,7 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "awayLogo": "https://img.thesports.com/football/team/539c489a7bd94dd9d785308fd0f0a6b9.png",
       "competition": "Japanese J1 League",
       "leagueCode": "japanese-j1-league",
-      "country": "International",
+      "country": "Japan",
       "kickoff": "Sat, 24 Oct, 09:00 EAT",
       "kickoffIso": "2026-10-24T06:00:00+00:00",
       "status": "pre",
@@ -17315,7 +18489,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 63,
       "over25Pct": 57,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "jpn_j1_league"
     },
     {
       "id": "mkt-ss-perth-glory-women-vs-adelaide-united-women",
@@ -17342,7 +18517,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 64,
       "over25Pct": 58,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_australia_w_league"
     },
     {
       "id": "mkt-ss-canberra-fc-vs-sutherland-sharks",
@@ -17369,7 +18545,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 58,
       "over25Pct": 50,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_aus_champ"
     },
     {
       "id": "mkt-ss-guangxi-hengchen-vs-dalian-kun-city",
@@ -17396,7 +18573,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 52,
       "over25Pct": 54,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_chinese_football_league_1"
     },
     {
       "id": "mkt-ss-zhuzhou-football-team-vs-xiangtan-football-team",
@@ -17423,7 +18601,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 65,
       "over25Pct": 61,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_hunan_football_league"
     },
     {
       "id": "mkt-ss-hengyang-football-team-vs-xiangxi-football-team",
@@ -17450,7 +18629,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 65,
       "over25Pct": 61,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_hunan_football_league"
     },
     {
       "id": "mkt-ss-yiyang-football-team-vs-loudi-football-team",
@@ -17477,7 +18657,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 55,
       "over25Pct": 59,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_hunan_football_league"
     },
     {
       "id": "mkt-ss-changde-football-team-vs-shaoyang-football-team",
@@ -17504,7 +18685,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 67,
       "over25Pct": 53,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_hunan_football_league"
     },
     {
       "id": "mkt-ss-huaihua-football-team-vs-yongzhou-football-team",
@@ -17531,7 +18713,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 67,
       "over25Pct": 53,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_hunan_football_league"
     },
     {
       "id": "mkt-ss-zhangjiajie-football-team-vs-changsha-football-team",
@@ -17558,7 +18741,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 63,
       "over25Pct": 55,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_hunan_football_league"
     },
     {
       "id": "mkt-ss-chenzhou-football-team-vs-yueyang-football-team",
@@ -17585,7 +18769,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 67,
       "over25Pct": 53,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_hunan_football_league"
     },
     {
       "id": "mkt-ss-kyoto-sanga-vs-gamba-osaka",
@@ -17596,7 +18781,7 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "awayLogo": "https://img.thesports.com/football/team/7d6fa50ea67cde7d66612a8189897ba5.png",
       "competition": "Japanese J1 League",
       "leagueCode": "japanese-j1-league",
-      "country": "International",
+      "country": "Japan",
       "kickoff": "Sat, 24 Oct, 10:00 EAT",
       "kickoffIso": "2026-10-24T07:00:00+00:00",
       "status": "pre",
@@ -17612,7 +18797,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 52,
       "over25Pct": 64,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "jpn_j1_league"
     },
     {
       "id": "mkt-ss-tianjin-jinmen-tiger-u21-vs-team-l5ergphp",
@@ -17639,7 +18825,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 63,
       "over25Pct": 59,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_chinese_football_assorciation_u_20_league"
     },
     {
       "id": "mkt-ss-team-ednm9whe337ryox-vs-changshou",
@@ -17666,7 +18853,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 54,
       "over25Pct": 48,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_chongqing_city_football_super_league"
     },
     {
       "id": "mkt-ss-team-4jwq2gh138zm0ve-vs-team-965mkyhz6jkr1ge",
@@ -17693,7 +18881,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 52,
       "over25Pct": 58,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_chongqing_city_football_super_league"
     },
     {
       "id": "mkt-ss-sunny-bank-athletic-club-taipei-w-vs-hang-yuan-fc-women",
@@ -17720,7 +18909,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 57,
       "over25Pct": 49,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_chinese_taiwan_mulan_football_league"
     },
     {
       "id": "mkt-ss-zhanggong-team-vs-team-zp5rzgh1nexq82w",
@@ -17747,7 +18937,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 59,
       "over25Pct": 55,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_ganzhou_city_football_super_league"
     },
     {
       "id": "mkt-ss-team-ednm9whejl6ryox-vs-huichang-team",
@@ -17774,7 +18965,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 58,
       "over25Pct": 48,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_ganzhou_city_football_super_league"
     },
     {
       "id": "mkt-ss-team-318q66hk9dwqo9j-vs-team-k82rekh15d0repz",
@@ -17801,7 +18993,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 62,
       "over25Pct": 48,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_ganzhou_city_football_super_league"
     },
     {
       "id": "mkt-ss-huangshi-team-vs-yichang-team",
@@ -17828,7 +19021,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 63,
       "over25Pct": 49,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_hubei_city_football_league"
     },
     {
       "id": "mkt-ss-gimpo-fc-vs-gimhae-city",
@@ -17855,7 +19049,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 63,
       "over25Pct": 53,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_korean_k_league_2"
     },
     {
       "id": "mkt-ss-shanghai-port-vs-tianjin-jinmen-tiger",
@@ -17882,7 +19077,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 65,
       "over25Pct": 55,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_chinese_football_super_league"
     },
     {
       "id": "mkt-ss-chengdu-rongcheng-vs-dalian-yingbo",
@@ -17909,7 +19105,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 56,
       "over25Pct": 52,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_chinese_football_super_league"
     },
     {
       "id": "mkt-ss-wuhan-three-towns-vs-shandong-taishan",
@@ -17936,7 +19133,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 67,
       "over25Pct": 63,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_chinese_football_super_league"
     },
     {
       "id": "mkt-ss-henan-fc-vs-beijing-guoan",
@@ -17963,7 +19161,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 53,
       "over25Pct": 63,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_chinese_football_super_league"
     },
     {
       "id": "mkt-ss-shenzhen-peng-city-vs-shanghai-shenhua",
@@ -17990,7 +19189,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 54,
       "over25Pct": 64,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_chinese_football_super_league"
     },
     {
       "id": "mkt-ss-zhejiang-professional-fc-vs-liaoning-tieren",
@@ -18017,7 +19217,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 61,
       "over25Pct": 49,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_chinese_football_super_league"
     },
     {
       "id": "mkt-ss-qingdao-hainiu-vs-chongqing-tonglianglong",
@@ -18044,7 +19245,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 59,
       "over25Pct": 49,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_chinese_football_super_league"
     },
     {
       "id": "mkt-ss-qingdao-west-coast-vs-yunnan-yukun",
@@ -18071,7 +19273,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 58,
       "over25Pct": 62,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_chinese_football_super_league"
     },
     {
       "id": "mkt-ss-changchun-yatai-vs-meizhou-hakka",
@@ -18098,7 +19301,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 54,
       "over25Pct": 60,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_chinese_football_league_1"
     },
     {
       "id": "mkt-ss-jiangxi-lushan-vs-shandong-taishan-b",
@@ -18125,7 +19329,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 64,
       "over25Pct": 54,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_chinese_football_league_2"
     },
     {
       "id": "mkt-ss-xiamen-feilu-vs-beijing-it",
@@ -18152,7 +19357,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 54,
       "over25Pct": 64,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_chinese_football_league_2"
     },
     {
       "id": "mkt-ss-qingdao-red-lions-vs-ganzhou-ruishi",
@@ -18179,7 +19385,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 61,
       "over25Pct": 53,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_chinese_football_league_2"
     },
     {
       "id": "mkt-ss-fc-trostianets-vs-atlet-kiev",
@@ -18206,7 +19413,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 56,
       "over25Pct": 48,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_ukrainian_second_league"
     },
     {
       "id": "mkt-ss-cetate-suceava-vs-csm-slatina",
@@ -18233,7 +19441,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 61,
       "over25Pct": 49,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_romanian_liga_ii"
     },
     {
       "id": "mkt-ss-cs-dinamo-bucuresti-vs-gloria-popesti-leordeni",
@@ -18260,7 +19469,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 64,
       "over25Pct": 60,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_romanian_liga_ii"
     },
     {
       "id": "mkt-ss-lindab-stefanesti-vs-afc-metalul-buzau",
@@ -18287,7 +19497,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 56,
       "over25Pct": 64,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_romanian_liga_ii"
     },
     {
       "id": "mkt-ss-chindia-targoviste-vs-csm-satu-mare",
@@ -18314,7 +19525,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 59,
       "over25Pct": 53,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_romanian_liga_ii"
     },
     {
       "id": "mkt-ss-acs-dumbravita-vs-acf-gloria-bistrita",
@@ -18341,7 +19553,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 56,
       "over25Pct": 48,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_romanian_liga_ii"
     },
     {
       "id": "mkt-ss-fc-unirea-2004-slobozia-vs-concordia-chiajna",
@@ -18368,7 +19581,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 54,
       "over25Pct": 60,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_romanian_liga_ii"
     },
     {
       "id": "mkt-ss-dynamo-ceske-budejovice-u19-vs-banik-ostrava-u19",
@@ -18395,7 +19609,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 62,
       "over25Pct": 54,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_czech_u19_league"
     },
     {
       "id": "mkt-ss-yangon-united-vs-tainan-city-steel",
@@ -18422,7 +19637,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 56,
       "over25Pct": 52,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_afc_challenge_league"
     },
     {
       "id": "mkt-ss-shanxi-chongde-ronghai-vs-guizhou-guiyang-athletic",
@@ -18449,7 +19665,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 58,
       "over25Pct": 64,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_chinese_football_league_2"
     },
     {
       "id": "mkt-ss-guangzhou-dandelion-alpha-vs-dalian-yingbo-b",
@@ -18476,7 +19693,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 66,
       "over25Pct": 60,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_chinese_football_league_2"
     },
     {
       "id": "mkt-ss-taian-tiankuang-vs-chengdu-rongcheng-b",
@@ -18503,7 +19721,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 59,
       "over25Pct": 55,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_chinese_football_league_2"
     },
     {
       "id": "mkt-ss-kwoon-chung-southern-vs-eastern-football-club",
@@ -18530,7 +19749,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 66,
       "over25Pct": 60,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_chinese_hong_kong_senior_challenge_shield"
     },
     {
       "id": "mkt-ss-shanghaiw-vs-liaoning-shenbei-hefeng-women",
@@ -18557,7 +19777,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 59,
       "over25Pct": 51,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_cfa_women_s_super_league"
     },
     {
       "id": "mkt-ss-valkyrie-w-vs-hualien-women",
@@ -18584,7 +19805,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 63,
       "over25Pct": 49,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_chinese_taiwan_mulan_football_league"
     },
     {
       "id": "mkt-ss-aritma-praha-vs-dukla-praha-b",
@@ -18611,7 +19833,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 61,
       "over25Pct": 57,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_czech_third_league"
     },
     {
       "id": "mkt-ss-bohemians1905-b-vs-benesov",
@@ -18638,7 +19861,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 60,
       "over25Pct": 64,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_czech_third_league"
     },
     {
       "id": "mkt-ss-admira-praha-vs-loko-vltavin",
@@ -18665,7 +19889,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 60,
       "over25Pct": 48,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_czech_third_league"
     },
     {
       "id": "mkt-ss-slavia-prague-c-vs-sk-motorlet-praha",
@@ -18692,7 +19917,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 66,
       "over25Pct": 54,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_czech_third_league"
     },
     {
       "id": "mkt-ss-fk-pribram-b-vs-povltava-fa",
@@ -18719,7 +19945,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 57,
       "over25Pct": 65,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_czech_third_league"
     },
     {
       "id": "mkt-ss-slovan-liberec-ii-vs-fk-horni-redice",
@@ -18746,7 +19973,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 66,
       "over25Pct": 54,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_czech_third_league"
     },
     {
       "id": "mkt-ss-fc-zenit-caslav-vs-mlada-boleslav-b",
@@ -18773,7 +20001,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 63,
       "over25Pct": 53,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_czech_third_league"
     },
     {
       "id": "mkt-ss-spolana-neratovice-vs-chrudim",
@@ -18800,7 +20029,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 53,
       "over25Pct": 49,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_czech_third_league"
     },
     {
       "id": "mkt-ss-tescoma-zlin-u19-vs-viktoria-plzen-u19",
@@ -18827,7 +20057,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 54,
       "over25Pct": 64,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_czech_u19_league"
     },
     {
       "id": "mkt-ss-adhyaksa-fc-banten-vs-psim-yogyakarta",
@@ -18854,7 +20085,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 53,
       "over25Pct": 55,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_indonesian_super_league"
     },
     {
       "id": "mkt-ss-huda-hue-vs-ho-chi-minh-city",
@@ -18881,7 +20113,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 64,
       "over25Pct": 56,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_vietnam_national_first_class_league"
     },
     {
       "id": "mkt-ss-persikad-depok-vs-psps-riau",
@@ -18908,7 +20141,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 55,
       "over25Pct": 57,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_indonesian_championship"
     },
     {
       "id": "mkt-ss-benatky-nad-jizerou-vs-velke-hamry",
@@ -18935,7 +20169,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 64,
       "over25Pct": 60,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_czech_third_league"
     },
     {
       "id": "mkt-ss-taipei-brao-women-vs-taichung-blue-whale-women",
@@ -18962,7 +20197,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 56,
       "over25Pct": 52,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_chinese_taiwan_mulan_football_league"
     },
     {
       "id": "mkt-ss-melbourne-city-vs-melbourne-victory",
@@ -18971,9 +20207,9 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "away": "Melbourne City",
       "homeLogo": "https://img.thesports.com/football/team/c540f8f279c09a2a3df1cbbfe82d7184.png",
       "awayLogo": "https://img.thesports.com/football/team/c24f327d053d80fe6584b4c42d5cca13.png",
-      "competition": "Australia A-League",
+      "competition": "Australian A-League",
       "leagueCode": "australia-a-league",
-      "country": "International",
+      "country": "Australia",
       "kickoff": "Sat, 24 Oct, 11:40 EAT",
       "kickoffIso": "2026-10-24T08:40:00+00:00",
       "status": "pre",
@@ -18989,7 +20225,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 61,
       "over25Pct": 53,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "aus_a_league"
     },
     {
       "id": "mkt-ss-mspcc-city-club-vs-arambagh-ks",
@@ -19016,7 +20253,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 52,
       "over25Pct": 58,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_bangladesh_premier_league"
     },
     {
       "id": "mkt-ss-dhaka-wanderers-vs-mohammedan-dhaka",
@@ -19043,7 +20281,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 63,
       "over25Pct": 53,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_bangladesh_premier_league"
     },
     {
       "id": "mkt-ss-bangladesh-police-club-vs-pwd-sports-club",
@@ -19070,7 +20309,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 55,
       "over25Pct": 57,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_bangladesh_premier_league"
     },
     {
       "id": "mkt-ss-miedz-legnica-youth-vs-stal-rzeszow-youth",
@@ -19097,7 +20337,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 63,
       "over25Pct": 57,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_poland_mloda_ekstraklasa"
     },
     {
       "id": "mkt-ss-rakow-czestochowa-youth-vs-zaglebie-lubin-youth",
@@ -19124,7 +20365,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 65,
       "over25Pct": 53,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_poland_mloda_ekstraklasa"
     },
     {
       "id": "mkt-ss-fk-oleksandria-vs-probiy-horodenka",
@@ -19151,7 +20393,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 62,
       "over25Pct": 52,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_ukrainian_first_league"
     },
     {
       "id": "mkt-ss-eintracht-frankfurt-u19-vs-rot-weiss-erfurt-u19",
@@ -19178,7 +20421,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 67,
       "over25Pct": 61,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_ger_jbh"
     },
     {
       "id": "mkt-ss-ingolstadt-u19-vs-vfb-stuttgart-u19",
@@ -19205,7 +20449,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 67,
       "over25Pct": 53,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_ger_jbh"
     },
     {
       "id": "mkt-ss-paderborn-u19-vs-vfl-wolfsburg-u19",
@@ -19232,7 +20477,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 64,
       "over25Pct": 52,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_ger_jbh"
     },
     {
       "id": "mkt-ss-mlada-boleslav-u19-vs-sigma-olomouc-u19",
@@ -19259,7 +20505,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 61,
       "over25Pct": 65,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_czech_u19_league"
     },
     {
       "id": "mkt-ss-sparta-praha-women-vs-slovan-liberec-women",
@@ -19286,7 +20533,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 66,
       "over25Pct": 58,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_czech_cambrinus_women_s_liga"
     },
     {
       "id": "mkt-ss-as-roma-u20-vs-genoa-u20",
@@ -19313,7 +20561,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 62,
       "over25Pct": 54,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_italian_campionato_primavera_1"
     },
     {
       "id": "mkt-ss-juventus-u20-vs-lecce-u20",
@@ -19340,7 +20589,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 55,
       "over25Pct": 57,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_italian_campionato_primavera_1"
     },
     {
       "id": "mkt-ss-honda-fc-vs-okinawa-sv",
@@ -19367,7 +20617,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 58,
       "over25Pct": 62,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_japanese_football_league"
     },
     {
       "id": "mkt-ss-ayeyawady-united-vs-yadanarbon-fc",
@@ -19394,7 +20645,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 57,
       "over25Pct": 61,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_myanmar_professional_league"
     },
     {
       "id": "mkt-ss-thitsar-arman-fc-vs-dagon-star-united",
@@ -19421,7 +20673,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 67,
       "over25Pct": 63,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_myanmar_professional_league"
     },
     {
       "id": "mkt-ss-mahar-united-vs-yangon-city",
@@ -19448,7 +20701,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 57,
       "over25Pct": 65,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_myanmar_professional_league"
     },
     {
       "id": "mkt-ss-vasas-u19-vs-budai-fc-u19",
@@ -19475,7 +20729,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 65,
       "over25Pct": 55,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_hungary_u19_a_league"
     },
     {
       "id": "mkt-ss-gyori-eto-u19-vs-ferencvarosi-tc-u19",
@@ -19502,7 +20757,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 62,
       "over25Pct": 54,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_hungary_u19_a_league"
     },
     {
       "id": "mkt-ss-nyiregyhaza-b-vs-tarpa-sc",
@@ -19529,7 +20785,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 63,
       "over25Pct": 55,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_hungary_nemzeti_bajnoksug_iii"
     },
     {
       "id": "mkt-ss-taichung-sakura-w-vs-kaohsiung-attackers-women",
@@ -19556,7 +20813,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 66,
       "over25Pct": 54,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_chinese_taiwan_mulan_football_league"
     },
     {
       "id": "mkt-ss-tallinna-fc-ararat-ttu-vs-nomme-jk-kalju-ii",
@@ -19583,7 +20841,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 57,
       "over25Pct": 49,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_estonian_esiliiga"
     },
     {
       "id": "mkt-ss-tabasalu-charma-vs-tartu-kalev",
@@ -19610,7 +20869,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 64,
       "over25Pct": 50,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_esiliiga_b"
     },
     {
       "id": "mkt-ss-johvi-fc-lokomotiv-vs-tallinna-jk-legion",
@@ -19637,7 +20897,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 60,
       "over25Pct": 56,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_esiliiga_b"
     },
     {
       "id": "mkt-ss-de-linnameeskond-w-vs-fc-elva-women",
@@ -19664,7 +20925,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 65,
       "over25Pct": 55,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_estonian_women_s_meistri_liiga"
     },
     {
       "id": "mkt-ss-manila-digger-fc-vs-shan-united",
@@ -19691,7 +20953,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 63,
       "over25Pct": 59,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_afc_challenge_league"
     },
     {
       "id": "mkt-ss-at-pulpileno-vs-ef-santa-cruz",
@@ -19718,7 +20981,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 64,
       "over25Pct": 58,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_spanish_tercera_divisi_n_rfef"
     },
     {
       "id": "mkt-ss-akron-togliatti-vs-dynamo-moscow",
@@ -19729,7 +20993,7 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "awayLogo": "https://img.thesports.com/football/team/4f2e51a4694f68360a19648b651b30ca.png",
       "competition": "Russian Premier League",
       "leagueCode": "russian-premier-league",
-      "country": "International",
+      "country": "Russia",
       "kickoff": "Sat, 24 Oct, 12:45 EAT",
       "kickoffIso": "2026-10-24T09:45:00+00:00",
       "status": "pre",
@@ -19745,7 +21009,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 54,
       "over25Pct": 60,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "rus_premier_league"
     },
     {
       "id": "mkt-ss-fk-liepaja-vs-tukums-2000",
@@ -19772,7 +21037,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 67,
       "over25Pct": 55,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_latvian_higher_league"
     },
     {
       "id": "mkt-ss-fc-gomel-vs-dinamo-minsk",
@@ -19799,7 +21065,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 52,
       "over25Pct": 54,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_belarusian_premier_league"
     },
     {
       "id": "mkt-ss-mettalu-riga-vs-saldus-ssleevon",
@@ -19826,7 +21093,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 59,
       "over25Pct": 51,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_latvian_1_liga"
     },
     {
       "id": "mkt-ss-cska-moscow-women-vs-dynamo-moscow-women",
@@ -19853,7 +21121,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 62,
       "over25Pct": 48,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_russian_women_s_premier_league"
     },
     {
       "id": "mkt-ss-zenit-st-petersburg-women-vs-krylya-sovetov-samara-women",
@@ -19880,7 +21149,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 58,
       "over25Pct": 50,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_russian_women_s_premier_league"
     },
     {
       "id": "mkt-ss-legia-warszawa-youth-vs-escola-varsovia-warszawa-youth",
@@ -19907,7 +21177,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 56,
       "over25Pct": 60,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_poland_mloda_ekstraklasa"
     },
     {
       "id": "mkt-ss-surfaspor-vs-arnavutkoy-bgs",
@@ -19934,7 +21205,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 67,
       "over25Pct": 59,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_turkish_second_league"
     },
     {
       "id": "mkt-ss-fc-victoria-mykolaivka-vs-prykarpattya-ivano-frankivsk",
@@ -19961,7 +21233,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 66,
       "over25Pct": 58,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_ukrainian_first_league"
     },
     {
       "id": "mkt-ss-fk-astrakhan-vs-druzhba-maikop",
@@ -19988,7 +21261,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 66,
       "over25Pct": 58,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_rus_d3b"
     },
     {
       "id": "mkt-ss-fk-skopje-vs-fc-struga",
@@ -20015,7 +21289,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 54,
       "over25Pct": 48,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_north_macedonia_first_football_league"
     },
     {
       "id": "mkt-ss-rekord-bielsko-biala-vs-resovia-rzeszow",
@@ -20042,7 +21317,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 55,
       "over25Pct": 65,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_poland_liga_2"
     },
     {
       "id": "mkt-ss-fc-bacau-vs-fc-politehnica-timisoara",
@@ -20069,7 +21345,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 59,
       "over25Pct": 65,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T11:12:44.817Z"
+      "syncedAt": "2026-10-20T11:12:44.817Z",
+      "competitionId": "unclassified_romanian_liga_ii"
     },
     {
       "id": "mkt-ss-fenerbahce-vs-slavia-praha",
@@ -20096,7 +21373,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 65,
       "over25Pct": 57,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T12:17:29.457Z"
+      "syncedAt": "2026-10-20T12:17:29.457Z",
+      "competitionId": "uefa_champions_league"
     },
     {
       "id": "mkt-ss-sabah-baku-vs-borussia-dortmund",
@@ -20123,7 +21401,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 55,
       "over25Pct": 49,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T12:17:29.457Z"
+      "syncedAt": "2026-10-20T12:17:29.457Z",
+      "competitionId": "uefa_champions_league"
     },
     {
       "id": "mkt-ss-slovan-bratislava-vs-as-roma",
@@ -20150,7 +21429,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 66,
       "over25Pct": 56,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T12:17:29.457Z"
+      "syncedAt": "2026-10-20T12:17:29.457Z",
+      "competitionId": "uefa_champions_league"
     },
     {
       "id": "mkt-ss-fc-porto-vs-psv-eindhoven",
@@ -20177,7 +21457,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 53,
       "over25Pct": 63,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T12:17:29.457Z"
+      "syncedAt": "2026-10-20T12:17:29.457Z",
+      "competitionId": "uefa_champions_league"
     },
     {
       "id": "mkt-ss-manchester-city-vs-aek-athens",
@@ -20204,7 +21485,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 59,
       "over25Pct": 49,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T12:17:29.457Z"
+      "syncedAt": "2026-10-20T12:17:29.457Z",
+      "competitionId": "uefa_champions_league"
     },
     {
       "id": "mkt-ss-napoli-vs-fk-bodoglimt",
@@ -20231,7 +21513,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 67,
       "over25Pct": 53,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T12:17:29.457Z"
+      "syncedAt": "2026-10-20T12:17:29.457Z",
+      "competitionId": "uefa_champions_league"
     },
     {
       "id": "mkt-ss-liverpool-vs-villarreal-cf",
@@ -20258,7 +21541,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 56,
       "over25Pct": 64,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T12:17:29.457Z"
+      "syncedAt": "2026-10-20T12:17:29.457Z",
+      "competitionId": "uefa_champions_league"
     },
     {
       "id": "mkt-ss-fc-barcelona-vs-paris-saint-germain",
@@ -20285,7 +21569,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 57,
       "over25Pct": 53,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T12:17:29.457Z"
+      "syncedAt": "2026-10-20T12:17:29.457Z",
+      "competitionId": "uefa_champions_league"
     },
     {
       "id": "mkt-ss-atletico-madrid-vs-vfb-stuttgart",
@@ -20312,7 +21597,8 @@ export const BUNDLED_SPORTS_CATALOGUE = {
       "bttsYesPct": 54,
       "over25Pct": 50,
       "bookmaker": "Market Consensus",
-      "syncedAt": "2026-10-20T12:17:29.457Z"
+      "syncedAt": "2026-10-20T12:17:29.457Z",
+      "competitionId": "uefa_champions_league"
     }
   ],
   "leagues": [
