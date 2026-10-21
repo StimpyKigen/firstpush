@@ -9,3 +9,4 @@ coverage/
 .kilo/
 .playwright-mcp/
 .cache/
+*.bak

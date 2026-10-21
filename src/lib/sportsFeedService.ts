@@ -493,7 +493,7 @@ export function normalizeSportScoreMatch(m: any, nowIso: string, isLiveForce = f
   }
   if (!slug) slug = `${slugify(home)}-vs-${slugify(away)}`;
 
-  const isoTime = m.time || nowIso;
+  const isoTime = m.time || m.start_at || nowIso || new Date().toISOString();
   const kickoffEAT = formatEATTime(isoTime.slice(0, 10), isoTime.slice(11, 16));
 
   const rawStatus = isLiveForce ? 'live' : m.status;
@@ -563,9 +563,11 @@ export function normalizeSportScoreMatch(m: any, nowIso: string, isLiveForce = f
     ? 'South America'
     : m.country || 'International';
 
+  const leagueCode = slugify(rawComp);
   const canon = resolveCanonicalCompetition({
     competition: rawComp,
-    country,
+    leagueCode,
+    country: m.country || country,
     providerId: slug,
   });
 
