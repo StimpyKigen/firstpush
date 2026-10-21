@@ -10,7 +10,13 @@ import fs from 'fs';
 import path from 'path';
 import os from 'os';
 import { BUNDLED_SPORTS_CATALOGUE } from '../data/bundledSportsCatalogue';
-import { normalizeMatchStatus } from './matchStatus';
+import {
+  normalizeMatchStatus,
+  parseDetailedMatchStatus,
+  isStatusTransitionValid,
+  type MatchStatus,
+  type MatchPeriod,
+} from './matchStatus';
 import { resolveCanonicalCompetition } from './canonicalCompetitions';
 
 export interface DiscoveredLeague {
@@ -34,10 +40,16 @@ export interface MarketFixture {
   country: string;
   kickoff: string;
   kickoffIso: string;
-  status: 'pre' | 'in' | 'post' | 'postponed' | 'cancelled' | 'abandoned' | 'suspended';
+  status: MatchStatus;
+  period?: MatchPeriod;
+  periodSequence?: number;
+  rawStatus?: string;
+  statusText?: string;
   displayClock?: string;
   homeScore?: number | null;
   awayScore?: number | null;
+  homeHtScore?: number | null;
+  awayHtScore?: number | null;
   homePct: number;
   drawPct: number;
   awayPct: number;
@@ -52,6 +64,9 @@ export interface MarketFixture {
   expectedAwayGoals?: number;
   bookmaker: string;
   syncedAt: string;
+  lastSyncTime?: string;
+  recordUpdateTime?: string;
+  isAuthoritativeCorrection?: boolean;
 }
 
 export interface MarketResult {
@@ -69,13 +84,16 @@ export interface MarketResult {
 
 export interface SyncDiagnostics {
   lastSyncTime: string | null;
+  lastLiveSyncTime: string | null;
   totalFixtures: number;
   liveFixturesCount: number;
   upcomingFixturesCount: number;
+  finishedFixturesCount: number;
   activeLeaguesCount: number;
   discoveredLeaguesCount: number;
   lastError: string | null;
   syncCyclesCount: number;
+  liveSyncCyclesCount: number;
   dailyRequestBudget: number;
   rateLimitSafe: boolean;
 }
@@ -84,8 +102,12 @@ export interface SyncDiagnostics {
 const fixturesStore = new Map<string, MarketFixture>();
 let discoveredLeagues: DiscoveredLeague[] = [];
 let lastSyncTimestamp: string | null = null;
+let lastLiveSyncTimestamp: string | null = null;
 let lastSyncError: string | null = null;
 let syncCycleCounter = 0;
+let liveSyncCyclesCounter = 0;
+let isLiveSyncing = false;
+let isRollingSyncing = false;
 
 const BASE_URL = 'https://footballcharts-backend.onrender.com/api/v1';
 
@@ -333,24 +355,16 @@ export async function discoverAllLeagues(forceRefresh = false): Promise<Discover
 }
 
 /**
- * Parse match status into normalized 'pre' | 'in' | 'post'
+ * Parse match status into normalized status, period, and clock
  */
-function parseMatchStatus(rawStatus?: string): { status: 'pre' | 'in' | 'post'; displayClock?: string } {
-  const s = String(rawStatus || '').toLowerCase().trim();
-  if (['finished', 'ft', 'aet', 'pen', 'ended', 'post'].includes(s)) {
-    return { status: 'post', displayClock: 'FT' };
-  }
-  if (['in_play', 'live', '1h', '2h', 'ht', 'et', 'p'].includes(s)) {
-    const clock = s === 'ht' ? 'HT' : s === '1h' ? '1st Half' : s === '2h' ? '2nd Half' : 'LIVE';
-    return { status: 'in', displayClock: clock };
-  }
-  if (s === 'postponed') {
-    return { status: 'pre', displayClock: 'Postponed' };
-  }
-  if (s === 'cancelled' || s === 'abandoned') {
-    return { status: 'post', displayClock: 'Cancelled' };
-  }
-  return { status: 'pre', displayClock: '' };
+function parseMatchStatus(rawStatus?: string, statusText?: string): { status: MatchStatus; period: MatchPeriod; displayClock: string; periodSequence: number } {
+  const detailed = parseDetailedMatchStatus(rawStatus, statusText);
+  return {
+    status: detailed.status,
+    period: detailed.period,
+    displayClock: detailed.displayClock,
+    periodSequence: detailed.periodSequence,
+  };
 }
 
 /**
@@ -373,7 +387,7 @@ export async function fetchLeagueFixtures(leagueCode: string): Promise<MarketFix
     const rawMatches = Array.isArray(data) ? data : data.matches || data.fixtures || [];
     const nowIso = new Date().toISOString();
 
-    const normalized: MarketFixture[] = rawMatches.map((m: any, idx: number) => {
+    const normalized: MarketFixture[] = rawMatches.map((m: any) => {
       const preds = m.model_predictions?.dc_v2?.calibrated || m.model_predictions?.dc_v2?.raw || {};
       const hProb = preds.home != null ? Math.max(0.02, Math.min(0.95, Number(preds.home))) : 0.45;
       const aProb = preds.away != null ? Math.max(0.02, Math.min(0.95, Number(preds.away))) : 0.28;
@@ -389,7 +403,11 @@ export async function fetchLeagueFixtures(leagueCode: string): Promise<MarketFix
       const awayOdds = +Math.max(1.05, 1.07 / Math.max(0.01, aProb)).toFixed(2);
 
       const rawExpected = m.model_predictions?.dc_v2?.raw || {};
-      const { status, displayClock } = parseMatchStatus(m.status);
+      const detailed = parseDetailedMatchStatus(m.status, m.status_text || m.time);
+      const status = detailed.status;
+      const period = detailed.period;
+      const displayClock = detailed.displayClock;
+      const periodSequence = detailed.periodSequence;
 
       const homeTeam = String(m.home_team || 'Home Team').trim();
       const awayTeam = String(m.away_team || 'Away Team').trim();
@@ -408,6 +426,17 @@ export async function fetchLeagueFixtures(leagueCode: string): Promise<MarketFix
 
       const kickoffIso = m.time ? `${m.match_date}T${m.time}:00Z` : `${m.match_date}T15:00:00Z`;
 
+      let homeScore: number | null = null;
+      let awayScore: number | null = null;
+      if (status === 'in' || status === 'post') {
+        if (m.home_score !== null && m.home_score !== undefined && m.home_score !== '') {
+          homeScore = Number(m.home_score);
+        }
+        if (m.away_score !== null && m.away_score !== undefined && m.away_score !== '') {
+          awayScore = Number(m.away_score);
+        }
+      }
+
       return {
         id: uniqueId,
         providerId,
@@ -420,9 +449,13 @@ export async function fetchLeagueFixtures(leagueCode: string): Promise<MarketFix
         kickoff: formatEATTime(m.match_date, m.time),
         kickoffIso,
         status,
+        period,
+        periodSequence,
+        rawStatus: m.status,
+        statusText: m.status_text,
         displayClock,
-        homeScore: m.home_score !== undefined ? Number(m.home_score) : null,
-        awayScore: m.away_score !== undefined ? Number(m.away_score) : null,
+        homeScore,
+        awayScore,
         homePct,
         drawPct,
         awayPct,
@@ -437,6 +470,8 @@ export async function fetchLeagueFixtures(leagueCode: string): Promise<MarketFix
         expectedAwayGoals: rawExpected.expected_away_goals != null ? +Number(rawExpected.expected_away_goals).toFixed(2) : undefined,
         bookmaker: 'Market Consensus',
         syncedAt: nowIso,
+        lastSyncTime: nowIso,
+        recordUpdateTime: nowIso,
       };
     });
 
@@ -448,12 +483,20 @@ export async function fetchLeagueFixtures(leagueCode: string): Promise<MarketFix
 }
 
 /**
- * Ingest and upsert fixtures safely into the persistent store
+ * Ingest and upsert fixtures safely into the persistent store.
+ * ENFORCES:
+ * 1. Monotonic state progression (terminal matches cannot revert to HT or live from older responses).
+ * 2. Idempotent deduplication via canonical ID or normalized team+date key.
+ * 3. Atomic state updates.
+ * 4. Legitimate provider corrections (e.g. VAR disallowed goal).
  */
-export function ingestFixtures(fixtures: MarketFixture[]): number {
+export function ingestFixtures(fixtures: MarketFixture[], isAuthoritative = false): number {
   let updatedCount = 0;
+  const nowIso = new Date().toISOString();
+
   fixtures.forEach((f) => {
     if (!f || !f.id || isSimulatedReality(f)) return;
+
     if (!f.competitionId) {
       const canon = resolveCanonicalCompetition({
         competition: f.competition,
@@ -464,6 +507,7 @@ export function ingestFixtures(fixtures: MarketFixture[]): number {
       f.competitionId = canon.id;
       f.competition = canon.name;
     }
+
     // Check direct ID or composite match key (home + away + match date)
     const normName = (s: string) => s.toLowerCase().replace(/\b(fc|cf|sc|afc|cd|rc|sv|sk|fk|ud|ac)\b/g, '').replace(/[^a-z0-9]/g, '');
     const fKey = `${normName(f.home)}__vs__${normName(f.away)}__${(f.kickoffIso || '').slice(0, 10)}`;
@@ -483,7 +527,11 @@ export function ingestFixtures(fixtures: MarketFixture[]): number {
     }
 
     if (!existing) {
-      fixturesStore.set(f.id, f);
+      fixturesStore.set(f.id, {
+        ...f,
+        lastSyncTime: f.syncedAt || nowIso,
+        recordUpdateTime: nowIso,
+      });
       updatedCount++;
     } else {
       // If new fixture has an authoritative SportScore ID, prefer it
@@ -491,20 +539,87 @@ export function ingestFixtures(fixtures: MarketFixture[]): number {
       if (targetId !== existingId) {
         fixturesStore.delete(existingId);
       }
+
+      // Check monotonic state validity
+      const allowCorrection = isAuthoritative || Boolean(f.isAuthoritativeCorrection);
+      const isTransitionPermitted = isStatusTransitionValid(
+        existing.status,
+        existing.period || 'scheduled',
+        f.status,
+        f.period || 'scheduled',
+        allowCorrection
+      );
+
+      let finalStatus = existing.status;
+      let finalPeriod = existing.period || 'scheduled';
+      let finalClock = existing.displayClock;
+      let finalPeriodSeq = existing.periodSequence ?? 0;
+
+      if (isTransitionPermitted) {
+        finalStatus = f.status;
+        finalPeriod = f.period || (f.status === 'post' ? 'full_time' : f.status === 'in' ? 'second_half' : 'scheduled');
+        finalClock = f.displayClock || existing.displayClock;
+        finalPeriodSeq = f.periodSequence ?? (f.status === 'post' ? 60 : f.status === 'in' ? 25 : 0);
+      }
+
+      // Score reconciliation:
+      let finalHomeScore = existing.homeScore;
+      let finalAwayScore = existing.awayScore;
+
+      if (f.status === 'in' || f.status === 'post') {
+        if (f.homeScore !== null && f.homeScore !== undefined) {
+          if (isTransitionPermitted || allowCorrection) {
+            finalHomeScore = f.homeScore;
+          } else if (existing.status === 'post') {
+            // Existing is terminal, so do not let an older smaller score overwrite unless authoritative
+            finalHomeScore = Math.max(existing.homeScore ?? 0, f.homeScore);
+          }
+        }
+        if (f.awayScore !== null && f.awayScore !== undefined) {
+          if (isTransitionPermitted || allowCorrection) {
+            finalAwayScore = f.awayScore;
+          } else if (existing.status === 'post') {
+            finalAwayScore = Math.max(existing.awayScore ?? 0, f.awayScore);
+          }
+        }
+      } else if (f.status === 'pre') {
+        // Scheduled response never overwrites active or finished scores
+        if (existing.status === 'pre') {
+          finalHomeScore = null;
+          finalAwayScore = null;
+        }
+      }
+
+      // Preserve existing betting odds/consensus model predictions if incoming is from pure live score widget
+      const mergedHomeOdds = f.homeOdds || existing.homeOdds;
+      const mergedDrawOdds = f.drawOdds || existing.drawOdds;
+      const mergedAwayOdds = f.awayOdds || existing.awayOdds;
+
       fixturesStore.set(targetId, {
         ...existing,
         ...f,
         id: targetId,
-        homeScore: f.homeScore !== null ? f.homeScore : existing.homeScore,
-        awayScore: f.awayScore !== null ? f.awayScore : existing.awayScore,
-        syncedAt: f.syncedAt,
+        status: finalStatus,
+        period: finalPeriod,
+        displayClock: finalClock,
+        periodSequence: finalPeriodSeq,
+        homeScore: finalHomeScore,
+        awayScore: finalAwayScore,
+        homeHtScore: f.homeHtScore ?? existing.homeHtScore,
+        awayHtScore: f.awayHtScore ?? existing.awayHtScore,
+        homeOdds: mergedHomeOdds,
+        drawOdds: mergedDrawOdds,
+        awayOdds: mergedAwayOdds,
+        syncedAt: f.syncedAt || nowIso,
+        lastSyncTime: nowIso,
+        recordUpdateTime: nowIso,
       });
       updatedCount++;
     }
   });
 
   if (updatedCount > 0) {
-    lastSyncTimestamp = new Date().toISOString();
+    lastSyncTimestamp = nowIso;
     saveDiskCache();
   }
   return updatedCount;
@@ -515,7 +630,7 @@ function slugify(text: string): string {
   return text.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
 }
 
-export function normalizeSportScoreMatch(m: any, nowIso: string, isLiveForce = false): MarketFixture {
+export function normalizeSportScoreMatch(m: any, nowIso: string, isLiveForce = false, isAuthoritativeCorrection = false): MarketFixture {
   const home = String(m.home || 'Home Team').trim();
   const away = String(m.away || 'Away Team').trim();
   const rawComp = String(m.competition || 'International Football').trim();
@@ -537,34 +652,15 @@ export function normalizeSportScoreMatch(m: any, nowIso: string, isLiveForce = f
   const isoTime = m.time || m.start_at || nowIso || new Date().toISOString();
   const kickoffEAT = formatEATTime(isoTime.slice(0, 10), isoTime.slice(11, 16));
 
-  const rawStatus = isLiveForce ? 'live' : m.status;
-  const normalizedStatus = normalizeMatchStatus(rawStatus, m.status_text);
+  const rawStatus = isLiveForce
+    ? (String(m.status || '').toLowerCase().includes('half') || String(m.status_text || '').toLowerCase().includes('ht') ? 'halftime' : 'live')
+    : m.status;
+  const detailed = parseDetailedMatchStatus(rawStatus, m.status_text);
 
-  let status: 'pre' | 'in' | 'post' | 'postponed' | 'cancelled' | 'abandoned' | 'suspended' = 'pre';
-  let displayClock = '';
-
-  if (normalizedStatus === 'in') {
-    status = 'in';
-    displayClock = m.status_text || 'LIVE';
-  } else if (normalizedStatus === 'post') {
-    status = 'post';
-    displayClock = 'FT';
-  } else if (normalizedStatus === 'postponed') {
-    status = 'postponed';
-    displayClock = 'POSTPONED';
-  } else if (normalizedStatus === 'cancelled') {
-    status = 'cancelled';
-    displayClock = 'CANCELLED';
-  } else if (normalizedStatus === 'abandoned') {
-    status = 'abandoned';
-    displayClock = 'ABANDONED';
-  } else if (normalizedStatus === 'suspended') {
-    status = 'suspended';
-    displayClock = 'SUSPENDED';
-  } else {
-    status = 'pre';
-    displayClock = '';
-  }
+  const status = detailed.status;
+  const period = detailed.period;
+  const displayClock = detailed.displayClock;
+  const periodSequence = detailed.periodSequence;
 
   // Scores: STRICT INVARIANT:
   // For 'pre' (scheduled) or postponed/cancelled, scores MUST be null!
@@ -580,6 +676,9 @@ export function normalizeSportScoreMatch(m: any, nowIso: string, isLiveForce = f
       awayScore = Number(m.away_score);
     }
   }
+
+  const homeHtScore = m.home_ht_score !== undefined && m.home_ht_score !== null && m.home_ht_score !== '' ? Number(m.home_ht_score) : null;
+  const awayHtScore = m.away_ht_score !== undefined && m.away_ht_score !== null && m.away_ht_score !== '' ? Number(m.away_ht_score) : null;
 
   const hash = Math.abs((home.length * 19 + away.length * 37) % 100);
   const hProb = Math.min(0.65, Math.max(0.30, 0.36 + (hash % 28) / 100));
@@ -626,9 +725,15 @@ export function normalizeSportScoreMatch(m: any, nowIso: string, isLiveForce = f
     kickoff: kickoffEAT,
     kickoffIso: isoTime,
     status,
+    period,
+    periodSequence,
+    rawStatus: m.status,
+    statusText: m.status_text,
     displayClock,
     homeScore,
     awayScore,
+    homeHtScore,
+    awayHtScore,
     homePct,
     drawPct,
     awayPct,
@@ -639,6 +744,9 @@ export function normalizeSportScoreMatch(m: any, nowIso: string, isLiveForce = f
     over25Pct: 48 + (hash % 18),
     bookmaker: 'Market Consensus',
     syncedAt: nowIso,
+    lastSyncTime: nowIso,
+    recordUpdateTime: nowIso,
+    isAuthoritativeCorrection,
   };
 }
 
@@ -755,6 +863,115 @@ export async function syncSportScoreCatalog(): Promise<number> {
   }
 }
 
+/**
+ * Dedicated high-speed live scores ingestion loop.
+ * Retrieves only active live and recently completed matches with minimal payload latency.
+ */
+export async function syncLiveScoresOnly(): Promise<{ updated: number; liveCount: number }> {
+  if (isLiveSyncing) {
+    return { updated: 0, liveCount: Array.from(fixturesStore.values()).filter((f) => f.status === 'in').length };
+  }
+  isLiveSyncing = true;
+  liveSyncCyclesCounter++;
+
+  try {
+    const nowIso = new Date().toISOString();
+    const liveFixtures: MarketFixture[] = [];
+
+    // 1. Fetch from live fixtures endpoint
+    try {
+      const liveRes = await fetch('https://sportscore.com/api/v1/fixtures/?sport=football&status=live', {
+        headers: { 'User-Agent': 'Mozilla/5.0' },
+        signal: AbortSignal.timeout(6000),
+      });
+      if (liveRes.ok) {
+        const liveJson = await liveRes.json();
+        if (Array.isArray(liveJson.matches)) {
+          liveJson.matches.forEach((m: any) => {
+            liveFixtures.push(normalizeSportScoreMatch(m, nowIso, true));
+          });
+        }
+      }
+    } catch (e: any) {
+      console.warn('Live fixtures fetch notice:', e?.message || e);
+    }
+
+    // 2. Fetch from widget matches endpoint (returns both live matches and recently finished matches!)
+    try {
+      const widgetRes = await fetch('https://sportscore.com/api/widget/matches/?sport=football&limit=50', {
+        headers: { 'User-Agent': 'Mozilla/5.0' },
+        signal: AbortSignal.timeout(6000),
+      });
+      if (widgetRes.ok) {
+        const widgetJson = await widgetRes.json();
+        if (Array.isArray(widgetJson.matches)) {
+          widgetJson.matches.forEach((m: any) => {
+            liveFixtures.push(normalizeSportScoreMatch(m, nowIso, false));
+          });
+        }
+      }
+    } catch (e: any) {
+      console.warn('Widget matches fetch notice:', e?.message || e);
+    }
+
+    // 3. For any match in our store currently marked as 'in' (live), check if it transitioned to terminal post-match
+    const liveInStore = Array.from(fixturesStore.values()).filter((f) => f.status === 'in');
+    const checkedSlugs = new Set(liveFixtures.map((f) => f.providerId));
+
+    for (const activeMatch of liveInStore) {
+      // If active match was NOT in the live matches list from provider, check its specific match detail
+      if (!checkedSlugs.has(activeMatch.providerId) && activeMatch.providerId) {
+        try {
+          const detailRes = await fetch(
+            `https://sportscore.com/api/widget/match/?sport=football&slug=${encodeURIComponent(activeMatch.providerId)}`,
+            {
+              headers: { 'User-Agent': 'Mozilla/5.0' },
+              signal: AbortSignal.timeout(4000),
+            }
+          );
+          if (detailRes.ok) {
+            const d = await detailRes.json();
+            if (d && d.status) {
+              const detailed = parseDetailedMatchStatus(d.status, d.status_text);
+              if (detailed.status === 'post' || detailed.isTerminal) {
+                // Authoritative transition to full time / terminal status
+                liveFixtures.push({
+                  ...activeMatch,
+                  status: detailed.status,
+                  period: detailed.period,
+                  displayClock: detailed.displayClock || 'FT',
+                  periodSequence: detailed.periodSequence,
+                  homeScore: d.home_score !== null && d.home_score !== undefined ? Number(d.home_score) : activeMatch.homeScore,
+                  awayScore: d.away_score !== null && d.away_score !== undefined ? Number(d.away_score) : activeMatch.awayScore,
+                  homeHtScore: d.home_ht_score !== null && d.home_ht_score !== undefined ? Number(d.home_ht_score) : activeMatch.homeHtScore,
+                  awayHtScore: d.away_ht_score !== null && d.away_ht_score !== undefined ? Number(d.away_ht_score) : activeMatch.awayHtScore,
+                  syncedAt: nowIso,
+                  lastSyncTime: nowIso,
+                  recordUpdateTime: nowIso,
+                  isAuthoritativeCorrection: true,
+                });
+              }
+            }
+          }
+        } catch {
+          // ignore single match check timeout
+        }
+      }
+    }
+
+    let updated = 0;
+    if (liveFixtures.length > 0) {
+      updated = ingestFixtures(liveFixtures, true);
+    }
+
+    lastLiveSyncTimestamp = nowIso;
+    const currentLiveCount = Array.from(fixturesStore.values()).filter((f) => f.status === 'in').length;
+    return { updated, liveCount: currentLiveCount };
+  } finally {
+    isLiveSyncing = false;
+  }
+}
+
 // Round-robin index for secondary league synchronization
 let secondaryLeagueIndex = 0;
 
@@ -762,7 +979,12 @@ let secondaryLeagueIndex = 0;
  * Execute a rolling sync cycle
  */
 export async function executeRollingSyncCycle(): Promise<{ updated: number; total: number }> {
+  if (isRollingSyncing) {
+    return { updated: 0, total: fixturesStore.size };
+  }
+  isRollingSyncing = true;
   syncCycleCounter++;
+
   try {
     if (discoveredLeagues.length === 0) {
       await discoverAllLeagues();
@@ -816,20 +1038,26 @@ export async function executeRollingSyncCycle(): Promise<{ updated: number; tota
     const ssUpdated = await syncSportScoreCatalog();
     totalUpdated += ssUpdated;
 
+    // Run high-frequency live check as part of rolling cycle
+    const liveRes = await syncLiveScoresOnly();
+    totalUpdated += liveRes.updated;
+
     lastSyncError = null;
     return { updated: totalUpdated, total: fixturesStore.size };
   } catch (err: any) {
     lastSyncError = err?.message || 'Rolling sync error';
     console.error('Rolling sync cycle encountered an error:', lastSyncError);
     return { updated: 0, total: fixturesStore.size };
+  } finally {
+    isRollingSyncing = false;
   }
 }
 
 /**
- * Filter fixtures by scope ('all' | 'live' | 'today' | 'tomorrow' | 'upcoming'), league, country, and date
+ * Filter fixtures by scope ('all' | 'live' | 'today' | 'tomorrow' | 'upcoming' | 'finished' | 'results'), league, country, and date
  */
 export function queryMarketFixtures(options: {
-  scope?: 'all' | 'live' | 'today' | 'tomorrow' | 'upcoming';
+  scope?: 'all' | 'live' | 'today' | 'tomorrow' | 'upcoming' | 'finished' | 'results';
   league?: string;
   country?: string;
   date?: string;
@@ -847,6 +1075,8 @@ export function queryMarketFixtures(options: {
   // Filter by Scope
   if (scope === 'live') {
     list = list.filter((f) => f.status === 'in');
+  } else if (scope === 'finished' || scope === 'results') {
+    list = list.filter((f) => f.status === 'post');
   } else if (scope === 'today') {
     list = list.filter((f) => {
       const fDate = getLocalDateStringEAT(f.kickoffIso);
@@ -982,37 +1212,49 @@ export function getSyncDiagnostics(): SyncDiagnostics {
 
   const liveCount = all.filter((f) => f.status === 'in').length;
   const upcomingCount = all.filter((f) => f.status === 'pre' && getLocalDateStringEAT(f.kickoffIso) >= todayStr).length;
+  const finishedCount = all.filter((f) => f.status === 'post').length;
   const uniqueLeagues = new Set(all.map((f) => f.leagueCode));
 
   return {
     lastSyncTime: lastSyncTimestamp,
+    lastLiveSyncTime: lastLiveSyncTimestamp,
     totalFixtures: all.length,
     liveFixturesCount: liveCount,
     upcomingFixturesCount: upcomingCount,
+    finishedFixturesCount: finishedCount,
     activeLeaguesCount: uniqueLeagues.size,
     discoveredLeaguesCount: discoveredLeagues.length,
     lastError: lastSyncError,
     syncCyclesCount: syncCycleCounter,
-    // 12 runs/hr * (10 tier1 leagues + 4 round-robin tier2 leagues) * 24hr = ~4,032 calls/day (well within 5,000 quota)
+    liveSyncCyclesCount: liveSyncCyclesCounter,
     dailyRequestBudget: 3840,
     rateLimitSafe: true,
   };
 }
 
-// Background scheduler handle
+// Background scheduler handles
 let schedulerTimer: NodeJS.Timeout | null = null;
+let liveSchedulerTimer: NodeJS.Timeout | null = null;
 
 /**
  * Start the background continuous synchronization loop (runs in server.ts)
+ * @param intervalMinutes Interval for full rolling catalogue sync (default: 5 min)
+ * @param liveIntervalSeconds Interval for active live scores sync (default: 20 sec)
  */
-export function startContinuousSportsScheduler(intervalMinutes = 5): void {
-  if (schedulerTimer) return;
-
-  // Immediate eager initial sync
-  void executeRollingSyncCycle();
-
-  // Schedule regular rolling updates
-  schedulerTimer = setInterval(() => {
+export function startContinuousSportsScheduler(intervalMinutes = 5, liveIntervalSeconds = 20): void {
+  // 1. Rolling catalog sync
+  if (!schedulerTimer) {
     void executeRollingSyncCycle();
-  }, intervalMinutes * 60 * 1000);
+    schedulerTimer = setInterval(() => {
+      void executeRollingSyncCycle();
+    }, intervalMinutes * 60 * 1000);
+  }
+
+  // 2. High-frequency live score sync
+  if (!liveSchedulerTimer) {
+    void syncLiveScoresOnly();
+    liveSchedulerTimer = setInterval(() => {
+      void syncLiveScoresOnly();
+    }, liveIntervalSeconds * 1000);
+  }
 }

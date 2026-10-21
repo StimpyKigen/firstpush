@@ -102,18 +102,19 @@ export default function FixtureSportCard({
             </span>
           </div>
 
-          {scorePres.isLive ? (
+          {scorePres.badgeVariant === 'halftime' ? (
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-black bg-amber-100 text-amber-800 border border-amber-300 shrink-0">
+              <span className="w-1.5 h-1.5 rounded-full bg-amber-600" />
+              HT · Half Time
+            </span>
+          ) : scorePres.isLive ? (
             <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-black bg-red-100 text-red-700 border border-red-300 animate-pulse shrink-0">
               <span className="w-1.5 h-1.5 rounded-full bg-red-600" />
               {scorePres.badgeText}
             </span>
-          ) : scorePres.badgeVariant === 'halftime' ? (
-            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-black bg-amber-100 text-amber-800 border border-amber-300 shrink-0">
-              HT · Half Time
-            </span>
           ) : scorePres.badgeVariant === 'finished' ? (
             <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-black bg-slate-100 text-slate-700 border border-slate-300 shrink-0 font-mono">
-              FT
+              {scorePres.badgeText || 'FT'}
             </span>
           ) : scorePres.isPostponedOrCancelled ? (
             <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-black bg-rose-50 text-rose-700 border border-rose-200 shrink-0 uppercase tracking-wider">

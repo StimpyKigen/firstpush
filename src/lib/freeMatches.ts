@@ -1,4 +1,5 @@
 import type { MatchConsensus } from './types';
+import type { MatchPeriod, MatchStatus } from './matchStatus';
 import { buildConsensus } from './consensusEngine';
 import { fetchDailyHighlightFixtures, type HighlightFixture } from './footballApi';
 
@@ -8,6 +9,7 @@ export type MatchTier = 'blockbuster' | 'continental' | 'derby';
 
 export interface FreeMatch {
   id: string;
+  providerId?: string;
   home: string;
   away: string;
   homeLogo?: string;
@@ -21,10 +23,15 @@ export interface FreeMatch {
   tier: MatchTier;
   blurb: string;
   syncedAt: string;
-  status?: 'pre' | 'in' | 'post' | 'postponed' | 'cancelled' | 'abandoned' | 'suspended';
+  lastSyncTime?: string;
+  status?: MatchStatus;
+  period?: MatchPeriod;
+  periodSequence?: number;
   displayClock?: string;
   homeScore?: number | null;
   awayScore?: number | null;
+  homeHtScore?: number | null;
+  awayHtScore?: number | null;
   result?: '1' | 'X' | '2';
   homeOdds?: number;
   drawOdds?: number;
@@ -70,6 +77,7 @@ function emitFreeMatchesChange() {
 function toFreeMatch(item: HighlightFixture): FreeMatch {
   return {
     id: item.id,
+    providerId: item.providerId || item.id,
     home: item.home,
     away: item.away,
     homeLogo: item.homeLogo,
@@ -83,10 +91,15 @@ function toFreeMatch(item: HighlightFixture): FreeMatch {
     tier: item.tier,
     blurb: item.blurb,
     syncedAt: item.syncedAt,
+    lastSyncTime: item.lastSyncTime,
     status: item.status,
+    period: item.period,
+    periodSequence: item.periodSequence,
     displayClock: item.displayClock,
     homeScore: item.homeScore,
     awayScore: item.awayScore,
+    homeHtScore: item.homeHtScore,
+    awayHtScore: item.awayHtScore,
     result: item.result,
     homeOdds: item.homeOdds,
     drawOdds: item.drawOdds,
@@ -113,17 +126,21 @@ export function getHasFreeMatchesSynced(): boolean {
   return hasSyncedFreeMatchesOnce;
 }
 
-export async function refreshFreeMatches() {
-  isSyncingFreeMatches = true;
-  emitFreeMatchesChange();
+export async function refreshFreeMatches(force = false) {
+  // Only show full loading state during initial page hydration
+  if (!hasSyncedFreeMatchesOnce) {
+    isSyncingFreeMatches = true;
+    emitFreeMatchesChange();
+  }
+
   try {
-    const fixtures = await fetchDailyHighlightFixtures();
+    const fixtures = await fetchDailyHighlightFixtures(force);
     if (fixtures.length > 0) {
       liveMatches = fixtures.map((fixture) => toFreeMatch(fixture));
       liveConsensus = Object.fromEntries(
         liveMatches.map((match, index) => [
           match.id,
-          buildConsensus(match.id, index * 17 + 7, fixtures[index].homePct, fixtures[index].drawPct),
+          freeMatchConsensus[match.id] || buildConsensus(match.id, index * 17 + 7, fixtures[index].homePct, fixtures[index].drawPct),
         ]),
       ) as Record<string, MatchConsensus>;
     } else {

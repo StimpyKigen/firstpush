@@ -11,7 +11,7 @@ export default async function handler(req: any, res: any) {
 
   try {
     const highlights = await getDailyMarketHighlights();
-    res.setHeader('Cache-Control', 's-maxage=300, stale-while-revalidate=900');
+    res.setHeader('Cache-Control', 'public, max-age=5, s-maxage=10, must-revalidate');
     return res.status(200).json({ success: true, count: highlights.length, fixtures: highlights });
   } catch (err: any) {
     return res.status(500).json({ success: false, error: 'Failed to retrieve daily fixtures.' });

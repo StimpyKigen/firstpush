@@ -11,6 +11,7 @@ import {
   getMarketResults,
   getSyncDiagnostics,
   executeRollingSyncCycle,
+  syncLiveScoresOnly,
   startContinuousSportsScheduler,
 } from './src/lib/sportsFeedService';
 import {
@@ -401,9 +402,24 @@ async function startServer() {
       const limit = req.query.limit ? Number(req.query.limit) : undefined;
 
       const fixtures = queryMarketFixtures({ scope, league, country, date, limit });
+      res.setHeader('Cache-Control', 'public, max-age=5, s-maxage=10, must-revalidate');
       res.json({ success: true, count: fixtures.length, fixtures });
     } catch (err: any) {
       res.status(500).json({ success: false, error: 'Failed to retrieve market fixtures.' });
+    }
+  });
+
+  app.get('/api/sports/live', async (req: Request, res: Response) => {
+    try {
+      const liveFixtures = queryMarketFixtures({ scope: 'live' });
+      // If none or low, trigger fast background live check
+      if (liveFixtures.length === 0) {
+        void syncLiveScoresOnly();
+      }
+      res.setHeader('Cache-Control', 'public, max-age=3, s-maxage=5, must-revalidate');
+      res.json({ success: true, count: liveFixtures.length, fixtures: liveFixtures });
+    } catch (err: any) {
+      res.status(500).json({ success: false, error: 'Failed to retrieve live fixtures.' });
     }
   });
 
@@ -421,6 +437,7 @@ async function startServer() {
   app.get('/api/sports/daily-fixtures', async (req: Request, res: Response) => {
     try {
       const highlights = await getDailyMarketHighlights();
+      res.setHeader('Cache-Control', 'public, max-age=5, s-maxage=10, must-revalidate');
       res.json({ success: true, count: highlights.length, fixtures: highlights });
     } catch (err: any) {
       res.status(500).json({ success: false, error: 'Failed to retrieve daily fixtures.' });
@@ -442,6 +459,15 @@ async function startServer() {
       res.json({ success: true, result, diagnostics: getSyncDiagnostics() });
     } catch (err: any) {
       res.status(500).json({ success: false, error: 'Failed to execute synchronization.' });
+    }
+  });
+
+  app.post('/api/sports/sync-live', async (req: Request, res: Response) => {
+    try {
+      const result = await syncLiveScoresOnly();
+      res.json({ success: true, result, diagnostics: getSyncDiagnostics() });
+    } catch (err: any) {
+      res.status(500).json({ success: false, error: 'Failed to execute live synchronization.' });
     }
   });
 
@@ -840,8 +866,8 @@ Sitemap: https://mshindi.co.ke/sitemap.xml
     });
   }
 
-  // Start background continuous rolling fixture synchronization
-  startContinuousSportsScheduler(5);
+  // Start background continuous rolling fixture synchronization (5 min rolling, 20 sec live)
+  startContinuousSportsScheduler(5, 20);
 
   app.listen(PORT, '0.0.0.0', () => {
     console.log(`Mshindi Projo Server running on http://0.0.0.0:${PORT}`);

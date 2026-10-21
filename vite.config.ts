@@ -68,6 +68,40 @@ export default defineConfig(() => {
                   return;
                 }
               }
+              if (url.pathname === '/api/sports/live') {
+                try {
+                  const { queryMarketFixtures, syncLiveScoresOnly } = await server.ssrLoadModule('/src/lib/sportsFeedService.ts');
+                  let liveFixtures = queryMarketFixtures({ scope: 'live' });
+                  if (liveFixtures.length === 0) {
+                    void syncLiveScoresOnly();
+                  }
+                  res.setHeader('Content-Type', 'application/json');
+                  res.setHeader('Access-Control-Allow-Origin', '*');
+                  res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+                  res.end(JSON.stringify({ success: true, count: liveFixtures.length, fixtures: liveFixtures }));
+                  return;
+                } catch (err) {
+                  res.statusCode = 500;
+                  res.setHeader('Content-Type', 'application/json');
+                  res.end(JSON.stringify({ success: false, error: String(err) }));
+                  return;
+                }
+              }
+              if (url.pathname === '/api/sports/sync-live') {
+                try {
+                  const { syncLiveScoresOnly, getSyncDiagnostics } = await server.ssrLoadModule('/src/lib/sportsFeedService.ts');
+                  const result = await syncLiveScoresOnly();
+                  res.setHeader('Content-Type', 'application/json');
+                  res.setHeader('Access-Control-Allow-Origin', '*');
+                  res.end(JSON.stringify({ success: true, result, diagnostics: getSyncDiagnostics() }));
+                  return;
+                } catch (err) {
+                  res.statusCode = 500;
+                  res.setHeader('Content-Type', 'application/json');
+                  res.end(JSON.stringify({ success: false, error: String(err) }));
+                  return;
+                }
+              }
               if (url.pathname === '/api/sports/status') {
                 try {
                   const { getSyncDiagnostics } = await server.ssrLoadModule('/src/lib/sportsFeedService.ts');

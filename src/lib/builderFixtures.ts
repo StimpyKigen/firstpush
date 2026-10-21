@@ -1,4 +1,5 @@
 import { getFreeMatchesSnapshot } from './freeMatches';
+import type { MatchStatus } from './matchStatus';
 
 export interface BuilderFixture {
   id: string;
@@ -6,7 +7,7 @@ export interface BuilderFixture {
   awayTeam: string;
   competition: string;
   kickoff: string;
-  status?: 'pre' | 'in' | 'post' | 'postponed' | 'cancelled' | 'abandoned' | 'suspended';
+  status?: MatchStatus;
   homeScore?: number | null;
   awayScore?: number | null;
   homeOdds?: number;

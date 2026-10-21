@@ -1,5 +1,8 @@
+import type { MatchPeriod, MatchStatus } from './matchStatus';
+
 export interface HighlightFixture {
   id: string;
+  providerId?: string;
   home: string;
   away: string;
   homeLogo?: string;
@@ -20,10 +23,15 @@ export interface HighlightFixture {
   awayOdds: number;
   bookmaker?: string;
   syncedAt: string;
-  status?: 'pre' | 'in' | 'post';
+  lastSyncTime?: string;
+  status?: MatchStatus;
+  period?: MatchPeriod;
+  periodSequence?: number;
   displayClock?: string;
   homeScore?: number | null;
   awayScore?: number | null;
+  homeHtScore?: number | null;
+  awayHtScore?: number | null;
   result?: '1' | 'X' | '2';
   bttsYesPct?: number;
   over15Pct?: number;
@@ -200,9 +208,12 @@ export function getEffectiveMatchDayFormattedEAT(dateObj: Date = new Date()): st
   }).format(utcDate);
 }
 
-export async function fetchDailyHighlightFixtures(): Promise<HighlightFixture[]> {
-  // Return cached if fetched less than 45s ago to conserve user data bandwidth
-  if (cachedFixtures.length > 0 && Date.now() - lastFetchedTime < 45_000) {
+export async function fetchDailyHighlightFixtures(force = false): Promise<HighlightFixture[]> {
+  const hasLiveMatches = cachedFixtures.some((f) => f.status === 'in');
+  const cacheTtlMs = hasLiveMatches ? 8_000 : 30_000;
+
+  // Return cached if not forced and fetched within active TTL
+  if (!force && cachedFixtures.length > 0 && Date.now() - lastFetchedTime < cacheTtlMs) {
     return cachedFixtures;
   }
 
@@ -217,9 +228,10 @@ export async function fetchDailyHighlightFixtures(): Promise<HighlightFixture[]>
 
   try {
     const controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
-    // 25s timeout allows cold starts on Render/Vercel to complete without premature abort
     const timeoutId = controller ? setTimeout(() => controller.abort(), 25000) : null;
-    const res = await fetch('/api/sports/daily-fixtures', controller ? { signal: controller.signal } : {});
+    // 25s timeout allows cold starts on Render/Vercel to complete without premature abort
+    const baseUrl = typeof window !== 'undefined' ? '' : (process.env.API_BASE_URL || 'http://localhost:3000');
+    const res = await fetch(`${baseUrl}/api/sports/daily-fixtures`, controller ? { signal: controller.signal } : {});
     if (timeoutId) clearTimeout(timeoutId);
 
     if (res.ok) {
@@ -238,6 +250,7 @@ export async function fetchDailyHighlightFixtures(): Promise<HighlightFixture[]>
           const fid = m.id?.startsWith('mkt-') ? m.id : `mkt-${m.id || `${m.home}-${m.away}`.toLowerCase().replace(/[^a-z0-9]/g, '-')}`;
           return {
             id: fid,
+            providerId: m.providerId || fid,
             home: m.home,
             away: m.away,
             competition: compName,
@@ -256,10 +269,15 @@ export async function fetchDailyHighlightFixtures(): Promise<HighlightFixture[]>
             awayOdds: m.awayOdds,
             bookmaker: 'Market Consensus',
             syncedAt: `Live Consensus · ${syncTimeLabel}`,
+            lastSyncTime: m.lastSyncTime || m.syncedAt,
             status: m.status || 'pre',
+            period: m.period,
+            periodSequence: m.periodSequence,
             displayClock: m.displayClock || (m.status === 'in' ? 'LIVE' : m.status === 'post' ? 'FT' : ''),
             homeScore: m.homeScore !== undefined ? m.homeScore : null,
             awayScore: m.awayScore !== undefined ? m.awayScore : null,
+            homeHtScore: m.homeHtScore !== undefined ? m.homeHtScore : null,
+            awayHtScore: m.awayHtScore !== undefined ? m.awayHtScore : null,
             bttsYesPct: m.bttsYesPct,
             over15Pct: m.over15Pct,
             over25Pct: m.over25Pct,
@@ -294,22 +312,50 @@ export function startDailyHighlightSync(onRefresh: () => Promise<unknown> | unkn
   if (dailySyncStarted) return;
   dailySyncStarted = true;
 
-  const runCheck = () => {
+  let timerHandle: NodeJS.Timeout | null = null;
+
+  const runCheck = async () => {
     if (typeof document !== 'undefined' && document.visibilityState === 'hidden') {
       return;
     }
-    void Promise.resolve(onRefresh());
+    try {
+      await Promise.resolve(onRefresh());
+    } catch (err) {
+      console.warn('Sync iteration error:', err);
+    } finally {
+      scheduleNext();
+    }
   };
 
-  runCheck();
+  const scheduleNext = () => {
+    if (timerHandle) clearTimeout(timerHandle);
+    // If active live matches are occurring, poll rapidly every 12 seconds
+    const hasLive = cachedFixtures.some((f) => f.status === 'in');
+    const delayMs = hasLive ? 12_000 : 45_000;
+    timerHandle = setTimeout(runCheck, delayMs);
+  };
 
-  // Poll live fixtures every 60 seconds
-  setInterval(runCheck, 60_000);
+  // Immediate initial check
+  void runCheck();
 
+  // Instant recovery when user switches back to tab
   if (typeof document !== 'undefined') {
     document.addEventListener('visibilitychange', () => {
       if (document.visibilityState === 'visible') {
-        runCheck();
+        void runCheck();
+      }
+    });
+  }
+
+  // Instant recovery on network reconnection
+  if (typeof window !== 'undefined') {
+    window.addEventListener('online', () => {
+      void runCheck();
+    });
+
+    window.addEventListener('focus', () => {
+      if (Date.now() - lastFetchedTime > 12_000) {
+        void runCheck();
       }
     });
   }
