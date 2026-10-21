@@ -73,8 +73,8 @@ export default function FixtureSportCard({
           className="absolute inset-0 pointer-events-none overflow-hidden rounded-2xl z-0"
           aria-hidden="true"
         >
-          {/* Subtle rich blue base tint */}
-          <div className="absolute inset-0 bg-gradient-to-b from-[#0A3B8C]/12 via-[#0A3B8C]/4 to-transparent" />
+          {/* Subtle rich competition base tint */}
+          <div className={`absolute inset-0 ${banner.baseTint || 'bg-gradient-to-b from-[#0A3B8C]/12 via-[#0A3B8C]/4 to-transparent'}`} />
           {/* Banner Artwork gracefully scaled for desktop & mobile */}
           <img
             src={banner.bannerUrl}
@@ -198,7 +198,7 @@ export default function FixtureSportCard({
                 isHomeSelected
                   ? 'bg-[#006C54] text-white font-black border-[#005441] shadow-xs'
                   : banner
-                  ? 'bg-white/15 hover:bg-white/35 text-slate-800 border-[#7BA7F8]/50 hover:border-[#0A3B8C] backdrop-blur-[1px]'
+                  ? `bg-white/15 hover:bg-white/35 text-slate-800 ${banner.oddsBorderColor || 'border-[#7BA7F8]/50 hover:border-[#0A3B8C]'} backdrop-blur-[1px]`
                   : 'bg-transparent hover:bg-black/[0.04] text-slate-800 border-[#DCDCC8] hover:border-[#006C54]'
               }`}
             >
@@ -221,7 +221,7 @@ export default function FixtureSportCard({
                 isDrawSelected
                   ? 'bg-[#006C54] text-white font-black border-[#005441] shadow-xs'
                   : banner
-                  ? 'bg-white/15 hover:bg-white/35 text-slate-800 border-[#7BA7F8]/50 hover:border-[#0A3B8C] backdrop-blur-[1px]'
+                  ? `bg-white/15 hover:bg-white/35 text-slate-800 ${banner.oddsBorderColor || 'border-[#7BA7F8]/50 hover:border-[#0A3B8C]'} backdrop-blur-[1px]`
                   : 'bg-transparent hover:bg-black/[0.04] text-slate-800 border-[#DCDCC8] hover:border-[#006C54]'
               }`}
             >
@@ -244,7 +244,7 @@ export default function FixtureSportCard({
                 isAwaySelected
                   ? 'bg-[#006C54] text-white font-black border-[#005441] shadow-xs'
                   : banner
-                  ? 'bg-white/15 hover:bg-white/35 text-slate-800 border-[#7BA7F8]/50 hover:border-[#0A3B8C] backdrop-blur-[1px]'
+                  ? `bg-white/15 hover:bg-white/35 text-slate-800 ${banner.oddsBorderColor || 'border-[#7BA7F8]/50 hover:border-[#0A3B8C]'} backdrop-blur-[1px]`
                   : 'bg-transparent hover:bg-black/[0.04] text-slate-800 border-[#DCDCC8] hover:border-[#006C54]'
               }`}
             >
@@ -270,7 +270,7 @@ export default function FixtureSportCard({
             </span>
             <span className="font-mono text-slate-800">{majority}%</span>
           </div>
-          <div className={`w-full rounded-full h-1.5 flex overflow-hidden ${banner ? 'bg-[#DDE8F8]' : 'bg-[#E6E6D2]'}`}>
+          <div className={`w-full rounded-full h-1.5 flex overflow-hidden ${banner ? banner.consensusTrackBg || 'bg-[#DDE8F8]' : 'bg-[#E6E6D2]'}`}>
             <div
               style={{ width: `${consensus.homePct}%` }}
               className="bg-[#006C54] transition-all duration-500"
@@ -291,7 +291,7 @@ export default function FixtureSportCard({
       </div>
 
       {/* Card Footer: Details & Discussion Link & Borderless Bet Builder Button */}
-      <div className={`relative z-10 pt-3 mt-3 border-t flex items-center justify-between gap-2 ${banner ? 'border-[#D9E7F9]' : 'border-[#F0F0E4]'}`}>
+      <div className={`relative z-10 pt-3 mt-3 border-t flex items-center justify-between gap-2 ${banner ? banner.dividerColor || 'border-[#D9E7F9]' : 'border-[#F0F0E4]'}`}>
 
         <Link
           to={`/free/${match.id}`}
