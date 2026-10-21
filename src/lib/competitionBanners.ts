@@ -67,11 +67,26 @@ export const COMPETITION_BANNERS: Record<string, CompetitionBannerConfig> = {
     dividerColor: 'border-[#A7F3D0]',
     shadow: 'shadow-[0_2px_12px_rgba(5,150,105,0.09)] hover:shadow-[0_4px_18px_rgba(5,150,105,0.16)]',
   },
+  premier_league: {
+    id: 'premier_league',
+    name: 'English Premier League',
+    bannerUrl: '/banners/premier-league.jpg',
+    overlayOpacity: 0.32,
+    gradientOverlay: 'from-transparent via-[#E0FBF6]/20 to-[#FFFFF0]/35',
+    cardBg: 'bg-gradient-to-b from-[#E6FCF5] via-[#F0FDF8] to-[#FFFFF0]',
+    baseTint: 'bg-gradient-to-b from-[#0D9488]/10 via-[#0D9488]/3 to-transparent',
+    borderColor: 'border-[#2DD4BF]/70',
+    borderHoverColor: 'hover:border-[#0D9488]',
+    oddsBorderColor: 'border-[#2DD4BF]/50 hover:border-[#0D9488]',
+    consensusTrackBg: 'bg-[#CCFBF1]',
+    dividerColor: 'border-[#99F6E4]',
+    shadow: 'shadow-[0_2px_12px_rgba(13,148,136,0.09)] hover:shadow-[0_4px_18px_rgba(13,148,136,0.16)]',
+  },
 };
 
 /**
  * Returns the banner configuration if the competition matches a registered banner artwork.
- * Matches all UEFA Champions League, UEFA Europa League, and UEFA Conference League fixtures.
+ * Matches UEFA Champions League, UEFA Europa League, UEFA Conference League, and English Premier League fixtures.
  */
 export function getCompetitionBanner(competition: string): CompetitionBannerConfig | null {
   if (!competition) return null;
@@ -117,6 +132,33 @@ export function getCompetitionBanner(competition: string): CompetitionBannerConf
     !comp.includes('u21')
   ) {
     return COMPETITION_BANNERS.uefa_conference_league;
+  }
+
+  // 4. English Premier League
+  if (
+    (comp === 'premier league' ||
+      comp.startsWith('premier league') ||
+      comp.includes('english premier league') ||
+      comp === 'epl' ||
+      comp.startsWith('epl ')) &&
+    !comp.includes('egypt') &&
+    !comp.includes('kenya') &&
+    !comp.includes('kazakhstan') &&
+    !comp.includes('russia') &&
+    !comp.includes('ghana') &&
+    !comp.includes('south africa') &&
+    !comp.includes('singapore') &&
+    !comp.includes('israel') &&
+    !comp.includes('women') &&
+    !comp.includes('youth') &&
+    !comp.includes('u18') &&
+    !comp.includes('u19') &&
+    !comp.includes('u20') &&
+    !comp.includes('u21') &&
+    !comp.includes('u23') &&
+    !comp.includes('2')
+  ) {
+    return COMPETITION_BANNERS.premier_league;
   }
 
   return null;
