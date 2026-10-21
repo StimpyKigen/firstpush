@@ -181,7 +181,7 @@ export default function FixtureSportCard({
         </Link>
 
         {/* Punter Engagement Counter */}
-        <div className="flex items-center justify-between text-[11px] text-slate-400 font-medium mt-2.5">
+        <div className="flex items-center justify-between text-[11px] text-slate-400 font-semibold mt-2.5">
           <span className="flex items-center gap-1.5">
             <Users size={12} className="text-[#006C54] shrink-0" />
             <span className="truncate">{consensus.totalVotes.toLocaleString()} punters analyzing</span>
