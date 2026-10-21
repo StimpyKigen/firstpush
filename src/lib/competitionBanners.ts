@@ -99,11 +99,27 @@ export const COMPETITION_BANNERS: Record<string, CompetitionBannerConfig> = {
     dividerColor: 'border-[#FECDD3]',
     shadow: 'shadow-[0_2px_12px_rgba(225,29,72,0.08)] hover:shadow-[0_4px_18px_rgba(225,29,72,0.16)]',
   },
+  ligue_1: {
+    id: 'ligue_1',
+    name: 'French Ligue 1',
+    bannerUrl: '/banners/ligue-1.jpg',
+    overlayOpacity: 0.32,
+    objectPosition: 'object-[center_50%]',
+    gradientOverlay: 'from-transparent via-[#F0FDF4]/20 to-[#FFFFF0]/35',
+    cardBg: 'bg-gradient-to-b from-[#EDF5FF] via-[#F4F9FF] to-[#FFFFF0]',
+    baseTint: 'bg-gradient-to-b from-[#0F1E4A]/12 via-[#84CC16]/4 to-transparent',
+    borderColor: 'border-[#84CC16]/70',
+    borderHoverColor: 'hover:border-[#0F1E4A]',
+    oddsBorderColor: 'border-[#84CC16]/50 hover:border-[#0F1E4A]',
+    consensusTrackBg: 'bg-[#ECFCCB]',
+    dividerColor: 'border-[#D9F99D]',
+    shadow: 'shadow-[0_2px_12px_rgba(15,30,74,0.09)] hover:shadow-[0_4px_18px_rgba(15,30,74,0.16)]',
+  },
 };
 
 /**
  * Returns the banner configuration if the competition matches a registered banner artwork.
- * Matches UEFA Champions League, UEFA Europa League, UEFA Conference League, English Premier League, and Spanish La Liga fixtures.
+ * Matches UEFA Champions League, UEFA Europa League, UEFA Conference League, English Premier League, Spanish La Liga, and French Ligue 1 fixtures.
  */
 export function getCompetitionBanner(competition: string, competitionId?: string): CompetitionBannerConfig | null {
   if (competitionId) {
@@ -112,6 +128,7 @@ export function getCompetitionBanner(competition: string, competitionId?: string
     if (competitionId === 'uefa_conference_league') return COMPETITION_BANNERS.uefa_conference_league;
     if (competitionId === 'eng_premier_league') return COMPETITION_BANNERS.premier_league;
     if (competitionId === 'esp_la_liga') return COMPETITION_BANNERS.la_liga;
+    if (competitionId === 'fra_ligue_1') return COMPETITION_BANNERS.ligue_1;
   }
 
   if (!competition) return null;
@@ -213,6 +230,32 @@ export function getCompetitionBanner(competition: string, competitionId?: string
     !comp.includes('liga f')
   ) {
     return COMPETITION_BANNERS.la_liga;
+  }
+
+  // 6. French Ligue 1
+  if (
+    (comp === 'ligue 1' ||
+      comp === 'french ligue 1' ||
+      comp === 'france ligue 1' ||
+      comp === 'france league 1' ||
+      comp === 'french league 1' ||
+      comp.startsWith('ligue 1') ||
+      comp.includes('ligue 1') ||
+      comp.includes('league 1') ||
+      comp === 'ligue1' ||
+      comp.startsWith('ligue1')) &&
+    !comp.includes('ligue 2') &&
+    !comp.includes('league 2') &&
+    !comp.includes('ivory coast') &&
+    !comp.includes('congo') &&
+    !comp.includes('senegal') &&
+    !comp.includes('tunisia') &&
+    !comp.includes('algeria') &&
+    !comp.includes('women') &&
+    !comp.includes('feminine') &&
+    !comp.includes('u19')
+  ) {
+    return COMPETITION_BANNERS.ligue_1;
   }
 
   return null;
