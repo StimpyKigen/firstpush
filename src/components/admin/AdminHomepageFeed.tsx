@@ -247,8 +247,8 @@ export default function AdminHomepageFeed() {
                 </button>
               </div>
 
-              {/* Exact Mock of Homepage Carousel Card */}
-              <div className="relative w-full max-w-lg mx-auto aspect-[16/9] sm:aspect-[21/9] rounded-2xl overflow-hidden bg-black shadow-md">
+              {/* Exact Mock of Homepage Carousel Card (9:16 Aspect Ratio) */}
+              <div className="relative w-full max-w-[280px] sm:max-w-[320px] mx-auto aspect-[9/16] max-h-[70vh] rounded-3xl overflow-hidden bg-slate-950 shadow-md">
                 <img
                   src={photoUrl}
                   alt="Preview"
@@ -258,16 +258,19 @@ export default function AdminHomepageFeed() {
                   }}
                 />
                 {/* Foreground Scrim Overlay */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-transparent pointer-events-none" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/35 to-transparent pointer-events-none" />
 
                 {photoCaption ? (
-                  <div className="absolute bottom-4 left-4 right-4 text-white z-10">
-                    <p className="font-semibold text-sm sm:text-base leading-snug drop-shadow-sm">
+                  <div className="absolute bottom-5 left-4 right-4 text-white z-10">
+                    <span className="inline-block text-[#006C54] bg-white text-[9.5px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider mb-1.5 shadow-2xs">
+                      Weekly Spotlight
+                    </span>
+                    <p className="font-semibold text-xs sm:text-sm leading-snug drop-shadow-sm line-clamp-4">
                       {photoCaption}
                     </p>
                   </div>
                 ) : (
-                  <div className="absolute bottom-3 left-4 text-xs text-white/60">
+                  <div className="absolute bottom-4 left-4 text-xs text-white/60">
                     (No caption attached · image only)
                   </div>
                 )}
@@ -279,7 +282,7 @@ export default function AdminHomepageFeed() {
         {/* Existing Carousel Items Table / List */}
         <div className="mt-8 pt-6 border-t border-slate-100">
           <h4 className="text-xs font-semibold text-slate-800 uppercase tracking-wider mb-4">
-            Active Carousel Feed ({feed.carouselItems.length})
+            Active Carousel Feed ({feed.carouselItems.length}) · 9:16 Cards
           </h4>
 
           {feed.carouselItems.length === 0 ? (
@@ -287,7 +290,7 @@ export default function AdminHomepageFeed() {
               No carousel photos added yet. Upload a photo above to start your weekly editorial news slate.
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
               {feed.carouselItems.map((item) => (
                 <div
                   key={item.id}
@@ -295,22 +298,22 @@ export default function AdminHomepageFeed() {
                     item.published ? 'bg-[#FFFFF0] border-slate-200' : 'bg-slate-50 border-slate-200 opacity-60'
                   }`}
                 >
-                  <div className="relative aspect-[16/9] bg-slate-900 overflow-hidden">
+                  <div className="relative aspect-[9/16] bg-slate-900 overflow-hidden">
                     <img
                       src={item.imageUrl}
                       alt=""
                       className="w-full h-full object-cover"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent pointer-events-none" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-transparent pointer-events-none" />
                     {item.caption && (
-                      <p className="absolute bottom-2.5 left-3 right-3 text-white text-xs font-medium leading-snug line-clamp-2">
+                      <p className="absolute bottom-2.5 left-2.5 right-2.5 text-white text-[11px] font-medium leading-snug line-clamp-3">
                         {item.caption}
                       </p>
                     )}
                   </div>
 
-                  <div className="p-3.5 flex items-center justify-between gap-2 border-t border-slate-100 text-xs">
-                    <span className="text-[11px] font-semibold text-slate-500">
+                  <div className="p-3 flex items-center justify-between gap-1 border-t border-slate-100 text-xs">
+                    <span className="text-[10px] font-semibold">
                       {item.published ? (
                         <span className="text-[#006C54] font-bold">Published</span>
                       ) : (
@@ -318,19 +321,20 @@ export default function AdminHomepageFeed() {
                       )}
                     </span>
 
-                    <div className="flex items-center gap-1.5">
+                    <div className="flex items-center gap-1">
                       <button
                         type="button"
                         onClick={() => toggleCarouselItemPublish(item.id)}
-                        className="px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 transition-colors cursor-pointer flex items-center gap-1"
+                        className="px-2 py-0.5 rounded-lg text-[10px] font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 transition-colors cursor-pointer flex items-center gap-1"
+                        title={item.published ? 'Omit from homepage' : 'Publish to homepage'}
                       >
                         {item.published ? (
                           <>
-                            <EyeOff size={12} /> Omit
+                            <EyeOff size={11} /> Omit
                           </>
                         ) : (
                           <>
-                            <Check size={12} /> Publish
+                            <Check size={11} /> Publish
                           </>
                         )}
                       </button>
@@ -346,7 +350,7 @@ export default function AdminHomepageFeed() {
                         className="p-1 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
                         title="Delete photo"
                       >
-                        <Trash2 size={14} />
+                        <Trash2 size={13} />
                       </button>
                     </div>
                   </div>
@@ -439,7 +443,7 @@ export default function AdminHomepageFeed() {
                 </button>
               </div>
 
-              <div className="relative w-full max-w-xl mx-auto aspect-video rounded-xl overflow-hidden bg-black shadow-md">
+              <div className="relative w-full max-w-[360px] mx-auto aspect-[16/9] rounded-xl overflow-hidden bg-black shadow-md">
                 <iframe
                   src={previewEmbedUrl}
                   title="Preview Video"
@@ -448,6 +452,9 @@ export default function AdminHomepageFeed() {
                   className="w-full h-full border-0"
                 />
               </div>
+              <p className="text-[11px] text-slate-400 text-center mt-2">
+                Standard Mobile &amp; Desktop Frame: 360 × 202.5 px (16:9)
+              </p>
             </div>
           )}
         </form>
@@ -463,15 +470,15 @@ export default function AdminHomepageFeed() {
               No videos added yet. Enter a YouTube URL above to add videos to the homepage highlights.
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
               {feed.videoItems.map((v) => (
                 <div
                   key={v.id}
-                  className={`border rounded-2xl overflow-hidden transition-all flex flex-col justify-between ${
+                  className={`border rounded-2xl overflow-hidden transition-all flex flex-col justify-between max-w-[360px] mx-auto w-full ${
                     v.published ? 'bg-[#FFFFF0] border-slate-200' : 'bg-slate-50 border-slate-200 opacity-60'
                   }`}
                 >
-                  <div className="relative aspect-video bg-black overflow-hidden">
+                  <div className="relative aspect-[16/9] bg-black overflow-hidden">
                     <iframe
                       src={v.embedUrl}
                       title={v.title}
