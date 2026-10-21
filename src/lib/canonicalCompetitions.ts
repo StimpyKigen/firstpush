@@ -109,7 +109,19 @@ export const KNOWN_COUNTRIES: Record<string, CountryMeta> = {
   moldova: { code: 'MD', name: 'Moldova', continent: 'europe', flag: '🇲🇩' },
   'north macedonia': { code: 'MK', name: 'North Macedonia', continent: 'europe', flag: '🇲🇰' },
   malta: { code: 'MT', name: 'Malta', continent: 'europe', flag: '🇲🇹' },
-  'bosnia and herzegovina': { code: 'BA', name: 'Bosnia & Herzegovina', continent: 'europe', flag: '🇧🇦' },
+  'bosnia and herzegovina': { code: 'BA', name: 'Bosnia and Herzegovina', continent: 'europe', flag: '🇧🇦' },
+  wales: { code: 'GB-WLS', name: 'Wales', continent: 'europe', flag: '🏴󠁧󠁢󠁷󠁬󠁳󠁿' },
+  'northern ireland': { code: 'GB-NIR', name: 'Northern Ireland', continent: 'europe', flag: '🇬🇧' },
+  kosovo: { code: 'XK', name: 'Kosovo', continent: 'europe', flag: '🇽🇰' },
+  armenia: { code: 'AM', name: 'Armenia', continent: 'europe', flag: '🇦🇲' },
+  azerbaijan: { code: 'AZ', name: 'Azerbaijan', continent: 'europe', flag: '🇦🇿' },
+  belarus: { code: 'BY', name: 'Belarus', continent: 'europe', flag: '🇧🇾' },
+  cyprus: { code: 'CY', name: 'Cyprus', continent: 'europe', flag: '🇨🇾' },
+  'faroe islands': { code: 'FO', name: 'Faroe Islands', continent: 'europe', flag: '🇫🇴' },
+  georgia: { code: 'GE', name: 'Georgia', continent: 'europe', flag: '🇬🇪' },
+  luxembourg: { code: 'LU', name: 'Luxembourg', continent: 'europe', flag: '🇱🇺' },
+  montenegro: { code: 'ME', name: 'Montenegro', continent: 'europe', flag: '🇲🇪' },
+  turkiye: { code: 'TR', name: 'Turkiye', continent: 'europe', flag: '🇹🇷' },
 
   // Asia
   iran: { code: 'IR', name: 'Iran', continent: 'asia', flag: '🇮🇷' },
@@ -1930,6 +1942,93 @@ export function getUnclassifiedCompetition(
     for (const [k, meta] of Object.entries(KNOWN_COUNTRIES)) {
       if (k !== 'international' && k !== 'europe' && (slug.startsWith(`${k}-`) || slug.startsWith(`${k}_`))) {
         countryMeta = meta;
+        break;
+      }
+    }
+  }
+
+  // Deduce country from competition name if still international/unassigned
+  if (!countryMeta || countryMeta === KNOWN_COUNTRIES.international) {
+    const textToMatch = `${normName} ${slug}`.toLowerCase();
+    const NATIONALITY_MAP: Record<string, string> = {
+      panama: 'panama', panamanian: 'panama',
+      denmark: 'denmark', danish: 'denmark',
+      ukraine: 'ukraine', ukrainian: 'ukraine',
+      estonia: 'estonia', estonian: 'estonia',
+      latvia: 'latvia', latvian: 'latvia',
+      lithuania: 'lithuania', lithuanian: 'lithuania',
+      finland: 'finland', finnish: 'finland',
+      hungary: 'hungary', hungarian: 'hungary',
+      poland: 'poland', polish: 'poland',
+      romania: 'romania', romanian: 'romania',
+      bulgaria: 'bulgaria', bulgarian: 'bulgaria',
+      croatia: 'croatia', croatian: 'croatia',
+      serbia: 'serbia', serbian: 'serbia',
+      slovakia: 'slovakia', slovak: 'slovakia',
+      slovenia: 'slovenia', slovenian: 'slovenia',
+      austria: 'austria', austrian: 'austria',
+      sweden: 'sweden', swedish: 'sweden',
+      norway: 'norway', norwegian: 'norway',
+      switzerland: 'switzerland', swiss: 'switzerland',
+      greece: 'greece', greek: 'greece',
+      cyprus: 'cyprus', cypriot: 'cyprus',
+      israel: 'israel', israeli: 'israel',
+      jordan: 'jordan', jordanian: 'jordan',
+      qatar: 'qatar', qatari: 'qatar',
+      iraq: 'iraq', iraqi: 'iraq',
+      iran: 'iran', iranian: 'iran',
+      armenia: 'armenia', armenian: 'armenia',
+      azerbaijan: 'azerbaijan', azerbaijani: 'azerbaijan',
+      georgia: 'georgia', georgian: 'georgia',
+      kazakhstan: 'kazakhstan', kazakh: 'kazakhstan',
+      uzbekistan: 'uzbekistan', uzbek: 'uzbekistan',
+      morocco: 'morocco', moroccan: 'morocco',
+      algeria: 'algeria', algerian: 'algeria',
+      tunisia: 'tunisia', tunisian: 'tunisia',
+      cameroon: 'cameroon', cameroonian: 'cameroon',
+      nigeria: 'nigeria', nigerian: 'nigeria',
+      ghana: 'ghana', ghanaian: 'ghana',
+      kenya: 'kenya', kenyan: 'kenya',
+      rwanda: 'rwanda', rwandan: 'rwanda',
+      mexico: 'mexico', mexican: 'mexico',
+      canada: 'canada', canadian: 'canada',
+      'costa rica': 'costa rica', 'costa rican': 'costa rica',
+      guatemala: 'guatemala', guatemalan: 'guatemala',
+      'el salvador': 'el salvador', salvadoran: 'el salvador',
+      colombia: 'colombia', colombian: 'colombia',
+      argentina: 'argentina', argentine: 'argentina', argentinian: 'argentina',
+      brazil: 'brazil', brazilian: 'brazil',
+      chile: 'chile', chilean: 'chile',
+      peru: 'peru', peruvian: 'peru',
+      uruguay: 'uruguay', uruguayan: 'uruguay',
+      paraguay: 'paraguay', paraguayan: 'paraguay',
+      bolivia: 'bolivia', bolivian: 'bolivia',
+      venezuela: 'venezuela', venezuelan: 'venezuela',
+      ecuador: 'ecuador', ecuadorian: 'ecuador',
+      australia: 'australia', australian: 'australia',
+      japan: 'japan', japanese: 'japan',
+      korea: 'south korea', korean: 'south korea',
+      china: 'china', chinese: 'china',
+      vietnam: 'vietnam', vietnamese: 'vietnam',
+      singapore: 'singapore', singaporean: 'singapore',
+      thailand: 'thailand', thai: 'thailand',
+      indonesia: 'indonesia', indonesian: 'indonesia',
+      malaysia: 'malaysia', malaysian: 'malaysia',
+      bangladesh: 'bangladesh',
+      myanmar: 'myanmar',
+      bahrain: 'bahrain',
+      wales: 'wales', welsh: 'wales',
+      scotland: 'scotland', scottish: 'scotland',
+      'northern ireland': 'northern ireland',
+      ireland: 'ireland', irish: 'ireland',
+      turkey: 'turkey', turkiye: 'turkey', turkish: 'turkey',
+      kosovo: 'kosovo',
+      czech: 'czechia', czechia: 'czechia',
+    };
+    for (const [adj, countryKey] of Object.entries(NATIONALITY_MAP)) {
+      const regex = new RegExp(`\\b${adj}\\b`, 'i');
+      if (regex.test(textToMatch) && KNOWN_COUNTRIES[countryKey]) {
+        countryMeta = KNOWN_COUNTRIES[countryKey];
         break;
       }
     }

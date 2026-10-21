@@ -157,16 +157,34 @@ export function getLocalDateStringEAT(dateInput: Date | string | number = new Da
 }
 
 /**
+ * Strict filter to reject any "Simulated Reality", "Simulated Reality League", or "SRL" matches.
+ * Simulated Reality does not exist anywhere in Mshindi's architecture.
+ */
+export function isSimulatedReality(f: {
+  competition?: string;
+  leagueCode?: string;
+  home?: string;
+  away?: string;
+  country?: string;
+  id?: string;
+  providerId?: string;
+}): boolean {
+  const text = `${f.competition || ''} ${f.leagueCode || ''} ${f.country || ''} ${f.home || ''} ${f.away || ''} ${f.id || ''} ${f.providerId || ''}`.toLowerCase();
+  return text.includes('simulated reality') || /\b(srl)\b/i.test(text);
+}
+
+/**
  * Load initial state from bundled catalogue and persistent disk cache
  */
 function loadDiskCache(): void {
   // 1. Immediately seed in-memory store from bundled catalogue (guarantees 0ms cold-start response in serverless)
   if (discoveredLeagues.length === 0 && Array.isArray(BUNDLED_SPORTS_CATALOGUE.leagues)) {
-    discoveredLeagues = [...BUNDLED_SPORTS_CATALOGUE.leagues] as unknown as DiscoveredLeague[];
+    discoveredLeagues = ([...BUNDLED_SPORTS_CATALOGUE.leagues] as unknown as DiscoveredLeague[])
+      .filter((l) => !isSimulatedReality({ competition: l.name, leagueCode: l.league, country: l.country }));
   }
   if (fixturesStore.size === 0 && Array.isArray(BUNDLED_SPORTS_CATALOGUE.fixtures)) {
     (BUNDLED_SPORTS_CATALOGUE.fixtures as unknown as MarketFixture[]).forEach((f) => {
-      if (f && f.id) {
+      if (f && f.id && !isSimulatedReality(f)) {
         if (!f.competitionId) {
           const canon = resolveCanonicalCompetition({
             competition: f.competition,
@@ -295,13 +313,15 @@ export async function discoverAllLeagues(forceRefresh = false): Promise<Discover
     const json = await res.json();
     const rawLeagues = Array.isArray(json.leagues) ? json.leagues : [];
 
-    discoveredLeagues = rawLeagues.map((l: any) => ({
-      league: l.league,
-      name: l.name,
-      country: l.country || 'International',
-      seasons: l.seasons || [],
-      priorityTier: TOP_PRIORITY_LEAGUE_CODES.has(l.league) ? 'top' : 'standard',
-    }));
+    discoveredLeagues = rawLeagues
+      .filter((l: any) => !isSimulatedReality({ competition: l.name, leagueCode: l.league, country: l.country }))
+      .map((l: any) => ({
+        league: l.league,
+        name: l.name,
+        country: l.country || 'International',
+        seasons: l.seasons || [],
+        priorityTier: TOP_PRIORITY_LEAGUE_CODES.has(l.league) ? 'top' : 'standard',
+      }));
 
     saveDiskCache();
     return discoveredLeagues;
@@ -433,7 +453,7 @@ export async function fetchLeagueFixtures(leagueCode: string): Promise<MarketFix
 export function ingestFixtures(fixtures: MarketFixture[]): number {
   let updatedCount = 0;
   fixtures.forEach((f) => {
-    if (!f || !f.id) return;
+    if (!f || !f.id || isSimulatedReality(f)) return;
     if (!f.competitionId) {
       const canon = resolveCanonicalCompetition({
         competition: f.competition,
@@ -444,16 +464,37 @@ export function ingestFixtures(fixtures: MarketFixture[]): number {
       f.competitionId = canon.id;
       f.competition = canon.name;
     }
-    const existing = fixturesStore.get(f.id);
+    // Check direct ID or composite match key (home + away + match date)
+    const normName = (s: string) => s.toLowerCase().replace(/\b(fc|cf|sc|afc|cd|rc|sv|sk|fk|ud|ac)\b/g, '').replace(/[^a-z0-9]/g, '');
+    const fKey = `${normName(f.home)}__vs__${normName(f.away)}__${(f.kickoffIso || '').slice(0, 10)}`;
+
+    let existingId = f.id;
+    let existing = fixturesStore.get(f.id);
+
+    if (!existing) {
+      for (const [id, item] of fixturesStore.entries()) {
+        const itemKey = `${normName(item.home)}__vs__${normName(item.away)}__${(item.kickoffIso || '').slice(0, 10)}`;
+        if (itemKey === fKey) {
+          existingId = id;
+          existing = item;
+          break;
+        }
+      }
+    }
+
     if (!existing) {
       fixturesStore.set(f.id, f);
       updatedCount++;
     } else {
-      // Merge updates while preserving valid metadata
-      fixturesStore.set(f.id, {
+      // If new fixture has an authoritative SportScore ID, prefer it
+      const targetId = f.id.startsWith('mkt-ss-') ? f.id : existingId;
+      if (targetId !== existingId) {
+        fixturesStore.delete(existingId);
+      }
+      fixturesStore.set(targetId, {
         ...existing,
         ...f,
-        // Retain existing score if new payload has null but old had valid score
+        id: targetId,
         homeScore: f.homeScore !== null ? f.homeScore : existing.homeScore,
         awayScore: f.awayScore !== null ? f.awayScore : existing.awayScore,
         syncedAt: f.syncedAt,
@@ -801,7 +842,7 @@ export function queryMarketFixtures(options: {
   tomorrowDate.setDate(tomorrowDate.getDate() + 1);
   const tomorrowStr = getLocalDateStringEAT(tomorrowDate);
 
-  let list = Array.from(fixturesStore.values());
+  let list = Array.from(fixturesStore.values()).filter((f) => !isSimulatedReality(f));
 
   // Filter by Scope
   if (scope === 'live') {

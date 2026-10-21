@@ -2,7 +2,7 @@ import { useState, useMemo, useRef, useEffect, useSyncExternalStore } from 'reac
 import {
   Unlock, Calendar, Search, X, SearchX,
   Check, ChevronDown, RotateCcw,
-  Radio, Trophy
+  Radio
 } from 'lucide-react';
 import SeoHead from '../components/SeoHead';
 import {
@@ -20,15 +20,10 @@ import { showToast } from '../lib/notificationStore';
 import QuickBetBuilderModal, { type MatchForBuilder } from '../components/QuickBetBuilderModal';
 import { MatchListSkeleton } from '../components/skeleton';
 import {
-  CONTINENTS,
-  getLeagueMetadata,
-  getCountryMeta,
-  buildHierarchicalDirectory,
-  type ContinentId,
-  type DirectoryCompetitionItem,
-  type DirectoryCountryGroup,
+  SPORTSCORE_COUNTRY_DIRECTORY_CONFIG,
+  buildSportScoreCountryDirectory,
+  resolveSportScoreDirectoryId,
 } from '../lib/leagueDirectory';
-import { CANONICAL_COMPETITIONS } from '../lib/canonicalCompetitions';
 import FixtureSportCard from '../components/FixtureSportCard';
 import { normalizeMatchStatus } from '../lib/matchStatus';
 import {
@@ -47,10 +42,14 @@ export default function FreeMatches() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedMatchForBuilder, setSelectedMatchForBuilder] = useState<MatchForBuilder | null>(null);
 
-  // League filter
+  // League directory filter
   const [leagueFilter, setLeagueFilter] = useState<string>(() => {
     try {
-      return localStorage.getItem('mshindi_freematch_league_filter') || 'all';
+      const val = localStorage.getItem('mshindi_freematch_league_filter') || 'all';
+      if (val !== 'all' && !SPORTSCORE_COUNTRY_DIRECTORY_CONFIG.some((entry) => entry.id === val)) {
+        return 'all';
+      }
+      return val;
     } catch {
       return 'all';
     }
@@ -278,6 +277,12 @@ export default function FreeMatches() {
   // Filter matches by selected Tab & Date
   const scopedMatches = useMemo(() => {
     return matches.filter((m) => {
+      // Strictly exclude any Simulated Reality / SRL fixtures
+      const text = `${m.competition || ''} ${m.leagueCode || ''} ${m.country || ''} ${m.home || ''} ${m.away || ''} ${m.id || ''}`.toLowerCase();
+      if (text.includes('simulated reality') || /\b(srl)\b/i.test(text)) {
+        return false;
+      }
+
       const dStr = m.kickoffIso ? getDeviceLocalDateString(m.kickoffIso) : '';
       const norm = normalizeMatchStatus(m.status, m.displayClock);
 
@@ -300,77 +305,16 @@ export default function FreeMatches() {
     });
   }, [matches, activeTab, selectedDate, deviceNow]);
 
-  // Build SportScore-aligned country & competition directory hierarchy from ALL matches in catalogue
-  const hierarchicalDir = useMemo(() => {
-    return buildHierarchicalDirectory(matches);
-  }, [matches]);
+  // Build SportScore Country Directory with dynamic fixture counts
+  const directoryData = useMemo(() => {
+    return buildSportScoreCountryDirectory(scopedMatches, leagueSearchQuery);
+  }, [scopedMatches, leagueSearchQuery]);
 
-  // Fast filter inside the Leagues dropdown search input
-  const searchResults = useMemo(() => {
-    const q = leagueSearchQuery.trim().toLowerCase();
-    if (!q) return null;
-
-    const matchedComps: DirectoryCompetitionItem[] = [];
-    const matchedCountries: DirectoryCountryGroup[] = [];
-
-    hierarchicalDir.continents.forEach((cont) => {
-      cont.countries.forEach((country) => {
-        if (country.countryName.toLowerCase().includes(q)) {
-          matchedCountries.push(country);
-        }
-        country.competitions.forEach((comp) => {
-          if (
-            comp.name.toLowerCase().includes(q) ||
-            comp.countryName.toLowerCase().includes(q) ||
-            comp.typeLabel.toLowerCase().includes(q)
-          ) {
-            matchedComps.push(comp);
-          }
-        });
-      });
-    });
-
-    hierarchicalDir.international.forEach((comp) => {
-      if (
-        comp.name.toLowerCase().includes(q) ||
-        comp.typeLabel.toLowerCase().includes(q) ||
-        comp.countryName.toLowerCase().includes(q)
-      ) {
-        if (!matchedComps.some((c) => c.id === comp.id)) {
-          matchedComps.push(comp);
-        }
-      }
-    });
-
-    return {
-      countries: matchedCountries,
-      competitions: matchedComps,
-    };
-  }, [hierarchicalDir, leagueSearchQuery]);
-
-  const currentLeagueLabel = useMemo(() => {
-    if (leagueFilter === 'all') return { title: 'All Continents & Leagues', flag: '🌍' };
-    if (leagueFilter.startsWith('continent:')) {
-      const cId = leagueFilter.replace('continent:', '');
-      const c = CONTINENTS.find((item) => item.id === cId);
-      return { title: `All ${c?.name || 'Continent'}`, flag: c?.flag || '🌍' };
-    }
-    if (leagueFilter.startsWith('country:')) {
-      const targetCountry = leagueFilter.replace('country:', '');
-      const cMeta = getCountryMeta(targetCountry);
-      return { title: `All ${cMeta.name}`, flag: cMeta.flag || '🏳️' };
-    }
-    if (leagueFilter.startsWith('league:')) {
-      const target = leagueFilter.replace('league:', '');
-      const canon = CANONICAL_COMPETITIONS[target];
-      if (canon) {
-        return { title: canon.name, flag: canon.flag || '⚽' };
-      }
-      const meta = getLeagueMetadata(target, undefined, undefined, target);
-      const c = CONTINENTS.find((item) => item.id === meta.continent);
-      return { title: meta.standardName, flag: c?.flag || '⚽' };
-    }
-    return { title: 'All Continents & Leagues', flag: '🌍' };
+  // Current selected directory label for the dropdown trigger
+  const selectedDirectoryLabel = useMemo(() => {
+    if (leagueFilter === 'all') return 'All Competitions';
+    const found = SPORTSCORE_COUNTRY_DIRECTORY_CONFIG.find((entry) => entry.id === leagueFilter);
+    return found ? found.label : 'All Competitions';
   }, [leagueFilter]);
 
   // Search and league filtering
@@ -388,27 +332,12 @@ export default function FreeMatches() {
         if (!matchesQuery) return false;
       }
 
-      // 2. Continent, Country & League Filter
-      if (leagueFilter === 'all') return true;
+      // 2. SportScore Country Directory Filter
+      if (leagueFilter !== 'all') {
+        const dirId = resolveSportScoreDirectoryId(m);
+        if (dirId !== leagueFilter) return false;
+      }
 
-      const meta = getLeagueMetadata(m.competition, m.country, m.leagueCode, m.competitionId);
-      if (leagueFilter.startsWith('continent:')) {
-        const targetContinent = leagueFilter.replace('continent:', '');
-        return meta.continent === targetContinent;
-      }
-      if (leagueFilter.startsWith('country:')) {
-        const targetCountry = leagueFilter.replace('country:', '').toLowerCase();
-        const compCountry = (meta.countryName || meta.country || '').toLowerCase();
-        return compCountry === targetCountry;
-      }
-      if (leagueFilter.startsWith('league:')) {
-        const target = leagueFilter.replace('league:', '');
-        return (
-          meta.canonicalId === target ||
-          meta.standardName.toLowerCase() === target.toLowerCase() ||
-          (m.competitionId && m.competitionId === target)
-        );
-      }
       return true;
     })
     .sort((a, b) => {
@@ -646,22 +575,21 @@ export default function FreeMatches() {
             )}
           </div>
 
-          {/* Control 2: Leagues Dropdown */}
+          {/* Control 2: SportScore Country Directory Dropdown */}
           <div className="relative" ref={leagueDropdownRef}>
             <button
               type="button"
               onClick={toggleLeagueDropdown}
-              className={`h-8 sm:h-8.5 px-3 sm:px-3.5 rounded-full bg-[#FFFFF0] border text-xs sm:text-[13px] font-semibold flex items-center gap-1.5 sm:gap-2 transition-all shadow-[0_1px_3px_rgba(0,0,0,0.03)] hover:shadow-[0_2px_6px_rgba(0,108,84,0.08)] cursor-pointer select-none max-w-[190px] sm:max-w-[240px] ${
+              className={`h-8 sm:h-8.5 px-3 sm:px-3.5 rounded-full bg-[#FFFFF0] border text-xs sm:text-[13px] font-semibold flex items-center gap-1.5 sm:gap-2 transition-all shadow-[0_1px_3px_rgba(0,0,0,0.03)] hover:shadow-[0_2px_6px_rgba(0,108,84,0.08)] cursor-pointer select-none max-w-[200px] sm:max-w-[250px] ${
                 isLeagueDropdownOpen || leagueFilter !== 'all'
                   ? 'border-[#006C54] text-[#006C54] ring-2 ring-[#006C54]/15'
                   : 'border-[#DCDCC8] text-slate-800 hover:border-[#006C54]'
               }`}
               aria-expanded={isLeagueDropdownOpen}
-              aria-label="Filter by competition or league"
+              aria-label="Filter by country or competition"
             >
-              <Trophy size={13.5} className="text-[#006C54] shrink-0" />
               <span className="truncate">
-                {leagueFilter === 'all' ? 'Leagues' : currentLeagueLabel.title}
+                {selectedDirectoryLabel}
               </span>
               {leagueFilter !== 'all' && (
                 <span className="w-1.5 h-1.5 rounded-full bg-[#006C54] shrink-0" />
@@ -674,9 +602,9 @@ export default function FreeMatches() {
               />
             </button>
 
-            {/* Leagues Dropdown Menu */}
+            {/* SportScore Country Directory Menu */}
             {isLeagueDropdownOpen && (
-              <div className="absolute left-1/2 -translate-x-1/2 sm:left-0 sm:translate-x-0 mt-2 w-80 sm:w-96 bg-[#FFFFF0] border border-[#DCDCC8] rounded-2xl shadow-2xl z-50 max-h-[420px] overflow-hidden flex flex-col text-xs">
+              <div className="absolute left-1/2 -translate-x-1/2 sm:left-0 sm:translate-x-0 mt-2 w-72 sm:w-80 bg-[#FFFFF0] border border-[#DCDCC8] rounded-2xl shadow-2xl z-50 max-h-[380px] overflow-hidden flex flex-col text-xs">
                 {/* Search Input Header inside dropdown */}
                 <div className="p-2 border-b border-[#E6E6D2] bg-[#FBFBF0] shrink-0">
                   <div className="relative">
@@ -685,7 +613,7 @@ export default function FreeMatches() {
                       type="text"
                       value={leagueSearchQuery}
                       onChange={(e) => setLeagueSearchQuery(e.target.value)}
-                      placeholder="Search leagues or countries..."
+                      placeholder="Search country or competition..."
                       className="w-full bg-[#FFFFF0] border border-[#DCDCC8] rounded-xl pl-8 pr-7 py-1.5 text-xs text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-[#006C54] focus:ring-1 focus:ring-[#006C54]"
                       autoFocus
                     />
@@ -702,276 +630,58 @@ export default function FreeMatches() {
                   </div>
                 </div>
 
-                {/* Scrollable Body */}
-                <div className="overflow-y-auto divide-y divide-[#E6E6D2] p-1">
-                  {searchResults ? (
-                    /* Search Results View */
-                    <div className="p-1 space-y-2">
-                      {searchResults.countries.length === 0 && searchResults.competitions.length === 0 ? (
-                        <div className="py-6 text-center text-slate-400 text-xs">
-                          No competitions or countries matching &quot;{leagueSearchQuery}&quot;
-                        </div>
-                      ) : (
-                        <>
-                          {searchResults.countries.length > 0 && (
-                            <div>
-                              <div className="px-2 py-1 text-[10px] font-black uppercase tracking-wider text-slate-400">
-                                Countries
-                              </div>
-                              {searchResults.countries.map((c) => {
-                                const isSelected = leagueFilter === `country:${c.countryName}`;
-                                return (
-                                  <button
-                                    key={c.countryName}
-                                    type="button"
-                                    onClick={() => handleLeagueFilterChange(`country:${c.countryName}`)}
-                                    className={`w-full px-2.5 py-1.5 rounded-lg text-left flex items-center justify-between transition-colors cursor-pointer ${
-                                      isSelected
-                                        ? 'bg-[#006C54]/10 text-[#006C54] font-black'
-                                        : 'hover:bg-[#F5F5E4] text-slate-700 font-medium'
-                                    }`}
-                                  >
-                                    <span className="flex items-center gap-2">
-                                      <span>{c.flag}</span>
-                                      <span>All {c.countryName}</span>
-                                    </span>
-                                    <div className="flex items-center gap-1.5 shrink-0">
-                                      <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-slate-100 text-slate-600 font-bold">
-                                        {c.totalCount}
-                                      </span>
-                                      {isSelected && <Check size={13} className="text-[#006C54]" />}
-                                    </div>
-                                  </button>
-                                );
-                              })}
-                            </div>
-                          )}
-
-                          {searchResults.competitions.length > 0 && (
-                            <div>
-                              <div className="px-2 py-1 text-[10px] font-black uppercase tracking-wider text-slate-400">
-                                Competitions
-                              </div>
-                              {searchResults.competitions.map((comp) => {
-                                const isSelected = leagueFilter === `league:${comp.id}`;
-                                return (
-                                  <button
-                                    key={comp.id}
-                                    type="button"
-                                    onClick={() => handleLeagueFilterChange(`league:${comp.id}`)}
-                                    className={`w-full px-2.5 py-1.5 rounded-lg text-left flex items-center justify-between transition-colors cursor-pointer ${
-                                      isSelected
-                                        ? 'bg-[#006C54]/10 text-[#006C54] font-black'
-                                        : 'hover:bg-[#F5F5E4] text-slate-700 font-medium'
-                                    }`}
-                                  >
-                                    <span className="flex items-center gap-2 truncate pr-2">
-                                      <span>{comp.flag}</span>
-                                      <span className="truncate">{comp.name}</span>
-                                      {comp.typeLabel && comp.competitionType !== 'domestic_league' && (
-                                        <span className="text-[9px] px-1 py-0.2 rounded bg-slate-100 text-slate-500 font-semibold uppercase shrink-0">
-                                          {comp.typeLabel}
-                                        </span>
-                                      )}
-                                    </span>
-                                    <div className="flex items-center gap-1.5 shrink-0">
-                                      <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-slate-100 text-slate-600 font-bold">
-                                        {comp.count}
-                                      </span>
-                                      {isSelected && <Check size={13} className="text-[#006C54]" />}
-                                    </div>
-                                  </button>
-                                );
-                              })}
-                            </div>
-                          )}
-                        </>
-                      )}
-                    </div>
-                  ) : (
-                    /* SportScore Hierarchy View */
-                    <>
-                      {/* All Competitions Option */}
-                      <div className="p-1">
-                        <button
-                          type="button"
-                          onClick={() => handleLeagueFilterChange('all')}
-                          className={`w-full px-3 py-2 rounded-xl text-left flex items-center justify-between transition-colors cursor-pointer ${
-                            leagueFilter === 'all'
-                              ? 'bg-[#006C54]/10 text-[#006C54] font-black'
-                              : 'hover:bg-[#F5F5E4] text-slate-700 font-semibold'
-                          }`}
-                        >
-                          <span className="flex items-center gap-2">
-                            <span>🌍</span> All Continents &amp; Leagues
-                          </span>
-                          <div className="flex items-center gap-1.5">
-                            <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-[#F5F5E4] border border-[#E6E6D2] text-slate-600 font-bold">
-                              {scopedMatches.length}
-                            </span>
-                            {leagueFilter === 'all' && <Check size={14} className="text-[#006C54]" />}
-                          </div>
-                        </button>
+                {/* Scrollable Directory Rows */}
+                <div className="overflow-y-auto divide-y divide-[#E6E6D2]/60 p-1 flex-1">
+                  {/* All Competitions Row */}
+                  {(!leagueSearchQuery || 'all competitions'.includes(leagueSearchQuery.toLowerCase())) && (
+                    <button
+                      type="button"
+                      onClick={() => handleLeagueFilterChange('all')}
+                      className={`w-full px-3 py-2 rounded-lg text-left flex items-center justify-between transition-colors cursor-pointer ${
+                        leagueFilter === 'all'
+                          ? 'bg-[#006C54]/10 text-[#006C54] font-bold'
+                          : 'hover:bg-[#F5F5E4] text-slate-800 font-medium'
+                      }`}
+                    >
+                      <span className="truncate pr-2">All Competitions</span>
+                      <div className="flex items-center gap-2 shrink-0">
+                        <span className="text-[11px] font-mono text-slate-500">
+                          {directoryData.totalMatches}
+                        </span>
+                        {leagueFilter === 'all' && <Check size={13} className="text-[#006C54]" />}
                       </div>
+                    </button>
+                  )}
 
-                      {/* Featured Competitions Section */}
-                      {hierarchicalDir.featured.length > 0 && (
-                        <div className="p-1">
-                          <div className="px-3 py-1 flex items-center justify-between text-[10px] font-black uppercase tracking-wider text-amber-700">
-                            <span>⭐ Featured Competitions</span>
-                          </div>
-                          {hierarchicalDir.featured.map((fComp) => {
-                            const isSelected = leagueFilter === `league:${fComp.id}`;
-                            return (
-                              <button
-                                key={`feat-${fComp.id}`}
-                                type="button"
-                                onClick={() => handleLeagueFilterChange(`league:${fComp.id}`)}
-                                className={`w-full px-3 py-1.5 rounded-lg text-left flex items-center justify-between transition-colors cursor-pointer ${
-                                  isSelected
-                                    ? 'bg-[#006C54]/10 text-[#006C54] font-black'
-                                    : 'hover:bg-[#F5F5E4] text-slate-700 font-medium'
-                                }`}
-                              >
-                                <span className="flex items-center gap-2 truncate pr-2">
-                                  <span>{fComp.flag}</span>
-                                  <span className="truncate">{fComp.name}</span>
-                                </span>
-                                <div className="flex items-center gap-1.5 shrink-0">
-                                  <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-slate-100 text-slate-600 font-bold">
-                                    {fComp.count}
-                                  </span>
-                                  {isSelected && <Check size={13} className="text-[#006C54]" />}
-                                </div>
-                              </button>
-                            );
-                          })}
+                  {/* SportScore Country / Category Rows */}
+                  {directoryData.rows.map((row) => {
+                    const isSelected = leagueFilter === row.id;
+                    return (
+                      <button
+                        key={row.id}
+                        type="button"
+                        onClick={() => handleLeagueFilterChange(row.id)}
+                        className={`w-full px-3 py-2 rounded-lg text-left flex items-center justify-between transition-colors cursor-pointer ${
+                          isSelected
+                            ? 'bg-[#006C54]/10 text-[#006C54] font-bold'
+                            : 'hover:bg-[#F5F5E4] text-slate-800 font-medium'
+                        }`}
+                      >
+                        <span className="truncate pr-2">{row.label}</span>
+                        <div className="flex items-center gap-2 shrink-0">
+                          <span className="text-[11px] font-mono text-slate-500">
+                            {row.count}
+                          </span>
+                          {isSelected && <Check size={13} className="text-[#006C54]" />}
                         </div>
-                      )}
+                      </button>
+                    );
+                  })}
 
-                      {/* Continental & International Competitions Section */}
-                      {hierarchicalDir.international.length > 0 && (
-                        <div className="p-1">
-                          <div className="px-3 py-1 flex items-center justify-between text-[10px] font-black uppercase tracking-wider text-slate-400">
-                            <span>🏆 Continental &amp; International</span>
-                          </div>
-                          {hierarchicalDir.international.map((iComp) => {
-                            const isSelected = leagueFilter === `league:${iComp.id}`;
-                            return (
-                              <button
-                                key={`intl-${iComp.id}`}
-                                type="button"
-                                onClick={() => handleLeagueFilterChange(`league:${iComp.id}`)}
-                                className={`w-full px-3 py-1.5 rounded-lg text-left flex items-center justify-between transition-colors cursor-pointer ${
-                                  isSelected
-                                    ? 'bg-[#006C54]/10 text-[#006C54] font-black'
-                                    : 'hover:bg-[#F5F5E4] text-slate-700 font-medium'
-                                }`}
-                              >
-                                <span className="flex items-center gap-2 truncate pr-2">
-                                  <span>{iComp.flag}</span>
-                                  <span className="truncate">{iComp.name}</span>
-                                </span>
-                                <div className="flex items-center gap-1.5 shrink-0">
-                                  <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-slate-100 text-slate-600 font-bold">
-                                    {iComp.count}
-                                  </span>
-                                  {isSelected && <Check size={13} className="text-[#006C54]" />}
-                                </div>
-                              </button>
-                            );
-                          })}
-                        </div>
-                      )}
-
-                      {/* Continents & Grouped Countries */}
-                      {hierarchicalDir.continents
-                        .filter((c) => c.totalCount > 0 && c.id !== 'european_competitions' && c.id !== 'international')
-                        .map((continent) => (
-                          <div key={continent.id} className="p-1">
-                            <div className="px-3 py-1 flex items-center justify-between text-[10px] font-black uppercase tracking-wider text-slate-400">
-                              <span>{continent.flag} {continent.name}</span>
-                              <span>{continent.totalCount} {continent.totalCount === 1 ? 'fixture' : 'fixtures'}</span>
-                            </div>
-
-                            <button
-                              type="button"
-                              onClick={() => handleLeagueFilterChange(`continent:${continent.id}`)}
-                              className={`w-full px-3 py-1.5 rounded-lg text-left flex items-center justify-between transition-colors mb-0.5 cursor-pointer ${
-                                leagueFilter === `continent:${continent.id}`
-                                  ? 'bg-[#006C54]/10 text-[#006C54] font-black'
-                                  : 'hover:bg-[#F5F5E4] text-slate-700 font-medium'
-                              }`}
-                            >
-                              <span className="text-[11px] font-bold">All {continent.name} Fixtures</span>
-                              {leagueFilter === `continent:${continent.id}` && <Check size={13} className="text-[#006C54]" />}
-                            </button>
-
-                            {continent.countries.map((countryGroup) => {
-                              const isCountrySelected = leagueFilter === `country:${countryGroup.countryName}`;
-                              return (
-                                <div key={countryGroup.countryName} className="mt-1 mb-1.5">
-                                  {/* Country Level Header / Filter */}
-                                  <button
-                                    type="button"
-                                    onClick={() => handleLeagueFilterChange(`country:${countryGroup.countryName}`)}
-                                    className={`w-full px-2.5 py-1 rounded-md text-left flex items-center justify-between transition-colors cursor-pointer ${
-                                      isCountrySelected
-                                        ? 'bg-[#006C54]/15 text-[#006C54] font-black'
-                                        : 'hover:bg-[#F5F5E4] text-slate-800 font-bold'
-                                    }`}
-                                  >
-                                    <span className="flex items-center gap-1.5 text-xs font-bold">
-                                      <span>{countryGroup.flag}</span>
-                                      <span>{countryGroup.countryName}</span>
-                                    </span>
-                                    <div className="flex items-center gap-1.5 shrink-0">
-                                      <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-slate-200/70 text-slate-700 font-bold">
-                                        {countryGroup.totalCount}
-                                      </span>
-                                      {isCountrySelected && <Check size={12} className="text-[#006C54]" />}
-                                    </div>
-                                  </button>
-
-                                  {/* Indented Competitions for this Country */}
-                                  <div className="pl-4 space-y-0.5 mt-0.5 border-l-2 border-[#E6E6D2] ml-3">
-                                    {countryGroup.competitions.map((league) => {
-                                      const isSelected = leagueFilter === `league:${league.id}`;
-                                      return (
-                                        <button
-                                          key={league.id}
-                                          type="button"
-                                          onClick={() => handleLeagueFilterChange(`league:${league.id}`)}
-                                          className={`w-full px-2.5 py-1 rounded-md text-left flex items-center justify-between transition-colors cursor-pointer ${
-                                            isSelected
-                                              ? 'bg-[#006C54]/10 text-[#006C54] font-black'
-                                              : 'hover:bg-[#F5F5E4] text-slate-600 font-medium'
-                                          }`}
-                                        >
-                                          <span className="truncate pr-2 text-xs flex items-center gap-1.5">
-                                            <span className="truncate">{league.name}</span>
-                                            {league.typeLabel && league.competitionType !== 'domestic_league' && (
-                                              <span className="text-[9px] px-1 py-0.2 rounded bg-slate-100 text-slate-500 font-semibold uppercase shrink-0">
-                                                {league.typeLabel}
-                                              </span>
-                                            )}
-                                          </span>
-                                          <div className="flex items-center gap-1.5 shrink-0">
-                                            <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-slate-100 text-slate-600 font-bold">
-                                              {league.count}
-                                            </span>
-                                            {isSelected && <Check size={12} className="text-[#006C54]" />}
-                                          </div>
-                                        </button>
-                                      );
-                                    })}
-                                  </div>
-                                </div>
-                              );
-                            })}
-                          </div>
-                        ))}
-                    </>
+                  {directoryData.rows.length === 0 && (
+                    <div className="py-6 text-center text-slate-400 text-xs">
+                      No country or competition matching &quot;{leagueSearchQuery}&quot;
+                    </div>
                   )}
                 </div>
               </div>
@@ -1051,12 +761,12 @@ export default function FreeMatches() {
             )}
             {leagueFilter !== 'all' && (
               <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-[#006C54]/10 border border-[#006C54]/20 text-[#006C54] font-semibold text-[11px]">
-                <span>League: {currentLeagueLabel.title}</span>
+                <span>Competition: {selectedDirectoryLabel}</span>
                 <button
                   type="button"
                   onClick={() => handleLeagueFilterChange('all')}
                   className="hover:text-red-600 transition-colors cursor-pointer"
-                  aria-label="Clear league filter"
+                  aria-label="Clear competition filter"
                 >
                   <X size={12} />
                 </button>
@@ -1122,7 +832,7 @@ export default function FreeMatches() {
           <SearchX size={36} className="text-[#006C54]" />
           <h3 className="font-display font-extrabold text-lg text-slate-900 uppercase tracking-tight">No Fixtures Match Current Filters</h3>
           <p className="text-xs text-slate-600 leading-relaxed">
-            No matches found for &quot;<strong className="text-slate-900">{searchQuery || currentLeagueLabel.title}</strong>&quot; under {activeTab} view. Try clearing filters to view all upcoming fixtures across 90+ supported competitions.
+            No matches found for &quot;<strong className="text-slate-900">{searchQuery || selectedDirectoryLabel}</strong>&quot; under {activeTab} view. Try clearing filters to view all upcoming fixtures across 90+ supported competitions.
           </p>
           <div className="flex flex-col sm:flex-row items-center gap-2 mt-3">
             {leagueFilter !== 'all' && (
@@ -1133,7 +843,7 @@ export default function FreeMatches() {
                 }}
                 className="inline-flex items-center gap-2 bg-[#F5F5E4] hover:bg-[#E6E6D2] text-[#006C54] font-black text-xs uppercase tracking-wider px-4 h-10 rounded-md shadow-2xs transition-colors cursor-pointer"
               >
-                View All {currentLeagueLabel.title} Across All Dates
+                View All {selectedDirectoryLabel} Across All Dates
               </button>
             )}
             <button
