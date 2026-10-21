@@ -52,11 +52,26 @@ export const COMPETITION_BANNERS: Record<string, CompetitionBannerConfig> = {
     dividerColor: 'border-[#FED7AA]',
     shadow: 'shadow-[0_2px_12px_rgba(234,88,12,0.09)] hover:shadow-[0_4px_18px_rgba(234,88,12,0.16)]',
   },
+  uefa_conference_league: {
+    id: 'uefa_conference_league',
+    name: 'UEFA Conference League',
+    bannerUrl: '/banners/uefa-conference-league.jpg',
+    overlayOpacity: 0.32,
+    gradientOverlay: 'from-transparent via-[#ECFDF5]/20 to-[#FFFFF0]/35',
+    cardBg: 'bg-gradient-to-b from-[#E6F4EA] via-[#F2FAF4] to-[#FFFFF0]',
+    baseTint: 'bg-gradient-to-b from-[#059669]/12 via-[#059669]/4 to-transparent',
+    borderColor: 'border-[#34D399]/70',
+    borderHoverColor: 'hover:border-[#059669]',
+    oddsBorderColor: 'border-[#34D399]/50 hover:border-[#059669]',
+    consensusTrackBg: 'bg-[#D1FAE5]',
+    dividerColor: 'border-[#A7F3D0]',
+    shadow: 'shadow-[0_2px_12px_rgba(5,150,105,0.09)] hover:shadow-[0_4px_18px_rgba(5,150,105,0.16)]',
+  },
 };
 
 /**
  * Returns the banner configuration if the competition matches a registered banner artwork.
- * Matches all UEFA Champions League and UEFA Europa League fixtures.
+ * Matches all UEFA Champions League, UEFA Europa League, and UEFA Conference League fixtures.
  */
 export function getCompetitionBanner(competition: string): CompetitionBannerConfig | null {
   if (!competition) return null;
@@ -90,6 +105,18 @@ export function getCompetitionBanner(competition: string): CompetitionBannerConf
     !comp.includes('u21')
   ) {
     return COMPETITION_BANNERS.uefa_europa_league;
+  }
+
+  // 3. UEFA Conference League
+  if (
+    (comp.includes('conference league') || comp.includes('uecl')) &&
+    !comp.includes('women') &&
+    !comp.includes('youth') &&
+    !comp.includes('u19') &&
+    !comp.includes('u20') &&
+    !comp.includes('u21')
+  ) {
+    return COMPETITION_BANNERS.uefa_conference_league;
   }
 
   return null;
