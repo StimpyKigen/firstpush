@@ -115,11 +115,27 @@ export const COMPETITION_BANNERS: Record<string, CompetitionBannerConfig> = {
     dividerColor: 'border-[#D9F99D]',
     shadow: 'shadow-[0_2px_12px_rgba(15,30,74,0.09)] hover:shadow-[0_4px_18px_rgba(15,30,74,0.16)]',
   },
+  bundesliga: {
+    id: 'bundesliga',
+    name: 'German Bundesliga',
+    bannerUrl: '/banners/bundesliga.png',
+    overlayOpacity: 0.32,
+    objectPosition: 'object-[center_50%]',
+    gradientOverlay: 'from-transparent via-[#FFF5F5]/20 to-[#FFFFF0]/35',
+    cardBg: 'bg-gradient-to-b from-[#FFF5F5] via-[#FFFBFB] to-[#FFFFF0]',
+    baseTint: 'bg-gradient-to-b from-[#DC2626]/8 via-[#DC2626]/2 to-transparent',
+    borderColor: 'border-[#F87171]/70',
+    borderHoverColor: 'hover:border-[#DC2626]',
+    oddsBorderColor: 'border-[#F87171]/50 hover:border-[#DC2626]',
+    consensusTrackBg: 'bg-[#FEE2E2]',
+    dividerColor: 'border-[#FECACA]',
+    shadow: 'shadow-[0_2px_12px_rgba(220,38,38,0.08)] hover:shadow-[0_4px_18px_rgba(220,38,38,0.16)]',
+  },
 };
 
 /**
  * Returns the banner configuration if the competition matches a registered banner artwork.
- * Matches UEFA Champions League, UEFA Europa League, UEFA Conference League, English Premier League, Spanish La Liga, and French Ligue 1 fixtures.
+ * Matches UEFA Champions League, UEFA Europa League, UEFA Conference League, English Premier League, Spanish La Liga, French Ligue 1, and German Bundesliga fixtures.
  */
 export function getCompetitionBanner(competition: string, competitionId?: string): CompetitionBannerConfig | null {
   if (competitionId) {
@@ -129,6 +145,7 @@ export function getCompetitionBanner(competition: string, competitionId?: string
     if (competitionId === 'eng_premier_league') return COMPETITION_BANNERS.premier_league;
     if (competitionId === 'esp_la_liga') return COMPETITION_BANNERS.la_liga;
     if (competitionId === 'fra_ligue_1') return COMPETITION_BANNERS.ligue_1;
+    if (competitionId === 'ger_bundesliga') return COMPETITION_BANNERS.bundesliga;
   }
 
   if (!competition) return null;
@@ -256,6 +273,25 @@ export function getCompetitionBanner(competition: string, competitionId?: string
     !comp.includes('u19')
   ) {
     return COMPETITION_BANNERS.ligue_1;
+  }
+
+  // 7. German Bundesliga
+  if (
+    (comp === 'bundesliga' ||
+      comp === 'german bundesliga' ||
+      comp === 'germany bundesliga' ||
+      comp.startsWith('bundesliga') ||
+      comp.includes('bundesliga')) &&
+    !comp.includes('2. bundesliga') &&
+    !comp.includes('2 bundesliga') &&
+    !comp.includes('bundesliga 2') &&
+    !comp.includes('austria') &&
+    !comp.includes('women') &&
+    !comp.includes('frauen') &&
+    !comp.includes('u19') &&
+    !comp.includes('u17')
+  ) {
+    return COMPETITION_BANNERS.bundesliga;
   }
 
   return null;
