@@ -281,7 +281,7 @@ export default function Home() {
 
         {publishedVideos.length === 0 ? (
           <div className="bg-white border border-slate-200 rounded-2xl p-8 text-center text-slate-400 text-xs max-w-md mx-auto shadow-2xs">
-            No video highlights published yet. Admin can publish videos via the Admin Console.
+            No highlights or media embeds published yet. Admin can publish videos and embeds via the Admin Console.
           </div>
         ) : (
           <>

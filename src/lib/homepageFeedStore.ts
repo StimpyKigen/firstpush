@@ -21,11 +21,12 @@ export interface HomepageCarouselItem {
 
 export interface HomepageVideoItem {
   id: string;
-  youtubeUrl: string;
+  youtubeUrl?: string;
   embedUrl: string;
   title: string;
   published: boolean;
   createdAt: string;
+  type?: 'youtube' | 'custom';
 }
 
 export interface HomepageFeedData {
@@ -66,6 +67,72 @@ export function normalizeYouTubeEmbedUrl(input: string): string | null {
   const shortsMatch = str.match(/\/shorts\/([a-zA-Z0-9_-]{11})/);
   if (shortsMatch) {
     return `https://www.youtube.com/embed/${shortsMatch[1]}`;
+  }
+
+  return null;
+}
+
+/**
+ * Normalizes custom/external embed URLs or extracts the src from pasted <iframe> snippets.
+ * Supports Vimeo, Dailymotion, Streamable, and generic valid HTTP/HTTPS embed URLs.
+ */
+export function normalizeCustomEmbedUrl(input: string): string | null {
+  if (!input) return null;
+  let str = input.trim();
+
+  // 1. If user pasted an <iframe> snippet, extract the src attribute
+  if (str.includes('<iframe') || str.includes('src=')) {
+    const srcMatch = str.match(/src=["']([^"']+)["']/i);
+    if (srcMatch && srcMatch[1]) {
+      str = srcMatch[1].trim();
+    }
+  }
+
+  // 2. Handle protocol-relative URLs
+  if (str.startsWith('//')) {
+    str = `https:${str}`;
+  }
+
+  // 3. If a YouTube URL was accidentally pasted here, gracefully normalize it
+  const ytNormalized = normalizeYouTubeEmbedUrl(str);
+  if (ytNormalized) {
+    return ytNormalized;
+  }
+
+  // 4. Vimeo standard URL: https://vimeo.com/123456789 -> https://player.vimeo.com/video/123456789
+  const vimeoMatch = str.match(/vimeo\.com\/(?:channels\/(?:\w+\/)?|groups\/([^\/]*)\/videos\/|album\/(\d+)\/video\/|)(\d+)/);
+  if (vimeoMatch && vimeoMatch[3]) {
+    return `https://player.vimeo.com/video/${vimeoMatch[3]}`;
+  }
+
+  // 5. Dailymotion standard URL: dailymotion.com/video/x123abc -> embed
+  const dailyMatch = str.match(/dailymotion\.com\/video\/([a-zA-Z0-9]+)/);
+  if (dailyMatch && dailyMatch[1]) {
+    return `https://www.dailymotion.com/embed/video/${dailyMatch[1]}`;
+  }
+
+  // 6. Streamable URL: streamable.com/abc12 -> embed
+  const streamableMatch = str.match(/streamable\.com\/(?:e\/)?([a-zA-Z0-9]+)/);
+  if (streamableMatch && streamableMatch[1]) {
+    return `https://streamable.com/e/${streamableMatch[1]}`;
+  }
+
+  // 7. General URL validation: must be a valid http or https URL
+  try {
+    const url = new URL(str);
+    if (url.protocol === 'http:' || url.protocol === 'https:') {
+      return url.toString();
+    }
+  } catch {
+    // If user omitted protocol: e.g. player.vimeo.com/video/123
+    if (/^[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}(\/.*)?$/.test(str)) {
+      try {
+        const url = new URL(`https://${str}`);
+        return url.toString();
+      } catch {
+        return null;
+      }
+    }
   }
 
   return null;
@@ -274,6 +341,7 @@ export function addVideoItem(item: { youtubeUrl: string; title: string; publishe
     title: item.title.trim() || 'Featured Match Highlights',
     published: item.published !== undefined ? item.published : true,
     createdAt: new Date().toISOString(),
+    type: 'youtube',
   };
 
   currentFeed = {
@@ -282,6 +350,30 @@ export function addVideoItem(item: { youtubeUrl: string; title: string; publishe
   };
   emitChange();
   return newVideo;
+}
+
+export function addCustomEmbedItem(item: { embedUrl: string; title: string; published?: boolean }) {
+  const embed = normalizeCustomEmbedUrl(item.embedUrl);
+  if (!embed) {
+    throw new Error('Please enter a valid embed URL or <iframe> snippet.');
+  }
+
+  const newEmbed: HomepageVideoItem = {
+    id: `embed-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+    youtubeUrl: item.embedUrl.trim(),
+    embedUrl: embed,
+    title: item.title.trim() || 'Featured Media Embed',
+    published: item.published !== undefined ? item.published : true,
+    createdAt: new Date().toISOString(),
+    type: 'custom',
+  };
+
+  currentFeed = {
+    ...currentFeed,
+    videoItems: [newEmbed, ...currentFeed.videoItems],
+  };
+  emitChange();
+  return newEmbed;
 }
 
 export function toggleVideoItemPublish(id: string) {
