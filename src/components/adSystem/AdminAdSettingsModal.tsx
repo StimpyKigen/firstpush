@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Tv, Settings, BarChart3, ShieldCheck, Check, Save, RotateCcw, X, Layers, AlertCircle, DollarSign, Clock, Zap } from 'lucide-react';
+import { Tv, Settings, BarChart3, RotateCcw, X, Layers, Clock, Zap, Save } from 'lucide-react';
 import { adStore, DEFAULT_AD_CONFIG, useAdStore } from '../../lib/adSystem/adStore';
 import { AdProviderId } from '../../lib/adSystem/types';
 import { showToast } from '../../lib/notificationStore';
@@ -66,78 +66,86 @@ export default function AdminAdSettingsModal({ isOpen, onClose }: AdminAdSetting
   const completionRate = analytics.served > 0 ? Math.round((analytics.completed / analytics.served) * 100) : 100;
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} overlayClassName="fixed inset-0 z-50 flex items-center justify-center p-4 bg-ink/80 backdrop-blur-md overflow-y-auto">
-      <div className="relative w-full max-w-3xl bg-panel border border-line rounded-2xl shadow-2xl overflow-hidden my-8 animate-rise">
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      overlayClassName="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-md overflow-y-auto"
+    >
+      <div className="relative w-full max-w-3xl bg-[#FFFFF0] border border-[#E5E5EA] rounded-3xl shadow-2xl overflow-hidden my-8 animate-rise text-slate-900">
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-line bg-ink-2">
-          <div className="flex items-center gap-2.5">
-            <span className="w-9 h-9 rounded-xl bg-gold/15 border border-gold/40 flex items-center justify-center text-gold">
-              <Tv size={20} />
-            </span>
+        <div className="flex items-center justify-between px-6 py-4.5 border-b border-[#E5E5EA] bg-white">
+          <div className="flex items-center gap-3">
+            <Tv size={22} className="text-[#006C54] shrink-0" />
             <div>
-              <h2 className="font-display font-extrabold text-lg text-cream flex items-center gap-2">
-                Advertisement Access Settings & Analytics
-                <span className="bg-emerald-2/20 text-emerald-2 border border-emerald-2/30 text-[10px] uppercase font-bold px-2 py-0.5 rounded-full">
+              <div className="flex items-center gap-2">
+                <h2 className="font-semibold text-base sm:text-lg text-slate-900 tracking-tight">
+                  Advertisement Access & Analytics
+                </h2>
+                <span className="bg-[#E8F5EE] text-[#006C54] text-[10.5px] uppercase font-bold px-2 py-0.5 rounded-full">
                   Admin Console
                 </span>
-              </h2>
-              <p className="text-xs text-cream-dim">Configure ad fill strategy, token durations, and track revenue</p>
+              </div>
+              <p className="text-xs text-slate-500">Configure ad fill strategy, token durations, and telemetry</p>
             </div>
           </div>
           <button
             onClick={onClose}
             aria-label="Close"
-            className="w-8 h-8 rounded-full flex items-center justify-center text-cream-dim hover:text-cream hover:bg-panel-2 transition-colors"
+            className="p-1.5 rounded-full text-slate-400 hover:text-slate-800 hover:bg-slate-100 transition-colors cursor-pointer"
           >
             <X size={18} />
           </button>
         </div>
 
         {/* Tab Selector */}
-        <div className="flex items-center gap-2 px-6 pt-4 border-b border-line/60 bg-ink-2/40">
-          <button
-            onClick={() => setActiveTab('settings')}
-            className={`flex items-center gap-2 px-4 py-2.5 text-xs font-bold border-b-2 transition-all ${
-              activeTab === 'settings'
-                ? 'border-gold text-gold bg-gold/5'
-                : 'border-transparent text-cream-dim hover:text-cream'
-            }`}
-          >
-            <Settings size={15} /> Ad Parameters & Provider Strategy
-          </button>
+        <div className="px-6 py-2.5 bg-[#F5F5F7] border-b border-[#E5E5EA] flex items-center gap-2">
+          <div className="inline-flex items-center bg-white border border-[#E5E5EA] rounded-xl p-1 gap-1 shadow-2xs">
+            <button
+              onClick={() => setActiveTab('settings')}
+              className={`flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer ${
+                activeTab === 'settings'
+                  ? 'bg-[#006C54] text-white shadow-xs'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+              }`}
+            >
+              <Settings size={14} />
+              <span>Ad Parameters & Provider</span>
+            </button>
 
-          <button
-            onClick={() => setActiveTab('analytics')}
-            className={`flex items-center gap-2 px-4 py-2.5 text-xs font-bold border-b-2 transition-all ${
-              activeTab === 'analytics'
-                ? 'border-gold text-gold bg-gold/5'
-                : 'border-transparent text-cream-dim hover:text-cream'
-            }`}
-          >
-            <BarChart3 size={15} /> Performance & Analytics
-          </button>
+            <button
+              onClick={() => setActiveTab('analytics')}
+              className={`flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer ${
+                activeTab === 'analytics'
+                  ? 'bg-[#006C54] text-white shadow-xs'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+              }`}
+            >
+              <BarChart3 size={14} />
+              <span>Performance & Analytics</span>
+            </button>
+          </div>
         </div>
 
-        <div className="p-6 space-y-6 max-h-[75vh] overflow-y-auto">
+        <div className="p-6 sm:p-8 space-y-6 max-h-[75vh] overflow-y-auto">
           {activeTab === 'settings' ? (
             <div className="space-y-6">
               {/* Global Enable Toggle */}
-              <div className="bg-ink-2/80 border border-line rounded-xl p-4 flex items-center justify-between gap-4">
+              <div className="bg-white border border-[#E5E5EA] rounded-2xl p-4 sm:p-5 flex items-center justify-between gap-4 shadow-2xs">
                 <div>
-                  <h3 className="font-display font-bold text-sm text-cream flex items-center gap-2">
-                    Enable Ad Access System
+                  <h3 className="font-semibold text-sm text-slate-900 flex items-center gap-2">
+                    <span>Enable Ad Access System</span>
                     {adsEnabled ? (
-                      <span className="text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-2 py-0.2 rounded-full">
+                      <span className="text-[10.5px] font-bold bg-[#E8F5EE] text-[#006C54] px-2 py-0.5 rounded-full">
                         ACTIVE
                       </span>
                     ) : (
-                      <span className="text-[10px] font-bold bg-rose-500/20 text-rose-300 border border-rose-500/30 px-2 py-0.2 rounded-full">
+                      <span className="text-[10.5px] font-bold bg-rose-100 text-rose-700 px-2 py-0.5 rounded-full">
                         DISABLED
                       </span>
                     )}
                   </h3>
-                  <p className="text-xs text-cream-dim mt-0.5">
-                    When active, users who haven't bought permanent access can watch a short ad for temporary entry.
+                  <p className="text-xs text-slate-500 mt-1">
+                    When active, users who haven't unlocked permanent access can watch a short partner ad for temporary entry.
                   </p>
                 </div>
 
@@ -148,71 +156,71 @@ export default function AdminAdSettingsModal({ isOpen, onClose }: AdminAdSetting
                     onChange={(e) => setAdsEnabled(e.target.checked)}
                     className="sr-only peer"
                   />
-                  <div className="w-11 h-6 bg-panel-2 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
+                  <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#006C54]"></div>
                 </label>
               </div>
 
               {/* Durations Configuration Grid */}
               <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-4">
-                <div className="bg-ink-2/60 border border-line rounded-xl p-3.5 space-y-1.5">
-                  <label className="block text-xs font-bold text-cream flex items-center gap-1">
-                    <Clock size={13} className="text-gold" /> Preferred Ad Duration
+                <div className="bg-white border border-[#E5E5EA] rounded-2xl p-4 space-y-2 shadow-2xs">
+                  <label className="block text-xs font-semibold text-slate-700 flex items-center gap-1.5">
+                    <Clock size={13} className="text-[#006C54]" /> Preferred Ad Duration
                   </label>
-                  <p className="text-[11px] text-cream-dim">Default: 8s (Range 6-10s)</p>
+                  <p className="text-[11px] text-slate-400">Default: 8s (Range 6-10s)</p>
                   <input
                     type="number"
                     min={5}
                     max={12}
                     value={preferredDuration}
                     onChange={(e) => setPreferredDuration(Number(e.target.value))}
-                    className="w-full bg-panel border border-line rounded-lg px-3 py-2 text-xs font-mono font-bold text-cream focus:border-gold"
+                    className="w-full bg-[#FBFBFA] border border-slate-300 rounded-xl px-3 py-2 text-xs font-mono font-semibold text-slate-900 focus:outline-none focus:border-[#006C54]"
                   />
                 </div>
 
-                <div className="bg-ink-2/60 border border-line rounded-xl p-3.5 space-y-1.5">
-                  <label className="block text-xs font-bold text-cream flex items-center gap-1">
-                    <Clock size={13} className="text-amber-400" /> Max Preferred Duration
+                <div className="bg-white border border-[#E5E5EA] rounded-2xl p-4 space-y-2 shadow-2xs">
+                  <label className="block text-xs font-semibold text-slate-700 flex items-center gap-1.5">
+                    <Clock size={13} className="text-[#006C54]" /> Max Preferred Duration
                   </label>
-                  <p className="text-[11px] text-cream-dim">Default: 15s</p>
+                  <p className="text-[11px] text-slate-400">Default: 15s</p>
                   <input
                     type="number"
                     min={10}
                     max={20}
                     value={maxPreferredDuration}
                     onChange={(e) => setMaxPreferredDuration(Number(e.target.value))}
-                    className="w-full bg-panel border border-line rounded-lg px-3 py-2 text-xs font-mono font-bold text-cream focus:border-amber-400"
+                    className="w-full bg-[#FBFBFA] border border-slate-300 rounded-xl px-3 py-2 text-xs font-mono font-semibold text-slate-900 focus:outline-none focus:border-[#006C54]"
                   />
                 </div>
 
-                <div className="bg-ink-2/60 border border-line rounded-xl p-3.5 space-y-1.5">
-                  <label className="block text-xs font-bold text-cream flex items-center gap-1">
-                    <Zap size={13} className="text-emerald-400" /> Access Token Duration
+                <div className="bg-white border border-[#E5E5EA] rounded-2xl p-4 space-y-2 shadow-2xs">
+                  <label className="block text-xs font-semibold text-slate-700 flex items-center gap-1.5">
+                    <Zap size={13} className="text-[#006C54]" /> Access Token Duration
                   </label>
-                  <p className="text-[11px] text-cream-dim">Default: 15 Minutes</p>
+                  <p className="text-[11px] text-slate-400">Default: 15 Minutes</p>
                   <input
                     type="number"
                     min={5}
                     max={120}
                     value={tokenDurationMinutes}
                     onChange={(e) => setTokenDurationMinutes(Number(e.target.value))}
-                    className="w-full bg-panel border border-line rounded-lg px-3 py-2 text-xs font-mono font-bold text-cream focus:border-emerald-400"
+                    className="w-full bg-[#FBFBFA] border border-slate-300 rounded-xl px-3 py-2 text-xs font-mono font-semibold text-slate-900 focus:outline-none focus:border-[#006C54]"
                   />
                 </div>
               </div>
 
               {/* Provider Fallback Strategy */}
-              <div className="bg-ink-2/60 border border-line rounded-xl p-4 space-y-3">
-                <h3 className="font-display font-bold text-sm text-cream flex items-center gap-2">
-                  <Layers size={16} className="text-gold" /> Fallback Provider & House Ads Strategy
+              <div className="bg-white border border-[#E5E5EA] rounded-2xl p-5 space-y-3 shadow-2xs">
+                <h3 className="font-semibold text-sm text-slate-900 flex items-center gap-2">
+                  <Layers size={16} className="text-[#006C54]" /> Fallback Provider & House Ads Strategy
                 </h3>
 
                 <div className="grid sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-xs font-bold text-cream-dim mb-1">Fallback Provider</label>
+                    <label className="block text-xs font-semibold text-slate-700 mb-1.5">Fallback Provider</label>
                     <select
                       value={fallbackProvider}
                       onChange={(e) => setFallbackProvider(e.target.value as AdProviderId)}
-                      className="w-full bg-panel border border-line rounded-xl px-3 py-2 text-xs font-semibold text-cream focus:border-gold"
+                      className="w-full bg-[#FBFBFA] border border-slate-300 rounded-xl px-3 py-2.5 text-xs font-medium text-slate-900 focus:outline-none focus:border-[#006C54]"
                     >
                       <option value="house_ads">House & Sponsor Ads (Recommended)</option>
                       <option value="direct_sponsored">Direct Brand Partners</option>
@@ -223,43 +231,43 @@ export default function AdminAdSettingsModal({ isOpen, onClose }: AdminAdSetting
                     </select>
                   </div>
 
-                  <div className="flex items-center justify-between p-3 bg-panel border border-line rounded-xl">
+                  <div className="flex items-center justify-between p-3.5 bg-[#FBFBFA] border border-[#E5E5EA] rounded-xl">
                     <div>
-                      <span className="text-xs font-bold text-cream block">Prioritize House Ads</span>
-                      <span className="text-[11px] text-cream-dim">Serve internal partner campaigns first</span>
+                      <span className="text-xs font-semibold text-slate-900 block">Prioritize House Ads</span>
+                      <span className="text-[11px] text-slate-500">Serve internal partner campaigns first</span>
                     </div>
                     <input
                       type="checkbox"
                       checked={houseAdPriority}
                       onChange={(e) => setHouseAdPriority(e.target.checked)}
-                      className="w-4 h-4 rounded border-line text-gold focus:ring-gold"
+                      className="w-4 h-4 rounded text-[#006C54] focus:ring-[#006C54] cursor-pointer"
                     />
                   </div>
                 </div>
               </div>
 
               {/* Action Buttons */}
-              <div className="flex items-center justify-between pt-4 border-t border-line">
+              <div className="flex items-center justify-between pt-4 border-t border-[#E5E5EA]">
                 <button
                   type="button"
                   onClick={handleResetDefaults}
-                  className="px-3.5 py-2 rounded-xl border border-line text-cream-dim hover:text-cream text-xs font-semibold flex items-center gap-1.5"
+                  className="px-3.5 py-2 rounded-xl border border-slate-300 text-slate-600 hover:bg-slate-100 text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
                 >
                   <RotateCcw size={14} /> Restore Defaults
                 </button>
 
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2">
                   <button
                     type="button"
                     onClick={onClose}
-                    className="px-4 py-2 rounded-xl border border-line text-cream-dim hover:text-cream text-xs font-semibold"
+                    className="px-4 py-2 rounded-xl border border-slate-300 text-slate-700 hover:bg-slate-100 text-xs font-semibold transition-colors cursor-pointer"
                   >
                     Cancel
                   </button>
                   <button
                     type="button"
                     onClick={handleSaveSettings}
-                    className="px-6 py-2 rounded-xl bg-gold hover:bg-gold-2 text-black font-extrabold text-xs shadow-md flex items-center gap-1.5"
+                    className="px-5 py-2 rounded-xl bg-[#006C54] hover:bg-[#005441] text-white font-semibold text-xs shadow-xs flex items-center gap-1.5 transition-colors cursor-pointer"
                   >
                     <Save size={14} /> Save Config
                   </button>
@@ -269,84 +277,84 @@ export default function AdminAdSettingsModal({ isOpen, onClose }: AdminAdSetting
           ) : (
             /* Analytics Tab */
             <div className="space-y-6">
-              <div className="grid sm:grid-cols-2 md:grid-cols-4 gap-4">
-                <div className="bg-ink-2/80 border border-line rounded-2xl p-4 text-center">
-                  <span className="text-[10px] font-extrabold uppercase text-cream-dim tracking-wider block">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <div className="bg-white border border-[#E5E5EA] rounded-2xl p-4 text-center shadow-2xs">
+                  <span className="text-[10.5px] font-semibold uppercase text-slate-500 tracking-wider block">
                     Ad Requests
                   </span>
-                  <span className="font-display font-extrabold text-2xl text-cream mt-1 block">
+                  <span className="font-semibold text-2xl text-slate-900 mt-1 block">
                     {analytics.requests.toLocaleString()}
                   </span>
                 </div>
 
-                <div className="bg-ink-2/80 border border-emerald-500/30 rounded-2xl p-4 text-center">
-                  <span className="text-[10px] font-extrabold uppercase text-emerald-400 tracking-wider block">
+                <div className="bg-white border border-[#E5E5EA] rounded-2xl p-4 text-center shadow-2xs">
+                  <span className="text-[10.5px] font-semibold uppercase text-[#006C54] tracking-wider block">
                     Fill Rate
                   </span>
-                  <span className="font-display font-extrabold text-2xl text-emerald-400 mt-1 block">
+                  <span className="font-semibold text-2xl text-[#006C54] mt-1 block">
                     {fillRate}%
                   </span>
                 </div>
 
-                <div className="bg-ink-2/80 border border-amber-500/30 rounded-2xl p-4 text-center">
-                  <span className="text-[10px] font-extrabold uppercase text-amber-400 tracking-wider block">
+                <div className="bg-white border border-[#E5E5EA] rounded-2xl p-4 text-center shadow-2xs">
+                  <span className="text-[10.5px] font-semibold uppercase text-amber-600 tracking-wider block">
                     Completion Rate
                   </span>
-                  <span className="font-display font-extrabold text-2xl text-amber-400 mt-1 block">
+                  <span className="font-semibold text-2xl text-amber-600 mt-1 block">
                     {completionRate}%
                   </span>
                 </div>
 
-                <div className="bg-ink-2/80 border border-gold/40 rounded-2xl p-4 text-center">
-                  <span className="text-[10px] font-extrabold uppercase text-gold tracking-wider block">
+                <div className="bg-white border border-[#E5E5EA] rounded-2xl p-4 text-center shadow-2xs">
+                  <span className="text-[10.5px] font-semibold uppercase text-slate-700 tracking-wider block">
                     Est. Revenue
                   </span>
-                  <span className="font-display font-extrabold text-2xl text-gold mt-1 block">
+                  <span className="font-semibold text-2xl text-slate-900 mt-1 block">
                     Ksh {analytics.estimatedRevenueKsh.toFixed(2)}
                   </span>
                 </div>
               </div>
 
               {/* Impression Log Table */}
-              <div className="bg-ink-2/60 border border-line rounded-xl p-4 space-y-3">
-                <h3 className="font-display font-bold text-sm text-cream flex items-center gap-2">
-                  <BarChart3 size={16} className="text-gold" /> Recent Ad Impression Logs
+              <div className="bg-white border border-[#E5E5EA] rounded-2xl p-5 space-y-3 shadow-2xs">
+                <h3 className="font-semibold text-sm text-slate-900 flex items-center gap-2">
+                  <BarChart3 size={16} className="text-[#006C54]" /> Recent Ad Impression Logs
                 </h3>
 
                 {storeState.impressions.length === 0 ? (
-                  <div className="text-center py-6 text-xs text-cream-dim border border-dashed border-line rounded-lg">
-                    No impression logs recorded yet. Watch an ad in any room to populate live telemetry!
+                  <div className="text-center py-8 text-xs text-slate-400 border border-dashed border-slate-300 rounded-xl">
+                    No impression logs recorded yet. Watch an ad in any room to populate live telemetry.
                   </div>
                 ) : (
                   <div className="max-h-60 overflow-y-auto space-y-2 pr-1">
                     {storeState.impressions.map((log) => (
                       <div
                         key={log.id}
-                        className="bg-panel border border-line/80 rounded-lg p-2.5 flex items-center justify-between text-xs"
+                        className="bg-[#FBFBFA] border border-[#E5E5EA] rounded-xl p-3 flex items-center justify-between text-xs"
                       >
                         <div>
-                          <p className="font-bold text-cream flex items-center gap-1.5">
+                          <p className="font-semibold text-slate-900 flex items-center gap-1.5">
                             <span>{log.sponsorName || log.provider}</span>
-                            <span className="text-[10px] text-cream-dim font-mono">
+                            <span className="text-[10.5px] text-slate-400 font-mono">
                               ({log.duration}s)
                             </span>
                           </p>
-                          <p className="text-[10px] text-cream-dim">
+                          <p className="text-[11px] text-slate-500 mt-0.5">
                             Room: {log.roomId} · {new Date(log.requestedAt).toLocaleTimeString()}
                           </p>
                         </div>
 
                         <div className="text-right">
                           <span
-                            className={`text-[10px] font-bold px-2 py-0.5 rounded ${
+                            className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${
                               log.completed
-                                ? 'bg-emerald-500/20 text-emerald-300'
-                                : 'bg-rose-500/20 text-rose-300'
+                                ? 'bg-[#E8F5EE] text-[#006C54]'
+                                : 'bg-rose-100 text-rose-700'
                             }`}
                           >
                             {log.completed ? 'COMPLETED' : 'SKIPPED'}
                           </span>
-                          <span className="text-xs font-mono font-bold text-gold block mt-0.5">
+                          <span className="text-xs font-mono font-semibold text-slate-900 block mt-0.5">
                             +Ksh {log.estimatedRevenueKsh || '0.00'}
                           </span>
                         </div>

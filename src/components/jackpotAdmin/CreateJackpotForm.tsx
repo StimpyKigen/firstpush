@@ -54,21 +54,24 @@ export default function CreateJackpotForm({
   const currentTheme = getBookieTheme(selectedBookie);
 
   return (
-    <>
-      {/* Section Heading for Publishing New Room */}
-      <div className="border-t border-line pt-4">
-        <h3 className="font-display font-extrabold text-base text-cream flex items-center gap-2 mb-1">
-          <Plus size={18} className="text-gold" /> Create & Publish New Jackpot Room
+    <div className="bg-white border border-[#E5E5EA] rounded-2xl p-5 space-y-6 shadow-2xs">
+      {/* Section Heading */}
+      <div className="pb-3 border-b border-[#E5E5EA]">
+        <h3 className="font-semibold text-base text-slate-900 flex items-center gap-2">
+          <Plus size={18} className="text-[#006C54]" />
+          <span>Create & Publish New Jackpot Room</span>
         </h3>
-        <p className="text-xs text-cream-dim">Configure site, bookie jackpot amount, fixtures, or use AI text auto-parser</p>
+        <p className="text-xs text-slate-500 mt-0.5">
+          Configure site, bookie jackpot prize pool, fixtures, or use the automated AI text auto-parser.
+        </p>
       </div>
 
-      {/* Quick Visual Logo Chips for Supported Bookmakers */}
-      <div className="space-y-1.5">
-        <label className="block text-[11px] font-bold text-cream-dim uppercase tracking-wider">
-          Select Betting Site With Official Logo
+      {/* Bookmaker Selector Chips */}
+      <div className="space-y-2">
+        <label className="block text-[11px] font-semibold text-slate-600 uppercase tracking-wider">
+          Select Betting Provider
         </label>
-        <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
+        <div className="flex items-center gap-2 overflow-x-auto pb-1">
           {KENYAN_BETTING_SITES.slice(0, 8).map((site) => {
             const isSelected = selectedBookie === site;
             const t = getBookieTheme(site);
@@ -87,15 +90,14 @@ export default function CreateJackpotForm({
                   else if (site === '22Bet') setJackpotName('Football Mania Jackpot');
                   else setJackpotName(`${site} Weekly Jackpot`);
                 }}
-                className={`flex items-center gap-2 px-2.5 py-1.5 rounded-xl border text-xs font-bold transition-all shrink-0 ${
+                className={`flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all shrink-0 cursor-pointer ${
                   isSelected
-                    ? 'border-gold bg-gold/15 text-cream ring-1 ring-gold/40 shadow-sm'
-                    : 'border-line/70 bg-ink-2/60 text-cream-dim hover:text-cream hover:border-line'
+                    ? 'bg-[#006C54] text-white shadow-xs'
+                    : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
                 }`}
               >
                 <div
-                  className="w-5 h-5 rounded-md flex items-center justify-center p-0.5 overflow-hidden border shrink-0"
-                  style={{ background: t.iconBg, borderColor: t.border }}
+                  className="w-4 h-4 rounded flex items-center justify-center p-0.5 overflow-hidden shrink-0 bg-white"
                 >
                   <img src={t.logo} alt={site} className="w-full h-full object-contain" />
                 </div>
@@ -106,25 +108,24 @@ export default function CreateJackpotForm({
         </div>
       </div>
 
-      {/* Top Config Grid */}
+      {/* Form Grid */}
       <div className="grid sm:grid-cols-2 md:grid-cols-4 gap-4">
-        {/* Dropdown for Betting Site Names with Live Logo Preview */}
+        {/* Betting Site Select */}
         <div>
-          <label className="block text-xs font-bold text-cream-dim mb-1.5 flex items-center justify-between">
-            <span className="flex items-center gap-1">
-              <Globe size={13} className="text-gold" /> Betting Site
+          <label className="block text-xs font-semibold text-slate-700 mb-1.5 flex items-center justify-between">
+            <span className="flex items-center gap-1.5">
+              <Globe size={13} className="text-[#006C54]" /> Betting Site
             </span>
-            <span className="text-[10px] text-cream-dim uppercase font-mono">Logo Loaded</span>
+            <span className="text-[10px] text-slate-400 font-mono">Logo Loaded</span>
           </label>
           <div className="flex items-center gap-2">
             <div
-              className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 border p-1 shadow-sm overflow-hidden"
-              style={{ background: currentTheme.iconBg, borderColor: currentTheme.border }}
+              className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 border border-slate-200 p-1 bg-white shadow-2xs overflow-hidden"
             >
               <img
                 src={currentTheme.logo}
                 alt={selectedBookie}
-                className="w-full h-full object-contain rounded-md"
+                className="w-full h-full object-contain"
               />
             </div>
             <select
@@ -141,7 +142,7 @@ export default function CreateJackpotForm({
                 else if (b === '22Bet') setJackpotName('Football Mania Jackpot');
                 else setJackpotName(`${b} Weekly Jackpot`);
               }}
-              className="flex-1 bg-ink-2 border border-line rounded-xl px-3 py-2 text-sm text-cream font-semibold focus:outline-none focus:border-gold"
+              className="flex-1 bg-white border border-slate-300 rounded-xl px-3 py-2 text-xs font-medium text-slate-900 focus:outline-none focus:border-[#006C54] focus:ring-1 focus:ring-[#006C54] transition-all"
             >
               {KENYAN_BETTING_SITES.map((site) => (
                 <option key={site} value={site}>
@@ -152,10 +153,10 @@ export default function CreateJackpotForm({
           </div>
         </div>
 
-        {/* Number of legs dropdown (13 to 17) */}
+        {/* Number of Legs */}
         <div>
-          <label className="block text-xs font-bold text-cream-dim mb-1.5 flex items-center gap-1">
-            <Layers size={13} className="text-emerald-2" /> Number of Legs
+          <label className="block text-xs font-semibold text-slate-700 mb-1.5 flex items-center gap-1.5">
+            <Layers size={13} className="text-[#006C54]" /> Number of Legs
           </label>
           <select
             value={numLegs}
@@ -164,7 +165,7 @@ export default function CreateJackpotForm({
               setNumLegs(count);
               if (matches.length > 0) onGenerateSample(count);
             }}
-            className="w-full bg-ink-2 border border-line rounded-xl px-3 py-2.5 text-sm text-cream font-semibold focus:outline-none focus:border-emerald-2"
+            className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-xs font-medium text-slate-900 focus:outline-none focus:border-[#006C54] focus:ring-1 focus:ring-[#006C54] transition-all"
           >
             <option value={13}>13 Games (Midweek Jackpot)</option>
             <option value={14}>14 Games (Pro Jackpot)</option>
@@ -176,53 +177,56 @@ export default function CreateJackpotForm({
 
         {/* Prize Pool */}
         <div>
-          <label className="block text-xs font-bold text-cream-dim mb-1.5 flex items-center gap-1">
-            <DollarSign size={13} className="text-gold" /> Bookie Jackpot Amount
+          <label className="block text-xs font-semibold text-slate-700 mb-1.5 flex items-center gap-1.5">
+            <DollarSign size={13} className="text-[#006C54]" /> Prize Pool
           </label>
           <input
             type="text"
             value={prizePool}
             onChange={(e) => setPrizePool(e.target.value)}
             placeholder="e.g. Ksh 350,000,000"
-            className="w-full bg-ink-2 border border-line rounded-xl px-3 py-2.5 text-sm text-cream font-semibold focus:outline-none focus:border-gold"
+            className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-xs font-medium text-slate-900 focus:outline-none focus:border-[#006C54] focus:ring-1 focus:ring-[#006C54] transition-all"
           />
         </div>
 
-        {/* Date & Time Setting Calendar */}
+        {/* Date & Time */}
         <div>
-          <label className="block text-xs font-bold text-cream-dim mb-1.5 flex items-center gap-1">
-            <Calendar size={13} className="text-[#3b82f6]" /> Jackpot Start Date & Time
+          <label className="block text-xs font-semibold text-slate-700 mb-1.5 flex items-center gap-1.5">
+            <Calendar size={13} className="text-[#006C54]" /> Start Date & Time
           </label>
           <input
             type="datetime-local"
             value={startDateTime}
             onChange={(e) => setStartDateTime(e.target.value)}
-            className="w-full bg-ink-2 border border-line rounded-xl px-3 py-2.5 text-sm text-cream focus:outline-none focus:border-[#3b82f6]"
+            className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-xs font-medium text-slate-900 focus:outline-none focus:border-[#006C54] focus:ring-1 focus:ring-[#006C54] transition-all"
           />
         </div>
       </div>
 
-      {/* Jackpot Title input */}
+      {/* Jackpot Title */}
       <div>
-        <label className="block text-xs font-bold text-cream-dim mb-1.5">Jackpot Room Display Title</label>
+        <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+          Jackpot Room Display Title
+        </label>
         <input
           type="text"
           value={jackpotName}
           onChange={(e) => setJackpotName(e.target.value)}
           placeholder="e.g. Mega Jackpot Pro"
-          className="w-full bg-ink-2 border border-line rounded-xl px-4 py-2.5 text-sm text-cream font-semibold focus:outline-none focus:border-gold"
+          className="w-full bg-white border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs font-medium text-slate-900 focus:outline-none focus:border-[#006C54] focus:ring-1 focus:ring-[#006C54] transition-all shadow-2xs"
         />
       </div>
 
-      {/* Raw Text Box & AI Extension */}
-      <div className="bg-ink-2 border border-line rounded-2xl p-4 space-y-3">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+      {/* Raw Text Box & AI Parser */}
+      <div className="bg-[#FBFBFA] border border-[#E5E5EA] rounded-2xl p-4 sm:p-5 space-y-3">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
-            <h3 className="text-sm font-bold text-cream flex items-center gap-1.5">
-              <Bot size={16} className="text-gold" /> AI Jackpot Webpage Parser Extension
+            <h3 className="text-sm font-semibold text-slate-900 flex items-center gap-2">
+              <Bot size={16} className="text-[#006C54]" />
+              <span>AI Jackpot Webpage Parser</span>
             </h3>
-            <p className="text-xs text-cream-dim">
-              Paste raw text from {selectedBookie}'s webpage below. AI will clean and format all {numLegs} matches automatically!
+            <p className="text-xs text-slate-500 mt-0.5">
+              Paste raw text from {selectedBookie}'s webpage below. AI extracts and structures all {numLegs} matches automatically.
             </p>
           </div>
 
@@ -230,88 +234,96 @@ export default function CreateJackpotForm({
             type="button"
             onClick={onAiArrange}
             disabled={isAiProcessing || !webpageText.trim()}
-            className="inline-flex items-center justify-center gap-2 bg-gradient-to-r from-gold to-gold-2 hover:from-gold-2 hover:to-gold text-ink font-bold text-xs px-4 py-2.5 rounded-xl transition-all disabled:opacity-50 shrink-0 shadow-lg"
+            className="inline-flex items-center justify-center gap-2 bg-[#006C54] hover:bg-[#005441] text-white font-semibold text-xs px-4 py-2.5 rounded-xl transition-all disabled:opacity-50 shrink-0 cursor-pointer shadow-xs active:scale-95"
           >
             {isAiProcessing ? (
               <>
                 <RefreshCw size={14} className="animate-spin" />
-                AI Structuring Layout...
+                <span>AI Structuring Layout...</span>
               </>
             ) : (
               <>
                 <Sparkles size={14} />
-                AI Arrange & Set Matches ({numLegs} Legs)
+                <span>AI Arrange & Set Matches ({numLegs} Legs)</span>
               </>
             )}
           </button>
         </div>
 
         <textarea
-          rows={5}
+          rows={4}
           value={webpageText}
           onChange={(e) => setWebpageText(e.target.value)}
           placeholder={`Paste ${selectedBookie} jackpot webpage text here (e.g. copy all matches from ${selectedBookie}...)\nExample:\n1. Arsenal vs Coventry City 21/08 22:00\n2. Trabzonspor vs Al Sadd 30/07 20:00...`}
-          className="w-full bg-panel border border-line rounded-xl p-3 text-xs text-cream font-mono placeholder:text-cream-dim/60 focus:outline-none focus:border-gold"
+          className="w-full bg-white border border-slate-300 rounded-xl p-3 text-xs text-slate-900 font-mono placeholder:text-slate-400 focus:outline-none focus:border-[#006C54] focus:ring-1 focus:ring-[#006C54] transition-all shadow-2xs"
         />
 
         {aiSuccessMessage && (
-          <div className="p-3 bg-emerald-2/15 border border-emerald-2/30 rounded-xl text-xs font-bold text-emerald-2 flex items-center gap-2">
+          <div className="p-3 bg-[#E8F5EE] border border-emerald-200 rounded-xl text-xs font-semibold text-[#006C54] flex items-center gap-2">
             <Check size={16} />
-            {aiSuccessMessage}
+            <span>{aiSuccessMessage}</span>
           </div>
         )}
       </div>
 
-      {/* Match Fixture Layout List */}
-      <div>
-        <div className="flex items-center justify-between mb-3">
-          <h3 className="font-display font-bold text-base text-cream flex items-center gap-2">
-            Match Layout Preview ({matches.length} / {numLegs} legs)
+      {/* Match Layout Preview */}
+      <div className="space-y-3">
+        <div className="flex items-center justify-between">
+          <h3 className="font-semibold text-sm text-slate-900 flex items-center gap-2">
+            <span>Match Layout Preview ({matches.length} / {numLegs} legs)</span>
           </h3>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
             <button
               type="button"
               onClick={() => onGenerateSample(numLegs)}
-              className="text-xs font-semibold text-cream-dim hover:text-cream underline"
+              className="text-xs font-medium text-slate-600 hover:text-slate-900 underline cursor-pointer"
             >
               Load Template
             </button>
             <button
               type="button"
               onClick={onAddMatch}
-              className="inline-flex items-center gap-1 text-xs font-bold text-gold hover:text-gold-2 bg-gold/10 border border-gold/30 px-3 py-1.5 rounded-lg"
+              className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#006C54] bg-[#E8F5EE] hover:bg-[#D7EFE0] px-3 py-1.5 rounded-xl transition-colors cursor-pointer"
             >
-              <Plus size={13} /> Add Match
+              <Plus size={13} />
+              <span>Add Match</span>
             </button>
           </div>
         </div>
 
         {matches.length === 0 ? (
-          <div className="text-center py-8 border border-dashed border-line rounded-xl text-xs text-cream-dim">
+          <div className="text-center py-8 border border-dashed border-slate-300 rounded-xl text-xs text-slate-500">
             No matches loaded yet. Paste webpage text and click "AI Arrange & Set Matches" above.
           </div>
         ) : (
           <div className="space-y-2 max-h-72 overflow-y-auto pr-1">
             {matches.map((m, idx) => (
-              <div key={idx} className="bg-ink-2 border border-line/80 rounded-xl p-3 grid grid-cols-12 gap-2 items-center text-xs">
-                <div className="col-span-1 font-mono font-bold text-gold text-center">#{idx + 1}</div>
+              <div
+                key={idx}
+                className="bg-[#FBFBFA] border border-[#E5E5EA] rounded-xl p-2.5 grid grid-cols-12 gap-2 items-center text-xs"
+              >
+                <div className="col-span-1 font-mono font-bold text-slate-700 text-center">
+                  #{idx + 1}
+                </div>
                 <div className="col-span-3">
                   <input
                     type="text"
                     value={m.home}
                     onChange={(e) => onUpdateMatch(idx, 'home', e.target.value)}
                     placeholder="Home Team"
-                    className="w-full bg-panel border border-line rounded px-2 py-1 text-cream font-semibold focus:border-gold"
+                    className="w-full bg-white border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs text-slate-900 font-medium focus:outline-none focus:border-[#006C54]"
                   />
                 </div>
-                <div className="col-span-1 text-center font-bold text-cream-dim">vs</div>
+                <div className="col-span-1 text-center font-semibold text-slate-400">
+                  vs
+                </div>
                 <div className="col-span-3">
                   <input
                     type="text"
                     value={m.away}
                     onChange={(e) => onUpdateMatch(idx, 'away', e.target.value)}
                     placeholder="Away Team"
-                    className="w-full bg-panel border border-line rounded px-2 py-1 text-cream font-semibold focus:border-gold"
+                    className="w-full bg-white border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs text-slate-900 font-medium focus:outline-none focus:border-[#006C54]"
                   />
                 </div>
                 <div className="col-span-3">
@@ -319,15 +331,16 @@ export default function CreateJackpotForm({
                     type="text"
                     value={m.competition}
                     onChange={(e) => onUpdateMatch(idx, 'competition', e.target.value)}
-                    placeholder="League/Comp"
-                    className="w-full bg-panel border border-line rounded px-2 py-1 text-cream-dim focus:border-gold"
+                    placeholder="League / Competition"
+                    className="w-full bg-white border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs text-slate-600 focus:outline-none focus:border-[#006C54]"
                   />
                 </div>
                 <div className="col-span-1 text-right">
                   <button
                     type="button"
                     onClick={() => onRemoveMatch(idx)}
-                    className="text-rose-400 hover:text-rose-300 p-1"
+                    className="text-slate-400 hover:text-rose-600 p-1.5 transition-colors cursor-pointer"
+                    title="Remove Match"
                   >
                     <Trash2 size={14} />
                   </button>
@@ -339,27 +352,28 @@ export default function CreateJackpotForm({
       </div>
 
       {/* Bottom Actions */}
-      <div className="flex items-center justify-between pt-4 border-t border-line">
-        <span className="text-xs text-cream-dim flex items-center gap-1">
-          <AlertCircle size={13} className="text-gold" /> Updating will publish this room to all live users instantly.
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-4 border-t border-[#E5E5EA]">
+        <span className="text-xs text-slate-500 flex items-center gap-1.5">
+          <AlertCircle size={14} className="text-[#006C54]" />
+          <span>Publishing will immediately make this room visible to all live users.</span>
         </span>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 self-end sm:self-auto">
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2.5 rounded-xl border border-line text-cream-dim hover:text-cream text-xs font-semibold"
+            className="px-4 py-2 rounded-xl border border-slate-300 text-slate-700 hover:bg-slate-100 text-xs font-semibold transition-colors cursor-pointer"
           >
             Cancel
           </button>
           <button
             type="button"
             onClick={onPublish}
-            className="px-6 py-2.5 rounded-xl bg-emerald-2 hover:bg-emerald-500 text-ink font-bold text-xs shadow-lg transition-all"
+            className="px-5 py-2 rounded-xl bg-[#006C54] hover:bg-[#005441] text-white font-semibold text-xs shadow-xs transition-all cursor-pointer active:scale-95"
           >
-            Publish & Update Jackpot Room
+            Publish Jackpot Room
           </button>
         </div>
       </div>
-    </>
+    </div>
   );
 }
