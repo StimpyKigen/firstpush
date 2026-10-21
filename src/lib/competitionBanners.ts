@@ -24,11 +24,11 @@ export const COMPETITION_BANNERS: Record<string, CompetitionBannerConfig> = {
     name: 'UEFA Champions League',
     bannerUrl: '/banners/uefa-champions-league.jpg',
     overlayOpacity: 0.32,
-    gradientOverlay: 'from-transparent via-[#EDF4FE]/35 to-[#FFFFF0]/80',
+    gradientOverlay: 'from-transparent via-[#EDF4FE]/20 to-[#FFFFF0]/35',
     cardBg: 'bg-gradient-to-b from-[#E3EFFE] via-[#F0F6FE] to-[#FFFFF0]',
     borderColor: 'border-[#7BA7F8]',
     borderHoverColor: 'hover:border-[#0A3B8C]',
-    oddsBorderColor: 'border-[#BDD7FB] hover:border-[#0A3B8C]',
+    oddsBorderColor: 'border-[#7BA7F8]/50 hover:border-[#0A3B8C]',
     shadow: 'shadow-[0_2px_12px_rgba(10,59,140,0.09)] hover:shadow-[0_4px_18px_rgba(10,59,140,0.16)]',
   },
 };

@@ -88,7 +88,7 @@ export default function FixtureSportCard({
           />
           {/* Soft gradient wash to seamlessly blend artwork into the warm ivory base */}
           <div
-            className={`absolute inset-0 bg-gradient-to-b ${banner.gradientOverlay || 'from-transparent via-[#EDF4FE]/35 to-[#FFFFF0]/80'}`}
+            className={`absolute inset-0 bg-gradient-to-b ${banner.gradientOverlay || 'from-transparent via-[#EDF4FE]/20 to-[#FFFFF0]/35'}`}
           />
         </div>
       )}
@@ -188,7 +188,7 @@ export default function FixtureSportCard({
           </span>
         </div>
 
-        {/* 1X2 Market Odds Grid (Header labels removed) */}
+        {/* 1X2 Market Odds Grid (Treated like rest of card so banner shows through) */}
         <div className="mt-2.5">
           <div className="grid grid-cols-3 gap-1.5 text-center font-mono">
             <button
@@ -198,8 +198,8 @@ export default function FixtureSportCard({
                 isHomeSelected
                   ? 'bg-[#006C54] text-white font-black border-[#005441] shadow-xs'
                   : banner
-                  ? 'bg-white/85 hover:bg-white text-slate-800 border-[#CCE0FA] hover:border-[#0A3B8C]'
-                  : 'bg-[#FFFFF0] hover:bg-[#F5F5E4] text-slate-800 border-[#E6E6D2] hover:border-[#006C54]'
+                  ? 'bg-white/15 hover:bg-white/35 text-slate-800 border-[#7BA7F8]/50 hover:border-[#0A3B8C] backdrop-blur-[1px]'
+                  : 'bg-transparent hover:bg-black/[0.04] text-slate-800 border-[#DCDCC8] hover:border-[#006C54]'
               }`}
             >
               <span
@@ -221,8 +221,8 @@ export default function FixtureSportCard({
                 isDrawSelected
                   ? 'bg-[#006C54] text-white font-black border-[#005441] shadow-xs'
                   : banner
-                  ? 'bg-white/85 hover:bg-white text-slate-800 border-[#CCE0FA] hover:border-[#0A3B8C]'
-                  : 'bg-[#FFFFF0] hover:bg-[#F5F5E4] text-slate-800 border-[#E6E6D2] hover:border-[#006C54]'
+                  ? 'bg-white/15 hover:bg-white/35 text-slate-800 border-[#7BA7F8]/50 hover:border-[#0A3B8C] backdrop-blur-[1px]'
+                  : 'bg-transparent hover:bg-black/[0.04] text-slate-800 border-[#DCDCC8] hover:border-[#006C54]'
               }`}
             >
               <span
@@ -244,8 +244,8 @@ export default function FixtureSportCard({
                 isAwaySelected
                   ? 'bg-[#006C54] text-white font-black border-[#005441] shadow-xs'
                   : banner
-                  ? 'bg-white/85 hover:bg-white text-slate-800 border-[#CCE0FA] hover:border-[#0A3B8C]'
-                  : 'bg-[#FFFFF0] hover:bg-[#F5F5E4] text-slate-800 border-[#E6E6D2] hover:border-[#006C54]'
+                  ? 'bg-white/15 hover:bg-white/35 text-slate-800 border-[#7BA7F8]/50 hover:border-[#0A3B8C] backdrop-blur-[1px]'
+                  : 'bg-transparent hover:bg-black/[0.04] text-slate-800 border-[#DCDCC8] hover:border-[#006C54]'
               }`}
             >
               <span
