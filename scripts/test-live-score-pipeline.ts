@@ -31,6 +31,8 @@ import {
   parseDetailedMatchStatus,
   isStatusTransitionValid,
   getMatchScorePresentation,
+  isLiveMatch,
+  isCompletedMatch,
 } from '../src/lib/matchStatus';
 import {
   refreshFreeMatches,
@@ -416,6 +418,69 @@ async function runLiveScoreTestSuite() {
     15,
     'Rate Limits & Pagination Guard',
     `Rate limit safe: ${diag.rateLimitSafe}, Request budget: ${diag.dailyRequestBudget}, Cycles: ${diag.syncCyclesCount}`
+  );
+
+  // --- SCENARIO 16: Started game automatic live placement ---
+  // A game scheduled for 25 minutes ago that hasn't finished is detected as live
+  const kickoff25MinsAgo = new Date(Date.now() - 25 * 60 * 1000).toISOString();
+  const startedMatchFixture: MarketFixture = {
+    ...initialPayload,
+    id: 'mkt-test-started-arsenal-vs-chelsea',
+    providerId: 'test-started-arsenal-vs-chelsea',
+    home: 'Arsenal Started Test',
+    away: 'Chelsea Started Test',
+    kickoffIso: kickoff25MinsAgo,
+    status: 'pre',
+    homeScore: 0,
+    awayScore: 0,
+  };
+  ingestFixtures([startedMatchFixture]);
+  const isDetectedLive = isLiveMatch(startedMatchFixture);
+  const livePresentation = getMatchScorePresentation(
+    startedMatchFixture.status,
+    startedMatchFixture.displayClock,
+    'Kickoff',
+    startedMatchFixture.homeScore,
+    startedMatchFixture.awayScore,
+    startedMatchFixture.kickoffIso
+  );
+
+  assert(
+    isDetectedLive && livePresentation.isLive && livePresentation.shouldShowScore,
+    16,
+    'Started Game Automatic Live Placement & Sync',
+    `isLiveMatch: ${isDetectedLive}, isLive: ${livePresentation.isLive}, badge: ${livePresentation.badgeText}`
+  );
+
+  // --- SCENARIO 17: Finished game 'Completed' section and score display ---
+  const finishedTodayFixture: MarketFixture = {
+    ...initialPayload,
+    id: 'mkt-test-completed-liverpool-vs-everton',
+    providerId: 'test-completed-liverpool-vs-everton',
+    home: 'Liverpool Finished Test',
+    away: 'Everton Finished Test',
+    kickoffIso: new Date(Date.now() - 120 * 60 * 1000).toISOString(),
+    status: 'post',
+    period: 'full_time',
+    homeScore: 3,
+    awayScore: 1,
+  };
+  ingestFixtures([finishedTodayFixture]);
+  const isDetectedCompleted = isCompletedMatch(finishedTodayFixture);
+  const completedPres = getMatchScorePresentation(
+    finishedTodayFixture.status,
+    finishedTodayFixture.displayClock,
+    'Kickoff',
+    finishedTodayFixture.homeScore,
+    finishedTodayFixture.awayScore,
+    finishedTodayFixture.kickoffIso
+  );
+
+  assert(
+    isDetectedCompleted && completedPres.isFinished && completedPres.badgeText === 'FT' && completedPres.scoreDisplay === '3 - 1',
+    17,
+    'Completed Games Section & Final Score Presentation',
+    `isCompletedMatch: ${isDetectedCompleted}, FT badge: ${completedPres.badgeText}, final score: ${completedPres.scoreDisplay}`
   );
 
   // Summary

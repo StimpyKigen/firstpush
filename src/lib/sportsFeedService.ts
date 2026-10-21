@@ -914,11 +914,19 @@ export async function syncLiveScoresOnly(): Promise<{ updated: number; liveCount
       console.warn('Widget matches fetch notice:', e?.message || e);
     }
 
-    // 3. For any match in our store currently marked as 'in' (live), check if it transitioned to terminal post-match
-    const liveInStore = Array.from(fixturesStore.values()).filter((f) => f.status === 'in');
+    // 3. For any match in our store currently marked as 'in' (live), or scheduled matches whose kickoff has arrived
+    const nowMs = Date.now();
+    const activeOrStartedInStore = Array.from(fixturesStore.values()).filter((f) => {
+      if (f.status === 'in') return true;
+      if (f.status === 'pre' && f.kickoffIso) {
+        const kMs = new Date(f.kickoffIso).getTime();
+        return !isNaN(kMs) && kMs <= nowMs && nowMs - kMs <= 180 * 60 * 1000;
+      }
+      return false;
+    });
     const checkedSlugs = new Set(liveFixtures.map((f) => f.providerId));
 
-    for (const activeMatch of liveInStore) {
+    for (const activeMatch of activeOrStartedInStore) {
       // If active match was NOT in the live matches list from provider, check its specific match detail
       if (!checkedSlugs.has(activeMatch.providerId) && activeMatch.providerId) {
         try {
@@ -933,24 +941,21 @@ export async function syncLiveScoresOnly(): Promise<{ updated: number; liveCount
             const d = await detailRes.json();
             if (d && d.status) {
               const detailed = parseDetailedMatchStatus(d.status, d.status_text);
-              if (detailed.status === 'post' || detailed.isTerminal) {
-                // Authoritative transition to full time / terminal status
-                liveFixtures.push({
-                  ...activeMatch,
-                  status: detailed.status,
-                  period: detailed.period,
-                  displayClock: detailed.displayClock || 'FT',
-                  periodSequence: detailed.periodSequence,
-                  homeScore: d.home_score !== null && d.home_score !== undefined ? Number(d.home_score) : activeMatch.homeScore,
-                  awayScore: d.away_score !== null && d.away_score !== undefined ? Number(d.away_score) : activeMatch.awayScore,
-                  homeHtScore: d.home_ht_score !== null && d.home_ht_score !== undefined ? Number(d.home_ht_score) : activeMatch.homeHtScore,
-                  awayHtScore: d.away_ht_score !== null && d.away_ht_score !== undefined ? Number(d.away_ht_score) : activeMatch.awayHtScore,
-                  syncedAt: nowIso,
-                  lastSyncTime: nowIso,
-                  recordUpdateTime: nowIso,
-                  isAuthoritativeCorrection: true,
-                });
-              }
+              liveFixtures.push({
+                ...activeMatch,
+                status: detailed.status,
+                period: detailed.period,
+                displayClock: detailed.displayClock || (detailed.status === 'post' ? 'FT' : 'LIVE'),
+                periodSequence: detailed.periodSequence,
+                homeScore: d.home_score !== null && d.home_score !== undefined ? Number(d.home_score) : activeMatch.homeScore,
+                awayScore: d.away_score !== null && d.away_score !== undefined ? Number(d.away_score) : activeMatch.awayScore,
+                homeHtScore: d.home_ht_score !== null && d.home_ht_score !== undefined ? Number(d.home_ht_score) : activeMatch.homeHtScore,
+                awayHtScore: d.away_ht_score !== null && d.away_ht_score !== undefined ? Number(d.away_ht_score) : activeMatch.awayHtScore,
+                syncedAt: nowIso,
+                lastSyncTime: nowIso,
+                recordUpdateTime: nowIso,
+                isAuthoritativeCorrection: true,
+              });
             }
           }
         } catch {
@@ -1057,7 +1062,7 @@ export async function executeRollingSyncCycle(): Promise<{ updated: number; tota
  * Filter fixtures by scope ('all' | 'live' | 'today' | 'tomorrow' | 'upcoming' | 'finished' | 'results'), league, country, and date
  */
 export function queryMarketFixtures(options: {
-  scope?: 'all' | 'live' | 'today' | 'tomorrow' | 'upcoming' | 'finished' | 'results';
+  scope?: 'all' | 'live' | 'today' | 'tomorrow' | 'upcoming' | 'finished' | 'results' | 'completed';
   league?: string;
   country?: string;
   date?: string;
@@ -1074,8 +1079,16 @@ export function queryMarketFixtures(options: {
 
   // Filter by Scope
   if (scope === 'live') {
-    list = list.filter((f) => f.status === 'in');
-  } else if (scope === 'finished' || scope === 'results') {
+    const nowMs = Date.now();
+    list = list.filter((f) => {
+      if (f.status === 'in') return true;
+      if (f.status === 'pre' && f.kickoffIso) {
+        const kMs = new Date(f.kickoffIso).getTime();
+        return !isNaN(kMs) && kMs <= nowMs && nowMs - kMs <= 180 * 60 * 1000;
+      }
+      return false;
+    });
+  } else if (scope === 'finished' || scope === 'results' || scope === 'completed') {
     list = list.filter((f) => f.status === 'post');
   } else if (scope === 'today') {
     list = list.filter((f) => {

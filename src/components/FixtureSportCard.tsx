@@ -48,7 +48,8 @@ export default function FixtureSportCard({
     match.displayClock,
     formatKickoffDateTime24h(match.kickoffIso, match.kickoff),
     match.homeScore,
-    match.awayScore
+    match.awayScore,
+    match.kickoffIso
   );
 
   const majority = Math.max(consensus.homePct, consensus.drawPct, consensus.awayPct);

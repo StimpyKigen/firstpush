@@ -2,7 +2,7 @@ import { useState, useMemo, useRef, useEffect, useSyncExternalStore } from 'reac
 import {
   Unlock, Calendar, Search, X, SearchX,
   Check, ChevronDown, RotateCcw,
-  Radio
+  Radio, CheckCircle2
 } from 'lucide-react';
 import SeoHead from '../components/SeoHead';
 import {
@@ -25,7 +25,7 @@ import {
   resolveSportScoreDirectoryId,
 } from '../lib/leagueDirectory';
 import FixtureSportCard from '../components/FixtureSportCard';
-import { normalizeMatchStatus } from '../lib/matchStatus';
+import { normalizeMatchStatus, isLiveMatch, isCompletedMatch } from '../lib/matchStatus';
 import {
   sortHighlightsComparator,
   sortUpcomingComparator,
@@ -189,8 +189,7 @@ export default function FreeMatches() {
     let highlights = 0;
 
     matches.forEach((m) => {
-      const norm = normalizeMatchStatus(m.status, m.displayClock);
-      if (norm === 'in') {
+      if (isLiveMatch(m, deviceNow)) {
         live++;
       }
       if (isUpcomingEligible(m, deviceNow)) {
@@ -209,12 +208,20 @@ export default function FreeMatches() {
     };
   }, [matches, deviceNow]);
 
+  // Completed Matches of Today Count
+  const completedTodayCount = useMemo(() => {
+    return matches.filter((m) => {
+      if (!isCompletedMatch(m)) return false;
+      const dStr = m.kickoffIso ? getDeviceLocalDateString(m.kickoffIso) : '';
+      return dStr === todayDateStr;
+    }).length;
+  }, [matches, todayDateStr]);
+
   // Total matching fixtures across all dates under active tab (used inside Dates dropdown)
   const allDatesCount = useMemo(() => {
     return matches.filter((m) => {
-      const norm = normalizeMatchStatus(m.status, m.displayClock);
       if (activeTab === 'live') {
-        return norm === 'in';
+        return isLiveMatch(m, deviceNow);
       }
       if (activeTab === 'highlights') {
         return isHighlightsEligible(m);
@@ -231,8 +238,7 @@ export default function FreeMatches() {
         const dStr = getDeviceLocalDateString(m.kickoffIso);
         if (dStr >= todayDateStr) {
           if (activeTab === 'live') {
-            const norm = normalizeMatchStatus(m.status, m.displayClock);
-            if (norm === 'in') {
+            if (isLiveMatch(m, deviceNow)) {
               dateMap.set(dStr, (dateMap.get(dStr) || 0) + 1);
             }
           } else if (activeTab === 'highlights') {
@@ -284,16 +290,21 @@ export default function FreeMatches() {
       }
 
       const dStr = m.kickoffIso ? getDeviceLocalDateString(m.kickoffIso) : '';
-      const norm = normalizeMatchStatus(m.status, m.displayClock);
 
-      // 1. Date filter (from Dates dropdown)
+      // 1. Explicit 'Completed' filter from Dates dropdown (finished matches of today)
+      if (selectedDate === 'completed') {
+        if (!isCompletedMatch(m)) return false;
+        return dStr === todayDateStr;
+      }
+
+      // 2. Standard Date filter (from Dates dropdown)
       if (selectedDate !== 'all') {
         if (dStr !== selectedDate) return false;
       }
 
-      // 2. Active Tab: Live vs Highlights vs Upcoming
+      // 3. Active Tab: Live vs Highlights vs Upcoming
       if (activeTab === 'live') {
-        return norm === 'in';
+        return isLiveMatch(m, deviceNow);
       }
 
       if (activeTab === 'highlights') {
@@ -303,7 +314,7 @@ export default function FreeMatches() {
       // Default: Upcoming tab - strictly enforce real-time upcoming cutoff
       return isUpcomingEligible(m, deviceNow);
     });
-  }, [matches, activeTab, selectedDate, deviceNow]);
+  }, [matches, activeTab, selectedDate, deviceNow, todayDateStr]);
 
   // Build SportScore Country Directory with dynamic fixture counts
   const directoryData = useMemo(() => {
@@ -341,6 +352,12 @@ export default function FreeMatches() {
       return true;
     })
     .sort((a, b) => {
+      // Completed: latest kickoff first (most recent finished matches at top)
+      if (selectedDate === 'completed') {
+        const timeA = a.kickoffIso ? new Date(a.kickoffIso).getTime() : 0;
+        const timeB = b.kickoffIso ? new Date(b.kickoffIso).getTime() : 0;
+        return timeB - timeA;
+      }
       // Upcoming: strictly chronological by kickoff time (earliest kickoff first)
       if (activeTab === 'upcoming') {
         return sortUpcomingComparator(a, b);
@@ -351,12 +368,13 @@ export default function FreeMatches() {
 
   const handleTabClick = (tab: ScopeTab) => {
     setActiveTab(tab);
-    if (tab === 'live') {
+    if (tab === 'live' || selectedDate === 'completed') {
       setSelectedDate('all');
     }
   };
 
   const selectedDateLabel = useMemo(() => {
+    if (selectedDate === 'completed') return 'Completed';
     if (selectedDate === 'all') return 'All Dates';
     if (selectedDate === todayDateStr) return 'Today';
     if (selectedDate === tomorrowDateStr) return 'Tomorrow';
@@ -518,6 +536,33 @@ export default function FreeMatches() {
             {/* Dates Dropdown Menu */}
             {isDateDropdownOpen && (
               <div className="absolute left-1/2 -translate-x-1/2 sm:left-0 sm:translate-x-0 mt-2 w-72 sm:w-80 bg-[#FFFFF0] border border-[#DCDCC8] rounded-2xl shadow-2xl py-2 z-50 max-h-[380px] overflow-y-auto text-xs divide-y divide-[#E6E6D2]">
+                {/* 1. FIRST OPTION: COMPLETED (Finished matches of today) */}
+                <div className="p-1">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSelectedDate('completed');
+                      setIsDateDropdownOpen(false);
+                    }}
+                    className={`w-full px-3 py-2 rounded-xl text-left flex items-center justify-between transition-colors cursor-pointer ${
+                      selectedDate === 'completed'
+                        ? 'bg-[#006C54]/10 text-[#006C54] font-black'
+                        : 'hover:bg-[#F5F5E4] text-slate-700 font-semibold'
+                    }`}
+                  >
+                    <span className="flex items-center gap-2">
+                      <CheckCircle2 size={13} className="text-[#006C54]" /> Completed
+                    </span>
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-[#F5F5E4] border border-[#E6E6D2] text-[#006C54] font-bold">
+                        {completedTodayCount}
+                      </span>
+                      {selectedDate === 'completed' && <Check size={14} className="text-[#006C54]" />}
+                    </div>
+                  </button>
+                </div>
+
+                {/* 2. ALL DATES */}
                 <div className="p-1">
                   <button
                     type="button"
@@ -829,11 +874,23 @@ export default function FreeMatches() {
         </div>
       ) : filteredMatches.length === 0 ? (
         <div className="bg-white border border-slate-200 rounded-2xl p-8 text-center max-w-xl mx-auto flex flex-col items-center gap-3 shadow-xs">
-          <SearchX size={36} className="text-[#006C54]" />
-          <h3 className="font-display font-extrabold text-lg text-slate-900 uppercase tracking-tight">No Fixtures Match Current Filters</h3>
-          <p className="text-xs text-slate-600 leading-relaxed">
-            No matches found for &quot;<strong className="text-slate-900">{searchQuery || selectedDirectoryLabel}</strong>&quot; under {activeTab} view. Try clearing filters to view all upcoming fixtures across 90+ supported competitions.
-          </p>
+          {selectedDate === 'completed' ? (
+            <>
+              <CheckCircle2 size={36} className="text-[#006C54]" />
+              <h3 className="font-display font-extrabold text-lg text-slate-900 uppercase tracking-tight">No Completed Matches Yet Today</h3>
+              <p className="text-xs text-slate-600 leading-relaxed">
+                Finished fixtures will automatically appear here with their final scores and FT badges as matches conclude throughout the day.
+              </p>
+            </>
+          ) : (
+            <>
+              <SearchX size={36} className="text-[#006C54]" />
+              <h3 className="font-display font-extrabold text-lg text-slate-900 uppercase tracking-tight">No Fixtures Match Current Filters</h3>
+              <p className="text-xs text-slate-600 leading-relaxed">
+                No matches found for &quot;<strong className="text-slate-900">{searchQuery || selectedDirectoryLabel}</strong>&quot; under {activeTab} view. Try clearing filters to view all upcoming fixtures across 90+ supported competitions.
+              </p>
+            </>
+          )}
           <div className="flex flex-col sm:flex-row items-center gap-2 mt-3">
             {leagueFilter !== 'all' && (
               <button

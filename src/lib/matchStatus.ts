@@ -113,38 +113,7 @@ export function parseDetailedMatchStatus(rawStatus?: string | null, statusText?:
     return { status: 'post', period: 'awarded', displayClock: 'AWR', periodSequence: 63, isTerminal: true, rawStatus: s, statusText: txt };
   }
 
-  // 2. Extra Time & Penalties (Active Live Periods)
-  if (s === 'penalties' || s === 'penalty_shootout' || s === 'p' || s === 'pen' || txt.includes('penalty') || txt === 'pen' || txt.includes('shootout')) {
-    return { status: 'in', period: 'penalties', displayClock: 'PEN', periodSequence: 50, isTerminal: false, rawStatus: s, statusText: txt };
-  }
-  if (s === 'extra_time' || s === 'et' || s === '1st_et' || s === '2nd_et' || txt.includes('extra time') || txt.startsWith('et')) {
-    const clock = txt.includes('et') || txt.includes('extra') ? (statusText?.toUpperCase() || 'ET') : 'ET';
-    return { status: 'in', period: 'extra_time', displayClock: clock, periodSequence: 40, isTerminal: false, rawStatus: s, statusText: txt };
-  }
-
-  // 3. Halftime
-  if (s === 'halftime' || s === 'half_time' || s === 'ht' || txt === 'ht' || txt === 'half time' || txt === 'halftime') {
-    return { status: 'in', period: 'halftime', displayClock: 'HT', periodSequence: 20, isTerminal: false, rawStatus: s, statusText: txt };
-  }
-
-  // 4. Second Half
-  if (s === '2nd_half' || s === 'second_half' || s === '2h' || txt.includes('2nd half')) {
-    const clock = /^\d+['`]/.test(txt) ? txt : '2nd Half';
-    return { status: 'in', period: 'second_half', displayClock: clock, periodSequence: 30, isTerminal: false, rawStatus: s, statusText: txt };
-  }
-
-  // 5. First Half / Generic Live
-  if (s === '1st_half' || s === 'first_half' || s === '1h' || txt.includes('1st half')) {
-    const clock = /^\d+['`]/.test(txt) ? txt : '1st Half';
-    return { status: 'in', period: 'first_half', displayClock: clock, periodSequence: 10, isTerminal: false, rawStatus: s, statusText: txt };
-  }
-  if (s === 'live' || s === 'in' || s === 'inprogress' || txt.includes('live') || /^\d+['`]/.test(txt)) {
-    // If status text is specifically a minute like 67'
-    const clock = /^\d+['`]/.test(txt) ? txt : 'LIVE';
-    return { status: 'in', period: 'second_half', displayClock: clock, periodSequence: 25, isTerminal: false, rawStatus: s, statusText: txt };
-  }
-
-  // 6. Finished / Full-Time / Terminal Post-Match
+  // 2. Finished / Full-Time / Terminal Post-Match
   if (s === 'after_penalties' || s === 'ap' || txt.includes('after penalties') || txt === 'ap') {
     return { status: 'post', period: 'after_penalties', displayClock: 'AP', periodSequence: 62, isTerminal: true, rawStatus: s, statusText: txt };
   }
@@ -156,6 +125,37 @@ export function parseDetailedMatchStatus(rawStatus?: string | null, statusText?:
     txt === 'ft' || txt.includes('finished') || txt.includes('ended')
   ) {
     return { status: 'post', period: 'full_time', displayClock: 'FT', periodSequence: 60, isTerminal: true, rawStatus: s, statusText: txt };
+  }
+
+  // 3. Extra Time & Penalties (Active Live Periods)
+  if (s === 'penalties' || s === 'penalty_shootout' || s === 'p' || s === 'pen' || txt.includes('penalty') || txt === 'pen' || txt.includes('shootout')) {
+    return { status: 'in', period: 'penalties', displayClock: 'PEN', periodSequence: 50, isTerminal: false, rawStatus: s, statusText: txt };
+  }
+  if (s === 'extra_time' || s === 'et' || s === '1st_et' || s === '2nd_et' || txt.includes('extra time') || txt.startsWith('et')) {
+    const clock = txt.includes('et') || txt.includes('extra') ? (statusText?.toUpperCase() || 'ET') : 'ET';
+    return { status: 'in', period: 'extra_time', displayClock: clock, periodSequence: 40, isTerminal: false, rawStatus: s, statusText: txt };
+  }
+
+  // 4. Halftime
+  if (s === 'halftime' || s === 'half_time' || s === 'ht' || txt === 'ht' || txt === 'half time' || txt === 'halftime') {
+    return { status: 'in', period: 'halftime', displayClock: 'HT', periodSequence: 20, isTerminal: false, rawStatus: s, statusText: txt };
+  }
+
+  // 5. Second Half
+  if (s === '2nd_half' || s === 'second_half' || s === '2h' || txt.includes('2nd half')) {
+    const clock = /^\d+['`]/.test(txt) ? txt : '2nd Half';
+    return { status: 'in', period: 'second_half', displayClock: clock, periodSequence: 30, isTerminal: false, rawStatus: s, statusText: txt };
+  }
+
+  // 6. First Half / Generic Live
+  if (s === '1st_half' || s === 'first_half' || s === '1h' || txt.includes('1st half')) {
+    const clock = /^\d+['`]/.test(txt) ? txt : '1st Half';
+    return { status: 'in', period: 'first_half', displayClock: clock, periodSequence: 10, isTerminal: false, rawStatus: s, statusText: txt };
+  }
+  if (s === 'live' || s === 'in' || s === 'inprogress' || txt.includes('live') || /^\d+['`]/.test(txt)) {
+    // If status text is specifically a minute like 67'
+    const clock = /^\d+['`]/.test(txt) ? txt : 'LIVE';
+    return { status: 'in', period: 'second_half', displayClock: clock, periodSequence: 25, isTerminal: false, rawStatus: s, statusText: txt };
   }
 
   // 7. Scheduled / Upcoming
@@ -225,6 +225,53 @@ export function isStatusTransitionValid(
 }
 
 /**
+ * Determine if a match is considered live/in-play.
+ * A match is live if:
+ * 1. Normalized status is explicitly 'in' (1H, HT, 2H, ET, PEN)
+ * 2. OR kickoff time has already arrived (kickoffMs <= nowMs), it has not concluded ('post'),
+ *    and it is not postponed/cancelled/abandoned (within a standard 180-minute window).
+ */
+export function isLiveMatch(
+  fixture: { status?: any; statusText?: any; displayClock?: any; kickoffIso?: any; period?: any } | null | undefined,
+  nowMs: number = Date.now()
+): boolean {
+  if (!fixture) return false;
+  const norm = normalizeMatchStatus(fixture.status, fixture.displayClock || fixture.statusText);
+  if (norm === 'in') return true;
+  if (norm === 'post' || norm === 'postponed' || norm === 'cancelled' || norm === 'abandoned' || norm === 'suspended') {
+    return false;
+  }
+  if (fixture.period && ['first_half', 'halftime', 'second_half', 'extra_time', 'penalties'].includes(fixture.period)) {
+    return true;
+  }
+  const iso = fixture.kickoffIso;
+  if (iso) {
+    const kickoffMs = new Date(iso).getTime();
+    if (!isNaN(kickoffMs) && kickoffMs <= nowMs) {
+      if (nowMs - kickoffMs <= 180 * 60 * 1000) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
+/**
+ * Determine if a match has concluded / is finished.
+ */
+export function isCompletedMatch(
+  fixture: { status?: any; statusText?: any; displayClock?: any; period?: any } | null | undefined
+): boolean {
+  if (!fixture) return false;
+  const norm = normalizeMatchStatus(fixture.status, fixture.displayClock || fixture.statusText);
+  if (norm === 'post') return true;
+  if (fixture.period && ['full_time', 'after_extra_time', 'after_penalties', 'awarded'].includes(fixture.period)) {
+    return true;
+  }
+  return false;
+}
+
+/**
  * Authoritative score and badge calculator
  */
 export function getMatchScorePresentation(
@@ -232,7 +279,9 @@ export function getMatchScorePresentation(
   statusText: string | undefined | null,
   kickoffDisplay: string,
   homeScore?: number | null,
-  awayScore?: number | null
+  awayScore?: number | null,
+  kickoffIso?: string | null,
+  nowMs?: number
 ): ScorePresentation {
   const detailed = parseDetailedMatchStatus(rawStatus, statusText);
   const { status, period, displayClock } = detailed;
@@ -299,8 +348,18 @@ export function getMatchScorePresentation(
     };
   }
 
-  // 2. Scheduled / Pre-match (Never show numerical score for scheduled match)
-  if (status === 'pre' || status === 'unknown') {
+  // Check if kickoff time has arrived for an unstarted match (promoted to live)
+  const effectiveNow = nowMs || Date.now();
+  const hasStartedUnfinished = Boolean(
+    (status === 'pre' || status === 'unknown') &&
+    kickoffIso &&
+    !isNaN(new Date(kickoffIso).getTime()) &&
+    new Date(kickoffIso).getTime() <= effectiveNow &&
+    effectiveNow - new Date(kickoffIso).getTime() <= 180 * 60 * 1000
+  );
+
+  // 2. Scheduled / Pre-match
+  if ((status === 'pre' || status === 'unknown') && !hasStartedUnfinished) {
     return {
       shouldShowScore: false,
       scoreDisplay: null,
@@ -316,8 +375,8 @@ export function getMatchScorePresentation(
     };
   }
 
-  // 3. Live in progress (1st half, HT, 2nd half, extra time, penalties)
-  if (status === 'in') {
+  // 3. Live in progress (1st half, HT, 2nd half, extra time, penalties, or started game)
+  if (status === 'in' || hasStartedUnfinished) {
     const isHt = period === 'halftime';
     const isExtraTime = period === 'extra_time';
     const isPenalties = period === 'penalties';
@@ -334,6 +393,9 @@ export function getMatchScorePresentation(
       badgeText = displayClock || 'ET';
     } else if (displayClock && displayClock !== 'LIVE' && displayClock !== 'live') {
       badgeText = displayClock;
+    } else if (hasStartedUnfinished && kickoffIso) {
+      const elapsedMins = Math.max(1, Math.floor((effectiveNow - new Date(kickoffIso).getTime()) / 60000));
+      badgeText = elapsedMins > 90 ? "90+'" : `${elapsedMins}'`;
     }
 
     return {
@@ -347,7 +409,7 @@ export function getMatchScorePresentation(
       isFinished: false,
       isScheduled: false,
       isPostponedOrCancelled: false,
-      period,
+      period: period === 'scheduled' ? 'first_half' : period,
     };
   }
 
