@@ -570,7 +570,7 @@ export const CANONICAL_COMPETITIONS: Record<string, CanonicalCompetition> = {
     isFeatured: true,
     active: true,
     metadataSource: 'verified_sportscore',
-    providerSlugs: ['holland1', 'eredivisie', 'dutch-eredivisie'],
+    providerSlugs: ['holland1', 'eredivisie', 'dutch-eredivisie', 'netherlands-eredivisie', 'netherlands/netherlands-eredivisie'],
   },
   sco_premiership: {
     id: 'sco_premiership',
@@ -1826,6 +1826,9 @@ export const PROVIDER_SLUG_REGISTRY: Record<string, string> = {
   'liga-portugal': 'por_primeira_liga',
   'holland1': 'ned_eredivisie',
   'eredivisie': 'ned_eredivisie',
+  'dutch-eredivisie': 'ned_eredivisie',
+  'netherlands-eredivisie': 'ned_eredivisie',
+  'netherlands/netherlands-eredivisie': 'ned_eredivisie',
   'scot-premier': 'sco_premiership',
   'scottish-premiership': 'sco_premiership',
   'turkey1': 'tur_super_lig',

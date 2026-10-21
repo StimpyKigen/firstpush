@@ -119,7 +119,7 @@ console.log('=============================================================\n');
     res1.continent === 'asia' &&
     res2.id === 'irn_pro_league' &&
     res3.id === 'irn_pro_league' &&
-    res1.id !== 'bel_pro_league';
+    (res1.id as string) !== 'bel_pro_league';
 
   assert(
     pass,
@@ -144,7 +144,7 @@ console.log('=============================================================\n');
     res.id === 'afc_champions_league' &&
     res.continent === 'asia' &&
     res.competitionType === 'continental_club' &&
-    res.id !== 'irn_pro_league' &&
+    (res.id as string) !== 'irn_pro_league' &&
     res.countryName === 'Asia';
 
   assert(
@@ -170,8 +170,8 @@ console.log('=============================================================\n');
     res.id === 'uefa_champions_league' &&
     res.continent === 'european_competitions' &&
     res.competitionType === 'continental_club' &&
-    res.id !== 'esp_la_liga' &&
-    res.id !== 'bel_pro_league';
+    (res.id as string) !== 'esp_la_liga' &&
+    (res.id as string) !== 'bel_pro_league';
 
   assert(
     pass,
@@ -244,9 +244,9 @@ console.log('=============================================================\n');
   const pass =
     (res.countryCode === 'XX' || res.countryCode === 'INT') &&
     (res.countryName === 'World' || res.countryName === 'International') &&
-    res.countryName !== 'Belgium' &&
-    res.countryName !== 'England' &&
-    res.countryName !== 'Spain';
+    (res.countryName as string) !== 'Belgium' &&
+    (res.countryName as string) !== 'England' &&
+    (res.countryName as string) !== 'Spain';
 
   assert(
     pass,
@@ -431,7 +431,7 @@ console.log('=============================================================\n');
   const pass =
     normalized.competitionId === 'irn_pro_league' &&
     normalized.country === 'Iran' &&
-    normalized.competitionId !== 'bel_pro_league';
+    (normalized.competitionId as string) !== 'bel_pro_league';
 
   assert(
     pass,

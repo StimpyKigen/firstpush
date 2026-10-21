@@ -633,37 +633,48 @@ export async function syncSportScoreCatalog(): Promise<number> {
       // non-fatal
     }
 
-    // 2. Priority major competitions (ensures UEFA Champions League, Europa, etc. are never truncated)
-    const prioritySlugs = [
-      'uefa-champions-league',
-      'uefa-europa-league',
-      'uefa-europa-conference-league',
-      'uefa-youth-league',
-      'premier-league',
-      'la-liga',
-      'serie-a',
-      'bundesliga',
-      'ligue-1',
-      'caf-champions-league'
+    // 2. Priority major European & continental competitions with verified SportScore slugs
+    const priorityCompetitions = [
+      { slug: 'english-premier-league', name: 'English Premier League' },
+      { slug: 'spanish-la-liga', name: 'Spanish La Liga' },
+      { slug: 'bundesliga', name: 'German Bundesliga' },
+      { slug: 'italian-serie-a', name: 'Italian Serie A' },
+      { slug: 'french-ligue-1', name: 'French Ligue 1' },
+      { slug: 'netherlands-eredivisie', name: 'Netherlands Eredivisie' },
+      { slug: 'belgian-pro-league', name: 'Belgian Pro League' },
+      { slug: 'uefa-champions-league', name: 'UEFA Champions League' },
+      { slug: 'uefa-europa-league', name: 'UEFA Europa League' },
+      { slug: 'uefa-europa-conference-league', name: 'UEFA Conference League' },
+      { slug: 'uefa-youth-league', name: 'UEFA Youth League' },
+      { slug: 'caf-champions-league', name: 'CAF Champions League' },
     ];
 
-    const compPromises = prioritySlugs.map(async (slug) => {
-      try {
-        const res = await fetch(`https://sportscore.com/api/v1/fixtures/?sport=football&competition=${slug}`, {
-          headers: { 'User-Agent': 'Mozilla/5.0' },
-          signal: AbortSignal.timeout(6000),
-        });
-        if (res.ok) {
-          const json = await res.json();
-          return (json.matches || []).map((m: any) => normalizeSportScoreMatch(m, nowIso, false));
+    // Priority competition fixtures queried across the upcoming match slate dates
+    const compPromises = priorityCompetitions.map(async ({ slug }) => {
+      const compMatches: MarketFixture[] = [];
+      // Query today and upcoming dates for this competition
+      for (const dStr of dates.slice(0, 4)) {
+        try {
+          const res = await fetch(`https://sportscore.com/api/v1/fixtures/?sport=football&competition=${slug}&date=${dStr}`, {
+            headers: { 'User-Agent': 'Mozilla/5.0' },
+            signal: AbortSignal.timeout(6000),
+          });
+          if (res.ok) {
+            const json = await res.json();
+            if (Array.isArray(json.matches)) {
+              json.matches.forEach((m: any) => {
+                compMatches.push(normalizeSportScoreMatch(m, nowIso, false));
+              });
+            }
+          }
+        } catch {
+          // non-fatal per date
         }
-      } catch {
-        return [];
       }
-      return [];
+      return compMatches;
     });
 
-    // 3. Rolling dates
+    // 3. Rolling dates (generic slate)
     const datePromises = dates.map(async (dStr) => {
       try {
         const res = await fetch(`https://sportscore.com/api/v1/fixtures/?sport=football&date=${dStr}&limit=200`, {
