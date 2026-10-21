@@ -23,7 +23,7 @@ export const COMPETITION_BANNERS: Record<string, CompetitionBannerConfig> = {
     id: 'uefa_champions_league',
     name: 'UEFA Champions League',
     bannerUrl: '/banners/uefa-champions-league.jpg',
-    overlayOpacity: 0.42,
+    overlayOpacity: 0.35,
     gradientOverlay: 'from-transparent via-[#EDF4FE]/35 to-[#FFFFF0]/80',
     cardBg: 'bg-gradient-to-b from-[#E3EFFE] via-[#F0F6FE] to-[#FFFFF0]',
     borderColor: 'border-[#7BA7F8]',

@@ -83,7 +83,7 @@ export default function FixtureSportCard({
             decoding="async"
             className="w-full h-full object-cover object-[right_top] scale-100 transition-transform duration-700 ease-out group-hover:scale-105"
             style={{
-              opacity: banner.overlayOpacity ?? 0.42,
+              opacity: banner.overlayOpacity ?? 0.35,
             }}
           />
           {/* Soft gradient wash to seamlessly blend artwork into the warm ivory base */}
