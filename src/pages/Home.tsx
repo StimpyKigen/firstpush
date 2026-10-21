@@ -128,87 +128,133 @@ export default function Home() {
 
       {/* =========================================================================
           1. WEEKLY EDITORIAL NEWS (NEW FIRST SECTION)
-          9:16 Aspect Ratio Photo Carousel with Touch Side-Swiping
+          Desktop: Side-by-Side Cards Grid | Mobile: 9:16 Touch Swipe Carousel
+          Photos display gracefully in full without cropping.
           ========================================================================= */}
       {publishedPhotos.length > 0 && (
         <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 sm:pt-10">
-          <div className="text-center sm:text-left mb-5">
+          <div className="text-center sm:text-left mb-6">
             <span className="text-[#006C54] font-bold text-xs uppercase tracking-wider block mb-1">
               Weekly Editorial News
             </span>
-            <h1 className="font-semibold text-2xl sm:text-3xl text-slate-900 tracking-tight">
+            <h1 className="font-extrabold sm:font-black text-2xl sm:text-3xl lg:text-4xl text-slate-900 tracking-tight">
               Top Stories &amp; Matchday Perspectives
             </h1>
           </div>
 
-          {/* 9:16 Carousel Container - max 3/4 viewport height on mobile (max-h-[72vh]), not chunky */}
-          <div className="relative mx-auto w-full max-w-[340px] sm:max-w-[380px] aspect-[9/16] max-h-[72vh] rounded-3xl overflow-hidden bg-slate-950 shadow-xl group select-none">
-            {/* Touch Swipe Surface */}
-            <div
-              className="w-full h-full relative"
-              onTouchStart={handlePhotoTouchStart}
-              onTouchMove={handlePhotoTouchMove}
-              onTouchEnd={handlePhotoTouchEnd}
-            >
-              {/* Carousel Slide Image */}
-              <img
-                src={publishedPhotos[carouselIndex]?.imageUrl}
-                alt={publishedPhotos[carouselIndex]?.caption || 'Homepage editorial'}
-                className="w-full h-full object-cover transition-all duration-500 ease-out"
-                draggable={false}
-              />
+          {/* DESKTOP VIEW: Side-by-Side Multi-Column Cards */}
+          <div className="hidden md:grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {publishedPhotos.map((photo) => (
+              <div
+                key={photo.id}
+                className="relative w-full aspect-[4/5] lg:aspect-[3/4] rounded-3xl overflow-hidden bg-slate-950 shadow-lg border border-slate-800/50 flex items-center justify-center group transition-all duration-300 hover:shadow-2xl select-none"
+              >
+                {/* Ambient blurred backdrop so any aspect ratio blends seamlessly */}
+                <img
+                  src={photo.imageUrl}
+                  alt=""
+                  aria-hidden="true"
+                  className="absolute inset-0 w-full h-full object-cover filter blur-2xl opacity-25 scale-110 pointer-events-none"
+                />
 
-              {/* Bottom Scrim for Caption Legibility */}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/35 to-transparent pointer-events-none" />
+                {/* Crisp Full Uncropped Image */}
+                <img
+                  src={photo.imageUrl}
+                  alt={photo.caption || 'Editorial news story'}
+                  className="relative z-10 w-full h-full object-contain p-2.5 transition-transform duration-500 ease-out group-hover:scale-[1.02]"
+                  draggable={false}
+                />
 
-              {/* Bottom Foreground Caption */}
-              {publishedPhotos[carouselIndex]?.caption && (
-                <div className="absolute bottom-5 left-5 right-5 z-10">
-                  <span className="inline-block text-[#006C54] bg-white text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider mb-2 shadow-xs">
-                    Weekly Spotlight
-                  </span>
-                  <p className="text-white font-semibold text-sm sm:text-base leading-snug drop-shadow-sm line-clamp-4">
-                    {publishedPhotos[carouselIndex].caption}
-                  </p>
-                </div>
-              )}
+                {/* Bottom Scrim for Caption Legibility */}
+                <div className="absolute inset-0 z-10 bg-gradient-to-t from-black/90 via-black/30 to-transparent pointer-events-none" />
 
-              {/* Slide Navigation Chevrons */}
-              {publishedPhotos.length > 1 && (
-                <>
-                  <button
-                    type="button"
-                    onClick={prevPhoto}
-                    aria-label="Previous slide"
-                    className="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-white/85 hover:bg-white text-slate-900 flex items-center justify-center transition-all opacity-0 group-hover:opacity-100 shadow-md cursor-pointer z-20"
-                  >
-                    <ChevronLeft size={18} />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={nextPhoto}
-                    aria-label="Next slide"
-                    className="absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-white/85 hover:bg-white text-slate-900 flex items-center justify-center transition-all opacity-0 group-hover:opacity-100 shadow-md cursor-pointer z-20"
-                  >
-                    <ChevronRight size={18} />
-                  </button>
-
-                  {/* Dot Indicators */}
-                  <div className="absolute top-4 right-4 flex items-center gap-1.5 z-20">
-                    {publishedPhotos.map((_, idx) => (
-                      <button
-                        key={idx}
-                        type="button"
-                        onClick={() => setCarouselIndex(idx)}
-                        className={`h-1.5 rounded-full transition-all cursor-pointer ${
-                          idx === carouselIndex ? 'w-5 bg-white' : 'w-1.5 bg-white/50 hover:bg-white/80'
-                        }`}
-                        aria-label={`Go to slide ${idx + 1}`}
-                      />
-                    ))}
+                {/* Bottom Foreground Caption (Pill omitted per instructions) */}
+                {photo.caption && (
+                  <div className="absolute bottom-5 left-5 right-5 z-20">
+                    <p className="text-white font-semibold text-sm lg:text-base leading-snug drop-shadow-sm line-clamp-3">
+                      {photo.caption}
+                    </p>
                   </div>
-                </>
-              )}
+                )}
+              </div>
+            ))}
+          </div>
+
+          {/* MOBILE VIEW: Touch Swipe Carousel */}
+          <div className="block md:hidden">
+            <div className="relative mx-auto w-full max-w-[340px] sm:max-w-[380px] aspect-[4/5] sm:aspect-[9/16] max-h-[72vh] rounded-3xl overflow-hidden bg-slate-950 shadow-xl group select-none">
+              {/* Touch Swipe Surface */}
+              <div
+                className="w-full h-full relative flex items-center justify-center"
+                onTouchStart={handlePhotoTouchStart}
+                onTouchMove={handlePhotoTouchMove}
+                onTouchEnd={handlePhotoTouchEnd}
+              >
+                {/* Ambient blurred backdrop */}
+                <img
+                  src={publishedPhotos[carouselIndex]?.imageUrl}
+                  alt=""
+                  aria-hidden="true"
+                  className="absolute inset-0 w-full h-full object-cover filter blur-2xl opacity-25 scale-110 pointer-events-none"
+                />
+
+                {/* Crisp Uncropped Carousel Slide Image */}
+                <img
+                  src={publishedPhotos[carouselIndex]?.imageUrl}
+                  alt={publishedPhotos[carouselIndex]?.caption || 'Homepage editorial'}
+                  className="relative z-10 w-full h-full object-contain p-2.5 transition-all duration-500 ease-out"
+                  draggable={false}
+                />
+
+                {/* Bottom Scrim for Caption Legibility */}
+                <div className="absolute inset-0 z-10 bg-gradient-to-t from-black/90 via-black/35 to-transparent pointer-events-none" />
+
+                {/* Bottom Foreground Caption (Pill omitted per instructions) */}
+                {publishedPhotos[carouselIndex]?.caption && (
+                  <div className="absolute bottom-5 left-5 right-5 z-20">
+                    <p className="text-white font-semibold text-sm sm:text-base leading-snug drop-shadow-sm line-clamp-4">
+                      {publishedPhotos[carouselIndex].caption}
+                    </p>
+                  </div>
+                )}
+
+                {/* Slide Navigation Chevrons */}
+                {publishedPhotos.length > 1 && (
+                  <>
+                    <button
+                      type="button"
+                      onClick={prevPhoto}
+                      aria-label="Previous slide"
+                      className="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-white/85 hover:bg-white text-slate-900 flex items-center justify-center transition-all opacity-0 group-hover:opacity-100 shadow-md cursor-pointer z-30"
+                    >
+                      <ChevronLeft size={18} />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={nextPhoto}
+                      aria-label="Next slide"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-white/85 hover:bg-white text-slate-900 flex items-center justify-center transition-all opacity-0 group-hover:opacity-100 shadow-md cursor-pointer z-30"
+                    >
+                      <ChevronRight size={18} />
+                    </button>
+
+                    {/* Dot Indicators */}
+                    <div className="absolute top-4 right-4 flex items-center gap-1.5 z-30">
+                      {publishedPhotos.map((_, idx) => (
+                        <button
+                          key={idx}
+                          type="button"
+                          onClick={() => setCarouselIndex(idx)}
+                          className={`h-1.5 rounded-full transition-all cursor-pointer ${
+                            idx === carouselIndex ? 'w-5 bg-white' : 'w-1.5 bg-white/50 hover:bg-white/80'
+                          }`}
+                          aria-label={`Go to slide ${idx + 1}`}
+                        />
+                      ))}
+                    </div>
+                  </>
+                )}
+              </div>
             </div>
           </div>
         </section>
@@ -223,14 +269,12 @@ export default function Home() {
 
       {/* =========================================================================
           3. VIDEOS AND HIGHLIGHTS SECTION
-          Acceptable Sizing: Mobile 360 x 202.5 px with Touch Side-Swiping
+          Desktop: Side-by-Side Grid | Mobile: Sideward Swipe Scroll
+          'Match video hub' omitted, Thicker Heading applied
           ========================================================================= */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16 sm:pb-20">
         <div className="text-center sm:text-left mb-6 sm:mb-8">
-          <span className="text-[#006C54] font-bold text-xs uppercase tracking-wider block mb-1">
-            Match Video Hub
-          </span>
-          <h2 className="font-semibold text-2xl sm:text-3xl text-slate-900 tracking-tight">
+          <h2 className="font-extrabold sm:font-black text-2xl sm:text-3xl lg:text-4xl text-slate-900 tracking-tight">
             Videos and Highlights
           </h2>
         </div>
@@ -239,102 +283,73 @@ export default function Home() {
           <div className="bg-white border border-slate-200 rounded-2xl p-8 text-center text-slate-400 text-xs max-w-md mx-auto shadow-2xs">
             No video highlights published yet. Admin can publish videos via the Admin Console.
           </div>
-        ) : publishedVideos.length === 1 ? (
-          /* Single Video Display - Mobile 360 x 202.5 px */
-          <div className="w-full max-w-[360px] sm:max-w-[480px] mx-auto bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-xs">
-            <div className="relative w-full aspect-[16/9] bg-black overflow-hidden">
-              <iframe
-                src={publishedVideos[0].embedUrl}
-                title={publishedVideos[0].title}
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowFullScreen
-                loading="lazy"
-                className="w-full h-full border-0"
-              />
-            </div>
-            <div className="p-4 flex items-start gap-2.5">
-              <div className="mt-0.5 text-[#006C54] shrink-0">
-                <Play size={15} fill="currentColor" />
-              </div>
-              <div className="min-w-0">
-                <h3 className="font-semibold text-xs sm:text-sm text-slate-900 leading-snug">
-                  {publishedVideos[0].title}
-                </h3>
-              </div>
-            </div>
-          </div>
         ) : (
-          /* Multiple Videos - Side-Swiping Carousel with 360 x 202.5 px Mobile Sizing */
-          <div className="relative w-full max-w-[360px] sm:max-w-[500px] mx-auto group select-none">
-            <div
-              className="w-full bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm"
-              onTouchStart={handleVideoTouchStart}
-              onTouchMove={handleVideoTouchMove}
-              onTouchEnd={handleVideoTouchEnd}
-            >
-              {/* Active Video Iframe (Exact 16:9 / 360 x 202.5 px on mobile) */}
-              <div className="relative w-full aspect-[16/9] bg-black overflow-hidden">
-                <iframe
-                  key={publishedVideos[videoIndex]?.id}
-                  src={publishedVideos[videoIndex]?.embedUrl}
-                  title={publishedVideos[videoIndex]?.title}
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  allowFullScreen
-                  loading="lazy"
-                  className="w-full h-full border-0 transition-opacity duration-300"
-                />
-              </div>
-
-              {/* Title & Controls Bar */}
-              <div className="p-4 flex items-center justify-between gap-3">
-                <div className="flex items-start gap-2.5 min-w-0">
-                  <div className="mt-0.5 text-[#006C54] shrink-0">
-                    <Play size={15} fill="currentColor" />
+          <>
+            {/* DESKTOP VIEW: Side-by-Side Multi-Column Grid */}
+            <div className="hidden md:grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {publishedVideos.map((video) => (
+                <div
+                  key={video.id}
+                  className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-xs hover:shadow-md transition-shadow flex flex-col"
+                >
+                  <div className="relative w-full aspect-[16/9] bg-black overflow-hidden">
+                    <iframe
+                      src={video.embedUrl}
+                      title={video.title}
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      allowFullScreen
+                      loading="lazy"
+                      className="w-full h-full border-0"
+                    />
                   </div>
-                  <h3 className="font-semibold text-xs sm:text-sm text-slate-900 leading-snug truncate">
-                    {publishedVideos[videoIndex]?.title}
-                  </h3>
+                  <div className="p-4 flex items-start gap-2.5 flex-1 bg-white">
+                    <div className="mt-0.5 text-[#006C54] shrink-0">
+                      <Play size={15} fill="currentColor" />
+                    </div>
+                    <h3 className="font-semibold text-xs sm:text-sm text-slate-900 leading-snug line-clamp-2">
+                      {video.title}
+                    </h3>
+                  </div>
                 </div>
-
-                <div className="text-[11px] font-mono font-semibold text-slate-400 shrink-0">
-                  {videoIndex + 1} / {publishedVideos.length}
-                </div>
-              </div>
-            </div>
-
-            {/* Navigation Buttons for Video Carousel */}
-            <button
-              type="button"
-              onClick={prevVideo}
-              aria-label="Previous video"
-              className="absolute -left-3 sm:-left-4 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white/95 hover:bg-white text-slate-800 flex items-center justify-center shadow-md border border-slate-200 cursor-pointer z-10 transition-transform active:scale-90"
-            >
-              <ChevronLeft size={16} />
-            </button>
-            <button
-              type="button"
-              onClick={nextVideo}
-              aria-label="Next video"
-              className="absolute -right-3 sm:-right-4 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white/95 hover:bg-white text-slate-800 flex items-center justify-center shadow-md border border-slate-200 cursor-pointer z-10 transition-transform active:scale-90"
-            >
-              <ChevronRight size={16} />
-            </button>
-
-            {/* Dot Indicators */}
-            <div className="flex items-center justify-center gap-1.5 mt-3">
-              {publishedVideos.map((_, idx) => (
-                <button
-                  key={idx}
-                  type="button"
-                  onClick={() => setVideoIndex(idx)}
-                  className={`h-1.5 rounded-full transition-all cursor-pointer ${
-                    idx === videoIndex ? 'w-5 bg-[#006C54]' : 'w-1.5 bg-slate-300 hover:bg-slate-400'
-                  }`}
-                  aria-label={`Go to video ${idx + 1}`}
-                />
               ))}
             </div>
-          </div>
+
+            {/* MOBILE VIEW: Sideward Scroll with Smooth Snap & Indicators */}
+            <div className="block md:hidden">
+              <div className="flex overflow-x-auto snap-x snap-mandatory gap-4 pb-4 px-4 sm:px-0 -mx-4 sm:mx-0 no-scrollbar">
+                {publishedVideos.map((video, idx) => (
+                  <div
+                    key={video.id}
+                    className="w-[84vw] max-w-[340px] shrink-0 snap-center bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm flex flex-col"
+                  >
+                    <div className="relative w-full aspect-[16/9] bg-black overflow-hidden">
+                      <iframe
+                        src={video.embedUrl}
+                        title={video.title}
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowFullScreen
+                        loading="lazy"
+                        className="w-full h-full border-0"
+                      />
+                    </div>
+                    <div className="p-3.5 flex items-center justify-between gap-3 bg-white">
+                      <div className="flex items-start gap-2 min-w-0">
+                        <div className="mt-0.5 text-[#006C54] shrink-0">
+                          <Play size={14} fill="currentColor" />
+                        </div>
+                        <h3 className="font-semibold text-xs text-slate-900 leading-snug truncate">
+                          {video.title}
+                        </h3>
+                      </div>
+                      <span className="text-[10px] font-mono font-semibold text-slate-400 shrink-0">
+                        {idx + 1}/{publishedVideos.length}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </>
         )}
       </section>
     </div>

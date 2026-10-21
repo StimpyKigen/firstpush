@@ -8,6 +8,9 @@
  * Persisted in localStorage so administrative updates remain immediate and durable.
  */
 
+import { doc, setDoc, onSnapshot } from 'firebase/firestore';
+import { db } from '../firebase';
+
 export interface HomepageCarouselItem {
   id: string;
   imageUrl: string;
@@ -31,6 +34,8 @@ export interface HomepageFeedData {
 }
 
 const STORAGE_KEY = 'mshindi_homepage_feed_v1';
+const FIRESTORE_COLLECTION = 'siteContent';
+const FIRESTORE_DOC = 'homepageFeed';
 
 /**
  * Normalizes any YouTube URL (watch, shorts, youtu.be, embed) into a safe embed URL
@@ -127,8 +132,72 @@ function loadStoredFeed(): HomepageFeedData {
 
 let currentFeed: HomepageFeedData = loadStoredFeed();
 const listeners = new Set<() => void>();
+let isListeningToCloud = false;
 
-function emitChange() {
+function setupCloudSync() {
+  if (typeof window === 'undefined' || isListeningToCloud) return;
+  isListeningToCloud = true;
+
+  // 1. Cross-tab storage synchronization
+  try {
+    window.addEventListener('storage', (event) => {
+      if (event.key === STORAGE_KEY && event.newValue) {
+        try {
+          const parsed = JSON.parse(event.newValue);
+          if (parsed && Array.isArray(parsed.carouselItems) && Array.isArray(parsed.videoItems)) {
+            currentFeed = parsed;
+            listeners.forEach((l) => l());
+          }
+        } catch {
+          // ignore JSON parsing issues
+        }
+      }
+    });
+  } catch (err) {
+    console.warn('[HomepageFeed] Storage listener setup notice:', err);
+  }
+
+  // 2. Real-time Cloud Firestore synchronization across all users and devices
+  try {
+    const feedRef = doc(db, FIRESTORE_COLLECTION, FIRESTORE_DOC);
+    onSnapshot(
+      feedRef,
+      (snapshot) => {
+        if (snapshot.exists()) {
+          const cloudData = snapshot.data() as HomepageFeedData;
+          if (cloudData && Array.isArray(cloudData.carouselItems) && Array.isArray(cloudData.videoItems)) {
+            currentFeed = cloudData;
+            try {
+              localStorage.setItem(STORAGE_KEY, JSON.stringify(cloudData));
+            } catch {}
+            listeners.forEach((l) => l());
+          }
+        }
+      },
+      (error) => {
+        console.warn('[HomepageFeed] Firestore listener notice (using local cache):', error.message);
+      }
+    );
+  } catch (err) {
+    console.warn('[HomepageFeed] Cloud sync initialization fallback:', err);
+  }
+}
+
+// Initialize listener immediately on browser
+if (typeof window !== 'undefined') {
+  setupCloudSync();
+}
+
+async function persistToCloud(data: HomepageFeedData) {
+  try {
+    const feedRef = doc(db, FIRESTORE_COLLECTION, FIRESTORE_DOC);
+    await setDoc(feedRef, data, { merge: true });
+  } catch (err) {
+    console.warn('[HomepageFeed] Cloud push notice (persisted in local storage):', err);
+  }
+}
+
+function emitChange(syncCloud = true) {
   if (typeof window !== 'undefined') {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(currentFeed));
@@ -137,6 +206,9 @@ function emitChange() {
     }
   }
   listeners.forEach((listener) => listener());
+  if (syncCloud && typeof window !== 'undefined') {
+    persistToCloud(currentFeed);
+  }
 }
 
 export function getHomepageFeedSnapshot(): HomepageFeedData {

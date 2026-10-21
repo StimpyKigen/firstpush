@@ -247,30 +247,35 @@ export default function AdminHomepageFeed() {
                 </button>
               </div>
 
-              {/* Exact Mock of Homepage Carousel Card (9:16 Aspect Ratio) */}
-              <div className="relative w-full max-w-[280px] sm:max-w-[320px] mx-auto aspect-[9/16] max-h-[70vh] rounded-3xl overflow-hidden bg-slate-950 shadow-md">
+              {/* Exact Mock of Homepage Carousel Card */}
+              <div className="relative w-full max-w-[280px] sm:max-w-[320px] mx-auto aspect-[4/5] sm:aspect-[9/16] max-h-[70vh] rounded-3xl overflow-hidden bg-slate-950 shadow-md flex items-center justify-center">
+                {/* Ambient blurred backdrop */}
+                <img
+                  src={photoUrl}
+                  alt=""
+                  aria-hidden="true"
+                  className="absolute inset-0 w-full h-full object-cover filter blur-2xl opacity-25 scale-110 pointer-events-none"
+                />
+                {/* Crisp Uncropped Image */}
                 <img
                   src={photoUrl}
                   alt="Preview"
-                  className="w-full h-full object-cover"
+                  className="relative z-10 w-full h-full object-contain p-2"
                   onError={(e) => {
                     (e.target as HTMLElement).style.display = 'none';
                   }}
                 />
                 {/* Foreground Scrim Overlay */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/35 to-transparent pointer-events-none" />
+                <div className="absolute inset-0 z-10 bg-gradient-to-t from-black/90 via-black/35 to-transparent pointer-events-none" />
 
                 {photoCaption ? (
-                  <div className="absolute bottom-5 left-4 right-4 text-white z-10">
-                    <span className="inline-block text-[#006C54] bg-white text-[9.5px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider mb-1.5 shadow-2xs">
-                      Weekly Spotlight
-                    </span>
+                  <div className="absolute bottom-5 left-4 right-4 text-white z-20">
                     <p className="font-semibold text-xs sm:text-sm leading-snug drop-shadow-sm line-clamp-4">
                       {photoCaption}
                     </p>
                   </div>
                 ) : (
-                  <div className="absolute bottom-4 left-4 text-xs text-white/60">
+                  <div className="absolute bottom-4 left-4 text-xs text-white/60 z-20">
                     (No caption attached · image only)
                   </div>
                 )}
@@ -282,7 +287,7 @@ export default function AdminHomepageFeed() {
         {/* Existing Carousel Items Table / List */}
         <div className="mt-8 pt-6 border-t border-slate-100">
           <h4 className="text-xs font-semibold text-slate-800 uppercase tracking-wider mb-4">
-            Active Carousel Feed ({feed.carouselItems.length}) · 9:16 Cards
+            Active Editorial Feed ({feed.carouselItems.length}) · Full Uncropped Cards
           </h4>
 
           {feed.carouselItems.length === 0 ? (
@@ -298,15 +303,21 @@ export default function AdminHomepageFeed() {
                     item.published ? 'bg-[#FFFFF0] border-slate-200' : 'bg-slate-50 border-slate-200 opacity-60'
                   }`}
                 >
-                  <div className="relative aspect-[9/16] bg-slate-900 overflow-hidden">
+                  <div className="relative aspect-[4/5] sm:aspect-[9/16] bg-slate-950 overflow-hidden flex items-center justify-center">
                     <img
                       src={item.imageUrl}
                       alt=""
-                      className="w-full h-full object-cover"
+                      aria-hidden="true"
+                      className="absolute inset-0 w-full h-full object-cover filter blur-xl opacity-25 scale-110 pointer-events-none"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-transparent pointer-events-none" />
+                    <img
+                      src={item.imageUrl}
+                      alt=""
+                      className="relative z-10 w-full h-full object-contain p-1"
+                    />
+                    <div className="absolute inset-0 z-10 bg-gradient-to-t from-black/85 via-black/25 to-transparent pointer-events-none" />
                     {item.caption && (
-                      <p className="absolute bottom-2.5 left-2.5 right-2.5 text-white text-[11px] font-medium leading-snug line-clamp-3">
+                      <p className="absolute bottom-2.5 left-2.5 right-2.5 z-20 text-white text-[11px] font-medium leading-snug line-clamp-3">
                         {item.caption}
                       </p>
                     )}

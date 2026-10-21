@@ -20,6 +20,13 @@ service cloud.firestore {
       allow read, write: if false;
     }
 
+    // Site content (homepage editorial feed, announcements, highlights): public read, signed-in write
+    match /siteContent/{docId} {
+      allow read: if true;
+      allow create, update: if isSignedIn();
+      allow delete: if isSignedIn();
+    }
+
     // Users collection: only the owner can create or update their own profile
     match /users/{userId} {
       allow read: if isSignedIn();
