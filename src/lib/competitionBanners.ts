@@ -131,11 +131,27 @@ export const COMPETITION_BANNERS: Record<string, CompetitionBannerConfig> = {
     dividerColor: 'border-[#FECACA]',
     shadow: 'shadow-[0_2px_12px_rgba(220,38,38,0.08)] hover:shadow-[0_4px_18px_rgba(220,38,38,0.16)]',
   },
+  serie_a: {
+    id: 'serie_a',
+    name: 'Italian Serie A',
+    bannerUrl: '/banners/serie-a.jpg',
+    overlayOpacity: 0.32,
+    objectPosition: 'object-[center_50%]',
+    gradientOverlay: 'from-transparent via-[#E0F2FE]/20 to-[#FFFFF0]/35',
+    cardBg: 'bg-gradient-to-b from-[#E0F2FE] via-[#F0F9FF] to-[#FFFFF0]',
+    baseTint: 'bg-gradient-to-b from-[#0284C7]/10 via-[#0284C7]/3 to-transparent',
+    borderColor: 'border-[#38BDF8]/70',
+    borderHoverColor: 'hover:border-[#0284C7]',
+    oddsBorderColor: 'border-[#38BDF8]/50 hover:border-[#0284C7]',
+    consensusTrackBg: 'bg-[#BAE6FD]',
+    dividerColor: 'border-[#7DD3FC]',
+    shadow: 'shadow-[0_2px_12px_rgba(2,132,199,0.08)] hover:shadow-[0_4px_18px_rgba(2,132,199,0.16)]',
+  },
 };
 
 /**
  * Returns the banner configuration if the competition matches a registered banner artwork.
- * Matches UEFA Champions League, UEFA Europa League, UEFA Conference League, English Premier League, Spanish La Liga, French Ligue 1, and German Bundesliga fixtures.
+ * Matches UEFA Champions League, UEFA Europa League, UEFA Conference League, English Premier League, Spanish La Liga, French Ligue 1, German Bundesliga, and Italian Serie A fixtures.
  */
 export function getCompetitionBanner(competition: string, competitionId?: string): CompetitionBannerConfig | null {
   if (competitionId) {
@@ -146,6 +162,7 @@ export function getCompetitionBanner(competition: string, competitionId?: string
     if (competitionId === 'esp_la_liga') return COMPETITION_BANNERS.la_liga;
     if (competitionId === 'fra_ligue_1') return COMPETITION_BANNERS.ligue_1;
     if (competitionId === 'ger_bundesliga') return COMPETITION_BANNERS.bundesliga;
+    if (competitionId === 'ita_serie_a') return COMPETITION_BANNERS.serie_a;
   }
 
   if (!competition) return null;
@@ -292,6 +309,31 @@ export function getCompetitionBanner(competition: string, competitionId?: string
     !comp.includes('u17')
   ) {
     return COMPETITION_BANNERS.bundesliga;
+  }
+
+  // 8. Italian Serie A
+  if (
+    (comp === 'serie a' ||
+      comp === 'italian serie a' ||
+      comp === 'italy serie a' ||
+      comp === 'italian seria a' ||
+      comp === 'seria a' ||
+      comp.startsWith('serie a') ||
+      comp.startsWith('seria a') ||
+      comp.includes('serie a') ||
+      comp.includes('seria a')) &&
+    !comp.includes('serie b') &&
+    !comp.includes('serie c') &&
+    !comp.includes('serie d') &&
+    !comp.includes('brazil') &&
+    !comp.includes('brasil') &&
+    !comp.includes('ecuador') &&
+    !comp.includes('women') &&
+    !comp.includes('femminile') &&
+    !comp.includes('u19') &&
+    !comp.includes('primavera')
+  ) {
+    return COMPETITION_BANNERS.serie_a;
   }
 
   return null;
