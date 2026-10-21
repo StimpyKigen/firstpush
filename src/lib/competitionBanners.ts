@@ -82,11 +82,26 @@ export const COMPETITION_BANNERS: Record<string, CompetitionBannerConfig> = {
     dividerColor: 'border-[#99F6E4]',
     shadow: 'shadow-[0_2px_12px_rgba(13,148,136,0.09)] hover:shadow-[0_4px_18px_rgba(13,148,136,0.16)]',
   },
+  la_liga: {
+    id: 'la_liga',
+    name: 'Spanish La Liga',
+    bannerUrl: '/banners/la-liga.jpg',
+    overlayOpacity: 0.32,
+    gradientOverlay: 'from-transparent via-[#FFF1F2]/20 to-[#FFFFF0]/35',
+    cardBg: 'bg-gradient-to-b from-[#FFF1F2] via-[#FFF5F5] to-[#FFFFF0]',
+    baseTint: 'bg-gradient-to-b from-[#E11D48]/8 via-[#E11D48]/2 to-transparent',
+    borderColor: 'border-[#FB7185]/70',
+    borderHoverColor: 'hover:border-[#E11D48]',
+    oddsBorderColor: 'border-[#FB7185]/50 hover:border-[#E11D48]',
+    consensusTrackBg: 'bg-[#FFE4E6]',
+    dividerColor: 'border-[#FECDD3]',
+    shadow: 'shadow-[0_2px_12px_rgba(225,29,72,0.08)] hover:shadow-[0_4px_18px_rgba(225,29,72,0.16)]',
+  },
 };
 
 /**
  * Returns the banner configuration if the competition matches a registered banner artwork.
- * Matches UEFA Champions League, UEFA Europa League, UEFA Conference League, and English Premier League fixtures.
+ * Matches UEFA Champions League, UEFA Europa League, UEFA Conference League, English Premier League, and Spanish La Liga fixtures.
  */
 export function getCompetitionBanner(competition: string, competitionId?: string): CompetitionBannerConfig | null {
   if (competitionId) {
@@ -94,6 +109,7 @@ export function getCompetitionBanner(competition: string, competitionId?: string
     if (competitionId === 'uefa_europa_league') return COMPETITION_BANNERS.uefa_europa_league;
     if (competitionId === 'uefa_conference_league') return COMPETITION_BANNERS.uefa_conference_league;
     if (competitionId === 'eng_premier_league') return COMPETITION_BANNERS.premier_league;
+    if (competitionId === 'esp_la_liga') return COMPETITION_BANNERS.la_liga;
   }
 
   if (!competition) return null;
@@ -166,6 +182,35 @@ export function getCompetitionBanner(competition: string, competitionId?: string
     !comp.includes('2')
   ) {
     return COMPETITION_BANNERS.premier_league;
+  }
+
+  // 5. Spanish La Liga
+  if (
+    (comp === 'la liga' ||
+      comp === 'laliga' ||
+      comp === 'spanish la liga' ||
+      comp.startsWith('la liga') ||
+      comp.startsWith('laliga') ||
+      comp === 'primera division' ||
+      comp.startsWith('primera division')) &&
+    !comp.includes('argentina') &&
+    !comp.includes('costa rica') &&
+    !comp.includes('chile') &&
+    !comp.includes('uruguay') &&
+    !comp.includes('paraguay') &&
+    !comp.includes('colombia') &&
+    !comp.includes('bolivia') &&
+    !comp.includes('venezuela') &&
+    !comp.includes('peru') &&
+    !comp.includes('segunda') &&
+    !comp.includes('laliga 2') &&
+    !comp.includes('laliga2') &&
+    !comp.includes('rfef') &&
+    !comp.includes('women') &&
+    !comp.includes('femenina') &&
+    !comp.includes('liga f')
+  ) {
+    return COMPETITION_BANNERS.la_liga;
   }
 
   return null;
