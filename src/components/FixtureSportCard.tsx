@@ -81,7 +81,7 @@ export default function FixtureSportCard({
             alt=""
             loading="lazy"
             decoding="async"
-            className="w-full h-full object-cover object-[right_top] scale-100 transition-transform duration-700 ease-out group-hover:scale-105"
+            className={`w-full h-full object-cover ${banner.objectPosition || 'object-[right_top]'} scale-100 transition-transform duration-700 ease-out group-hover:scale-105`}
             style={{
               opacity: banner.overlayOpacity ?? 0.32,
             }}

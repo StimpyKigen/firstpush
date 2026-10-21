@@ -19,6 +19,7 @@ export interface CompetitionBannerConfig {
   consensusTrackBg?: string;// Consensus progress bar track
   dividerColor?: string;    // Footer divider line color
   shadow?: string;          // Drop shadow with competition tint
+  objectPosition?: string;  // Image focal point (defaults to object-[right_top])
 }
 
 export const COMPETITION_BANNERS: Record<string, CompetitionBannerConfig> = {
@@ -85,8 +86,9 @@ export const COMPETITION_BANNERS: Record<string, CompetitionBannerConfig> = {
   la_liga: {
     id: 'la_liga',
     name: 'Spanish La Liga',
-    bannerUrl: '/banners/la-liga.jpg',
+    bannerUrl: '/banners/la-liga.png',
     overlayOpacity: 0.32,
+    objectPosition: 'object-[center_46%]',
     gradientOverlay: 'from-transparent via-[#FFF1F2]/20 to-[#FFFFF0]/35',
     cardBg: 'bg-gradient-to-b from-[#FFF1F2] via-[#FFF5F5] to-[#FFFFF0]',
     baseTint: 'bg-gradient-to-b from-[#E11D48]/8 via-[#E11D48]/2 to-transparent',
