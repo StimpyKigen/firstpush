@@ -158,6 +158,93 @@ export async function refreshFreeMatches(force = false) {
   }
 }
 
+export interface PdfFixtureBatch {
+  id: string;
+  fileName: string;
+  fixtureCount: number;
+  publishedAt: string;
+  sectoredCount: number;
+}
+
+export function makeFreeMatchDedupeKey(m: { home: string; away: string; kickoffIso?: string; kickoff?: string }): string {
+  const h = (m.home || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+  const a = (m.away || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+  const d = (m.kickoffIso ? m.kickoffIso.slice(0, 10) : m.kickoff || '').replace(/[^0-9]/g, '').slice(0, 8);
+  return `${h}___${a}___${d}`;
+}
+
+export function getPdfFixtureBatches(): PdfFixtureBatch[] {
+  try {
+    const raw = localStorage.getItem('mshindi_fixture_batches');
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) return parsed;
+    }
+  } catch {}
+  return [];
+}
+
+export function savePdfFixtureBatches(batches: PdfFixtureBatch[]) {
+  try {
+    localStorage.setItem('mshindi_fixture_batches', JSON.stringify(batches));
+  } catch {}
+}
+
+export function deletePdfFixtureBatch(batchId: string): PdfFixtureBatch[] {
+  const batches = getPdfFixtureBatches().filter((b) => b.id !== batchId);
+  savePdfFixtureBatches(batches);
+  return batches;
+}
+
+export function appendUploadedFreeMatches(
+  incoming: FreeMatch[],
+  batchMeta?: { fileName: string; sectoredCount: number }
+): { totalCount: number; addedCount: number; batches: PdfFixtureBatch[] } {
+  const existingMap = new Map<string, FreeMatch>();
+  for (const m of liveMatches) {
+    existingMap.set(makeFreeMatchDedupeKey(m), m);
+  }
+
+  let addedCount = 0;
+  for (const inc of incoming) {
+    const key = makeFreeMatchDedupeKey(inc);
+    if (existingMap.has(key)) {
+      // Duplicate fixture found on new PDF: keep existing, do not show duplicates
+      const prev = existingMap.get(key)!;
+      existingMap.set(key, {
+        ...prev,
+        ...inc,
+        id: prev.id,
+      });
+    } else {
+      existingMap.set(key, inc);
+      addedCount++;
+    }
+  }
+
+  const merged = Array.from(existingMap.values());
+  setUploadedFreeMatches(merged);
+
+  let batches = getPdfFixtureBatches();
+  if (batchMeta && incoming.length > 0) {
+    const newBatch: PdfFixtureBatch = {
+      id: `batch-${Date.now()}`,
+      fileName: batchMeta.fileName || 'uploaded-fixtures.pdf',
+      fixtureCount: incoming.length,
+      publishedAt: new Date().toISOString(),
+      sectoredCount: batchMeta.sectoredCount || 1,
+    };
+    batches = [newBatch, ...batches];
+    savePdfFixtureBatches(batches);
+  }
+
+  return {
+    totalCount: merged.length,
+    addedCount,
+    batches,
+  };
+}
+
 export function setUploadedFreeMatches(fixtures: FreeMatch[]) {
   liveMatches = [...fixtures];
   liveConsensus = Object.fromEntries(
@@ -188,6 +275,7 @@ export function clearAllFreeMatches() {
 
   try {
     localStorage.removeItem('mshindi_uploaded_fixtures');
+    localStorage.removeItem('mshindi_fixture_batches');
   } catch {}
 }
 

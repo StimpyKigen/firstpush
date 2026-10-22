@@ -57,6 +57,7 @@ export default function FreeMatches() {
 
   // Apple-inspired toolbar dropdown & popover states
   const [selectedSubLeague, setSelectedSubLeague] = useState<string>('all');
+  const [expandedCountryIds, setExpandedCountryIds] = useState<string[]>([]);
   const [isDateDropdownOpen, setIsDateDropdownOpen] = useState(false);
   const [isLeagueDropdownOpen, setIsLeagueDropdownOpen] = useState(false);
   const [leagueSearchQuery, setLeagueSearchQuery] = useState('');
@@ -109,9 +110,9 @@ export default function FreeMatches() {
     setIsLeagueDropdownOpen(false);
   };
 
-  const handleLeagueFilterChange = (val: string) => {
+  const handleLeagueFilterChange = (val: string, subLeague: string = 'all') => {
     setLeagueFilter(val);
-    setSelectedSubLeague('all');
+    setSelectedSubLeague(subLeague);
     setIsLeagueDropdownOpen(false);
     setLeagueSearchQuery('');
     try {
@@ -327,9 +328,15 @@ export default function FreeMatches() {
   // Current selected directory label for the dropdown trigger
   const selectedDirectoryLabel = useMemo(() => {
     if (leagueFilter === 'all') return 'All Competitions';
-    const found = SPORTSCORE_COUNTRY_DIRECTORY_CONFIG.find((entry) => entry.id === leagueFilter);
-    return found ? found.label : 'All Competitions';
-  }, [leagueFilter]);
+    const found =
+      directoryData.rows.find((entry) => entry.id === leagueFilter) ||
+      SPORTSCORE_COUNTRY_DIRECTORY_CONFIG.find((entry) => entry.id === leagueFilter);
+    const countryLabel = found ? found.label : (leagueFilter.charAt(0).toUpperCase() + leagueFilter.slice(1));
+    if (selectedSubLeague && selectedSubLeague !== 'all') {
+      return `${countryLabel}: ${selectedSubLeague}`;
+    }
+    return countryLabel;
+  }, [leagueFilter, directoryData.rows, selectedSubLeague]);
 
   // Search and league filtering
   const query = searchQuery.trim().toLowerCase();
@@ -350,6 +357,11 @@ export default function FreeMatches() {
       if (leagueFilter !== 'all') {
         const dirId = resolveSportScoreDirectoryId(m);
         if (dirId !== leagueFilter) return false;
+
+        // Sub-league filter
+        if (selectedSubLeague && selectedSubLeague !== 'all') {
+          if (m.competition !== selectedSubLeague) return false;
+        }
       }
 
       return true;
@@ -728,26 +740,116 @@ export default function FreeMatches() {
 
                   {/* SportScore Country / Category Rows */}
                   {directoryData.rows.map((row) => {
-                    const isSelected = leagueFilter === row.id;
+                    const isSelected = leagueFilter === row.id && selectedSubLeague === 'all';
+                    const isAnySubSelected = leagueFilter === row.id;
+                    const hasMultipleLeagues = row.leagues && row.leagues.length > 1;
+                    const isExpanded = expandedCountryIds.includes(row.id);
+
                     return (
-                      <button
-                        key={row.id}
-                        type="button"
-                        onClick={() => handleLeagueFilterChange(row.id)}
-                        className={`w-full px-3 py-2 rounded-lg text-left flex items-center justify-between transition-colors cursor-pointer ${
-                          isSelected
-                            ? 'bg-[#006C54]/10 text-[#006C54] font-bold'
-                            : 'hover:bg-[#F5F5E4] text-slate-800 font-medium'
-                        }`}
-                      >
-                        <span className="truncate pr-2">{row.label}</span>
-                        <div className="flex items-center gap-2 shrink-0">
-                          <span className="text-[11px] font-mono text-slate-500">
-                            {row.count}
-                          </span>
-                          {isSelected && <Check size={13} className="text-[#006C54]" />}
+                      <div key={row.id} className="transition-colors">
+                        {/* Country Row */}
+                        <div
+                          className={`w-full px-3 py-2 rounded-lg flex items-center justify-between transition-colors ${
+                            isAnySubSelected
+                              ? 'bg-[#006C54]/10 text-[#006C54] font-bold'
+                              : 'hover:bg-[#F5F5E4] text-slate-800 font-medium'
+                          }`}
+                        >
+                          <button
+                            type="button"
+                            onClick={() => {
+                              if (hasMultipleLeagues) {
+                                setExpandedCountryIds((prev) =>
+                                  prev.includes(row.id) ? prev.filter((id) => id !== row.id) : [...prev, row.id]
+                                );
+                              } else {
+                                handleLeagueFilterChange(row.id, 'all');
+                              }
+                            }}
+                            className="flex-1 text-left flex items-center gap-2 truncate cursor-pointer mr-2"
+                          >
+                            {row.flag && <span className="text-sm shrink-0">{row.flag}</span>}
+                            <span className="truncate">{row.label}</span>
+                            {hasMultipleLeagues && (
+                              <span className="text-[10px] font-normal px-1.5 py-0.2 rounded-full bg-slate-200/60 text-slate-600 shrink-0">
+                                {row.leagues.length} leagues
+                              </span>
+                            )}
+                          </button>
+
+                          <div className="flex items-center gap-1.5 shrink-0">
+                            <span className="text-[11px] font-mono text-slate-500">{row.count}</span>
+                            {isSelected && <Check size={13} className="text-[#006C54]" />}
+                            {hasMultipleLeagues && (
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setExpandedCountryIds((prev) =>
+                                    prev.includes(row.id) ? prev.filter((id) => id !== row.id) : [...prev, row.id]
+                                  );
+                                }}
+                                className="p-1 text-slate-400 hover:text-slate-700 transition-transform cursor-pointer"
+                                title={isExpanded ? 'Collapse leagues' : 'Expand leagues'}
+                              >
+                                <ChevronDown
+                                  size={13}
+                                  className={`transition-transform duration-200 ${isExpanded ? 'rotate-180 text-[#006C54]' : ''}`}
+                                />
+                              </button>
+                            )}
+                          </div>
                         </div>
-                      </button>
+
+                        {/* Expanded Accordion Subsection for Countries with Multiple Leagues */}
+                        {hasMultipleLeagues && isExpanded && (
+                          <div className="ml-4 pl-3 border-l-2 border-[#006C54]/25 my-1 space-y-0.5 animate-fade-in">
+                            {/* Option A: All Leagues in this country */}
+                            <button
+                              type="button"
+                              onClick={() => handleLeagueFilterChange(row.id, 'all')}
+                              className={`w-full px-2.5 py-1.5 rounded-md text-left flex items-center justify-between text-[11px] transition-colors cursor-pointer ${
+                                leagueFilter === row.id && selectedSubLeague === 'all'
+                                  ? 'bg-[#006C54] text-white font-bold'
+                                  : 'hover:bg-[#F5F5E4] text-slate-700 font-medium'
+                              }`}
+                            >
+                              <span className="truncate pr-2">All {row.label} Leagues</span>
+                              <div className="flex items-center gap-1.5 shrink-0">
+                                <span className={`font-mono text-[10px] ${leagueFilter === row.id && selectedSubLeague === 'all' ? 'text-white/80' : 'text-slate-500'}`}>
+                                  {row.count}
+                                </span>
+                                {leagueFilter === row.id && selectedSubLeague === 'all' && <Check size={12} className="text-white" />}
+                              </div>
+                            </button>
+
+                            {/* Option B..N: Specific sub-leagues */}
+                            {row.leagues.map((lg) => {
+                              const isSubSelected = leagueFilter === row.id && selectedSubLeague === lg.league;
+                              return (
+                                <button
+                                  key={lg.league}
+                                  type="button"
+                                  onClick={() => handleLeagueFilterChange(row.id, lg.league)}
+                                  className={`w-full px-2.5 py-1.5 rounded-md text-left flex items-center justify-between text-[11px] transition-colors cursor-pointer ${
+                                    isSubSelected
+                                      ? 'bg-[#006C54] text-white font-bold'
+                                      : 'hover:bg-[#F5F5E4] text-slate-700 font-medium'
+                                  }`}
+                                >
+                                  <span className="truncate pr-2">{lg.league}</span>
+                                  <div className="flex items-center gap-1.5 shrink-0">
+                                    <span className={`font-mono text-[10px] ${isSubSelected ? 'text-white/80' : 'text-slate-500'}`}>
+                                      {lg.count}
+                                    </span>
+                                    {isSubSelected && <Check size={12} className="text-white" />}
+                                  </div>
+                                </button>
+                              );
+                            })}
+                          </div>
+                        )}
+                      </div>
                     );
                   })}
 

@@ -60,6 +60,23 @@ export default function FixtureSportCard({
       ? 'X · Draw'
       : '2 · Away';
 
+  // Format: [Country] · [League Name] for domestic leagues; un-prefixed for continental tournaments
+  const isContinental =
+    (match.competitionId && (
+      match.competitionId.startsWith('uefa_') ||
+      match.competitionId.startsWith('caf_') ||
+      match.competitionId.startsWith('afc_') ||
+      match.competitionId.startsWith('conmebol_') ||
+      match.competitionId.startsWith('concacaf_') ||
+      match.competitionId.startsWith('fifa_')
+    )) ||
+    /^(uefa|caf|afc|conmebol|concacaf|fifa|club world cup|champions league|europa league|conference league|libertadores|sudamericana)/i.test(match.competition || '') ||
+    ['europe', 'international clubs', 'international', 'world', 'general'].includes((match.country || '').toLowerCase());
+
+  const leagueDisplayTitle = (!isContinental && match.country && match.country.trim() && match.country.toLowerCase() !== 'general')
+    ? `${match.country} · ${match.competition}`
+    : match.competition;
+
   return (
     <div
       className={`group relative overflow-hidden border rounded-2xl p-4 sm:p-5 flex flex-col justify-between transition-all duration-200 ${
@@ -99,7 +116,7 @@ export default function FixtureSportCard({
         <div className="flex items-center justify-between gap-2 mb-3 text-xs">
           <div className="min-w-0">
             <span className="font-semibold text-[10.5px] text-slate-500 truncate block">
-              {match.competition}
+              {leagueDisplayTitle}
             </span>
           </div>
 

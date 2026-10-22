@@ -2110,8 +2110,27 @@ export function resolveCanonicalCompetition(input: {
   // 2. Direct Provider Slug / Code Match via explicit registry
   if (code && PROVIDER_SLUG_REGISTRY[code]) {
     const targetId = PROVIDER_SLUG_REGISTRY[code];
-    if (CANONICAL_COMPETITIONS[targetId]) {
-      return CANONICAL_COMPETITIONS[targetId];
+    const targetCanon = CANONICAL_COMPETITIONS[targetId];
+    if (targetCanon) {
+      const targetCountry = (targetCanon.countryName || targetCanon.country || '').toLowerCase();
+      const isTargetDomestic =
+        targetCanon.competitionType === 'domestic_league' ||
+        targetCanon.competitionType === 'lower_division' ||
+        targetCanon.competitionType === 'domestic_cup' ||
+        targetCanon.competitionType === 'super_cup';
+      
+      // If country is specified and target is a domestic competition of a different country, skip!
+      if (
+        isTargetDomestic &&
+        countryLower &&
+        targetCountry &&
+        !countryLower.includes(targetCountry) &&
+        !targetCountry.includes(countryLower)
+      ) {
+        // Foreign country (e.g. Bahrain, Egypt, Kenya, Jordan) - do NOT hijack to England/Spain
+      } else {
+        return targetCanon;
+      }
     }
   }
 
@@ -2121,9 +2140,22 @@ export function resolveCanonicalCompetition(input: {
       return canon;
     }
     if (code && canon.providerSlugs.includes(code)) {
-      // Disambiguate if code could collide
-      if (code === 'premier' && (countryLower.includes('egypt') || countryLower.includes('kenya') || countryLower.includes('russia'))) {
-        // foreign premier, skip false match
+      const targetCountry = (canon.countryName || canon.country || '').toLowerCase();
+      const isTargetDomestic =
+        canon.competitionType === 'domestic_league' ||
+        canon.competitionType === 'lower_division' ||
+        canon.competitionType === 'domestic_cup' ||
+        canon.competitionType === 'super_cup';
+
+      // Disambiguate if code could collide across countries
+      if (
+        isTargetDomestic &&
+        countryLower &&
+        targetCountry &&
+        !countryLower.includes(targetCountry) &&
+        !targetCountry.includes(countryLower)
+      ) {
+        // Foreign country, skip false match
       } else {
         return canon;
       }

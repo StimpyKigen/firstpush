@@ -294,22 +294,40 @@ export function formatKickoffDateTime24h(kickoffIso?: string, fallback: string =
   if (kickoffIso) {
     const d = new Date(kickoffIso);
     if (!isNaN(d.getTime())) {
-      const day = String(d.getDate()).padStart(2, '0');
-      const month = String(d.getMonth() + 1).padStart(2, '0');
-      const hours = String(d.getHours()).padStart(2, '0');
-      const minutes = String(d.getMinutes()).padStart(2, '0');
-      return `${day}/${month} ${hours}:${minutes}`;
+      const formatter = new Intl.DateTimeFormat('en-GB', {
+        timeZone: 'Africa/Nairobi',
+        day: '2-digit',
+        month: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false,
+      });
+      const parts = formatter.formatToParts(d);
+      const day = parts.find((p) => p.type === 'day')?.value || '';
+      const month = parts.find((p) => p.type === 'month')?.value || '';
+      const hour = parts.find((p) => p.type === 'hour')?.value || '';
+      const minute = parts.find((p) => p.type === 'minute')?.value || '';
+      return `${day}/${month} ${hour}:${minute}`;
     }
   }
 
   if (fallback) {
     const d = new Date(fallback);
     if (!isNaN(d.getTime())) {
-      const day = String(d.getDate()).padStart(2, '0');
-      const month = String(d.getMonth() + 1).padStart(2, '0');
-      const hours = String(d.getHours()).padStart(2, '0');
-      const minutes = String(d.getMinutes()).padStart(2, '0');
-      return `${day}/${month} ${hours}:${minutes}`;
+      const formatter = new Intl.DateTimeFormat('en-GB', {
+        timeZone: 'Africa/Nairobi',
+        day: '2-digit',
+        month: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false,
+      });
+      const parts = formatter.formatToParts(d);
+      const day = parts.find((p) => p.type === 'day')?.value || '';
+      const month = parts.find((p) => p.type === 'month')?.value || '';
+      const hour = parts.find((p) => p.type === 'hour')?.value || '';
+      const minute = parts.find((p) => p.type === 'minute')?.value || '';
+      return `${day}/${month} ${hour}:${minute}`;
     }
     return fallback;
   }

@@ -501,15 +501,25 @@ function parseSingleFixtureLine(
         const timeStr = dtParts[1] || '18:00';
         const { iso, formatted } = buildEatIso(dateStr, timeStr);
 
-        let country = defaultCountry;
-        let competition = defaultLeague;
+        let country = defaultCountry || 'General';
+        let competition = defaultLeague || 'Top League';
         const canon = resolveCanonicalCompetition({
           competition: defaultLeague,
           country: defaultCountry,
         });
         if (canon) {
-          country = canon.countryName || canon.country || defaultCountry;
-          competition = canon.name || defaultLeague;
+          if (defaultCountry && !['general', 'other', 'international', ''].includes(defaultCountry.toLowerCase())) {
+            country = defaultCountry;
+            const canonCountry = (canon.countryName || canon.country || '').toLowerCase();
+            if (canonCountry === defaultCountry.toLowerCase() || canon.continent === 'international' || canon.continent === 'european_competitions') {
+              competition = canon.name || defaultLeague;
+            } else {
+              competition = defaultLeague;
+            }
+          } else {
+            country = canon.countryName || canon.country || defaultCountry || 'General';
+            competition = canon.name || defaultLeague || 'Top League';
+          }
         }
         const directoryId = resolveSportScoreDirectoryId({
           competition,
@@ -678,8 +688,8 @@ function parseSingleFixtureLine(
     bttsNoOdds = +(1 / (1 - 1 / bttsYesOdds) * 0.95).toFixed(2);
   }
 
-  let country = defaultCountry;
-  let competition = defaultLeague;
+  let country = defaultCountry || 'General';
+  let competition = defaultLeague || 'Top League';
 
   const canon = resolveCanonicalCompetition({
     competition: defaultLeague,
@@ -687,8 +697,18 @@ function parseSingleFixtureLine(
   });
 
   if (canon) {
-    country = canon.countryName || canon.country || defaultCountry;
-    competition = canon.name || defaultLeague;
+    if (defaultCountry && !['general', 'other', 'international', ''].includes(defaultCountry.toLowerCase())) {
+      country = defaultCountry;
+      const canonCountry = (canon.countryName || canon.country || '').toLowerCase();
+      if (canonCountry === defaultCountry.toLowerCase() || canon.continent === 'international' || canon.continent === 'european_competitions') {
+        competition = canon.name || defaultLeague;
+      } else {
+        competition = defaultLeague;
+      }
+    } else {
+      country = canon.countryName || canon.country || defaultCountry || 'General';
+      competition = canon.name || defaultLeague || 'Top League';
+    }
   }
 
   const directoryId = resolveSportScoreDirectoryId({
@@ -749,7 +769,17 @@ function detectCompetitionHeader(line: string): { country: string; league: strin
     return null;
   }
 
-  // 1. Standard SportPesa delimiter: "Country - League Name"
+  // 1. Dash or Colon delimiter: "Country - League Name" or "Country: League Name"
+  const delimiterMatch = trimmed.match(/^([A-Za-z\s.'&()]+?)\s*[-–—:]\s*([A-Za-z0-9\s.'&(),]+)$/);
+  if (delimiterMatch) {
+    const country = delimiterMatch[1].trim();
+    const league = delimiterMatch[2].trim();
+    if (country.length >= 2 && league.length >= 2 && !/\d{2,}/.test(country)) {
+      return { country, league };
+    }
+  }
+
+  // 2. Standard SportPesa delimiter: "Country - League Name"
   const hyphenIdx = trimmed.indexOf(' - ');
   if (hyphenIdx > 1) {
     const country = trimmed.slice(0, hyphenIdx).trim();
@@ -759,7 +789,7 @@ function detectCompetitionHeader(line: string): { country: string; league: strin
     }
   }
 
-  // 2. Colon delimiter: "Country: League Name"
+  // 3. Colon delimiter: "Country: League Name"
   const colonIdx = trimmed.indexOf(':');
   if (colonIdx > 1) {
     const country = trimmed.slice(0, colonIdx).trim();
@@ -769,8 +799,8 @@ function detectCompetitionHeader(line: string): { country: string; league: strin
     }
   }
 
-  // 3. Country-only line
-  const countryOnlyRegex = /^(ENGLAND|SPAIN|ITALY|GERMANY|FRANCE|NETHERLANDS|PORTUGAL|SCOTLAND|TURKEY|BELGIUM|KENYA|SOUTH AFRICA|BRAZIL|ARGENTINA|USA|INTERNATIONAL|UEFA)$/i;
+  // 4. Country-only line
+  const countryOnlyRegex = /^(ENGLAND|SPAIN|ITALY|GERMANY|FRANCE|NETHERLANDS|PORTUGAL|SCOTLAND|TURKEY|BELGIUM|KENYA|SOUTH AFRICA|BRAZIL|ARGENTINA|USA|INTERNATIONAL|UEFA|BAHRAIN|JORDAN|VIETNAM|MONTENEGRO|PANAMA|ESTONIA|QATAR|SAUDI ARABIA)$/i;
   if (countryOnlyRegex.test(trimmed)) {
     return { country: trimmed, league: 'Top League' };
   }
@@ -787,8 +817,8 @@ export function parseFixturesText(rawText: string): ParseFixturesResult {
   const parsedRows: ParsedFixtureRow[] = [];
   const warnings: string[] = [];
 
-  let currentCountry = 'England';
-  let currentLeague = 'Premier League';
+  let currentCountry = 'General';
+  let currentLeague = 'Top League';
 
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];

@@ -15,6 +15,8 @@ import {
   ingestAdminFixtures,
   clearAllFixtures,
   getSavedAdminFixtures,
+  getSavedAdminBatches,
+  deleteAdminBatch,
 } from './src/lib/sportsFeedService';
 import { extractPdfTextServer } from './src/lib/serverPdfParser';
 import {
@@ -107,7 +109,8 @@ async function startServer() {
   app.get('/api/admin/fixtures', (req: Request, res: Response) => {
     try {
       const fixtures = getSavedAdminFixtures();
-      res.json({ success: true, count: fixtures.length, fixtures });
+      const batches = getSavedAdminBatches();
+      res.json({ success: true, count: fixtures.length, fixtures, batches });
     } catch (err: any) {
       res.status(500).json({ success: false, error: err?.message || 'Failed to get admin fixtures' });
     }
@@ -116,10 +119,27 @@ async function startServer() {
   app.post('/api/admin/fixtures', (req: Request, res: Response) => {
     try {
       const fixtures = Array.isArray(req.body?.fixtures) ? req.body.fixtures : [];
-      const count = ingestAdminFixtures(fixtures);
-      res.json({ success: true, count, message: `Successfully published ${count} fixtures to match slate.` });
+      const fileName = req.body?.fileName || 'uploaded-fixtures.pdf';
+      const sectoredCount = req.body?.sectoredCount || 1;
+      const result = ingestAdminFixtures(fixtures, { fileName, sectoredCount });
+      res.json({
+        success: true,
+        count: result.totalCount,
+        addedCount: result.addedCount,
+        batches: result.batches,
+        message: `Successfully processed ${fixtures.length} fixtures (${result.addedCount} new, total ${result.totalCount}).`,
+      });
     } catch (err: any) {
       res.status(500).json({ success: false, error: err?.message || 'Failed to ingest admin fixtures' });
+    }
+  });
+
+  app.delete('/api/admin/fixtures/batch/:id', (req: Request, res: Response) => {
+    try {
+      deleteAdminBatch(req.params.id);
+      res.json({ success: true, message: 'Batch removed successfully.', batches: getSavedAdminBatches() });
+    } catch (err: any) {
+      res.status(500).json({ success: false, error: err?.message || 'Failed to remove batch' });
     }
   });
 

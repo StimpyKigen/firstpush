@@ -98,8 +98,17 @@ export interface SyncDiagnostics {
   rateLimitSafe: boolean;
 }
 
+export interface AdminPdfBatch {
+  id: string;
+  fileName: string;
+  fixtureCount: number;
+  publishedAt: string;
+  sectoredCount: number;
+}
+
 // In-Memory Primary State
 const fixturesStore = new Map<string, MarketFixture>();
+const adminPdfBatches: AdminPdfBatch[] = [];
 let discoveredLeagues: DiscoveredLeague[] = [];
 let lastSyncTimestamp: string | null = null;
 let lastLiveSyncTimestamp: string | null = null;
@@ -250,6 +259,15 @@ function loadDiskCache(): void {
         lastSyncTimestamp = new Date().toISOString();
       }
     }
+    const batchesFile = path.join(targetDir, 'sports_batches.json');
+    if (fs.existsSync(batchesFile)) {
+      const batchesRaw = fs.readFileSync(batchesFile, 'utf-8');
+      const parsedBatches = JSON.parse(batchesRaw);
+      if (Array.isArray(parsedBatches)) {
+        adminPdfBatches.length = 0;
+        adminPdfBatches.push(...parsedBatches);
+      }
+    }
   } catch (err) {
     // Disk cache read is optional since bundled catalogue is always seeded
   }
@@ -282,6 +300,7 @@ function saveDiskCache(): void {
     const flat = Array.from(fixturesStore.values());
     try {
       fs.writeFileSync(path.join(targetDir, 'sports_fixtures.json'), JSON.stringify(flat, null, 2), 'utf-8');
+      fs.writeFileSync(path.join(targetDir, 'sports_batches.json'), JSON.stringify(adminPdfBatches, null, 2), 'utf-8');
     } catch {
       // Ignore write failures in read-only environments
     }
@@ -290,28 +309,72 @@ function saveDiskCache(): void {
   }
 }
 
-/**
- * Ingest administrative fixtures uploaded via Admin PDF parser
- */
-export function ingestAdminFixtures(fixtures: MarketFixture[]): number {
-  fixturesStore.clear();
-  let count = 0;
-  for (const f of fixtures) {
-    if (f && f.id) {
-      fixturesStore.set(f.id, f);
-      count++;
-    }
-  }
-  lastSyncTimestamp = new Date().toISOString();
-  saveDiskCache();
-  return count;
+export function makeMarketFixtureDedupeKey(f: { home: string; away: string; kickoffIso?: string; kickoff?: string }): string {
+  const h = (f.home || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+  const a = (f.away || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+  const d = (f.kickoffIso ? f.kickoffIso.slice(0, 10) : f.kickoff || '').replace(/[^0-9]/g, '').slice(0, 8);
+  return `${h}___${a}___${d}`;
 }
 
 /**
- * Clear all current fixtures from in-memory store and disk cache
+ * Ingest administrative fixtures uploaded via Admin PDF parser.
+ * Appends fixtures to site slate without duplicates. If duplicate is found, keeps one.
+ */
+export function ingestAdminFixtures(
+  fixtures: MarketFixture[],
+  batchMeta?: { fileName?: string; sectoredCount?: number }
+): { totalCount: number; addedCount: number; batches: AdminPdfBatch[] } {
+  const existingMap = new Map<string, string>();
+  for (const [id, f] of fixturesStore.entries()) {
+    existingMap.set(makeMarketFixtureDedupeKey(f), id);
+  }
+
+  let addedCount = 0;
+  for (const f of fixtures) {
+    if (!f || !f.id) continue;
+    const key = makeMarketFixtureDedupeKey(f);
+    const existingId = existingMap.get(key);
+
+    if (existingId) {
+      // Update odds/consensus for existing match; do NOT create duplicate card
+      fixturesStore.set(existingId, {
+        ...fixturesStore.get(existingId)!,
+        ...f,
+        id: existingId,
+      });
+    } else {
+      fixturesStore.set(f.id, f);
+      existingMap.set(key, f.id);
+      addedCount++;
+    }
+  }
+
+  if (batchMeta && fixtures.length > 0) {
+    const newBatch: AdminPdfBatch = {
+      id: `batch-${Date.now()}`,
+      fileName: batchMeta.fileName || 'uploaded-fixtures.pdf',
+      fixtureCount: fixtures.length,
+      publishedAt: new Date().toISOString(),
+      sectoredCount: batchMeta.sectoredCount || 1,
+    };
+    adminPdfBatches.unshift(newBatch);
+  }
+
+  lastSyncTimestamp = new Date().toISOString();
+  saveDiskCache();
+  return {
+    totalCount: fixturesStore.size,
+    addedCount,
+    batches: [...adminPdfBatches],
+  };
+}
+
+/**
+ * Clear all current fixtures and published PDF batches from in-memory store and disk cache
  */
 export function clearAllFixtures(): void {
   fixturesStore.clear();
+  adminPdfBatches.length = 0;
   lastSyncTimestamp = null;
   saveDiskCache();
 }
@@ -321,6 +384,24 @@ export function clearAllFixtures(): void {
  */
 export function getSavedAdminFixtures(): MarketFixture[] {
   return Array.from(fixturesStore.values());
+}
+
+/**
+ * Retrieve list of all published PDF batches
+ */
+export function getSavedAdminBatches(): AdminPdfBatch[] {
+  return [...adminPdfBatches];
+}
+
+/**
+ * Delete a specific published PDF batch
+ */
+export function deleteAdminBatch(batchId: string): void {
+  const idx = adminPdfBatches.findIndex((b) => b.id === batchId);
+  if (idx !== -1) {
+    adminPdfBatches.splice(idx, 1);
+    saveDiskCache();
+  }
 }
 
 // Hydrate on module load

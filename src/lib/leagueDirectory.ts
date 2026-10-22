@@ -5,6 +5,7 @@ import {
   CANONICAL_COMPETITIONS,
   resolveCanonicalCompetition,
   getCountryMeta,
+  KNOWN_COUNTRIES,
 } from './canonicalCompetitions';
 
 export { type ContinentId, type CompetitionType, getCountryMeta, type CountryMeta } from './canonicalCompetitions';
@@ -287,10 +288,18 @@ export interface SportScoreDirectoryCategory {
   aliases?: string[];
 }
 
+export interface SportScoreDirectoryLeagueItem {
+  league: string;
+  count: number;
+}
+
 export interface SportScoreDirectoryRow {
   id: string;
   label: string;
+  country: string;
+  flag?: string;
   count: number;
+  leagues: SportScoreDirectoryLeagueItem[];
 }
 
 /**
@@ -487,11 +496,18 @@ export function resolveSportScoreDirectoryId(f: {
     }
   }
 
+  // 5. Dynamic fallback for ANY country with fixtures: slugify the country name!
+  if (cName && !['general', 'other', 'international', ''].includes(cName)) {
+    return cName.replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '');
+  }
+
   return 'other';
 }
 
 /**
- * Builds the SportScore Country Directory with real-time dynamic fixture counts
+ * Builds the SportScore Country Directory with real-time dynamic fixture counts.
+ * Invariant: Excludes zero-count countries, dynamically adds any country with fixtures,
+ * and tracks individual leagues for each country to support nested sub-sections.
  */
 export function buildSportScoreCountryDirectory(
   fixtures: Array<{ competition: string; country?: string; leagueCode?: string; competitionId?: string; providerId?: string }>,
@@ -500,30 +516,96 @@ export function buildSportScoreCountryDirectory(
   rows: SportScoreDirectoryRow[];
   totalMatches: number;
 } {
-  const counts: Record<string, number> = {};
-  for (const entry of SPORTSCORE_COUNTRY_DIRECTORY_CONFIG) {
-    counts[entry.id] = 0;
-  }
+  const groupMap = new Map<
+    string,
+    {
+      id: string;
+      label: string;
+      country: string;
+      flag?: string;
+      count: number;
+      leaguesMap: Map<string, number>;
+    }
+  >();
 
   let totalMatches = 0;
+
   for (const f of fixtures) {
     const dirId = resolveSportScoreDirectoryId(f);
     if (dirId === 'excluded') continue;
-    if (counts[dirId] !== undefined) {
-      counts[dirId]++;
-    }
     totalMatches++;
+
+    if (!groupMap.has(dirId)) {
+      const configEntry = SPORTSCORE_COUNTRY_DIRECTORY_CONFIG.find((entry) => entry.id === dirId);
+      const cleanCountry = f.country || configEntry?.country || (dirId === 'international_clubs' ? 'International Clubs' : dirId);
+      const label = configEntry?.label || (cleanCountry.charAt(0).toUpperCase() + cleanCountry.slice(1));
+      const flag = KNOWN_COUNTRIES[cleanCountry.toLowerCase()]?.flag || '';
+
+      groupMap.set(dirId, {
+        id: dirId,
+        label,
+        country: cleanCountry,
+        flag,
+        count: 0,
+        leaguesMap: new Map<string, number>(),
+      });
+    }
+
+    const group = groupMap.get(dirId)!;
+    group.count++;
+
+    const leagueName = (f.competition || 'Top League').trim();
+    group.leaguesMap.set(leagueName, (group.leaguesMap.get(leagueName) || 0) + 1);
   }
 
-  const q = searchQuery.trim().toLowerCase();
-  const allRows: SportScoreDirectoryRow[] = SPORTSCORE_COUNTRY_DIRECTORY_CONFIG.map((entry) => ({
-    id: entry.id,
-    label: entry.label,
-    count: counts[entry.id] || 0,
-  }));
+  // Convert to array of rows - strictly excluding zero-fixture countries
+  const allRows: SportScoreDirectoryRow[] = Array.from(groupMap.values())
+    .filter((g) => g.count > 0)
+    .map((g) => {
+      const leagues: SportScoreDirectoryLeagueItem[] = Array.from(g.leaguesMap.entries())
+        .map(([league, count]) => ({ league, count }))
+        .sort((a, b) => b.count - a.count || a.league.localeCompare(b.league));
 
+      return {
+        id: g.id,
+        label: g.label,
+        country: g.country,
+        flag: g.flag,
+        count: g.count,
+        leagues,
+      };
+    });
+
+  // Sort: continental & international club competitions first, then by config order or alphabetical
+  const configOrder = new Map(SPORTSCORE_COUNTRY_DIRECTORY_CONFIG.map((entry, idx) => [entry.id, idx]));
+  allRows.sort((a, b) => {
+    // 1. Continental / International club competitions pinned to the very top
+    if (a.id === 'international_clubs' && b.id !== 'international_clubs') return -1;
+    if (b.id === 'international_clubs' && a.id !== 'international_clubs') return 1;
+    if (a.id === 'international' && b.id !== 'international') return -1;
+    if (b.id === 'international' && a.id !== 'international') return 1;
+
+    // 2. Config order if both exist
+    const orderA = configOrder.get(a.id);
+    const orderB = configOrder.get(b.id);
+    if (orderA !== undefined && orderB !== undefined) {
+      return orderA - orderB;
+    }
+    if (orderA !== undefined) return -1;
+    if (orderB !== undefined) return 1;
+
+    // 3. Fallback: alphabetical by label
+    return a.label.localeCompare(b.label);
+  });
+
+  const q = searchQuery.trim().toLowerCase();
   const filteredRows = q
-    ? allRows.filter((r) => r.label.toLowerCase().includes(q))
+    ? allRows.filter(
+        (r) =>
+          r.label.toLowerCase().includes(q) ||
+          r.country.toLowerCase().includes(q) ||
+          r.leagues.some((l) => l.league.toLowerCase().includes(q))
+      )
     : allRows;
 
   return {
