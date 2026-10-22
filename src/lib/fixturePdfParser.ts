@@ -327,18 +327,10 @@ function buildEatIso(dateStr: string, timeStr: string): { iso: string; formatted
   const hhPadded = String(hh).padStart(2, '0');
   const minPadded = String(mm).padStart(2, '0');
 
+  // Exact EAT ISO string (+03:00) so sorting and timestamp calculations are exact
   const iso = `${y}-${mmPadded}-${ddPadded}T${hhPadded}:${minPadded}:00+03:00`;
-
-  const dObj = new Date(iso);
-  const formatted = new Intl.DateTimeFormat('en-KE', {
-    timeZone: 'Africa/Nairobi',
-    weekday: 'short',
-    month: 'short',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-    hour12: false,
-  }).format(dObj) + ' EAT';
+  // Formatted verbatim using exact date and time strings without any timezone shifts: "DD/MM HH:mm"
+  const formatted = `${ddPadded}/${mmPadded} ${hhPadded}:${minPadded}`;
 
   return { iso, formatted };
 }
@@ -496,9 +488,18 @@ function parseSingleFixtureLine(
       const oddsTokens = cols.slice(4).map(Number).filter((n) => !isNaN(n) && n >= 1.01 && n <= 99.0);
 
       if (homeTeam && awayTeam && oddsTokens.length >= 3) {
-        const dtParts = dateTimeRaw.replace(/\s*-\s*/, ' ').split(' ');
-        const dateStr = dtParts[0] || new Date().toISOString().slice(0, 10);
-        const timeStr = dtParts[1] || '18:00';
+        let dateStr = '';
+        let timeStr = '';
+        // Match patterns like "22-10-2026 - 14:00", "22/10/2026 14:00", "2026-10-22 14:00", "22-10 14:00"
+        const dtMatch = dateTimeRaw.match(/^([0-9\/-]+?)\s*(?:-\s*|\s+)([0-2]?[0-9]:[0-5][0-9])$/);
+        if (dtMatch) {
+          dateStr = dtMatch[1].trim();
+          timeStr = dtMatch[2].trim();
+        } else {
+          const parts = dateTimeRaw.replace(/\s*-\s*/g, ' ').trim().split(/\s+/);
+          dateStr = parts[0] || new Date().toISOString().slice(0, 10);
+          timeStr = parts[1] || '18:00';
+        }
         const { iso, formatted } = buildEatIso(dateStr, timeStr);
 
         let country = defaultCountry || 'General';

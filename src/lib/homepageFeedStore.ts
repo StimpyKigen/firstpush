@@ -242,12 +242,32 @@ function setupCloudSync() {
         }
       },
       (error) => {
-        console.warn('[HomepageFeed] Firestore listener notice (using local cache):', error.message);
+        console.warn('[HomepageFeed] Firestore listener notice (using local/server cache):', error.message);
       }
     );
   } catch (err) {
     console.warn('[HomepageFeed] Cloud sync initialization fallback:', err);
   }
+
+  // 3. Backend API sync fallback (hydrates if Firestore is offline or cold)
+  try {
+    fetch('/api/homepage-feed')
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (data && data.success && data.feed && Array.isArray(data.feed.carouselItems)) {
+          // If local is default or server has items, adopt server feed
+          const localIsDefault = !localStorage.getItem(STORAGE_KEY);
+          if (localIsDefault || data.feed.carouselItems.length > 0) {
+            currentFeed = data.feed;
+            try {
+              localStorage.setItem(STORAGE_KEY, JSON.stringify(data.feed));
+            } catch {}
+            listeners.forEach((l) => l());
+          }
+        }
+      })
+      .catch(() => {});
+  } catch {}
 }
 
 // Initialize listener immediately on browser
@@ -256,11 +276,23 @@ if (typeof window !== 'undefined') {
 }
 
 async function persistToCloud(data: HomepageFeedData) {
+  // 1. Write to Cloud Firestore
   try {
     const feedRef = doc(db, FIRESTORE_COLLECTION, FIRESTORE_DOC);
     await setDoc(feedRef, data, { merge: true });
-  } catch (err) {
-    console.warn('[HomepageFeed] Cloud push notice (persisted in local storage):', err);
+  } catch (err: any) {
+    console.warn('[HomepageFeed] Firestore push notice:', err?.message || err);
+  }
+
+  // 2. Persist to server backend disk cache (/api/homepage-feed)
+  try {
+    await fetch('/api/homepage-feed', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+  } catch (err: any) {
+    console.warn('[HomepageFeed] Server feed push notice:', err?.message || err);
   }
 }
 

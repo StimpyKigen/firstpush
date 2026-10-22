@@ -312,8 +312,25 @@ function saveDiskCache(): void {
 export function makeMarketFixtureDedupeKey(f: { home: string; away: string; kickoffIso?: string; kickoff?: string }): string {
   const h = (f.home || '').toLowerCase().replace(/[^a-z0-9]/g, '');
   const a = (f.away || '').toLowerCase().replace(/[^a-z0-9]/g, '');
-  const d = (f.kickoffIso ? f.kickoffIso.slice(0, 10) : f.kickoff || '').replace(/[^0-9]/g, '').slice(0, 8);
-  return `${h}___${a}___${d}`;
+
+  let dateKey = '';
+  if (f.kickoffIso) {
+    const isoM = f.kickoffIso.match(/^\d{4}-(\d{2})-(\d{2})/);
+    if (isoM) {
+      dateKey = `${isoM[2]}_${isoM[1]}`; // DD_MM
+    }
+  }
+  if (!dateKey && f.kickoff) {
+    const dmM = f.kickoff.match(/^(\d{1,2})[/-](\d{1,2})/);
+    if (dmM) {
+      dateKey = `${dmM[1].padStart(2, '0')}_${dmM[2].padStart(2, '0')}`;
+    }
+  }
+  if (!dateKey) {
+    dateKey = (f.kickoffIso || f.kickoff || '').replace(/[^0-9]/g, '').slice(0, 8);
+  }
+
+  return `${h}___${a}___${dateKey}`;
 }
 
 /**

@@ -119,12 +119,13 @@ export default defineConfig(() => {
               }
               if (url.pathname === '/api/admin/fixtures') {
                 try {
-                  const { getSavedAdminFixtures, ingestAdminFixtures, clearAllFixtures } = await server.ssrLoadModule('/src/lib/sportsFeedService.ts');
+                  const { getSavedAdminFixtures, getSavedAdminBatches, ingestAdminFixtures, clearAllFixtures } = await server.ssrLoadModule('/src/lib/sportsFeedService.ts');
                   res.setHeader('Content-Type', 'application/json');
                   res.setHeader('Access-Control-Allow-Origin', '*');
                   if (req.method === 'GET') {
                     const fixtures = getSavedAdminFixtures();
-                    res.end(JSON.stringify({ success: true, count: fixtures.length, fixtures }));
+                    const batches = getSavedAdminBatches ? getSavedAdminBatches() : [];
+                    res.end(JSON.stringify({ success: true, count: fixtures.length, fixtures, batches }));
                     return;
                   }
                   if (req.method === 'POST') {
@@ -134,8 +135,16 @@ export default defineConfig(() => {
                       try {
                         const parsed = JSON.parse(body || '{}');
                         const fixtures = Array.isArray(parsed.fixtures) ? parsed.fixtures : [];
-                        const count = ingestAdminFixtures(fixtures);
-                        res.end(JSON.stringify({ success: true, count, message: `Successfully published ${count} fixtures to match slate.` }));
+                        const fileName = parsed.fileName || 'uploaded-fixtures.pdf';
+                        const sectoredCount = parsed.sectoredCount || 1;
+                        const result = ingestAdminFixtures(fixtures, { fileName, sectoredCount });
+                        res.end(JSON.stringify({
+                          success: true,
+                          count: result.totalCount,
+                          addedCount: result.addedCount,
+                          batches: result.batches,
+                          message: `Successfully processed ${fixtures.length} fixtures (${result.addedCount} new, total ${result.totalCount}).`,
+                        }));
                       } catch (e) {
                         res.statusCode = 400;
                         res.end(JSON.stringify({ success: false, error: 'Invalid JSON payload' }));
@@ -146,6 +155,54 @@ export default defineConfig(() => {
                   if (req.method === 'DELETE') {
                     clearAllFixtures();
                     res.end(JSON.stringify({ success: true, message: 'All fixtures cleared from match slate.' }));
+                    return;
+                  }
+                } catch (err) {
+                  res.statusCode = 500;
+                  res.setHeader('Content-Type', 'application/json');
+                  res.end(JSON.stringify({ success: false, error: String(err) }));
+                  return;
+                }
+              }
+              if (url.pathname.startsWith('/api/admin/fixtures/batch/')) {
+                try {
+                  const { deleteAdminBatch, getSavedAdminBatches } = await server.ssrLoadModule('/src/lib/sportsFeedService.ts');
+                  const batchId = url.pathname.replace('/api/admin/fixtures/batch/', '');
+                  res.setHeader('Content-Type', 'application/json');
+                  res.setHeader('Access-Control-Allow-Origin', '*');
+                  deleteAdminBatch(batchId);
+                  res.end(JSON.stringify({ success: true, message: 'Batch removed successfully.', batches: getSavedAdminBatches() }));
+                  return;
+                } catch (err) {
+                  res.statusCode = 500;
+                  res.setHeader('Content-Type', 'application/json');
+                  res.end(JSON.stringify({ success: false, error: String(err) }));
+                  return;
+                }
+              }
+              if (url.pathname === '/api/homepage-feed') {
+                try {
+                  const { getSavedHomepageFeed, saveHomepageFeed } = await server.ssrLoadModule('/src/lib/serverHomepageFeed.ts');
+                  res.setHeader('Content-Type', 'application/json');
+                  res.setHeader('Access-Control-Allow-Origin', '*');
+                  if (req.method === 'GET') {
+                    const feed = getSavedHomepageFeed();
+                    res.end(JSON.stringify({ success: true, feed }));
+                    return;
+                  }
+                  if (req.method === 'POST') {
+                    let body = '';
+                    req.on('data', (chunk: any) => { body += chunk; });
+                    req.on('end', () => {
+                      try {
+                        const parsed = JSON.parse(body || '{}');
+                        saveHomepageFeed(parsed);
+                        res.end(JSON.stringify({ success: true, feed: parsed }));
+                      } catch (e) {
+                        res.statusCode = 400;
+                        res.end(JSON.stringify({ success: false, error: 'Invalid JSON payload' }));
+                      }
+                    });
                     return;
                   }
                 } catch (err) {

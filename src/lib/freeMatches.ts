@@ -46,8 +46,27 @@ export interface FreeMatch {
   awayPct?: number;
 }
 
-let liveMatches: FreeMatch[] = [];
-let liveConsensus: Record<string, MatchConsensus> = {};
+function loadStoredMatches(): FreeMatch[] {
+  if (typeof window === 'undefined') return [];
+  try {
+    const raw = localStorage.getItem('mshindi_uploaded_fixtures');
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        return parsed;
+      }
+    }
+  } catch {}
+  return [];
+}
+
+let liveMatches: FreeMatch[] = loadStoredMatches();
+let liveConsensus: Record<string, MatchConsensus> = Object.fromEntries(
+  liveMatches.map((match, index) => [
+    match.id,
+    buildConsensus(match.id, index * 17 + 7, match.homePct || 33, match.drawPct || 34),
+  ])
+);
 
 export const freeMatches: FreeMatch[] = liveMatches;
 export const freeMatchConsensus: Record<string, MatchConsensus> = liveConsensus;
@@ -126,24 +145,114 @@ export function getHasFreeMatchesSynced(): boolean {
   return hasSyncedFreeMatchesOnce;
 }
 
+export function makeFreeMatchDedupeKey(m: { home: string; away: string; kickoffIso?: string; kickoff?: string }): string {
+  const h = (m.home || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+  const a = (m.away || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+
+  let dateKey = '';
+  if (m.kickoffIso) {
+    const isoM = m.kickoffIso.match(/^\d{4}-(\d{2})-(\d{2})/);
+    if (isoM) {
+      dateKey = `${isoM[2]}_${isoM[1]}`; // DD_MM
+    }
+  }
+  if (!dateKey && m.kickoff) {
+    const dmM = m.kickoff.match(/^(\d{1,2})[/-](\d{1,2})/);
+    if (dmM) {
+      dateKey = `${dmM[1].padStart(2, '0')}_${dmM[2].padStart(2, '0')}`;
+    }
+  }
+  if (!dateKey) {
+    dateKey = (m.kickoffIso || m.kickoff || '').replace(/[^0-9]/g, '').slice(0, 8);
+  }
+
+  return `${h}___${a}___${dateKey}`;
+}
+
 export async function refreshFreeMatches(force = false) {
-  // Only show full loading state during initial page hydration
-  if (!hasSyncedFreeMatchesOnce) {
+  // Only show full loading state during initial page hydration if no matches are cached
+  if (!hasSyncedFreeMatchesOnce && liveMatches.length === 0) {
     isSyncingFreeMatches = true;
     emitFreeMatchesChange();
   }
 
   try {
-    const fixtures = await fetchDailyHighlightFixtures(force);
-    if (fixtures.length > 0) {
-      liveMatches = fixtures.map((fixture) => toFreeMatch(fixture));
+    // 1. Fetch server admin fixtures (persisted on disk / backend cache)
+    let serverFixtures: FreeMatch[] = [];
+    try {
+      const adminRes = await fetch('/api/admin/fixtures');
+      if (adminRes.ok) {
+        const data = await adminRes.json();
+        if (data && Array.isArray(data.fixtures) && data.fixtures.length > 0) {
+          serverFixtures = data.fixtures.map((m: any) => ({
+            id: m.id,
+            providerId: m.providerId || m.id,
+            home: m.home,
+            away: m.away,
+            competition: m.competition,
+            competitionId: m.competitionId,
+            leagueCode: m.leagueCode,
+            country: m.country,
+            kickoff: m.kickoff,
+            kickoffIso: m.kickoffIso,
+            tier: 'blockbuster' as MatchTier,
+            blurb: `${m.home} face ${m.away} in ${m.competition}.`,
+            syncedAt: m.syncedAt || 'Uploaded Market Consensus',
+            status: m.status || 'pre',
+            homeOdds: m.homeOdds,
+            drawOdds: m.drawOdds,
+            awayOdds: m.awayOdds,
+            homePct: m.homePct,
+            drawPct: m.drawPct,
+            awayPct: m.awayPct,
+            bttsYesPct: m.bttsYesPct,
+            over25Pct: m.over25Pct,
+            bookmaker: m.bookmaker || 'Uploaded Market Consensus',
+          }));
+        }
+        if (data && Array.isArray(data.batches) && data.batches.length > 0) {
+          savePdfFixtureBatches(data.batches);
+        }
+      }
+    } catch {}
+
+    // 2. Fetch daily highlights
+    const highlightFixtures = await fetchDailyHighlightFixtures(force);
+    const convertedHighlights = highlightFixtures.map((fixture) => toFreeMatch(fixture));
+
+    // 3. Load locally stored fixtures
+    const storedFixtures = loadStoredMatches();
+
+    // 4. Merge all sources with deduplication (Server fixtures > Local stored > Highlights)
+    const mergedMap = new Map<string, FreeMatch>();
+
+    for (const m of convertedHighlights) {
+      mergedMap.set(makeFreeMatchDedupeKey(m), m);
+    }
+    for (const m of storedFixtures) {
+      const key = makeFreeMatchDedupeKey(m);
+      mergedMap.set(key, { ...(mergedMap.get(key) || {}), ...m });
+    }
+    for (const m of serverFixtures) {
+      const key = makeFreeMatchDedupeKey(m);
+      mergedMap.set(key, { ...(mergedMap.get(key) || {}), ...m });
+    }
+
+    const mergedList = Array.from(mergedMap.values());
+
+    if (mergedList.length > 0) {
+      liveMatches = mergedList;
       liveConsensus = Object.fromEntries(
         liveMatches.map((match, index) => [
           match.id,
-          freeMatchConsensus[match.id] || buildConsensus(match.id, index * 17 + 7, fixtures[index].homePct, fixtures[index].drawPct),
+          freeMatchConsensus[match.id] || buildConsensus(match.id, index * 17 + 7, match.homePct || 33, match.drawPct || 34),
         ]),
       ) as Record<string, MatchConsensus>;
-    } else {
+
+      try {
+        localStorage.setItem('mshindi_uploaded_fixtures', JSON.stringify(liveMatches));
+      } catch {}
+    } else if (liveMatches.length === 0) {
       liveMatches = [];
       liveConsensus = {};
     }
@@ -164,13 +273,6 @@ export interface PdfFixtureBatch {
   fixtureCount: number;
   publishedAt: string;
   sectoredCount: number;
-}
-
-export function makeFreeMatchDedupeKey(m: { home: string; away: string; kickoffIso?: string; kickoff?: string }): string {
-  const h = (m.home || '').toLowerCase().replace(/[^a-z0-9]/g, '');
-  const a = (m.away || '').toLowerCase().replace(/[^a-z0-9]/g, '');
-  const d = (m.kickoffIso ? m.kickoffIso.slice(0, 10) : m.kickoff || '').replace(/[^0-9]/g, '').slice(0, 8);
-  return `${h}___${a}___${d}`;
 }
 
 export function getPdfFixtureBatches(): PdfFixtureBatch[] {

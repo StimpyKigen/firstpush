@@ -19,6 +19,7 @@ import {
   deleteAdminBatch,
 } from './src/lib/sportsFeedService';
 import { extractPdfTextServer } from './src/lib/serverPdfParser';
+import { getSavedHomepageFeed, saveHomepageFeed } from './src/lib/serverHomepageFeed';
 import {
   createAdChallenge,
   verifyAndGrantRewardToken,
@@ -163,6 +164,30 @@ async function startServer() {
       res.json({ success: true, text });
     } catch (err: any) {
       res.status(500).json({ success: false, error: err?.message || 'Failed to parse PDF on server' });
+    }
+  });
+
+  // Homepage Editorial Feed APIs (Carousels & Video/Custom Embeds)
+  app.get('/api/homepage-feed', (req: Request, res: Response) => {
+    try {
+      const feed = getSavedHomepageFeed();
+      res.json({ success: true, feed });
+    } catch (err: any) {
+      res.status(500).json({ success: false, error: 'Failed to get homepage feed' });
+    }
+  });
+
+  app.post('/api/homepage-feed', (req: Request, res: Response) => {
+    try {
+      const feed = req.body;
+      if (feed && Array.isArray(feed.carouselItems) && Array.isArray(feed.videoItems)) {
+        saveHomepageFeed(feed);
+        res.json({ success: true, feed });
+      } else {
+        res.status(400).json({ success: false, error: 'Invalid feed payload' });
+      }
+    } catch (err: any) {
+      res.status(500).json({ success: false, error: 'Failed to save homepage feed' });
     }
   });
 
@@ -534,38 +559,6 @@ async function startServer() {
       res.json({ success: true, result, diagnostics: getSyncDiagnostics() });
     } catch (err: any) {
       res.status(500).json({ success: false, error: 'Failed to execute live synchronization.' });
-    }
-  });
-
-  // Admin Fixtures Management Endpoints (PDF Upload Ingestion & Slate Reset)
-  app.get('/api/admin/fixtures', (req: Request, res: Response) => {
-    try {
-      const fixtures = getSavedAdminFixtures();
-      return res.json({ success: true, count: fixtures.length, fixtures });
-    } catch (err: any) {
-      return res.status(500).json({ success: false, error: 'Failed to retrieve admin fixtures.' });
-    }
-  });
-
-  app.post('/api/admin/fixtures', (req: Request, res: Response) => {
-    try {
-      const { fixtures } = req.body || {};
-      if (!Array.isArray(fixtures)) {
-        return res.status(400).json({ success: false, error: 'Expected an array of fixtures.' });
-      }
-      const count = ingestAdminFixtures(fixtures);
-      return res.json({ success: true, count, message: `Successfully published ${count} fixtures to match slate.` });
-    } catch (err: any) {
-      return res.status(500).json({ success: false, error: 'Failed to save admin fixtures.' });
-    }
-  });
-
-  app.delete('/api/admin/fixtures', (req: Request, res: Response) => {
-    try {
-      clearAllFixtures();
-      return res.json({ success: true, message: 'All fixtures cleared from match slate.' });
-    } catch (err: any) {
-      return res.status(500).json({ success: false, error: 'Failed to clear fixtures.' });
     }
   });
 

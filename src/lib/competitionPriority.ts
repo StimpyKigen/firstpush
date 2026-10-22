@@ -291,6 +291,29 @@ export function formatDeviceLocalTime(kickoffIso?: string, fallback: string = ''
  * Example: "21/10 19:45"
  */
 export function formatKickoffDateTime24h(kickoffIso?: string, fallback: string = ''): string {
+  // 1. If fallback already has DD/MM HH:mm or DD-MM-YYYY HH:mm format, use it verbatim!
+  if (fallback) {
+    const verbatimMatch = fallback.match(/^(\d{1,2})[/-](\d{1,2})(?:[/-]\d{2,4})?\s+([0-2]?\d:[0-5]\d)/);
+    if (verbatimMatch) {
+      const d = verbatimMatch[1].padStart(2, '0');
+      const m = verbatimMatch[2].padStart(2, '0');
+      const t = verbatimMatch[3];
+      return `${d}/${m} ${t}`;
+    }
+  }
+
+  // 2. If kickoffIso matches ISO format (e.g. 2026-10-22T14:00:00+03:00), extract verbatim components directly
+  if (kickoffIso) {
+    const isoMatch = kickoffIso.match(/^\d{4}-(\d{2})-(\d{2})T(\d{2}):(\d{2})/);
+    if (isoMatch) {
+      const m = isoMatch[1];
+      const d = isoMatch[2];
+      const t = `${isoMatch[3]}:${isoMatch[4]}`;
+      return `${d}/${m} ${t}`;
+    }
+  }
+
+  // 3. Fallback for any other valid date string
   if (kickoffIso) {
     const d = new Date(kickoffIso);
     if (!isNaN(d.getTime())) {
@@ -312,23 +335,6 @@ export function formatKickoffDateTime24h(kickoffIso?: string, fallback: string =
   }
 
   if (fallback) {
-    const d = new Date(fallback);
-    if (!isNaN(d.getTime())) {
-      const formatter = new Intl.DateTimeFormat('en-GB', {
-        timeZone: 'Africa/Nairobi',
-        day: '2-digit',
-        month: '2-digit',
-        hour: '2-digit',
-        minute: '2-digit',
-        hour12: false,
-      });
-      const parts = formatter.formatToParts(d);
-      const day = parts.find((p) => p.type === 'day')?.value || '';
-      const month = parts.find((p) => p.type === 'month')?.value || '';
-      const hour = parts.find((p) => p.type === 'hour')?.value || '';
-      const minute = parts.find((p) => p.type === 'minute')?.value || '';
-      return `${day}/${month} ${hour}:${minute}`;
-    }
     return fallback;
   }
 
