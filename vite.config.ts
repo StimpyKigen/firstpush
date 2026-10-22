@@ -155,6 +155,40 @@ export default defineConfig(() => {
                   return;
                 }
               }
+              if (url.pathname === '/api/admin/parse-pdf') {
+                try {
+                  const { extractPdfTextServer } = await server.ssrLoadModule('/src/lib/serverPdfParser.ts');
+                  res.setHeader('Content-Type', 'application/json');
+                  res.setHeader('Access-Control-Allow-Origin', '*');
+                  if (req.method === 'POST') {
+                    let body = '';
+                    req.on('data', (chunk: any) => { body += chunk; });
+                    req.on('end', () => {
+                      try {
+                        const parsed = JSON.parse(body || '{}');
+                        const base64 = parsed.base64 || '';
+                        if (!base64) {
+                          res.statusCode = 400;
+                          res.end(JSON.stringify({ success: false, error: 'base64 data required' }));
+                          return;
+                        }
+                        const buffer = Buffer.from(base64, 'base64');
+                        const text = extractPdfTextServer(buffer);
+                        res.end(JSON.stringify({ success: true, text }));
+                      } catch (e) {
+                        res.statusCode = 400;
+                        res.end(JSON.stringify({ success: false, error: 'Invalid JSON payload' }));
+                      }
+                    });
+                    return;
+                  }
+                } catch (err) {
+                  res.statusCode = 500;
+                  res.setHeader('Content-Type', 'application/json');
+                  res.end(JSON.stringify({ success: false, error: String(err) }));
+                  return;
+                }
+              }
             }
             next();
           });

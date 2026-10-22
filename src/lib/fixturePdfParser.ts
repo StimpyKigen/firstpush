@@ -47,138 +47,244 @@ export interface ParseFixturesResult {
   sectoredLeagues: Record<string, { country: string; league: string; count: number }>;
 }
 
+interface TextItem {
+  x: number;
+  y: number;
+  text: string;
+}
+
 /**
  * Native Zero-Dependency PDF Text Stream Extractor
- * Decompresses PDF FlateDecode streams using browser / Node native DecompressionStream.
+ * Decompresses PDF FlateDecode streams using browser native DecompressionStream.
+ * Handles UTF-16BE literals and groups text operators by (x, y) coordinates.
  */
 export async function extractTextFromPdfBuffer(arrayBuffer: ArrayBuffer): Promise<string> {
   const bytes = new Uint8Array(arrayBuffer);
   const textDecoder = new TextDecoder('latin1');
   const pdfString = textDecoder.decode(bytes);
 
-  const extractedLines: string[] = [];
+  const pageLines: string[] = [];
 
-  // Locate all stream...endstream blocks
-  const streamRegex = /stream\r?\n([\s\S]*?)\r?\nendstream/g;
-  let match: RegExpExecArray | null;
+  let pos = 0;
+  while ((pos = pdfString.indexOf('stream', pos)) !== -1) {
+    if (pos > 0 && !/[\r\n>]/.test(pdfString[pos - 1])) {
+      pos += 6;
+      continue;
+    }
 
-  while ((match = streamRegex.exec(pdfString)) !== null) {
-    const streamStartIndex = match.index;
-    const headerSlice = pdfString.slice(Math.max(0, streamStartIndex - 400), streamStartIndex);
-    const isFlate = headerSlice.includes('/FlateDecode') || headerSlice.includes('/Fl');
+    const dictStart = pdfString.lastIndexOf('<<', pos);
+    const dict = dictStart !== -1 ? pdfString.slice(dictStart, pos) : '';
 
-    const streamContentStart = match.index + match[0].indexOf('\n') + 1;
-    const streamContentEnd = match.index + match[0].lastIndexOf('endstream');
-    const rawStreamBytes = bytes.slice(streamContentStart, streamContentEnd);
+    // Skip font streams (/Length1 TrueType fonts)
+    if (dict.includes('/Length1')) {
+      const skipEnd = pdfString.indexOf('endstream', pos);
+      pos = skipEnd !== -1 ? skipEnd + 9 : pos + 6;
+      continue;
+    }
 
-    let decodedStreamText = '';
+    let streamStart = pos + 6;
+    if (streamStart < pdfString.length && pdfString[streamStart] === '\r') streamStart++;
+    if (streamStart < pdfString.length && pdfString[streamStart] === '\n') streamStart++;
 
-    if (isFlate) {
-      try {
-        const ds = new DecompressionStream('deflate');
-        const writer = ds.writable.getWriter();
-        writer.write(rawStreamBytes);
-        writer.close();
-        const reader = ds.readable.getReader();
-        const chunks: Uint8Array[] = [];
-        while (true) {
-          const { value, done } = await reader.read();
-          if (done) break;
-          if (value) chunks.push(value);
-        }
-        const totalLen = chunks.reduce((acc, c) => acc + c.length, 0);
-        const merged = new Uint8Array(totalLen);
-        let offset = 0;
-        for (const c of chunks) {
-          merged.set(c, offset);
-          offset += c.length;
-        }
-        decodedStreamText = new TextDecoder('utf-8', { fatal: false }).decode(merged);
-      } catch {
-        try {
-          const ds = new DecompressionStream('deflate-raw');
-          const writer = ds.writable.getWriter();
-          writer.write(rawStreamBytes);
-          writer.close();
-          const reader = ds.readable.getReader();
-          const chunks: Uint8Array[] = [];
-          while (true) {
-            const { value, done } = await reader.read();
-            if (done) break;
-            if (value) chunks.push(value);
+    const endPos = pdfString.indexOf('endstream', streamStart);
+    if (endPos === -1) break;
+
+    let streamEnd = endPos;
+    while (streamEnd > streamStart && (pdfString[streamEnd - 1] === '\n' || pdfString[streamEnd - 1] === '\r')) {
+      streamEnd--;
+    }
+
+    const rawStreamBytes = bytes.subarray(streamStart, streamEnd);
+    if (rawStreamBytes.length > 0) {
+      let decompressedBytes: Uint8Array | null = null;
+      if (dict.includes('/FlateDecode') || (rawStreamBytes.length > 2 && rawStreamBytes[0] === 0x78)) {
+        decompressedBytes = await decompressPdfStream(rawStreamBytes);
+      } else {
+        decompressedBytes = rawStreamBytes;
+      }
+
+      if (decompressedBytes) {
+        const content = textDecoder.decode(decompressedBytes);
+        if (content.includes('BT') && content.includes('ET')) {
+          const pageText = parseCoordinateTextStream(content);
+          if (pageText.trim()) {
+            pageLines.push(pageText.trim());
           }
-          const totalLen = chunks.reduce((acc, c) => acc + c.length, 0);
-          const merged = new Uint8Array(totalLen);
-          let offset = 0;
-          for (const c of chunks) {
-            merged.set(c, offset);
-            offset += c.length;
-          }
-          decodedStreamText = new TextDecoder('utf-8', { fatal: false }).decode(merged);
-        } catch {
-          // Non-fatal
         }
       }
-    } else {
-      decodedStreamText = new TextDecoder('latin1').decode(rawStreamBytes);
     }
 
-    if (decodedStreamText) {
-      const extracted = parsePdfTextOperators(decodedStreamText);
-      if (extracted.trim()) {
-        extractedLines.push(extracted);
-      }
-    }
+    pos = endPos + 9;
   }
 
-  if (extractedLines.length === 0) {
-    const directText = parsePdfTextOperators(pdfString);
-    if (directText.trim()) {
-      extractedLines.push(directText);
-    }
-  }
-
-  return extractedLines.join('\n');
+  return pageLines.join('\n');
 }
 
-function parsePdfTextOperators(content: string): string {
-  const lines: string[] = [];
-  let currentLine = '';
-
-  const btBlocks = content.match(/BT[\s\S]*?ET/g) || [content];
-
-  for (const block of btBlocks) {
-    const tjArrayRegex = /\[(.*?)\]\s*TJ/g;
-    let tjMatch: RegExpExecArray | null;
-    while ((tjMatch = tjArrayRegex.exec(block)) !== null) {
-      const inner = tjMatch[1];
-      const strParts = inner.match(/\((.*?)\)/g);
-      if (strParts) {
-        const assembled = strParts.map((s) => s.slice(1, -1)).join('');
-        currentLine += ' ' + cleanPdfEscapes(assembled);
+async function decompressPdfStream(bytes: Uint8Array): Promise<Uint8Array | null> {
+  try {
+    const ds = new DecompressionStream('deflate');
+    const writer = ds.writable.getWriter();
+    writer.write(bytes);
+    writer.close();
+    const reader = ds.readable.getReader();
+    const chunks: Uint8Array[] = [];
+    while (true) {
+      const { value, done } = await reader.read();
+      if (done) break;
+      if (value) chunks.push(value);
+    }
+    const totalLen = chunks.reduce((a, b) => a + b.length, 0);
+    const merged = new Uint8Array(totalLen);
+    let off = 0;
+    for (const c of chunks) {
+      merged.set(c, off);
+      off += c.length;
+    }
+    return merged;
+  } catch {
+    try {
+      let rawBytes = bytes;
+      if (bytes.length > 6 && bytes[0] === 0x78) {
+        rawBytes = bytes.subarray(2, bytes.length - 4);
       }
+      const ds = new DecompressionStream('deflate-raw');
+      const writer = ds.writable.getWriter();
+      writer.write(rawBytes);
+      writer.close();
+      const reader = ds.readable.getReader();
+      const chunks: Uint8Array[] = [];
+      while (true) {
+        const { value, done } = await reader.read();
+        if (done) break;
+        if (value) chunks.push(value);
+      }
+      const totalLen = chunks.reduce((a, b) => a + b.length, 0);
+      const merged = new Uint8Array(totalLen);
+      let off = 0;
+      for (const c of chunks) {
+        merged.set(c, off);
+        off += c.length;
+      }
+      return merged;
+    } catch {
+      return null;
+    }
+  }
+}
+
+function parseCoordinateTextStream(content: string): string {
+  const btRegex = /BT([\s\S]*?)ET/g;
+  let btMatch: RegExpExecArray | null;
+  const items: TextItem[] = [];
+
+  while ((btMatch = btRegex.exec(content)) !== null) {
+    const block = btMatch[1];
+    const tdMatch = /(?:([\d.-]+)\s+([\d.-]+)\s+Td|[\d.-]+\s+[\d.-]+\s+[\d.-]+\s+[\d.-]+\s+([\d.-]+)\s+([\d.-]+)\s+Tm)/.exec(block);
+    const x = tdMatch ? parseFloat(tdMatch[1] ?? tdMatch[3] ?? '0') : 0;
+    const y = tdMatch ? parseFloat(tdMatch[2] ?? tdMatch[4] ?? '0') : 0;
+
+    const tjMatch = /\(([\s\S]*?)\)\s*(?:Tj|'|")/.exec(block);
+    if (tjMatch) {
+      const decoded = decodePdfLiteralString(tjMatch[1]);
+      if (decoded) {
+        items.push({ x, y, text: decoded });
+      }
+      continue;
     }
 
-    const tjSingleRegex = /\((.*?)\)\s*(?:Tj|'|")/g;
-    let singleMatch: RegExpExecArray | null;
-    while ((singleMatch = tjSingleRegex.exec(block)) !== null) {
-      const str = cleanPdfEscapes(singleMatch[1]);
-      currentLine += ' ' + str;
-    }
-
-    if (block.includes('T*') || /T[dD]\s+[\d.-]+\s+-[1-9]/.test(block) || currentLine.length > 80) {
-      if (currentLine.trim()) {
-        lines.push(currentLine.trim());
+    const hexMatch = /<([0-9a-fA-F\s]+)>\s*(?:Tj|'|")/.exec(block);
+    if (hexMatch) {
+      const decoded = decodeHexPdfString(hexMatch[1]);
+      if (decoded) {
+        items.push({ x, y, text: decoded });
       }
-      currentLine = '';
     }
   }
 
-  if (currentLine.trim()) {
-    lines.push(currentLine.trim());
+  if (items.length === 0) return '';
+
+  items.sort((a, b) => b.y - a.y || a.x - b.x);
+
+  const rows: { y: number; items: TextItem[] }[] = [];
+  for (const item of items) {
+    const existingRow = rows.find((r) => Math.abs(r.y - item.y) <= 2.5);
+    if (existingRow) {
+      existingRow.items.push(item);
+    } else {
+      rows.push({ y: item.y, items: [item] });
+    }
+  }
+
+  const lines: string[] = [];
+  for (const row of rows) {
+    row.items.sort((a, b) => a.x - b.x);
+    const isMultiColumn = row.items.length >= 4;
+    const rowText = row.items.map((it) => it.text).join(isMultiColumn ? '\t' : ' ');
+    if (rowText.trim()) {
+      lines.push(rowText.trim());
+    }
   }
 
   return lines.join('\n');
+}
+
+export function decodePdfLiteralString(str: string): string {
+  let s = str;
+  if (s.startsWith('\xFE\xFF') || (s.length >= 2 && s.charCodeAt(0) === 0xfe && s.charCodeAt(1) === 0xff)) {
+    s = s.slice(2);
+  }
+
+  if (s.includes('\0') || (s.length >= 2 && s.length % 2 === 0 && s.charCodeAt(0) === 0)) {
+    let decoded = '';
+    for (let i = 0; i < s.length; i += 2) {
+      const code = (s.charCodeAt(i) << 8) | (i + 1 < s.length ? s.charCodeAt(i + 1) : 0);
+      if (code >= 32 && code <= 126) {
+        decoded += String.fromCharCode(code);
+      } else if (code === 10 || code === 13 || code === 9) {
+        decoded += ' ';
+      }
+    }
+    return decoded.trim();
+  }
+
+  return s
+    .replace(/\\([()\\])/g, '$1')
+    .replace(/\\n/g, '\n')
+    .replace(/\\r/g, '\r')
+    .replace(/\\t/g, '\t')
+    .trim();
+}
+
+function decodeHexPdfString(hex: string): string {
+  const clean = hex.replace(/\s+/g, '');
+  if (clean.length >= 4 && clean.length % 4 === 0) {
+    let isUtf16 = true;
+    let decoded = '';
+    for (let i = 0; i < clean.length; i += 4) {
+      const code = parseInt(clean.slice(i, i + 4), 16);
+      if (isNaN(code) || (code > 0 && code < 32 && code !== 9 && code !== 10 && code !== 13)) {
+        isUtf16 = false;
+        break;
+      }
+      decoded += String.fromCharCode(code);
+    }
+    if (isUtf16 && decoded.trim()) return decoded.trim();
+  }
+
+  let result = '';
+  for (let i = 0; i < clean.length; i += 2) {
+    const code = parseInt(clean.slice(i, i + 2), 16);
+    if (!isNaN(code) && code >= 32 && code <= 126) {
+      result += String.fromCharCode(code);
+    }
+  }
+  return result.trim();
+}
+
+export function isBinaryGarbage(text: string): boolean {
+  if (!text || text.length === 0) return true;
+  const nonAsciiCount = (text.match(/[^\x20-\x7E\t\r\n]/g) || []).length;
+  return nonAsciiCount / text.length > 0.30;
 }
 
 function cleanPdfEscapes(str: string): string {
@@ -380,6 +486,86 @@ function parseSingleFixtureLine(
   defaultCountry: string,
   defaultLeague: string
 ): ParsedFixtureRow | null {
+  // 1. Direct tab-delimited format (from coordinate-based parser)
+  if (line.includes('\t')) {
+    const cols = line.split('\t').map((c) => c.trim()).filter(Boolean);
+    if (cols.length >= 7 && /^\d{3,8}$/.test(cols[0]) && /\d{1,2}:\d{2}/.test(cols[1])) {
+      const dateTimeRaw = cols[1];
+      const homeTeam = cols[2];
+      const awayTeam = cols[3];
+      const oddsTokens = cols.slice(4).map(Number).filter((n) => !isNaN(n) && n >= 1.01 && n <= 99.0);
+
+      if (homeTeam && awayTeam && oddsTokens.length >= 3) {
+        const dtParts = dateTimeRaw.replace(/\s*-\s*/, ' ').split(' ');
+        const dateStr = dtParts[0] || new Date().toISOString().slice(0, 10);
+        const timeStr = dtParts[1] || '18:00';
+        const { iso, formatted } = buildEatIso(dateStr, timeStr);
+
+        let country = defaultCountry;
+        let competition = defaultLeague;
+        const canon = resolveCanonicalCompetition({
+          competition: defaultLeague,
+          country: defaultCountry,
+        });
+        if (canon) {
+          country = canon.countryName || canon.country || defaultCountry;
+          competition = canon.name || defaultLeague;
+        }
+        const directoryId = resolveSportScoreDirectoryId({
+          competition,
+          country,
+        });
+
+        const homeOdds = oddsTokens[0];
+        const drawOdds = oddsTokens[1];
+        const awayOdds = oddsTokens[2];
+        const doubleChance1X = oddsTokens[3];
+        const doubleChanceX2 = oddsTokens[4];
+        const doubleChance12 = oddsTokens[5];
+        let over25Odds = oddsTokens[6];
+        let under25Odds = oddsTokens[7];
+        let bttsYesOdds = oddsTokens[8];
+        let bttsNoOdds = oddsTokens[9];
+
+        if (!over25Odds || !under25Odds) {
+          over25Odds = +(1.60 + (homeOdds + awayOdds) * 0.08).toFixed(2);
+          under25Odds = +(1 / (1 - 1 / over25Odds) * 0.95).toFixed(2);
+        }
+        if (!bttsYesOdds || !bttsNoOdds) {
+          bttsYesOdds = +(1.65 + Math.abs(homeOdds - awayOdds) * 0.05).toFixed(2);
+          bttsNoOdds = +(1 / (1 - 1 / bttsYesOdds) * 0.95).toFixed(2);
+        }
+
+        return {
+          homeTeam,
+          awayTeam,
+          kickoffDate: dateStr,
+          kickoffTime: timeStr,
+          kickoffIso: iso,
+          kickoffDisplay: formatted,
+          country,
+          competition,
+          competitionId: canon?.id || slugify(competition),
+          directoryId,
+          odds: {
+            homeOdds,
+            drawOdds,
+            awayOdds,
+            doubleChance1X,
+            doubleChance12,
+            doubleChanceX2,
+            over25Odds,
+            under25Odds,
+            bttsYesOdds,
+            bttsNoOdds,
+          },
+          rawLine: line,
+        };
+      }
+    }
+  }
+
+  // 2. Token-based fallback for freeform / pasted text
   // Normalize pipe and tab delimiters
   let cleanLine = line.replace(/[|\t]/g, ' ').replace(/\s+/g, ' ').trim();
   if (!cleanLine) return null;

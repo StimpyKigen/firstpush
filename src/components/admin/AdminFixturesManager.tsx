@@ -87,7 +87,35 @@ export default function AdminFixturesManager() {
       let extractedText = '';
       if (file.name.toLowerCase().endsWith('.pdf')) {
         const arrayBuffer = await file.arrayBuffer();
-        extractedText = await extractTextFromPdfBuffer(arrayBuffer);
+
+        // 1. Try server-side native zlib parser first
+        try {
+          const bytes = new Uint8Array(arrayBuffer);
+          let binary = '';
+          const len = bytes.byteLength;
+          for (let i = 0; i < len; i++) {
+            binary += String.fromCharCode(bytes[i]);
+          }
+          const base64 = btoa(binary);
+          const resp = await fetch('/api/admin/parse-pdf', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ base64 }),
+          });
+          if (resp.ok) {
+            const data = await resp.json();
+            if (data.success && data.text) {
+              extractedText = data.text;
+            }
+          }
+        } catch {
+          // Server endpoint unavailable, fallback to client decompression
+        }
+
+        // 2. Client-side native DecompressionStream fallback
+        if (!extractedText.trim()) {
+          extractedText = await extractTextFromPdfBuffer(arrayBuffer);
+        }
       } else {
         extractedText = await file.text();
       }
@@ -421,14 +449,43 @@ export default function AdminFixturesManager() {
               placeholder={`ENGLAND: Premier League\n5821 2026-10-24 14:30 Arsenal vs Chelsea 1.95 3.60 3.80 1.25 1.28 1.80 1.75 2.05 1.70 2.10\n\nENGLAND: Championship\n5901 2026-10-24 15:00 Leeds United vs Sunderland 1.80 3.50 4.20 1.20 1.28 1.95 1.90 1.90 1.85 1.95`}
               className="w-full font-mono text-xs p-3 bg-white border border-[#E5E5EA] rounded-xl focus:outline-none focus:border-[#006C54] focus:ring-1 focus:ring-[#006C54]"
             />
-            <button
-              type="button"
-              onClick={handleParseRawText}
-              disabled={isProcessing || !rawTextInput.trim()}
-              className="px-4 py-2 rounded-xl bg-[#006C54] hover:bg-[#005441] text-white text-xs font-semibold transition-colors disabled:opacity-50 cursor-pointer shadow-xs"
-            >
-              Parse Text Input
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={handleParseRawText}
+                disabled={isProcessing || !rawTextInput.trim()}
+                className="px-4 py-2 rounded-xl bg-[#006C54] hover:bg-[#005441] text-white text-xs font-semibold transition-colors disabled:opacity-50 cursor-pointer shadow-xs"
+              >
+                Parse Text Input
+              </button>
+              <button
+                type="button"
+                onClick={async () => {
+                  try {
+                    const clipText = await navigator.clipboard.readText();
+                    if (clipText.trim()) {
+                      setRawTextInput(clipText);
+                      const result = parseFixturesText(clipText);
+                      setParseResult(result);
+                      showToast({
+                        type: 'success',
+                        title: 'Pasted from Clipboard',
+                        message: `Parsed ${result.fixtures.length} fixtures from clipboard text.`,
+                      });
+                    }
+                  } catch {
+                    showToast({
+                      type: 'warning',
+                      title: 'Clipboard Permission',
+                      message: 'Please paste directly into the box using Ctrl+V.',
+                    });
+                  }
+                }}
+                className="px-3 py-2 rounded-xl border border-[#E5E5EA] bg-slate-50 hover:bg-slate-100 text-slate-700 text-xs font-semibold transition-colors cursor-pointer"
+              >
+                Paste from Clipboard
+              </button>
+            </div>
           </div>
         )}
       </div>

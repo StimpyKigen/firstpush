@@ -16,6 +16,7 @@ import {
   clearAllFixtures,
   getSavedAdminFixtures,
 } from './src/lib/sportsFeedService';
+import { extractPdfTextServer } from './src/lib/serverPdfParser';
 import {
   createAdChallenge,
   verifyAndGrantRewardToken,
@@ -85,8 +86,8 @@ async function startServer() {
     next();
   });
 
-  // Json body parser with strict limit
-  app.use(express.json({ limit: '1mb' }));
+  // Json body parser with support for base64 PDF uploads
+  app.use(express.json({ limit: '10mb' }));
 
   // Rate Limiting Rules
   const generalApiLimiter = createRateLimiter(60_000, 120); // 120 reqs / min
@@ -100,6 +101,49 @@ async function startServer() {
   // Health check API
   app.get('/api/health', (req, res) => {
     res.json({ status: 'ok', name: 'Mshindi Projo Backend', timestamp: new Date().toISOString() });
+  });
+
+  // Admin Fixtures Management APIs
+  app.get('/api/admin/fixtures', (req: Request, res: Response) => {
+    try {
+      const fixtures = getSavedAdminFixtures();
+      res.json({ success: true, count: fixtures.length, fixtures });
+    } catch (err: any) {
+      res.status(500).json({ success: false, error: err?.message || 'Failed to get admin fixtures' });
+    }
+  });
+
+  app.post('/api/admin/fixtures', (req: Request, res: Response) => {
+    try {
+      const fixtures = Array.isArray(req.body?.fixtures) ? req.body.fixtures : [];
+      const count = ingestAdminFixtures(fixtures);
+      res.json({ success: true, count, message: `Successfully published ${count} fixtures to match slate.` });
+    } catch (err: any) {
+      res.status(500).json({ success: false, error: err?.message || 'Failed to ingest admin fixtures' });
+    }
+  });
+
+  app.delete('/api/admin/fixtures', (req: Request, res: Response) => {
+    try {
+      clearAllFixtures();
+      res.json({ success: true, message: 'All fixtures cleared from match slate.' });
+    } catch (err: any) {
+      res.status(500).json({ success: false, error: err?.message || 'Failed to clear fixtures' });
+    }
+  });
+
+  app.post('/api/admin/parse-pdf', (req: Request, res: Response) => {
+    try {
+      const base64 = req.body?.base64;
+      if (!base64) {
+        return res.status(400).json({ success: false, error: 'base64 PDF data is required.' });
+      }
+      const buffer = Buffer.from(base64, 'base64');
+      const text = extractPdfTextServer(buffer);
+      res.json({ success: true, text });
+    } catch (err: any) {
+      res.status(500).json({ success: false, error: err?.message || 'Failed to parse PDF on server' });
+    }
   });
 
   // =========================================================================
