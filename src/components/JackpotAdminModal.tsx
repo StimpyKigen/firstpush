@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { ShieldCheck, X, Trophy, Lock, Tv, ShieldAlert, Newspaper, KeyRound } from 'lucide-react';
+import { ShieldCheck, X, Trophy, Lock, Tv, ShieldAlert, Newspaper, KeyRound, CalendarDays } from 'lucide-react';
 import AdminAdSettingsModal from './adSystem/AdminAdSettingsModal';
 import AdminModerationDashboard from './AdminModerationDashboard';
 import AdminHomepageFeed from './admin/AdminHomepageFeed';
+import AdminFixturesManager from './admin/AdminFixturesManager';
 import LiveRoomsResultsManager from './jackpotAdmin/LiveRoomsResultsManager';
 import CreateJackpotForm from './jackpotAdmin/CreateJackpotForm';
 import { isAdminUser, useCurrentUser } from '../lib/authStore';
@@ -15,7 +16,7 @@ interface JackpotAdminModalProps {
   onClose: () => void;
 }
 
-type AdminTab = 'jackpots' | 'moderation' | 'feed';
+type AdminTab = 'jackpots' | 'moderation' | 'feed' | 'fixtures';
 
 export default function JackpotAdminModal({ isOpen, onClose }: JackpotAdminModalProps) {
   // Admin authentication & tabs state
@@ -201,6 +202,19 @@ export default function JackpotAdminModal({ isOpen, onClose }: JackpotAdminModal
                 <Newspaper size={14} />
                 <span>Homepage Feed</span>
               </button>
+
+              <button
+                type="button"
+                onClick={() => setActiveAdminTab('fixtures')}
+                className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
+                  activeAdminTab === 'fixtures'
+                    ? 'bg-[#006C54] text-white shadow-xs'
+                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+                }`}
+              >
+                <CalendarDays size={14} />
+                <span>Fixtures</span>
+              </button>
             </div>
           </div>
         )}
@@ -215,7 +229,7 @@ export default function JackpotAdminModal({ isOpen, onClose }: JackpotAdminModal
               <div>
                 <h3 className="font-semibold text-xl text-slate-900 tracking-tight">Admin Authentication Required</h3>
                 <p className="text-xs text-slate-500 mt-1.5 leading-relaxed">
-                  Enter your Super-Admin PIN or Security Code to manage jackpot slates and homepage editorial feeds.
+                  Enter your Super-Admin PIN or Security Code to manage jackpot slates, fixture odds, and homepage editorial feeds.
                 </p>
               </div>
 
@@ -238,6 +252,10 @@ export default function JackpotAdminModal({ isOpen, onClose }: JackpotAdminModal
                   {isVerifying ? 'Verifying Admin Credentials...' : 'Unlock Admin Console'}
                 </button>
               </form>
+            </div>
+          ) : activeAdminTab === 'fixtures' ? (
+            <div className="p-6 sm:p-8">
+              <AdminFixturesManager />
             </div>
           ) : activeAdminTab === 'feed' ? (
             <div className="p-6 sm:p-8">

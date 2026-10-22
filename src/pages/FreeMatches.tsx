@@ -56,6 +56,7 @@ export default function FreeMatches() {
   });
 
   // Apple-inspired toolbar dropdown & popover states
+  const [selectedSubLeague, setSelectedSubLeague] = useState<string>('all');
   const [isDateDropdownOpen, setIsDateDropdownOpen] = useState(false);
   const [isLeagueDropdownOpen, setIsLeagueDropdownOpen] = useState(false);
   const [leagueSearchQuery, setLeagueSearchQuery] = useState('');
@@ -110,6 +111,7 @@ export default function FreeMatches() {
 
   const handleLeagueFilterChange = (val: string) => {
     setLeagueFilter(val);
+    setSelectedSubLeague('all');
     setIsLeagueDropdownOpen(false);
     setLeagueSearchQuery('');
     try {
@@ -121,6 +123,7 @@ export default function FreeMatches() {
     setSearchQuery('');
     setLeagueSearchQuery('');
     setIsSearchOpen(false);
+    setSelectedSubLeague('all');
     handleLeagueFilterChange('all');
     setSelectedDate('all');
     setActiveTab('highlights');
@@ -365,6 +368,31 @@ export default function FreeMatches() {
       // Highlights & Live: rank by competition prestige hierarchy
       return sortHighlightsComparator(a, b);
     });
+
+  // Group matches by sectored leagues when a country (like England) is selected
+  const sectoredLeagueGroups = useMemo(() => {
+    const groups: { league: string; matches: FreeMatch[] }[] = [];
+    const map = new Map<string, FreeMatch[]>();
+
+    filteredMatches.forEach((m) => {
+      const comp = m.competition || 'Other Competition';
+      if (!map.has(comp)) {
+        map.set(comp, []);
+      }
+      map.get(comp)!.push(m);
+    });
+
+    map.forEach((matches, league) => {
+      groups.push({ league, matches });
+    });
+
+    return groups;
+  }, [filteredMatches]);
+
+  const visibleSectors = useMemo(() => {
+    if (selectedSubLeague === 'all') return sectoredLeagueGroups;
+    return sectoredLeagueGroups.filter((g) => g.league === selectedSubLeague);
+  }, [sectoredLeagueGroups, selectedSubLeague]);
 
   const handleTabClick = (tab: ScopeTab) => {
     setActiveTab(tab);
@@ -841,9 +869,66 @@ export default function FreeMatches() {
         )}
       </div>
 
+      {/* SUB-LEAGUE SECTOR PILLS (For countries with multiple leagues like England) */}
+      {leagueFilter !== 'all' && sectoredLeagueGroups.length > 1 && (
+        <div className="flex items-center justify-center gap-2 flex-wrap mb-6 max-w-4xl mx-auto animate-fade-in">
+          <button
+            type="button"
+            onClick={() => setSelectedSubLeague('all')}
+            className={`px-3.5 py-1.5 rounded-full text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer select-none ${
+              selectedSubLeague === 'all'
+                ? 'bg-[#006C54] text-white shadow-xs'
+                : 'bg-[#FFFFF0] border border-[#DCDCC8] text-slate-700 hover:border-[#006C54]'
+            }`}
+          >
+            <span>All {selectedDirectoryLabel} Leagues</span>
+            <span
+              className={`text-[10px] font-mono px-1.5 py-0.2 rounded-full font-bold ${
+                selectedSubLeague === 'all' ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-600'
+              }`}
+            >
+              {filteredMatches.length}
+            </span>
+          </button>
+
+          {sectoredLeagueGroups.map((g) => {
+            const isSelected = selectedSubLeague === g.league;
+            return (
+              <button
+                key={g.league}
+                type="button"
+                onClick={() => setSelectedSubLeague(g.league)}
+                className={`px-3.5 py-1.5 rounded-full text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer select-none ${
+                  isSelected
+                    ? 'bg-[#006C54] text-white shadow-xs'
+                    : 'bg-[#FFFFF0] border border-[#DCDCC8] text-slate-700 hover:border-[#006C54]'
+                }`}
+              >
+                <span>{g.league}</span>
+                <span
+                  className={`text-[10px] font-mono px-1.5 py-0.2 rounded-full font-bold ${
+                    isSelected ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-600'
+                  }`}
+                >
+                  {g.matches.length}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      )}
+
       {/* FIXTURES LIST / SKELETON LOADER / RESILIENT EMPTY STATES */}
       {matches.length === 0 && (getIsFreeMatchesSyncing() || !getHasFreeMatchesSynced()) ? (
         <MatchListSkeleton count={6} />
+      ) : matches.length === 0 ? (
+        <div className="bg-white border border-slate-200 rounded-2xl p-8 sm:p-12 text-center max-w-xl mx-auto flex flex-col items-center gap-3 shadow-xs">
+          <Calendar size={36} className="text-[#006C54]" />
+          <h3 className="font-display font-extrabold text-lg text-slate-900 uppercase tracking-tight">No Fixtures Currently Scheduled</h3>
+          <p className="text-xs text-slate-600 leading-relaxed max-w-md">
+            The match slate is clean. Platform administrators can upload a fixtures PDF in the Admin Console to instantly publish fixtures and consensus odds.
+          </p>
+        </div>
       ) : activeTab === 'live' && filteredMatches.length === 0 ? (
         <div className="bg-white border border-slate-200 rounded-2xl p-8 text-center max-w-xl mx-auto flex flex-col items-center gap-3 shadow-xs">
           <Radio size={36} className="text-slate-400 animate-pulse" />
@@ -887,7 +972,7 @@ export default function FreeMatches() {
               <SearchX size={36} className="text-[#006C54]" />
               <h3 className="font-display font-extrabold text-lg text-slate-900 uppercase tracking-tight">No Fixtures Match Current Filters</h3>
               <p className="text-xs text-slate-600 leading-relaxed">
-                No matches found for &quot;<strong className="text-slate-900">{searchQuery || selectedDirectoryLabel}</strong>&quot; under {activeTab} view. Try clearing filters to view all upcoming fixtures across 90+ supported competitions.
+                No matches found for &quot;<strong className="text-slate-900">{searchQuery || selectedDirectoryLabel}</strong>&quot; under {activeTab} view. Try clearing filters to view all upcoming fixtures across supported competitions.
               </p>
             </>
           )}
@@ -911,7 +996,48 @@ export default function FreeMatches() {
             </button>
           </div>
         </div>
+      ) : sectoredLeagueGroups.length > 1 && leagueFilter !== 'all' ? (
+        /* SECTORED LEAGUES VIEW (e.g. England Premier League, Championship, etc.) */
+        <div className="space-y-10">
+          {visibleSectors.map((sector) => (
+            <div key={sector.league} className="space-y-4">
+              <div className="flex items-center justify-between pb-2 border-b border-[#006C54]/25">
+                <div className="flex items-center gap-2">
+                  <span className="w-2.5 h-2.5 rounded-full bg-[#006C54]" />
+                  <h2 className="font-display font-black text-base sm:text-lg text-slate-900 tracking-tight uppercase">
+                    {sector.league}
+                  </h2>
+                </div>
+                <span className="text-[11px] font-mono font-bold px-2.5 py-0.5 rounded-full bg-[#E8F5EE] text-[#006C54]">
+                  {sector.matches.length} {sector.matches.length === 1 ? 'Fixture' : 'Fixtures'}
+                </span>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6">
+                {sector.matches.map((m) => (
+                  <FixtureSportCard
+                    key={m.id}
+                    match={m}
+                    consensus={
+                      consensusMap[m.id] || {
+                        homePct: m.homePct || 33,
+                        drawPct: m.drawPct || 34,
+                        awayPct: m.awayPct || 33,
+                        totalVotes: 142,
+                        picks: [],
+                        matchId: m.id,
+                      }
+                    }
+                    builderLegs={builderLegs}
+                    onToggleLeg={(market, pick, odds, e) => handleToggleLeg(m, market, pick, odds, e)}
+                    onOpenBetBuilder={(matchData) => setSelectedMatchForBuilder(matchData)}
+                  />
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
       ) : (
+        /* STANDARD MATCH GRID */
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6">
           {filteredMatches.map((m) => (
             <FixtureSportCard

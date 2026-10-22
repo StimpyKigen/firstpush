@@ -90,62 +90,59 @@ import { BUNDLED_SPORTS_CATALOGUE } from '../data/bundledSportsCatalogue';
 import { resolveCanonicalCompetition } from './canonicalCompetitions';
 
 function mapBundledToHighlights(): HighlightFixture[] {
-  try {
-    return (BUNDLED_SPORTS_CATALOGUE.fixtures as unknown as any[]).map((m: any) => {
-      const canon = resolveCanonicalCompetition({
-        competition: m.competition,
-        country: m.country,
-        leagueCode: m.leagueCode,
-        providerId: m.providerId || m.id,
-      });
-      const tier = inferTier(canon.name, m.home, m.away);
-      const blurb = buildBlurb(m.home, m.away, canon.name, m.status);
-      const fid = m.id?.startsWith('mkt-') ? m.id : `mkt-${m.id || `${m.home}-${m.away}`.toLowerCase().replace(/[^a-z0-9]/g, '-')}`;
-      return {
-        id: fid,
-        home: m.home,
-        away: m.away,
-        competition: canon.name,
-        competitionId: m.competitionId || canon.id,
-        leagueCode: m.leagueCode,
-        country: canon.country || m.country,
-        kickoff: m.kickoff,
-        kickoffIso: m.kickoffIso,
-        tier,
-        blurb,
-        homePct: m.homePct,
-        drawPct: m.drawPct,
-        awayPct: m.awayPct,
-        homeOdds: m.homeOdds,
-        drawOdds: m.drawOdds,
-        awayOdds: m.awayOdds,
-        bookmaker: 'Market Consensus',
-        syncedAt: 'Live Consensus',
-        status: m.status || 'pre',
-        displayClock: m.displayClock || (m.status === 'in' ? 'LIVE' : m.status === 'post' ? 'FT' : ''),
-        homeScore: m.homeScore !== undefined ? m.homeScore : null,
-        awayScore: m.awayScore !== undefined ? m.awayScore : null,
-        bttsYesPct: m.bttsYesPct,
-        over15Pct: m.over15Pct,
-        over25Pct: m.over25Pct,
-        over35Pct: m.over35Pct,
-      };
-    });
-  } catch {
-    return [];
-  }
+  // Pre-loaded fixtures removed per user mandate
+  return [];
 }
 
-let cachedFixtures: HighlightFixture[] = mapBundledToHighlights();
+let cachedFixtures: HighlightFixture[] = [];
 let lastFetchedTime = 0;
 
-// Hydrate newer updates from localStorage if available
+// Hydrate admin uploaded fixtures from localStorage if available
 try {
-  const stored = typeof localStorage !== 'undefined' ? localStorage.getItem('mshindi_football_cache_v3') : null;
+  const stored = typeof localStorage !== 'undefined' ? localStorage.getItem('mshindi_uploaded_fixtures') : null;
   if (stored) {
     const parsed = JSON.parse(stored);
     if (Array.isArray(parsed) && parsed.length > 0) {
-      cachedFixtures = parsed;
+      cachedFixtures = parsed.map((m: any) => {
+        const canon = resolveCanonicalCompetition({
+          competition: m.competition,
+          country: m.country,
+          leagueCode: m.leagueCode,
+          providerId: m.providerId || m.id,
+        });
+        const compName = m.competition || canon.name;
+        const tier = inferTier(compName, m.home, m.away);
+        const blurb = buildBlurb(m.home, m.away, compName, m.status);
+        return {
+          id: m.id,
+          home: m.home,
+          away: m.away,
+          competition: compName,
+          competitionId: m.competitionId || canon.id,
+          leagueCode: m.leagueCode,
+          country: m.country || canon.country,
+          kickoff: m.kickoff,
+          kickoffIso: m.kickoffIso,
+          tier,
+          blurb,
+          homePct: m.homePct || 33,
+          drawPct: m.drawPct || 34,
+          awayPct: m.awayPct || 33,
+          homeOdds: m.homeOdds || 2.00,
+          drawOdds: m.drawOdds || 3.30,
+          awayOdds: m.awayOdds || 3.50,
+          bookmaker: m.bookmaker || 'Uploaded Market Consensus',
+          syncedAt: m.syncedAt || 'Uploaded',
+          status: m.status || 'pre',
+          displayClock: m.displayClock || '',
+          homeScore: m.homeScore !== undefined ? m.homeScore : null,
+          awayScore: m.awayScore !== undefined ? m.awayScore : null,
+          bttsYesPct: m.bttsYesPct,
+          over15Pct: m.over15Pct,
+          over25Pct: m.over25Pct,
+          over35Pct: m.over35Pct,
+        };
+      });
       lastFetchedTime = Date.now();
     }
   }

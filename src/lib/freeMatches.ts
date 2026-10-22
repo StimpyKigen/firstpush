@@ -158,6 +158,39 @@ export async function refreshFreeMatches(force = false) {
   }
 }
 
+export function setUploadedFreeMatches(fixtures: FreeMatch[]) {
+  liveMatches = [...fixtures];
+  liveConsensus = Object.fromEntries(
+    liveMatches.map((match, index) => [
+      match.id,
+      freeMatchConsensus[match.id] || buildConsensus(match.id, index * 17 + 7, match.homePct || 33, match.drawPct || 34),
+    ]),
+  ) as Record<string, MatchConsensus>;
+
+  freeMatches.splice(0, freeMatches.length, ...liveMatches);
+  Object.keys(freeMatchConsensus).forEach((key) => delete freeMatchConsensus[key]);
+  Object.assign(freeMatchConsensus, liveConsensus);
+  hasSyncedFreeMatchesOnce = true;
+  emitFreeMatchesChange();
+
+  try {
+    localStorage.setItem('mshindi_uploaded_fixtures', JSON.stringify(fixtures));
+  } catch {}
+}
+
+export function clearAllFreeMatches() {
+  liveMatches = [];
+  liveConsensus = {};
+  freeMatches.splice(0, freeMatches.length);
+  Object.keys(freeMatchConsensus).forEach((key) => delete freeMatchConsensus[key]);
+  hasSyncedFreeMatchesOnce = true;
+  emitFreeMatchesChange();
+
+  try {
+    localStorage.removeItem('mshindi_uploaded_fixtures');
+  } catch {}
+}
+
 export function getFreeMatch(id: string): FreeMatch | undefined {
   return freeMatches.find((m) => m.id === id);
 }

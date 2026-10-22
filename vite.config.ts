@@ -117,6 +117,44 @@ export default defineConfig(() => {
                   return;
                 }
               }
+              if (url.pathname === '/api/admin/fixtures') {
+                try {
+                  const { getSavedAdminFixtures, ingestAdminFixtures, clearAllFixtures } = await server.ssrLoadModule('/src/lib/sportsFeedService.ts');
+                  res.setHeader('Content-Type', 'application/json');
+                  res.setHeader('Access-Control-Allow-Origin', '*');
+                  if (req.method === 'GET') {
+                    const fixtures = getSavedAdminFixtures();
+                    res.end(JSON.stringify({ success: true, count: fixtures.length, fixtures }));
+                    return;
+                  }
+                  if (req.method === 'POST') {
+                    let body = '';
+                    req.on('data', (chunk: any) => { body += chunk; });
+                    req.on('end', () => {
+                      try {
+                        const parsed = JSON.parse(body || '{}');
+                        const fixtures = Array.isArray(parsed.fixtures) ? parsed.fixtures : [];
+                        const count = ingestAdminFixtures(fixtures);
+                        res.end(JSON.stringify({ success: true, count, message: `Successfully published ${count} fixtures to match slate.` }));
+                      } catch (e) {
+                        res.statusCode = 400;
+                        res.end(JSON.stringify({ success: false, error: 'Invalid JSON payload' }));
+                      }
+                    });
+                    return;
+                  }
+                  if (req.method === 'DELETE') {
+                    clearAllFixtures();
+                    res.end(JSON.stringify({ success: true, message: 'All fixtures cleared from match slate.' }));
+                    return;
+                  }
+                } catch (err) {
+                  res.statusCode = 500;
+                  res.setHeader('Content-Type', 'application/json');
+                  res.end(JSON.stringify({ success: false, error: String(err) }));
+                  return;
+                }
+              }
             }
             next();
           });

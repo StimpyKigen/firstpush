@@ -199,30 +199,13 @@ export function isSimulatedReality(f: {
  * Load initial state from bundled catalogue and persistent disk cache
  */
 function loadDiskCache(): void {
-  // 1. Immediately seed in-memory store from bundled catalogue (guarantees 0ms cold-start response in serverless)
+  // 1. Initialize discovered leagues for directory metadata
   if (discoveredLeagues.length === 0 && Array.isArray(BUNDLED_SPORTS_CATALOGUE.leagues)) {
     discoveredLeagues = ([...BUNDLED_SPORTS_CATALOGUE.leagues] as unknown as DiscoveredLeague[])
       .filter((l) => !isSimulatedReality({ competition: l.name, leagueCode: l.league, country: l.country }));
   }
-  if (fixturesStore.size === 0 && Array.isArray(BUNDLED_SPORTS_CATALOGUE.fixtures)) {
-    (BUNDLED_SPORTS_CATALOGUE.fixtures as unknown as MarketFixture[]).forEach((f) => {
-      if (f && f.id && !isSimulatedReality(f)) {
-        if (!f.competitionId) {
-          const canon = resolveCanonicalCompetition({
-            competition: f.competition,
-            country: f.country,
-            leagueCode: f.leagueCode,
-            providerId: f.providerId || f.id,
-          });
-          f.competitionId = canon.id;
-        }
-        fixturesStore.set(f.id, f);
-      }
-    });
-    lastSyncTimestamp = new Date().toISOString();
-  }
 
-  // 2. Hydrate from runtime disk cache if present
+  // 2. Hydrate fixtures strictly from persistent runtime disk cache (admin uploaded fixtures only)
   try {
     const isVercel = Boolean(process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME);
     const targetDir = isVercel ? path.join(os.tmpdir(), '.mshindi-cache') : CACHE_DIR;
@@ -296,17 +279,48 @@ function saveDiskCache(): void {
       }
     }
 
-    if (fixturesStore.size > 0) {
-      const flat = Array.from(fixturesStore.values());
-      try {
-        fs.writeFileSync(path.join(targetDir, 'sports_fixtures.json'), JSON.stringify(flat, null, 2), 'utf-8');
-      } catch {
-        // Ignore write failures in read-only environments
-      }
+    const flat = Array.from(fixturesStore.values());
+    try {
+      fs.writeFileSync(path.join(targetDir, 'sports_fixtures.json'), JSON.stringify(flat, null, 2), 'utf-8');
+    } catch {
+      // Ignore write failures in read-only environments
     }
   } catch {
     // Non-fatal
   }
+}
+
+/**
+ * Ingest administrative fixtures uploaded via Admin PDF parser
+ */
+export function ingestAdminFixtures(fixtures: MarketFixture[]): number {
+  fixturesStore.clear();
+  let count = 0;
+  for (const f of fixtures) {
+    if (f && f.id) {
+      fixturesStore.set(f.id, f);
+      count++;
+    }
+  }
+  lastSyncTimestamp = new Date().toISOString();
+  saveDiskCache();
+  return count;
+}
+
+/**
+ * Clear all current fixtures from in-memory store and disk cache
+ */
+export function clearAllFixtures(): void {
+  fixturesStore.clear();
+  lastSyncTimestamp = null;
+  saveDiskCache();
+}
+
+/**
+ * Retrieve all currently loaded admin fixtures
+ */
+export function getSavedAdminFixtures(): MarketFixture[] {
+  return Array.from(fixturesStore.values());
 }
 
 // Hydrate on module load
@@ -751,230 +765,21 @@ export function normalizeSportScoreMatch(m: any, nowIso: string, isLiveForce = f
 }
 
 /**
- * Ingest full SportScore fixture catalog across European Competitions & domestic leagues
+ * SportScore API Config is preserved for on-demand queries (match details, lineups, standings).
+ * Automated background crawling and scheduled loops are disabled per user mandate.
  */
 export async function syncSportScoreCatalog(): Promise<number> {
-  try {
-    const dates: string[] = [];
-    const now = new Date();
-    for (let i = 0; i < 5; i++) {
-      const d = new Date(now);
-      d.setDate(d.getDate() + i);
-      dates.push(d.toISOString().slice(0, 10));
-    }
-
-    const sportScoreFixtures: MarketFixture[] = [];
-    const nowIso = new Date().toISOString();
-
-    // 1. Live fixtures
-    try {
-      const liveRes = await fetch('https://sportscore.com/api/v1/fixtures/?sport=football&status=live', {
-        headers: { 'User-Agent': 'Mozilla/5.0' },
-        signal: AbortSignal.timeout(6000),
-      });
-      if (liveRes.ok) {
-        const liveJson = await liveRes.json();
-        (liveJson.matches || []).forEach((m: any) => {
-          sportScoreFixtures.push(normalizeSportScoreMatch(m, nowIso, true));
-        });
-      }
-    } catch {
-      // non-fatal
-    }
-
-    // 2. Priority major European & continental competitions with verified SportScore slugs
-    const priorityCompetitions = [
-      { slug: 'english-premier-league', name: 'English Premier League' },
-      { slug: 'spanish-la-liga', name: 'Spanish La Liga' },
-      { slug: 'bundesliga', name: 'German Bundesliga' },
-      { slug: 'italian-serie-a', name: 'Italian Serie A' },
-      { slug: 'french-ligue-1', name: 'French Ligue 1' },
-      { slug: 'netherlands-eredivisie', name: 'Netherlands Eredivisie' },
-      { slug: 'belgian-pro-league', name: 'Belgian Pro League' },
-      { slug: 'uefa-champions-league', name: 'UEFA Champions League' },
-      { slug: 'uefa-europa-league', name: 'UEFA Europa League' },
-      { slug: 'uefa-europa-conference-league', name: 'UEFA Conference League' },
-      { slug: 'uefa-youth-league', name: 'UEFA Youth League' },
-      { slug: 'caf-champions-league', name: 'CAF Champions League' },
-    ];
-
-    // Priority competition fixtures queried across the upcoming match slate dates
-    const compPromises = priorityCompetitions.map(async ({ slug }) => {
-      const compMatches: MarketFixture[] = [];
-      // Query today and upcoming dates for this competition
-      for (const dStr of dates.slice(0, 4)) {
-        try {
-          const res = await fetch(`https://sportscore.com/api/v1/fixtures/?sport=football&competition=${slug}&date=${dStr}`, {
-            headers: { 'User-Agent': 'Mozilla/5.0' },
-            signal: AbortSignal.timeout(6000),
-          });
-          if (res.ok) {
-            const json = await res.json();
-            if (Array.isArray(json.matches)) {
-              json.matches.forEach((m: any) => {
-                compMatches.push(normalizeSportScoreMatch(m, nowIso, false));
-              });
-            }
-          }
-        } catch {
-          // non-fatal per date
-        }
-      }
-      return compMatches;
-    });
-
-    // 3. Rolling dates (generic slate)
-    const datePromises = dates.map(async (dStr) => {
-      try {
-        const res = await fetch(`https://sportscore.com/api/v1/fixtures/?sport=football&date=${dStr}&limit=200`, {
-          headers: { 'User-Agent': 'Mozilla/5.0' },
-          signal: AbortSignal.timeout(8000),
-        });
-        if (res.ok) {
-          const json = await res.json();
-          return (json.matches || []).map((m: any) => normalizeSportScoreMatch(m, nowIso, false));
-        }
-      } catch {
-        return [];
-      }
-      return [];
-    });
-
-    const [priorityResults, dateResults] = await Promise.all([
-      Promise.all(compPromises),
-      Promise.all(datePromises),
-    ]);
-
-    priorityResults.forEach((arr) => {
-      sportScoreFixtures.push(...arr);
-    });
-
-    dateResults.forEach((arr) => {
-      sportScoreFixtures.push(...arr);
-    });
-
-    if (sportScoreFixtures.length > 0) {
-      return ingestFixtures(sportScoreFixtures);
-    }
-    return 0;
-  } catch (err: any) {
-    console.warn('SportScore catalog sync notice:', err?.message || err);
-    return 0;
-  }
+  // Automated background crawling disabled per user mandate
+  return 0;
 }
 
 /**
- * Dedicated high-speed live scores ingestion loop.
- * Retrieves only active live and recently completed matches with minimal payload latency.
+ * Dedicated live scores ingestion loop.
+ * Automated scraping loop is disabled per user mandate.
  */
 export async function syncLiveScoresOnly(): Promise<{ updated: number; liveCount: number }> {
-  if (isLiveSyncing) {
-    return { updated: 0, liveCount: Array.from(fixturesStore.values()).filter((f) => f.status === 'in').length };
-  }
-  isLiveSyncing = true;
-  liveSyncCyclesCounter++;
-
-  try {
-    const nowIso = new Date().toISOString();
-    const liveFixtures: MarketFixture[] = [];
-
-    // 1. Fetch from live fixtures endpoint
-    try {
-      const liveRes = await fetch('https://sportscore.com/api/v1/fixtures/?sport=football&status=live', {
-        headers: { 'User-Agent': 'Mozilla/5.0' },
-        signal: AbortSignal.timeout(6000),
-      });
-      if (liveRes.ok) {
-        const liveJson = await liveRes.json();
-        if (Array.isArray(liveJson.matches)) {
-          liveJson.matches.forEach((m: any) => {
-            liveFixtures.push(normalizeSportScoreMatch(m, nowIso, true));
-          });
-        }
-      }
-    } catch (e: any) {
-      console.warn('Live fixtures fetch notice:', e?.message || e);
-    }
-
-    // 2. Fetch from widget matches endpoint (returns both live matches and recently finished matches!)
-    try {
-      const widgetRes = await fetch('https://sportscore.com/api/widget/matches/?sport=football&limit=50', {
-        headers: { 'User-Agent': 'Mozilla/5.0' },
-        signal: AbortSignal.timeout(6000),
-      });
-      if (widgetRes.ok) {
-        const widgetJson = await widgetRes.json();
-        if (Array.isArray(widgetJson.matches)) {
-          widgetJson.matches.forEach((m: any) => {
-            liveFixtures.push(normalizeSportScoreMatch(m, nowIso, false));
-          });
-        }
-      }
-    } catch (e: any) {
-      console.warn('Widget matches fetch notice:', e?.message || e);
-    }
-
-    // 3. For any match in our store currently marked as 'in' (live), or scheduled matches whose kickoff has arrived
-    const nowMs = Date.now();
-    const activeOrStartedInStore = Array.from(fixturesStore.values()).filter((f) => {
-      if (f.status === 'in') return true;
-      if (f.status === 'pre' && f.kickoffIso) {
-        const kMs = new Date(f.kickoffIso).getTime();
-        return !isNaN(kMs) && kMs <= nowMs && nowMs - kMs <= 180 * 60 * 1000;
-      }
-      return false;
-    });
-    const checkedSlugs = new Set(liveFixtures.map((f) => f.providerId));
-
-    for (const activeMatch of activeOrStartedInStore) {
-      // If active match was NOT in the live matches list from provider, check its specific match detail
-      if (!checkedSlugs.has(activeMatch.providerId) && activeMatch.providerId) {
-        try {
-          const detailRes = await fetch(
-            `https://sportscore.com/api/widget/match/?sport=football&slug=${encodeURIComponent(activeMatch.providerId)}`,
-            {
-              headers: { 'User-Agent': 'Mozilla/5.0' },
-              signal: AbortSignal.timeout(4000),
-            }
-          );
-          if (detailRes.ok) {
-            const d = await detailRes.json();
-            if (d && d.status) {
-              const detailed = parseDetailedMatchStatus(d.status, d.status_text);
-              liveFixtures.push({
-                ...activeMatch,
-                status: detailed.status,
-                period: detailed.period,
-                displayClock: detailed.displayClock || (detailed.status === 'post' ? 'FT' : 'LIVE'),
-                periodSequence: detailed.periodSequence,
-                homeScore: d.home_score !== null && d.home_score !== undefined ? Number(d.home_score) : activeMatch.homeScore,
-                awayScore: d.away_score !== null && d.away_score !== undefined ? Number(d.away_score) : activeMatch.awayScore,
-                homeHtScore: d.home_ht_score !== null && d.home_ht_score !== undefined ? Number(d.home_ht_score) : activeMatch.homeHtScore,
-                awayHtScore: d.away_ht_score !== null && d.away_ht_score !== undefined ? Number(d.away_ht_score) : activeMatch.awayHtScore,
-                syncedAt: nowIso,
-                lastSyncTime: nowIso,
-                recordUpdateTime: nowIso,
-                isAuthoritativeCorrection: true,
-              });
-            }
-          }
-        } catch {
-          // ignore single match check timeout
-        }
-      }
-    }
-
-    let updated = 0;
-    if (liveFixtures.length > 0) {
-      updated = ingestFixtures(liveFixtures, true);
-    }
-
-    lastLiveSyncTimestamp = nowIso;
-    const currentLiveCount = Array.from(fixturesStore.values()).filter((f) => f.status === 'in').length;
-    return { updated, liveCount: currentLiveCount };
-  } finally {
-    isLiveSyncing = false;
-  }
+  // Automated live scraping loop disabled per user mandate
+  return { updated: 0, liveCount: Array.from(fixturesStore.values()).filter((f) => f.status === 'in').length };
 }
 
 // Round-robin index for secondary league synchronization
@@ -982,80 +787,10 @@ let secondaryLeagueIndex = 0;
 
 /**
  * Execute a rolling sync cycle
+ * Automated background rolling sync disabled per user mandate.
  */
 export async function executeRollingSyncCycle(): Promise<{ updated: number; total: number }> {
-  if (isRollingSyncing) {
-    return { updated: 0, total: fixturesStore.size };
-  }
-  isRollingSyncing = true;
-  syncCycleCounter++;
-
-  try {
-    if (discoveredLeagues.length === 0) {
-      await discoverAllLeagues();
-    }
-
-    // 1. Always sync Top Priority leagues
-    const priorityLeagues = Array.from(TOP_PRIORITY_LEAGUE_CODES);
-
-    // 2. Add any leagues that currently have live in-play matches
-    Array.from(fixturesStore.values()).forEach((f) => {
-      if (f.status === 'in' && !priorityLeagues.includes(f.leagueCode)) {
-        priorityLeagues.push(f.leagueCode);
-      }
-    });
-
-    // 3. Add a rolling batch of 6 secondary leagues from discoveredLeagues
-    const secondaryLeagues = discoveredLeagues
-      .map((l) => l.league)
-      .filter((code) => !priorityLeagues.includes(code));
-
-    const BATCH_SIZE = 6;
-    const currentBatch: string[] = [];
-    if (secondaryLeagues.length > 0) {
-      for (let i = 0; i < BATCH_SIZE; i++) {
-        const code = secondaryLeagues[(secondaryLeagueIndex + i) % secondaryLeagues.length];
-        if (code && !currentBatch.includes(code)) {
-          currentBatch.push(code);
-        }
-      }
-      secondaryLeagueIndex = (secondaryLeagueIndex + BATCH_SIZE) % secondaryLeagues.length;
-    }
-
-    const leaguesToSync = [...new Set([...priorityLeagues, ...currentBatch])];
-
-    // Concurrently fetch in controlled chunks of 5 to avoid overloading
-    const CHUNK_SIZE = 5;
-    let totalUpdated = 0;
-
-    for (let i = 0; i < leaguesToSync.length; i += CHUNK_SIZE) {
-      const chunk = leaguesToSync.slice(i, i + CHUNK_SIZE);
-      const results = await Promise.allSettled(chunk.map((c) => fetchLeagueFixtures(c)));
-
-      results.forEach((res) => {
-        if (res.status === 'fulfilled' && Array.isArray(res.value) && res.value.length > 0) {
-          totalUpdated += ingestFixtures(res.value);
-        }
-      });
-    }
-
-    // Ingest full SportScore catalog across European Competitions (UEFA) & global leagues
-    const ssUpdated = await syncSportScoreCatalog();
-    totalUpdated += ssUpdated;
-
-    // Run high-frequency live check as part of rolling cycle
-    const liveRes = await syncLiveScoresOnly();
-    totalUpdated += liveRes.updated;
-
-    lastSyncError = null;
-    return { updated: totalUpdated, total: fixturesStore.size };
-  } catch (err: any) {
-    lastSyncError = err?.message || 'Rolling sync error';
-    console.error('Rolling sync cycle encountered an error:', lastSyncError);
-    return { updated: 0, total: fixturesStore.size };
-  } finally {
-    isRollingSyncing = false;
-  }
+  return { updated: 0, total: fixturesStore.size };
 }
 
 /**
@@ -1144,13 +879,9 @@ export function queryMarketFixtures(options: {
  * Returns complete rolling catalogue for client hydration (instant 0ms response)
  */
 export async function getDailyMarketHighlights(): Promise<MarketFixture[]> {
-  // If store is completely empty, ensure seed cache is loaded
   if (fixturesStore.size === 0) {
     loadDiskCache();
-    // Trigger background sync cycle without blocking client response
-    void executeRollingSyncCycle().catch(() => {});
   }
-
   return queryMarketFixtures({ scope: 'all' });
 }
 
@@ -1251,23 +982,8 @@ let liveSchedulerTimer: NodeJS.Timeout | null = null;
 
 /**
  * Start the background continuous synchronization loop (runs in server.ts)
- * @param intervalMinutes Interval for full rolling catalogue sync (default: 5 min)
- * @param liveIntervalSeconds Interval for active live scores sync (default: 20 sec)
+ * Automated polling scheduler disabled per user mandate.
  */
-export function startContinuousSportsScheduler(intervalMinutes = 5, liveIntervalSeconds = 20): void {
-  // 1. Rolling catalog sync
-  if (!schedulerTimer) {
-    void executeRollingSyncCycle();
-    schedulerTimer = setInterval(() => {
-      void executeRollingSyncCycle();
-    }, intervalMinutes * 60 * 1000);
-  }
-
-  // 2. High-frequency live score sync
-  if (!liveSchedulerTimer) {
-    void syncLiveScoresOnly();
-    liveSchedulerTimer = setInterval(() => {
-      void syncLiveScoresOnly();
-    }, liveIntervalSeconds * 1000);
-  }
+export function startContinuousSportsScheduler(_intervalMinutes = 5, _liveIntervalSeconds = 20): void {
+  // Automated background crawler and scheduler disabled per user mandate
 }

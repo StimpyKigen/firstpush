@@ -12,7 +12,9 @@ import {
   getSyncDiagnostics,
   executeRollingSyncCycle,
   syncLiveScoresOnly,
-  startContinuousSportsScheduler,
+  ingestAdminFixtures,
+  clearAllFixtures,
+  getSavedAdminFixtures,
 } from './src/lib/sportsFeedService';
 import {
   createAdChallenge,
@@ -471,6 +473,38 @@ async function startServer() {
     }
   });
 
+  // Admin Fixtures Management Endpoints (PDF Upload Ingestion & Slate Reset)
+  app.get('/api/admin/fixtures', (req: Request, res: Response) => {
+    try {
+      const fixtures = getSavedAdminFixtures();
+      return res.json({ success: true, count: fixtures.length, fixtures });
+    } catch (err: any) {
+      return res.status(500).json({ success: false, error: 'Failed to retrieve admin fixtures.' });
+    }
+  });
+
+  app.post('/api/admin/fixtures', (req: Request, res: Response) => {
+    try {
+      const { fixtures } = req.body || {};
+      if (!Array.isArray(fixtures)) {
+        return res.status(400).json({ success: false, error: 'Expected an array of fixtures.' });
+      }
+      const count = ingestAdminFixtures(fixtures);
+      return res.json({ success: true, count, message: `Successfully published ${count} fixtures to match slate.` });
+    } catch (err: any) {
+      return res.status(500).json({ success: false, error: 'Failed to save admin fixtures.' });
+    }
+  });
+
+  app.delete('/api/admin/fixtures', (req: Request, res: Response) => {
+    try {
+      clearAllFixtures();
+      return res.json({ success: true, message: 'All fixtures cleared from match slate.' });
+    } catch (err: any) {
+      return res.status(500).json({ success: false, error: 'Failed to clear fixtures.' });
+    }
+  });
+
   app.get('/api/sports/match-detail', async (req: Request, res: Response) => {
     try {
       const slug = req.query.slug as string;
@@ -866,8 +900,7 @@ Sitemap: https://mshindi.co.ke/sitemap.xml
     });
   }
 
-  // Start background continuous rolling fixture synchronization (5 min rolling, 20 sec live)
-  startContinuousSportsScheduler(5, 20);
+  // Continuous automated SportScore scraping disabled per user mandate
 
   app.listen(PORT, '0.0.0.0', () => {
     console.log(`Mshindi Projo Server running on http://0.0.0.0:${PORT}`);
