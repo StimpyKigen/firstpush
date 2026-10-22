@@ -2187,17 +2187,20 @@ export function resolveCanonicalCompetition(input: {
     compLower.includes('premier league 2');
 
   if (!isForeignPremier) {
-    if (
-      code === 'premier' ||
-      code === 'premier-league' ||
-      provId.includes('england/premier-league') ||
-      compLower === 'premier league' ||
-      compLower === 'english premier league' ||
-      compLower === 'epl' ||
-      ((countryLower === 'england' || countryLower === 'united kingdom') &&
-        (compLower.includes('premier') || code === 'premier'))
-    ) {
-      return CANONICAL_COMPETITIONS.eng_premier_league;
+    const isExplicitlyForeign = countryLower && !['england', 'united kingdom', 'uk', 'gb-eng', 'great britain'].includes(countryLower);
+    if (!isExplicitlyForeign) {
+      if (
+        code === 'premier' ||
+        code === 'premier-league' ||
+        provId.includes('england/premier-league') ||
+        compLower === 'premier league' ||
+        compLower === 'english premier league' ||
+        compLower === 'epl' ||
+        ((countryLower === 'england' || countryLower === 'united kingdom') &&
+          (compLower.includes('premier') || code === 'premier'))
+      ) {
+        return CANONICAL_COMPETITIONS.eng_premier_league;
+      }
     }
   }
 
