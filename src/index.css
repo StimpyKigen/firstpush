@@ -8,8 +8,37 @@
    - Pill (100px) buttons/tabs/badges, 16–32px card radii
    - Black pill = marketing CTA, green pill = commerce CTA (replaces Meta cobalt)
    - Brand accents retained: Forest Green #006C54, Championship Gold #FFD700
-   - Typography: Montserrat (documented fallback for proprietary Optimistic VF)
+   - Typography: Inter variable (self-hosted) — see "Typography system" below
    ========================================================================== */
+
+/* ==========================================================================
+   Fonts — Inter variable, self-hosted, swap + metric-matched fallback
+   (size-adjust/ascent/descent overrides stop layout shift when the font swaps in)
+   ========================================================================== */
+@font-face {
+  font-family: "Inter";
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url("/fonts/inter-latin-var.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "Inter";
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url("/fonts/inter-latin-ext-var.woff2") format("woff2");
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: "Inter Fallback";
+  src: local("Arial");
+  ascent-override: 90.2%;
+  descent-override: 22.48%;
+  line-gap-override: 0%;
+  size-adjust: 107.4%;
+}
 
 :root {
   --color-ink: #FFFFF0;           /* canvas ivory */
@@ -30,10 +59,47 @@
 @theme {
   --breakpoint-xs: 380px;
 
-  --font-display: "Montserrat", "Optimistic VF", Helvetica, Arial, "Noto Sans", sans-serif;
-  --font-body: "Montserrat", "Optimistic VF", Helvetica, Arial, "Noto Sans", sans-serif;
-  --font-sans: "Montserrat", "Optimistic VF", Helvetica, Arial, "Noto Sans", sans-serif;
+  /* One family. Display and body intentionally share it. */
+  --font-display: "Inter", "Inter Fallback", system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans", sans-serif;
+  --font-body: "Inter", "Inter Fallback", system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans", sans-serif;
+  --font-sans: "Inter", "Inter Fallback", system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans", sans-serif;
   --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+
+  /* Weight roles: 400 body · 500 UI labels · 600 titles/buttons/odds · 650 emphasis · 700 scores/strongest */
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 650;
+  --font-weight-extrabold: 700;
+  --font-weight-black: 700;
+
+  /* Type scale (size / line-height). Headings (2xl+) are fluid so they scale from phone to desktop. */
+  --text-xs: 0.75rem;
+  --text-xs--line-height: 1.375;
+  --text-sm: 0.875rem;
+  --text-sm--line-height: 1.45;
+  --text-base: 1rem;
+  --text-base--line-height: 1.55;
+  --text-lg: 1.125rem;
+  --text-lg--line-height: 1.45;
+  --text-xl: 1.25rem;
+  --text-xl--line-height: 1.35;
+  --text-2xl: clamp(1.375rem, 1.27rem + 0.45vw, 1.5rem);
+  --text-2xl--line-height: 1.25;
+  --text-3xl: clamp(1.5rem, 1.32rem + 0.8vw, 1.875rem);
+  --text-3xl--line-height: 1.2;
+  --text-4xl: clamp(1.75rem, 1.45rem + 1.3vw, 2.25rem);
+  --text-4xl--line-height: 1.15;
+  --text-5xl: clamp(2rem, 1.55rem + 1.9vw, 3rem);
+  --text-5xl--line-height: 1.1;
+
+  /* Tracking */
+  --tracking-tighter: -0.025em;
+  --tracking-tight: -0.015em;
+  --tracking-normal: 0em;
+  --tracking-wide: 0.01em;
+  --tracking-wider: 0.015em;
+  --tracking-widest: 0.02em;
 
   /* Surfaces & text mapped to CSS variables */
   --color-ink: var(--color-ink);
@@ -90,12 +156,37 @@
 }
 
 /* ==========================================================================
-   Typography — three-tier rhythm, tight body tracking, ss01/ss02 headings
+   Typography system
+
+   Roles (use these semantic classes for new work; Tailwind size utilities are
+   already mapped to the same scale above):
+     .t-display   page hero            .t-title    card / section title
+     .t-team      team / player name   .t-body     reading text
+     .t-label     compact UI label     .t-meta     timestamps, helper text
+     .t-market    betting market name  .t-odds     odds value (tabular)
+     .t-score     match score          .t-num      any other figure
+
+   Text colour roles:
+     --text-primary   headings, team names, values
+     --text-secondary descriptions, body copy
+     --text-muted     metadata (AA on ivory)
+     --text-disabled  disabled controls only
+     --text-link      interactive text
+     --text-success / --text-danger  status text (AA on ivory)
    ========================================================================== */
+:root {
+  --text-primary: #1c1e21;
+  --text-secondary: #444950;
+  --text-muted: #5d6c7b;
+  --text-disabled: #8595a4;
+  --text-link: #006C54;
+  --text-success: #1d7a3a;
+  --text-danger: #c8102e;
+}
+
 *,
 *::before,
 *::after {
-  font-family: var(--font-body);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -104,23 +195,45 @@ html,
 body,
 #root {
   font-family: var(--font-body);
-  letter-spacing: -0.01em; /* ≈ -0.16px @16px */
+  font-optical-sizing: auto;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  letter-spacing: -0.006em;
   line-height: 1.5;
 }
 
 h1, h2, h3, h4, h5, h6,
 .font-display {
-  font-family: var(--font-display) !important;
-  font-feature-settings: "ss01", "ss02";
-  letter-spacing: 0;
+  font-family: var(--font-display);
+  text-wrap: balance;
   line-height: 1.2;
 }
-h1 { font-weight: 500; line-height: 1.16; }
-h2, h3, h4, .font-display { font-weight: 600; }
+h1 { font-weight: 650; letter-spacing: -0.025em; line-height: 1.12; }
+h2 { font-weight: 650; letter-spacing: -0.02em; line-height: 1.18; }
+h3 { font-weight: 600; letter-spacing: -0.014em; line-height: 1.25; }
+h4, h5, h6, .font-display { font-weight: 600; letter-spacing: -0.01em; }
+
+p, li, dd { text-wrap: pretty; }
 
 button, input, optgroup, select, textarea { font-family: inherit; }
 
-code, kbd, samp, pre, .font-mono { font-family: var(--font-mono) !important; }
+input::placeholder, textarea::placeholder { color: #6b7a8c; opacity: 1; }
+input:disabled, textarea:disabled, select:disabled { color: var(--text-disabled); }
+
+/* Real code stays monospace; ".font-mono" is used app-wide for figures (odds, scores,
+   times, amounts) so it maps to Inter with tabular numerals instead of a device-dependent
+   system monospace. */
+code, kbd, samp, pre { font-family: var(--font-mono) !important; }
+.font-mono {
+  font-family: var(--font-sans) !important;
+  font-variant-numeric: tabular-nums lining-nums;
+  letter-spacing: 0;
+}
+
+/* Figures: aligned columns, no horizontal jitter when digits change */
+.t-num, .t-odds, .t-score, time, [data-figure] {
+  font-variant-numeric: tabular-nums lining-nums;
+}
 
 html {
   scroll-behavior: smooth;
@@ -192,6 +305,18 @@ input, textarea, select, [contenteditable="true"], .select-text {
     outline-offset: 2px;
   }
 
+  /* ---- Typography roles ------------------------------------------------ */
+  .t-display { font-size: var(--text-4xl); line-height: 1.12; font-weight: 650; letter-spacing: -0.025em; color: var(--text-primary); text-wrap: balance; }
+  .t-title   { font-size: 1.0625rem; line-height: 1.3; font-weight: 600; letter-spacing: -0.012em; color: var(--text-primary); }
+  .t-team    { font-size: 0.9375rem; line-height: 1.3; font-weight: 600; letter-spacing: -0.01em; color: var(--text-primary); }
+  .t-body    { font-size: 0.9375rem; line-height: 1.55; font-weight: 400; letter-spacing: -0.006em; color: var(--text-secondary); }
+  .t-label   { font-size: 0.75rem; line-height: 1.3; font-weight: 500; letter-spacing: 0.005em; color: var(--text-muted); }
+  .t-meta    { font-size: 0.75rem; line-height: 1.35; font-weight: 500; letter-spacing: 0; color: var(--text-muted); font-variant-numeric: tabular-nums; }
+  .t-market  { font-size: 0.6875rem; line-height: 1.2; font-weight: 600; letter-spacing: 0.01em; color: var(--text-muted); }
+  .t-odds    { font-size: 0.9375rem; line-height: 1.1; font-weight: 600; letter-spacing: 0; font-variant-numeric: tabular-nums lining-nums; }
+  .t-score   { font-size: 1rem; line-height: 1.1; font-weight: 700; letter-spacing: 0; font-variant-numeric: tabular-nums lining-nums; color: var(--text-primary); }
+  .t-num     { font-variant-numeric: tabular-nums lining-nums; letter-spacing: 0; }
+
   /* ---- Buttons: always pill (rounded.full) ---------------------------- */
   .btn-primary,       /* button-primary: black pill, marketing CTA */
   .btn-dark,
@@ -214,11 +339,12 @@ input, textarea, select, [contenteditable="true"], .select-text {
     padding: 0.75rem 1.875rem;         /* 14px 30px (tightened for line-height) */
     border-radius: 100px;
     font-size: 0.875rem;
-    font-weight: 700;
-    line-height: 1.43;
-    letter-spacing: -0.01em;
+    font-weight: 600;
+    line-height: 1.25;
+    letter-spacing: -0.005em;
     text-transform: none;
     white-space: nowrap;
+    font-variant-numeric: tabular-nums;
     cursor: pointer;
     touch-action: manipulation;
     border: 2px solid transparent;
@@ -313,10 +439,11 @@ input, textarea, select, [contenteditable="true"], .select-text {
     padding: 4px 10px;
     border-radius: 100px;
     font-size: 0.75rem;
-    font-weight: 700;
+    font-weight: 600;
     line-height: 1.33;
-    letter-spacing: 0;
+    letter-spacing: 0.005em;
     text-transform: none;
+    font-variant-numeric: tabular-nums;
   }
   .espn-badge-hot { background-color: #006C54; color: #ffffff; }
   .badge-gold { background-color: #8A6500; color: #FFFFF0; }
@@ -338,8 +465,9 @@ input, textarea, select, [contenteditable="true"], .select-text {
     border: 1px solid #D4D4C0;
     color: #1c1e21;
     font-size: 0.875rem;
-    font-weight: 700;
-    letter-spacing: -0.01em;
+    font-weight: 600;
+    line-height: 1.25;
+    letter-spacing: -0.005em;
   }
   .espn-tab-item.active { background-color: #0a1317; border-color: #0a1317; color: #ffffff; }
 
@@ -430,12 +558,23 @@ svg[class*="lucide"] {
   color: #EEAA04 !important;
 }
 
-/* Sentence-case labels, no italic wordmarks, Meta weights & tracking */
+/* Sentence-case labels, no italic wordmarks. Weights/tracking now come from the
+   @theme tokens above (no per-class overrides needed). */
 .uppercase { text-transform: none; }
 .italic { font-style: normal; }
-.font-black, .font-extrabold { font-weight: 700; }
-.tracking-wide, .tracking-wider, .tracking-widest { letter-spacing: 0; }
-.tracking-tight, .tracking-tighter { letter-spacing: -0.01em; }
+
+/* Legibility floor: nothing below 11px (previously 8–10.5px labels were used widely) */
+[class*="text-[8px]"], [class*="text-[8.5px]"], [class*="text-[9px]"],
+[class*="text-[10px]"], [class*="text-[10.5px]"] { font-size: 0.6875rem; line-height: 1.3; }
+[class*="text-[11px]"] { line-height: 1.35; }
+
+/* Contrast: slate-400/300 text sat at ~2.4:1 on the ivory canvas. Remapped to AA tones. */
+.text-slate-500 { color: #566576; }
+.text-slate-400 { color: #66758a; }
+.text-slate-300 { color: #8595a4; }
+.placeholder\:text-slate-400::placeholder { color: #6b7a8c; }
+.text-green-600, .text-emerald-600 { color: var(--text-success); }
+.text-red-500, .text-red-600, .text-rose-500, .text-rose-600 { color: var(--text-danger); }
 
 /* Buttons & link-buttons: pill geometry (never squared) */
 button[class*="rounded-md"]:not([class*="w-full"]):not([class*="flex-col"]),

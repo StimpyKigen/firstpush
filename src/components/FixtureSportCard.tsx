@@ -115,31 +115,31 @@ export default function FixtureSportCard({
         {/* Card Header: League Info & Kickoff/Score Badge */}
         <div className="flex items-center justify-between gap-2 mb-3 text-xs">
           <div className="min-w-0">
-            <span className="font-semibold text-[10.5px] text-slate-500 truncate block">
+            <span className="t-label truncate block">
               {leagueDisplayTitle}
             </span>
           </div>
 
           {scorePres.badgeVariant === 'halftime' ? (
-            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-black bg-amber-100 text-amber-800 border border-amber-300 shrink-0">
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] leading-4 font-semibold bg-amber-100 text-amber-800 border border-amber-300 shrink-0">
               <span className="w-1.5 h-1.5 rounded-full bg-amber-600" />
               HT · Half Time
             </span>
           ) : scorePres.isLive ? (
-            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-black bg-red-100 text-red-700 border border-red-300 animate-pulse shrink-0">
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] leading-4 font-semibold t-num bg-red-100 text-red-700 border border-red-300 animate-pulse shrink-0">
               <span className="w-1.5 h-1.5 rounded-full bg-red-600" />
               {scorePres.badgeText}
             </span>
           ) : scorePres.badgeVariant === 'finished' ? (
-            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-black bg-slate-100 text-slate-700 border border-slate-300 shrink-0 font-mono">
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] leading-4 font-semibold t-num bg-slate-100 text-slate-700 border border-slate-300 shrink-0">
               {scorePres.badgeText || 'FT'}
             </span>
           ) : scorePres.isPostponedOrCancelled ? (
-            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-black bg-rose-50 text-rose-700 border border-rose-200 shrink-0 uppercase tracking-wider">
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] leading-4 font-semibold bg-rose-50 text-rose-700 border border-rose-200 shrink-0">
               {scorePres.badgeText}
             </span>
           ) : (
-            <span className="flex items-center gap-1 shrink-0 text-slate-500 font-mono text-[11px] font-semibold">
+            <span className="t-meta flex items-center gap-1 shrink-0 text-slate-600">
               <Clock size={11} className="text-slate-400" />
               {scorePres.badgeText}
             </span>
@@ -162,12 +162,12 @@ export default function FixtureSportCard({
                     className="w-5 h-5 object-contain shrink-0"
                   />
                 )}
-                <span className="font-display font-extrabold text-sm text-slate-900 group-hover:text-[#006C54] transition-colors truncate">
+                <span className="t-team group-hover:text-[#006C54] transition-colors truncate">
                   {match.home}
                 </span>
               </div>
               {scorePres.shouldShowScore && (
-                <span className="font-mono font-black text-sm text-slate-900 shrink-0">
+                <span className="t-score shrink-0 min-w-[1ch] text-right">
                   {scorePres.homeScoreDisplay}
                 </span>
               )}
@@ -186,12 +186,12 @@ export default function FixtureSportCard({
                     className="w-5 h-5 object-contain shrink-0"
                   />
                 )}
-                <span className="font-display font-extrabold text-sm text-slate-900 group-hover:text-[#006C54] transition-colors truncate">
+                <span className="t-team group-hover:text-[#006C54] transition-colors truncate">
                   {match.away}
                 </span>
               </div>
               {scorePres.shouldShowScore && (
-                <span className="font-mono font-black text-sm text-slate-900 shrink-0">
+                <span className="t-score shrink-0 min-w-[1ch] text-right">
                   {scorePres.awayScoreDisplay}
                 </span>
               )}
@@ -200,7 +200,7 @@ export default function FixtureSportCard({
         </Link>
 
         {/* Punter Engagement Counter */}
-        <div className="flex items-center justify-between text-[11px] text-slate-900 font-semibold mt-2.5">
+        <div className="flex items-center justify-between t-meta text-slate-700 mt-2.5">
           <span className="flex items-center gap-1.5">
             <Users size={12} className="text-[#006C54] shrink-0" />
             <span className="truncate">{consensus.totalVotes.toLocaleString()} punters analyzing</span>
@@ -209,7 +209,7 @@ export default function FixtureSportCard({
 
         {/* 1X2 Market Odds Grid (Treated like rest of card so banner shows through) */}
         <div className="mt-2.5">
-          <div className="grid grid-cols-3 gap-1.5 text-center font-mono">
+          <div className="grid grid-cols-3 gap-1.5 text-center">
             <button
               type="button"
               onClick={(e) => onToggleLeg('Match Result (1X2)', `${match.home} Win (1)`, hOdds, e)}
@@ -222,13 +222,13 @@ export default function FixtureSportCard({
               }`}
             >
               <span
-                className={`text-[8.5px] font-black uppercase tracking-wider leading-none ${
+                className={`t-market ${
                   isHomeSelected ? 'text-white/80' : 'text-slate-500'
                 }`}
               >
                 1
               </span>
-              <span className={`font-black text-xs sm:text-sm ${isHomeSelected ? 'text-white' : 'text-slate-900'}`}>
+              <span className={`t-odds ${isHomeSelected ? 'text-white' : 'text-slate-900'}`}>
                 {hOdds.toFixed(2)}
               </span>
             </button>
@@ -245,13 +245,13 @@ export default function FixtureSportCard({
               }`}
             >
               <span
-                className={`text-[8.5px] font-black uppercase tracking-wider leading-none ${
+                className={`t-market ${
                   isDrawSelected ? 'text-white/80' : 'text-slate-500'
                 }`}
               >
                 X
               </span>
-              <span className={`font-black text-xs sm:text-sm ${isDrawSelected ? 'text-white' : 'text-slate-900'}`}>
+              <span className={`t-odds ${isDrawSelected ? 'text-white' : 'text-slate-900'}`}>
                 {dOdds.toFixed(2)}
               </span>
             </button>
@@ -268,13 +268,13 @@ export default function FixtureSportCard({
               }`}
             >
               <span
-                className={`text-[8.5px] font-black uppercase tracking-wider leading-none ${
+                className={`t-market ${
                   isAwaySelected ? 'text-white/80' : 'text-slate-500'
                 }`}
               >
                 2
               </span>
-              <span className={`font-black text-xs sm:text-sm ${isAwaySelected ? 'text-white' : 'text-slate-900'}`}>
+              <span className={`t-odds ${isAwaySelected ? 'text-white' : 'text-slate-900'}`}>
                 {aOdds.toFixed(2)}
               </span>
             </button>
@@ -283,11 +283,11 @@ export default function FixtureSportCard({
 
         {/* Consensus Split Progress Bar */}
         <div className="mt-2.5">
-          <div className="flex items-center justify-between text-[10px] text-slate-600 mb-1 font-bold">
+          <div className="flex items-center justify-between t-meta text-slate-600 mb-1">
             <span className="flex items-center gap-1">
               <Flame size={11} className="text-[#006C54]" /> Consensus: <strong className="text-slate-900">{majLabel}</strong>
             </span>
-            <span className="font-mono text-slate-800">{majority}%</span>
+            <span className="t-num font-semibold text-slate-800">{majority}%</span>
           </div>
           <div className={`w-full rounded-full h-1.5 flex overflow-hidden ${banner ? banner.consensusTrackBg || 'bg-[#DDE8F8]' : 'bg-[#E6E6D2]'}`}>
             <div
@@ -314,7 +314,7 @@ export default function FixtureSportCard({
 
         <Link
           to={`/free/${match.id}`}
-          className="inline-flex items-center gap-1 text-xs font-bold text-[#006C54] hover:text-[#005441] transition-colors"
+          className="inline-flex items-center gap-1 text-xs font-semibold text-[#006C54] hover:text-[#005441] transition-colors"
         >
           <span>Details &amp; Discussion</span>
           <ArrowRight size={12} />
@@ -335,7 +335,7 @@ export default function FixtureSportCard({
               bookmaker: match.bookmaker,
             })
           }
-          className="inline-flex items-center gap-1 text-xs font-bold text-slate-700 hover:text-[#006C54] transition-colors cursor-pointer py-1 px-1.5"
+          className="inline-flex items-center gap-1 text-xs font-semibold text-slate-700 hover:text-[#006C54] transition-colors cursor-pointer py-1 px-1.5"
         >
           <Dices size={13} className="text-[#EEAA04]" />
           <span>Bet Builder</span>
