@@ -47,12 +47,12 @@ export default function JackpotCard({ jackpot, index }: { jackpot: Jackpot; inde
               />
             </div>
             <div>
-              <p className="text-[11px] text-slate-500 font-bold uppercase tracking-wider">{jackpot.bookie}</p>
-              <h3 className="font-display font-black text-lg leading-tight text-slate-900 group-hover:text-[#006C54] transition-colors">{jackpot.name}</h3>
+              <p className="text-[11px] text-slate-500 font-bold uppercase tracking-wide">{jackpot.bookie}</p>
+              <h3 className="font-display font-bold text-lg leading-tight text-slate-900 group-hover:text-[#006C54] transition-colors">{jackpot.name}</h3>
             </div>
           </div>
           {/* Clean Informational Text Status Label (No Generic Pill) */}
-          <span className={`text-[11px] font-black uppercase tracking-wider inline-flex items-center gap-1.5 whitespace-nowrap shrink-0 ${statusBadge.textColor}`}>
+          <span className={`text-[11px] font-bold uppercase tracking-wide inline-flex items-center gap-1.5 whitespace-nowrap shrink-0 ${statusBadge.textColor}`}>
             <span className={`w-1.5 h-1.5 rounded-full ${statusBadge.dotColor}`} />
             {statusBadge.label}
           </span>
@@ -64,33 +64,33 @@ export default function JackpotCard({ jackpot, index }: { jackpot: Jackpot; inde
             <MessageSquarePlus size={13} className="text-[#006C54]" />
             Shared Picks Before Closure:
           </span>
-          <span className="font-mono font-black text-xs text-slate-900">
+          <span className="tabular-nums font-bold text-xs text-slate-900">
             {totalSharedPicks.toLocaleString()}
           </span>
         </div>
 
         {/* Clean Typographic Gameweek & Match Count (No Pill Container) */}
         <div className="flex items-center gap-2 text-xs text-slate-500 flex-wrap">
-          <span className="font-black text-slate-800 uppercase tracking-wider">{jackpot.gameweek}</span>
+          <span className="font-bold text-slate-800 uppercase tracking-wide">{jackpot.gameweek}</span>
           <span className="text-slate-300">·</span>
           <span className="font-semibold text-slate-600">{jackpot.matches.length} matches</span>
         </div>
 
         {/* Clean Live Sync Text Label */}
         {jackpot.syncedAt && (
-          <span className="inline-flex w-fit items-center gap-1.5 text-[11px] font-bold text-emerald-700 uppercase tracking-wider -mt-1">
+          <span className="inline-flex w-fit items-center gap-1.5 text-[11px] font-bold text-emerald-700 uppercase tracking-wide -mt-1">
             <RadioTower size={12} className="text-emerald-600 shrink-0" /> Live synced from {jackpot.bookie}
           </span>
         )}
 
         <div className="grid grid-cols-2 gap-3 pt-1">
           <div>
-            <p className="text-[10px] text-slate-400 uppercase tracking-wider font-bold">Bookie Jackpot</p>
-            <p className="font-display font-black text-[#8A6500] text-xl sm:text-2xl leading-tight">{jackpot.prizePool}</p>
+            <p className="text-[11px] text-slate-400 uppercase tracking-wide font-bold">Bookie Jackpot</p>
+            <p className="font-display font-bold text-[#8A6500] text-xl sm:text-2xl leading-tight">{jackpot.prizePool}</p>
           </div>
           <div className="text-right">
-            <p className="text-[10px] text-slate-400 uppercase tracking-wider font-bold">Room Entry</p>
-            <p className="font-display font-black text-slate-900 text-xl sm:text-2xl leading-tight">Ksh {jackpot.entryFee}</p>
+            <p className="text-[11px] text-slate-400 uppercase tracking-wide font-bold">Room Entry</p>
+            <p className="font-display font-bold text-slate-900 text-xl sm:text-2xl leading-tight">Ksh {jackpot.entryFee}</p>
           </div>
         </div>
 
@@ -117,7 +117,7 @@ export default function JackpotCard({ jackpot, index }: { jackpot: Jackpot; inde
 
         {/* Custom Athletic CTA Button */}
         <div
-          className={`mt-auto w-full h-11 px-4 text-xs sm:text-sm font-black uppercase tracking-wider transition-all shrink-0 rounded-md inline-flex items-center justify-center gap-2 cursor-pointer shadow-xs ${
+          className={`mt-auto w-full h-11 px-4 text-xs sm:text-sm font-bold uppercase tracking-wide transition-all shrink-0 rounded-md inline-flex items-center justify-center gap-2 cursor-pointer shadow-xs ${
             unlocked
               ? 'bg-white text-[#006C54] border border-[#006C54]/60 hover:bg-emerald-50'
               : 'bg-[#006C54] hover:bg-[#005441] text-white border border-[#005441] group-hover:shadow-md'

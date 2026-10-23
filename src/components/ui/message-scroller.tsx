@@ -65,7 +65,7 @@ export const MessageScrollerButton = React.forwardRef<
   <MessageScrollerPrimitive.Button
     ref={ref}
     direction={direction}
-    className={`absolute left-1/2 -translate-x-1/2 bottom-3 z-20 inline-flex items-center gap-1.5 h-8 px-3.5 rounded-full bg-slate-900 text-white hover:bg-slate-800 text-xs font-black uppercase tracking-wider shadow-lg border border-slate-700 transition-all active:scale-95 cursor-pointer data-[active=false]:pointer-events-none data-[active=false]:opacity-0 data-[active=false]:translate-y-2 data-[active=true]:opacity-100 data-[active=true]:translate-y-0 ${className}`}
+    className={`absolute left-1/2 -translate-x-1/2 bottom-3 z-20 inline-flex items-center gap-1.5 h-8 px-3.5 rounded-full bg-slate-900 text-white hover:bg-slate-800 text-xs font-bold uppercase tracking-wide shadow-lg border border-slate-700 transition-all active:scale-95 cursor-pointer data-[active=false]:pointer-events-none data-[active=false]:opacity-0 data-[active=false]:translate-y-2 data-[active=true]:opacity-100 data-[active=true]:translate-y-0 ${className}`}
     {...props}
   >
     {children ?? (

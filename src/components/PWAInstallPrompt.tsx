@@ -111,11 +111,11 @@ export default function PWAInstallPrompt() {
             </div>
 
             <div className="flex-1">
-              <div className="flex items-center gap-1.5 text-gold font-extrabold text-xs tracking-wider uppercase">
+              <div className="flex items-center gap-1.5 text-gold font-bold text-xs tracking-wide uppercase">
                 <Sparkles size={13} />
                 <span>Install Mobile App</span>
               </div>
-              <h4 className="font-extrabold text-cream text-sm mt-0.5">MshindiRoom</h4>
+              <h4 className="font-bold text-cream text-sm mt-0.5">MshindiRoom</h4>
               <p className="text-xs text-cream-dim mt-1 leading-snug">
                 Fast 1-tap access, zero browser bars, & offline jackpot consensus.
               </p>
@@ -125,7 +125,7 @@ export default function PWAInstallPrompt() {
           <div className="flex items-center gap-2 mt-4">
             <button
               onClick={handleInstallAndroid}
-              className="flex-1 py-2.5 px-4 rounded-xl bg-gradient-to-r from-gold to-gold-2 text-ink-2 font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-lg hover:brightness-110 active:scale-95 transition-all"
+              className="flex-1 py-2.5 px-4 rounded-xl bg-gradient-to-r from-gold to-gold-2 text-ink-2 font-bold text-xs uppercase tracking-wide flex items-center justify-center gap-2 shadow-lg hover:brightness-110 active:scale-95 transition-all"
             >
               <Download size={16} /> Install App
             </button>
@@ -156,10 +156,10 @@ export default function PWAInstallPrompt() {
             <div className="flex items-center gap-3">
               <img src="/pwa-192.png" alt="MshindiRoom" className="w-11 h-11 shrink-0 object-contain" />
               <div>
-                <span className="text-[10px] font-black tracking-widest text-emerald-2 uppercase">
+                <span className="text-[11px] font-bold tracking-wide text-emerald-2 uppercase">
                   iOS Installation
                 </span>
-                <h3 className="text-base font-extrabold text-cream mt-0.5">Install MshindiRoom on iPhone</h3>
+                <h3 className="text-base font-bold text-cream mt-0.5">Install MshindiRoom on iPhone</h3>
               </div>
             </div>
 
@@ -169,7 +169,7 @@ export default function PWAInstallPrompt() {
 
             <div className="space-y-3 bg-ink/60 border border-line p-4 rounded-2xl">
               <div className="flex items-start gap-3">
-                <span className="w-6 h-6 rounded-full bg-gold/20 text-gold text-xs font-black flex items-center justify-center shrink-0 border border-gold/40">
+                <span className="w-6 h-6 rounded-full bg-gold/20 text-gold text-xs font-bold flex items-center justify-center shrink-0 border border-gold/40">
                   1
                 </span>
                 <p className="text-xs text-cream flex-1 pt-0.5">
@@ -178,7 +178,7 @@ export default function PWAInstallPrompt() {
               </div>
 
               <div className="flex items-start gap-3">
-                <span className="w-6 h-6 rounded-full bg-gold/20 text-gold text-xs font-black flex items-center justify-center shrink-0 border border-gold/40">
+                <span className="w-6 h-6 rounded-full bg-gold/20 text-gold text-xs font-bold flex items-center justify-center shrink-0 border border-gold/40">
                   2
                 </span>
                 <p className="text-xs text-cream flex-1 pt-0.5">
@@ -187,7 +187,7 @@ export default function PWAInstallPrompt() {
               </div>
 
               <div className="flex items-start gap-3">
-                <span className="w-6 h-6 rounded-full bg-gold/20 text-gold text-xs font-black flex items-center justify-center shrink-0 border border-gold/40">
+                <span className="w-6 h-6 rounded-full bg-gold/20 text-gold text-xs font-bold flex items-center justify-center shrink-0 border border-gold/40">
                   3
                 </span>
                 <p className="text-xs text-cream flex-1 pt-0.5">
@@ -199,7 +199,7 @@ export default function PWAInstallPrompt() {
             <div className="flex justify-end">
               <button
                 onClick={handleDismissIOS}
-                className="w-full py-3 rounded-xl bg-gold text-ink-2 font-extrabold text-xs uppercase tracking-wider hover:brightness-110 active:scale-95 transition-all shadow-md"
+                className="w-full py-3 rounded-xl bg-gold text-ink-2 font-bold text-xs uppercase tracking-wide hover:brightness-110 active:scale-95 transition-all shadow-md"
               >
                 Got It, Thanks!
               </button>

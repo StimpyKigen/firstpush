@@ -205,12 +205,12 @@ export default function Leaderboard() {
             onClick={() => handleTabChange('rooms')}
             className={`py-1.5 px-2 text-xs flex items-center justify-center gap-1.5 transition-colors ${
               mainTab === 'rooms'
-                ? 'text-[#006C54] font-black'
+                ? 'text-[#006C54] font-bold'
                 : 'text-slate-500 font-semibold hover:text-slate-700'
             }`}
           >
             <span>Jackpot Rooms</span>
-            <span className={`text-[10px] font-mono px-1.5 py-0.5 rounded-full font-bold ${
+            <span className={`text-[11px] tabular-nums px-1.5 py-0.5 rounded-full font-bold ${
               mainTab === 'rooms' ? 'bg-emerald-50 text-[#006C54]' : 'bg-slate-100 text-slate-500'
             }`}>
               {activeRooms.length}
@@ -222,7 +222,7 @@ export default function Leaderboard() {
             onClick={() => handleTabChange('leaderboard')}
             className={`py-1.5 px-2 text-xs flex items-center justify-center gap-1.5 transition-colors ${
               mainTab === 'leaderboard'
-                ? 'text-[#006C54] font-black'
+                ? 'text-[#006C54] font-bold'
                 : 'text-slate-500 font-semibold hover:text-slate-700'
             }`}
           >
@@ -263,7 +263,7 @@ export default function Leaderboard() {
             <Flame size={15} />
             <span>Jackpot Rooms</span>
             <span
-              className={`text-[10px] px-2 py-0.5 rounded-full font-mono font-bold ${
+              className={`text-[11px] px-2 py-0.5 rounded-full tabular-nums font-bold ${
                 mainTab === 'rooms' ? 'bg-white text-[#006C54]' : 'bg-[#E6E6D2] text-slate-700'
               }`}
             >
@@ -289,16 +289,16 @@ export default function Leaderboard() {
         <div className="flex items-center gap-3 bg-white border border-[#D4D4C0] px-4 py-2 rounded-full text-xs shrink-0 self-stretch sm:self-auto justify-between shadow-2xs">
           <div className="flex items-center gap-1.5">
             <Target size={14} className="text-[#006C54]" />
-            <span className="text-slate-500 font-bold uppercase text-[10px]">Joined:</span>
-            <strong className="text-slate-900 font-black">{totalRoomsJoined}</strong>
+            <span className="text-slate-500 font-bold uppercase text-[11px]">Joined:</span>
+            <strong className="text-slate-900 font-bold">{totalRoomsJoined}</strong>
           </div>
           <div className="w-px h-4 bg-slate-200" />
           <div className="flex items-center gap-1.5">
-            <span className="text-slate-500 font-bold uppercase text-[10px]">Accuracy:</span>
-            <strong className="text-[#006C54] font-black">{overallAccuracy}%</strong>
+            <span className="text-slate-500 font-bold uppercase text-[11px]">Accuracy:</span>
+            <strong className="text-[#006C54] font-bold">{overallAccuracy}%</strong>
           </div>
           <div className="w-px h-4 bg-slate-200" />
-          <div className="flex items-center gap-1 text-[#8A6500] font-black">
+          <div className="flex items-center gap-1 text-[#8A6500] font-bold">
             {userStats.stars}★
           </div>
         </div>
@@ -311,7 +311,7 @@ export default function Leaderboard() {
         <div className="space-y-6 animate-rise">
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
             <div>
-              <h1 className="font-display font-black text-2xl sm:text-3xl lg:text-4xl text-slate-900">
+              <h1 className="font-display font-bold text-2xl sm:text-3xl lg:text-4xl text-slate-900">
                 Jackpot Consensus Rooms
               </h1>
               <p className="text-xs sm:text-sm text-slate-500 mt-1">
@@ -325,7 +325,7 @@ export default function Leaderboard() {
               {isAuthorizedAdmin && (
                 <button
                   onClick={() => setIsAdminModalOpen(true)}
-                  className="h-10 px-4 rounded-full bg-white hover:bg-slate-50 border border-slate-300 text-slate-800 text-xs font-black uppercase tracking-wider inline-flex items-center gap-2 active:scale-95 transition-all shadow-2xs cursor-pointer"
+                  className="h-10 px-4 rounded-full bg-white hover:bg-slate-50 border border-slate-300 text-slate-800 text-xs font-bold uppercase tracking-wide inline-flex items-center gap-2 active:scale-95 transition-all shadow-2xs cursor-pointer"
                 >
                   <SlidersHorizontal size={14} className="text-[#006C54]" />
                   <span>Jackpot Admin Console</span>
@@ -354,13 +354,13 @@ export default function Leaderboard() {
                 }}
                 className={`px-4 py-2 font-display text-xs sm:text-sm flex items-center gap-2 transition-all active:scale-95 ${
                   roomViewTab === 'active'
-                    ? 'text-[#006C54] font-black'
+                    ? 'text-[#006C54] font-bold'
                     : 'text-slate-500 font-bold hover:text-slate-800'
                 }`}
               >
                 <Flame size={15} className={roomViewTab === 'active' ? 'text-[#006C54]' : 'text-slate-400'} />
                 <span>Active Rooms</span>
-                <span className={`text-[10px] px-2 py-0.5 rounded-full font-mono font-bold ${
+                <span className={`text-[11px] px-2 py-0.5 rounded-full tabular-nums font-bold ${
                   roomViewTab === 'active' ? 'bg-emerald-50 text-[#006C54]' : 'bg-slate-100 text-slate-500'
                 }`}>
                   {activeRooms.length}
@@ -374,13 +374,13 @@ export default function Leaderboard() {
                 }}
                 className={`px-4 py-2 font-display text-xs sm:text-sm flex items-center gap-2 transition-all active:scale-95 ${
                   roomViewTab === 'archive'
-                    ? 'text-[#006C54] font-black'
+                    ? 'text-[#006C54] font-bold'
                     : 'text-slate-500 font-bold hover:text-slate-800'
                 }`}
               >
                 <Archive size={15} className={roomViewTab === 'archive' ? 'text-[#006C54]' : 'text-slate-400'} />
                 <span>Archives</span>
-                <span className={`text-[10px] px-2 py-0.5 rounded-full font-mono font-bold ${
+                <span className={`text-[11px] px-2 py-0.5 rounded-full tabular-nums font-bold ${
                   roomViewTab === 'archive' ? 'bg-emerald-50 text-[#006C54]' : 'bg-slate-100 text-slate-500'
                 }`}>
                   {archivedRooms.length}
@@ -388,7 +388,7 @@ export default function Leaderboard() {
               </button>
             </div>
 
-            <div className="text-xs text-slate-500 px-3 py-1 flex items-center gap-2 font-mono shrink-0">
+            <div className="text-xs text-slate-500 px-3 py-1 flex items-center gap-2 tabular-nums shrink-0">
               {roomViewTab === 'active' ? (
                 <span className="flex items-center gap-1.5 text-emerald-700 font-bold">
                   <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
@@ -413,7 +413,7 @@ export default function Leaderboard() {
                   onClick={() => setRoomBookie(b)}
                   className={`px-3 sm:px-4 py-1.5 rounded-full text-xs font-bold border transition-all shrink-0 whitespace-nowrap active:scale-95 flex items-center gap-1.5 ${
                     roomBookie === b
-                      ? 'bg-[#006C54] border-[#006C54] text-white shadow-xs font-black'
+                      ? 'bg-[#006C54] border-[#006C54] text-white shadow-xs font-bold'
                       : 'border-slate-200 text-slate-600 bg-white hover:border-slate-300 hover:bg-slate-50'
                   }`}
                 >
@@ -436,7 +436,7 @@ export default function Leaderboard() {
                 onClick={() => setRoomStatus(s)}
                 className={`px-4 py-2 rounded-full text-xs font-bold border capitalize transition-all shrink-0 whitespace-nowrap active:scale-95 ${
                   roomStatus === s
-                    ? 'bg-slate-900 border-slate-900 text-white shadow-xs font-black'
+                    ? 'bg-slate-900 border-slate-900 text-white shadow-xs font-bold'
                     : 'border-slate-200 text-slate-600 bg-white hover:border-slate-300 hover:bg-slate-50'
                 }`}
               >
@@ -453,7 +453,7 @@ export default function Leaderboard() {
                   <Archive size={20} />
                 </div>
                 <div>
-                  <h3 className="font-display font-black text-base text-slate-900">Jackpot Archives &amp; Settlement History</h3>
+                  <h3 className="font-display font-bold text-base text-slate-900">Jackpot Archives &amp; Settlement History</h3>
                   <p className="text-xs text-slate-500 mt-0.5 leading-relaxed">
                     Settled jackpot rooms are retained for up to 90 days. You can review verified crowd accuracy, winning leg slips, and historical gameweek leaderboards.
                   </p>
@@ -478,7 +478,7 @@ export default function Leaderboard() {
                 <SlidersHorizontal size={24} />
               </span>
               <div>
-                <h3 className="font-display font-black text-lg text-slate-900">
+                <h3 className="font-display font-bold text-lg text-slate-900">
                   {roomViewTab === 'active' ? 'No Active Jackpot Rooms Found' : 'No Archived Rooms Found'}
                 </h3>
                 <p className="text-xs text-slate-500 mt-1 max-w-md mx-auto">
@@ -517,7 +517,7 @@ export default function Leaderboard() {
         <div className="space-y-6 animate-rise">
           <div className="bg-white border border-slate-200 rounded-2xl p-6 sm:p-7 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-5 shadow-xs">
             <div>
-              <h2 className="font-display font-black text-2xl sm:text-3xl text-slate-900 tracking-tight">
+              <h2 className="font-display font-bold text-2xl sm:text-3xl text-slate-900 tracking-tight">
                 Room Standings &amp; Rankings
               </h2>
               <p className="text-xs sm:text-sm text-slate-600 mt-1 max-w-xl leading-relaxed">
@@ -530,7 +530,7 @@ export default function Leaderboard() {
           <div className="bg-white border border-slate-200 rounded-2xl p-4 space-y-3 shadow-xs">
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
               {/* Main Status Category Tabs */}
-              <div className="flex items-center gap-1 p-1 bg-slate-100 rounded-full overflow-x-auto scrollbar-none text-xs font-black uppercase tracking-wider w-full sm:w-auto">
+              <div className="flex items-center gap-1 p-1 bg-slate-100 rounded-full overflow-x-auto scrollbar-none text-xs font-bold uppercase tracking-wide w-full sm:w-auto">
                 <button
                   onClick={() => setFilterTab('all')}
                   className={`px-4 py-1.5 rounded-full transition-all flex items-center gap-1.5 whitespace-nowrap active:scale-95 ${
@@ -602,7 +602,7 @@ export default function Leaderboard() {
 
             {/* Bookie Pill Selection With Logos */}
             <div className="flex items-center gap-1.5 overflow-x-auto pt-2 border-t border-slate-100 scrollbar-none">
-              <span className="text-[11px] font-black uppercase tracking-wider text-slate-400 flex items-center gap-1 shrink-0 mr-1">
+              <span className="text-[11px] font-bold uppercase tracking-wide text-slate-400 flex items-center gap-1 shrink-0 mr-1">
                 <Filter size={11} /> Bookie:
               </span>
               {['all', 'SportPesa', 'Betika', 'MozzartBet', 'Odibets', 'SportyBet', 'BetPawa', '1xBet', '22Bet'].map((b) => {
@@ -611,7 +611,7 @@ export default function Leaderboard() {
                   <button
                     key={b}
                     onClick={() => setSelectedBookie(b)}
-                    className={`px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider border transition-all shrink-0 flex items-center gap-1.5 ${
+                    className={`px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wide border transition-all shrink-0 flex items-center gap-1.5 ${
                       selectedBookie.toLowerCase() === b.toLowerCase()
                         ? 'bg-[#006C54] border-[#006C54] text-white shadow-xs'
                         : 'bg-white border-slate-200 text-slate-600 hover:border-[#006C54] hover:text-[#006C54]'
@@ -692,14 +692,14 @@ export default function Leaderboard() {
                             >
                               <img src={cardTheme.logo} alt={jackpot.bookie} className="w-full h-full object-contain" />
                             </div>
-                            <span className="text-[11px] font-black uppercase tracking-wider text-slate-800">
+                            <span className="text-[11px] font-bold uppercase tracking-wide text-slate-800">
                               {jackpot.bookie}
                             </span>
 
                             {userPerf.participated && (
                               <>
                                 <span className="text-slate-300">·</span>
-                                <span className="text-[11px] font-black uppercase tracking-wider text-[#006C54] flex items-center gap-1">
+                                <span className="text-[11px] font-bold uppercase tracking-wide text-[#006C54] flex items-center gap-1">
                                   <Target size={11} /> My Picked Room
                                 </span>
                               </>
@@ -708,14 +708,14 @@ export default function Leaderboard() {
 
                           {/* Mobile Right-Side Status Indicator */}
                           <div className="sm:hidden">
-                            <span className="text-[11px] font-bold uppercase tracking-wider flex items-center gap-1.5 text-slate-600">
+                            <span className="text-[11px] font-bold uppercase tracking-wide flex items-center gap-1.5 text-slate-600">
                               <span className={`w-1.5 h-1.5 rounded-full ${statusInfo.dotClass}`} />
                               {statusInfo.label}
                             </span>
                           </div>
                         </div>
 
-                        <h3 className="font-display font-black text-base sm:text-lg text-slate-900 truncate flex items-center gap-1.5 uppercase">
+                        <h3 className="font-display font-bold text-base sm:text-lg text-slate-900 truncate flex items-center gap-1.5 uppercase">
                           {jackpot.name}
                           <span className="text-xs font-semibold text-slate-400 not-italic">({jackpot.gameweek})</span>
                         </h3>
@@ -729,15 +729,15 @@ export default function Leaderboard() {
                       <div className="flex items-center justify-between sm:justify-end gap-3 sm:gap-4 shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-100">
                         {/* Desktop Status Indicator (Right Side) */}
                         <div className="hidden sm:block">
-                          <span className="text-[11px] font-bold uppercase tracking-wider flex items-center gap-1.5 text-slate-600">
+                          <span className="text-[11px] font-bold uppercase tracking-wide flex items-center gap-1.5 text-slate-600">
                             <span className={`w-1.5 h-1.5 rounded-full ${statusInfo.dotClass}`} />
                             {statusInfo.label}
                           </span>
                         </div>
 
                         <div className="text-left sm:text-right">
-                          <span className="text-[9px] uppercase font-black text-slate-400 tracking-wider">Bookie Jackpot</span>
-                          <p className="font-display font-black text-[#8A6500] text-base sm:text-lg leading-none">
+                          <span className="text-[11px] uppercase font-bold text-slate-400 tracking-wide">Bookie Jackpot</span>
+                          <p className="font-display font-bold text-[#8A6500] text-base sm:text-lg leading-none">
                             {jackpot.prizePool}
                           </p>
                         </div>
@@ -757,7 +757,7 @@ export default function Leaderboard() {
                             onClick={() => toggleRoomExpand(jackpot.id)}
                             className={`text-xs font-bold flex items-center gap-1 transition-colors cursor-pointer py-1 ${
                               isExpanded
-                                ? 'text-[#006C54] font-black'
+                                ? 'text-[#006C54] font-bold'
                                 : 'text-slate-600 hover:text-slate-900'
                             }`}
                           >
@@ -772,10 +772,10 @@ export default function Leaderboard() {
                     {userPerf.participated && (
                       <div className="bg-slate-50 border-t border-slate-200 px-4 py-2.5 flex items-center justify-between gap-2 text-xs">
                         <div className="flex items-center gap-2 flex-wrap">
-                          <span className="text-[10px] font-black uppercase text-slate-700 tracking-wider">
+                          <span className="text-[11px] font-bold uppercase text-slate-700 tracking-wide">
                             Your Rank:
                           </span>
-                          <span className="font-black text-slate-900">
+                          <span className="font-bold text-slate-900">
                             #{userPerf.userRank} of {leaderboard.length}
                           </span>
                           <span className="text-slate-500 text-[11px] font-semibold">
@@ -783,7 +783,7 @@ export default function Leaderboard() {
                           </span>
                         </div>
 
-                        <span className="text-[10px] font-black uppercase text-[#006C54] tracking-wider">
+                        <span className="text-[11px] font-bold uppercase text-[#006C54] tracking-wide">
                           Active Pick
                         </span>
                       </div>
@@ -815,7 +815,7 @@ export default function Leaderboard() {
                                 >
                                   <div className="flex items-center justify-center gap-1">
                                     <RankIcon size={14} className={isFirst ? 'text-[#8A6500]' : 'text-slate-400'} />
-                                    <span className={`font-display font-extrabold text-xs ${isFirst ? 'text-[#8A6500]' : 'text-slate-700'}`}>
+                                    <span className={`font-display font-bold text-xs ${isFirst ? 'text-[#8A6500]' : 'text-slate-700'}`}>
                                       #{e.rank}
                                     </span>
                                   </div>
@@ -824,7 +824,7 @@ export default function Leaderboard() {
                                     {e.username} {isCurrUser && '(You)'}
                                   </p>
 
-                                  <p className="text-[11px] font-mono font-extrabold text-[#8A6500] mt-0.5">
+                                  <p className="text-[11px] tabular-nums font-bold text-[#8A6500] mt-0.5">
                                     {e.correct}/{completedCount || totalMatches} Hits
                                   </p>
                                 </div>
@@ -845,7 +845,7 @@ export default function Leaderboard() {
                           <div className="rounded-xl border border-slate-200 bg-white overflow-hidden shadow-xs">
                             <table className="w-full table-fixed text-left text-xs text-slate-600">
                               <thead>
-                                <tr className="bg-slate-50 border-b border-slate-200 text-[10px] uppercase font-extrabold text-slate-500">
+                                <tr className="bg-slate-50 border-b border-slate-200 text-[11px] uppercase font-bold text-slate-500">
                                   <th className="py-2 px-2 sm:px-3 w-[18%] sm:w-[15%]">Rank</th>
                                   <th className="py-2 px-2 sm:px-3 w-[46%] sm:w-[50%]">Punter</th>
                                   <th className="py-2 px-2 sm:px-3 text-center w-[20%] sm:w-[18%]">
@@ -881,9 +881,9 @@ export default function Leaderboard() {
                                       {/* Rank */}
                                       <td className="py-2 px-2 sm:px-3 font-bold text-[11px] sm:text-xs whitespace-nowrap">
                                         {entry.rank === 1 ? (
-                                          <span className="text-[#8A6500] font-black">#1 👑</span>
+                                          <span className="text-[#8A6500] font-bold">#1 👑</span>
                                         ) : (
-                                          <span className="font-mono text-slate-500">#{entry.rank}</span>
+                                          <span className="tabular-nums text-slate-500">#{entry.rank}</span>
                                         )}
                                       </td>
 
@@ -897,7 +897,7 @@ export default function Leaderboard() {
                                             {entry.username}
                                           </span>
                                           {isCurrUser && (
-                                            <span className="text-[8px] font-black uppercase text-white bg-[#006C54] px-1 py-0.5 rounded shrink-0">
+                                            <span className="text-[11px] font-bold uppercase text-white bg-[#006C54] px-1 py-0.5 rounded shrink-0">
                                               YOU
                                             </span>
                                           )}
@@ -908,13 +908,13 @@ export default function Leaderboard() {
                                       </td>
 
                                       {/* Correct Hits */}
-                                      <td className="py-2 px-2 sm:px-3 text-center font-mono font-bold text-slate-900 text-[11px] sm:text-xs whitespace-nowrap">
+                                      <td className="py-2 px-2 sm:px-3 text-center tabular-nums font-bold text-slate-900 text-[11px] sm:text-xs whitespace-nowrap">
                                         <span className="text-[#006C54]">{entry.correct}</span>/<span className="text-slate-400">{completedCount || totalMatches}</span>
                                       </td>
 
                                       {/* Accuracy % */}
                                       <td className="py-2 px-2 sm:px-3 text-center whitespace-nowrap">
-                                        <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${
+                                        <span className={`px-1.5 py-0.5 rounded text-[11px] font-bold ${
                                           accuracyPct >= 70 ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-600'
                                         }`}>
                                           {completedCount > 0 ? `${accuracyPct}%` : ' - '}

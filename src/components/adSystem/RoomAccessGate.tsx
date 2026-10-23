@@ -185,14 +185,14 @@ export default function RoomAccessGate({ jackpot, children, onUnlocked }: RoomAc
                 <Clock size={16} className="animate-spin-slow" />
               </span>
               <div>
-                <p className="text-xs font-extrabold text-cream flex items-center gap-1.5">
+                <p className="text-xs font-bold text-cream flex items-center gap-1.5">
                   Temporary Room Access Token Active
-                  <span className="text-[10px] bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-2 py-0.2 rounded-full font-bold uppercase">
+                  <span className="text-[11px] bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-2 py-0.2 rounded-full font-bold uppercase">
                     Free Ad Pass
                   </span>
                 </p>
                 <p className="text-[11px] text-cream-dim">
-                  Unlimited re-entry to {jackpot.name} for the next <strong className="text-gold font-mono">{timeRemainingStr}</strong>.
+                  Unlimited re-entry to {jackpot.name} for the next <strong className="text-gold tabular-nums">{timeRemainingStr}</strong>.
                 </p>
               </div>
             </div>
@@ -256,7 +256,7 @@ export default function RoomAccessGate({ jackpot, children, onUnlocked }: RoomAc
         </div>
 
         <div className="max-w-lg">
-          <h2 className="font-display font-extrabold text-2xl sm:text-3xl text-cream leading-tight">
+          <h2 className="font-display font-bold text-2xl sm:text-3xl text-cream leading-tight">
             Unlock {jackpot.name}
           </h2>
           <p className="text-cream-dim text-sm mt-2 leading-relaxed">
@@ -273,7 +273,7 @@ export default function RoomAccessGate({ jackpot, children, onUnlocked }: RoomAc
                 <span className="w-9 h-9 rounded-xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 flex items-center justify-center">
                   <Tv size={18} />
                 </span>
-                <span className="text-[10px] font-extrabold uppercase tracking-widest bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 px-2.5 py-0.5 rounded-full">
+                <span className="text-[11px] font-bold uppercase tracking-wide bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 px-2.5 py-0.5 rounded-full">
                   Free Access
                 </span>
               </div>
@@ -301,7 +301,7 @@ export default function RoomAccessGate({ jackpot, children, onUnlocked }: RoomAc
 
             <button
               onClick={handleWatchAdClick}
-              className="w-full py-3 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-black font-extrabold text-xs shadow-md transition-all flex items-center justify-center gap-2 mt-2"
+              className="w-full py-3 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-black font-bold text-xs shadow-md transition-all flex items-center justify-center gap-2 mt-2"
             >
               <Tv size={15} />
               <span>Watch Short Ad (Free)</span>
@@ -315,7 +315,7 @@ export default function RoomAccessGate({ jackpot, children, onUnlocked }: RoomAc
                 <span className="w-9 h-9 rounded-xl bg-gold/20 text-gold border border-gold/40 flex items-center justify-center">
                   <Zap size={18} />
                 </span>
-                <span className="text-[10px] font-extrabold uppercase tracking-widest bg-gold/20 text-gold border border-gold/40 px-2.5 py-0.5 rounded-full">
+                <span className="text-[11px] font-bold uppercase tracking-wide bg-gold/20 text-gold border border-gold/40 px-2.5 py-0.5 rounded-full">
                   Permanent Unlock
                 </span>
               </div>
@@ -343,7 +343,7 @@ export default function RoomAccessGate({ jackpot, children, onUnlocked }: RoomAc
 
             <button
               onClick={() => setMode('pay_permanent')}
-              className="w-full py-3 rounded-xl bg-gradient-to-r from-gold via-amber-400 to-gold-2 hover:from-gold-2 hover:to-gold text-black font-extrabold text-xs shadow-md transition-all flex items-center justify-center gap-2 mt-2"
+              className="w-full py-3 rounded-xl bg-gradient-to-r from-gold via-amber-400 to-gold-2 hover:from-gold-2 hover:to-gold text-black font-bold text-xs shadow-md transition-all flex items-center justify-center gap-2 mt-2"
             >
               <Smartphone size={15} />
               <span>Pay Ksh {jackpot.entryFee} (Permanent)</span>

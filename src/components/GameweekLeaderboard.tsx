@@ -54,12 +54,12 @@ export default function GameweekLeaderboard({ jackpot, totalUserPicksCount }: Ga
           </div>
           <div className="min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
-              <h3 className="font-display font-extrabold text-base text-cream flex items-center gap-2">
+              <h3 className="font-display font-bold text-base text-cream flex items-center gap-2">
                 Gameweek Leaderboard
               </h3>
 
               {/* Minimalist 3-state badge */}
-              <span className={`text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-md border flex items-center gap-1.5 ${statusInfo.badgeClass}`}>
+              <span className={`text-[11px] font-bold uppercase px-2 py-0.5 rounded-md border flex items-center gap-1.5 ${statusInfo.badgeClass}`}>
                 <span className={`w-1.5 h-1.5 rounded-full ${statusInfo.dotClass}`} />
                 {statusInfo.label}
               </span>
@@ -79,7 +79,7 @@ export default function GameweekLeaderboard({ jackpot, totalUserPicksCount }: Ga
 
         {/* Action Controls & Highlights */}
         <div className="flex items-center justify-between sm:justify-end gap-3 shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-line/40">
-          <div className="flex items-center gap-2 text-xs font-mono">
+          <div className="flex items-center gap-2 text-xs tabular-nums">
             <span className="inline-flex items-center gap-1.5 bg-ink px-3 py-1.5 rounded-xl border border-line text-cream-dim">
               <Users size={13} className="text-gold" />
               <strong className="text-gold">{totalSharedPicks.toLocaleString()}</strong> Shared Picks
@@ -108,7 +108,7 @@ export default function GameweekLeaderboard({ jackpot, totalUserPicksCount }: Ga
               </div>
               <div>
                 <div className="flex items-center gap-2">
-                  <h4 className="font-display font-extrabold text-cream text-sm">
+                  <h4 className="font-display font-bold text-cream text-sm">
                     Picks Shared Prior to Closure
                   </h4>
                   <span className="flex h-2 w-2 rounded-full bg-emerald-400 animate-ping" />
@@ -120,8 +120,8 @@ export default function GameweekLeaderboard({ jackpot, totalUserPicksCount }: Ga
             </div>
 
             <div className="bg-ink border border-gold/40 px-3.5 py-1.5 rounded-xl text-center shrink-0 self-stretch sm:self-auto flex sm:flex-col justify-between sm:justify-center items-center gap-1">
-              <span className="text-[10px] uppercase font-bold tracking-wider text-cream-dim">Total Shared Picks</span>
-              <span className="font-display font-extrabold text-gold text-base sm:text-lg">
+              <span className="text-[11px] uppercase font-bold tracking-wide text-cream-dim">Total Shared Picks</span>
+              <span className="font-display font-bold text-gold text-base sm:text-lg">
                 {totalSharedPicks.toLocaleString()}
               </span>
             </div>
@@ -155,7 +155,7 @@ export default function GameweekLeaderboard({ jackpot, totalUserPicksCount }: Ga
 
               {/* Registered Punters Ready Banner */}
               <div className="pt-2">
-                <p className="text-[11px] font-bold uppercase tracking-wider text-gold mb-2">
+                <p className="text-[11px] font-bold uppercase tracking-wide text-gold mb-2">
                   Registered Punters Ready for Live Standings ({MOCK_GAMBLERS.length})
                 </p>
                 <div className="flex flex-wrap items-center justify-center gap-2 max-w-xl mx-auto">
@@ -163,10 +163,10 @@ export default function GameweekLeaderboard({ jackpot, totalUserPicksCount }: Ga
                     <span key={g.username} className="inline-flex items-center gap-1.5 bg-panel border border-line px-2.5 py-1 rounded-lg text-xs font-semibold text-cream">
                       <Avatar name={g.username} seed={g.colorSeed} size={18} />
                       <span>{g.username}</span>
-                      <span className="text-[10px] text-cream-dim">0/{totalMatches}</span>
+                      <span className="text-[11px] text-cream-dim">0/{totalMatches}</span>
                     </span>
                   ))}
-                  <span className="text-xs text-cream-dim font-mono">+ {MOCK_GAMBLERS.length - 7} more</span>
+                  <span className="text-xs text-cream-dim tabular-nums">+ {MOCK_GAMBLERS.length - 7} more</span>
                 </div>
               </div>
             </div>
@@ -186,7 +186,7 @@ export default function GameweekLeaderboard({ jackpot, totalUserPicksCount }: Ga
               <div className="rounded-xl border border-line bg-panel overflow-hidden">
                 <table className="w-full table-fixed text-left text-xs text-cream-dim">
                   <thead>
-                    <tr className="border-b border-line text-[10px] sm:text-[11px] uppercase tracking-wider text-cream-dim/70 bg-panel-2">
+                    <tr className="border-b border-line text-[11px] sm:text-[11px] uppercase tracking-wide text-cream-dim/70 bg-panel-2">
                       <th className="py-2.5 px-2 sm:px-3 w-[24%] sm:w-[22%]">
                         <span className="hidden sm:inline">Rank & Move</span>
                         <span className="sm:hidden">Rank</span>
@@ -219,32 +219,32 @@ export default function GameweekLeaderboard({ jackpot, totalUserPicksCount }: Ga
                           <td className="py-2.5 px-2 sm:px-3 font-bold text-cream whitespace-nowrap">
                             <div className="flex items-center gap-1 sm:gap-1.5 text-[11px] sm:text-xs">
                               {entry.rank === 1 ? (
-                                <span className="inline-flex items-center gap-0.5 text-gold bg-gold/15 px-1.5 py-0.5 rounded-full border border-gold/30 text-[10px] sm:text-xs">
+                                <span className="inline-flex items-center gap-0.5 text-gold bg-gold/15 px-1.5 py-0.5 rounded-full border border-gold/30 text-[11px] sm:text-xs">
                                   <Crown size={11} /> #1
                                 </span>
                               ) : entry.rank === 2 ? (
-                                <span className="inline-flex items-center gap-0.5 text-slate-200 bg-slate-400/10 px-1.5 py-0.5 rounded-full text-[10px] sm:text-xs">
+                                <span className="inline-flex items-center gap-0.5 text-slate-200 bg-slate-400/10 px-1.5 py-0.5 rounded-full text-[11px] sm:text-xs">
                                   <Medal size={11} /> #2
                                 </span>
                               ) : entry.rank === 3 ? (
-                                <span className="inline-flex items-center gap-0.5 text-amber-500 bg-amber-500/10 px-1.5 py-0.5 rounded-full text-[10px] sm:text-xs">
+                                <span className="inline-flex items-center gap-0.5 text-amber-500 bg-amber-500/10 px-1.5 py-0.5 rounded-full text-[11px] sm:text-xs">
                                   <Medal size={11} /> #3
                                 </span>
                               ) : (
-                                <span className="px-1 font-mono text-cream-dim">#{entry.rank}</span>
+                                <span className="px-1 tabular-nums text-cream-dim">#{entry.rank}</span>
                               )}
 
                               {/* Rank change movement badge */}
                               {entry.rankChange && entry.rankChange > 0 ? (
-                                <span className="inline-flex items-center gap-0.5 text-[9px] sm:text-[10px] font-extrabold text-emerald-400 bg-emerald-500/15 px-1 py-0.1 rounded" title={`Climbed ${entry.rankChange} spots!`}>
+                                <span className="inline-flex items-center gap-0.5 text-[11px] sm:text-[11px] font-bold text-emerald-400 bg-emerald-500/15 px-1 py-0.1 rounded" title={`Climbed ${entry.rankChange} spots!`}>
                                   <TrendingUp size={10} /> +{entry.rankChange}
                                 </span>
                               ) : entry.rankChange && entry.rankChange < 0 ? (
-                                <span className="inline-flex items-center gap-0.5 text-[9px] sm:text-[10px] font-extrabold text-rose-400 bg-rose-500/15 px-1 py-0.1 rounded" title={`Dropped ${Math.abs(entry.rankChange)} spots`}>
+                                <span className="inline-flex items-center gap-0.5 text-[11px] sm:text-[11px] font-bold text-rose-400 bg-rose-500/15 px-1 py-0.1 rounded" title={`Dropped ${Math.abs(entry.rankChange)} spots`}>
                                   <TrendingDown size={10} /> {entry.rankChange}
                                 </span>
                               ) : (
-                                <span className="text-[10px] text-cream-dim/50 font-mono hidden xs:inline">•</span>
+                                <span className="text-[11px] text-cream-dim/50 tabular-nums hidden xs:inline">•</span>
                               )}
                             </div>
                           </td>
@@ -262,7 +262,7 @@ export default function GameweekLeaderboard({ jackpot, totalUserPicksCount }: Ga
                                 <StarRating rating={currentStars} size={8} showNumber={false} />
                               </div>
                               {entry.isClosest && (
-                                <span className="text-[9px] font-extrabold text-gold bg-gold/20 px-1 py-0.1 rounded shrink-0 hidden sm:inline" title="Closest to winning slip!">
+                                <span className="text-[11px] font-bold text-gold bg-gold/20 px-1 py-0.1 rounded shrink-0 hidden sm:inline" title="Closest to winning slip!">
                                   👑 #1
                                 </span>
                               )}
@@ -270,13 +270,13 @@ export default function GameweekLeaderboard({ jackpot, totalUserPicksCount }: Ga
                           </td>
 
                           {/* Correct / Total Settled */}
-                          <td className="py-2.5 px-2 sm:px-3 text-center font-mono font-bold text-cream text-[11px] sm:text-xs whitespace-nowrap">
+                          <td className="py-2.5 px-2 sm:px-3 text-center tabular-nums font-bold text-cream text-[11px] sm:text-xs whitespace-nowrap">
                             <span className="text-gold">{entry.correct}</span>/<span className="text-cream-dim/80">{completedCount}</span>
                           </td>
 
                           {/* Accuracy */}
                           <td className="py-2.5 px-2 sm:px-3 text-center whitespace-nowrap">
-                            <span className={`px-1.5 py-0.5 sm:px-2 sm:py-0.5 rounded text-[10px] sm:text-[11px] font-bold ${
+                            <span className={`px-1.5 py-0.5 sm:px-2 sm:py-0.5 rounded text-[11px] sm:text-[11px] font-bold ${
                               accuracyPct >= 80 ? 'bg-emerald-500/15 text-emerald-300 border border-emerald-500/30' : 'bg-ink text-cream-dim'
                             }`}>
                               {accuracyPct}%

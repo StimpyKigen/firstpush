@@ -30,7 +30,7 @@ export default function PinInput({ value, onChange }: { value: string; onChange:
           onKeyDown={(e) => onKeyDown(i, e)}
           inputMode="numeric"
           maxLength={1}
-          className="w-12 h-12 sm:w-14 sm:h-14 text-center text-xl sm:text-2xl font-mono font-bold bg-ink border-2 border-line rounded-xl text-cream focus:outline-none focus:border-gold transition-colors"
+          className="w-12 h-12 sm:w-14 sm:h-14 text-center text-xl sm:text-2xl tabular-nums font-bold bg-ink border-2 border-line rounded-xl text-cream focus:outline-none focus:border-gold transition-colors"
         />
       ))}
     </div>

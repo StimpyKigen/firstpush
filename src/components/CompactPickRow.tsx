@@ -78,8 +78,8 @@ export default function CompactPickRow({ pick, isTopPick, onEdit }: CompactPickR
     return (
       <div className="p-3.5 sm:p-4 rounded-xl border border-[#006C54]/40 bg-[#006C54]/[0.02] space-y-3">
         <div className="flex items-center justify-between">
-          <span className="text-xs font-black uppercase tracking-wider text-slate-800">Edit Your Match Pick</span>
-          <span className="text-[10px] font-mono font-bold text-slate-500 uppercase">({canEdit ? '1 edit remaining' : 'no edits left'})</span>
+          <span className="text-xs font-bold uppercase tracking-wide text-slate-800">Edit Your Match Pick</span>
+          <span className="text-[11px] tabular-nums font-bold text-slate-500 uppercase">({canEdit ? '1 edit remaining' : 'no edits left'})</span>
         </div>
         <div className="grid grid-cols-3 gap-2">
           {(['1', 'X', '2'] as Outcome[]).map((o) => (
@@ -87,7 +87,7 @@ export default function CompactPickRow({ pick, isTopPick, onEdit }: CompactPickR
               key={o}
               type="button"
               onClick={() => setEditPick(o)}
-              className={`h-9 px-2 rounded-md text-xs font-black uppercase tracking-wider border transition-all active:scale-95 cursor-pointer ${
+              className={`h-9 px-2 rounded-md text-xs font-bold uppercase tracking-wide border transition-all active:scale-95 cursor-pointer ${
                 editPick === o
                   ? o === '1'
                     ? 'bg-emerald-600 border-emerald-700 text-white shadow-xs'
@@ -122,7 +122,7 @@ export default function CompactPickRow({ pick, isTopPick, onEdit }: CompactPickR
             type="button"
             onClick={handleSaveEdit}
             disabled={!editMod.isAllowed}
-            className="h-8 px-3.5 rounded-md text-xs font-black uppercase tracking-wider bg-[#006C54] hover:bg-[#005441] disabled:opacity-40 text-white transition-all shadow-xs flex items-center gap-1.5 cursor-pointer"
+            className="h-8 px-3.5 rounded-md text-xs font-bold uppercase tracking-wide bg-[#006C54] hover:bg-[#005441] disabled:opacity-40 text-white transition-all shadow-xs flex items-center gap-1.5 cursor-pointer"
           >
             <Check size={12} /> Save Changes
           </button>
@@ -175,17 +175,17 @@ export default function CompactPickRow({ pick, isTopPick, onEdit }: CompactPickR
             <div className="flex items-center gap-1.5 flex-wrap">
               <button
                 onClick={() => setShowProfileModal(true)}
-                className="text-xs sm:text-sm font-black uppercase tracking-tight text-slate-900 hover:text-[#006C54] transition-colors truncate cursor-pointer"
+                className="text-xs sm:text-sm font-bold uppercase tracking-tight text-slate-900 hover:text-[#006C54] transition-colors truncate cursor-pointer"
               >
                 {pick.username}
               </button>
               {isMine && (
-                <span className="text-[10px] font-black uppercase text-[#006C54] tracking-wider">
+                <span className="text-[11px] font-bold uppercase text-[#006C54] tracking-wide">
                   (You)
                 </span>
               )}
               {isTopPick && (
-                <span className="inline-flex items-center gap-1 text-[10px] font-bold text-[#8A6500]">
+                <span className="inline-flex items-center gap-1 text-[11px] font-bold text-[#8A6500]">
                   <Crown size={11} className="text-[#8A6500] fill-[#8A6500]" /> #1 Top Pick
                 </span>
               )}
@@ -194,13 +194,13 @@ export default function CompactPickRow({ pick, isTopPick, onEdit }: CompactPickR
             <div className="flex items-center gap-2 mt-0.5 text-xs text-slate-400">
               <StarRating rating={getStarRating(pick.username)} size={10} showNumber={false} />
               <span>·</span>
-              <span className="text-[11px] font-mono text-slate-500">{pick.timeAgo}</span>
+              <span className="text-[11px] tabular-nums text-slate-500">{pick.timeAgo}</span>
             </div>
           </div>
         </div>
 
         {/* Outcome Pick Badge */}
-        <div className={`px-2.5 py-1 rounded-md text-[11px] font-black uppercase tracking-wider shrink-0 shadow-2xs flex items-center gap-1 leading-none ${outcomeColors}`}>
+        <div className={`px-2.5 py-1 rounded-md text-[11px] font-bold uppercase tracking-wide shrink-0 shadow-2xs flex items-center gap-1 leading-none ${outcomeColors}`}>
           <span>Pick:</span>
           <span>{outcomeLabel}</span>
         </div>
@@ -222,11 +222,11 @@ export default function CompactPickRow({ pick, isTopPick, onEdit }: CompactPickR
       {/* Message Card Footer: Conviction, Reactions & Actions */}
       <div className="flex items-center justify-between gap-2 pt-1 border-t border-slate-100 text-xs">
         <div className="flex items-center gap-2 min-w-0 flex-wrap">
-          <span className={`inline-flex items-center gap-1 text-[11px] font-black uppercase tracking-wider ${conv.color}`}>
+          <span className={`inline-flex items-center gap-1 text-[11px] font-bold uppercase tracking-wide ${conv.color}`}>
             <ConvIcon size={12} /> {conv.label}
           </span>
           {isMine && !canEdit && (
-            <span className="text-[10px] font-mono text-slate-400 font-bold">Edited 2/2</span>
+            <span className="text-[11px] tabular-nums text-slate-400 font-bold">Edited 2/2</span>
           )}
         </div>
 
@@ -255,7 +255,7 @@ export default function CompactPickRow({ pick, isTopPick, onEdit }: CompactPickR
 
           <button
             onClick={handleLike}
-            className={`h-7 px-2.5 rounded-md text-xs font-black uppercase tracking-wider flex items-center gap-1.5 transition-all active:scale-95 border cursor-pointer ${
+            className={`h-7 px-2.5 rounded-md text-xs font-bold uppercase tracking-wide flex items-center gap-1.5 transition-all active:scale-95 border cursor-pointer ${
               liked
                 ? 'bg-[#EEAA04]/20 border-[#EEAA04] text-slate-950 shadow-2xs'
                 : 'bg-white hover:bg-slate-50 border-slate-200 text-slate-600 hover:text-slate-900'

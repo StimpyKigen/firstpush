@@ -28,7 +28,7 @@ export default function StarRating({
         ))}
       </div>
       {showNumber && (
-        <span className="font-mono font-semibold text-cream-dim" style={{ fontSize: size * 0.8 }}>
+        <span className="tabular-nums font-semibold text-cream-dim" style={{ fontSize: size * 0.8 }}>
           {clamped.toFixed(1)}
         </span>
       )}

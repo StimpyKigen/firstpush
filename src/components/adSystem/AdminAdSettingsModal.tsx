@@ -81,7 +81,7 @@ export default function AdminAdSettingsModal({ isOpen, onClose }: AdminAdSetting
                 <h2 className="font-semibold text-base sm:text-lg text-slate-900 tracking-tight">
                   Advertisement Access & Analytics
                 </h2>
-                <span className="bg-[#E8F5EE] text-[#006C54] text-[10.5px] uppercase font-bold px-2 py-0.5 rounded-full">
+                <span className="bg-[#E8F5EE] text-[#006C54] text-[11px] uppercase font-bold px-2 py-0.5 rounded-full">
                   Admin Console
                 </span>
               </div>
@@ -135,11 +135,11 @@ export default function AdminAdSettingsModal({ isOpen, onClose }: AdminAdSetting
                   <h3 className="font-semibold text-sm text-slate-900 flex items-center gap-2">
                     <span>Enable Ad Access System</span>
                     {adsEnabled ? (
-                      <span className="text-[10.5px] font-bold bg-[#E8F5EE] text-[#006C54] px-2 py-0.5 rounded-full">
+                      <span className="text-[11px] font-bold bg-[#E8F5EE] text-[#006C54] px-2 py-0.5 rounded-full">
                         ACTIVE
                       </span>
                     ) : (
-                      <span className="text-[10.5px] font-bold bg-rose-100 text-rose-700 px-2 py-0.5 rounded-full">
+                      <span className="text-[11px] font-bold bg-rose-100 text-rose-700 px-2 py-0.5 rounded-full">
                         DISABLED
                       </span>
                     )}
@@ -173,7 +173,7 @@ export default function AdminAdSettingsModal({ isOpen, onClose }: AdminAdSetting
                     max={12}
                     value={preferredDuration}
                     onChange={(e) => setPreferredDuration(Number(e.target.value))}
-                    className="w-full bg-[#FBFBFA] border border-slate-300 rounded-xl px-3 py-2 text-xs font-mono font-semibold text-slate-900 focus:outline-none focus:border-[#006C54]"
+                    className="w-full bg-[#FBFBFA] border border-slate-300 rounded-xl px-3 py-2 text-xs tabular-nums font-semibold text-slate-900 focus:outline-none focus:border-[#006C54]"
                   />
                 </div>
 
@@ -188,7 +188,7 @@ export default function AdminAdSettingsModal({ isOpen, onClose }: AdminAdSetting
                     max={20}
                     value={maxPreferredDuration}
                     onChange={(e) => setMaxPreferredDuration(Number(e.target.value))}
-                    className="w-full bg-[#FBFBFA] border border-slate-300 rounded-xl px-3 py-2 text-xs font-mono font-semibold text-slate-900 focus:outline-none focus:border-[#006C54]"
+                    className="w-full bg-[#FBFBFA] border border-slate-300 rounded-xl px-3 py-2 text-xs tabular-nums font-semibold text-slate-900 focus:outline-none focus:border-[#006C54]"
                   />
                 </div>
 
@@ -203,7 +203,7 @@ export default function AdminAdSettingsModal({ isOpen, onClose }: AdminAdSetting
                     max={120}
                     value={tokenDurationMinutes}
                     onChange={(e) => setTokenDurationMinutes(Number(e.target.value))}
-                    className="w-full bg-[#FBFBFA] border border-slate-300 rounded-xl px-3 py-2 text-xs font-mono font-semibold text-slate-900 focus:outline-none focus:border-[#006C54]"
+                    className="w-full bg-[#FBFBFA] border border-slate-300 rounded-xl px-3 py-2 text-xs tabular-nums font-semibold text-slate-900 focus:outline-none focus:border-[#006C54]"
                   />
                 </div>
               </div>
@@ -279,7 +279,7 @@ export default function AdminAdSettingsModal({ isOpen, onClose }: AdminAdSetting
             <div className="space-y-6">
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                 <div className="bg-white border border-[#E5E5EA] rounded-2xl p-4 text-center shadow-2xs">
-                  <span className="text-[10.5px] font-semibold uppercase text-slate-500 tracking-wider block">
+                  <span className="text-[11px] font-semibold uppercase text-slate-500 tracking-wide block">
                     Ad Requests
                   </span>
                   <span className="font-semibold text-2xl text-slate-900 mt-1 block">
@@ -288,7 +288,7 @@ export default function AdminAdSettingsModal({ isOpen, onClose }: AdminAdSetting
                 </div>
 
                 <div className="bg-white border border-[#E5E5EA] rounded-2xl p-4 text-center shadow-2xs">
-                  <span className="text-[10.5px] font-semibold uppercase text-[#006C54] tracking-wider block">
+                  <span className="text-[11px] font-semibold uppercase text-[#006C54] tracking-wide block">
                     Fill Rate
                   </span>
                   <span className="font-semibold text-2xl text-[#006C54] mt-1 block">
@@ -297,7 +297,7 @@ export default function AdminAdSettingsModal({ isOpen, onClose }: AdminAdSetting
                 </div>
 
                 <div className="bg-white border border-[#E5E5EA] rounded-2xl p-4 text-center shadow-2xs">
-                  <span className="text-[10.5px] font-semibold uppercase text-amber-600 tracking-wider block">
+                  <span className="text-[11px] font-semibold uppercase text-amber-600 tracking-wide block">
                     Completion Rate
                   </span>
                   <span className="font-semibold text-2xl text-amber-600 mt-1 block">
@@ -306,7 +306,7 @@ export default function AdminAdSettingsModal({ isOpen, onClose }: AdminAdSetting
                 </div>
 
                 <div className="bg-white border border-[#E5E5EA] rounded-2xl p-4 text-center shadow-2xs">
-                  <span className="text-[10.5px] font-semibold uppercase text-slate-700 tracking-wider block">
+                  <span className="text-[11px] font-semibold uppercase text-slate-700 tracking-wide block">
                     Est. Revenue
                   </span>
                   <span className="font-semibold text-2xl text-slate-900 mt-1 block">
@@ -335,7 +335,7 @@ export default function AdminAdSettingsModal({ isOpen, onClose }: AdminAdSetting
                         <div>
                           <p className="font-semibold text-slate-900 flex items-center gap-1.5">
                             <span>{log.sponsorName || log.provider}</span>
-                            <span className="text-[10.5px] text-slate-400 font-mono">
+                            <span className="text-[11px] text-slate-400 tabular-nums">
                               ({log.duration}s)
                             </span>
                           </p>
@@ -346,7 +346,7 @@ export default function AdminAdSettingsModal({ isOpen, onClose }: AdminAdSetting
 
                         <div className="text-right">
                           <span
-                            className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${
+                            className={`text-[11px] font-semibold px-2 py-0.5 rounded-full ${
                               log.completed
                                 ? 'bg-[#E8F5EE] text-[#006C54]'
                                 : 'bg-rose-100 text-rose-700'
@@ -354,7 +354,7 @@ export default function AdminAdSettingsModal({ isOpen, onClose }: AdminAdSetting
                           >
                             {log.completed ? 'COMPLETED' : 'SKIPPED'}
                           </span>
-                          <span className="text-xs font-mono font-semibold text-slate-900 block mt-0.5">
+                          <span className="text-xs tabular-nums font-semibold text-slate-900 block mt-0.5">
                             +Ksh {log.estimatedRevenueKsh || '0.00'}
                           </span>
                         </div>

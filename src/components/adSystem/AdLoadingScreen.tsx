@@ -17,7 +17,7 @@ export default function AdLoadingScreen({ sponsorName = 'Ad Network Partner', on
         </div>
 
         <div>
-          <h3 className="font-display font-extrabold text-lg text-cream flex items-center justify-center gap-2">
+          <h3 className="font-display font-bold text-lg text-cream flex items-center justify-center gap-2">
             Loading Rewarded Ad
             <Sparkles size={16} className="text-gold" />
           </h3>
@@ -28,7 +28,7 @@ export default function AdLoadingScreen({ sponsorName = 'Ad Network Partner', on
 
         <div className="flex items-center justify-center gap-2 py-2 text-gold">
           <Loader2 size={24} className="animate-spin" />
-          <span className="text-xs font-mono font-bold tracking-wider">PRELOADING STREAM</span>
+          <span className="text-xs tabular-nums font-bold tracking-wide">PRELOADING STREAM</span>
         </div>
 
         <p className="text-[11px] text-cream-dim/80 leading-relaxed border-t border-line/60 pt-3">

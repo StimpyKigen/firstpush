@@ -134,10 +134,10 @@ export default function Home() {
       {publishedPhotos.length > 0 && (
         <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 sm:pt-10">
           <div className="text-center sm:text-left mb-6">
-            <span className="text-[#006C54] font-bold text-xs uppercase tracking-wider block mb-1">
+            <span className="text-[#006C54] font-bold text-xs uppercase tracking-wide block mb-1">
               Weekly Editorial News
             </span>
-            <h1 className="font-extrabold sm:font-black text-2xl sm:text-3xl lg:text-4xl text-slate-900 tracking-tight">
+            <h1 className="font-bold sm:font-bold text-2xl sm:text-3xl lg:text-4xl text-slate-900 tracking-tight">
               Top Stories &amp; Matchday Perspectives
             </h1>
           </div>
@@ -274,7 +274,7 @@ export default function Home() {
           ========================================================================= */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16 sm:pb-20">
         <div className="text-center sm:text-left mb-6 sm:mb-8">
-          <h2 className="font-extrabold sm:font-black text-2xl sm:text-3xl lg:text-4xl text-slate-900 tracking-tight">
+          <h2 className="font-bold sm:font-bold text-2xl sm:text-3xl lg:text-4xl text-slate-900 tracking-tight">
             Videos and Highlights
           </h2>
         </div>
@@ -341,7 +341,7 @@ export default function Home() {
                           {video.title}
                         </h3>
                       </div>
-                      <span className="text-[10px] font-mono font-semibold text-slate-400 shrink-0">
+                      <span className="text-[11px] tabular-nums font-semibold text-slate-400 shrink-0">
                         {idx + 1}/{publishedVideos.length}
                       </span>
                     </div>

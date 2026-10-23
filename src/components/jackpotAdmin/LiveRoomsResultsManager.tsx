@@ -78,7 +78,7 @@ export default function LiveRoomsResultsManager({
                   </div>
                   <span>{jp.name}</span>
                   <span
-                    className={`text-[10px] px-1.5 py-0.2 rounded font-mono font-medium ${
+                    className={`text-[11px] px-1.5 py-0.2 rounded tabular-nums font-medium ${
                       isSelected
                         ? 'bg-white/20 text-white'
                         : completedCount === jp.matches.length
@@ -104,7 +104,7 @@ export default function LiveRoomsResultsManager({
                     <h4 className="font-semibold text-slate-900 text-sm">
                       Leg Results & Live Leaderboard Controller
                     </h4>
-                    <span className="bg-[#E8F5EE] text-[#006C54] text-[10.5px] font-bold px-2 py-0.5 rounded-full">
+                    <span className="bg-[#E8F5EE] text-[#006C54] text-[11px] font-bold px-2 py-0.5 rounded-full">
                       {activeResultRoom.name}
                     </span>
                   </div>
@@ -162,18 +162,18 @@ export default function LiveRoomsResultsManager({
                     >
                       <div className="min-w-0">
                         <div className="flex items-center gap-2 flex-wrap">
-                          <span className="text-[11px] font-mono font-bold text-slate-700 bg-slate-100 px-2 py-0.5 rounded">
+                          <span className="text-[11px] tabular-nums font-bold text-slate-700 bg-slate-100 px-2 py-0.5 rounded">
                             Leg #{idx + 1}
                           </span>
                           <span className="text-xs font-semibold text-slate-900 truncate">
                             {match.home} <span className="text-slate-400 font-normal">vs</span> {match.away}
                           </span>
                           {match.result ? (
-                            <span className="text-[10.5px] font-semibold text-[#006C54] bg-[#E8F5EE] px-2 py-0.5 rounded-full flex items-center gap-1">
+                            <span className="text-[11px] font-semibold text-[#006C54] bg-[#E8F5EE] px-2 py-0.5 rounded-full flex items-center gap-1">
                               <CheckCircle2 size={11} /> Outcome: {match.result}
                             </span>
                           ) : (
-                            <span className="text-[10px] text-slate-400 bg-slate-50 px-2 py-0.5 rounded">
+                            <span className="text-[11px] text-slate-400 bg-slate-50 px-2 py-0.5 rounded">
                               Unplayed
                             </span>
                           )}

@@ -188,7 +188,7 @@ export default function AvaChatSupport() {
             </span>
 
             {unreadBadge && (
-              <span className="absolute -bottom-0.5 -left-0.5 px-1.5 py-0.5 text-[9px] font-extrabold bg-rose-500 text-white rounded-full shadow-sm">
+              <span className="absolute -bottom-0.5 -left-0.5 px-1.5 py-0.5 text-[11px] font-bold bg-rose-500 text-white rounded-full shadow-sm">
                 1
               </span>
             )}
@@ -213,7 +213,7 @@ export default function AvaChatSupport() {
               </div>
               <div>
                 <h3 className="font-display font-bold text-slate-900 text-sm leading-tight">Ava</h3>
-                <p className="text-[10px] text-emerald-600 font-medium flex items-center gap-1">
+                <p className="text-[11px] text-emerald-600 font-medium flex items-center gap-1">
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
                   Online • Mshindi Support
                 </p>
@@ -261,7 +261,7 @@ export default function AvaChatSupport() {
                 >
                   <div>{renderFormattedText(msg.text)}</div>
                   <div
-                    className={`mt-1 text-[9px] font-mono ${
+                    className={`mt-1 text-[11px] tabular-nums ${
                       msg.sender === 'user' ? 'text-[#0a1317]/70 text-right' : 'text-slate-400 text-left'
                     }`}
                   >
@@ -328,7 +328,7 @@ export default function AvaChatSupport() {
                 />
               </button>
             </form>
-            <div className="mt-1.5 flex items-center justify-center text-[10px] text-slate-400">
+            <div className="mt-1.5 flex items-center justify-center text-[11px] text-slate-400">
               <span className="flex items-center gap-1">
                 <ShieldCheck size={11} className="text-emerald-500" />
                 Verified Mshindi AI Assistant

@@ -132,7 +132,7 @@ export default function AdminModerationDashboard() {
           <Flag size={14} />
           <span>User Reports</span>
           {reports.filter((r) => r.status === 'Pending').length > 0 && (
-            <span className="bg-rose-500 text-white text-[10px] font-bold px-1.5 py-0.2 rounded-full ml-1">
+            <span className="bg-rose-500 text-white text-[11px] font-bold px-1.5 py-0.2 rounded-full ml-1">
               {reports.filter((r) => r.status === 'Pending').length} Pending
             </span>
           )}
@@ -197,7 +197,7 @@ export default function AdminModerationDashboard() {
                   value={phrase}
                   onChange={(e) => setPhrase(e.target.value)}
                   placeholder="e.g. offensive word, scam link..."
-                  className="w-full bg-white border border-slate-300 focus:border-[#006C54] focus:ring-1 focus:ring-[#006C54] rounded-xl px-3.5 py-2.5 text-xs text-slate-900 font-mono focus:outline-none transition-all shadow-2xs"
+                  className="w-full bg-white border border-slate-300 focus:border-[#006C54] focus:ring-1 focus:ring-[#006C54] rounded-xl px-3.5 py-2.5 text-xs text-slate-900 tabular-nums focus:outline-none transition-all shadow-2xs"
                 />
                 <p className="text-[11px] text-slate-400 mt-1">
                   Evaluated automatically case-insensitively.
@@ -338,7 +338,7 @@ export default function AdminModerationDashboard() {
                 value={importText}
                 onChange={(e) => setImportText(e.target.value)}
                 placeholder='[ { "phrase": "example", "category": "English Profanity", "severity": "High", "action": "Block", "enabled": true } ]'
-                className="w-full bg-white border border-slate-300 focus:border-[#006C54] focus:ring-1 focus:ring-[#006C54] rounded-xl p-3 text-xs text-slate-900 font-mono focus:outline-none transition-all shadow-2xs"
+                className="w-full bg-white border border-slate-300 focus:border-[#006C54] focus:ring-1 focus:ring-[#006C54] rounded-xl p-3 text-xs text-slate-900 tabular-nums focus:outline-none transition-all shadow-2xs"
               />
             </div>
 

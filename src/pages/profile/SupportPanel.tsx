@@ -26,7 +26,7 @@ export default function SupportPanel({ onClose }: SupportPanelProps) {
         <a href="https://wa.me/254743304579" target="_blank" rel="noreferrer" className="flex flex-col items-center gap-2 p-4 rounded-xl bg-ink-2 border border-line hover:border-emerald-2/40 transition-colors text-center">
           <MessageCircle size={20} className="text-emerald-2" />
           <span className="text-xs font-bold text-cream">WhatsApp Chat</span>
-          <span className="text-[11px] text-cream-dim font-mono">{RECEIVER_MPESA_NUMBER}</span>
+          <span className="text-[11px] text-cream-dim tabular-nums">{RECEIVER_MPESA_NUMBER}</span>
         </a>
         <a href="mailto:support@mshindiroom.co.ke" className="flex flex-col items-center gap-2 p-4 rounded-xl bg-ink-2 border border-line hover:border-gold/40 transition-colors text-center">
           <Mail size={20} className="text-gold" />
@@ -36,7 +36,7 @@ export default function SupportPanel({ onClose }: SupportPanelProps) {
         <a href="tel:+254743304579" className="flex flex-col items-center gap-2 p-4 rounded-xl bg-ink-2 border border-line hover:border-blue-400/40 transition-colors text-center">
           <PhoneIcon size={20} className="text-[#3b82f6]" />
           <span className="text-xs font-bold text-cream">Call Us</span>
-          <span className="text-[11px] text-cream-dim font-mono">{RECEIVER_MPESA_NUMBER}</span>
+          <span className="text-[11px] text-cream-dim tabular-nums">{RECEIVER_MPESA_NUMBER}</span>
         </a>
       </div>
 

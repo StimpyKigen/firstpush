@@ -50,19 +50,19 @@ export default function DictionaryPanel({
       {/* Overview Stats Bar */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         <div className="bg-white border border-[#E5E5EA] p-3.5 rounded-2xl shadow-2xs">
-          <p className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Total Entries</p>
+          <p className="text-[11px] font-semibold text-slate-500 uppercase tracking-wide">Total Entries</p>
           <p className="font-semibold text-2xl text-slate-900 mt-0.5">{totalCount}</p>
         </div>
         <div className="bg-white border border-[#E5E5EA] p-3.5 rounded-2xl shadow-2xs">
-          <p className="text-[11px] font-semibold text-[#006C54] uppercase tracking-wider">Active Rules</p>
+          <p className="text-[11px] font-semibold text-[#006C54] uppercase tracking-wide">Active Rules</p>
           <p className="font-semibold text-2xl text-[#006C54] mt-0.5">{enabledCount}</p>
         </div>
         <div className="bg-white border border-[#E5E5EA] p-3.5 rounded-2xl shadow-2xs">
-          <p className="text-[11px] font-semibold text-rose-600 uppercase tracking-wider">Critical Rules</p>
+          <p className="text-[11px] font-semibold text-rose-600 uppercase tracking-wide">Critical Rules</p>
           <p className="font-semibold text-2xl text-rose-600 mt-0.5">{criticalCount}</p>
         </div>
         <div className="bg-white border border-[#E5E5EA] p-3.5 rounded-2xl shadow-2xs">
-          <p className="text-[11px] font-semibold text-indigo-600 uppercase tracking-wider">Review Only</p>
+          <p className="text-[11px] font-semibold text-indigo-600 uppercase tracking-wide">Review Only</p>
           <p className="font-semibold text-2xl text-indigo-600 mt-0.5">{reviewOnlyCount}</p>
         </div>
       </div>
@@ -139,7 +139,7 @@ export default function DictionaryPanel({
 
         {/* Category Quick Chips */}
         <div className="flex items-center gap-1.5 overflow-x-auto pb-1 pt-1">
-          <span className="text-[10px] font-semibold text-slate-500 uppercase mr-1 shrink-0">Quick Filter:</span>
+          <span className="text-[11px] font-semibold text-slate-500 uppercase mr-1 shrink-0">Quick Filter:</span>
           <button
             onClick={() => setSelectedCategory('ALL')}
             className={`px-2.5 py-1 rounded-full text-[11px] font-semibold whitespace-nowrap transition-colors cursor-pointer ${
@@ -174,7 +174,7 @@ export default function DictionaryPanel({
       <div className="bg-white border border-[#E5E5EA] rounded-2xl overflow-hidden shadow-2xs">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs text-slate-800">
-            <thead className="bg-[#FBFBFA] text-slate-500 font-semibold border-b border-[#E5E5EA] text-[11px] uppercase tracking-wider">
+            <thead className="bg-[#FBFBFA] text-slate-500 font-semibold border-b border-[#E5E5EA] text-[11px] uppercase tracking-wide">
               <tr>
                 <th className="py-3 px-4">Word / Phrase</th>
                 <th className="py-3 px-4">Category</th>
@@ -198,7 +198,7 @@ export default function DictionaryPanel({
                 filteredEntries.map((entry) => (
                   <tr key={entry.id} className="hover:bg-slate-50 transition-colors">
                     {/* Phrase */}
-                    <td className="py-3 px-4 font-semibold font-mono text-slate-900">
+                    <td className="py-3 px-4 font-semibold tabular-nums text-slate-900">
                       {entry.phrase}
                     </td>
 
@@ -211,14 +211,14 @@ export default function DictionaryPanel({
 
                     {/* Severity */}
                     <td className="py-3 px-4">
-                      <span className={`inline-block px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${getSeverityBadgeClass(entry.severity)}`}>
+                      <span className={`inline-block px-2 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wide ${getSeverityBadgeClass(entry.severity)}`}>
                         {entry.severity}
                       </span>
                     </td>
 
                     {/* Action */}
                     <td className="py-3 px-4">
-                      <span className={`inline-block px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${getActionBadgeClass(entry.action)}`}>
+                      <span className={`inline-block px-2 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wide ${getActionBadgeClass(entry.action)}`}>
                         {entry.action}
                       </span>
                     </td>

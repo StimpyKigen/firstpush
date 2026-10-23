@@ -113,10 +113,10 @@ export default function QuickBetBuilderModal({
                 <Dices size={18} />
               </div>
               <div>
-                <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 block">
+                <span className="text-[11px] font-bold uppercase tracking-wide text-slate-400 block">
                   Bet Builder Quick Selector
                 </span>
-                <h3 className="font-display font-black text-base text-white leading-tight">
+                <h3 className="font-display font-bold text-base text-white leading-tight">
                   {match.home} <span className="text-slate-400 font-normal">v</span> {match.away}
                 </h3>
               </div>
@@ -133,14 +133,14 @@ export default function QuickBetBuilderModal({
           {/* Subheader info */}
           <div className="bg-slate-50 px-4 py-2 border-b border-slate-200 flex items-center justify-between text-xs text-slate-600 font-semibold shrink-0">
             <span>{match.competition}</span>
-            <span className="font-mono text-slate-900 font-bold">{match.kickoff}</span>
+            <span className="tabular-nums text-slate-900 font-bold">{match.kickoff}</span>
           </div>
 
           {/* Markets Body - Scrollable */}
           <div className="p-4 space-y-4 overflow-y-auto scroll-touch flex-1 bg-white">
             {/* Match Result (1X2) */}
             <div>
-              <label className="text-xs font-black uppercase tracking-wider text-slate-800 block mb-2">
+              <label className="text-xs font-bold uppercase tracking-wide text-slate-800 block mb-2">
                 1. Match Result (1X2)
               </label>
               <div className="grid grid-cols-3 gap-2">
@@ -152,12 +152,12 @@ export default function QuickBetBuilderModal({
                       onClick={() => handleSelectLeg('Match Result (1X2)', m.label, m.odds)}
                       className={`p-2.5 rounded-md border text-center transition-all touch-manipulation min-h-[48px] flex flex-col items-center justify-center active:scale-[0.98] cursor-pointer ${
                         selected
-                          ? 'bg-[#006C54] text-white font-black border-[#005441] shadow-xs'
+                          ? 'bg-[#006C54] text-white font-bold border-[#005441] shadow-xs'
                           : 'bg-slate-50 border-slate-200 text-slate-800 hover:border-slate-400 hover:bg-slate-100'
                       }`}
                     >
-                      <span className={`text-[10px] uppercase font-black tracking-wide block leading-none ${selected ? 'text-white/80' : 'text-slate-500'}`}>{m.code}</span>
-                      <span className={`text-xs sm:text-sm font-mono font-black mt-1 ${selected ? 'text-white' : 'text-slate-900'}`}>
+                      <span className={`text-[11px] uppercase font-bold tracking-wide block leading-none ${selected ? 'text-white/80' : 'text-slate-500'}`}>{m.code}</span>
+                      <span className={`text-xs sm:text-sm tabular-nums font-bold mt-1 ${selected ? 'text-white' : 'text-slate-900'}`}>
                         {m.odds.toFixed(2)}
                       </span>
                     </button>
@@ -168,7 +168,7 @@ export default function QuickBetBuilderModal({
 
             {/* Double Chance */}
             <div>
-              <label className="text-xs font-black uppercase tracking-wider text-slate-800 block mb-2">
+              <label className="text-xs font-bold uppercase tracking-wide text-slate-800 block mb-2">
                 2. Double Chance
               </label>
               <div className="grid grid-cols-3 gap-2">
@@ -180,12 +180,12 @@ export default function QuickBetBuilderModal({
                       onClick={() => handleSelectLeg('Double Chance', m.label, m.odds)}
                       className={`p-2.5 rounded-md border text-center transition-all touch-manipulation min-h-[48px] flex flex-col items-center justify-center active:scale-[0.98] cursor-pointer ${
                         selected
-                          ? 'bg-[#006C54] text-white font-black border-[#005441] shadow-xs'
+                          ? 'bg-[#006C54] text-white font-bold border-[#005441] shadow-xs'
                           : 'bg-slate-50 border-slate-200 text-slate-800 hover:border-slate-400 hover:bg-slate-100'
                       }`}
                     >
-                      <span className={`text-[10px] uppercase font-black tracking-wide block leading-none ${selected ? 'text-white/80' : 'text-slate-500'}`}>{m.code}</span>
-                      <span className={`text-xs sm:text-sm font-mono font-black mt-1 ${selected ? 'text-white' : 'text-slate-900'}`}>
+                      <span className={`text-[11px] uppercase font-bold tracking-wide block leading-none ${selected ? 'text-white/80' : 'text-slate-500'}`}>{m.code}</span>
+                      <span className={`text-xs sm:text-sm tabular-nums font-bold mt-1 ${selected ? 'text-white' : 'text-slate-900'}`}>
                         {m.odds.toFixed(2)}
                       </span>
                     </button>
@@ -196,7 +196,7 @@ export default function QuickBetBuilderModal({
 
             {/* Both Teams To Score (BTTS) */}
             <div>
-              <label className="text-xs font-black uppercase tracking-wider text-slate-800 block mb-2">
+              <label className="text-xs font-bold uppercase tracking-wide text-slate-800 block mb-2">
                 3. Both Teams To Score (BTTS)
               </label>
               <div className="grid grid-cols-2 gap-2">
@@ -208,12 +208,12 @@ export default function QuickBetBuilderModal({
                       onClick={() => handleSelectLeg('Both Teams To Score', m.label, m.odds)}
                       className={`p-2.5 rounded-md border text-center transition-all touch-manipulation min-h-[46px] flex items-center justify-between px-3 active:scale-[0.98] cursor-pointer ${
                         selected
-                          ? 'bg-[#006C54] text-white font-black border-[#005441] shadow-xs'
+                          ? 'bg-[#006C54] text-white font-bold border-[#005441] shadow-xs'
                           : 'bg-slate-50 border-slate-200 text-slate-800 hover:border-slate-400 hover:bg-slate-100'
                       }`}
                     >
                       <span className={`text-xs font-bold ${selected ? 'text-white' : 'text-slate-800'}`}>{m.label}</span>
-                      <span className={`text-xs font-mono font-black ${selected ? 'text-white' : 'text-slate-900'}`}>
+                      <span className={`text-xs tabular-nums font-bold ${selected ? 'text-white' : 'text-slate-900'}`}>
                         {m.odds.toFixed(2)}
                       </span>
                     </button>
@@ -224,7 +224,7 @@ export default function QuickBetBuilderModal({
 
             {/* Goals Over/Under */}
             <div>
-              <label className="text-xs font-black uppercase tracking-wider text-slate-800 block mb-2">
+              <label className="text-xs font-bold uppercase tracking-wide text-slate-800 block mb-2">
                 4. Goals Over/Under (2.5)
               </label>
               <div className="grid grid-cols-2 gap-2">
@@ -236,12 +236,12 @@ export default function QuickBetBuilderModal({
                       onClick={() => handleSelectLeg('Total Goals', m.label, m.odds)}
                       className={`p-2.5 rounded-md border text-center transition-all touch-manipulation min-h-[46px] flex items-center justify-between px-3 active:scale-[0.98] cursor-pointer ${
                         selected
-                          ? 'bg-[#006C54] text-white font-black border-[#005441] shadow-xs'
+                          ? 'bg-[#006C54] text-white font-bold border-[#005441] shadow-xs'
                           : 'bg-slate-50 border-slate-200 text-slate-800 hover:border-slate-400 hover:bg-slate-100'
                       }`}
                     >
                       <span className={`text-xs font-bold ${selected ? 'text-white' : 'text-slate-800'}`}>{m.label}</span>
-                      <span className={`text-xs font-mono font-black ${selected ? 'text-white' : 'text-slate-900'}`}>
+                      <span className={`text-xs tabular-nums font-bold ${selected ? 'text-white' : 'text-slate-900'}`}>
                         {m.odds.toFixed(2)}
                       </span>
                     </button>
@@ -254,14 +254,14 @@ export default function QuickBetBuilderModal({
           {/* Footer Actions */}
           <div className="p-4 bg-slate-50 border-t border-slate-200 flex items-center justify-between gap-3 shrink-0">
             <div className="text-xs">
-              <span className="text-slate-500 font-bold block uppercase text-[10px]">In Match Slip:</span>
-              <span className="font-black text-slate-900 text-xs sm:text-sm">{matchLegs.length} market pick(s)</span>
+              <span className="text-slate-500 font-bold block uppercase text-[11px]">In Match Slip:</span>
+              <span className="font-bold text-slate-900 text-xs sm:text-sm">{matchLegs.length} market pick(s)</span>
             </div>
 
             <div className="flex items-center gap-2">
               <button
                 onClick={onClose}
-                className="h-10 px-4 rounded-md border border-slate-300 bg-white hover:bg-slate-100 text-slate-700 text-xs font-black uppercase tracking-wider transition-all shadow-2xs active:scale-95 touch-manipulation cursor-pointer"
+                className="h-10 px-4 rounded-md border border-slate-300 bg-white hover:bg-slate-100 text-slate-700 text-xs font-bold uppercase tracking-wide transition-all shadow-2xs active:scale-95 touch-manipulation cursor-pointer"
               >
                 Close
               </button>
@@ -270,7 +270,7 @@ export default function QuickBetBuilderModal({
                   onClose();
                   navigate('/slips');
                 }}
-                className="h-10 px-4 rounded-md bg-[#006C54] hover:bg-[#005441] text-white font-black text-xs uppercase tracking-wider flex items-center gap-1.5 shadow-xs transition-all active:scale-95 touch-manipulation cursor-pointer"
+                className="h-10 px-4 rounded-md bg-[#006C54] hover:bg-[#005441] text-white font-bold text-xs uppercase tracking-wide flex items-center gap-1.5 shadow-xs transition-all active:scale-95 touch-manipulation cursor-pointer"
               >
                 View Bet Slip <ArrowRight size={14} />
               </button>

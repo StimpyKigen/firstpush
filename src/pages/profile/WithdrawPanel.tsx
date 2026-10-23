@@ -42,7 +42,7 @@ export default function WithdrawPanel({
           type="number"
           value={withdrawAmount}
           onChange={(e) => setWithdrawAmount(Number(e.target.value))}
-          className="w-full mt-1 bg-ink border border-line rounded-lg px-3 py-2.5 text-sm font-mono text-cream focus:outline-none focus:border-gold"
+          className="w-full mt-1 bg-ink border border-line rounded-lg px-3 py-2.5 text-sm tabular-nums text-cream focus:outline-none focus:border-gold"
         />
       </div>
       <div className="mb-4">
@@ -51,7 +51,7 @@ export default function WithdrawPanel({
           value={withdrawPhone}
           onChange={(e) => setWithdrawPhone(e.target.value)}
           placeholder="07XX XXX XXX"
-          className="w-full mt-1 bg-ink border border-line rounded-lg px-3 py-2.5 text-sm font-mono text-cream placeholder:text-cream-dim/50 focus:outline-none focus:border-gold"
+          className="w-full mt-1 bg-ink border border-line rounded-lg px-3 py-2.5 text-sm tabular-nums text-cream placeholder:text-cream-dim/50 focus:outline-none focus:border-gold"
         />
       </div>
 

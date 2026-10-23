@@ -95,10 +95,10 @@ export default function PunterProfileModal({ username, onClose }: PunterProfileM
 
             <div className="flex items-center gap-4 mt-2 text-xs text-cream-dim">
               <div>
-                <span className="font-mono font-bold text-cream text-sm">{followersCount}</span> Followers
+                <span className="tabular-nums font-bold text-cream text-sm">{followersCount}</span> Followers
               </div>
               <div>
-                <span className="font-mono font-bold text-cream text-sm">{followingCount}</span> Following
+                <span className="tabular-nums font-bold text-cream text-sm">{followingCount}</span> Following
               </div>
             </div>
           </div>
@@ -132,11 +132,11 @@ export default function PunterProfileModal({ username, onClose }: PunterProfileM
         {/* Stats Grid - with icons omitted, keeping clean wordings & figures */}
         <div className="grid grid-cols-2 gap-3 pt-1">
           <div className="bg-panel border border-line rounded-xl p-3.5">
-            <p className="font-display font-extrabold text-cream text-xl leading-tight">{stats.accuracyPct}%</p>
+            <p className="font-display font-bold text-cream text-xl leading-tight">{stats.accuracyPct}%</p>
             <p className="text-xs text-cream-dim font-medium mt-0.5">Pick Accuracy</p>
           </div>
           <div className="bg-panel border border-line rounded-xl p-3.5">
-            <p className="font-display font-extrabold text-cream text-xl leading-tight">{stats.closestWins}</p>
+            <p className="font-display font-bold text-cream text-xl leading-tight">{stats.closestWins}</p>
             <p className="text-xs text-cream-dim font-medium mt-0.5">Closest-Slip Wins</p>
           </div>
         </div>

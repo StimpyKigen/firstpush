@@ -58,7 +58,7 @@ export default function BetDetail() {
 
       <div className="bg-panel border border-line rounded-2xl p-6 sm:p-8 mb-6">
         <div className="flex items-center justify-between gap-3 mb-4">
-          <span className="text-[10px] font-bold uppercase tracking-wide px-2.5 py-1 rounded-full bg-panel-2 text-cream-dim">{bet.category}</span>
+          <span className="text-[11px] font-bold uppercase tracking-wide px-2.5 py-1 rounded-full bg-panel-2 text-cream-dim">{bet.category}</span>
           <span
             className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wide px-2.5 py-1 rounded-full border"
             style={{ color: meta.color, borderColor: `${meta.color}55`, backgroundColor: `${meta.color}18` }}
@@ -67,7 +67,7 @@ export default function BetDetail() {
           </span>
         </div>
 
-        <h1 className="font-display font-extrabold text-2xl sm:text-3xl text-cream leading-tight">{bet.title}</h1>
+        <h1 className="font-display font-bold text-2xl sm:text-3xl text-cream leading-tight">{bet.title}</h1>
         {bet.description && <p className="text-sm text-cream-dim mt-2 leading-relaxed">{bet.description}</p>}
 
         {bet.settleBy && (
@@ -80,7 +80,7 @@ export default function BetDetail() {
           <div className="mt-5 bg-ink-2 border border-gold/30 rounded-xl p-4 flex items-center justify-between gap-3">
             <div>
               <p className="text-[11px] text-cream-dim uppercase tracking-wide font-semibold">Invite Code: share with your opponent</p>
-              <p className="font-mono font-extrabold text-2xl text-gold tracking-[0.15em]">{bet.code}</p>
+              <p className="tabular-nums font-bold text-2xl text-gold tracking-wide">{bet.code}</p>
             </div>
             <button onClick={copyCode} className="bg-panel-2 border border-line rounded-lg p-2.5 hover:border-gold/50 transition-colors shrink-0">
               {copied ? <Check size={18} className="text-emerald-2" /> : <Copy size={18} className="text-cream-dim" />}

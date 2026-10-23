@@ -32,7 +32,7 @@ export default function WalletDropdownPanel({
       {backdropNode}
       <div className={panelClassName}>
         <div className={headerClassName}>
-          <span className="text-xs font-bold text-cream uppercase tracking-wider flex items-center gap-2">
+          <span className="text-xs font-bold text-cream uppercase tracking-wide flex items-center gap-2">
             <span className="w-6 h-6 rounded-full bg-emerald-2/15 flex items-center justify-center text-emerald-2">
               <Wallet size={13} />
             </span>
@@ -50,8 +50,8 @@ export default function WalletDropdownPanel({
         {/* Cash Balance */}
         <div className="bg-ink-2/90 border border-line/70 rounded-2xl p-3.5 flex items-center justify-between gap-3 shadow-sm">
           <div>
-            <span className="text-[10px] text-cream-dim font-bold uppercase tracking-wider">M-Pesa Cash Balance</span>
-            <p className="font-display font-extrabold text-2xl text-emerald-2 tracking-tight">Ksh {balance.toLocaleString()}</p>
+            <span className="text-[11px] text-cream-dim font-bold uppercase tracking-wide">M-Pesa Cash Balance</span>
+            <p className="font-display font-bold text-2xl text-emerald-2 tracking-tight">Ksh {balance.toLocaleString()}</p>
           </div>
           <Link
             to="/wallet"
@@ -65,10 +65,10 @@ export default function WalletDropdownPanel({
         {/* Tokens */}
         <div className="bg-ink-2/90 border border-line/70 rounded-2xl p-3.5 flex items-center justify-between gap-3 shadow-sm">
           <div>
-            <span className="text-[10px] text-gold font-bold uppercase tracking-wider flex items-center gap-1.5">
+            <span className="text-[11px] text-gold font-bold uppercase tracking-wide flex items-center gap-1.5">
               <Coins size={12} /> Mshindi Tokens
             </span>
-            <p className="font-display font-extrabold text-2xl text-gold tracking-tight">{mshindiTokens} <span className="text-xs font-normal text-cream-dim">MT</span></p>
+            <p className="font-display font-bold text-2xl text-gold tracking-tight">{mshindiTokens} <span className="text-xs font-normal text-cream-dim">MT</span></p>
           </div>
           <Link
             to="/wallet"
@@ -88,7 +88,7 @@ export default function WalletDropdownPanel({
           <ArrowUpRight size={14} />
         </Link>
 
-        <p className="text-[10px] text-cream-dim/80 text-center leading-tight">
+        <p className="text-[11px] text-cream-dim/80 text-center leading-tight">
           ⚡ Earn +4 MT cashback on every 100 Ksh top up &amp; referral invite!
         </p>
       </div>

@@ -55,7 +55,7 @@ export default function ModerationWarningBox({ result, text, className = '' }: M
       <div className="flex items-start gap-2 text-rose-300">
         <ShieldAlert size={18} className="text-rose-400 shrink-0 mt-0.5" />
         <div className="flex-1 min-w-0">
-          <p className="font-extrabold text-xs uppercase tracking-wider text-rose-300">
+          <p className="font-bold text-xs uppercase tracking-wide text-rose-300">
             🚫 Post Blocked: Prohibited Terms Detected
           </p>
           <p className="text-xs text-rose-200/90 leading-relaxed mt-0.5">
@@ -74,7 +74,7 @@ export default function ModerationWarningBox({ result, text, className = '' }: M
             {phrases.map((phrase, idx) => (
               <span
                 key={idx}
-                className="inline-flex items-center gap-1 bg-rose-500/30 border border-rose-400 text-rose-100 font-mono font-extrabold text-xs px-2.5 py-1 rounded-md shadow-sm"
+                className="inline-flex items-center gap-1 bg-rose-500/30 border border-rose-400 text-rose-100 tabular-nums font-bold text-xs px-2.5 py-1 rounded-md shadow-sm"
               >
                 "{phrase}"
               </span>
@@ -89,7 +89,7 @@ export default function ModerationWarningBox({ result, text, className = '' }: M
           <p className="text-[11px] font-bold text-rose-300 uppercase tracking-wide mb-1">
             Remove highlighted red word(s) to allow posting:
           </p>
-          <div className="bg-ink/90 border border-rose-500/40 rounded-lg p-2.5 text-xs text-cream/90 font-mono leading-relaxed max-h-28 overflow-y-auto whitespace-pre-wrap break-words">
+          <div className="bg-ink/90 border border-rose-500/40 rounded-lg p-2.5 text-xs text-cream/90 tabular-nums leading-relaxed max-h-28 overflow-y-auto whitespace-pre-wrap break-words">
             {renderHighlightedText(text, phrases)}
           </div>
         </div>

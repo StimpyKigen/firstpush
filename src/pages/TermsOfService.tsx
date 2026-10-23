@@ -27,7 +27,7 @@ export default function TermsOfService() {
             <Scale size={14} />
             <span>Legal Agreement</span>
           </div>
-          <h1 className="text-3xl sm:text-4xl font-display font-black text-cream tracking-tight">
+          <h1 className="text-3xl sm:text-4xl font-display font-bold text-cream tracking-tight">
             Terms of Service
           </h1>
           <p className="mt-2 text-sm text-cream-dim">
@@ -136,7 +136,7 @@ export default function TermsOfService() {
               We reserve the right to modify these Terms of Service at any time. Continued use of the service following modifications constitutes acceptance of the revised terms.
             </p>
             <p>
-              If you have any questions regarding these Terms, please contact us at <a href="mailto:support@mshindiroom.com" className="text-gold hover:underline font-mono">support@mshindiroom.com</a> or read our <Link to="/privacy" className="text-gold hover:underline font-semibold">Privacy Policy</Link>.
+              If you have any questions regarding these Terms, please contact us at <a href="mailto:support@mshindiroom.com" className="text-gold hover:underline tabular-nums">support@mshindiroom.com</a> or read our <Link to="/privacy" className="text-gold hover:underline font-semibold">Privacy Policy</Link>.
             </p>
           </section>
         </div>

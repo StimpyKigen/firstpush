@@ -68,7 +68,7 @@ export function MobileMenuPanel({
           >
             <Swords size={18} className="shrink-0 text-[#006C54]" />
             <span className="truncate">P2P Bets</span>
-            <span className="text-[9px] font-bold bg-[#8A6500]/15 text-[#8A6500] border border-[#8A6500]/30 px-2 py-0.5 rounded-full shrink-0 ml-auto">
+            <span className="text-[11px] font-bold bg-[#8A6500]/15 text-[#8A6500] border border-[#8A6500]/30 px-2 py-0.5 rounded-full shrink-0 ml-auto">
               Soon
             </span>
           </Link>
@@ -103,7 +103,7 @@ export function MobileMenuPanel({
           >
             <Swords size={18} className="shrink-0 text-[#006C54]" />
             <span className="truncate">P2P Bets</span>
-            <span className="text-[9px] font-bold bg-[#8A6500]/15 text-[#8A6500] border border-[#8A6500]/30 px-2 py-0.5 rounded-full shrink-0 ml-auto">
+            <span className="text-[11px] font-bold bg-[#8A6500]/15 text-[#8A6500] border border-[#8A6500]/30 px-2 py-0.5 rounded-full shrink-0 ml-auto">
               Soon
             </span>
           </Link>
@@ -111,18 +111,18 @@ export function MobileMenuPanel({
       )}
 
       <div className="flex items-center justify-between gap-3 mt-2 px-4 py-3 bg-[#F5F5E4] border border-[#E6E6D2] rounded-2xl">
-        <span className="flex items-center gap-2.5 text-sm font-mono text-slate-900 min-w-0">
+        <span className="flex items-center gap-2.5 text-sm tabular-nums text-slate-900 min-w-0">
           <Wallet size={16} className="text-[#006C54] shrink-0" />
           <span className="truncate font-bold">Ksh {balance.toLocaleString()}</span>
         </span>
-        <Link to="/wallet" onClick={onNavigate} className="bg-[#EEAA04] hover:bg-[#d99903] text-slate-950 font-black text-xs px-3.5 py-1.5 rounded-full shrink-0 whitespace-nowrap active:scale-95 shadow-sm">
+        <Link to="/wallet" onClick={onNavigate} className="bg-[#EEAA04] hover:bg-[#d99903] text-slate-950 font-bold text-xs px-3.5 py-1.5 rounded-full shrink-0 whitespace-nowrap active:scale-95 shadow-sm">
           Top Up
         </Link>
       </div>
 
       {/* ── Settings Section ── */}
       <div className="mt-3 pt-3 border-t border-[#E6E6D2]">
-        <p className="flex items-center gap-1.5 px-3 mb-1 text-[10px] font-extrabold uppercase tracking-widest text-slate-400">
+        <p className="flex items-center gap-1.5 px-3 mb-1 text-[11px] font-bold uppercase tracking-wide text-slate-400">
           <Settings size={11} />
           Settings
         </p>
@@ -131,7 +131,7 @@ export function MobileMenuPanel({
         <div className="flex items-center gap-2.5 px-3.5 py-3 rounded-xl text-slate-700 hover:text-slate-900 hover:bg-[#F5F5E4] transition-all cursor-default min-h-[44px]">
           <Bell size={17} className="shrink-0" />
           <span className="text-sm font-semibold">Notifications</span>
-          <span className="ml-auto text-[9px] font-extrabold uppercase tracking-wide bg-[#EEAA04]/20 text-[#8A6500] px-1.5 py-0.5 rounded-full shrink-0">Soon</span>
+          <span className="ml-auto text-[11px] font-bold uppercase tracking-wide bg-[#EEAA04]/20 text-[#8A6500] px-1.5 py-0.5 rounded-full shrink-0">Soon</span>
         </div>
 
         {/* Log Out Button at the very bottom below Notifications */}

@@ -56,12 +56,12 @@ export default function PickCard({ pick, isCurrentUser, editCount, onEdit, onLik
             <div className="flex items-center gap-1.5 flex-wrap">
               <p className="font-semibold text-sm text-cream leading-tight truncate">{pick.username}</p>
               {isCurrentUser && (
-                <span className="text-[10px] font-bold text-[#006C54] shrink-0">
+                <span className="text-[11px] font-bold text-[#006C54] shrink-0">
                   (You)
                 </span>
               )}
               {starRating >= 4.0 && !isCurrentUser && (
-                <span className="inline-flex items-center gap-0.5 text-[10px] font-bold text-[#8A6500] shrink-0">
+                <span className="inline-flex items-center gap-0.5 text-[11px] font-bold text-[#8A6500] shrink-0">
                   <Sparkles size={11} /> Top Punter
                 </span>
               )}
@@ -88,7 +88,7 @@ export default function PickCard({ pick, isCurrentUser, editCount, onEdit, onLik
             <ConvIcon size={12} /> {pick.conviction}
           </span>
           {typeof editCount === 'number' && (
-            <span className="text-[10px] font-mono font-bold text-cream-dim">
+            <span className="text-[11px] tabular-nums font-bold text-cream-dim">
               Edited {editCount}/2
             </span>
           )}

@@ -46,11 +46,11 @@ export default function JackpotAdminModal({ isOpen, onClose }: JackpotAdminModal
           <div>
             <h3 className="font-semibold text-xl text-slate-900 tracking-tight">Admin Access Restricted</h3>
             <p className="text-xs text-slate-600 mt-2 leading-relaxed">
-              The Admin Console is strictly restricted to the registered platform super-administrator (<strong className="text-slate-900 font-mono font-bold">0743304579</strong>).
+              The Admin Console is strictly restricted to the registered platform super-administrator (<strong className="text-slate-900 tabular-nums font-bold">0743304579</strong>).
             </p>
           </div>
 
-          <div className="bg-white border border-slate-200 rounded-2xl p-4 text-left text-xs font-mono space-y-2">
+          <div className="bg-white border border-slate-200 rounded-2xl p-4 text-left text-xs tabular-nums space-y-2">
             <div className="text-slate-500 flex justify-between">
               <span>Required Admin:</span>
               <span className="text-[#006C54] font-bold">0743304579</span>
@@ -125,7 +125,7 @@ export default function JackpotAdminModal({ isOpen, onClose }: JackpotAdminModal
                 <h2 className="font-semibold text-base sm:text-lg text-slate-900 tracking-tight">
                   Mshindi Admin Console
                 </h2>
-                <span className="bg-[#E8F5EE] text-[#006C54] text-[10.5px] uppercase font-bold px-2 py-0.5 rounded-full">
+                <span className="bg-[#E8F5EE] text-[#006C54] text-[11px] uppercase font-bold px-2 py-0.5 rounded-full">
                   Super Admin
                 </span>
               </div>
@@ -239,7 +239,7 @@ export default function JackpotAdminModal({ isOpen, onClose }: JackpotAdminModal
                   placeholder="Enter Super-Admin PIN"
                   value={adminPinInput}
                   onChange={(e) => setAdminPinInput(e.target.value)}
-                  className="w-full bg-white border border-slate-300 rounded-xl px-4 py-3 text-center text-slate-900 font-mono text-base tracking-widest focus:outline-none focus:border-[#006C54] focus:ring-1 focus:ring-[#006C54] transition-all shadow-2xs"
+                  className="w-full bg-white border border-slate-300 rounded-xl px-4 py-3 text-center text-slate-900 tabular-nums text-base tracking-wide focus:outline-none focus:border-[#006C54] focus:ring-1 focus:ring-[#006C54] transition-all shadow-2xs"
                   autoFocus
                 />
                 {pinError && <p className="text-xs text-rose-600 font-medium">{pinError}</p>}
@@ -247,7 +247,7 @@ export default function JackpotAdminModal({ isOpen, onClose }: JackpotAdminModal
                 <button
                   type="submit"
                   disabled={isVerifying}
-                  className="w-full bg-[#006C54] hover:bg-[#005441] text-white font-semibold py-3 rounded-xl transition-all disabled:opacity-50 cursor-pointer shadow-xs active:scale-95 text-xs uppercase tracking-wider"
+                  className="w-full bg-[#006C54] hover:bg-[#005441] text-white font-semibold py-3 rounded-xl transition-all disabled:opacity-50 cursor-pointer shadow-xs active:scale-95 text-xs uppercase tracking-wide"
                 >
                   {isVerifying ? 'Verifying Admin Credentials...' : 'Unlock Admin Console'}
                 </button>

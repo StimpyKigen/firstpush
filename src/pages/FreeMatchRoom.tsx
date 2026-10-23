@@ -135,7 +135,7 @@ export default function FreeMatchRoom() {
             <span>Fan Discussion</span>
             {consensus && (
               <span
-                className={`text-[11px] font-mono px-2 py-0.5 rounded-full font-bold transition-colors ${
+                className={`text-[11px] tabular-nums px-2 py-0.5 rounded-full font-bold transition-colors ${
                   roomTab === 'discussion'
                     ? 'bg-[#E8F5EE] text-[#006C54]'
                     : 'bg-slate-100 text-slate-500'
@@ -151,7 +151,7 @@ export default function FreeMatchRoom() {
       {/* FIRST CARD: Match Title, League, and Kickoff Time (Tier text & Bet Builder button removed) */}
       <div className="bg-[#FFFFF0] border border-[#DCDCC8] rounded-2xl p-6 sm:p-8 mb-6 shadow-xs">
         {/* Header Metadata */}
-        <div className="flex flex-wrap items-center gap-2.5 mb-3 text-xs font-bold uppercase tracking-wider text-slate-500">
+        <div className="flex flex-wrap items-center gap-2.5 mb-3 text-xs font-bold uppercase tracking-wide text-slate-500">
           <span className="text-slate-700 inline-flex items-center gap-1.5 font-bold">
             <Unlock size={13} className="text-[#006C54]" /> Free Match Room
           </span>
@@ -164,7 +164,7 @@ export default function FreeMatchRoom() {
         {/* Team Names and League Name at the bottom of the teams (smaller grey font, no trophy) */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h1 className="font-display font-black text-2xl sm:text-4xl text-slate-900 leading-tight uppercase tracking-tight">
+            <h1 className="font-display font-bold text-2xl sm:text-4xl text-slate-900 leading-tight uppercase tracking-tight">
               {match.home} <span className="text-slate-400 font-normal">v</span> {match.away}
             </h1>
             <div className="mt-1.5">
@@ -178,7 +178,7 @@ export default function FreeMatchRoom() {
           {myPickRecord && (
             <div className="flex items-center gap-2.5 flex-wrap self-start sm:self-auto">
               <div
-                className="inline-flex items-center gap-1.5 text-xs font-black uppercase tracking-wider px-3 py-1.5 rounded-md"
+                className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wide px-3 py-1.5 rounded-md"
                 style={{
                   backgroundColor: `${outcomeColor}18`,
                   color: outcomeColor,
@@ -194,7 +194,7 @@ export default function FreeMatchRoom() {
 
         {/* Footer: Date & Time in DD/MM HH:mm (24h system) and Punters Discussing */}
         <div className="flex flex-wrap gap-x-6 gap-y-2 mt-4 pt-4 border-t border-[#E6E6D2] text-xs font-semibold text-slate-500">
-          <span className="flex items-center gap-1.5 font-mono">
+          <span className="flex items-center gap-1.5 tabular-nums">
             <Clock size={14} className="text-slate-400" />
             {formatKickoffDateTime24h(match.kickoffIso, match.kickoff)}
           </span>
@@ -228,7 +228,7 @@ export default function FreeMatchRoom() {
                 <Users size={20} />
               </div>
               <div>
-                <h3 className="font-display font-black text-slate-900 text-sm sm:text-base uppercase tracking-tight">
+                <h3 className="font-display font-bold text-slate-900 text-sm sm:text-base uppercase tracking-tight">
                   Community Picks &amp; Consensus Split
                 </h3>
                 <p className="text-xs text-slate-500">
@@ -237,8 +237,8 @@ export default function FreeMatchRoom() {
               </div>
             </div>
             <div className="bg-[#F5F5E4] border border-[#E6E6D2] px-4 py-1.5 rounded-xl text-center shrink-0">
-              <span className="text-[10px] uppercase font-black tracking-wider text-slate-400 block">Shared Picks</span>
-              <span className="font-display font-black text-[#006C54] text-base sm:text-lg">
+              <span className="text-[11px] uppercase font-bold tracking-wide text-slate-400 block">Shared Picks</span>
+              <span className="font-display font-bold text-[#006C54] text-base sm:text-lg">
                 {consensus.totalVotes.toLocaleString()}
               </span>
             </div>

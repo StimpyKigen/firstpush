@@ -133,10 +133,10 @@ export default function SlipReelCard({
           {/* Ticket Header Bar */}
           <div className="pb-2 pt-1 px-0.5 flex items-start justify-between gap-3 shrink-0">
             <div className="flex items-center gap-2 pt-0.5">
-              <span className="text-black text-sm sm:text-base font-black font-mono leading-none">
+              <span className="text-black text-sm sm:text-base font-bold tabular-nums leading-none">
                 {slip.totalOdds.toFixed(2)}x
               </span>
-              <span className="text-xs font-bold uppercase tracking-wider text-slate-500 leading-none">
+              <span className="text-xs font-bold uppercase tracking-wide text-slate-500 leading-none">
                 {legs.length} Leg{legs.length !== 1 ? 's' : ''}
               </span>
             </div>
@@ -150,12 +150,12 @@ export default function SlipReelCard({
                     <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
                     <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500 shadow-[0_0_8px_#10b981]" />
                   </span>
-                  <span className="text-xs font-mono font-bold lowercase tracking-wider text-emerald-600 drop-shadow-[0_0_6px_rgba(16,185,129,0.6)]">
+                  <span className="text-xs tabular-nums font-bold lowercase tracking-wide text-emerald-600 drop-shadow-[0_0_6px_rgba(16,185,129,0.6)]">
                     live
                   </span>
                 </div>
               ) : (
-                <div className="flex items-center gap-1.5 text-xs font-mono font-bold text-[#8A6500]">
+                <div className="flex items-center gap-1.5 text-xs tabular-nums font-bold text-[#8A6500]">
                   <Clock size={12} className="text-[#8A6500]" />
                   <span>{countdown.isUnknown ? 'Pending KO' : countdown.label}</span>
                 </div>
@@ -167,7 +167,7 @@ export default function SlipReelCard({
                   {slip.bookieCode && (
                     <button
                       onClick={handleCopyCode}
-                      className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-slate-900 text-white text-[11px] font-mono font-bold shadow-xs active:scale-95 transition-all hover:bg-slate-800 cursor-pointer"
+                      className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-slate-900 text-white text-[11px] tabular-nums font-bold shadow-xs active:scale-95 transition-all hover:bg-slate-800 cursor-pointer"
                     >
                       {copiedCode ? <Check size={11} className="text-emerald-400" /> : <Copy size={11} />}
                       <span>{slip.bookieCode}</span>
@@ -178,7 +178,7 @@ export default function SlipReelCard({
                       href={slip.bookieLink}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-white border border-slate-300 text-slate-800 text-[10px] font-bold hover:bg-slate-50 active:scale-95 transition-all"
+                      className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-white border border-slate-300 text-slate-800 text-[11px] font-bold hover:bg-slate-50 active:scale-95 transition-all"
                     >
                       <ExternalLink size={10} className="text-[#006C54]" />
                       <span>Open</span>
@@ -212,17 +212,17 @@ export default function SlipReelCard({
                     className="p-3 bg-[#FFFFF0] border border-[#E6E6D2] rounded-xl flex items-center justify-between gap-3 shadow-2xs"
                   >
                     <div className="min-w-0 flex-1">
-                      <p className="text-[10px] font-black uppercase tracking-wider text-[#006C54] truncate mb-0.5">
+                      <p className="text-[11px] font-bold uppercase tracking-wide text-[#006C54] truncate mb-0.5">
                         {leg.competition}
                       </p>
-                      <p className="font-display font-black text-xs sm:text-sm text-slate-900 truncate leading-snug">
+                      <p className="font-display font-bold text-xs sm:text-sm text-slate-900 truncate leading-snug">
                         {leg.homeTeam} <span className="text-slate-400 font-normal text-xs">v</span> {leg.awayTeam}
                       </p>
                       <div className="flex items-center gap-1.5 mt-0.5 text-xs">
                         <span className="font-bold text-slate-700">{leg.market}:</span>
-                        <span className="text-[#006C54] font-black">{leg.pick}</span>
+                        <span className="text-[#006C54] font-bold">{leg.pick}</span>
                       </div>
-                      <div className="flex items-center gap-1 text-[10px] text-slate-400 font-mono mt-0.5">
+                      <div className="flex items-center gap-1 text-[11px] text-slate-400 tabular-nums mt-0.5">
                         <Clock size={10} />
                         <span>{leg.kickoff}</span>
                       </div>
@@ -231,10 +231,10 @@ export default function SlipReelCard({
                     {/* Individual Leg Odds Pill */}
                     <div className="shrink-0">
                       <div className="bg-amber-50/80 text-[#8A6500] rounded-xl px-2.5 py-1.5 text-center min-w-[48px]">
-                        <span className="font-mono font-black text-xs sm:text-sm block leading-none">
+                        <span className="tabular-nums font-bold text-xs sm:text-sm block leading-none">
                           {leg.odds.toFixed(2)}
                         </span>
-                        <span className="text-[8px] uppercase text-amber-900/60 font-bold block mt-0.5">odds</span>
+                        <span className="text-[11px] uppercase text-amber-900/60 font-bold block mt-0.5">odds</span>
                       </div>
                     </div>
                   </motion.div>
@@ -256,27 +256,27 @@ export default function SlipReelCard({
                       } bg-[#FFFFF0] border border-[#E6E6D2] rounded-xl flex flex-col justify-between shadow-2xs`}
                     >
                       <div className="min-w-0">
-                        <p className="text-[8.5px] font-black uppercase tracking-wider text-[#006C54] truncate">
+                        <p className="text-[11px] font-bold uppercase tracking-wide text-[#006C54] truncate">
                           {leg.competition}
                         </p>
-                        <p className={`font-display font-black text-slate-900 truncate leading-tight mt-0.5 ${
+                        <p className={`font-display font-bold text-slate-900 truncate leading-tight mt-0.5 ${
                           isSuperCompact ? 'text-[11px]' : 'text-xs'
                         }`}>
-                          {leg.homeTeam} <span className="text-slate-400 font-normal text-[10px]">v</span> {leg.awayTeam}
+                          {leg.homeTeam} <span className="text-slate-400 font-normal text-[11px]">v</span> {leg.awayTeam}
                         </p>
-                        <p className="text-[10px] text-slate-600 truncate mt-0.5">
+                        <p className="text-[11px] text-slate-600 truncate mt-0.5">
                           <span className="font-bold text-slate-700">{leg.market}: </span>
-                          <span className="text-[#006C54] font-black">{leg.pick}</span>
+                          <span className="text-[#006C54] font-bold">{leg.pick}</span>
                         </p>
                       </div>
 
                       <div className="flex items-center justify-between mt-1 pt-1 border-t border-[#E6E6D2]/60">
-                        <div className="flex items-center gap-0.5 text-[9px] text-slate-400 font-mono truncate">
+                        <div className="flex items-center gap-0.5 text-[11px] text-slate-400 tabular-nums truncate">
                           <Clock size={9} className="shrink-0" />
                           <span className="truncate">{leg.kickoff}</span>
                         </div>
                         <div className="bg-amber-50/80 text-[#8A6500] rounded-md px-1.5 py-0.5 text-center shrink-0">
-                          <span className="font-mono font-black text-[11px] block leading-none">
+                          <span className="tabular-nums font-bold text-[11px] block leading-none">
                             {leg.odds.toFixed(2)}
                           </span>
                         </div>
@@ -320,7 +320,7 @@ export default function SlipReelCard({
               }`}
             />
           </div>
-          <span className="text-[11px] font-bold text-slate-800 font-mono leading-none">
+          <span className="text-[11px] font-bold text-slate-800 tabular-nums leading-none">
             {post.likes}
           </span>
         </button>
@@ -334,7 +334,7 @@ export default function SlipReelCard({
           <div className="p-1">
             <MessageCircle size={28} className="text-slate-800 hover:text-slate-900 stroke-[1.8]" />
           </div>
-          <span className="text-[11px] font-bold text-slate-800 font-mono leading-none">
+          <span className="text-[11px] font-bold text-slate-800 tabular-nums leading-none">
             {legs.length * 3 + 4}
           </span>
         </button>
@@ -348,7 +348,7 @@ export default function SlipReelCard({
           <div className="p-1">
             <Send size={26} className="text-slate-800 hover:text-slate-900 stroke-[1.8] -rotate-12" />
           </div>
-          <span className="text-[10px] font-bold text-slate-800 leading-none">
+          <span className="text-[11px] font-bold text-slate-800 leading-none">
             Share
           </span>
         </button>
@@ -367,7 +367,7 @@ export default function SlipReelCard({
               }
             />
           </div>
-          <span className="text-[10px] font-bold text-slate-800 leading-none">
+          <span className="text-[11px] font-bold text-slate-800 leading-none">
             {post.savedByMe ? 'Saved' : 'Save'}
           </span>
         </button>
@@ -408,7 +408,7 @@ export default function SlipReelCard({
           <Avatar name={post.postedBy} seed={post.postedByAvatarSeed} size={36} showBorder={true} />
 
           <div className="flex items-center gap-1.5 min-w-0">
-            <span className="font-display font-black text-sm text-slate-900 truncate">
+            <span className="font-display font-bold text-sm text-slate-900 truncate">
               {post.postedBy}
             </span>
           </div>
@@ -469,7 +469,7 @@ export default function SlipReelCard({
               <div className="p-4 border-b border-slate-100 flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <MessageCircle size={18} className="text-[#006C54]" />
-                  <h3 className="font-display font-black text-sm uppercase tracking-wide text-slate-900">
+                  <h3 className="font-display font-bold text-sm uppercase tracking-wide text-slate-900">
                     Slip Discussion &amp; Analysis
                   </h3>
                 </div>
@@ -492,7 +492,7 @@ export default function SlipReelCard({
                   </p>
                 </div>
 
-                <div className="text-xs text-slate-500 pt-2 pb-1 font-bold uppercase tracking-wider">
+                <div className="text-xs text-slate-500 pt-2 pb-1 font-bold uppercase tracking-wide">
                   Matches in this Slip ({legs.length}):
                 </div>
                 {legs.map((leg) => (
@@ -501,7 +501,7 @@ export default function SlipReelCard({
                       <p className="font-bold text-slate-900">{leg.homeTeam} v {leg.awayTeam}</p>
                       <p className="text-[11px] text-[#006C54]">{leg.market}: {leg.pick}</p>
                     </div>
-                    <span className="font-mono font-bold text-slate-800">@{leg.odds.toFixed(2)}</span>
+                    <span className="tabular-nums font-bold text-slate-800">@{leg.odds.toFixed(2)}</span>
                   </div>
                 ))}
               </div>

@@ -59,10 +59,10 @@ export default function BetBuilder({ onPublished }: BetBuilderProps) {
       <div className="bg-gradient-to-r from-panel via-panel-2 to-panel border border-gold/30 rounded-2xl p-4 sm:p-5 shadow-lg relative overflow-hidden">
         <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <div className="inline-flex items-center gap-1.5 text-[#EEAA04] text-xs font-bold uppercase tracking-wider mb-1">
+            <div className="inline-flex items-center gap-1.5 text-[#EEAA04] text-xs font-bold uppercase tracking-wide mb-1">
               <Dices size={13} /> Custom Bet Builder Engine
             </div>
-            <h2 className="font-display font-black text-xl sm:text-2xl text-cream">
+            <h2 className="font-display font-bold text-xl sm:text-2xl text-cream">
               Build Custom Accumulators
             </h2>
             <p className="text-xs text-cream-dim mt-1 max-w-lg leading-relaxed">
@@ -73,7 +73,7 @@ export default function BetBuilder({ onPublished }: BetBuilderProps) {
           <div className="flex items-center gap-2 shrink-0">
             <span className="text-xs font-bold text-cream-dim bg-ink px-3 py-1.5 rounded-xl border border-line flex items-center gap-1.5">
               <Layers size={13} className="text-[#EEAA04]" />
-              <strong className="text-[#EEAA04] font-mono text-sm">{cartLegs.length}</strong> Legs Selected
+              <strong className="text-[#EEAA04] tabular-nums text-sm">{cartLegs.length}</strong> Legs Selected
             </span>
           </div>
         </div>
@@ -109,7 +109,7 @@ export default function BetBuilder({ onPublished }: BetBuilderProps) {
               onClick={() => setSelectedLeague(league)}
               className={`text-xs font-bold px-3 py-1.5 rounded-full border shrink-0 transition-all ${
                 selectedLeague === league
-                  ? 'bg-gold text-ink border-gold font-extrabold shadow'
+                  ? 'bg-gold text-ink border-gold font-bold shadow'
                   : 'bg-panel border-line text-cream-dim hover:text-cream hover:border-gold/30'
               }`}
             >
@@ -160,15 +160,15 @@ export default function BetBuilder({ onPublished }: BetBuilderProps) {
             >
               <div className="relative flex items-center justify-center">
                 <Dices size={22} className="text-gold transition-transform group-hover:rotate-12" />
-                <span className="absolute -top-3 -right-3 bg-gold text-ink font-black text-[11px] h-5 min-w-[20px] px-1 rounded-full flex items-center justify-center border-2 border-panel shadow-lg animate-pulse">
+                <span className="absolute -top-3 -right-3 bg-gold text-ink font-bold text-[11px] h-5 min-w-[20px] px-1 rounded-full flex items-center justify-center border-2 border-panel shadow-lg animate-pulse">
                   {cartLegs.length}
                 </span>
               </div>
               <div className="text-left leading-tight hidden xs:block">
-                <span className="text-[10px] font-extrabold uppercase tracking-wider text-cream-dim block">
+                <span className="text-[11px] font-bold uppercase tracking-wide text-cream-dim block">
                   Slip ({cartLegs.length})
                 </span>
-                <span className="text-xs font-black text-gold font-mono">
+                <span className="text-xs font-bold text-gold tabular-nums">
                   @{totalOdds.toFixed(2)}x
                 </span>
               </div>
@@ -198,14 +198,14 @@ export default function BetBuilder({ onPublished }: BetBuilderProps) {
                 </button>
 
                 <div className="flex items-center gap-2 ml-1">
-                  <div className="w-6 h-6 rounded-lg bg-gold/20 flex items-center justify-center text-gold font-black text-xs">
+                  <div className="w-6 h-6 rounded-lg bg-gold/20 flex items-center justify-center text-gold font-bold text-xs">
                     {cartLegs.length}
                   </div>
                   <div>
-                    <h4 className="font-display font-extrabold text-xs sm:text-sm text-cream leading-tight">
+                    <h4 className="font-display font-bold text-xs sm:text-sm text-cream leading-tight">
                       {cartLegs.length}-Fold Accumulator
                     </h4>
-                    <p className="text-[10px] text-cream-dim">Custom Bet Builder Slip</p>
+                    <p className="text-[11px] text-cream-dim">Custom Bet Builder Slip</p>
                   </div>
                 </div>
               </div>
@@ -216,7 +216,7 @@ export default function BetBuilder({ onPublished }: BetBuilderProps) {
                     clearBuilderLegs();
                     setIsSlipExpanded(false);
                   }}
-                  className="text-[10px] font-bold text-rose-400 hover:underline px-2 py-1"
+                  className="text-[11px] font-bold text-rose-400 hover:underline px-2 py-1"
                 >
                   Clear All
                 </button>
@@ -234,13 +234,13 @@ export default function BetBuilder({ onPublished }: BetBuilderProps) {
                     <p className="font-bold text-cream truncate text-[11px]">
                       {leg.homeTeam} vs {leg.awayTeam}
                     </p>
-                    <p className="text-[10px] text-gold font-semibold">
+                    <p className="text-[11px] text-gold font-semibold">
                       {leg.pick} <span className="text-cream-dim">({leg.market})</span>
                     </p>
                   </div>
 
                   <div className="flex items-center gap-2 shrink-0">
-                    <span className="font-mono font-bold text-cream text-[11px]">
+                    <span className="tabular-nums font-bold text-cream text-[11px]">
                       {leg.odds.toFixed(2)}
                     </span>
                     <button
@@ -259,7 +259,7 @@ export default function BetBuilder({ onPublished }: BetBuilderProps) {
             <div className="bg-ink-2 rounded-xl p-2.5 border border-line space-y-2 text-xs">
               <div className="flex items-center justify-between">
                 <span className="text-cream-dim">Total Multiplier Odds:</span>
-                <span className="font-mono font-black text-gold text-base">
+                <span className="tabular-nums font-bold text-gold text-base">
                   @{totalOdds.toFixed(2)}x
                 </span>
               </div>
@@ -270,13 +270,13 @@ export default function BetBuilder({ onPublished }: BetBuilderProps) {
                   type="number"
                   value={simulatedStake}
                   onChange={(e) => setSimulatedStake(Math.max(10, +e.target.value))}
-                  className="w-24 bg-ink border border-line rounded-lg px-2 py-1 text-right font-mono font-bold text-cream focus:outline-none focus:border-gold"
+                  className="w-24 bg-ink border border-line rounded-lg px-2 py-1 text-right tabular-nums font-bold text-cream focus:outline-none focus:border-gold"
                 />
               </div>
 
               <div className="flex items-center justify-between pt-1 border-t border-line/60">
                 <span className="text-cream-dim font-bold">Estimated Payout:</span>
-                <span className="font-mono font-black text-emerald-300 text-sm">
+                <span className="tabular-nums font-bold text-emerald-300 text-sm">
                   {estimatedReturn.toLocaleString()} Ksh
                 </span>
               </div>
@@ -285,7 +285,7 @@ export default function BetBuilder({ onPublished }: BetBuilderProps) {
             {/* Publish Action Button */}
             <button
               onClick={() => setShowPublishModal(true)}
-              className="w-full bg-gold hover:bg-gold-2 text-ink font-extrabold text-sm py-2.5 rounded-xl shadow transition-all flex items-center justify-center gap-2 active:scale-[0.98] touch-manipulation"
+              className="w-full bg-gold hover:bg-gold-2 text-ink font-bold text-sm py-2.5 rounded-xl shadow transition-all flex items-center justify-center gap-2 active:scale-[0.98] touch-manipulation"
             >
               <Send size={15} />
               Publish Built Slip to Feed
@@ -303,7 +303,7 @@ export default function BetBuilder({ onPublished }: BetBuilderProps) {
             className="bg-panel border border-line rounded-2xl w-full max-w-lg p-5 space-y-4 shadow-2xl relative"
           >
             <div className="flex items-center justify-between pb-3 border-b border-line">
-              <h3 className="font-display font-extrabold text-lg text-cream flex items-center gap-2">
+              <h3 className="font-display font-bold text-lg text-cream flex items-center gap-2">
                 <Sparkles size={18} className="text-gold" />
                 Publish Built Bet Slip
               </h3>
@@ -319,14 +319,14 @@ export default function BetBuilder({ onPublished }: BetBuilderProps) {
             {/* Slip Summary Header */}
             <div className="bg-ink border border-gold/40 rounded-xl p-3 flex items-center justify-between">
               <div>
-                <span className="text-[10px] font-extrabold uppercase text-gold">Compiled Multi-Leg Bet</span>
+                <span className="text-[11px] font-bold uppercase text-gold">Compiled Multi-Leg Bet</span>
                 <p className="font-bold text-cream text-sm">
                   {cartLegs.length} Matches Combined
                 </p>
               </div>
               <div className="text-right">
-                <span className="font-mono font-black text-gold text-lg">@{totalOdds.toFixed(2)}x</span>
-                <p className="text-[10px] text-cream-dim">Est Return: {estimatedReturn.toLocaleString()} Ksh</p>
+                <span className="tabular-nums font-bold text-gold text-lg">@{totalOdds.toFixed(2)}x</span>
+                <p className="text-[11px] text-cream-dim">Est Return: {estimatedReturn.toLocaleString()} Ksh</p>
               </div>
             </div>
 
@@ -358,7 +358,7 @@ export default function BetBuilder({ onPublished }: BetBuilderProps) {
                     onClick={() => toggleTag(tag)}
                     className={`text-[11px] font-bold px-2.5 py-1 rounded-full border transition-colors ${
                       selectedTags.includes(tag)
-                        ? 'bg-gold border-gold text-ink font-extrabold'
+                        ? 'bg-gold border-gold text-ink font-bold'
                         : 'border-line text-cream-dim hover:border-gold/50'
                     }`}
                   >
@@ -375,7 +375,7 @@ export default function BetBuilder({ onPublished }: BetBuilderProps) {
                   <Link2 size={14} className="text-gold" />
                   Attach Official Bookie Code or Link (Optional)
                 </span>
-                <span className="text-[10px] text-cream-dim">Can add now or later</span>
+                <span className="text-[11px] text-cream-dim">Can add now or later</span>
               </div>
 
               <div>
@@ -388,7 +388,7 @@ export default function BetBuilder({ onPublished }: BetBuilderProps) {
                       onClick={() => setSelectedBookmaker(b)}
                       className={`text-[11px] font-bold py-1 px-1.5 rounded-lg border text-center transition-all ${
                         selectedBookmaker === b
-                          ? 'bg-gold text-ink border-gold font-extrabold'
+                          ? 'bg-gold text-ink border-gold font-bold'
                           : 'bg-panel border-line text-cream-dim hover:text-cream'
                       }`}
                     >
@@ -406,7 +406,7 @@ export default function BetBuilder({ onPublished }: BetBuilderProps) {
                     value={bookieCode}
                     onChange={(e) => setBookieCode(e.target.value)}
                     placeholder="e.g. SP-99120"
-                    className="w-full bg-ink border border-line rounded-xl px-2.5 py-1.5 text-xs text-cream placeholder:text-cream-dim/50 focus:outline-none focus:border-gold font-mono"
+                    className="w-full bg-ink border border-line rounded-xl px-2.5 py-1.5 text-xs text-cream placeholder:text-cream-dim/50 focus:outline-none focus:border-gold tabular-nums"
                   />
                 </div>
 
@@ -478,10 +478,10 @@ function BuilderFixtureItem({
       {/* Match Header Row */}
       <div className="p-3.5 sm:p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div className="min-w-0 flex-1">
-          <div className="flex items-center justify-between gap-2 text-[10px] uppercase font-bold text-cream-dim">
+          <div className="flex items-center justify-between gap-2 text-[11px] uppercase font-bold text-cream-dim">
             <div className="flex items-center gap-1.5 min-w-0 flex-wrap">
               {fixture.status === 'in' && (
-                <span className="bg-rose-500/20 text-rose-400 border border-rose-500/40 text-[9px] font-black px-1.5 py-0.5 rounded-full flex items-center gap-1 animate-pulse">
+                <span className="bg-rose-500/20 text-rose-400 border border-rose-500/40 text-[11px] font-bold px-1.5 py-0.5 rounded-full flex items-center gap-1 animate-pulse">
                   <span className="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
                   LIVE {fixture.homeScore !== null && fixture.awayScore !== null ? `${fixture.homeScore} - ${fixture.awayScore}` : ''}
                 </span>
@@ -491,12 +491,12 @@ function BuilderFixtureItem({
               <span className="shrink-0">{fixture.kickoff}</span>
             </div>
             {legsInThisMatch.length > 0 && (
-              <span className="bg-gold text-ink font-extrabold text-[9px] px-2.5 py-0.5 rounded-full shrink-0 whitespace-nowrap shadow-2xs">
+              <span className="bg-gold text-ink font-bold text-[11px] px-2.5 py-0.5 rounded-full shrink-0 whitespace-nowrap shadow-2xs">
                 {legsInThisMatch.length} Pick{legsInThisMatch.length > 1 ? 's' : ''} Added
               </span>
             )}
           </div>
-          <div className="font-display font-extrabold text-base text-cream mt-0.5 flex items-center gap-2">
+          <div className="font-display font-bold text-base text-cream mt-0.5 flex items-center gap-2">
             <span>{fixture.homeTeam}</span>
             <span className="text-cream-dim text-xs font-normal">vs</span>
             <span>{fixture.awayTeam}</span>
@@ -511,13 +511,13 @@ function BuilderFixtureItem({
               <button
                 key={m.code}
                 onClick={() => toggleLeg(fixture, 'Match Result (1X2)', m.label, m.odds)}
-                className={`flex-1 sm:flex-none font-mono font-bold text-xs px-3 py-2 rounded-xl border transition-all flex flex-col items-center justify-center min-w-[62px] ${
+                className={`flex-1 sm:flex-none tabular-nums font-bold text-xs px-3 py-2 rounded-xl border transition-all flex flex-col items-center justify-center min-w-[62px] ${
                   selected
-                    ? 'bg-gold text-ink border-gold shadow font-black scale-105'
+                    ? 'bg-gold text-ink border-gold shadow font-bold scale-105'
                     : 'bg-ink border-line text-cream hover:border-gold/50'
                 }`}
               >
-                <span className="text-[10px] text-cream-dim uppercase">{m.code}</span>
+                <span className="text-[11px] text-cream-dim uppercase">{m.code}</span>
                 <span className={selected ? 'text-ink' : 'text-gold'}>{m.odds.toFixed(2)}</span>
               </button>
             );
@@ -548,7 +548,7 @@ function BuilderFixtureItem({
           >
             {/* Double Chance */}
             <div>
-              <span className="text-[10px] font-extrabold uppercase text-cream-dim tracking-wider block mb-1.5">
+              <span className="text-[11px] font-bold uppercase text-cream-dim tracking-wide block mb-1.5">
                 Double Chance
               </span>
               <div className="grid grid-cols-3 gap-1.5">
@@ -562,8 +562,8 @@ function BuilderFixtureItem({
                         selected ? 'bg-gold text-ink border-gold font-bold shadow' : 'bg-panel border-line text-cream hover:border-gold/40'
                       }`}
                     >
-                      <span className="text-[10px] truncate">{dc.label}</span>
-                      <span className={`font-mono text-xs font-extrabold ${selected ? 'text-ink' : 'text-gold'}`}>
+                      <span className="text-[11px] truncate">{dc.label}</span>
+                      <span className={`tabular-nums text-xs font-bold ${selected ? 'text-ink' : 'text-gold'}`}>
                         {dc.odds.toFixed(2)}
                       </span>
                     </button>
@@ -574,7 +574,7 @@ function BuilderFixtureItem({
 
             {/* Over / Under Goals */}
             <div>
-              <span className="text-[10px] font-extrabold uppercase text-cream-dim tracking-wider block mb-1.5">
+              <span className="text-[11px] font-bold uppercase text-cream-dim tracking-wide block mb-1.5">
                 Over / Under Total Goals
               </span>
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5">
@@ -589,7 +589,7 @@ function BuilderFixtureItem({
                       }`}
                     >
                       <span className="text-xs">{ou.label}</span>
-                      <span className={`font-mono text-xs font-extrabold ${selected ? 'text-ink' : 'text-gold'}`}>
+                      <span className={`tabular-nums text-xs font-bold ${selected ? 'text-ink' : 'text-gold'}`}>
                         {ou.odds.toFixed(2)}
                       </span>
                     </button>
@@ -600,7 +600,7 @@ function BuilderFixtureItem({
 
             {/* BTTS / GG/NG */}
             <div>
-              <span className="text-[10px] font-extrabold uppercase text-cream-dim tracking-wider block mb-1.5">
+              <span className="text-[11px] font-bold uppercase text-cream-dim tracking-wide block mb-1.5">
                 Both Teams To Score (BTTS)
               </span>
               <div className="grid grid-cols-2 gap-1.5">
@@ -615,7 +615,7 @@ function BuilderFixtureItem({
                       }`}
                     >
                       <span className="text-xs font-bold">{b.label}</span>
-                      <span className={`font-mono text-xs font-extrabold ${selected ? 'text-ink' : 'text-gold'}`}>
+                      <span className={`tabular-nums text-xs font-bold ${selected ? 'text-ink' : 'text-gold'}`}>
                         {b.odds.toFixed(2)}
                       </span>
                     </button>
@@ -627,7 +627,7 @@ function BuilderFixtureItem({
             {/* Handicap & Correct Score quick options */}
             <div className="grid sm:grid-cols-2 gap-3">
               <div>
-                <span className="text-[10px] font-extrabold uppercase text-cream-dim tracking-wider block mb-1.5">
+                <span className="text-[11px] font-bold uppercase text-cream-dim tracking-wide block mb-1.5">
                   Handicap Lines
                 </span>
                 <div className="grid grid-cols-2 gap-1.5">
@@ -641,8 +641,8 @@ function BuilderFixtureItem({
                           selected ? 'bg-gold text-ink border-gold font-bold shadow' : 'bg-panel border-line text-cream hover:border-gold/40'
                         }`}
                       >
-                        <span className="text-[10px] truncate">{h.label}</span>
-                        <span className={`font-mono text-xs font-bold ${selected ? 'text-ink' : 'text-gold'}`}>{h.odds.toFixed(2)}</span>
+                        <span className="text-[11px] truncate">{h.label}</span>
+                        <span className={`tabular-nums text-xs font-bold ${selected ? 'text-ink' : 'text-gold'}`}>{h.odds.toFixed(2)}</span>
                       </button>
                     );
                   })}
@@ -650,7 +650,7 @@ function BuilderFixtureItem({
               </div>
 
               <div>
-                <span className="text-[10px] font-extrabold uppercase text-cream-dim tracking-wider block mb-1.5">
+                <span className="text-[11px] font-bold uppercase text-cream-dim tracking-wide block mb-1.5">
                   Correct Score
                 </span>
                 <div className="grid grid-cols-3 gap-1.5">
@@ -664,8 +664,8 @@ function BuilderFixtureItem({
                           selected ? 'bg-gold text-ink border-gold font-bold shadow' : 'bg-panel border-line text-cream hover:border-gold/40'
                         }`}
                       >
-                        <span className="text-[11px] font-mono font-bold">{cs.label}</span>
-                        <span className={`font-mono text-[10px] ${selected ? 'text-ink' : 'text-gold'}`}>{cs.odds.toFixed(2)}</span>
+                        <span className="text-[11px] tabular-nums font-bold">{cs.label}</span>
+                        <span className={`tabular-nums text-[11px] ${selected ? 'text-ink' : 'text-gold'}`}>{cs.odds.toFixed(2)}</span>
                       </button>
                     );
                   })}
@@ -674,7 +674,7 @@ function BuilderFixtureItem({
             </div>
 
             {/* Bottom bar: Done button & auto-collapse hint */}
-            <div className="flex items-center justify-between pt-2 border-t border-line/40 text-[10px] text-cream-dim font-mono">
+            <div className="flex items-center justify-between pt-2 border-t border-line/40 text-[11px] text-cream-dim tabular-nums">
               <span className="text-cream-dim/60">Auto-collapses when picking outside</span>
               <button
                 type="button"

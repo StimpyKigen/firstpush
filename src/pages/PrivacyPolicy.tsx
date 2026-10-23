@@ -27,7 +27,7 @@ export default function PrivacyPolicy() {
             <Shield size={14} />
             <span>Legal & Privacy</span>
           </div>
-          <h1 className="text-3xl sm:text-4xl font-display font-black text-cream tracking-tight">
+          <h1 className="text-3xl sm:text-4xl font-display font-bold text-cream tracking-tight">
             Privacy Policy
           </h1>
           <p className="mt-2 text-sm text-cream-dim">
@@ -129,7 +129,7 @@ export default function PrivacyPolicy() {
               In compliance with applicable data protection legislation (including the Kenya Data Protection Act, 2019), you have full rights to access, correct, export, or permanently erase your personal account data.
             </p>
             <p>
-              To request account or data removal, please contact our support team through the automated support assistant (Ava) in the app or email us at <a href="mailto:support@mshindiroom.com" className="text-gold hover:underline font-mono">support@mshindiroom.com</a>.
+              To request account or data removal, please contact our support team through the automated support assistant (Ava) in the app or email us at <a href="mailto:support@mshindiroom.com" className="text-gold hover:underline tabular-nums">support@mshindiroom.com</a>.
             </p>
           </section>
 
@@ -140,7 +140,7 @@ export default function PrivacyPolicy() {
               <h2>7. Contact Us</h2>
             </div>
             <p>
-              If you have any questions or suggestions regarding our Privacy Policy, do not hesitate to contact us at <a href="mailto:support@mshindiroom.com" className="text-gold hover:underline font-mono">support@mshindiroom.com</a> or view our <Link to="/terms" className="text-gold hover:underline font-semibold">Terms of Service</Link>.
+              If you have any questions or suggestions regarding our Privacy Policy, do not hesitate to contact us at <a href="mailto:support@mshindiroom.com" className="text-gold hover:underline tabular-nums">support@mshindiroom.com</a> or view our <Link to="/terms" className="text-gold hover:underline font-semibold">Terms of Service</Link>.
             </p>
           </section>
         </div>

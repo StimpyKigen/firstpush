@@ -67,7 +67,7 @@ export default function RewardedAdPlayer({ adMedia, onComplete, onSkipped }: Rew
         <div className="flex items-center justify-between px-5 py-3 bg-panel/80 border-b border-line text-xs">
           <div className="flex items-center gap-2">
             <span className="w-2.5 h-2.5 rounded-full bg-emerald-2 animate-ping" />
-            <span className="font-extrabold text-cream uppercase tracking-wider text-[11px]">
+            <span className="font-bold text-cream uppercase tracking-wide text-[11px]">
               Sponsored Ad · {adMedia.sponsorName}
             </span>
           </div>
@@ -104,7 +104,7 @@ export default function RewardedAdPlayer({ adMedia, onComplete, onSkipped }: Rew
             <div className="w-full h-full bg-gradient-to-br from-emerald-900/40 via-ink to-amber-900/30 flex items-center justify-center p-8 text-center">
               <div className="space-y-2">
                 <span className="text-4xl">⚽</span>
-                <h2 className="font-display font-extrabold text-2xl text-cream">{adMedia.title}</h2>
+                <h2 className="font-display font-bold text-2xl text-cream">{adMedia.title}</h2>
               </div>
             </div>
           )}
@@ -113,19 +113,19 @@ export default function RewardedAdPlayer({ adMedia, onComplete, onSkipped }: Rew
           <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent flex flex-col justify-between p-6">
             {/* Top Badge Overlay */}
             <div className="flex items-center justify-between">
-              <span className="bg-gold text-ink font-extrabold text-[10px] uppercase tracking-widest px-3 py-1 rounded-full shadow">
+              <span className="bg-gold text-ink font-bold text-[11px] uppercase tracking-wide px-3 py-1 rounded-full shadow">
                 {adMedia.provider.replace('_', ' ')}
               </span>
 
               {/* Timer Pill */}
-              <div className="bg-black/70 border border-gold/40 backdrop-blur-md px-3.5 py-1.5 rounded-full flex items-center gap-2 text-xs font-mono font-bold text-cream">
+              <div className="bg-black/70 border border-gold/40 backdrop-blur-md px-3.5 py-1.5 rounded-full flex items-center gap-2 text-xs tabular-nums font-bold text-cream">
                 {isFinished ? (
                   <span className="text-emerald-400 flex items-center gap-1">
                     <CheckCircle2 size={14} /> Completed!
                   </span>
                 ) : (
                   <>
-                    <span className="text-gold font-extrabold text-sm">{secondsRemaining}s</span>
+                    <span className="text-gold font-bold text-sm">{secondsRemaining}s</span>
                     <span className="text-cream-dim text-[11px]">Remaining</span>
                   </>
                 )}
@@ -135,10 +135,10 @@ export default function RewardedAdPlayer({ adMedia, onComplete, onSkipped }: Rew
             {/* Bottom Info Overlay */}
             <div className="space-y-3">
               <div>
-                <span className="text-[11px] font-bold text-gold uppercase tracking-wider">
+                <span className="text-[11px] font-bold text-gold uppercase tracking-wide">
                   {adMedia.sponsorName}
                 </span>
-                <h3 className="font-display font-extrabold text-xl sm:text-2xl text-white drop-shadow-md mt-0.5">
+                <h3 className="font-display font-bold text-xl sm:text-2xl text-white drop-shadow-md mt-0.5">
                   {adMedia.title}
                 </h3>
                 <p className="text-xs text-cream-dim/90 max-w-lg mt-1 line-clamp-2">
@@ -153,7 +153,7 @@ export default function RewardedAdPlayer({ adMedia, onComplete, onSkipped }: Rew
                     href={adMedia.ctaLink}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1.5 bg-gold hover:bg-gold-2 text-ink font-extrabold text-xs px-4 py-2 rounded-xl shadow transition-all"
+                    className="inline-flex items-center gap-1.5 bg-gold hover:bg-gold-2 text-ink font-bold text-xs px-4 py-2 rounded-xl shadow transition-all"
                   >
                     <span>{adMedia.ctaText}</span>
                     <ExternalLink size={13} />
@@ -188,7 +188,7 @@ export default function RewardedAdPlayer({ adMedia, onComplete, onSkipped }: Rew
           {isFinished && (
             <button
               onClick={() => onComplete(adMedia, totalSeconds)}
-              className="bg-emerald-2 hover:bg-emerald text-ink font-extrabold text-xs px-4 py-2 rounded-xl shadow transition-all animate-bounce"
+              className="bg-emerald-2 hover:bg-emerald text-ink font-bold text-xs px-4 py-2 rounded-xl shadow transition-all animate-bounce"
             >
               Enter Room Now →
             </button>
@@ -204,7 +204,7 @@ export default function RewardedAdPlayer({ adMedia, onComplete, onSkipped }: Rew
               </div>
 
               <div>
-                <h4 className="font-display font-extrabold text-base text-cream">Skip Advertisement?</h4>
+                <h4 className="font-display font-bold text-base text-cream">Skip Advertisement?</h4>
                 <p className="text-xs text-cream-dim mt-1.5 leading-relaxed">
                   If you close this ad now, your <strong className="text-gold">15-minute room access pass</strong> will not be generated.
                 </p>
@@ -213,7 +213,7 @@ export default function RewardedAdPlayer({ adMedia, onComplete, onSkipped }: Rew
               <div className="flex flex-col gap-2 pt-2">
                 <button
                   onClick={handleResumeAd}
-                  className="w-full py-2.5 rounded-xl bg-gold hover:bg-gold-2 text-ink font-extrabold text-xs transition-colors"
+                  className="w-full py-2.5 rounded-xl bg-gold hover:bg-gold-2 text-ink font-bold text-xs transition-colors"
                 >
                   Resume Ad ({secondsRemaining}s left)
                 </button>

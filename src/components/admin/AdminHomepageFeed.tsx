@@ -174,7 +174,7 @@ export default function AdminHomepageFeed() {
         {/* Carousel Creation Form */}
         <form onSubmit={handlePublishPhoto} className="mt-6 space-y-4">
           <div>
-            <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-2">
+            <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wide mb-2">
               Photo Source
             </label>
             <div className="grid grid-cols-1 sm:grid-cols-12 gap-3">
@@ -211,7 +211,7 @@ export default function AdminHomepageFeed() {
           {/* Caption with '+' button */}
           <div>
             <div className="flex items-center justify-between mb-2">
-              <label className="text-xs font-semibold text-slate-700 uppercase tracking-wider">
+              <label className="text-xs font-semibold text-slate-700 uppercase tracking-wide">
                 Photo Caption
               </label>
               {!showCaptionInput && (
@@ -235,7 +235,7 @@ export default function AdminHomepageFeed() {
                   maxLength={160}
                   className="w-full bg-[#FFFFF0] border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#006C54] focus:ring-1 focus:ring-[#006C54] transition-all resize-none"
                 />
-                <div className="flex justify-between items-center text-[10.5px] text-slate-400 mt-1">
+                <div className="flex justify-between items-center text-[11px] text-slate-400 mt-1">
                   <span>Captions appear over an Apple-style bottom gradient scrim for crystal-clear readability.</span>
                   <span>{photoCaption.length} / 160</span>
                 </div>
@@ -321,7 +321,7 @@ export default function AdminHomepageFeed() {
 
         {/* Existing Carousel Items Table / List */}
         <div className="mt-8 pt-6 border-t border-slate-100">
-          <h4 className="text-xs font-semibold text-slate-800 uppercase tracking-wider mb-4">
+          <h4 className="text-xs font-semibold text-slate-800 uppercase tracking-wide mb-4">
             Active Editorial Feed ({feed.carouselItems.length}) · Full Uncropped Cards
           </h4>
 
@@ -359,7 +359,7 @@ export default function AdminHomepageFeed() {
                   </div>
 
                   <div className="p-3 flex items-center justify-between gap-1 border-t border-slate-100 text-xs">
-                    <span className="text-[10px] font-semibold">
+                    <span className="text-[11px] font-semibold">
                       {item.published ? (
                         <span className="text-[#006C54] font-bold">Published</span>
                       ) : (
@@ -371,7 +371,7 @@ export default function AdminHomepageFeed() {
                       <button
                         type="button"
                         onClick={() => toggleCarouselItemPublish(item.id)}
-                        className="px-2 py-0.5 rounded-lg text-[10px] font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 transition-colors cursor-pointer flex items-center gap-1"
+                        className="px-2 py-0.5 rounded-lg text-[11px] font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 transition-colors cursor-pointer flex items-center gap-1"
                         title={item.published ? 'Omit from homepage' : 'Publish to homepage'}
                       >
                         {item.published ? (
@@ -427,7 +427,7 @@ export default function AdminHomepageFeed() {
         {/* Video Creation Form */}
         <form onSubmit={handlePublishVideo} className="mt-6 space-y-4">
           <div>
-            <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-2">
+            <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wide mb-2">
               YouTube Embed or Watch URL
             </label>
             <div className="relative">
@@ -442,7 +442,7 @@ export default function AdminHomepageFeed() {
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-2">
+            <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wide mb-2">
               Video Title / Headline
             </label>
             <input
@@ -519,7 +519,7 @@ export default function AdminHomepageFeed() {
 
           <form onSubmit={handlePublishCustomEmbed} className="space-y-4">
             <div>
-              <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-2">
+              <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wide mb-2">
                 Other Embed URL or Iframe Code
               </label>
               <div className="relative">
@@ -528,13 +528,13 @@ export default function AdminHomepageFeed() {
                   placeholder="Paste embed link or <iframe> code (e.g. https://player.vimeo.com/video/... or <iframe src='...'>)"
                   value={customEmbedUrl}
                   onChange={(e) => setCustomEmbedUrl(e.target.value)}
-                  className="w-full bg-[#FFFFF0] border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#006C54] focus:ring-1 focus:ring-[#006C54] transition-all font-mono"
+                  className="w-full bg-[#FFFFF0] border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#006C54] focus:ring-1 focus:ring-[#006C54] transition-all tabular-nums"
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-2">
+              <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wide mb-2">
                 Embed Caption / Headline
               </label>
               <input
@@ -600,7 +600,7 @@ export default function AdminHomepageFeed() {
 
         {/* Existing Videos & Highlights List */}
         <div className="mt-8 pt-6 border-t border-slate-100">
-          <h4 className="text-xs font-semibold text-slate-800 uppercase tracking-wider mb-4">
+          <h4 className="text-xs font-semibold text-slate-800 uppercase tracking-wide mb-4">
             Published Highlights &amp; Embeds ({feed.videoItems.length})
           </h4>
 
@@ -627,7 +627,7 @@ export default function AdminHomepageFeed() {
                         allowFullScreen
                         className="w-full h-full border-0"
                       />
-                      <div className="absolute top-2 left-2 bg-black/75 backdrop-blur-xs text-white text-[10px] font-medium px-2 py-0.5 rounded-md">
+                      <div className="absolute top-2 left-2 bg-black/75 backdrop-blur-xs text-white text-[11px] font-medium px-2 py-0.5 rounded-md">
                         {isCustom ? 'Custom Embed' : 'YouTube'}
                       </div>
                     </div>

@@ -37,7 +37,7 @@ export function useSmartBack(fallbackUrl = '/') {
 export default function BackNavButton({
   fallbackUrl = '/',
   label = 'Back',
-  className = 'inline-flex items-center gap-2 text-xs sm:text-sm font-bold uppercase tracking-wider text-slate-500 hover:text-[#006C54] active:scale-95 transition-all cursor-pointer'
+  className = 'inline-flex items-center gap-2 text-xs sm:text-sm font-bold uppercase tracking-wide text-slate-500 hover:text-[#006C54] active:scale-95 transition-all cursor-pointer'
 }: BackNavButtonProps) {
   const goBack = useSmartBack(fallbackUrl);
 

@@ -81,7 +81,7 @@ export default function MobileBottomNav({ pathname, builderLegsCount, currentUse
                   />
                   {!!tab.badge && tab.badge > 0 && (
                     <span
-                      className={`absolute -top-1.5 -right-2.5 font-black text-[9px] h-3.5 min-w-[15px] px-1 rounded-full flex items-center justify-center shadow-xs border border-[#FFFFF0] ${
+                      className={`absolute -top-1.5 -right-2.5 font-bold text-[11px] h-3.5 min-w-[15px] px-1 rounded-full flex items-center justify-center shadow-xs border border-[#FFFFF0] ${
                         tab.isActive ? 'bg-[#EEAA04] text-[#0a1317]' : 'bg-[#006C54] text-[#EEAA04]'
                       }`}
                     >
@@ -90,7 +90,7 @@ export default function MobileBottomNav({ pathname, builderLegsCount, currentUse
                   )}
                 </span>
                 <span
-                  className={`text-[10px] leading-tight tracking-tight mt-0.5 truncate max-w-full px-0.5 transition-colors duration-200 ${
+                  className={`text-[11px] leading-tight tracking-tight mt-0.5 truncate max-w-full px-0.5 transition-colors duration-200 ${
                     tab.isActive
                       ? 'font-bold text-[#006C54]'
                       : 'font-medium text-[#5d6c7b] group-hover:text-[#0a1317]'

@@ -164,18 +164,18 @@ export default function Room() {
               />
             </div>
             <div>
-              <p className="text-xs text-slate-500 font-bold uppercase tracking-wider">{jackpot.bookie} · {jackpot.gameweek}</p>
-              <h1 className="font-display font-black text-2xl sm:text-4xl text-slate-900 uppercase tracking-tight">{jackpot.name}</h1>
+              <p className="text-xs text-slate-500 font-bold uppercase tracking-wide">{jackpot.bookie} · {jackpot.gameweek}</p>
+              <h1 className="font-display font-bold text-2xl sm:text-4xl text-slate-900 uppercase tracking-tight">{jackpot.name}</h1>
             </div>
           </div>
           <div className="flex flex-col items-start sm:items-end">
-            <p className="text-[11px] text-slate-400 uppercase tracking-wider font-black">Bookie Jackpot</p>
-            <p className="font-display font-black text-[#8A6500] text-3xl">{jackpot.prizePool}</p>
+            <p className="text-[11px] text-slate-400 uppercase tracking-wide font-bold">Bookie Jackpot</p>
+            <p className="font-display font-bold text-[#8A6500] text-3xl">{jackpot.prizePool}</p>
           </div>
         </div>
 
         {jackpot.syncedAt && (
-          <span className="inline-flex w-fit items-center gap-1.5 text-xs font-bold text-slate-600 uppercase tracking-wider mt-4">
+          <span className="inline-flex w-fit items-center gap-1.5 text-xs font-bold text-slate-600 uppercase tracking-wide mt-4">
             <RadioTower size={13} className="text-[#006C54] shrink-0" /> Live synced from {jackpot.bookie}
           </span>
         )}
@@ -202,10 +202,10 @@ export default function Room() {
                 <ListChecks size={18} />
               </div>
               <div>
-                <h2 className="font-display font-black text-base sm:text-lg text-slate-900 uppercase tracking-tight flex items-center gap-2">
+                <h2 className="font-display font-bold text-base sm:text-lg text-slate-900 uppercase tracking-tight flex items-center gap-2">
                   Room Betting Slip Progress
                   {pickedCount === totalMatches && (
-                    <span className="inline-flex items-center gap-1 text-xs font-black text-[#006C54] uppercase tracking-wide">
+                    <span className="inline-flex items-center gap-1 text-xs font-bold text-[#006C54] uppercase tracking-wide">
                       <Sparkles size={13} /> 100% Complete!
                     </span>
                   )}
@@ -217,7 +217,7 @@ export default function Room() {
             </div>
 
             <div className="flex items-center gap-2 self-start sm:self-auto">
-              <span className="font-mono text-xs font-black text-slate-800 tracking-wide">
+              <span className="tabular-nums text-xs font-bold text-slate-800 tracking-wide">
                 {pickedCount} / {totalMatches} Legs
               </span>
             </div>
@@ -433,7 +433,7 @@ function RoomMatchCard({
         }`}
       >
         <div className="flex items-center gap-3 min-w-0">
-          <span className={`font-mono text-xs font-bold rounded-md px-2 py-1 shrink-0 ${
+          <span className={`tabular-nums text-xs font-bold rounded-md px-2 py-1 shrink-0 ${
             myPickRecord ? 'bg-gold text-ink' : 'text-cream-dim bg-ink-2'
           }`}>
             #{idx + 1}
@@ -446,7 +446,7 @@ function RoomMatchCard({
               {match.awayLogo && <img src={match.awayLogo} alt="" loading="lazy" decoding="async" referrerPolicy="no-referrer" className="w-4 h-4 object-contain inline shrink-0" />}
               <span>{match.away}</span>
               {match.homeScore !== undefined && match.homeScore !== null && match.awayScore !== undefined && match.awayScore !== null && (
-                <span className="ml-1 px-2 py-0.5 rounded bg-emerald-2/20 text-emerald-2 text-xs font-mono font-bold">
+                <span className="ml-1 px-2 py-0.5 rounded bg-emerald-2/20 text-emerald-2 text-xs tabular-nums font-bold">
                   {match.homeScore} - {match.awayScore}
                 </span>
               )}
@@ -454,7 +454,7 @@ function RoomMatchCard({
             <p className="text-xs text-cream-dim flex items-center gap-2 mt-0.5">
               <span>{match.competition} · {match.kickoff}</span>
               {match.status === 'in' && (
-                <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-2 bg-emerald-2/10 px-1.5 py-0.5 rounded animate-pulse">
+                <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-2 bg-emerald-2/10 px-1.5 py-0.5 rounded animate-pulse">
                   LIVE {match.displayClock}
                 </span>
               )}
@@ -466,7 +466,7 @@ function RoomMatchCard({
           {/* Highlighted Pick Badge */}
           {myPickRecord ? (
             <span
-              className="inline-flex items-center gap-1.5 text-xs font-extrabold px-3 py-1 rounded-xl shadow-sm animate-rise"
+              className="inline-flex items-center gap-1.5 text-xs font-bold px-3 py-1 rounded-xl shadow-sm animate-rise"
               style={{
                 backgroundColor: `${outcomeColor}22`,
                 color: outcomeColor,

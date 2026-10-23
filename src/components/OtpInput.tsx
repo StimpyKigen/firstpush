@@ -48,7 +48,7 @@ export default function OtpInput({ value, onChange }: { value: string; onChange:
           onPaste={handlePaste}
           inputMode="numeric"
           maxLength={1}
-          className="w-10 h-12 sm:w-12 sm:h-14 text-center text-lg sm:text-xl font-mono font-bold bg-ink border-2 border-line rounded-xl text-cream focus:outline-none focus:border-gold transition-colors"
+          className="w-10 h-12 sm:w-12 sm:h-14 text-center text-lg sm:text-xl tabular-nums font-bold bg-ink border-2 border-line rounded-xl text-cream focus:outline-none focus:border-gold transition-colors"
         />
       ))}
     </div>

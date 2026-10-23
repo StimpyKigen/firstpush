@@ -64,7 +64,7 @@ export default function MiniBrowserModal({
           {/* Minimal URL Address Bar */}
           <div className="flex-1 flex items-center gap-1.5 bg-ink border border-line/80 rounded-lg px-2.5 py-1 text-xs min-w-0">
             <Lock size={11} className="text-emerald-2 shrink-0" />
-            <span className="flex-1 text-cream-dim truncate font-mono text-[11px] select-all">
+            <span className="flex-1 text-cream-dim truncate tabular-nums text-[11px] select-all">
               {url}
             </span>
             <button

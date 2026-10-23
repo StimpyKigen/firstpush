@@ -111,10 +111,10 @@ export default function HowItWorks() {
 
       {/* Header */}
       <div className="text-center mb-14">
-        <span className="inline-flex items-center gap-1.5 bg-[#006C54] text-[#EEAA04] border border-[#005441] text-xs font-bold uppercase tracking-wider px-3.5 py-1.5 rounded-full mb-4 shadow-xs">
+        <span className="inline-flex items-center gap-1.5 bg-[#006C54] text-[#EEAA04] border border-[#005441] text-xs font-bold uppercase tracking-wide px-3.5 py-1.5 rounded-full mb-4 shadow-xs">
           <Sparkles size={13} className="text-[#EEAA04]" /> Platform Guide &amp; Mechanics
         </span>
-        <h1 className="font-display font-black text-3xl sm:text-5xl text-slate-900 uppercase tracking-tight">From Gut Feeling to Group Consensus.</h1>
+        <h1 className="font-display font-bold text-3xl sm:text-5xl text-slate-900 uppercase tracking-tight">From Gut Feeling to Group Consensus.</h1>
         <p className="text-slate-600 mt-3 max-w-2xl mx-auto text-sm sm:text-base leading-relaxed">
           Whether you&apos;re building a daily custom accumulator or analyzing 17-leg jackpots, MshindiRoom pools community insights and offers smart tools to help you bet wiser.
         </p>
@@ -128,7 +128,7 @@ export default function HowItWorks() {
               <s.icon size={22} />
             </div>
             <div>
-              <h3 className="font-display font-black text-lg text-slate-900 mb-1 uppercase">{s.title}</h3>
+              <h3 className="font-display font-bold text-lg text-slate-900 mb-1 uppercase">{s.title}</h3>
               <p className="text-sm text-slate-600 leading-relaxed">{s.body}</p>
             </div>
           </div>
@@ -139,15 +139,15 @@ export default function HowItWorks() {
       <div className="bg-white border border-slate-200 rounded-2xl p-6 sm:p-8 mb-12 shadow-xs">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 pb-6 border-b border-slate-100">
           <div>
-            <span className="inline-flex items-center gap-1.5 bg-[#006C54] text-[#EEAA04] border border-[#005441] text-xs font-black uppercase tracking-wider px-3 py-1 rounded-full mb-2 shadow-xs">
+            <span className="inline-flex items-center gap-1.5 bg-[#006C54] text-[#EEAA04] border border-[#005441] text-xs font-bold uppercase tracking-wide px-3 py-1 rounded-full mb-2 shadow-xs">
               <Dices size={13} className="text-[#EEAA04]" /> 100% Free Tool
             </span>
-            <h2 className="font-display font-black text-2xl sm:text-3xl text-slate-900 uppercase tracking-tight">Custom Bet Builder</h2>
+            <h2 className="font-display font-bold text-2xl sm:text-3xl text-slate-900 uppercase tracking-tight">Custom Bet Builder</h2>
             <p className="text-sm text-slate-600 mt-1">Build, calculate, export, and share custom multi-leg sports accumulators instantly.</p>
           </div>
           <Link
             to="/free"
-            className="inline-flex items-center justify-center gap-2 bg-[#006C54] hover:bg-[#005441] text-white font-bold uppercase tracking-wider text-xs sm:text-sm px-6 py-3 rounded-full transition-colors shrink-0 shadow-xs"
+            className="inline-flex items-center justify-center gap-2 bg-[#006C54] hover:bg-[#005441] text-white font-bold uppercase tracking-wide text-xs sm:text-sm px-6 py-3 rounded-full transition-colors shrink-0 shadow-xs"
           >
             <Dices size={16} /> Try Bet Builder
           </Link>
@@ -175,7 +175,7 @@ export default function HowItWorks() {
             <Target size={26} className="text-amber-500" />
           </div>
           <div className="flex-1">
-            <h2 className="font-display font-black text-xl sm:text-2xl text-slate-900 uppercase tracking-tight mb-1.5">Your Reputation Rating Grows With Accuracy</h2>
+            <h2 className="font-display font-bold text-xl sm:text-2xl text-slate-900 uppercase tracking-tight mb-1.5">Your Reputation Rating Grows With Accuracy</h2>
             <p className="text-sm text-slate-600 leading-relaxed">
               Every punter carries a 5-star reputation score shown next to their name in every room. Land more accurate
               picks and get crowned closest to the winning slip more often, and your rating climbs: displayed in precise
@@ -201,7 +201,7 @@ export default function HowItWorks() {
 
       {/* FAQs */}
       <div className="bg-white border border-slate-200 rounded-2xl p-6 sm:p-8 mb-14 shadow-xs">
-        <h2 className="font-display font-black text-2xl text-slate-900 uppercase tracking-tight mb-6 flex items-center gap-2">
+        <h2 className="font-display font-bold text-2xl text-slate-900 uppercase tracking-tight mb-6 flex items-center gap-2">
           <ShieldCheck className="text-[#006C54]" size={22} /> Frequently Asked Questions
         </h2>
         <div className="flex flex-col divide-y divide-slate-100">
@@ -216,10 +216,10 @@ export default function HowItWorks() {
 
       {/* Call to Actions */}
       <div className="flex flex-wrap items-center justify-center gap-4">
-        <Link to="/" className="inline-block bg-[#006C54] hover:bg-[#005441] text-white font-bold uppercase tracking-wider text-xs px-8 py-3.5 rounded-full transition-colors shadow-xs">
+        <Link to="/" className="inline-block bg-[#006C54] hover:bg-[#005441] text-white font-bold uppercase tracking-wide text-xs px-8 py-3.5 rounded-full transition-colors shadow-xs">
           Browse Jackpot Rooms
         </Link>
-        <Link to="/free" className="inline-flex items-center gap-2 text-slate-800 font-bold uppercase tracking-wider text-xs px-8 py-3.5 rounded-full border border-slate-300 hover:border-[#006C54] hover:text-[#006C54] bg-white transition-colors shadow-xs">
+        <Link to="/free" className="inline-flex items-center gap-2 text-slate-800 font-bold uppercase tracking-wide text-xs px-8 py-3.5 rounded-full border border-slate-300 hover:border-[#006C54] hover:text-[#006C54] bg-white transition-colors shadow-xs">
           <CalendarDays size={16} className="text-[#006C54]" /> Free Matches &amp; Bet Builder
         </Link>
       </div>

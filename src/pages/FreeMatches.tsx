@@ -432,12 +432,12 @@ export default function FreeMatches() {
 
       {/* Editorial Header */}
       <div className="text-center mb-6 sm:mb-8">
-        <div className="flex items-center justify-center gap-2.5 flex-wrap mb-2.5 text-xs font-bold uppercase tracking-wider text-slate-500">
+        <div className="flex items-center justify-center gap-2.5 flex-wrap mb-2.5 text-xs font-bold uppercase tracking-wide text-slate-500">
           <span className="inline-flex items-center gap-1.5 text-slate-700">
             <Unlock size={13} className="text-[#006C54]" /> Always Free · No Paywall
           </span>
           <span className="text-slate-300 font-normal">·</span>
-          <span className="inline-flex items-center gap-1.5 text-[#006C54] font-black">
+          <span className="inline-flex items-center gap-1.5 text-[#006C54] font-bold">
             <Radio size={13} className="animate-pulse" /> Live Market Feed
           </span>
           <span className="text-slate-300 font-normal">·</span>
@@ -446,7 +446,7 @@ export default function FreeMatches() {
           </span>
         </div>
 
-        <h1 className="font-display font-black text-3xl sm:text-5xl text-slate-900 tracking-tight uppercase">
+        <h1 className="font-display font-bold text-3xl sm:text-5xl text-slate-900 tracking-tight uppercase">
           Match Slate &amp; Consensus
         </h1>
         <p className="text-slate-600 mt-2 max-w-3xl mx-auto text-xs sm:text-sm leading-relaxed">
@@ -471,7 +471,7 @@ export default function FreeMatches() {
             >
               <span>Highlights</span>
               <span
-                className={`text-[10px] sm:text-[11px] font-mono px-1.5 py-0.2 rounded-full font-bold transition-colors ${
+                className={`text-[11px] sm:text-[11px] tabular-nums px-1.5 py-0.2 rounded-full font-bold transition-colors ${
                   activeTab === 'highlights'
                     ? 'bg-[#E8F5EE] text-[#006C54]'
                     : 'bg-slate-100 text-slate-500'
@@ -508,7 +508,7 @@ export default function FreeMatches() {
               </span>
               <span>Live</span>
               <span
-                className={`text-[10px] sm:text-[11px] font-mono px-1.5 py-0.2 rounded-full font-bold transition-colors ${
+                className={`text-[11px] sm:text-[11px] tabular-nums px-1.5 py-0.2 rounded-full font-bold transition-colors ${
                   activeTab === 'live'
                     ? 'bg-[#E8F5EE] text-[#006C54]'
                     : 'bg-slate-100 text-slate-500'
@@ -533,7 +533,7 @@ export default function FreeMatches() {
             >
               <span>Upcoming</span>
               <span
-                className={`text-[10px] sm:text-[11px] font-mono px-1.5 py-0.2 rounded-full font-bold transition-colors ${
+                className={`text-[11px] sm:text-[11px] tabular-nums px-1.5 py-0.2 rounded-full font-bold transition-colors ${
                   activeTab === 'upcoming'
                     ? 'bg-[#E8F5EE] text-[#006C54]'
                     : 'bg-slate-100 text-slate-500'
@@ -586,7 +586,7 @@ export default function FreeMatches() {
                     }}
                     className={`w-full px-3 py-2 rounded-xl text-left flex items-center justify-between transition-colors cursor-pointer ${
                       selectedDate === 'completed'
-                        ? 'bg-[#006C54]/10 text-[#006C54] font-black'
+                        ? 'bg-[#006C54]/10 text-[#006C54] font-bold'
                         : 'hover:bg-[#F5F5E4] text-slate-700 font-semibold'
                     }`}
                   >
@@ -594,7 +594,7 @@ export default function FreeMatches() {
                       <CheckCircle2 size={13} className="text-[#006C54]" /> Completed
                     </span>
                     <div className="flex items-center gap-1.5">
-                      <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-[#F5F5E4] border border-[#E6E6D2] text-[#006C54] font-bold">
+                      <span className="text-[11px] tabular-nums px-1.5 py-0.5 rounded bg-[#F5F5E4] border border-[#E6E6D2] text-[#006C54] font-bold">
                         {completedTodayCount}
                       </span>
                       {selectedDate === 'completed' && <Check size={14} className="text-[#006C54]" />}
@@ -612,7 +612,7 @@ export default function FreeMatches() {
                     }}
                     className={`w-full px-3 py-2 rounded-xl text-left flex items-center justify-between transition-colors cursor-pointer ${
                       selectedDate === 'all'
-                        ? 'bg-[#006C54]/10 text-[#006C54] font-black'
+                        ? 'bg-[#006C54]/10 text-[#006C54] font-bold'
                         : 'hover:bg-[#F5F5E4] text-slate-700 font-semibold'
                     }`}
                   >
@@ -620,7 +620,7 @@ export default function FreeMatches() {
                       <Calendar size={13} className="text-[#006C54]" /> All Dates
                     </span>
                     <div className="flex items-center gap-1.5">
-                      <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-[#F5F5E4] border border-[#E6E6D2] text-slate-600 font-bold">
+                      <span className="text-[11px] tabular-nums px-1.5 py-0.5 rounded bg-[#F5F5E4] border border-[#E6E6D2] text-slate-600 font-bold">
                         {allDatesCount}
                       </span>
                       {selectedDate === 'all' && <Check size={14} className="text-[#006C54]" />}
@@ -641,13 +641,13 @@ export default function FreeMatches() {
                         }}
                         className={`w-full px-3 py-2 rounded-xl text-left flex items-center justify-between transition-colors cursor-pointer ${
                           isSelected
-                            ? 'bg-[#006C54]/10 text-[#006C54] font-black'
+                            ? 'bg-[#006C54]/10 text-[#006C54] font-bold'
                             : 'hover:bg-[#F5F5E4] text-slate-700 font-medium'
                         }`}
                       >
                         <span className="truncate pr-2 font-medium">{d.label}</span>
                         <div className="flex items-center gap-1.5 shrink-0">
-                          <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-slate-100 text-slate-600 font-bold">
+                          <span className="text-[11px] tabular-nums px-1.5 py-0.2 rounded bg-slate-100 text-slate-600 font-bold">
                             {d.count}
                           </span>
                           {isSelected && <Check size={13} className="text-[#006C54]" />}
@@ -730,7 +730,7 @@ export default function FreeMatches() {
                     >
                       <span className="truncate pr-2">All Competitions</span>
                       <div className="flex items-center gap-2 shrink-0">
-                        <span className="text-[11px] font-mono text-slate-500">
+                        <span className="text-[11px] tabular-nums text-slate-500">
                           {directoryData.totalMatches}
                         </span>
                         {leagueFilter === 'all' && <Check size={13} className="text-[#006C54]" />}
@@ -771,14 +771,14 @@ export default function FreeMatches() {
                             {row.flag && <span className="text-sm shrink-0">{row.flag}</span>}
                             <span className="truncate">{row.label}</span>
                             {hasMultipleLeagues && (
-                              <span className="text-[10px] font-normal px-1.5 py-0.2 rounded-full bg-slate-200/60 text-slate-600 shrink-0">
+                              <span className="text-[11px] font-normal px-1.5 py-0.2 rounded-full bg-slate-200/60 text-slate-600 shrink-0">
                                 {row.leagues.length} leagues
                               </span>
                             )}
                           </button>
 
                           <div className="flex items-center gap-1.5 shrink-0">
-                            <span className="text-[11px] font-mono text-slate-500">{row.count}</span>
+                            <span className="text-[11px] tabular-nums text-slate-500">{row.count}</span>
                             {isSelected && <Check size={13} className="text-[#006C54]" />}
                             {hasMultipleLeagues && (
                               <button
@@ -816,7 +816,7 @@ export default function FreeMatches() {
                             >
                               <span className="truncate pr-2">All {row.label} Leagues</span>
                               <div className="flex items-center gap-1.5 shrink-0">
-                                <span className={`font-mono text-[10px] ${leagueFilter === row.id && selectedSubLeague === 'all' ? 'text-white/80' : 'text-slate-500'}`}>
+                                <span className={`tabular-nums text-[11px] ${leagueFilter === row.id && selectedSubLeague === 'all' ? 'text-white/80' : 'text-slate-500'}`}>
                                   {row.count}
                                 </span>
                                 {leagueFilter === row.id && selectedSubLeague === 'all' && <Check size={12} className="text-white" />}
@@ -839,7 +839,7 @@ export default function FreeMatches() {
                                 >
                                   <span className="truncate pr-2">{lg.league}</span>
                                   <div className="flex items-center gap-1.5 shrink-0">
-                                    <span className={`font-mono text-[10px] ${isSubSelected ? 'text-white/80' : 'text-slate-500'}`}>
+                                    <span className={`tabular-nums text-[11px] ${isSubSelected ? 'text-white/80' : 'text-slate-500'}`}>
                                       {lg.count}
                                     </span>
                                     {isSubSelected && <Check size={12} className="text-white" />}
@@ -985,7 +985,7 @@ export default function FreeMatches() {
           >
             <span>All {selectedDirectoryLabel} Leagues</span>
             <span
-              className={`text-[10px] font-mono px-1.5 py-0.2 rounded-full font-bold ${
+              className={`text-[11px] tabular-nums px-1.5 py-0.2 rounded-full font-bold ${
                 selectedSubLeague === 'all' ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-600'
               }`}
             >
@@ -1008,7 +1008,7 @@ export default function FreeMatches() {
               >
                 <span>{g.league}</span>
                 <span
-                  className={`text-[10px] font-mono px-1.5 py-0.2 rounded-full font-bold ${
+                  className={`text-[11px] tabular-nums px-1.5 py-0.2 rounded-full font-bold ${
                     isSelected ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-600'
                   }`}
                 >
@@ -1026,7 +1026,7 @@ export default function FreeMatches() {
       ) : matches.length === 0 ? (
         <div className="bg-white border border-slate-200 rounded-2xl p-8 sm:p-12 text-center max-w-xl mx-auto flex flex-col items-center gap-3 shadow-xs">
           <Calendar size={36} className="text-[#006C54]" />
-          <h3 className="font-display font-extrabold text-lg text-slate-900 uppercase tracking-tight">No Fixtures Currently Scheduled</h3>
+          <h3 className="font-display font-bold text-lg text-slate-900 uppercase tracking-tight">No Fixtures Currently Scheduled</h3>
           <p className="text-xs text-slate-600 leading-relaxed max-w-md">
             The match slate is clean. Platform administrators can upload a fixtures PDF in the Admin Console to instantly publish fixtures and consensus odds.
           </p>
@@ -1034,7 +1034,7 @@ export default function FreeMatches() {
       ) : activeTab === 'live' && filteredMatches.length === 0 ? (
         <div className="bg-white border border-slate-200 rounded-2xl p-8 text-center max-w-xl mx-auto flex flex-col items-center gap-3 shadow-xs">
           <Radio size={36} className="text-slate-400 animate-pulse" />
-          <h3 className="font-display font-extrabold text-lg text-slate-900 uppercase tracking-tight">No Matches Currently In-Play</h3>
+          <h3 className="font-display font-bold text-lg text-slate-900 uppercase tracking-tight">No Matches Currently In-Play</h3>
           <p className="text-xs text-slate-600 leading-relaxed">
             There are no live games in progress right now. Live matches update automatically with realtime clocks and scoreboards as soon as they kick off!
           </p>
@@ -1044,7 +1044,7 @@ export default function FreeMatches() {
                 setActiveTab('upcoming');
                 setSelectedDate('all');
               }}
-              className="inline-flex items-center gap-2 bg-[#006C54] hover:bg-[#005441] text-white font-black text-xs uppercase tracking-wider px-5 h-10 rounded-md shadow-xs transition-colors cursor-pointer active:scale-95"
+              className="inline-flex items-center gap-2 bg-[#006C54] hover:bg-[#005441] text-white font-bold text-xs uppercase tracking-wide px-5 h-10 rounded-md shadow-xs transition-colors cursor-pointer active:scale-95"
             >
               Browse Upcoming ({counts.upcoming})
             </button>
@@ -1053,7 +1053,7 @@ export default function FreeMatches() {
                 setActiveTab('upcoming');
                 setSelectedDate(todayDateStr);
               }}
-              className="inline-flex items-center gap-2 bg-slate-100 hover:bg-slate-200 text-slate-800 font-black text-xs uppercase tracking-wider px-4 h-10 rounded-md shadow-xs transition-colors cursor-pointer"
+              className="inline-flex items-center gap-2 bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs uppercase tracking-wide px-4 h-10 rounded-md shadow-xs transition-colors cursor-pointer"
             >
               Today&apos;s Slate
             </button>
@@ -1064,7 +1064,7 @@ export default function FreeMatches() {
           {selectedDate === 'completed' ? (
             <>
               <CheckCircle2 size={36} className="text-[#006C54]" />
-              <h3 className="font-display font-extrabold text-lg text-slate-900 uppercase tracking-tight">No Completed Matches Yet Today</h3>
+              <h3 className="font-display font-bold text-lg text-slate-900 uppercase tracking-tight">No Completed Matches Yet Today</h3>
               <p className="text-xs text-slate-600 leading-relaxed">
                 Finished fixtures will automatically appear here with their final scores and FT badges as matches conclude throughout the day.
               </p>
@@ -1072,7 +1072,7 @@ export default function FreeMatches() {
           ) : (
             <>
               <SearchX size={36} className="text-[#006C54]" />
-              <h3 className="font-display font-extrabold text-lg text-slate-900 uppercase tracking-tight">No Fixtures Match Current Filters</h3>
+              <h3 className="font-display font-bold text-lg text-slate-900 uppercase tracking-tight">No Fixtures Match Current Filters</h3>
               <p className="text-xs text-slate-600 leading-relaxed">
                 No matches found for &quot;<strong className="text-slate-900">{searchQuery || selectedDirectoryLabel}</strong>&quot; under {activeTab} view. Try clearing filters to view all upcoming fixtures across supported competitions.
               </p>
@@ -1085,14 +1085,14 @@ export default function FreeMatches() {
                   setActiveTab('upcoming');
                   setSelectedDate('all');
                 }}
-                className="inline-flex items-center gap-2 bg-[#F5F5E4] hover:bg-[#E6E6D2] text-[#006C54] font-black text-xs uppercase tracking-wider px-4 h-10 rounded-md shadow-2xs transition-colors cursor-pointer"
+                className="inline-flex items-center gap-2 bg-[#F5F5E4] hover:bg-[#E6E6D2] text-[#006C54] font-bold text-xs uppercase tracking-wide px-4 h-10 rounded-md shadow-2xs transition-colors cursor-pointer"
               >
                 View All {selectedDirectoryLabel} Across All Dates
               </button>
             )}
             <button
               onClick={resetFilters}
-              className="inline-flex items-center gap-2 bg-[#006C54] hover:bg-[#005441] text-white font-black text-xs uppercase tracking-wider px-5 h-10 rounded-md shadow-xs transition-colors active:scale-95 cursor-pointer"
+              className="inline-flex items-center gap-2 bg-[#006C54] hover:bg-[#005441] text-white font-bold text-xs uppercase tracking-wide px-5 h-10 rounded-md shadow-xs transition-colors active:scale-95 cursor-pointer"
             >
               <RotateCcw size={14} /> Reset All Filters ({counts.all} matches)
             </button>
@@ -1106,11 +1106,11 @@ export default function FreeMatches() {
               <div className="flex items-center justify-between pb-2 border-b border-[#006C54]/25">
                 <div className="flex items-center gap-2">
                   <span className="w-2.5 h-2.5 rounded-full bg-[#006C54]" />
-                  <h2 className="font-display font-black text-base sm:text-lg text-slate-900 tracking-tight uppercase">
+                  <h2 className="font-display font-bold text-base sm:text-lg text-slate-900 tracking-tight uppercase">
                     {sector.league}
                   </h2>
                 </div>
-                <span className="text-[11px] font-mono font-bold px-2.5 py-0.5 rounded-full bg-[#E8F5EE] text-[#006C54]">
+                <span className="text-[11px] tabular-nums font-bold px-2.5 py-0.5 rounded-full bg-[#E8F5EE] text-[#006C54]">
                   {sector.matches.length} {sector.matches.length === 1 ? 'Fixture' : 'Fixtures'}
                 </span>
               </div>

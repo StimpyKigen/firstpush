@@ -20,7 +20,7 @@ export default function ReportsPanel() {
           </p>
         </div>
         <div className="text-xs font-semibold text-slate-600">
-          Total Reports: <span className="text-[#006C54] font-mono font-bold">{reports.length}</span>
+          Total Reports: <span className="text-[#006C54] tabular-nums font-bold">{reports.length}</span>
         </div>
       </div>
 
@@ -51,11 +51,11 @@ export default function ReportsPanel() {
                   </span>
                 </div>
                 <div className="flex items-center gap-2 text-xs">
-                  <span className="text-slate-400 font-mono text-[11px]">
+                  <span className="text-slate-400 tabular-nums text-[11px]">
                     {new Date(rep.createdAt).toLocaleString()}
                   </span>
                   <span
-                    className={`font-semibold px-2 py-0.5 rounded-full text-[10px] uppercase ${
+                    className={`font-semibold px-2 py-0.5 rounded-full text-[11px] uppercase ${
                       rep.status === 'Pending'
                         ? 'bg-amber-100 text-amber-800'
                         : rep.status === 'Reviewed'
@@ -71,7 +71,7 @@ export default function ReportsPanel() {
               {/* Details */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
                 <div className="bg-[#FBFBFA] p-3 rounded-xl border border-[#E5E5EA] space-y-1">
-                  <p className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider">Reported User & Post</p>
+                  <p className="text-[11px] font-semibold text-slate-500 uppercase tracking-wide">Reported User & Post</p>
                   <p className="font-semibold text-slate-900">@{rep.reportedUser}</p>
                   {rep.postContent && (
                     <p className="text-slate-600 italic text-[11px] line-clamp-2">
@@ -80,7 +80,7 @@ export default function ReportsPanel() {
                   )}
                 </div>
                 <div className="bg-[#FBFBFA] p-3 rounded-xl border border-[#E5E5EA] space-y-1">
-                  <p className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider">Reporter Description</p>
+                  <p className="text-[11px] font-semibold text-slate-500 uppercase tracking-wide">Reporter Description</p>
                   <p className="text-slate-700 leading-relaxed">{rep.description}</p>
                 </div>
               </div>

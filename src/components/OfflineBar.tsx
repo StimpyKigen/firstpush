@@ -56,7 +56,7 @@ export default function OfflineBar() {
         {isOffline && (
           <button
             onClick={() => window.location.reload()}
-            className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-ink-2/30 hover:bg-ink-2/50 text-cream text-[11px] font-extrabold transition-all"
+            className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-ink-2/30 hover:bg-ink-2/50 text-cream text-[11px] font-bold transition-all"
           >
             <RefreshCw size={12} /> Retry
           </button>

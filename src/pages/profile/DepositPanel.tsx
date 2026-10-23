@@ -62,7 +62,7 @@ export default function DepositPanel({
           type="number"
           value={depositAmount}
           onChange={(e) => setDepositAmount(Number(e.target.value))}
-          className="w-full mt-1 bg-ink border border-line rounded-lg px-3 py-2.5 text-sm font-mono text-cream focus:outline-none focus:border-emerald-2"
+          className="w-full mt-1 bg-ink border border-line rounded-lg px-3 py-2.5 text-sm tabular-nums text-cream focus:outline-none focus:border-emerald-2"
         />
       </div>
 
@@ -77,7 +77,7 @@ export default function DepositPanel({
               <span className="text-[11px] text-cream-dim">{RECEIVER_NAME}</span>
             </div>
             <div className="flex items-center justify-between gap-2">
-              <span className="font-mono font-bold text-lg text-emerald-2 tracking-wide">{RECEIVER_MPESA_NUMBER}</span>
+              <span className="tabular-nums font-bold text-lg text-emerald-2 tracking-wide">{RECEIVER_MPESA_NUMBER}</span>
               <button
                 onClick={onCopyNumber}
                 className="flex items-center gap-1 text-xs font-semibold text-cream-dim hover:text-cream bg-panel-2 border border-line rounded-md px-2 py-1.5 shrink-0"
@@ -88,7 +88,7 @@ export default function DepositPanel({
             </div>
             <div className="flex items-center justify-between">
               <span className="text-[11px] text-cream-dim">Amount</span>
-              <span className="font-mono font-bold text-sm text-gold">Ksh {depositAmount}</span>
+              <span className="tabular-nums font-bold text-sm text-gold">Ksh {depositAmount}</span>
             </div>
           </div>
           <button
@@ -108,7 +108,7 @@ export default function DepositPanel({
             onChange={(e) => setCode(e.target.value.toUpperCase())}
             placeholder="e.g. QFT7K9L2M1"
             maxLength={12}
-            className="bg-ink border border-line rounded-lg px-3 py-2.5 text-sm font-mono tracking-widest text-cream placeholder:text-cream-dim/50 focus:outline-none focus:border-gold uppercase"
+            className="bg-ink border border-line rounded-lg px-3 py-2.5 text-sm tabular-nums tracking-wide text-cream placeholder:text-cream-dim/50 focus:outline-none focus:border-gold uppercase"
           />
           {depositError && (
             <p className="flex items-center gap-1.5 text-xs text-danger font-semibold"><AlertCircle size={13} /> {depositError}</p>

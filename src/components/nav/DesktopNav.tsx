@@ -38,7 +38,7 @@ export default function DesktopNav({
               to={l.to}
               className={`group inline-flex items-center gap-1.5 px-2.5 xl:px-3 py-1.5 text-xs xl:text-[13px] whitespace-nowrap shrink-0 transition-colors ${
                 active
-                  ? 'text-[#EEAA04] font-extrabold'
+                  ? 'text-[#EEAA04] font-bold'
                   : 'text-[#1c1e21] font-bold hover:text-[#EEAA04]'
               }`}
             >
@@ -50,12 +50,12 @@ export default function DesktopNav({
               />
               <span className="transition-colors">{l.label}</span>
               {isBuilder && builderLegsCount > 0 && (
-                <span className="bg-[#006C54] text-[#EEAA04] font-bold text-[10px] xl:text-[11px] px-1.5 xl:px-2 rounded-full ml-0.5 shrink-0">
+                <span className="bg-[#006C54] text-[#EEAA04] font-bold text-[11px] xl:text-[11px] px-1.5 xl:px-2 rounded-full ml-0.5 shrink-0">
                   {builderLegsCount}
                 </span>
               )}
               {l.soon && (
-                <span className="text-[10px] xl:text-[11px] font-bold bg-[#EEAA04] text-[#0a1317] px-1.5 xl:px-2 py-0.5 rounded-full shrink-0 ml-0.5">
+                <span className="text-[11px] xl:text-[11px] font-bold bg-[#EEAA04] text-[#0a1317] px-1.5 xl:px-2 py-0.5 rounded-full shrink-0 ml-0.5">
                   Soon
                 </span>
               )}

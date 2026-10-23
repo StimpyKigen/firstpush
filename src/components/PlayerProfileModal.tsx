@@ -30,7 +30,7 @@ export default function PlayerProfileModal({ username, onClose }: PlayerProfileM
           >
             <X size={18} />
           </button>
-          <div className="flex items-center gap-2 text-xs font-mono font-bold text-gold bg-ink/80 border border-gold/30 px-3 py-1 rounded-full">
+          <div className="flex items-center gap-2 text-xs tabular-nums font-bold text-gold bg-ink/80 border border-gold/30 px-3 py-1 rounded-full">
             <ShieldCheck size={14} className="text-emerald-400" />
             Verified Punter Credentials
           </div>
@@ -45,7 +45,7 @@ export default function PlayerProfileModal({ username, onClose }: PlayerProfileM
                 <Avatar name={profile.username} seed={profile.avatarSeed} size={56} />
               </div>
               <div className="mb-1">
-                <h2 className="font-display font-extrabold text-2xl text-cream flex items-center gap-2">
+                <h2 className="font-display font-bold text-2xl text-cream flex items-center gap-2">
                   {profile.username}
                 </h2>
                 <p className="text-xs font-semibold text-gold tracking-wide uppercase">
@@ -56,7 +56,7 @@ export default function PlayerProfileModal({ username, onClose }: PlayerProfileM
 
             <div className="bg-ink-2 border border-line rounded-xl px-4 py-2.5 flex items-center gap-3">
               <div>
-                <span className="text-[10px] uppercase font-bold text-cream-dim block">Public Rating</span>
+                <span className="text-[11px] uppercase font-bold text-cream-dim block">Public Rating</span>
                 <StarRating rating={profile.stars} size={16} showNumber={true} />
               </div>
             </div>
@@ -67,7 +67,7 @@ export default function PlayerProfileModal({ username, onClose }: PlayerProfileM
             <div className="flex items-center justify-between text-xs font-semibold mb-2">
               <span className="text-cream flex items-center gap-1.5 font-bold">
                 <Award size={15} className="text-gold" />
-                Reputation Points (RP): <span className="text-gold font-mono text-sm">{profile.rp} RP</span>
+                Reputation Points (RP): <span className="text-gold tabular-nums text-sm">{profile.rp} RP</span>
               </span>
               <span className="text-cream-dim text-[11px]">
                 {profile.rp >= 700 ? 'Max Star Rank Achieved' : `Next Rank at ${rpMeta.nextTierRp} RP`}
@@ -80,7 +80,7 @@ export default function PlayerProfileModal({ username, onClose }: PlayerProfileM
                 style={{ width: `${Math.min(100, Math.max(5, rpMeta.progressPct))}%` }}
               />
             </div>
-            <div className="flex justify-between items-center text-[10px] text-cream-dim mt-1.5 font-mono">
+            <div className="flex justify-between items-center text-[11px] text-cream-dim mt-1.5 tabular-nums">
               <span>{rpMeta.progressPct}% Progress to Next Tier</span>
               <span>Top 2% Elite Punter Ladder</span>
             </div>
@@ -90,8 +90,8 @@ export default function PlayerProfileModal({ username, onClose }: PlayerProfileM
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
             <div className="p-3.5 rounded-xl bg-ink/80 border border-gold/20 flex items-center justify-between">
               <div>
-                <span className="text-[10px] font-bold text-cream-dim uppercase tracking-wider block">Hidden MMR (Skill Rating)</span>
-                <span className="font-display font-extrabold text-xl text-cream font-mono">{profile.mmr} MMR</span>
+                <span className="text-[11px] font-bold text-cream-dim uppercase tracking-wide block">Hidden MMR (Skill Rating)</span>
+                <span className="font-display font-bold text-xl text-cream tabular-nums">{profile.mmr} MMR</span>
               </div>
               <div className="w-10 h-10 rounded-xl bg-gold/10 border border-gold/30 text-gold flex items-center justify-center font-bold">
                 <Zap size={18} />
@@ -100,8 +100,8 @@ export default function PlayerProfileModal({ username, onClose }: PlayerProfileM
 
             <div className="p-3.5 rounded-xl bg-ink/80 border border-emerald-500/20 flex items-center justify-between">
               <div>
-                <span className="text-[10px] font-bold text-cream-dim uppercase tracking-wider block">Consistency Index</span>
-                <span className="font-display font-extrabold text-xl text-emerald-300 font-mono">{profile.consistencyRating}/100</span>
+                <span className="text-[11px] font-bold text-cream-dim uppercase tracking-wide block">Consistency Index</span>
+                <span className="font-display font-bold text-xl text-emerald-300 tabular-nums">{profile.consistencyRating}/100</span>
               </div>
               <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 flex items-center justify-center font-bold">
                 <Activity size={18} />
@@ -112,23 +112,23 @@ export default function PlayerProfileModal({ username, onClose }: PlayerProfileM
           {/* Key Stats Grid */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 mb-6">
             <div className="bg-ink-2/60 border border-line p-3 rounded-xl text-center">
-              <span className="text-[10px] uppercase font-bold text-cream-dim block">Overall Accuracy</span>
-              <span className="font-display font-extrabold text-lg text-cream font-mono">{profile.accuracyPct}%</span>
+              <span className="text-[11px] uppercase font-bold text-cream-dim block">Overall Accuracy</span>
+              <span className="font-display font-bold text-lg text-cream tabular-nums">{profile.accuracyPct}%</span>
             </div>
 
             <div className="bg-ink-2/60 border border-line p-3 rounded-xl text-center">
-              <span className="text-[10px] uppercase font-bold text-cream-dim block">Jackpots Played</span>
-              <span className="font-display font-extrabold text-lg text-cream font-mono">{profile.totalJackpotsPlayed}</span>
+              <span className="text-[11px] uppercase font-bold text-cream-dim block">Jackpots Played</span>
+              <span className="font-display font-bold text-lg text-cream tabular-nums">{profile.totalJackpotsPlayed}</span>
             </div>
 
             <div className="bg-ink-2/60 border border-line p-3 rounded-xl text-center">
-              <span className="text-[10px] uppercase font-bold text-cream-dim block">Top 3 Finishes</span>
-              <span className="font-display font-extrabold text-lg text-gold font-mono">{profile.top3Finishes}</span>
+              <span className="text-[11px] uppercase font-bold text-cream-dim block">Top 3 Finishes</span>
+              <span className="font-display font-bold text-lg text-gold tabular-nums">{profile.top3Finishes}</span>
             </div>
 
             <div className="bg-ink-2/60 border border-line p-3 rounded-xl text-center">
-              <span className="text-[10px] uppercase font-bold text-cream-dim block">Perfect Slips</span>
-              <span className="font-display font-extrabold text-lg text-emerald-300 font-mono">{profile.perfectSlips}</span>
+              <span className="text-[11px] uppercase font-bold text-cream-dim block">Perfect Slips</span>
+              <span className="font-display font-bold text-lg text-emerald-300 tabular-nums">{profile.perfectSlips}</span>
             </div>
           </div>
 
@@ -148,7 +148,7 @@ export default function PlayerProfileModal({ username, onClose }: PlayerProfileM
               <div>
                 <div className="flex justify-between text-[11px] font-semibold text-cream-dim mb-1">
                   <span>Last 10 Jackpots Accuracy</span>
-                  <span className="font-mono text-cream">{profile.last10Accuracy}%</span>
+                  <span className="tabular-nums text-cream">{profile.last10Accuracy}%</span>
                 </div>
                 <div className="w-full bg-ink h-2 rounded-full overflow-hidden border border-line">
                   <div className="bg-emerald-400 h-full rounded-full" style={{ width: `${profile.last10Accuracy}%` }} />
@@ -158,7 +158,7 @@ export default function PlayerProfileModal({ username, onClose }: PlayerProfileM
               <div>
                 <div className="flex justify-between text-[11px] font-semibold text-cream-dim mb-1">
                   <span>Last 25 Jackpots Accuracy</span>
-                  <span className="font-mono text-cream">{profile.last25Accuracy}%</span>
+                  <span className="tabular-nums text-cream">{profile.last25Accuracy}%</span>
                 </div>
                 <div className="w-full bg-ink h-2 rounded-full overflow-hidden border border-line">
                   <div className="bg-gold h-full rounded-full" style={{ width: `${profile.last25Accuracy}%` }} />
@@ -168,7 +168,7 @@ export default function PlayerProfileModal({ username, onClose }: PlayerProfileM
               <div>
                 <div className="flex justify-between text-[11px] font-semibold text-cream-dim mb-1">
                   <span>Last 50 Jackpots Accuracy</span>
-                  <span className="font-mono text-cream">{profile.last50Accuracy}%</span>
+                  <span className="tabular-nums text-cream">{profile.last50Accuracy}%</span>
                 </div>
                 <div className="w-full bg-ink h-2 rounded-full overflow-hidden border border-line">
                   <div className="bg-blue-400 h-full rounded-full" style={{ width: `${profile.last50Accuracy}%` }} />

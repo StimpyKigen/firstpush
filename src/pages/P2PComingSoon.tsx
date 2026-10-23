@@ -31,7 +31,7 @@ export default function P2PComingSoon() {
         <span className="inline-flex items-center gap-1.5 bg-panel border border-gold/30 text-gold text-xs font-bold px-3 py-1.5 rounded-full mb-4">
           <Sparkles size={13} /> Coming Soon
         </span>
-        <h1 className="font-display font-extrabold text-3xl sm:text-4xl text-cream leading-tight">
+        <h1 className="font-display font-bold text-3xl sm:text-4xl text-cream leading-tight">
           Peer-to-Peer Bets are on the way.
         </h1>
         <p className="text-cream-dim mt-4 max-w-xl mx-auto leading-relaxed">

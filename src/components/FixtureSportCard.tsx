@@ -215,7 +215,7 @@ export default function FixtureSportCard({
               onClick={(e) => onToggleLeg('Match Result (1X2)', `${match.home} Win (1)`, hOdds, e)}
               className={`rounded-xl py-1.5 px-1 border transition-all duration-150 active:scale-[0.98] min-h-[40px] flex flex-col items-center justify-center gap-0.5 cursor-pointer ${
                 isHomeSelected
-                  ? 'bg-[#006C54] text-white font-black border-[#005441] shadow-xs'
+                  ? 'bg-[#006C54] text-white font-bold border-[#005441] shadow-xs'
                   : banner
                   ? `bg-white/15 hover:bg-white/35 text-slate-800 ${banner.oddsBorderColor || 'border-[#7BA7F8]/50 hover:border-[#0A3B8C]'} backdrop-blur-[1px]`
                   : 'bg-transparent hover:bg-black/[0.04] text-slate-800 border-[#DCDCC8] hover:border-[#006C54]'
@@ -238,7 +238,7 @@ export default function FixtureSportCard({
               onClick={(e) => onToggleLeg('Match Result (1X2)', 'Draw (X)', dOdds, e)}
               className={`rounded-xl py-1.5 px-1 border transition-all duration-150 active:scale-[0.98] min-h-[40px] flex flex-col items-center justify-center gap-0.5 cursor-pointer ${
                 isDrawSelected
-                  ? 'bg-[#006C54] text-white font-black border-[#005441] shadow-xs'
+                  ? 'bg-[#006C54] text-white font-bold border-[#005441] shadow-xs'
                   : banner
                   ? `bg-white/15 hover:bg-white/35 text-slate-800 ${banner.oddsBorderColor || 'border-[#7BA7F8]/50 hover:border-[#0A3B8C]'} backdrop-blur-[1px]`
                   : 'bg-transparent hover:bg-black/[0.04] text-slate-800 border-[#DCDCC8] hover:border-[#006C54]'
@@ -261,7 +261,7 @@ export default function FixtureSportCard({
               onClick={(e) => onToggleLeg('Match Result (1X2)', `${match.away} Win (2)`, aOdds, e)}
               className={`rounded-xl py-1.5 px-1 border transition-all duration-150 active:scale-[0.98] min-h-[40px] flex flex-col items-center justify-center gap-0.5 cursor-pointer ${
                 isAwaySelected
-                  ? 'bg-[#006C54] text-white font-black border-[#005441] shadow-xs'
+                  ? 'bg-[#006C54] text-white font-bold border-[#005441] shadow-xs'
                   : banner
                   ? `bg-white/15 hover:bg-white/35 text-slate-800 ${banner.oddsBorderColor || 'border-[#7BA7F8]/50 hover:border-[#0A3B8C]'} backdrop-blur-[1px]`
                   : 'bg-transparent hover:bg-black/[0.04] text-slate-800 border-[#DCDCC8] hover:border-[#006C54]'

@@ -41,7 +41,7 @@ export class ErrorBoundary extends Component<Props, State> {
           <div className="w-14 h-14 rounded-2xl bg-rose-500/10 border border-rose-500/20 text-rose-400 flex items-center justify-center mb-4">
             <AlertTriangle size={28} />
           </div>
-          <h2 className="font-display font-extrabold text-xl text-cream mb-2">
+          <h2 className="font-display font-bold text-xl text-cream mb-2">
             Something went wrong in the arena
           </h2>
           <p className="text-xs text-cream-dim max-w-md mb-6 leading-relaxed">

@@ -44,12 +44,12 @@ export default function CloseAccountPanel({
       </div>
 
       <div className="mb-4">
-        <label className="text-xs font-semibold text-cream-dim uppercase tracking-wide">Type <span className="font-mono text-danger">CLOSE</span> to confirm</label>
+        <label className="text-xs font-semibold text-cream-dim uppercase tracking-wide">Type <span className="tabular-nums text-danger">CLOSE</span> to confirm</label>
         <input
           value={closeConfirmText}
           onChange={(e) => setCloseConfirmText(e.target.value)}
           placeholder="CLOSE"
-          className="w-full mt-1 bg-ink border border-line rounded-lg px-3 py-2.5 text-sm font-mono text-cream placeholder:text-cream-dim/50 focus:outline-none focus:border-danger uppercase"
+          className="w-full mt-1 bg-ink border border-line rounded-lg px-3 py-2.5 text-sm tabular-nums text-cream placeholder:text-cream-dim/50 focus:outline-none focus:border-danger uppercase"
         />
       </div>
 

@@ -176,7 +176,7 @@ export default function ReportModal({
                   className="w-full bg-ink/90 border border-line rounded-xl p-3 text-xs text-cream placeholder:text-cream-dim/40 focus:outline-none focus:border-gold transition-colors resize-none"
                   required
                 />
-                <div className="flex justify-between text-[10px] text-cream-dim/70">
+                <div className="flex justify-between text-[11px] text-cream-dim/70">
                   <span>Be concise and specific</span>
                   <span>{description.length} chars</span>
                 </div>

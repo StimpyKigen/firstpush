@@ -68,7 +68,7 @@ export default function CreateJackpotForm({
 
       {/* Bookmaker Selector Chips */}
       <div className="space-y-2">
-        <label className="block text-[11px] font-semibold text-slate-600 uppercase tracking-wider">
+        <label className="block text-[11px] font-semibold text-slate-600 uppercase tracking-wide">
           Select Betting Provider
         </label>
         <div className="flex items-center gap-2 overflow-x-auto pb-1">
@@ -116,7 +116,7 @@ export default function CreateJackpotForm({
             <span className="flex items-center gap-1.5">
               <Globe size={13} className="text-[#006C54]" /> Betting Site
             </span>
-            <span className="text-[10px] text-slate-400 font-mono">Logo Loaded</span>
+            <span className="text-[11px] text-slate-400 tabular-nums">Logo Loaded</span>
           </label>
           <div className="flex items-center gap-2">
             <div
@@ -255,7 +255,7 @@ export default function CreateJackpotForm({
           value={webpageText}
           onChange={(e) => setWebpageText(e.target.value)}
           placeholder={`Paste ${selectedBookie} jackpot webpage text here (e.g. copy all matches from ${selectedBookie}...)\nExample:\n1. Arsenal vs Coventry City 21/08 22:00\n2. Trabzonspor vs Al Sadd 30/07 20:00...`}
-          className="w-full bg-white border border-slate-300 rounded-xl p-3 text-xs text-slate-900 font-mono placeholder:text-slate-400 focus:outline-none focus:border-[#006C54] focus:ring-1 focus:ring-[#006C54] transition-all shadow-2xs"
+          className="w-full bg-white border border-slate-300 rounded-xl p-3 text-xs text-slate-900 tabular-nums placeholder:text-slate-400 focus:outline-none focus:border-[#006C54] focus:ring-1 focus:ring-[#006C54] transition-all shadow-2xs"
         />
 
         {aiSuccessMessage && (
@@ -302,7 +302,7 @@ export default function CreateJackpotForm({
                 key={idx}
                 className="bg-[#FBFBFA] border border-[#E5E5EA] rounded-xl p-2.5 grid grid-cols-12 gap-2 items-center text-xs"
               >
-                <div className="col-span-1 font-mono font-bold text-slate-700 text-center">
+                <div className="col-span-1 tabular-nums font-bold text-slate-700 text-center">
                   #{idx + 1}
                 </div>
                 <div className="col-span-3">

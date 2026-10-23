@@ -88,7 +88,7 @@ export default function BetSlipRoom() {
       </div>
 
       <div className="mb-8 text-center sm:text-left">
-        <h1 className="font-display font-black text-3xl sm:text-5xl text-slate-900 tracking-tight uppercase">
+        <h1 className="font-display font-bold text-3xl sm:text-5xl text-slate-900 tracking-tight uppercase">
           Bet Builder &amp; Slips
         </h1>
         <p className="text-sm text-slate-600 mt-2 leading-relaxed max-w-2xl font-normal">
@@ -256,7 +256,7 @@ export default function BetSlipRoom() {
                       >
                         <Avatar name={punter.username} seed={punter.username.length} size={42} />
                         <div className="min-w-0">
-                          <h3 className="font-display font-black text-sm text-slate-900 group-hover:text-[#006C54] transition-colors truncate uppercase">
+                          <h3 className="font-display font-bold text-sm text-slate-900 group-hover:text-[#006C54] transition-colors truncate uppercase">
                             {punter.username}
                           </h3>
                           <div className="flex items-center gap-2 mt-0.5">
@@ -267,8 +267,8 @@ export default function BetSlipRoom() {
                       </button>
 
                       <div className="text-right shrink-0">
-                        <span className="font-mono font-black text-xs text-slate-900">{followersCount}</span>
-                        <p className="text-[10px] text-slate-400 font-black uppercase">Followers</p>
+                        <span className="tabular-nums font-bold text-xs text-slate-900">{followersCount}</span>
+                        <p className="text-[11px] text-slate-400 font-bold uppercase">Followers</p>
                       </div>
                     </div>
 
@@ -276,7 +276,7 @@ export default function BetSlipRoom() {
                       {!isSelf ? (
                         <button
                           onClick={() => handleFollowToggle(punter.username)}
-                          className={`flex-1 py-1.5 px-3 rounded-full font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all shadow-2xs ${
+                          className={`flex-1 py-1.5 px-3 rounded-full font-bold text-xs uppercase tracking-wide flex items-center justify-center gap-1.5 transition-all shadow-2xs ${
                             following
                               ? 'bg-slate-100 border border-slate-300 text-slate-700 hover:bg-slate-200'
                               : 'bg-[#006C54] hover:bg-[#005441] text-white'
@@ -286,14 +286,14 @@ export default function BetSlipRoom() {
                           {following ? 'Following' : 'Follow'}
                         </button>
                       ) : (
-                        <span className="flex-1 py-1.5 text-center text-xs font-bold text-[#006C54] bg-[#006C54]/10 rounded-full uppercase tracking-wider">
+                        <span className="flex-1 py-1.5 text-center text-xs font-bold text-[#006C54] bg-[#006C54]/10 rounded-full uppercase tracking-wide">
                           You
                         </span>
                       )}
 
                       <button
                         onClick={() => setSelectedProfileUser(punter.username)}
-                        className="py-1.5 px-3 rounded-full bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-700 text-xs font-bold uppercase tracking-wider transition-colors"
+                        className="py-1.5 px-3 rounded-full bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-700 text-xs font-bold uppercase tracking-wide transition-colors"
                       >
                         View Profile
                       </button>

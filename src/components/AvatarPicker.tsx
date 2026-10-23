@@ -334,7 +334,7 @@ export default function AvatarPicker({ selected, onSelect, userStats }: AvatarPi
 
         {/* Tier Selector */}
         <div className="flex items-center gap-2">
-          <span className="text-[11px] font-bold text-cream-dim uppercase tracking-wider shrink-0">Tier:</span>
+          <span className="text-[11px] font-bold text-cream-dim uppercase tracking-wide shrink-0">Tier:</span>
           <select
             value={activeTier}
             onChange={(e) => setActiveTier(e.target.value)}
@@ -455,7 +455,7 @@ export default function AvatarPicker({ selected, onSelect, userStats }: AvatarPi
                     {avatar.label}
                   </span>
                   <span
-                    className={`inline-block px-1.5 py-0.5 rounded-full text-[9px] font-bold border uppercase tracking-wider truncate max-w-full ${tierInfo.badgeBg}`}
+                    className={`inline-block px-1.5 py-0.5 rounded-full text-[11px] font-bold border uppercase tracking-wide truncate max-w-full ${tierInfo.badgeBg}`}
                   >
                     {tierInfo.label}
                   </span>
@@ -488,12 +488,12 @@ export default function AvatarPicker({ selected, onSelect, userStats }: AvatarPi
             </div>
 
             <div className="space-y-1">
-              <h3 className="font-display font-extrabold text-lg text-cream">{lockedModalItem.label}</h3>
+              <h3 className="font-display font-bold text-lg text-cream">{lockedModalItem.label}</h3>
               <p className="text-xs text-cream-dim">This gaming identity is locked in your progression vault.</p>
             </div>
 
             <div className="p-3.5 rounded-xl bg-ink/60 border border-line text-xs space-y-1.5">
-              <span className="font-bold text-gold uppercase tracking-wider block text-[10px]">
+              <span className="font-bold text-gold uppercase tracking-wide block text-[11px]">
                 Unlock Requirement
               </span>
               <p className="text-cream font-medium">{lockedModalItem.unlockRequirement}</p>
@@ -578,7 +578,7 @@ export default function AvatarPicker({ selected, onSelect, userStats }: AvatarPi
                   value={adminSvg}
                   onChange={(e) => setAdminSvg(e.target.value)}
                   placeholder='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">...</svg>'
-                  className="w-full px-3 py-2 rounded-xl bg-ink border border-line text-cream font-mono text-[11px] focus:border-emerald-400"
+                  className="w-full px-3 py-2 rounded-xl bg-ink border border-line text-cream tabular-nums text-[11px] focus:border-emerald-400"
                 />
               </div>
 

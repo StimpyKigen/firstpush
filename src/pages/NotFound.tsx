@@ -18,8 +18,8 @@ export default function NotFound() {
         </div>
 
         <div className="space-y-2">
-          <span className="text-xs font-mono font-black uppercase tracking-wider text-gold">Error 404</span>
-          <h1 className="text-2xl font-display font-black text-cream">Page Not Found</h1>
+          <span className="text-xs tabular-nums font-bold uppercase tracking-wide text-gold">Error 404</span>
+          <h1 className="text-2xl font-display font-bold text-cream">Page Not Found</h1>
           <p className="text-xs text-cream-dim leading-relaxed">
             The slip or page you are looking for has been moved, expired, or doesn't exist in our arena.
           </p>
@@ -62,7 +62,7 @@ export default function NotFound() {
         <div className="pt-4 border-t border-line">
           <Link
             to="/"
-            className="inline-flex items-center gap-2 text-xs font-black text-gold hover:underline"
+            className="inline-flex items-center gap-2 text-xs font-bold text-gold hover:underline"
           >
             <ArrowLeft size={14} />
             <span>Return to MshindiRoom Arena</span>

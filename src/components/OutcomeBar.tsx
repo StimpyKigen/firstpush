@@ -56,15 +56,15 @@ export default function OutcomeBar({
                 transform: isMajority ? 'scale(1.03)' : 'scale(1)',
               }}
             >
-              <span className="font-mono text-[10px] font-bold uppercase tracking-wider" style={{ color: isMajority ? o.color : '#5d6c7b' }}>
+              <span className="tabular-nums text-[11px] font-bold uppercase tracking-wide" style={{ color: isMajority ? o.color : '#5d6c7b' }}>
                 {o.short} · {o.label}
               </span>
-              <span className="font-display font-extrabold text-2xl sm:text-3xl leading-none" style={{ color: isMajority ? o.color : '#1c1e21' }}>
+              <span className="font-display font-bold text-2xl sm:text-3xl leading-none" style={{ color: isMajority ? o.color : '#1c1e21' }}>
                 {val}%
               </span>
-              <div className="mt-1 px-2.5 py-0.5 rounded-full bg-[#FFFFF0] border border-line flex items-center gap-1.5 text-[10px] font-mono font-bold shadow-2xs">
-                <span className="text-cream-dim text-[9px] uppercase">Odds</span>
-                <span className="text-[#8A6500] font-extrabold">{oddsVal.toFixed(2)}</span>
+              <div className="mt-1 px-2.5 py-0.5 rounded-full bg-[#FFFFF0] border border-line flex items-center gap-1.5 text-[11px] tabular-nums font-bold shadow-2xs">
+                <span className="text-cream-dim text-[11px] uppercase">Odds</span>
+                <span className="text-[#8A6500] font-bold">{oddsVal.toFixed(2)}</span>
               </div>
             </div>
           );
@@ -79,7 +79,7 @@ export default function OutcomeBar({
       </div>
 
       {bookmaker && (
-        <div className="text-[10px] font-mono text-right text-cream-dim/70">
+        <div className="text-[11px] tabular-nums text-right text-cream-dim/70">
           Official Bookmaker Odds source: <span className="text-cream font-semibold">{bookmaker}</span>
         </div>
       )}

@@ -125,12 +125,12 @@ export default function BetSlipCard({ post, index, onOpenProfile }: BetSlipCardP
           {/* Bookmaker Badge & Tags (Clean Text Directly on Card) */}
           <div className="flex flex-wrap gap-2 items-center justify-end text-xs">
             {hasBuiltSlip && (
-              <span className="text-[11px] font-black uppercase tracking-wider text-[#006C54] flex items-center gap-1">
+              <span className="text-[11px] font-bold uppercase tracking-wide text-[#006C54] flex items-center gap-1">
                 <Dices size={12} /> Bet Builder
               </span>
             )}
             {hasBuiltSlip && <span className="text-slate-300">·</span>}
-            <span className="text-[11px] font-black uppercase tracking-wider text-slate-700">
+            <span className="text-[11px] font-bold uppercase tracking-wide text-slate-700">
               {bookmakerName}
             </span>
             {post.tags.map((tag) => (
@@ -156,13 +156,13 @@ export default function BetSlipCard({ post, index, onOpenProfile }: BetSlipCardP
           <div className="rounded-xl border border-gold/30 bg-ink/80 p-3.5 space-y-3">
             <div className="flex items-center justify-between pb-2 border-b border-line/60">
               <div className="flex items-center gap-2">
-                <span className="text-xs font-black uppercase tracking-wider text-gold flex items-center gap-1.5">
+                <span className="text-xs font-bold uppercase tracking-wide text-gold flex items-center gap-1.5">
                   <Layers size={14} className="text-gold" />
                   {post.builtSlip.legs.length}-Leg Accumulator
                 </span>
               </div>
               <div className="flex items-center gap-2">
-                <span className="text-xs font-extrabold text-cream bg-gold/20 border border-gold/40 px-2.5 py-0.5 rounded-full font-mono">
+                <span className="text-xs font-bold text-cream bg-gold/20 border border-gold/40 px-2.5 py-0.5 rounded-full tabular-nums">
                   @{post.builtSlip.totalOdds.toFixed(2)} Total Odds
                 </span>
               </div>
@@ -178,7 +178,7 @@ export default function BetSlipCard({ post, index, onOpenProfile }: BetSlipCardP
                     className="bg-panel/90 border border-line/80 rounded-xl p-2.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs"
                   >
                     <div className="min-w-0">
-                      <div className="flex items-center gap-1.5 text-[10px] text-cream-dim uppercase font-bold tracking-tight">
+                      <div className="flex items-center gap-1.5 text-[11px] text-cream-dim uppercase font-bold tracking-tight">
                         <span className="text-gold/90">{leg.competition}</span>
                         <span>•</span>
                         <span>{leg.kickoff}</span>
@@ -190,10 +190,10 @@ export default function BetSlipCard({ post, index, onOpenProfile }: BetSlipCardP
 
                     <div className="flex items-center justify-between sm:justify-end gap-3 shrink-0 pt-1 sm:pt-0 border-t sm:border-t-0 border-line/40">
                       <div className="text-right">
-                        <span className="text-[10px] text-cream-dim uppercase block font-semibold">{leg.market}</span>
-                        <span className="font-extrabold text-gold">{leg.pick}</span>
+                        <span className="text-[11px] text-cream-dim uppercase block font-semibold">{leg.market}</span>
+                        <span className="font-bold text-gold">{leg.pick}</span>
                       </div>
-                      <div className="font-mono font-bold text-cream bg-ink px-2 py-1 rounded-lg border border-line text-xs">
+                      <div className="tabular-nums font-bold text-cream bg-ink px-2 py-1 rounded-lg border border-line text-xs">
                         {leg.odds.toFixed(2)}
                       </div>
 
@@ -239,10 +239,10 @@ export default function BetSlipCard({ post, index, onOpenProfile }: BetSlipCardP
               <div className="space-y-3">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 bg-panel border border-line/80 rounded-xl p-3">
                   <div className="min-w-0">
-                    <span className="text-[10px] font-extrabold uppercase text-cream-dim tracking-wider block">
+                    <span className="text-[11px] font-bold uppercase text-cream-dim tracking-wide block">
                       {bookmakerName} Official Slip Link
                     </span>
-                    <p className="text-xs font-mono text-gold truncate mt-0.5" title={post.url}>
+                    <p className="text-xs tabular-nums text-gold truncate mt-0.5" title={post.url}>
                       {post.url}
                     </p>
                   </div>
@@ -261,7 +261,7 @@ export default function BetSlipCard({ post, index, onOpenProfile }: BetSlipCardP
                   onClick={() => setShowPreviewModal(true)}
                   className="group relative cursor-pointer overflow-hidden rounded-xl border border-emerald-500/30 bg-emerald-950/20 p-3 hover:border-emerald-500/60 transition-all text-center space-y-1.5"
                 >
-                  <div className="flex items-center justify-center gap-2 text-emerald-300 font-extrabold text-xs">
+                  <div className="flex items-center justify-center gap-2 text-emerald-300 font-bold text-xs">
                     <Globe size={15} className="animate-pulse" />
                     <span>Interactive Preview ({bookmakerName})</span>
                   </div>
@@ -286,10 +286,10 @@ export default function BetSlipCard({ post, index, onOpenProfile }: BetSlipCardP
               <div className="bg-panel border border-gold/30 rounded-xl p-3.5 space-y-2">
                 <div className="flex items-center justify-between gap-2">
                   <div>
-                    <span className="text-[10px] font-extrabold uppercase text-gold tracking-wider">
+                    <span className="text-[11px] font-bold uppercase text-gold tracking-wide">
                       {bookmakerName} Booking Code
                     </span>
-                    <div className="font-mono font-black text-lg text-cream tracking-wide mt-0.5">
+                    <div className="tabular-nums font-bold text-lg text-cream tracking-wide mt-0.5">
                       {post.url}
                     </div>
                   </div>
@@ -304,7 +304,7 @@ export default function BetSlipCard({ post, index, onOpenProfile }: BetSlipCardP
                 </div>
 
                 <p className="text-[11px] text-cream-dim leading-relaxed">
-                  Open {bookmakerName} app or website and load code <strong className="text-gold font-mono">{post.url}</strong>.
+                  Open {bookmakerName} app or website and load code <strong className="text-gold tabular-nums">{post.url}</strong>.
                 </p>
               </div>
             )}
@@ -361,7 +361,7 @@ export default function BetSlipCard({ post, index, onOpenProfile }: BetSlipCardP
             className="bg-panel border border-line rounded-2xl w-full max-w-md p-5 space-y-4 shadow-2xl relative"
           >
             <div className="flex items-center justify-between pb-3 border-b border-line">
-              <h3 className="font-display font-extrabold text-base text-cream flex items-center gap-2">
+              <h3 className="font-display font-bold text-base text-cream flex items-center gap-2">
                 <Edit3 size={18} className="text-gold" />
                 Attach Booking Code or Link
               </h3>
@@ -389,7 +389,7 @@ export default function BetSlipCard({ post, index, onOpenProfile }: BetSlipCardP
                       onClick={() => setAttachBookmaker(b)}
                       className={`text-xs font-bold py-1.5 px-2 rounded-xl border text-center transition-all ${
                         attachBookmaker === b
-                          ? 'bg-gold text-ink border-gold font-extrabold'
+                          ? 'bg-gold text-ink border-gold font-bold'
                           : 'bg-ink border-line text-cream-dim hover:text-cream'
                       }`}
                     >
@@ -406,7 +406,7 @@ export default function BetSlipCard({ post, index, onOpenProfile }: BetSlipCardP
                   value={attachCode}
                   onChange={(e) => setAttachCode(e.target.value)}
                   placeholder="e.g. SP-88120 or A8B9C22"
-                  className="w-full bg-ink border border-line rounded-xl px-3 py-2 text-sm text-cream placeholder:text-cream-dim/50 focus:outline-none focus:border-gold font-mono"
+                  className="w-full bg-ink border border-line rounded-xl px-3 py-2 text-sm text-cream placeholder:text-cream-dim/50 focus:outline-none focus:border-gold tabular-nums"
                 />
               </div>
 

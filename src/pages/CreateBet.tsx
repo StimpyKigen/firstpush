@@ -83,7 +83,7 @@ export default function CreateBet() {
         <div className="w-16 h-16 mx-auto rounded-2xl bg-emerald-2/10 border border-emerald-2/30 flex items-center justify-center mb-5 animate-pulse-ring">
           <PartyPopper className="text-emerald-2" size={28} />
         </div>
-        <h1 className="font-display font-extrabold text-2xl sm:text-3xl text-cream mb-2">Bet Created!</h1>
+        <h1 className="font-display font-bold text-2xl sm:text-3xl text-cream mb-2">Bet Created!</h1>
         <p className="text-cream-dim text-sm mb-6">
           Your stake of <span className="text-gold font-bold">Ksh {creatorStake}</span> is now held securely in escrow.
           Share this invite code with your friend so they can accept the challenge.
@@ -92,7 +92,7 @@ export default function CreateBet() {
         <div className="bg-panel border border-gold/30 rounded-2xl p-6 mb-6">
           <p className="text-xs text-cream-dim uppercase tracking-wide font-semibold mb-2">Invite Code</p>
           <div className="flex items-center justify-center gap-3">
-            <span className="font-mono font-extrabold text-4xl tracking-[0.2em] text-gold">{createdCode}</span>
+            <span className="tabular-nums font-bold text-4xl tracking-wide text-gold">{createdCode}</span>
             <button onClick={copyCode} className="bg-panel-2 border border-line rounded-lg p-2.5 hover:border-gold/50 transition-colors">
               {copied ? <Check size={18} className="text-emerald-2" /> : <Copy size={18} className="text-cream-dim" />}
             </button>
@@ -124,7 +124,7 @@ export default function CreateBet() {
         <span className="inline-flex items-center gap-1.5 bg-panel border border-gold/30 text-gold text-xs font-bold px-3 py-1.5 rounded-full mb-4">
           <Swords size={13} /> Create a Peer-to-Peer Bet
         </span>
-        <h1 className="font-display font-extrabold text-3xl text-cream">You Set The Terms</h1>
+        <h1 className="font-display font-bold text-3xl text-cream">You Set The Terms</h1>
         <p className="text-cream-dim text-sm mt-2">No pre-built markets: decide exactly what you're betting on, the odds, and the stake.</p>
       </div>
 
@@ -196,7 +196,7 @@ export default function CreateBet() {
               type="number"
               value={creatorStake}
               onChange={(e) => { setCreatorStake(Number(e.target.value)); setError(''); }}
-              className="w-full bg-ink border border-line rounded-lg px-3 py-2.5 text-sm font-mono text-cream focus:outline-none focus:border-gold"
+              className="w-full bg-ink border border-line rounded-lg px-3 py-2.5 text-sm tabular-nums text-cream focus:outline-none focus:border-gold"
             />
           </div>
           <div>
@@ -205,7 +205,7 @@ export default function CreateBet() {
               type="number"
               value={opponentStake}
               onChange={(e) => { setOpponentStake(Number(e.target.value)); setError(''); }}
-              className="w-full bg-ink border border-line rounded-lg px-3 py-2.5 text-sm font-mono text-cream focus:outline-none focus:border-gold"
+              className="w-full bg-ink border border-line rounded-lg px-3 py-2.5 text-sm tabular-nums text-cream focus:outline-none focus:border-gold"
             />
           </div>
         </div>

@@ -64,7 +64,7 @@ export default function InviteModal({ isOpen, onClose }: InviteModalProps) {
             <span className="text-xs font-bold text-gold uppercase tracking-wide flex items-center gap-1.5">
               <Coins size={15} /> Referral Bonus
             </span>
-            <span className="text-xs font-mono font-bold text-cream bg-panel border border-line px-2.5 py-0.5 rounded-full">
+            <span className="text-xs tabular-nums font-bold text-cream bg-panel border border-line px-2.5 py-0.5 rounded-full">
               Your Tokens: <span className="text-gold">{mshindiTokens} MT</span>
             </span>
           </div>
@@ -79,9 +79,9 @@ export default function InviteModal({ isOpen, onClose }: InviteModalProps) {
 
         {/* Invite Link Copy Box */}
         <div className="space-y-1.5">
-          <label className="text-[11px] font-bold text-cream-dim uppercase tracking-wider">Your Personal Sharable Link</label>
+          <label className="text-[11px] font-bold text-cream-dim uppercase tracking-wide">Your Personal Sharable Link</label>
           <div className="bg-ink-2 border border-line rounded-xl p-2.5 flex items-center justify-between gap-2">
-            <span className="text-xs font-mono text-gold truncate">{inviteUrl}</span>
+            <span className="text-xs tabular-nums text-gold truncate">{inviteUrl}</span>
             <button
               onClick={handleCopy}
               className="py-1.5 px-3 rounded-lg bg-gold hover:bg-gold-2 text-ink font-bold text-xs flex items-center gap-1 shrink-0 transition-colors"

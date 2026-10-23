@@ -286,7 +286,7 @@ export default function Profile() {
         </div>
 
         {/* Username */}
-        <h1 className="font-display font-extrabold text-2xl sm:text-3xl text-white tracking-tight flex items-center justify-center gap-1.5">
+        <h1 className="font-display font-bold text-2xl sm:text-3xl text-white tracking-tight flex items-center justify-center gap-1.5">
           {currentUser.username}
         </h1>
 
@@ -298,18 +298,18 @@ export default function Profile() {
         {/* Social / Accuracy Stats Pills */}
         <div className="flex items-center justify-center gap-3 mt-4 pt-4 border-t border-white/10 w-full max-w-sm">
           <div className="text-center flex-1">
-            <p className="font-mono font-bold text-base text-white">{followers}</p>
-            <p className="text-[10px] text-white/60 font-semibold uppercase tracking-wider">Followers</p>
+            <p className="tabular-nums font-bold text-base text-white">{followers}</p>
+            <p className="text-[11px] text-white/60 font-semibold uppercase tracking-wide">Followers</p>
           </div>
           <div className="w-px h-6 bg-white/15" />
           <div className="text-center flex-1">
-            <p className="font-mono font-bold text-base text-white">{following}</p>
-            <p className="text-[10px] text-white/60 font-semibold uppercase tracking-wider">Following</p>
+            <p className="tabular-nums font-bold text-base text-white">{following}</p>
+            <p className="text-[11px] text-white/60 font-semibold uppercase tracking-wide">Following</p>
           </div>
           <div className="w-px h-6 bg-white/15" />
           <div className="text-center flex-1">
-            <p className="font-mono font-bold text-base text-emerald-400">{punterStats.accuracyPct}%</p>
-            <p className="text-[10px] text-white/60 font-semibold uppercase tracking-wider">Accuracy</p>
+            <p className="tabular-nums font-bold text-base text-emerald-400">{punterStats.accuracyPct}%</p>
+            <p className="text-[11px] text-white/60 font-semibold uppercase tracking-wide">Accuracy</p>
           </div>
         </div>
       </div>
@@ -407,8 +407,8 @@ export default function Profile() {
                 <div className="flex items-center gap-3 min-w-0">
                   <WalletIcon size={22} className="text-[#006C54] shrink-0 stroke-[2.2]" />
                   <div className="min-w-0">
-                    <p className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Wallet Balance</p>
-                    <p className="font-display font-extrabold text-2xl text-slate-900 tracking-tight leading-tight">
+                    <p className="text-[11px] font-bold uppercase tracking-wide text-slate-500">Wallet Balance</p>
+                    <p className="font-display font-bold text-2xl text-slate-900 tracking-tight leading-tight">
                       Ksh {balance.toLocaleString()}
                     </p>
                   </div>
@@ -443,7 +443,7 @@ export default function Profile() {
                 </div>
 
                 <div className="flex items-center gap-2 shrink-0">
-                  <span className="font-mono font-bold text-xs text-[#8A6500] bg-[#EEAA04]/20 px-2.5 py-0.5 rounded-full">
+                  <span className="tabular-nums font-bold text-xs text-[#8A6500] bg-[#EEAA04]/20 px-2.5 py-0.5 rounded-full">
                     {mshindiTokens} MT
                   </span>
                   <ChevronRight size={17} className="text-slate-400 group-hover:text-slate-600 transition-colors" />
@@ -500,12 +500,12 @@ export default function Profile() {
                           </span>
                           <div className="min-w-0">
                             <p className="text-xs font-bold text-slate-800 truncate">{tx.label}</p>
-                            <p className="text-[10px] text-slate-400">{tx.time}</p>
+                            <p className="text-[11px] text-slate-400">{tx.time}</p>
                           </div>
                         </div>
 
                         <span
-                          className={`text-xs font-mono font-bold shrink-0 ${
+                          className={`text-xs tabular-nums font-bold shrink-0 ${
                             tx.amount > 0 ? 'text-[#006C54]' : 'text-slate-600'
                           }`}
                         >
@@ -546,7 +546,7 @@ export default function Profile() {
                   <p className="text-xs text-slate-500 font-normal truncate">Verified mobile credentials</p>
                 </div>
 
-                <span className="font-mono text-xs font-bold text-slate-700 bg-slate-100 px-2.5 py-1 rounded-md shrink-0">
+                <span className="tabular-nums text-xs font-bold text-slate-700 bg-slate-100 px-2.5 py-1 rounded-md shrink-0">
                   {currentUser.phone}
                 </span>
               </div>
@@ -613,7 +613,7 @@ export default function Profile() {
 
               {/* Follow Mshindi Social Icons */}
               <div className="flex flex-col items-center gap-2 pt-1">
-                <p className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400">Follow Mshindi</p>
+                <p className="text-[11px] font-bold uppercase tracking-wide text-slate-400">Follow Mshindi</p>
                 <div className="flex items-center justify-center gap-2.5">
                   {/* Instagram */}
                   <a
@@ -664,7 +664,7 @@ export default function Profile() {
                     <Facebook size={14} />
                   </a>
                 </div>
-                <p className="text-[10px] text-slate-400 mt-1 mb-0 pb-0">© 2026 MshindiRoom · 18+</p>
+                <p className="text-[11px] text-slate-400 mt-1 mb-0 pb-0">© 2026 MshindiRoom · 18+</p>
               </div>
             </div>
 

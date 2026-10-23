@@ -391,7 +391,7 @@ export default function AdminFixturesManager() {
             <h3 className="font-semibold text-lg text-slate-900 tracking-tight">
               Fixture Slate &amp; PDF Parser
             </h3>
-            <span className="bg-[#E8F5EE] text-[#006C54] text-[10.5px] uppercase font-bold px-2.5 py-0.5 rounded-full">
+            <span className="bg-[#E8F5EE] text-[#006C54] text-[11px] uppercase font-bold px-2.5 py-0.5 rounded-full">
               Automated Categorizer
             </span>
           </div>
@@ -402,8 +402,8 @@ export default function AdminFixturesManager() {
 
         <div className="flex items-center gap-3 shrink-0">
           <div className="bg-white border border-[#E5E5EA] px-3 py-1.5 rounded-xl shadow-2xs text-left">
-            <div className="text-[10px] text-slate-500 uppercase font-semibold">Active Site Slate</div>
-            <div className="text-sm font-mono font-bold text-[#006C54] flex items-center gap-1.5">
+            <div className="text-[11px] text-slate-500 uppercase font-semibold">Active Site Slate</div>
+            <div className="text-sm tabular-nums font-bold text-[#006C54] flex items-center gap-1.5">
               <span className={`w-2 h-2 rounded-full ${currentLiveCount > 0 ? 'bg-[#006C54] animate-pulse' : 'bg-slate-300'}`} />
               {currentLiveCount} {currentLiveCount === 1 ? 'Fixture' : 'Fixtures'} Live
             </div>
@@ -435,7 +435,7 @@ export default function AdminFixturesManager() {
               <h4 className="text-sm font-bold text-slate-900 flex items-center gap-2">
                 <span>Published PDF Batches</span>
                 {publishedBatches.length > 0 && (
-                  <span className="text-[10.5px] px-2 py-0.2 rounded-full bg-[#006C54]/10 text-[#006C54] font-bold">
+                  <span className="text-[11px] px-2 py-0.2 rounded-full bg-[#006C54]/10 text-[#006C54] font-bold">
                     {publishedBatches.length} {publishedBatches.length === 1 ? 'PDF' : 'PDFs'} Active
                   </span>
                 )}
@@ -446,7 +446,7 @@ export default function AdminFixturesManager() {
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <span className="text-xs font-mono px-2.5 py-1 rounded-full bg-white border border-[#DCDCC8] text-slate-700 font-bold">
+            <span className="text-xs tabular-nums px-2.5 py-1 rounded-full bg-white border border-[#DCDCC8] text-slate-700 font-bold">
               {currentLiveCount} Total Fixtures on Slate
             </span>
           </div>
@@ -490,9 +490,9 @@ export default function AdminFixturesManager() {
                     <Trash2 size={13} />
                   </button>
                 </div>
-                <div className="text-[10px] text-slate-400 mt-2.5 pt-2 border-t border-slate-100 flex items-center justify-between">
+                <div className="text-[11px] text-slate-400 mt-2.5 pt-2 border-t border-slate-100 flex items-center justify-between">
                   <span>Published</span>
-                  <span className="font-mono text-slate-600">
+                  <span className="tabular-nums text-slate-600">
                     {new Date(batch.publishedAt).toLocaleDateString(undefined, {
                       month: 'short',
                       day: 'numeric',
@@ -593,7 +593,7 @@ export default function AdminFixturesManager() {
               value={rawTextInput}
               onChange={(e) => setRawTextInput(e.target.value)}
               placeholder={`ENGLAND: Premier League\n5821 2026-10-24 14:30 Arsenal vs Chelsea 1.95 3.60 3.80 1.25 1.28 1.80 1.75 2.05 1.70 2.10\n\nENGLAND: Championship\n5901 2026-10-24 15:00 Leeds United vs Sunderland 1.80 3.50 4.20 1.20 1.28 1.95 1.90 1.90 1.85 1.95`}
-              className="w-full font-mono text-xs p-3 bg-white border border-[#E5E5EA] rounded-xl focus:outline-none focus:border-[#006C54] focus:ring-1 focus:ring-[#006C54]"
+              className="w-full tabular-nums text-xs p-3 bg-white border border-[#E5E5EA] rounded-xl focus:outline-none focus:border-[#006C54] focus:ring-1 focus:ring-[#006C54]"
             />
             <div className="flex items-center gap-2">
               <button
@@ -648,7 +648,7 @@ export default function AdminFixturesManager() {
                   Detected Sectored Leagues ({Object.keys(parseResult.sectoredLeagues).length})
                 </h4>
               </div>
-              <span className="text-xs font-bold text-[#006C54] bg-[#E8F5EE] px-2.5 py-0.5 rounded-full font-mono">
+              <span className="text-xs font-bold text-[#006C54] bg-[#E8F5EE] px-2.5 py-0.5 rounded-full tabular-nums">
                 {parseResult.fixtures.length} Total Fixtures
               </span>
             </div>
@@ -663,7 +663,7 @@ export default function AdminFixturesManager() {
                     <div className="font-bold text-slate-900 truncate">{item.league}</div>
                     <div className="text-[11px] text-slate-500">{item.country}</div>
                   </div>
-                  <span className="font-mono font-bold px-2 py-0.5 rounded-md bg-white border border-slate-200 text-[#006C54] shrink-0">
+                  <span className="tabular-nums font-bold px-2 py-0.5 rounded-md bg-white border border-slate-200 text-[#006C54] shrink-0">
                     {item.count}
                   </span>
                 </div>
@@ -700,7 +700,7 @@ export default function AdminFixturesManager() {
 
             <div className="overflow-x-auto max-h-[380px] overflow-y-auto divide-y divide-slate-100 text-xs">
               <table className="w-full text-left border-collapse">
-                <thead className="bg-[#F5F5F7] text-slate-600 font-semibold text-[11px] uppercase tracking-wider sticky top-0 z-10">
+                <thead className="bg-[#F5F5F7] text-slate-600 font-semibold text-[11px] uppercase tracking-wide sticky top-0 z-10">
                   <tr>
                     <th className="py-2.5 px-3">#</th>
                     <th className="py-2.5 px-3">Kickoff (EAT)</th>
@@ -716,22 +716,22 @@ export default function AdminFixturesManager() {
                 <tbody className="divide-y divide-slate-100 font-normal">
                   {parseResult.fixtures.map((f, idx) => (
                     <tr key={idx} className="hover:bg-slate-50/80 transition-colors">
-                      <td className="py-2.5 px-3 font-mono text-[11px] text-slate-400">
+                      <td className="py-2.5 px-3 tabular-nums text-[11px] text-slate-400">
                         {idx + 1}
                       </td>
-                      <td className="py-2.5 px-3 font-mono text-[11px] text-slate-700 whitespace-nowrap">
+                      <td className="py-2.5 px-3 tabular-nums text-[11px] text-slate-700 whitespace-nowrap">
                         {f.kickoffDisplay}
                       </td>
                       <td className="py-2.5 px-3 whitespace-nowrap">
                         <div className="font-semibold text-slate-900">{f.competition}</div>
-                        <div className="text-[10px] text-slate-500">{f.country}</div>
+                        <div className="text-[11px] text-slate-500">{f.country}</div>
                       </td>
                       <td className="py-2.5 px-3 whitespace-nowrap font-medium text-slate-900">
                         <span>{f.homeTeam}</span>
                         <span className="text-slate-400 mx-1.5 font-normal">vs</span>
                         <span>{f.awayTeam}</span>
                       </td>
-                      <td className="py-2.5 px-3 text-center font-mono whitespace-nowrap">
+                      <td className="py-2.5 px-3 text-center tabular-nums whitespace-nowrap">
                         <span className="px-1.5 py-0.5 rounded bg-slate-100 text-slate-800 font-bold mr-1">
                           {f.odds.homeOdds.toFixed(2)}
                         </span>
@@ -742,13 +742,13 @@ export default function AdminFixturesManager() {
                           {f.odds.awayOdds.toFixed(2)}
                         </span>
                       </td>
-                      <td className="py-2.5 px-3 text-center font-mono text-[11px] text-slate-600 whitespace-nowrap">
+                      <td className="py-2.5 px-3 text-center tabular-nums text-[11px] text-slate-600 whitespace-nowrap">
                         {f.odds.doubleChance1X?.toFixed(2)} / {f.odds.doubleChanceX2?.toFixed(2)}
                       </td>
-                      <td className="py-2.5 px-3 text-center font-mono text-[11px] text-slate-600 whitespace-nowrap">
+                      <td className="py-2.5 px-3 text-center tabular-nums text-[11px] text-slate-600 whitespace-nowrap">
                         O: {f.odds.over25Odds?.toFixed(2)} / U: {f.odds.under25Odds?.toFixed(2)}
                       </td>
-                      <td className="py-2.5 px-3 text-center font-mono text-[11px] text-slate-600 whitespace-nowrap">
+                      <td className="py-2.5 px-3 text-center tabular-nums text-[11px] text-slate-600 whitespace-nowrap">
                         {f.odds.bttsYesOdds?.toFixed(2)} / {f.odds.bttsNoOdds?.toFixed(2)}
                       </td>
                       <td className="py-2.5 px-3 text-right">
@@ -775,7 +775,7 @@ export default function AdminFixturesManager() {
                 type="button"
                 onClick={handlePublishToSlate}
                 disabled={isPublishing}
-                className="px-5 py-2.5 rounded-xl bg-[#006C54] hover:bg-[#005441] text-white font-bold text-xs uppercase tracking-wider flex items-center gap-2 shadow-xs transition-colors cursor-pointer disabled:opacity-50"
+                className="px-5 py-2.5 rounded-xl bg-[#006C54] hover:bg-[#005441] text-white font-bold text-xs uppercase tracking-wide flex items-center gap-2 shadow-xs transition-colors cursor-pointer disabled:opacity-50"
               >
                 {isPublishing ? (
                   <RefreshCw size={14} className="animate-spin" />

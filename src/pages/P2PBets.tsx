@@ -52,7 +52,7 @@ export default function P2PBets() {
         <span className="inline-flex items-center gap-1.5 bg-panel border border-gold/30 text-gold text-xs font-bold px-3 py-1.5 rounded-full mb-4">
           <Swords size={13} /> Peer-to-Peer Betting
         </span>
-        <h1 className="font-display font-extrabold text-3xl sm:text-4xl text-cream">Bet Anyone, On Anything.</h1>
+        <h1 className="font-display font-bold text-3xl sm:text-4xl text-cream">Bet Anyone, On Anything.</h1>
         <p className="text-cream-dim mt-3 max-w-2xl mx-auto leading-relaxed">
           MshindiRoom doesn't set the odds or the market: <span className="text-cream font-semibold">you and your friend do</span>.
           Agree on what you're betting on, the stake, the odds, and who wins. We just hold the funds safely until it's settled.
@@ -106,7 +106,7 @@ export default function P2PBets() {
               onChange={(e) => { setJoinCode(e.target.value.toUpperCase()); setJoinError(''); setJoinSuccess(''); }}
               placeholder="e.g. 7K2QXM"
               maxLength={6}
-              className="flex-1 min-w-0 bg-ink border border-line rounded-lg px-3 py-2.5 text-sm font-mono tracking-widest text-cream placeholder:text-cream-dim/50 focus:outline-none focus:border-emerald-2 uppercase"
+              className="flex-1 min-w-0 bg-ink border border-line rounded-lg px-3 py-2.5 text-sm tabular-nums tracking-wide text-cream placeholder:text-cream-dim/50 focus:outline-none focus:border-emerald-2 uppercase"
             />
             <button
               onClick={handleJoin}
@@ -165,9 +165,9 @@ export default function P2PBets() {
                 style={{ animationDelay: `${i * 60}ms` }}
               >
                 <div className="flex items-center justify-between gap-2">
-                  <span className="text-[10px] font-bold uppercase tracking-wide px-2 py-1 rounded-full bg-panel-2 text-cream-dim">{bet.category}</span>
+                  <span className="text-[11px] font-bold uppercase tracking-wide px-2 py-1 rounded-full bg-panel-2 text-cream-dim">{bet.category}</span>
                   <span
-                    className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wide px-2 py-1 rounded-full border"
+                    className="flex items-center gap-1 text-[11px] font-bold uppercase tracking-wide px-2 py-1 rounded-full border"
                     style={{ color: meta.color, borderColor: `${meta.color}55`, backgroundColor: `${meta.color}18` }}
                   >
                     <StatusIcon size={10} /> {meta.label}

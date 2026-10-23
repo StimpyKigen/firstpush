@@ -61,7 +61,7 @@ export default function SportScoreMatchCenter({ match }: SportScoreMatchCenterPr
       {/* Header & Attribution */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 mb-4 border-b border-[#F0F0E4]">
         <div>
-          <h2 className="font-display font-black text-slate-900 text-base sm:text-lg uppercase tracking-tight flex items-center gap-2">
+          <h2 className="font-display font-bold text-slate-900 text-base sm:text-lg uppercase tracking-tight flex items-center gap-2">
             <Activity size={18} className="text-[#006C54]" />
             <span>SportScore Match Intelligence</span>
           </h2>
@@ -111,7 +111,7 @@ export default function SportScoreMatchCenter({ match }: SportScoreMatchCenterPr
           <Clock size={13} />
           <span>Timeline</span>
           {detail?.incidents && detail.incidents.length > 0 && (
-            <span className="text-[10px] font-mono opacity-80">({detail.incidents.length})</span>
+            <span className="text-[11px] tabular-nums opacity-80">({detail.incidents.length})</span>
           )}
         </button>
 
@@ -163,12 +163,12 @@ export default function SportScoreMatchCenter({ match }: SportScoreMatchCenterPr
         {activeTab === 'lineups' && (
           <div>
             {isLoadingDetail ? (
-              <div className="py-8 text-center text-slate-400 animate-pulse font-mono">
+              <div className="py-8 text-center text-slate-400 animate-pulse tabular-nums">
                 Querying team rosters &amp; tactical formations...
               </div>
             ) : detail?.lineups?.home_xi && detail.lineups.home_xi.length > 0 ? (
               <div className="space-y-4">
-                <div className="flex items-center justify-between bg-white px-4 py-2 rounded-xl border border-[#E6E6D2] font-mono text-xs font-bold text-slate-800">
+                <div className="flex items-center justify-between bg-white px-4 py-2 rounded-xl border border-[#E6E6D2] tabular-nums text-xs font-bold text-slate-800">
                   <span>{match.home}: {detail.lineups.home_formation || '4-3-3'}</span>
                   <span className="text-slate-400 text-xs font-normal">vs</span>
                   <span>{match.away}: {detail.lineups.away_formation || '4-4-2'}</span>
@@ -177,20 +177,20 @@ export default function SportScoreMatchCenter({ match }: SportScoreMatchCenterPr
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   {/* Home Starters */}
                   <div className="bg-white p-3.5 rounded-xl border border-[#E6E6D2]">
-                    <div className="font-black text-[#006C54] uppercase text-xs mb-2 pb-1.5 border-b border-slate-100 flex items-center justify-between">
+                    <div className="font-bold text-[#006C54] uppercase text-xs mb-2 pb-1.5 border-b border-slate-100 flex items-center justify-between">
                       <span>{match.home} Starting XI</span>
                       {detail.lineups.home_coach && (
-                        <span className="text-[10px] font-normal text-slate-500">Coach: {detail.lineups.home_coach}</span>
+                        <span className="text-[11px] font-normal text-slate-500">Coach: {detail.lineups.home_coach}</span>
                       )}
                     </div>
                     <div className="space-y-1.5">
                       {detail.lineups.home_xi.map((p, i) => (
                         <div key={i} className="flex items-center justify-between py-0.5 text-slate-700">
                           <span className="flex items-center gap-2 truncate">
-                            <span className="font-mono text-slate-400 text-xs w-5">{p.number || i + 1}</span>
+                            <span className="tabular-nums text-slate-400 text-xs w-5">{p.number || i + 1}</span>
                             <span className="font-medium truncate">{p.name}</span>
                           </span>
-                          <span className="text-[10px] font-mono font-bold text-slate-500 px-1.5 py-0.2 bg-slate-50 rounded border border-slate-200">
+                          <span className="text-[11px] tabular-nums font-bold text-slate-500 px-1.5 py-0.2 bg-slate-50 rounded border border-slate-200">
                             {p.position || 'M'}
                           </span>
                         </div>
@@ -200,20 +200,20 @@ export default function SportScoreMatchCenter({ match }: SportScoreMatchCenterPr
 
                   {/* Away Starters */}
                   <div className="bg-white p-3.5 rounded-xl border border-[#E6E6D2]">
-                    <div className="font-black text-slate-800 uppercase text-xs mb-2 pb-1.5 border-b border-slate-100 flex items-center justify-between">
+                    <div className="font-bold text-slate-800 uppercase text-xs mb-2 pb-1.5 border-b border-slate-100 flex items-center justify-between">
                       <span>{match.away} Starting XI</span>
                       {detail.lineups.away_coach && (
-                        <span className="text-[10px] font-normal text-slate-500">Coach: {detail.lineups.away_coach}</span>
+                        <span className="text-[11px] font-normal text-slate-500">Coach: {detail.lineups.away_coach}</span>
                       )}
                     </div>
                     <div className="space-y-1.5">
                       {detail.lineups.away_xi?.map((p, i) => (
                         <div key={i} className="flex items-center justify-between py-0.5 text-slate-700">
                           <span className="flex items-center gap-2 truncate">
-                            <span className="font-mono text-slate-400 text-xs w-5">{p.number || i + 1}</span>
+                            <span className="tabular-nums text-slate-400 text-xs w-5">{p.number || i + 1}</span>
                             <span className="font-medium truncate">{p.name}</span>
                           </span>
-                          <span className="text-[10px] font-mono font-bold text-slate-500 px-1.5 py-0.2 bg-slate-50 rounded border border-slate-200">
+                          <span className="text-[11px] tabular-nums font-bold text-slate-500 px-1.5 py-0.2 bg-slate-50 rounded border border-slate-200">
                             {p.position || 'M'}
                           </span>
                         </div>
@@ -238,7 +238,7 @@ export default function SportScoreMatchCenter({ match }: SportScoreMatchCenterPr
         {activeTab === 'timeline' && (
           <div>
             {isLoadingDetail ? (
-              <div className="py-8 text-center text-slate-400 animate-pulse font-mono">
+              <div className="py-8 text-center text-slate-400 animate-pulse tabular-nums">
                 Loading chronological match events...
               </div>
             ) : detail?.incidents && detail.incidents.length > 0 ? (
@@ -260,7 +260,7 @@ export default function SportScoreMatchCenter({ match }: SportScoreMatchCenterPr
                       }`}
                     >
                       <div className="flex items-center gap-2.5">
-                        <span className="font-mono font-black text-xs px-2 py-0.5 rounded bg-white border border-slate-200 text-slate-800">
+                        <span className="tabular-nums font-bold text-xs px-2 py-0.5 rounded bg-white border border-slate-200 text-slate-800">
                           {inc.time}&apos;
                         </span>
                         <span>
@@ -300,12 +300,12 @@ export default function SportScoreMatchCenter({ match }: SportScoreMatchCenterPr
 
             <div className="bg-white p-3 rounded-xl border border-[#E6E6D2]">
               <span className="text-slate-400 font-semibold text-[11px] block">Kickoff Time</span>
-              <span className="font-bold text-slate-900 text-sm font-mono">{match.kickoff}</span>
+              <span className="font-bold text-slate-900 text-sm tabular-nums">{match.kickoff}</span>
             </div>
 
             <div className="bg-white p-3 rounded-xl border border-[#E6E6D2]">
               <span className="text-slate-400 font-semibold text-[11px] block">Halftime Score</span>
-              <span className="font-bold text-slate-900 text-sm font-mono">
+              <span className="font-bold text-slate-900 text-sm tabular-nums">
                 {detail?.home_ht_score !== undefined && detail?.home_ht_score !== null
                   ? `${detail.home_ht_score} - ${detail.away_ht_score}`
                   : 'Pending kickoff'}
@@ -332,12 +332,12 @@ export default function SportScoreMatchCenter({ match }: SportScoreMatchCenterPr
         {activeTab === 'standings' && (
           <div>
             {isLoadingStandings ? (
-              <div className="py-8 text-center text-slate-400 animate-pulse font-mono">
+              <div className="py-8 text-center text-slate-400 animate-pulse tabular-nums">
                 Fetching competition standings...
               </div>
             ) : standings?.tables?.[0]?.rows ? (
               <div className="overflow-x-auto">
-                <table className="w-full text-left text-xs font-mono">
+                <table className="w-full text-left text-xs tabular-nums">
                   <thead>
                     <tr className="border-b border-[#E6E6D2] text-slate-400 text-[11px]">
                       <th className="py-1.5 pr-2 font-bold">#</th>
@@ -360,7 +360,7 @@ export default function SportScoreMatchCenter({ match }: SportScoreMatchCenterPr
                         <tr
                           key={row.pos}
                           className={`transition-colors ${
-                            isMatchTeam ? 'bg-[#006C54]/10 font-black text-slate-900' : 'text-slate-700 hover:bg-[#F5F5E4]'
+                            isMatchTeam ? 'bg-[#006C54]/10 font-bold text-slate-900' : 'text-slate-700 hover:bg-[#F5F5E4]'
                           }`}
                         >
                           <td className="py-1.5 pr-2 font-bold text-slate-500">{row.pos}</td>
@@ -372,7 +372,7 @@ export default function SportScoreMatchCenter({ match }: SportScoreMatchCenterPr
                           <td className="py-1.5 text-center text-slate-600">{row.d}</td>
                           <td className="py-1.5 text-center text-slate-600">{row.l}</td>
                           <td className="py-1.5 text-center text-slate-500">{row.gd > 0 ? `+${row.gd}` : row.gd}</td>
-                          <td className="py-1.5 text-right font-black text-slate-900">{row.pts}</td>
+                          <td className="py-1.5 text-right font-bold text-slate-900">{row.pts}</td>
                         </tr>
                       );
                     })}
