@@ -151,24 +151,116 @@ export const COMPETITION_BANNERS: Record<string, CompetitionBannerConfig> = {
 
 /**
  * Returns the banner configuration if the competition matches a registered banner artwork.
- * Matches UEFA Champions League, UEFA Europa League, UEFA Conference League, English Premier League, Spanish La Liga, French Ligue 1, German Bundesliga, and Italian Serie A fixtures.
+ *
+ * Domestic league banners (Premier League, La Liga, Ligue 1, Bundesliga, Serie A) are awarded
+ * on COUNTRY + LEAGUE together, never on the league name alone. A "Premier League" from
+ * Ukraine, Bahrain or Egypt must never inherit the English Premier League artwork.
+ * Continental competitions (UEFA Champions / Europa / Conference League) are matched by name
+ * because they have no domestic country.
  */
-export function getCompetitionBanner(competition: string, competitionId?: string): CompetitionBannerConfig | null {
-  if (competitionId) {
-    if (competitionId === 'uefa_champions_league') return COMPETITION_BANNERS.uefa_champions_league;
-    if (competitionId === 'uefa_europa_league') return COMPETITION_BANNERS.uefa_europa_league;
-    if (competitionId === 'uefa_conference_league') return COMPETITION_BANNERS.uefa_conference_league;
-    if (competitionId === 'eng_premier_league') return COMPETITION_BANNERS.premier_league;
-    if (competitionId === 'esp_la_liga') return COMPETITION_BANNERS.la_liga;
-    if (competitionId === 'fra_ligue_1') return COMPETITION_BANNERS.ligue_1;
-    if (competitionId === 'ger_bundesliga') return COMPETITION_BANNERS.bundesliga;
-    if (competitionId === 'ita_serie_a') return COMPETITION_BANNERS.serie_a;
+
+/** Lower-case, accent-free, punctuation-free key used for exact name comparisons. */
+function bannerKey(value: string | undefined): string {
+  return (value || '')
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9]+/g, ' ')
+    .trim();
+}
+
+/** Country spellings that identify each domestic banner league's home country. */
+const BANNER_COUNTRY_NAMES: Record<string, string[]> = {
+  premier_league: ['england', 'english', 'united kingdom', 'uk', 'great britain', 'gb eng'],
+  la_liga: ['spain', 'spanish', 'espana'],
+  ligue_1: ['france', 'french'],
+  bundesliga: ['germany', 'german', 'deutschland'],
+  serie_a: ['italy', 'italian', 'italia'],
+};
+
+/** Exact league titles (normalised) that qualify for a domestic banner when the country matches. */
+const BANNER_LEAGUE_NAMES: Record<string, string[]> = {
+  premier_league: ['premier league', 'english premier league', 'epl', 'barclays premier league'],
+  la_liga: ['la liga', 'laliga', 'spanish la liga', 'primera division', 'la liga ea sports', 'laliga ea sports'],
+  ligue_1: ['ligue 1', 'french ligue 1', 'france ligue 1', 'ligue 1 uber eats', 'league 1'],
+  bundesliga: ['bundesliga', 'german bundesliga', '1 bundesliga'],
+  serie_a: ['serie a', 'italian serie a', 'serie a tim', 'serie a enilive'],
+};
+
+/** Titles that already carry the country adjective, so they are safe without a country field. */
+const BANNER_SELF_QUALIFIED: Record<string, string[]> = {
+  premier_league: ['english premier league', 'epl', 'barclays premier league'],
+  la_liga: ['spanish la liga', 'la liga ea sports', 'laliga ea sports'],
+  ligue_1: ['french ligue 1', 'france ligue 1'],
+  bundesliga: ['german bundesliga'],
+  serie_a: ['italian serie a'],
+};
+
+/** Canonical competition ids, with the country each one belongs to. */
+const BANNER_BY_ID: Record<string, keyof typeof COMPETITION_BANNERS> = {
+  uefa_champions_league: 'uefa_champions_league',
+  uefa_europa_league: 'uefa_europa_league',
+  uefa_conference_league: 'uefa_conference_league',
+  eng_premier_league: 'premier_league',
+  esp_la_liga: 'la_liga',
+  fra_ligue_1: 'ligue_1',
+  ger_bundesliga: 'bundesliga',
+  ita_serie_a: 'serie_a',
+};
+
+/** Countries / scopes that mean "no specific domestic country" (continental or unknown). */
+const NON_DOMESTIC_COUNTRIES = new Set([
+  '',
+  'general',
+  'other',
+  'europe',
+  'uefa',
+  'world',
+  'international',
+  'international clubs',
+]);
+
+export function getCompetitionBanner(
+  competition: string,
+  competitionId?: string,
+  country?: string
+): CompetitionBannerConfig | null {
+  const countryKey = bannerKey(country);
+  const hasDomesticCountry = !NON_DOMESTIC_COUNTRIES.has(countryKey);
+
+  // 1. Canonical id (verified by the parser / provider). Domestic ids must agree with the country.
+  if (competitionId && BANNER_BY_ID[competitionId]) {
+    const bannerKeyName = BANNER_BY_ID[competitionId];
+    const homeCountries = BANNER_COUNTRY_NAMES[bannerKeyName];
+    if (!homeCountries || !hasDomesticCountry || homeCountries.includes(countryKey)) {
+      return COMPETITION_BANNERS[bannerKeyName];
+    }
+    return null;
   }
 
   if (!competition) return null;
   const comp = competition.toLowerCase().trim();
+  const compKey = bannerKey(competition);
 
-  // 1. UEFA Champions League
+  // 2. Domestic leagues: league title AND country must both match.
+  for (const bannerName of Object.keys(BANNER_LEAGUE_NAMES) as Array<keyof typeof BANNER_LEAGUE_NAMES>) {
+    if (!BANNER_LEAGUE_NAMES[bannerName].includes(compKey)) continue;
+    if (hasDomesticCountry) {
+      if (BANNER_COUNTRY_NAMES[bannerName].includes(countryKey)) {
+        return COMPETITION_BANNERS[bannerName as keyof typeof COMPETITION_BANNERS];
+      }
+      return null; // same league name, different country: no banner
+    }
+    // No country information: only accept titles that already name the country.
+    if (BANNER_SELF_QUALIFIED[bannerName].includes(compKey)) {
+      return COMPETITION_BANNERS[bannerName as keyof typeof COMPETITION_BANNERS];
+    }
+    return null;
+  }
+
+  // 3. Continental UEFA competitions never belong to a domestic country.
+  if (hasDomesticCountry) return null;
+
   if (
     (comp.includes('champions league') || comp.includes('ucl')) &&
     !comp.includes('caf') &&
@@ -185,7 +277,6 @@ export function getCompetitionBanner(competition: string, competitionId?: string
     return COMPETITION_BANNERS.uefa_champions_league;
   }
 
-  // 2. UEFA Europa League
   if (
     (comp.includes('europa league') || comp.includes('uel')) &&
     !comp.includes('conference') &&
@@ -198,7 +289,6 @@ export function getCompetitionBanner(competition: string, competitionId?: string
     return COMPETITION_BANNERS.uefa_europa_league;
   }
 
-  // 3. UEFA Conference League
   if (
     (comp.includes('conference league') || comp.includes('uecl')) &&
     !comp.includes('women') &&
@@ -208,132 +298,6 @@ export function getCompetitionBanner(competition: string, competitionId?: string
     !comp.includes('u21')
   ) {
     return COMPETITION_BANNERS.uefa_conference_league;
-  }
-
-  // 4. English Premier League
-  if (
-    (comp === 'premier league' ||
-      comp.startsWith('premier league') ||
-      comp.includes('english premier league') ||
-      comp === 'epl' ||
-      comp.startsWith('epl ')) &&
-    !comp.includes('egypt') &&
-    !comp.includes('kenya') &&
-    !comp.includes('kazakhstan') &&
-    !comp.includes('russia') &&
-    !comp.includes('ghana') &&
-    !comp.includes('south africa') &&
-    !comp.includes('singapore') &&
-    !comp.includes('israel') &&
-    !comp.includes('women') &&
-    !comp.includes('youth') &&
-    !comp.includes('u18') &&
-    !comp.includes('u19') &&
-    !comp.includes('u20') &&
-    !comp.includes('u21') &&
-    !comp.includes('u23') &&
-    !comp.includes('2')
-  ) {
-    return COMPETITION_BANNERS.premier_league;
-  }
-
-  // 5. Spanish La Liga
-  if (
-    (comp === 'la liga' ||
-      comp === 'laliga' ||
-      comp === 'spanish la liga' ||
-      comp.startsWith('la liga') ||
-      comp.startsWith('laliga') ||
-      comp === 'primera division' ||
-      comp.startsWith('primera division')) &&
-    !comp.includes('argentina') &&
-    !comp.includes('costa rica') &&
-    !comp.includes('chile') &&
-    !comp.includes('uruguay') &&
-    !comp.includes('paraguay') &&
-    !comp.includes('colombia') &&
-    !comp.includes('bolivia') &&
-    !comp.includes('venezuela') &&
-    !comp.includes('peru') &&
-    !comp.includes('segunda') &&
-    !comp.includes('laliga 2') &&
-    !comp.includes('laliga2') &&
-    !comp.includes('rfef') &&
-    !comp.includes('women') &&
-    !comp.includes('femenina') &&
-    !comp.includes('liga f')
-  ) {
-    return COMPETITION_BANNERS.la_liga;
-  }
-
-  // 6. French Ligue 1
-  if (
-    (comp === 'ligue 1' ||
-      comp === 'french ligue 1' ||
-      comp === 'france ligue 1' ||
-      comp === 'france league 1' ||
-      comp === 'french league 1' ||
-      comp.startsWith('ligue 1') ||
-      comp.includes('ligue 1') ||
-      comp.includes('league 1') ||
-      comp === 'ligue1' ||
-      comp.startsWith('ligue1')) &&
-    !comp.includes('ligue 2') &&
-    !comp.includes('league 2') &&
-    !comp.includes('ivory coast') &&
-    !comp.includes('congo') &&
-    !comp.includes('senegal') &&
-    !comp.includes('tunisia') &&
-    !comp.includes('algeria') &&
-    !comp.includes('women') &&
-    !comp.includes('feminine') &&
-    !comp.includes('u19')
-  ) {
-    return COMPETITION_BANNERS.ligue_1;
-  }
-
-  // 7. German Bundesliga
-  if (
-    (comp === 'bundesliga' ||
-      comp === 'german bundesliga' ||
-      comp === 'germany bundesliga' ||
-      comp.startsWith('bundesliga') ||
-      comp.includes('bundesliga')) &&
-    !comp.includes('2. bundesliga') &&
-    !comp.includes('2 bundesliga') &&
-    !comp.includes('bundesliga 2') &&
-    !comp.includes('austria') &&
-    !comp.includes('women') &&
-    !comp.includes('frauen') &&
-    !comp.includes('u19') &&
-    !comp.includes('u17')
-  ) {
-    return COMPETITION_BANNERS.bundesliga;
-  }
-
-  // 8. Italian Serie A
-  if (
-    (comp === 'serie a' ||
-      comp === 'italian serie a' ||
-      comp === 'italy serie a' ||
-      comp === 'italian seria a' ||
-      comp === 'seria a' ||
-      comp.startsWith('serie a') ||
-      comp.startsWith('seria a') ||
-      comp.includes('serie a') ||
-      comp.includes('seria a')) &&
-    !comp.includes('serie b') &&
-    !comp.includes('serie c') &&
-    !comp.includes('serie d') &&
-    !comp.includes('brazil') &&
-    !comp.includes('brasil') &&
-    !comp.includes('ecuador') &&
-    !comp.includes('women') &&
-    !comp.includes('femminile') &&
-    !comp.includes('u19') &&
-    !comp.includes('primavera')
-  ) {
-    return COMPETITION_BANNERS.serie_a;
   }
 
   return null;

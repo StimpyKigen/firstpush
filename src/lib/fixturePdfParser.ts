@@ -9,6 +9,7 @@
  */
 
 import { resolveCanonicalCompetition } from './canonicalCompetitions';
+import { PDF_LITERAL_STRING_SOURCE, decodePdfLiteralBody, decodePdfHexBody } from './pdfTextDecode';
 import { resolveSportScoreDirectoryId } from './leagueDirectory';
 import type { MarketFixture } from './sportsFeedService';
 
@@ -183,7 +184,7 @@ function parseCoordinateTextStream(content: string): string {
     const x = tdMatch ? parseFloat(tdMatch[1] ?? tdMatch[3] ?? '0') : 0;
     const y = tdMatch ? parseFloat(tdMatch[2] ?? tdMatch[4] ?? '0') : 0;
 
-    const tjMatch = /\(([\s\S]*?)\)\s*(?:Tj|'|")/.exec(block);
+    const tjMatch = new RegExp(PDF_LITERAL_STRING_SOURCE + '\\s*(?:Tj|\'|")').exec(block);
     if (tjMatch) {
       const decoded = decodePdfLiteralString(tjMatch[1]);
       if (decoded) {
@@ -229,56 +230,11 @@ function parseCoordinateTextStream(content: string): string {
 }
 
 export function decodePdfLiteralString(str: string): string {
-  let s = str;
-  if (s.startsWith('\xFE\xFF') || (s.length >= 2 && s.charCodeAt(0) === 0xfe && s.charCodeAt(1) === 0xff)) {
-    s = s.slice(2);
-  }
-
-  if (s.includes('\0') || (s.length >= 2 && s.length % 2 === 0 && s.charCodeAt(0) === 0)) {
-    let decoded = '';
-    for (let i = 0; i < s.length; i += 2) {
-      const code = (s.charCodeAt(i) << 8) | (i + 1 < s.length ? s.charCodeAt(i + 1) : 0);
-      if (code >= 32 && code <= 126) {
-        decoded += String.fromCharCode(code);
-      } else if (code === 10 || code === 13 || code === 9) {
-        decoded += ' ';
-      }
-    }
-    return decoded.trim();
-  }
-
-  return s
-    .replace(/\\([()\\])/g, '$1')
-    .replace(/\\n/g, '\n')
-    .replace(/\\r/g, '\r')
-    .replace(/\\t/g, '\t')
-    .trim();
+  return decodePdfLiteralBody(str);
 }
 
 function decodeHexPdfString(hex: string): string {
-  const clean = hex.replace(/\s+/g, '');
-  if (clean.length >= 4 && clean.length % 4 === 0) {
-    let isUtf16 = true;
-    let decoded = '';
-    for (let i = 0; i < clean.length; i += 4) {
-      const code = parseInt(clean.slice(i, i + 4), 16);
-      if (isNaN(code) || (code > 0 && code < 32 && code !== 9 && code !== 10 && code !== 13)) {
-        isUtf16 = false;
-        break;
-      }
-      decoded += String.fromCharCode(code);
-    }
-    if (isUtf16 && decoded.trim()) return decoded.trim();
-  }
-
-  let result = '';
-  for (let i = 0; i < clean.length; i += 2) {
-    const code = parseInt(clean.slice(i, i + 2), 16);
-    if (!isNaN(code) && code >= 32 && code <= 126) {
-      result += String.fromCharCode(code);
-    }
-  }
-  return result.trim();
+  return decodePdfHexBody(hex);
 }
 
 export function isBinaryGarbage(text: string): boolean {

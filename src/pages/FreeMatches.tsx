@@ -221,39 +221,20 @@ export default function FreeMatches() {
     }).length;
   }, [matches, todayDateStr]);
 
-  // Total matching fixtures across all dates under active tab (used inside Dates dropdown)
+  // Total matching fixtures across all dates (used inside Dates dropdown)
+  // Whatever toggle is active should not affect the filter dropdowns, the dropdowns should always cater for all fixtures available
   const allDatesCount = useMemo(() => {
-    return matches.filter((m) => {
-      if (activeTab === 'live') {
-        return isLiveMatch(m, deviceNow);
-      }
-      if (activeTab === 'highlights') {
-        return isHighlightsEligible(m);
-      }
-      return isUpcomingEligible(m, deviceNow);
-    }).length;
-  }, [matches, activeTab, deviceNow]);
+    return matches.length;
+  }, [matches]);
 
-  // Available dates for the Dates dropdown
+  // Available dates for the Dates dropdown (independent of active tab toggle)
   const availableDates = useMemo(() => {
     const dateMap = new Map<string, number>();
     matches.forEach((m) => {
       if (m.kickoffIso) {
         const dStr = getDeviceLocalDateString(m.kickoffIso);
         if (dStr >= todayDateStr) {
-          if (activeTab === 'live') {
-            if (isLiveMatch(m, deviceNow)) {
-              dateMap.set(dStr, (dateMap.get(dStr) || 0) + 1);
-            }
-          } else if (activeTab === 'highlights') {
-            if (isHighlightsEligible(m)) {
-              dateMap.set(dStr, (dateMap.get(dStr) || 0) + 1);
-            }
-          } else {
-            if (isUpcomingEligible(m, deviceNow)) {
-              dateMap.set(dStr, (dateMap.get(dStr) || 0) + 1);
-            }
-          }
+          dateMap.set(dStr, (dateMap.get(dStr) || 0) + 1);
         }
       }
     });
@@ -282,7 +263,7 @@ export default function FreeMatches() {
           count,
         };
       });
-  }, [matches, activeTab, deviceNow, todayDateStr, tomorrowDateStr]);
+  }, [matches, todayDateStr, tomorrowDateStr]);
 
   // Filter matches by selected Tab & Date
   const scopedMatches = useMemo(() => {
@@ -320,10 +301,10 @@ export default function FreeMatches() {
     });
   }, [matches, activeTab, selectedDate, deviceNow, todayDateStr]);
 
-  // Build SportScore Country Directory with dynamic fixture counts
+  // Build SportScore Country Directory with dynamic fixture counts across all available matches (independent of active tab)
   const directoryData = useMemo(() => {
-    return buildSportScoreCountryDirectory(scopedMatches, leagueSearchQuery);
-  }, [scopedMatches, leagueSearchQuery]);
+    return buildSportScoreCountryDirectory(matches, leagueSearchQuery);
+  }, [matches, leagueSearchQuery]);
 
   // Current selected directory label for the dropdown trigger
   const selectedDirectoryLabel = useMemo(() => {
@@ -768,13 +749,7 @@ export default function FreeMatches() {
                             }}
                             className="flex-1 text-left flex items-center gap-2 truncate cursor-pointer mr-2"
                           >
-                            {row.flag && <span className="text-sm shrink-0">{row.flag}</span>}
                             <span className="truncate">{row.label}</span>
-                            {hasMultipleLeagues && (
-                              <span className="text-[11px] font-normal px-1.5 py-0.2 rounded-full bg-slate-200/60 text-slate-600 shrink-0">
-                                {row.leagues.length} leagues
-                              </span>
-                            )}
                           </button>
 
                           <div className="flex items-center gap-1.5 shrink-0">
@@ -804,26 +779,7 @@ export default function FreeMatches() {
                         {/* Expanded Accordion Subsection for Countries with Multiple Leagues */}
                         {hasMultipleLeagues && isExpanded && (
                           <div className="ml-4 pl-3 border-l-2 border-[#006C54]/25 my-1 space-y-0.5 animate-fade-in">
-                            {/* Option A: All Leagues in this country */}
-                            <button
-                              type="button"
-                              onClick={() => handleLeagueFilterChange(row.id, 'all')}
-                              className={`w-full px-2.5 py-1.5 rounded-md text-left flex items-center justify-between text-[11px] transition-colors cursor-pointer ${
-                                leagueFilter === row.id && selectedSubLeague === 'all'
-                                  ? 'bg-[#006C54] text-white font-bold'
-                                  : 'hover:bg-[#F5F5E4] text-slate-700 font-medium'
-                              }`}
-                            >
-                              <span className="truncate pr-2">All {row.label} Leagues</span>
-                              <div className="flex items-center gap-1.5 shrink-0">
-                                <span className={`tabular-nums text-[11px] ${leagueFilter === row.id && selectedSubLeague === 'all' ? 'text-white/80' : 'text-slate-500'}`}>
-                                  {row.count}
-                                </span>
-                                {leagueFilter === row.id && selectedSubLeague === 'all' && <Check size={12} className="text-white" />}
-                              </div>
-                            </button>
-
-                            {/* Option B..N: Specific sub-leagues */}
+                            {/* Display only the specific leagues (no 'All [Country] Leagues' item) */}
                             {row.leagues.map((lg) => {
                               const isSubSelected = leagueFilter === row.id && selectedSubLeague === lg.league;
                               return (
