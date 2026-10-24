@@ -105,7 +105,7 @@ export default function Home() {
 
           <AccordionGallery
             items={galleryItems}
-            defaultIndex={Math.min(1, Math.max(0, galleryItems.length - 1))}
+            defaultIndex={0}
             accentColor="#006C54"
             overlayColor="#060010"
             textColor="#ffffff"
@@ -113,15 +113,14 @@ export default function Home() {
             gap={12}
             radius={24}
             expandRatio={0.75}
-            duration={0.6}
+            duration={0.55}
             ease="power3.out"
             parallax={0.5}
             tilt={8}
-            stagger={0.06}
-            trigger="hover"
+            stagger={0.05}
             showLabels={true}
             grayscale={true}
-            className="w-full shadow-lg"
+            className="w-full bg-transparent"
           />
         </section>
       )}

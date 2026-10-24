@@ -15,6 +15,10 @@
   perspective-origin: 50% 50%;
   touch-action: pan-y;
   user-select: none;
+  background: transparent !important;
+  box-shadow: none !important;
+  border: none !important;
+  outline: none !important;
 }
 
 .accordion-gallery--vertical {
@@ -24,7 +28,7 @@
 .ag-panel {
   position: relative;
   flex: 1 1 0;
-  min-width: 44px;
+  min-width: 0;
   min-height: 0;
   overflow: hidden;
   border-radius: var(--ag-radius);
@@ -35,19 +39,26 @@
   transform-style: preserve-3d;
   transform-origin: center center;
   background: #0a0713;
-  box-shadow: 0 10px 30px -18px rgba(0, 0, 0, 0.8);
+  box-shadow: 0 10px 28px -14px rgba(0, 0, 0, 0.6);
   will-change: flex-grow, transform;
   -webkit-tap-highlight-color: transparent;
   transition: box-shadow 0.3s ease, filter 0.3s ease, opacity 0.3s ease;
 }
 
-.ag-panel:not(.ag-panel--active) {
-  opacity: 0.82;
+.ag-panel--active {
+  opacity: 1 !important;
+  box-shadow: 0 14px 36px -14px rgba(0, 0, 0, 0.75);
 }
 
-.ag-panel:not(.ag-panel--active):hover {
+.ag-panel--standby {
+  opacity: 0.82;
+  cursor: pointer;
+}
+
+.ag-panel--standby:hover {
   opacity: 1;
-  filter: brightness(1.18);
+  filter: brightness(1.2);
+  box-shadow: 0 10px 24px -10px rgba(0, 108, 84, 0.4);
 }
 
 .ag-panel:focus-visible {
@@ -140,10 +151,15 @@
     --ag-radius: 18px;
     perspective: none;
     height: 420px !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    border: none !important;
+    outline: none !important;
   }
 
   .ag-panel {
-    min-width: 38px;
+    min-width: 0 !important;
+    box-shadow: 0 4px 14px -6px rgba(0, 0, 0, 0.45);
   }
 
   .accordion-gallery--mobile-vertical {
@@ -184,3 +200,4 @@
     will-change: auto;
   }
 }
+
