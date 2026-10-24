@@ -1,10 +1,11 @@
-import React, { useState, useSyncExternalStore, useEffect, useRef } from 'react';
+import React, { useState, useMemo, useSyncExternalStore, useRef } from 'react';
 import { ChevronLeft, ChevronRight, Play } from 'lucide-react';
 import SeoHead from '../components/SeoHead';
 import {
   subscribeToHomepageFeed,
   getHomepageFeedSnapshot,
 } from '../lib/homepageFeedStore';
+import AccordionGallery, { type AccordionGalleryItem } from '../components/AccordionGallery';
 
 export default function Home() {
   // Subscribe to live homepage feed store
@@ -17,42 +18,20 @@ export default function Home() {
   const publishedPhotos = feed.carouselItems.filter((i) => i.published);
   const publishedVideos = feed.videoItems.filter((v) => v.published);
 
-  // Carousel photo slide index
-  const [carouselIndex, setCarouselIndex] = useState(0);
+  // Map published photos to AccordionGallery items
+  const galleryItems: AccordionGalleryItem[] = useMemo(
+    () =>
+      publishedPhotos.map((photo) => ({
+        image: photo.imageUrl,
+        label: photo.caption || '',
+        link: photo.link || undefined,
+        alt: photo.caption || 'Top story editorial',
+      })),
+    [publishedPhotos]
+  );
 
   // Videos carousel slide index
   const [videoIndex, setVideoIndex] = useState(0);
-
-  // Touch swipe tracking for Photo Carousel
-  const photoTouchStartX = useRef<number | null>(null);
-  const photoTouchEndX = useRef<number | null>(null);
-
-  // Touch swipe tracking for Video Section
-  const videoTouchStartX = useRef<number | null>(null);
-  const videoTouchEndX = useRef<number | null>(null);
-
-  const minSwipeDistance = 45; // Minimum px distance to trigger swipe
-
-  // Auto-advance photo carousel if multiple photos exist
-  useEffect(() => {
-    if (publishedPhotos.length <= 1) return;
-    const interval = setInterval(() => {
-      setCarouselIndex((prev) => (prev + 1) % publishedPhotos.length);
-    }, 6500);
-    return () => clearInterval(interval);
-  }, [publishedPhotos.length]);
-
-  const nextPhoto = () => {
-    if (publishedPhotos.length > 0) {
-      setCarouselIndex((prev) => (prev + 1) % publishedPhotos.length);
-    }
-  };
-
-  const prevPhoto = () => {
-    if (publishedPhotos.length > 0) {
-      setCarouselIndex((prev) => (prev - 1 + publishedPhotos.length) % publishedPhotos.length);
-    }
-  };
 
   const nextVideo = () => {
     if (publishedVideos.length > 0) {
@@ -66,27 +45,10 @@ export default function Home() {
     }
   };
 
-  // Photo Touch Listeners
-  const handlePhotoTouchStart = (e: React.TouchEvent) => {
-    photoTouchEndX.current = null;
-    photoTouchStartX.current = e.targetTouches[0].clientX;
-  };
-
-  const handlePhotoTouchMove = (e: React.TouchEvent) => {
-    photoTouchEndX.current = e.targetTouches[0].clientX;
-  };
-
-  const handlePhotoTouchEnd = () => {
-    if (photoTouchStartX.current === null || photoTouchEndX.current === null) return;
-    const distance = photoTouchStartX.current - photoTouchEndX.current;
-    if (distance > minSwipeDistance) {
-      nextPhoto();
-    } else if (distance < -minSwipeDistance) {
-      prevPhoto();
-    }
-  };
-
   // Video Touch Listeners
+  const videoTouchStartX = useRef<number | null>(null);
+  const videoTouchEndX = useRef<number | null>(null);
+  const minSwipeDistance = 45;
   const handleVideoTouchStart = (e: React.TouchEvent) => {
     videoTouchEndX.current = null;
     videoTouchStartX.current = e.targetTouches[0].clientX;
@@ -127,11 +89,10 @@ export default function Home() {
       />
 
       {/* =========================================================================
-          1. WEEKLY EDITORIAL NEWS (NEW FIRST SECTION)
-          Desktop: Side-by-Side Cards Grid | Mobile: 9:16 Touch Swipe Carousel
-          Photos display gracefully in full without cropping.
+          1. WEEKLY EDITORIAL NEWS (ACCORDION GALLERY CAROUSEL)
+          Integrated React Bits AccordionGallery with interactive expand & touch control
           ========================================================================= */}
-      {publishedPhotos.length > 0 && (
+      {galleryItems.length > 0 && (
         <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 sm:pt-10">
           <div className="text-center sm:text-left mb-6">
             <span className="text-[#006C54] font-bold text-xs uppercase tracking-wide block mb-1">
@@ -142,121 +103,26 @@ export default function Home() {
             </h1>
           </div>
 
-          {/* DESKTOP VIEW: Side-by-Side Multi-Column Cards */}
-          <div className="hidden md:grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {publishedPhotos.map((photo) => (
-              <div
-                key={photo.id}
-                className="relative w-full aspect-[4/5] lg:aspect-[3/4] rounded-3xl overflow-hidden bg-slate-950 shadow-lg border border-slate-800/50 flex items-center justify-center group transition-all duration-300 hover:shadow-2xl select-none"
-              >
-                {/* Ambient blurred backdrop so any aspect ratio blends seamlessly */}
-                <img
-                  src={photo.imageUrl}
-                  alt=""
-                  aria-hidden="true"
-                  className="absolute inset-0 w-full h-full object-cover filter blur-2xl opacity-25 scale-110 pointer-events-none"
-                />
-
-                {/* Crisp Full Uncropped Image */}
-                <img
-                  src={photo.imageUrl}
-                  alt={photo.caption || 'Editorial news story'}
-                  className="relative z-10 w-full h-full object-contain p-2.5 transition-transform duration-500 ease-out group-hover:scale-[1.02]"
-                  draggable={false}
-                />
-
-                {/* Bottom Scrim for Caption Legibility */}
-                <div className="absolute inset-0 z-10 bg-gradient-to-t from-black/90 via-black/30 to-transparent pointer-events-none" />
-
-                {/* Bottom Foreground Caption (Pill omitted per instructions) */}
-                {photo.caption && (
-                  <div className="absolute bottom-5 left-5 right-5 z-20">
-                    <p className="text-white font-semibold text-sm lg:text-base leading-snug drop-shadow-sm line-clamp-3">
-                      {photo.caption}
-                    </p>
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-
-          {/* MOBILE VIEW: Touch Swipe Carousel */}
-          <div className="block md:hidden">
-            <div className="relative mx-auto w-full max-w-[340px] sm:max-w-[380px] aspect-[4/5] sm:aspect-[9/16] max-h-[72vh] rounded-3xl overflow-hidden bg-slate-950 shadow-xl group select-none">
-              {/* Touch Swipe Surface */}
-              <div
-                className="w-full h-full relative flex items-center justify-center"
-                onTouchStart={handlePhotoTouchStart}
-                onTouchMove={handlePhotoTouchMove}
-                onTouchEnd={handlePhotoTouchEnd}
-              >
-                {/* Ambient blurred backdrop */}
-                <img
-                  src={publishedPhotos[carouselIndex]?.imageUrl}
-                  alt=""
-                  aria-hidden="true"
-                  className="absolute inset-0 w-full h-full object-cover filter blur-2xl opacity-25 scale-110 pointer-events-none"
-                />
-
-                {/* Crisp Uncropped Carousel Slide Image */}
-                <img
-                  src={publishedPhotos[carouselIndex]?.imageUrl}
-                  alt={publishedPhotos[carouselIndex]?.caption || 'Homepage editorial'}
-                  className="relative z-10 w-full h-full object-contain p-2.5 transition-all duration-500 ease-out"
-                  draggable={false}
-                />
-
-                {/* Bottom Scrim for Caption Legibility */}
-                <div className="absolute inset-0 z-10 bg-gradient-to-t from-black/90 via-black/35 to-transparent pointer-events-none" />
-
-                {/* Bottom Foreground Caption (Pill omitted per instructions) */}
-                {publishedPhotos[carouselIndex]?.caption && (
-                  <div className="absolute bottom-5 left-5 right-5 z-20">
-                    <p className="text-white font-semibold text-sm sm:text-base leading-snug drop-shadow-sm line-clamp-4">
-                      {publishedPhotos[carouselIndex].caption}
-                    </p>
-                  </div>
-                )}
-
-                {/* Slide Navigation Chevrons */}
-                {publishedPhotos.length > 1 && (
-                  <>
-                    <button
-                      type="button"
-                      onClick={prevPhoto}
-                      aria-label="Previous slide"
-                      className="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-white/85 hover:bg-white text-slate-900 flex items-center justify-center transition-all opacity-0 group-hover:opacity-100 shadow-md cursor-pointer z-30"
-                    >
-                      <ChevronLeft size={18} />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={nextPhoto}
-                      aria-label="Next slide"
-                      className="absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-white/85 hover:bg-white text-slate-900 flex items-center justify-center transition-all opacity-0 group-hover:opacity-100 shadow-md cursor-pointer z-30"
-                    >
-                      <ChevronRight size={18} />
-                    </button>
-
-                    {/* Dot Indicators */}
-                    <div className="absolute top-4 right-4 flex items-center gap-1.5 z-30">
-                      {publishedPhotos.map((_, idx) => (
-                        <button
-                          key={idx}
-                          type="button"
-                          onClick={() => setCarouselIndex(idx)}
-                          className={`h-1.5 rounded-full transition-all cursor-pointer ${
-                            idx === carouselIndex ? 'w-5 bg-white' : 'w-1.5 bg-white/50 hover:bg-white/80'
-                          }`}
-                          aria-label={`Go to slide ${idx + 1}`}
-                        />
-                      ))}
-                    </div>
-                  </>
-                )}
-              </div>
-            </div>
-          </div>
+          <AccordionGallery
+            items={galleryItems}
+            defaultIndex={Math.min(1, Math.max(0, galleryItems.length - 1))}
+            accentColor="#006C54"
+            overlayColor="#060010"
+            textColor="#ffffff"
+            height={480}
+            gap={12}
+            radius={24}
+            expandRatio={0.52}
+            duration={0.6}
+            ease="power3.out"
+            parallax={0.5}
+            tilt={8}
+            stagger={0.06}
+            trigger="hover"
+            showLabels={true}
+            grayscale={true}
+            className="w-full shadow-lg"
+          />
         </section>
       )}
 

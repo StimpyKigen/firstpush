@@ -15,6 +15,7 @@ export interface HomepageCarouselItem {
   id: string;
   imageUrl: string;
   caption?: string;
+  link?: string;
   published: boolean;
   createdAt: string;
 }
