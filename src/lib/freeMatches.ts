@@ -50,11 +50,11 @@ export interface FreeMatch {
 function loadStoredMatches(): FreeMatch[] {
   if (typeof window === 'undefined') return [];
   try {
-    const raw = localStorage.getItem('mshindi_uploaded_fixtures');
+    const raw = localStorage.getItem('mshindi_football_cache_v3');
     if (raw) {
       const parsed = JSON.parse(raw);
       if (Array.isArray(parsed) && parsed.length > 0) {
-        return parsed;
+        return parsed.map((m: any) => toFreeMatch(m));
       }
     }
   } catch {}
@@ -181,54 +181,14 @@ export async function refreshFreeMatches(force = false) {
   }
 
   try {
-    // 1. Fetch server admin fixtures (persisted on disk / backend cache)
-    let serverFixtures: FreeMatch[] = [];
-    try {
-      const adminRes = await fetch('/api/admin/fixtures');
-      if (adminRes.ok) {
-        const data = await adminRes.json();
-        if (data && Array.isArray(data.fixtures) && data.fixtures.length > 0) {
-          serverFixtures = data.fixtures.map((m: any) => ({
-            id: m.id,
-            providerId: m.providerId || m.id,
-            home: m.home,
-            away: m.away,
-            competition: m.competition,
-            competitionId: m.competitionId,
-            leagueCode: m.leagueCode,
-            country: m.country,
-            kickoff: m.kickoff,
-            kickoffIso: m.kickoffIso,
-            tier: 'blockbuster' as MatchTier,
-            blurb: `${m.home} face ${m.away} in ${m.competition}.`,
-            syncedAt: m.syncedAt || 'Uploaded Market Consensus',
-            status: m.status || 'pre',
-            homeOdds: m.homeOdds,
-            drawOdds: m.drawOdds,
-            awayOdds: m.awayOdds,
-            homePct: m.homePct,
-            drawPct: m.drawPct,
-            awayPct: m.awayPct,
-            bttsYesPct: m.bttsYesPct,
-            over25Pct: m.over25Pct,
-            bookmaker: m.bookmaker || 'Uploaded Market Consensus',
-          }));
-        }
-        if (data && Array.isArray(data.batches) && data.batches.length > 0) {
-          savePdfFixtureBatches(data.batches);
-        }
-      }
-    } catch {}
-
-    // 2. Fetch daily highlights
+    // 1. Fetch daily highlights directly from SportScore API pipeline
     const highlightFixtures = await fetchDailyHighlightFixtures(force);
     const convertedHighlights = highlightFixtures.map((fixture) => toFreeMatch(fixture));
 
-    // 3. Load locally stored fixtures
+    // 2. Load locally cached SportScore fixtures
     const storedFixtures = loadStoredMatches();
 
-    // 4. Merge all sources with deduplication & monotonic state validation
-    // Order: Stored fixtures (base layer) -> Server admin fixtures -> Fresh live highlights (authoritative)
+    // 3. Merge sources with deduplication & monotonic state validation
     const mergeFreeMatchRecords = (existing: FreeMatch, incoming: FreeMatch): FreeMatch => {
       const existingStatus = existing.status || 'pre';
       const existingPeriod = existing.period || 'scheduled';
@@ -276,13 +236,7 @@ export async function refreshFreeMatches(force = false) {
     for (const m of storedFixtures) {
       mergedMap.set(makeFreeMatchDedupeKey(m), m);
     }
-    // 2. Overlay server admin fixtures
-    for (const m of serverFixtures) {
-      const key = makeFreeMatchDedupeKey(m);
-      const existing = mergedMap.get(key);
-      mergedMap.set(key, existing ? mergeFreeMatchRecords(existing, m) : m);
-    }
-    // 3. Overlay fresh live API highlights
+    // 2. Overlay fresh SportScore live highlights (authoritative)
     for (const m of convertedHighlights) {
       const key = makeFreeMatchDedupeKey(m);
       const existing = mergedMap.get(key);
@@ -301,7 +255,7 @@ export async function refreshFreeMatches(force = false) {
       ) as Record<string, MatchConsensus>;
 
       try {
-        localStorage.setItem('mshindi_uploaded_fixtures', JSON.stringify(liveMatches));
+        localStorage.setItem('mshindi_football_cache_v3', JSON.stringify(liveMatches));
       } catch {}
     } else if (liveMatches.length === 0) {
       liveMatches = [];
@@ -427,6 +381,7 @@ export function clearAllFreeMatches() {
   emitFreeMatchesChange();
 
   try {
+    localStorage.removeItem('mshindi_football_cache_v3');
     localStorage.removeItem('mshindi_uploaded_fixtures');
     localStorage.removeItem('mshindi_fixture_batches');
   } catch {}

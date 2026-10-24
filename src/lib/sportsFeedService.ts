@@ -273,24 +273,9 @@ function loadDiskCache(): void {
     // Disk cache read is optional
   }
 
-  // 3. Fallback: If fixturesStore is empty, seed from BUNDLED_SPORTS_CATALOGUE.fixtures
-  if (fixturesStore.size === 0 && Array.isArray((BUNDLED_SPORTS_CATALOGUE as any).fixtures)) {
-    ((BUNDLED_SPORTS_CATALOGUE as any).fixtures as MarketFixture[]).forEach((f) => {
-      if (f && f.id && !isSimulatedReality(f)) {
-        if (!f.competitionId) {
-          const canon = resolveCanonicalCompetition({
-            competition: f.competition,
-            country: f.country,
-            leagueCode: f.leagueCode,
-            providerId: f.providerId || f.id,
-          });
-          f.competitionId = canon.id;
-          f.competition = canon.name;
-        }
-        fixturesStore.set(f.id, f);
-      }
-    });
-    lastSyncTimestamp = new Date().toISOString();
+  // 3. Fallback: Leave store clean so rolling sync queries fresh SportScore fixtures
+  if (fixturesStore.size === 0) {
+    lastSyncTimestamp = null;
   }
 }
 
@@ -1054,7 +1039,8 @@ export async function executeRollingSyncCycle(): Promise<{ updated: number; tota
   try {
     const today = getLocalDateStringEAT(new Date());
     const tomorrow = getLocalDateStringEAT(new Date(Date.now() + 86400000));
-    const count = await syncSportScoreCatalog([today, tomorrow]);
+    const dayAfter = getLocalDateStringEAT(new Date(Date.now() + 172800000));
+    const count = await syncSportScoreCatalog([today, tomorrow, dayAfter]);
     syncCycleCounter++;
     return { updated: count, total: fixturesStore.size };
   } finally {
@@ -1147,12 +1133,34 @@ export function queryMarketFixtures(options: {
 }
 
 /**
- * Returns complete rolling catalogue for client hydration (instant 0ms response)
+ * Returns complete rolling catalogue for client hydration.
+ * If store lacks upcoming/live matches, or if force is true, triggers rolling sync from SportScore.
  */
-export async function getDailyMarketHighlights(): Promise<MarketFixture[]> {
+export async function getDailyMarketHighlights(force = false): Promise<MarketFixture[]> {
   if (fixturesStore.size === 0) {
     loadDiskCache();
   }
+
+  const nowMs = Date.now();
+  const hasUpcomingOrLive = Array.from(fixturesStore.values()).some((f) => {
+    if (f.status === 'in') return true;
+    if (f.status === 'pre') {
+      const kMs = f.kickoffIso ? new Date(f.kickoffIso).getTime() : 0;
+      return kMs >= nowMs - 3 * 3600 * 1000;
+    }
+    return false;
+  });
+
+  const isStale = !lastSyncTimestamp || (Date.now() - new Date(lastSyncTimestamp).getTime() > 10 * 60 * 1000);
+
+  if (force || !hasUpcomingOrLive || isStale) {
+    try {
+      await executeRollingSyncCycle();
+    } catch (err) {
+      console.warn('SportScore rolling sync notice in getDailyMarketHighlights:', err);
+    }
+  }
+
   return queryMarketFixtures({ scope: 'all' });
 }
 

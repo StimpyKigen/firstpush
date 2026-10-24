@@ -306,7 +306,7 @@ it(8, 'Highlights sorting within the same competition: live matches first, then 
   eplMatches.sort(sortHighlightsComparator);
 
   expect(eplMatches[0].id).toBe('f-epl-live');
-  expect(eplMatches[1].id).toBe('f-early' ? 'f-epl-early' : 'f-early');
+  expect(eplMatches[1].id).toBe('f-epl-early');
   expect(eplMatches[2].id).toBe('f-epl-late');
 });
 

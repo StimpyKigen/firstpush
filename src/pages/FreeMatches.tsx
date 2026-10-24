@@ -2,7 +2,7 @@ import { useState, useMemo, useRef, useEffect, useSyncExternalStore } from 'reac
 import {
   Unlock, Calendar, Search, X, SearchX,
   Check, ChevronDown, RotateCcw,
-  Radio, CheckCircle2
+  Radio, CheckCircle2, RefreshCw
 } from 'lucide-react';
 import SeoHead from '../components/SeoHead';
 import {
@@ -13,6 +13,7 @@ import {
   subscribeToFreeMatches,
   getIsFreeMatchesSyncing,
   getHasFreeMatchesSynced,
+  refreshFreeMatches,
   type FreeMatch
 } from '../lib/freeMatches';
 import { useBetSlipStore } from '../lib/betSlipStore';
@@ -176,6 +177,13 @@ export default function FreeMatches() {
       clearInterval(timer);
     };
   }, []);
+
+  // Eagerly trigger refresh from SportScore if match slate is empty on load
+  useEffect(() => {
+    if (matches.length === 0) {
+      void refreshFreeMatches(true);
+    }
+  }, [matches.length]);
 
   // Timezone boundary dates computed from the user's real-time device clock and local timezone.
   // Updates automatically when midnight passes while the page is left open.
@@ -997,8 +1005,16 @@ export default function FreeMatches() {
           <Calendar size={36} className="text-[#006C54]" />
           <h3 className="font-display font-bold text-lg text-slate-900 uppercase tracking-tight">No Fixtures Currently Scheduled</h3>
           <p className="text-xs text-slate-600 leading-relaxed max-w-md">
-            The match slate is clean. Platform administrators can upload a fixtures PDF in the Admin Console to instantly publish fixtures and consensus odds.
+            Connecting to SportScore live feed... Tap below to refresh the football match slate and consensus odds.
           </p>
+          <button
+            type="button"
+            onClick={() => refreshFreeMatches(true)}
+            className="mt-2 inline-flex items-center gap-2 bg-[#006C54] hover:bg-[#005441] text-white font-bold text-xs uppercase tracking-wide px-5 h-10 rounded-md shadow-xs transition-colors cursor-pointer active:scale-95"
+          >
+            <RefreshCw size={14} className={getIsFreeMatchesSyncing() ? 'animate-spin' : ''} />
+            <span>{getIsFreeMatchesSyncing() ? 'Refreshing...' : 'Refresh SportScore Feed'}</span>
+          </button>
         </div>
       ) : activeTab === 'live' && filteredMatches.length === 0 ? (
         <div className="bg-white border border-slate-200 rounded-2xl p-8 text-center max-w-xl mx-auto flex flex-col items-center gap-3 shadow-xs">
