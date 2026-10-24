@@ -27,60 +27,103 @@ export interface CompetitionTier {
 }
 
 export const COMPETITION_HIERARCHY: CompetitionTier[] = [
-  // Tier 1: Premier European Club Tournament
+  // Tier 1A: English Premier League (Top 5 #1)
+  {
+    id: 'uefa_top5_premier_league',
+    name: 'English Premier League',
+    baseScore: 2000,
+    patterns: [
+      /^(?:english\s+)?premier\s+league$|^\bepl\b$/i,
+      /premier league/i,
+    ],
+  },
+  // Tier 1B: Spanish La Liga (Top 5 #2)
+  {
+    id: 'uefa_top5_la_liga',
+    name: 'Spanish La Liga',
+    baseScore: 1900,
+    patterns: [
+      /la\s*liga|laliga|^primera division(?!.*argentina)/i,
+    ],
+  },
+  // Tier 1C: Italian Serie A (Top 5 #3)
+  {
+    id: 'uefa_top5_serie_a',
+    name: 'Italian Serie A',
+    baseScore: 1800,
+    patterns: [
+      /^(?:italian\s+)?serie\s+a(?!.*brazil)/i,
+      /serie\s+a(?!.*brazil)/i,
+    ],
+  },
+  // Tier 1D: German Bundesliga (Top 5 #4)
+  {
+    id: 'uefa_top5_bundesliga',
+    name: 'German Bundesliga',
+    baseScore: 1700,
+    patterns: [
+      /^(?:german\s+)?bundesliga(?!.*austria)/i,
+      /bundesliga(?!.*austria)/i,
+    ],
+  },
+  // Tier 1E: French Ligue 1 (Top 5 #5)
+  {
+    id: 'uefa_top5_ligue_1',
+    name: 'French Ligue 1',
+    baseScore: 1600,
+    patterns: [
+      /^(?:french\s+)?ligue\s*1/i,
+      /ligue\s*1/i,
+    ],
+  },
+  // Tier 2: Premier European Continental Club (UEFA Champions League)
   {
     id: 'uefa_champions_league',
     name: 'UEFA Champions League',
-    baseScore: 1000,
+    baseScore: 1500,
     patterns: [
       /uefa champions league|^champions league/i,
     ],
   },
-  // Tier 2: FIFA World Cup & Premier Continental National-Team Tournaments
+  // Tier 3: FIFA World Cup & Premier Continental Championships
   {
     id: 'fifa_uefa_internationals',
     name: 'FIFA & Continental National Tournaments',
-    baseScore: 900,
+    baseScore: 1400,
     patterns: [
       /fifa world cup|^world cup/i,
       /uefa european championship|euro\s*20\d\d|euro qualification/i,
       /copa am[eé]rica/i,
-      // Senior AFCON only (exclude U17, U19, U20, U21, U23, youth)
       /^(?!.*(?:u17|u19|u20|u21|u23|youth))(?:.*(?:africa cup of nations|\bafcon\b))/i,
       /afc asian cup/i,
       /concacaf gold cup/i,
     ],
   },
-  // Tier 3: Other UEFA Continental Club Tournaments & Super Cup
+  // Tier 4: UEFA Europa League
   {
-    id: 'uefa_secondary_competitions',
-    name: 'UEFA Europa, Conference League & Nations League',
-    baseScore: 800,
+    id: 'uefa_europa_league',
+    name: 'UEFA Europa League',
+    baseScore: 1300,
     patterns: [
       /uefa europa league|^europa league/i,
+    ],
+  },
+  // Tier 5: UEFA Conference League, Super Cup & Nations League
+  {
+    id: 'uefa_secondary_competitions',
+    name: 'UEFA Conference League, Super Cup & Nations League',
+    baseScore: 1200,
+    patterns: [
       /uefa (?:europa )?conference league|^conference league/i,
       /uefa super cup/i,
       /uefa nations league|nations league/i,
     ],
   },
-  // Tier 4: UEFA Top 5 Domestic Leagues (UEFA Association Club Coefficient Top 5)
-  {
-    id: 'uefa_top5_domestic',
-    name: 'Top 5 European Leagues (ENG, ESP, ITA, GER, FRA)',
-    baseScore: 700,
-    patterns: [
-      /premier league|english premier league|\bepl\b/i,
-      /la liga|laliga|primera division(?! argentina)/i,
-      /serie a(?! brazil)/i,
-      /bundesliga/i,
-      /ligue 1/i,
-    ],
-  },
-  // Tier 5: Major Secondary Continental Club & High-Profile Domestic Leagues
+  // Tier 6: Major Secondary Continental Club & High-Profile Domestic Leagues
   {
     id: 'major_secondary_leagues',
     name: 'Major Secondary Continental & Prestigious Domestic Leagues',
-    baseScore: 600,
+    baseScore: 1000,
     patterns: [
       /caf champions league/i,
       /copa libertadores|libertadores/i,
@@ -99,22 +142,22 @@ export const COMPETITION_HIERARCHY: CompetitionTier[] = [
       /copa sudamericana/i,
     ],
   },
-  // Tier 6: UEFA Elite Youth & Women's Champions League
+  // Tier 7: UEFA Elite Youth & Women's Champions League
   {
     id: 'uefa_youth_womens',
     name: "UEFA Youth League & Women's Champions League",
-    baseScore: 500,
+    baseScore: 900,
     patterns: [
       /uefa youth league/i,
       /uefa women|womens champions league/i,
       /fifa futsal/i,
     ],
   },
-  // Tier 7: Top Domestic Cups & National First Divisions
+  // Tier 8: Top Domestic Cups & National First Divisions
   {
     id: 'domestic_cups_first_divisions',
     name: 'Domestic Cups & Recognized National Top Flights',
-    baseScore: 400,
+    baseScore: 800,
     patterns: [
       /fa cup|copa del rey|dfb-pokal|coppa italia|coupe de france/i,
       /egyptian premier league/i,
@@ -124,14 +167,23 @@ export const COMPETITION_HIERARCHY: CompetitionTier[] = [
       /j1 league|k league/i,
     ],
   },
-  // Tier 8: Continental Youth & Regional Secondary Tournaments
+  // Tier 9: Continental Youth & Regional Secondary Tournaments
   {
     id: 'continental_youth_regional',
     name: 'Continental Youth & Regional Tournaments',
-    baseScore: 250,
+    baseScore: 700,
     patterns: [
       /caf.*(?:u17|u19|u20|u21|u23|youth)|(?:u17|u19|u20|u21|u23).*caf/i,
       /concacaf.*(?:u17|u20)|afc.*(?:u17|u20|u23)/i,
+    ],
+  },
+  // Tier 10: Lower Divisions & Reserve/Amateur
+  {
+    id: 'lower_divisions_amateur',
+    name: 'Lower Divisions & Reserve/Amateur',
+    baseScore: 500,
+    patterns: [
+      /division 2|league 2|serie b|segunda|amateur|reserve/i,
     ],
   },
 ];
@@ -343,22 +395,34 @@ export function formatKickoffDateTime24h(kickoffIso?: string, fallback: string =
 
 /**
  * Highlights ordering comparator:
- * 1. Competition prestige + status score (descending)
- * 2. Kickoff time (ascending, earliest upcoming first)
+ * 1. Top 5 European leagues first, in their established hierarchy:
+ *    Premier League (2000) > La Liga (1900) > Serie A (1800) > Bundesliga (1700) > Ligue 1 (1600),
+ *    followed by all other competitions in descending order of configured importance score.
+ * 2. Within each competition / equal prestige tier:
+ *    a. Live matches first
+ *    b. Kickoff time ascending (nearest kickoff forward)
  * 3. Stable deterministic tie-breaker (fixture ID)
  */
-export function sortHighlightsComparator<T extends { competition: string; status?: any; statusText?: any; kickoffIso?: any; kickoff?: any; id: string }>(
+export function sortHighlightsComparator<T extends { competition: string; competitionId?: string; country?: string; status?: any; statusText?: any; kickoffIso?: any; kickoff?: any; id: string }>(
   a: T,
   b: T
 ): number {
-  const rankA = getHighlightRank(a);
-  const rankB = getHighlightRank(b);
+  const scoreA = getCompetitionPriorityScore(a.competition, a.competitionId, a.country);
+  const scoreB = getCompetitionPriorityScore(b.competition, b.competitionId, b.country);
 
-  if (rankA !== rankB) {
-    return rankB - rankA; // Higher score first
+  if (scoreA !== scoreB) {
+    return scoreB - scoreA; // Top 5 European leagues first in established hierarchy, then descending by configured importance
   }
 
-  // Secondary: kickoff timestamp (earliest first)
+  // Within the same competition / priority score:
+  // 1. Live matches first
+  const isLiveA = normalizeMatchStatus(a.status, a.statusText) === 'in';
+  const isLiveB = normalizeMatchStatus(b.status, b.statusText) === 'in';
+  if (isLiveA !== isLiveB) {
+    return isLiveA ? -1 : 1;
+  }
+
+  // 2. Chronological kickoff time (nearest kickoff first)
   const timeA = parseFixtureKickoffMs(a) ?? Infinity;
   const timeB = parseFixtureKickoffMs(b) ?? Infinity;
   if (timeA !== timeB) {
@@ -380,7 +444,7 @@ export function sortUpcomingComparator<T extends { kickoffIso?: any; kickoff?: a
   const timeA = parseFixtureKickoffMs(a) ?? Infinity;
   const timeB = parseFixtureKickoffMs(b) ?? Infinity;
   if (timeA !== timeB) {
-    return timeA - timeB; // Strictly chronological
+    return timeA - timeB; // Strictly chronological nearest kickoff first
   }
   return a.id.localeCompare(b.id);
 }
@@ -389,8 +453,7 @@ export function sortUpcomingComparator<T extends { kickoffIso?: any; kickoff?: a
  * Check if fixture is eligible for the Upcoming tab:
  * - Must be not-yet-started (status normalized to 'pre').
  * - Strictly excludes live ('in'), completed ('post'), postponed, cancelled, abandoned, and suspended fixtures.
- * - Must have a valid future kickoff timestamp relative to the device clock (nowMs).
- * - A fixture starting at exactly the current instant (kickoffMs === nowMs) or in the past is strictly excluded.
+ * - Must have a valid kickoff timestamp at or after the device clock (kickoffMs >= nowMs).
  * - Missing or invalid timestamps are safely excluded and never crash.
  */
 export function isUpcomingEligible(
@@ -411,21 +474,22 @@ export function isUpcomingEligible(
     return false;
   }
 
-  // 3. Device clock real-time check: strictly future
-  return kickoffMs > nowMs;
+  // 3. Device clock real-time check: at or after current device time
+  return kickoffMs >= nowMs;
 }
 
 /**
  * Check if fixture is eligible for the Highlights experience:
- * - Excludes cancelled or postponed fixtures.
- * - Highlights top and major tier matches (base score >= 400 or any live match).
+ * - Strictly excludes completed ('post'), cancelled, postponed, or abandoned fixtures.
+ * - Does NOT silently omit eligible games from any competition.
  */
-export function isHighlightsEligible(fixture: { competition: string; status?: any; statusText?: any }): boolean {
+export function isHighlightsEligible(
+  fixture: { competition?: string; competitionId?: string; country?: string; status?: any; statusText?: any } | null | undefined
+): boolean {
+  if (!fixture) return false;
   const norm = normalizeMatchStatus(fixture.status, fixture.statusText);
-  if (norm === 'cancelled' || norm === 'postponed' || norm === 'abandoned') {
+  if (norm === 'post' || norm === 'cancelled' || norm === 'postponed' || norm === 'abandoned' || norm === 'suspended') {
     return false;
   }
-  if (norm === 'in') return true; // Any live game is eligible for Highlights spotlight
-  const prestige = getCompetitionPriorityScore(fixture.competition);
-  return prestige >= 400; // Tier 1 through Tier 7
+  return true;
 }

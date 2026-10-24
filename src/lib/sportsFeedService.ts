@@ -270,7 +270,27 @@ function loadDiskCache(): void {
       }
     }
   } catch (err) {
-    // Disk cache read is optional since bundled catalogue is always seeded
+    // Disk cache read is optional
+  }
+
+  // 3. Fallback: If fixturesStore is empty, seed from BUNDLED_SPORTS_CATALOGUE.fixtures
+  if (fixturesStore.size === 0 && Array.isArray((BUNDLED_SPORTS_CATALOGUE as any).fixtures)) {
+    ((BUNDLED_SPORTS_CATALOGUE as any).fixtures as MarketFixture[]).forEach((f) => {
+      if (f && f.id && !isSimulatedReality(f)) {
+        if (!f.competitionId) {
+          const canon = resolveCanonicalCompetition({
+            competition: f.competition,
+            country: f.country,
+            leagueCode: f.leagueCode,
+            providerId: f.providerId || f.id,
+          });
+          f.competitionId = canon.id;
+          f.competition = canon.name;
+        }
+        fixturesStore.set(f.id, f);
+      }
+    });
+    lastSyncTimestamp = new Date().toISOString();
   }
 }
 
@@ -866,37 +886,184 @@ export function normalizeSportScoreMatch(m: any, nowIso: string, isLiveForce = f
   };
 }
 
+const SPORTSCORE_HEADERS = {
+  'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+  'Accept': 'application/json, text/plain, */*',
+};
+
+async function fetchSportScoreWithRetry(url: string, maxRetries = 2, timeoutMs = 12000): Promise<Response> {
+  let attempt = 0;
+  while (attempt <= maxRetries) {
+    try {
+      const res = await fetch(url, {
+        headers: SPORTSCORE_HEADERS,
+        signal: AbortSignal.timeout(timeoutMs),
+      });
+      if (res.status === 429 && attempt < maxRetries) {
+        await new Promise((r) => setTimeout(r, 1000 * (attempt + 1)));
+        attempt++;
+        continue;
+      }
+      return res;
+    } catch (err: any) {
+      if (attempt >= maxRetries) throw err;
+      await new Promise((r) => setTimeout(r, 600 * (attempt + 1)));
+      attempt++;
+    }
+  }
+  throw new Error(`Failed to fetch ${url} after ${maxRetries} retries`);
+}
+
 /**
- * SportScore API Config is preserved for on-demand queries (match details, lineups, standings).
- * Automated background crawling and scheduled loops are disabled per user mandate.
+ * Fetch SportScore fixtures for a specific calendar date (YYYY-MM-DD).
+ * Handles API pagination (limit/offset), rate limits, and normalizes matches.
  */
-export async function syncSportScoreCatalog(): Promise<number> {
-  // Automated background crawling disabled per user mandate
-  return 0;
+export async function fetchSportScoreFixturesByDate(date: string): Promise<MarketFixture[]> {
+  const allNormalized: MarketFixture[] = [];
+  const limit = 100;
+  let offset = 0;
+  let hasMore = true;
+  const nowIso = new Date().toISOString();
+
+  while (hasMore) {
+    try {
+      const url = `https://sportscore.com/api/v1/fixtures/?sport=football&date=${encodeURIComponent(date)}&limit=${limit}&offset=${offset}`;
+      const res = await fetchSportScoreWithRetry(url);
+      if (!res.ok) {
+        break;
+      }
+      const data = await res.json();
+      const rawMatches: any[] = Array.isArray(data.matches) ? data.matches : [];
+      if (rawMatches.length === 0) {
+        hasMore = false;
+        break;
+      }
+
+      for (const m of rawMatches) {
+        if (!isSimulatedReality({ competition: m.competition, country: m.country, home: m.home, away: m.away })) {
+          allNormalized.push(normalizeSportScoreMatch(m, nowIso));
+        }
+      }
+
+      offset += rawMatches.length;
+      if (data.count !== undefined && offset >= data.count) {
+        hasMore = false;
+      }
+      if (rawMatches.length < limit) {
+        hasMore = false;
+      }
+      if (offset >= 1500) {
+        hasMore = false;
+      }
+    } catch (err: any) {
+      console.warn(`Error fetching SportScore fixtures for date ${date} at offset ${offset}:`, err?.message || err);
+      break;
+    }
+  }
+
+  return allNormalized;
+}
+
+/**
+ * Fetch genuinely active live fixtures from SportScore
+ */
+export async function fetchSportScoreLiveFixtures(): Promise<MarketFixture[]> {
+  try {
+    const url = 'https://sportscore.com/api/v1/fixtures/?sport=football&status=live';
+    const res = await fetchSportScoreWithRetry(url);
+    if (!res.ok) {
+      return [];
+    }
+    const data = await res.json();
+    const rawMatches: any[] = Array.isArray(data.matches) ? data.matches : [];
+    const nowIso = new Date().toISOString();
+
+    const liveFixtures: MarketFixture[] = [];
+    for (const m of rawMatches) {
+      if (!isSimulatedReality({ competition: m.competition, country: m.country, home: m.home, away: m.away })) {
+        liveFixtures.push(normalizeSportScoreMatch(m, nowIso, true));
+      }
+    }
+    return liveFixtures;
+  } catch (err: any) {
+    console.warn('Error fetching SportScore live fixtures:', err?.message || err);
+    return [];
+  }
+}
+
+/**
+ * Synchronize SportScore catalogue for specified dates and live matches.
+ */
+export async function syncSportScoreCatalog(dates?: string[]): Promise<number> {
+  const targetDates = dates && dates.length > 0 ? dates : [
+    getLocalDateStringEAT(new Date()),
+    getLocalDateStringEAT(new Date(Date.now() + 86400000)),
+  ];
+
+  let totalIngested = 0;
+  for (const d of targetDates) {
+    const fixtures = await fetchSportScoreFixturesByDate(d);
+    if (fixtures.length > 0) {
+      totalIngested += ingestFixtures(fixtures);
+    }
+  }
+
+  const live = await fetchSportScoreLiveFixtures();
+  if (live.length > 0) {
+    totalIngested += ingestFixtures(live);
+  }
+
+  return totalIngested;
 }
 
 /**
  * Dedicated live scores ingestion loop.
- * Automated scraping loop is disabled per user mandate.
+ * Updates scores and match periods for in-play matches without overwriting terminal states.
  */
 export async function syncLiveScoresOnly(): Promise<{ updated: number; liveCount: number }> {
-  // Automated live scraping loop disabled per user mandate
-  return { updated: 0, liveCount: Array.from(fixturesStore.values()).filter((f) => f.status === 'in').length };
+  if (isLiveSyncing) {
+    return { updated: 0, liveCount: Array.from(fixturesStore.values()).filter((f) => f.status === 'in').length };
+  }
+  isLiveSyncing = true;
+  try {
+    const liveFixtures = await fetchSportScoreLiveFixtures();
+    let updated = 0;
+    if (liveFixtures.length > 0) {
+      updated = ingestFixtures(liveFixtures);
+    }
+    lastLiveSyncTimestamp = new Date().toISOString();
+    liveSyncCyclesCounter++;
+    const currentLiveCount = Array.from(fixturesStore.values()).filter((f) => f.status === 'in').length;
+    return { updated, liveCount: currentLiveCount };
+  } finally {
+    isLiveSyncing = false;
+  }
 }
 
 // Round-robin index for secondary league synchronization
 let secondaryLeagueIndex = 0;
 
 /**
- * Execute a rolling sync cycle
- * Automated background rolling sync disabled per user mandate.
+ * Execute a rolling sync cycle across live matches and today/tomorrow slates
  */
 export async function executeRollingSyncCycle(): Promise<{ updated: number; total: number }> {
-  return { updated: 0, total: fixturesStore.size };
+  if (isRollingSyncing) {
+    return { updated: 0, total: fixturesStore.size };
+  }
+  isRollingSyncing = true;
+  try {
+    const today = getLocalDateStringEAT(new Date());
+    const tomorrow = getLocalDateStringEAT(new Date(Date.now() + 86400000));
+    const count = await syncSportScoreCatalog([today, tomorrow]);
+    syncCycleCounter++;
+    return { updated: count, total: fixturesStore.size };
+  } finally {
+    isRollingSyncing = false;
+  }
 }
 
 /**
- * Filter fixtures by scope ('all' | 'live' | 'today' | 'tomorrow' | 'upcoming' | 'finished' | 'results'), league, country, and date
+ * Filter fixtures by scope ('all' | 'live' | 'today' | 'tomorrow' | 'upcoming' | 'finished' | 'results' | 'completed'), league, country, and date
  */
 export function queryMarketFixtures(options: {
   scope?: 'all' | 'live' | 'today' | 'tomorrow' | 'upcoming' | 'finished' | 'results' | 'completed';
@@ -916,31 +1083,33 @@ export function queryMarketFixtures(options: {
 
   // Filter by Scope
   if (scope === 'live') {
-    const nowMs = Date.now();
     list = list.filter((f) => {
+      // STRICT INVARIANT: Only genuinely live matches (status === 'in' or active period).
+      // Never promote scheduled matches to live based on elapsed clock!
       if (f.status === 'in') return true;
-      if (f.status === 'pre' && f.kickoffIso) {
-        const kMs = new Date(f.kickoffIso).getTime();
-        return !isNaN(kMs) && kMs <= nowMs && nowMs - kMs <= 180 * 60 * 1000;
+      if (f.period && ['first_half', 'halftime', 'second_half', 'extra_time', 'penalties'].includes(f.period)) {
+        return f.status !== 'post';
       }
       return false;
     });
   } else if (scope === 'finished' || scope === 'results' || scope === 'completed') {
-    list = list.filter((f) => f.status === 'post');
+    list = list.filter((f) => f.status === 'post' || (f.period && ['full_time', 'after_extra_time', 'after_penalties', 'awarded'].includes(f.period)));
   } else if (scope === 'today') {
     list = list.filter((f) => {
       const fDate = getLocalDateStringEAT(f.kickoffIso);
-      return fDate === todayStr;
+      return fDate === todayStr && f.status !== 'post';
     });
   } else if (scope === 'tomorrow') {
     list = list.filter((f) => {
       const fDate = getLocalDateStringEAT(f.kickoffIso);
-      return fDate === tomorrowStr;
+      return fDate === tomorrowStr && f.status !== 'post';
     });
   } else if (scope === 'upcoming') {
+    const nowMs = Date.now();
     list = list.filter((f) => {
-      const fDate = getLocalDateStringEAT(f.kickoffIso);
-      return f.status === 'pre' && fDate >= todayStr;
+      if (f.status !== 'pre') return false;
+      const kMs = f.kickoffIso ? new Date(f.kickoffIso).getTime() : 0;
+      return kMs >= nowMs;
     });
   } else {
     // 'all' delivers full catalogue to client; client's real-time device clock handles local timezone date grouping and upcoming cutoff

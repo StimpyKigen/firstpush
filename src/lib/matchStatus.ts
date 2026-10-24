@@ -226,32 +226,23 @@ export function isStatusTransitionValid(
 
 /**
  * Determine if a match is considered live/in-play.
- * A match is live if:
+ * A match is genuinely live ONLY if:
  * 1. Normalized status is explicitly 'in' (1H, HT, 2H, ET, PEN)
- * 2. OR kickoff time has already arrived (kickoffMs <= nowMs), it has not concluded ('post'),
- *    and it is not postponed/cancelled/abandoned (within a standard 180-minute window).
+ * 2. OR period is an active in-play period ('first_half', 'halftime', 'second_half', 'extra_time', 'penalties')
+ * NEVER guess live status from elapsed clock when provider status is scheduled or terminal.
  */
 export function isLiveMatch(
   fixture: { status?: any; statusText?: any; displayClock?: any; kickoffIso?: any; period?: any } | null | undefined,
-  nowMs: number = Date.now()
+  _nowMs: number = Date.now()
 ): boolean {
   if (!fixture) return false;
   const norm = normalizeMatchStatus(fixture.status, fixture.displayClock || fixture.statusText);
   if (norm === 'in') return true;
-  if (norm === 'post' || norm === 'postponed' || norm === 'cancelled' || norm === 'abandoned' || norm === 'suspended') {
+  if (norm === 'pre' || norm === 'post' || norm === 'postponed' || norm === 'cancelled' || norm === 'abandoned' || norm === 'suspended') {
     return false;
   }
   if (fixture.period && ['first_half', 'halftime', 'second_half', 'extra_time', 'penalties'].includes(fixture.period)) {
     return true;
-  }
-  const iso = fixture.kickoffIso;
-  if (iso) {
-    const kickoffMs = new Date(iso).getTime();
-    if (!isNaN(kickoffMs) && kickoffMs <= nowMs) {
-      if (nowMs - kickoffMs <= 180 * 60 * 1000) {
-        return true;
-      }
-    }
   }
   return false;
 }
@@ -280,8 +271,8 @@ export function getMatchScorePresentation(
   kickoffDisplay: string,
   homeScore?: number | null,
   awayScore?: number | null,
-  kickoffIso?: string | null,
-  nowMs?: number
+  _kickoffIso?: string | null,
+  _nowMs?: number
 ): ScorePresentation {
   const detailed = parseDetailedMatchStatus(rawStatus, statusText);
   const { status, period, displayClock } = detailed;
@@ -348,18 +339,8 @@ export function getMatchScorePresentation(
     };
   }
 
-  // Check if kickoff time has arrived for an unstarted match (promoted to live)
-  const effectiveNow = nowMs || Date.now();
-  const hasStartedUnfinished = Boolean(
-    (status === 'pre' || status === 'unknown') &&
-    kickoffIso &&
-    !isNaN(new Date(kickoffIso).getTime()) &&
-    new Date(kickoffIso).getTime() <= effectiveNow &&
-    effectiveNow - new Date(kickoffIso).getTime() <= 180 * 60 * 1000
-  );
-
   // 2. Scheduled / Pre-match
-  if ((status === 'pre' || status === 'unknown') && !hasStartedUnfinished) {
+  if (status === 'pre' || status === 'unknown') {
     return {
       shouldShowScore: false,
       scoreDisplay: null,
@@ -375,8 +356,8 @@ export function getMatchScorePresentation(
     };
   }
 
-  // 3. Live in progress (1st half, HT, 2nd half, extra time, penalties, or started game)
-  if (status === 'in' || hasStartedUnfinished) {
+  // 3. Live in progress (1st half, HT, 2nd half, extra time, penalties)
+  if (status === 'in') {
     const isHt = period === 'halftime';
     const isExtraTime = period === 'extra_time';
     const isPenalties = period === 'penalties';
@@ -393,9 +374,6 @@ export function getMatchScorePresentation(
       badgeText = displayClock || 'ET';
     } else if (displayClock && displayClock !== 'LIVE' && displayClock !== 'live') {
       badgeText = displayClock;
-    } else if (hasStartedUnfinished && kickoffIso) {
-      const elapsedMins = Math.max(1, Math.floor((effectiveNow - new Date(kickoffIso).getTime()) / 60000));
-      badgeText = elapsedMins > 90 ? "90+'" : `${elapsedMins}'`;
     }
 
     return {

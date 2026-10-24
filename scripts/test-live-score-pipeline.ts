@@ -422,34 +422,49 @@ async function runLiveScoreTestSuite() {
 
   // --- SCENARIO 16: Started game automatic live placement ---
   // A game scheduled for 25 minutes ago that hasn't finished is detected as live
+  // --- SCENARIO 16: Pre-match fixture whose kickoff has arrived is NOT guessed as live; only genuine provider live status is live ---
   const kickoff25MinsAgo = new Date(Date.now() - 25 * 60 * 1000).toISOString();
-  const startedMatchFixture: MarketFixture = {
+  const unstartedPastFixture: MarketFixture = {
     ...initialPayload,
-    id: 'mkt-test-started-arsenal-vs-chelsea',
-    providerId: 'test-started-arsenal-vs-chelsea',
-    home: 'Arsenal Started Test',
-    away: 'Chelsea Started Test',
+    id: 'mkt-test-unstarted-arsenal-vs-chelsea',
+    providerId: 'test-unstarted-arsenal-vs-chelsea',
+    home: 'Arsenal Unstarted Test',
+    away: 'Chelsea Unstarted Test',
     kickoffIso: kickoff25MinsAgo,
     status: 'pre',
-    homeScore: 0,
+    period: 'scheduled',
+    displayClock: '',
+    homeScore: null,
+    awayScore: null,
+  };
+  ingestFixtures([unstartedPastFixture]);
+  const isGuessLive = isLiveMatch(unstartedPastFixture);
+
+  // Now provider reports actual in-play status
+  const liveMatchFixture: MarketFixture = {
+    ...unstartedPastFixture,
+    status: 'in',
+    period: 'first_half',
+    displayClock: "25'",
+    homeScore: 1,
     awayScore: 0,
   };
-  ingestFixtures([startedMatchFixture]);
-  const isDetectedLive = isLiveMatch(startedMatchFixture);
+  ingestFixtures([liveMatchFixture]);
+  const isDetectedLive = isLiveMatch(liveMatchFixture);
   const livePresentation = getMatchScorePresentation(
-    startedMatchFixture.status,
-    startedMatchFixture.displayClock,
+    liveMatchFixture.status,
+    liveMatchFixture.displayClock,
     'Kickoff',
-    startedMatchFixture.homeScore,
-    startedMatchFixture.awayScore,
-    startedMatchFixture.kickoffIso
+    liveMatchFixture.homeScore,
+    liveMatchFixture.awayScore,
+    liveMatchFixture.kickoffIso
   );
 
   assert(
-    isDetectedLive && livePresentation.isLive && livePresentation.shouldShowScore,
+    !isGuessLive && isDetectedLive && livePresentation.isLive && livePresentation.shouldShowScore,
     16,
-    'Started Game Automatic Live Placement & Sync',
-    `isLiveMatch: ${isDetectedLive}, isLive: ${livePresentation.isLive}, badge: ${livePresentation.badgeText}`
+    'Genuine Live Placement & No Clock Guessing',
+    `isGuessLive: ${isGuessLive}, isDetectedLive: ${isDetectedLive}, isLive: ${livePresentation.isLive}, badge: ${livePresentation.badgeText}`
   );
 
   // --- SCENARIO 17: Finished game 'Completed' section and score display ---

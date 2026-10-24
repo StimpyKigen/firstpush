@@ -187,12 +187,16 @@ export default function FreeMatches() {
   }, [deviceNow]);
 
   // Scope Counts for Row 1 Segmented Control
+  // Scope Counts for Row 1 Segmented Control
   const counts = useMemo(() => {
     let live = 0;
     let upcoming = 0;
     let highlights = 0;
 
     matches.forEach((m) => {
+      // Completed fixtures must NEVER count towards active sections
+      if (isCompletedMatch(m)) return;
+
       if (isLiveMatch(m, deviceNow)) {
         live++;
       }
@@ -231,6 +235,9 @@ export default function FreeMatches() {
   const availableDates = useMemo(() => {
     const dateMap = new Map<string, number>();
     matches.forEach((m) => {
+      // Completed matches belong strictly to 'Completed', not upcoming date buckets
+      if (isCompletedMatch(m)) return;
+
       if (m.kickoffIso) {
         const dStr = getDeviceLocalDateString(m.kickoffIso);
         if (dStr >= todayDateStr) {
@@ -280,6 +287,12 @@ export default function FreeMatches() {
       if (selectedDate === 'completed') {
         if (!isCompletedMatch(m)) return false;
         return dStr === todayDateStr;
+      }
+
+      // STRICT RULE: Completed fixtures must NEVER appear in Highlights, Upcoming, or Live!
+      // They must appear exclusively under the existing Completed dropdown option.
+      if (isCompletedMatch(m)) {
+        return false;
       }
 
       // 2. Standard Date filter (from Dates dropdown)

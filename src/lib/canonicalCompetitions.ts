@@ -58,6 +58,8 @@ export interface CanonicalCompetition {
   isFeatured: boolean; // Highlights eligibility
   active: boolean; // Availability status
   metadataSource: 'verified_sportscore' | 'reconciled' | 'fallback';
+  isUnmapped?: boolean;
+  isAmbiguous?: boolean;
 }
 
 export interface CountryMeta {
@@ -258,9 +260,9 @@ export const CANONICAL_COMPETITIONS: Record<string, CanonicalCompetition> = {
     type: 'continental_club',
     tier: 1,
     rank: 1,
-    displayPriority: 1000,
+    displayPriority: 1500,
     priorityRank: 10,
-    prestigeScore: 1000,
+    prestigeScore: 1500,
     flag: '🏆',
     isFeatured: true,
     active: true,
@@ -280,9 +282,9 @@ export const CANONICAL_COMPETITIONS: Record<string, CanonicalCompetition> = {
     type: 'continental_club',
     tier: 2,
     rank: 2,
-    displayPriority: 800,
+    displayPriority: 1300,
     priorityRank: 20,
-    prestigeScore: 800,
+    prestigeScore: 1300,
     flag: '🏆',
     isFeatured: true,
     active: true,
@@ -303,9 +305,9 @@ export const CANONICAL_COMPETITIONS: Record<string, CanonicalCompetition> = {
     type: 'continental_club',
     tier: 3,
     rank: 3,
-    displayPriority: 800,
+    displayPriority: 1200,
     priorityRank: 30,
-    prestigeScore: 800,
+    prestigeScore: 1200,
     flag: '🏆',
     isFeatured: true,
     active: true,
@@ -325,9 +327,9 @@ export const CANONICAL_COMPETITIONS: Record<string, CanonicalCompetition> = {
     type: 'super_cup',
     tier: 1,
     rank: 4,
-    displayPriority: 800,
-    priorityRank: 40,
-    prestigeScore: 800,
+    displayPriority: 1200,
+    priorityRank: 35,
+    prestigeScore: 1200,
     flag: '🏆',
     isFeatured: true,
     active: true,
@@ -347,14 +349,36 @@ export const CANONICAL_COMPETITIONS: Record<string, CanonicalCompetition> = {
     type: 'youth',
     tier: 9,
     rank: 5,
-    displayPriority: 500,
+    displayPriority: 900,
     priorityRank: 90,
-    prestigeScore: 500,
+    prestigeScore: 900,
     flag: '🏆',
     isFeatured: false,
     active: true,
     metadataSource: 'verified_sportscore',
     providerSlugs: ['uefa-youth-league'],
+  },
+  uefa_womens_champions_league: {
+    id: 'uefa_womens_champions_league',
+    provider: 'SportScore',
+    providerSlug: 'uefa-womens-champions-league',
+    name: "UEFA Women's Champions League",
+    country: 'Europe',
+    countryCode: 'EUR',
+    countryName: 'Europe',
+    continent: 'european_competitions',
+    competitionType: 'women',
+    type: 'women',
+    tier: 1,
+    rank: 6,
+    displayPriority: 900,
+    priorityRank: 95,
+    prestigeScore: 900,
+    flag: '🏆',
+    isFeatured: false,
+    active: true,
+    metadataSource: 'verified_sportscore',
+    providerSlugs: ['uefa-womens-champions-league', 'uefa-women-champions-league'],
   },
   uefa_nations_league: {
     id: 'uefa_nations_league',
@@ -369,9 +393,9 @@ export const CANONICAL_COMPETITIONS: Record<string, CanonicalCompetition> = {
     type: 'international',
     tier: 1,
     rank: 6,
-    displayPriority: 800,
-    priorityRank: 50,
-    prestigeScore: 800,
+    displayPriority: 1200,
+    priorityRank: 40,
+    prestigeScore: 1200,
     flag: '🇪🇺',
     isFeatured: true,
     active: true,
@@ -380,7 +404,7 @@ export const CANONICAL_COMPETITIONS: Record<string, CanonicalCompetition> = {
   },
 
   // =========================================================================
-  // 2. Top 5 European Domestic Leagues
+  // 2. Top 5 European Domestic Leagues (Ranked 1 to 5 in established hierarchy)
   // =========================================================================
   eng_premier_league: {
     id: 'eng_premier_league',
@@ -395,9 +419,9 @@ export const CANONICAL_COMPETITIONS: Record<string, CanonicalCompetition> = {
     type: 'domestic_league',
     tier: 1,
     rank: 1,
-    displayPriority: 700,
-    priorityRank: 100,
-    prestigeScore: 700,
+    displayPriority: 2000,
+    priorityRank: 1,
+    prestigeScore: 2000,
     flag: '🏴󠁧󠁢󠁥󠁮󠁧󠁿',
     isFeatured: true,
     active: true,
@@ -417,9 +441,9 @@ export const CANONICAL_COMPETITIONS: Record<string, CanonicalCompetition> = {
     type: 'domestic_league',
     tier: 1,
     rank: 2,
-    displayPriority: 700,
-    priorityRank: 110,
-    prestigeScore: 700,
+    displayPriority: 1900,
+    priorityRank: 2,
+    prestigeScore: 1900,
     flag: '🇪🇸',
     isFeatured: true,
     active: true,
@@ -439,9 +463,9 @@ export const CANONICAL_COMPETITIONS: Record<string, CanonicalCompetition> = {
     type: 'domestic_league',
     tier: 1,
     rank: 3,
-    displayPriority: 700,
-    priorityRank: 120,
-    prestigeScore: 700,
+    displayPriority: 1800,
+    priorityRank: 3,
+    prestigeScore: 1800,
     flag: '🇮🇹',
     isFeatured: true,
     active: true,
@@ -461,9 +485,9 @@ export const CANONICAL_COMPETITIONS: Record<string, CanonicalCompetition> = {
     type: 'domestic_league',
     tier: 1,
     rank: 4,
-    displayPriority: 700,
-    priorityRank: 130,
-    prestigeScore: 700,
+    displayPriority: 1700,
+    priorityRank: 4,
+    prestigeScore: 1700,
     flag: '🇩🇪',
     isFeatured: true,
     active: true,
@@ -483,14 +507,58 @@ export const CANONICAL_COMPETITIONS: Record<string, CanonicalCompetition> = {
     type: 'domestic_league',
     tier: 1,
     rank: 5,
-    displayPriority: 700,
-    priorityRank: 140,
-    prestigeScore: 700,
+    displayPriority: 1600,
+    priorityRank: 5,
+    prestigeScore: 1600,
     flag: '🇫🇷',
     isFeatured: true,
     active: true,
     metadataSource: 'verified_sportscore',
     providerSlugs: ['france1', 'france/ligue-1', 'ligue-1', 'french-ligue-1'],
+  },
+  aut_bundesliga: {
+    id: 'aut_bundesliga',
+    provider: 'SportScore',
+    providerSlug: 'austrian-bundesliga',
+    name: 'Austrian Bundesliga',
+    country: 'Austria',
+    countryCode: 'AT',
+    countryName: 'Austria',
+    continent: 'europe',
+    competitionType: 'domestic_league',
+    type: 'domestic_league',
+    tier: 1,
+    rank: 12,
+    displayPriority: 800,
+    priorityRank: 230,
+    prestigeScore: 800,
+    flag: '🇦🇹',
+    isFeatured: true,
+    active: true,
+    metadataSource: 'verified_sportscore',
+    providerSlugs: ['austria1', 'austrian-bundesliga', 'admira-bundesliga'],
+  },
+  ita_serie_b: {
+    id: 'ita_serie_b',
+    provider: 'SportScore',
+    providerSlug: 'serie-b',
+    name: 'Italian Serie B',
+    country: 'Italy',
+    countryCode: 'IT',
+    countryName: 'Italy',
+    continent: 'europe',
+    competitionType: 'lower_division',
+    type: 'lower_division',
+    tier: 2,
+    rank: 9,
+    displayPriority: 600,
+    priorityRank: 215,
+    prestigeScore: 600,
+    flag: '🇮🇹',
+    isFeatured: false,
+    active: true,
+    metadataSource: 'verified_sportscore',
+    providerSlugs: ['italy2', 'serie-b', 'italian-serie-b'],
   },
 
   // =========================================================================
@@ -1403,6 +1471,28 @@ export const CANONICAL_COMPETITIONS: Record<string, CanonicalCompetition> = {
     metadataSource: 'verified_sportscore',
     providerSlugs: ['brazil1', 'brasileirao', 'serie-a-brazil'],
   },
+  bra_serie_b: {
+    id: 'bra_serie_b',
+    provider: 'SportScore',
+    providerSlug: 'brasileirao-serie-b',
+    name: 'Brazilian Série B',
+    country: 'Brazil',
+    countryCode: 'BR',
+    countryName: 'Brazil',
+    continent: 'south_america',
+    competitionType: 'lower_division',
+    type: 'lower_division',
+    tier: 2,
+    rank: 10,
+    displayPriority: 500,
+    priorityRank: 250,
+    prestigeScore: 500,
+    flag: '🇧🇷',
+    isFeatured: false,
+    active: true,
+    metadataSource: 'verified_sportscore',
+    providerSlugs: ['brazil2', 'brasileirao-b', 'serie-b-brazil', 'brazilian-serie-b'],
+  },
   arg_primera_division: {
     id: 'arg_primera_division',
     provider: 'SportScore',
@@ -1744,6 +1834,28 @@ export const CANONICAL_COMPETITIONS: Record<string, CanonicalCompetition> = {
     metadataSource: 'verified_sportscore',
     providerSlugs: ['fifa-world-cup', 'world-cup'],
   },
+  caf_afcon: {
+    id: 'caf_afcon',
+    provider: 'SportScore',
+    providerSlug: 'africa-cup-of-nations',
+    name: 'Africa Cup of Nations',
+    country: 'Africa',
+    countryCode: 'AFR',
+    countryName: 'Africa',
+    continent: 'africa',
+    competitionType: 'international',
+    type: 'international',
+    tier: 1,
+    rank: 1,
+    displayPriority: 1400,
+    priorityRank: 25,
+    prestigeScore: 1400,
+    flag: '🌍',
+    isFeatured: true,
+    active: true,
+    metadataSource: 'verified_sportscore',
+    providerSlugs: ['africa-cup-of-nations', 'afcon', 'caf-africa-cup-of-nations'],
+  },
   fifa_u17_women_world_cup: {
     id: 'fifa_u17_women_world_cup',
     provider: 'SportScore',
@@ -1807,6 +1919,8 @@ export const PROVIDER_SLUG_REGISTRY: Record<string, string> = {
   'uecl': 'uefa_conference_league',
   'uefa-super-cup': 'uefa_super_cup',
   'uefa-youth-league': 'uefa_youth_league',
+  'uefa-womens-champions-league': 'uefa_womens_champions_league',
+  'uefa-women-champions-league': 'uefa_womens_champions_league',
   'uefa-nations-league': 'uefa_nations_league',
 
   // Top 5 Europe
@@ -1843,6 +1957,10 @@ export const PROVIDER_SLUG_REGISTRY: Record<string, string> = {
   'netherlands/netherlands-eredivisie': 'ned_eredivisie',
   'scot-premier': 'sco_premiership',
   'scottish-premiership': 'sco_premiership',
+  'italy2': 'ita_serie_b',
+  'italian-serie-b': 'ita_serie_b',
+  'austria1': 'aut_bundesliga',
+  'austrian-bundesliga': 'aut_bundesliga',
   'turkey1': 'tur_super_lig',
   'super-lig': 'tur_super_lig',
   'belgian-pro-league': 'bel_pro_league',
@@ -1899,6 +2017,9 @@ export const PROVIDER_SLUG_REGISTRY: Record<string, string> = {
   'copa-sudamericana': 'conmebol_sudamericana',
   'brazil1': 'bra_serie_a',
   'brasileirao': 'bra_serie_a',
+  'brazil2': 'bra_serie_b',
+  'brasileirao-b': 'bra_serie_b',
+  'brazilian-serie-b': 'bra_serie_b',
   'argentina1': 'arg_primera_division',
   'argentine-division-1': 'arg_primera_division',
   'categoria-primera-a': 'col_primera_a',
@@ -1918,6 +2039,9 @@ export const PROVIDER_SLUG_REGISTRY: Record<string, string> = {
   'fifa-world-cup': 'fifa_world_cup',
   'fifa-u17-women-s-world-cup': 'fifa_u17_women_world_cup',
   'international-friendly': 'international_friendly',
+  'africa-cup-of-nations': 'caf_afcon',
+  'afcon': 'caf_afcon',
+  'caf-africa-cup-of-nations': 'caf_afcon',
 };
 
 /**
@@ -2082,6 +2206,7 @@ export function getUnclassifiedCompetition(
     isFeatured: false,
     active: true,
     metadataSource: 'fallback',
+    isUnmapped: true,
   };
 }
 
@@ -2164,6 +2289,21 @@ export function resolveCanonicalCompetition(input: {
 
   // 4. UEFA Continental Club Competitions (Multi-national, NEVER domestic)
   if (
+    compLower.includes('uefa youth league') ||
+    provId.includes('uefa-youth-league') ||
+    code === 'uefa-youth-league'
+  ) {
+    return CANONICAL_COMPETITIONS.uefa_youth_league;
+  }
+  if (
+    compLower.includes('uefa women') ||
+    compLower.includes("women's champions league") ||
+    provId.includes('uefa-women') ||
+    code === 'uefa-womens-champions-league'
+  ) {
+    return CANONICAL_COMPETITIONS.uefa_womens_champions_league;
+  }
+  if (
     compLower.includes('uefa champions league') ||
     compLower === 'champions league' ||
     provId.includes('uefa-champions-league')
@@ -2186,6 +2326,15 @@ export function resolveCanonicalCompetition(input: {
   }
   if (compLower.includes('uefa nations league') || compLower === 'nations league') {
     return CANONICAL_COMPETITIONS.uefa_nations_league;
+  }
+  if (
+    compLower.includes('africa cup of nations') ||
+    compLower === 'afcon' ||
+    provId.includes('africa-cup-of-nations') ||
+    code === 'africa-cup-of-nations' ||
+    code === 'afcon'
+  ) {
+    return CANONICAL_COMPETITIONS.caf_afcon;
   }
 
   // 5. ENGLISH PREMIER LEAGUE - STRICT DISAMBIGUATION
@@ -2392,7 +2541,39 @@ export function resolveCanonicalCompetition(input: {
     return CANONICAL_COMPETITIONS.sau_pro_league;
   }
 
-  // 11. Other Top Domestic European
+  // 11. Top Domestic European & Americas Disambiguation
+  // Brazil Serie A & Serie B
+  if (
+    code === 'brazil1' ||
+    code === 'brasileirao' ||
+    compLower === 'brazilian serie a' ||
+    compLower === 'brasileirão' ||
+    compLower === 'brasileirao' ||
+    (countryLower === 'brazil' && (compLower.includes('serie a') || compLower === 'brasileirao'))
+  ) {
+    return CANONICAL_COMPETITIONS.bra_serie_a;
+  }
+
+  if (
+    code === 'brazil2' ||
+    code === 'brasileirao-b' ||
+    code === 'brazilian-serie-b' ||
+    compLower === 'brazilian serie b' ||
+    (countryLower === 'brazil' && compLower.includes('serie b'))
+  ) {
+    return CANONICAL_COMPETITIONS.bra_serie_b;
+  }
+
+  // Italy Serie A & Serie B
+  if (
+    code === 'italy2' ||
+    code === 'serie-b' ||
+    compLower === 'italian serie b' ||
+    ((countryLower === 'italy' || compLower.includes('italian')) && compLower.includes('serie b'))
+  ) {
+    return CANONICAL_COMPETITIONS.ita_serie_b;
+  }
+
   if (
     code === 'italy1' ||
     code === 'serie-a' ||
@@ -2406,6 +2587,17 @@ export function resolveCanonicalCompetition(input: {
     }
   }
 
+  // Austria Bundesliga
+  if (
+    code === 'austria1' ||
+    code === 'austrian-bundesliga' ||
+    compLower === 'austrian bundesliga' ||
+    (countryLower === 'austria' && compLower.includes('bundesliga'))
+  ) {
+    return CANONICAL_COMPETITIONS.aut_bundesliga;
+  }
+
+  // Germany Bundesliga
   if (
     code === 'germany1' ||
     code === 'bundesliga' ||

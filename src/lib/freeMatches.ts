@@ -1,5 +1,5 @@
 import type { MatchConsensus } from './types';
-import type { MatchPeriod, MatchStatus } from './matchStatus';
+import { type MatchPeriod, type MatchStatus, isStatusTransitionValid } from './matchStatus';
 import { buildConsensus } from './consensusEngine';
 import { fetchDailyHighlightFixtures, type HighlightFixture } from './footballApi';
 
@@ -227,19 +227,66 @@ export async function refreshFreeMatches(force = false) {
     // 3. Load locally stored fixtures
     const storedFixtures = loadStoredMatches();
 
-    // 4. Merge all sources with deduplication (Server fixtures > Local stored > Highlights)
+    // 4. Merge all sources with deduplication & monotonic state validation
+    // Order: Stored fixtures (base layer) -> Server admin fixtures -> Fresh live highlights (authoritative)
+    const mergeFreeMatchRecords = (existing: FreeMatch, incoming: FreeMatch): FreeMatch => {
+      const existingStatus = existing.status || 'pre';
+      const existingPeriod = existing.period || 'scheduled';
+      const incomingStatus = incoming.status || 'pre';
+      const incomingPeriod = incoming.period || 'scheduled';
+
+      const isPermitted = isStatusTransitionValid(
+        existingStatus,
+        existingPeriod,
+        incomingStatus,
+        incomingPeriod
+      );
+
+      let finalStatus = isPermitted ? incomingStatus : existingStatus;
+      let finalPeriod = isPermitted ? incomingPeriod : existingPeriod;
+      let finalClock = isPermitted ? (incoming.displayClock || existing.displayClock) : existing.displayClock;
+
+      // Terminal status invariant: completed matches ('post') must never be downgraded
+      if (existingStatus === 'post' && incomingStatus !== 'post') {
+        finalStatus = 'post';
+        finalPeriod = existingPeriod === 'scheduled' ? 'full_time' : existingPeriod;
+      }
+
+      let finalHomeScore = incoming.homeScore !== null && incoming.homeScore !== undefined ? incoming.homeScore : existing.homeScore;
+      let finalAwayScore = incoming.awayScore !== null && incoming.awayScore !== undefined ? incoming.awayScore : existing.awayScore;
+      if (finalStatus === 'post' && (finalHomeScore === null || finalHomeScore === undefined)) {
+        finalHomeScore = existing.homeScore;
+        finalAwayScore = existing.awayScore;
+      }
+
+      return {
+        ...existing,
+        ...incoming,
+        status: finalStatus,
+        period: finalPeriod,
+        displayClock: finalClock,
+        homeScore: finalHomeScore,
+        awayScore: finalAwayScore,
+      };
+    };
+
     const mergedMap = new Map<string, FreeMatch>();
 
-    for (const m of convertedHighlights) {
+    // 1. Cached local stored fixtures
+    for (const m of storedFixtures) {
       mergedMap.set(makeFreeMatchDedupeKey(m), m);
     }
-    for (const m of storedFixtures) {
-      const key = makeFreeMatchDedupeKey(m);
-      mergedMap.set(key, { ...(mergedMap.get(key) || {}), ...m });
-    }
+    // 2. Overlay server admin fixtures
     for (const m of serverFixtures) {
       const key = makeFreeMatchDedupeKey(m);
-      mergedMap.set(key, { ...(mergedMap.get(key) || {}), ...m });
+      const existing = mergedMap.get(key);
+      mergedMap.set(key, existing ? mergeFreeMatchRecords(existing, m) : m);
+    }
+    // 3. Overlay fresh live API highlights
+    for (const m of convertedHighlights) {
+      const key = makeFreeMatchDedupeKey(m);
+      const existing = mergedMap.get(key);
+      mergedMap.set(key, existing ? mergeFreeMatchRecords(existing, m) : m);
     }
 
     const mergedList = Array.from(mergedMap.values());
