@@ -2258,7 +2258,10 @@ export function resolveCanonicalCompetition(input: {
     compLower.includes('laliga 2') ||
     compLower.includes('laliga2') ||
     compLower.includes('femenina') ||
-    compLower.includes('liga f');
+    compLower.includes('liga f') ||
+    compLower.includes('rfef') ||
+    compLower.includes('tercera') ||
+    compLower.includes('group');
 
   if (!isForeignPrimera) {
     if (
@@ -2270,21 +2273,32 @@ export function resolveCanonicalCompetition(input: {
       compLower === 'spanish la liga' ||
       compLower === 'la liga ea sports' ||
       ((countryLower === 'spain' || countryLower === 'espana') &&
-        (compLower === 'primera division' || compLower === 'la liga' || compLower.startsWith('laliga')))
+        (compLower === 'primera division' || compLower === 'la liga' || compLower === 'laliga' || compLower === 'laliga ea sports'))
     ) {
       return CANONICAL_COMPETITIONS.esp_la_liga;
     }
   }
 
+  const isLowerSpanishTier =
+    compLower.includes('rfef') ||
+    compLower.includes('group') ||
+    compLower.includes('federacion') ||
+    compLower.includes('tercera') ||
+    compLower.includes('amateur') ||
+    compLower.includes('preferente') ||
+    compLower.includes('division b');
+
   if (
+    !isLowerSpanishTier &&
     (countryLower === 'spain' || countryLower === 'espana') &&
-    (compLower.includes('segunda') || compLower.includes('laliga 2') || code === 'spain2')
+    (compLower === 'segunda division' || compLower === 'segunda división' || compLower === 'laliga 2' || compLower === 'laliga2' || code === 'spain2')
   ) {
     return CANONICAL_COMPETITIONS.esp_segunda;
   }
 
   // 7. BELGIAN PRO LEAGUE - STRICT DISAMBIGUATION
   // Invariant: MUST NOT match foreign "Pro League" competitions (Iran, Saudi, Uzbekistan, Malaysia, etc.)
+  // Invariant: MUST NOT match women's competitions (e.g. Belgium - Super League, Women)
   const isForeignProLeague =
     code.includes('iran') ||
     code.includes('uzbek') ||
@@ -2298,7 +2312,9 @@ export function resolveCanonicalCompetition(input: {
     compLower.includes('uzbek') ||
     compLower.includes('malaysia') ||
     compLower.includes('saudi') ||
-    compLower.includes('persian gulf');
+    compLower.includes('persian gulf') ||
+    compLower.includes('women') ||
+    compLower.includes('super league');
 
   if (!isForeignProLeague) {
     if (
@@ -2310,7 +2326,7 @@ export function resolveCanonicalCompetition(input: {
       compLower === 'belgium pro league' ||
       compLower === 'jupiler pro league' ||
       ((countryLower === 'belgium' || countryLower === 'belgique') &&
-        (compLower.includes('pro league') || compLower === 'first division a' || code === 'belgium1'))
+        (compLower === 'pro league' || compLower === 'jupiler pro league' || compLower === 'first division a' || code === 'belgium1'))
     ) {
       if (!compLower.includes('challenger') && !compLower.includes('division b') && code !== 'belgium2') {
         return CANONICAL_COMPETITIONS.bel_pro_league;
@@ -2463,16 +2479,21 @@ export function resolveCanonicalCompetition(input: {
   }
 
   // 13. South American Competitions
-  if (compLower.includes('copa libertadores femenino') || code === 'conmebol-copa-libertadores-femenino') {
+  if (
+    code === 'conmebol-copa-libertadores-femenino' ||
+    (compLower.includes('libertadores') && (compLower.includes('women') || compLower.includes('femenin') || compLower.includes('femenil')))
+  ) {
     return CANONICAL_COMPETITIONS.conmebol_libertadores_femenino;
   }
-  if (compLower.includes('libertadores')) {
+  if (compLower.includes('libertadores') && !compLower.includes('women') && !compLower.includes('femenin')) {
     return CANONICAL_COMPETITIONS.conmebol_libertadores;
   }
   if (compLower.includes('sudamericana')) {
     return CANONICAL_COMPETITIONS.conmebol_sudamericana;
   }
-  if (code === 'brazil1' || compLower.includes('brasileir') || (countryLower === 'brazil' && compLower.includes('serie a'))) {
+  const isBrazilLowerOrYouth =
+    /\b(u1[5-9]|u2[0-3]|youth|sub-?\d+|women|femenin|amateur|group|serie [b-z]|serie a[2-9]|carioca|paulista|mineiro|gaucho|pernambucano|copa|cup)\b/i.test(compLower);
+  if (!isBrazilLowerOrYouth && (code === 'brazil1' || compLower.includes('brasileir') || (countryLower === 'brazil' && compLower === 'serie a'))) {
     return CANONICAL_COMPETITIONS.bra_serie_a;
   }
   if (code === 'argentina1' || compLower.includes('primera división argentina') || (countryLower === 'argentina' && compLower.includes('primera'))) {

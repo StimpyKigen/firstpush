@@ -10,6 +10,7 @@ export type MatchTier = 'blockbuster' | 'continental' | 'derby';
 export interface FreeMatch {
   id: string;
   providerId?: string;
+  matchId?: string;
   home: string;
   away: string;
   homeLogo?: string;
@@ -145,7 +146,10 @@ export function getHasFreeMatchesSynced(): boolean {
   return hasSyncedFreeMatchesOnce;
 }
 
-export function makeFreeMatchDedupeKey(m: { home: string; away: string; kickoffIso?: string; kickoff?: string }): string {
+export function makeFreeMatchDedupeKey(m: { matchId?: string; home: string; away: string; kickoffIso?: string; kickoff?: string }): string {
+  if (m.matchId) {
+    return `mid_${m.matchId}`;
+  }
   const h = (m.home || '').toLowerCase().replace(/[^a-z0-9]/g, '');
   const a = (m.away || '').toLowerCase().replace(/[^a-z0-9]/g, '');
 

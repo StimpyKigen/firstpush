@@ -17,11 +17,18 @@ interface TextItem {
   text: string;
 }
 
-export function extractPdfTextServer(pdfBuffer: Buffer): string {
+export interface ExtractedPdfPage {
+  pageNumber: number;
+  text: string;
+  lines: string[];
+}
+
+export function extractPdfPagesServer(pdfBuffer: Buffer): ExtractedPdfPage[] {
   const latin1 = pdfBuffer.toString('latin1');
-  const pageLines: string[] = [];
+  const pages: ExtractedPdfPage[] = [];
 
   let pos = 0;
+  let pageIndex = 1;
   while ((pos = latin1.indexOf('stream', pos)) !== -1) {
     // Ensure 'stream' is an actual keyword (preceded by \n, \r, or >)
     if (pos > 0 && !/[\r\n>]/.test(latin1[pos - 1])) {
@@ -74,7 +81,15 @@ export function extractPdfTextServer(pdfBuffer: Buffer): string {
         if (content.includes('BT') && content.includes('ET')) {
           const pageText = parseCoordinateTextStream(content);
           if (pageText.trim()) {
-            pageLines.push(pageText.trim());
+            const pageLines = pageText
+              .split(/\r?\n/)
+              .map((l) => l.trim())
+              .filter(Boolean);
+            pages.push({
+              pageNumber: pageIndex++,
+              text: pageText.trim(),
+              lines: pageLines,
+            });
           }
         }
       }
@@ -83,7 +98,12 @@ export function extractPdfTextServer(pdfBuffer: Buffer): string {
     pos = endPos + 9;
   }
 
-  return pageLines.join('\n');
+  return pages;
+}
+
+export function extractPdfTextServer(pdfBuffer: Buffer): string {
+  const pages = extractPdfPagesServer(pdfBuffer);
+  return pages.map((p) => p.text).join('\n--- PAGE BREAK ---\n');
 }
 
 /**

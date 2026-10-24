@@ -283,6 +283,7 @@ export default function AdminFixturesManager() {
       const converted: FreeMatch[] = parseResult.marketFixtures.map((m) => ({
         id: m.id,
         providerId: m.providerId,
+        matchId: m.matchId,
         home: m.home,
         away: m.away,
         competition: m.competition,
@@ -673,13 +674,32 @@ export default function AdminFixturesManager() {
 
           {/* PARSED FIXTURES PREVIEW TABLE */}
           <div className="bg-white border border-[#E5E5EA] rounded-2xl overflow-hidden shadow-2xs">
-            <div className="px-5 py-3.5 border-b border-[#E5E5EA] bg-[#FBFBF0] flex items-center justify-between">
+            <div className="px-5 py-3.5 border-b border-[#E5E5EA] bg-[#FBFBF0] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div>
-                <h4 className="font-semibold text-xs sm:text-sm text-slate-900 tracking-tight">
-                  Parsed Slate Verification Table
-                </h4>
+                <div className="flex items-center gap-2">
+                  <h4 className="font-semibold text-xs sm:text-sm text-slate-900 tracking-tight">
+                    Parsed Slate Verification Table
+                  </h4>
+                  {parseResult.stats && (
+                    <div className="flex items-center gap-1.5 text-[11px]">
+                      <span className="px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-800 font-semibold">
+                        {parseResult.stats.acceptedCount} Accepted
+                      </span>
+                      {parseResult.stats.reviewRequiredCount > 0 && (
+                        <span className="px-2 py-0.5 rounded-md bg-amber-100 text-amber-800 font-semibold">
+                          {parseResult.stats.reviewRequiredCount} Review
+                        </span>
+                      )}
+                      {parseResult.stats.duplicateCount > 0 && (
+                        <span className="px-2 py-0.5 rounded-md bg-slate-100 text-slate-600 font-semibold">
+                          {parseResult.stats.duplicateCount} Duplicates
+                        </span>
+                      )}
+                    </div>
+                  )}
+                </div>
                 <p className="text-[11px] text-slate-500">
-                  Match IDs are ignored as instructed. Verify kickoff and odds matrices before publishing.
+                  Match IDs, kickoffs, teams, and odds matrices are extracted cleanly with multi-page verification.
                 </p>
               </div>
 
@@ -703,6 +723,7 @@ export default function AdminFixturesManager() {
                 <thead className="bg-[#F5F5F7] text-slate-600 font-semibold text-[11px] uppercase tracking-wide sticky top-0 z-10">
                   <tr>
                     <th className="py-2.5 px-3">#</th>
+                    <th className="py-2.5 px-3">ID</th>
                     <th className="py-2.5 px-3">Kickoff (EAT)</th>
                     <th className="py-2.5 px-3">Country &amp; League</th>
                     <th className="py-2.5 px-3">Home vs Away</th>
@@ -719,6 +740,9 @@ export default function AdminFixturesManager() {
                       <td className="py-2.5 px-3 tabular-nums text-[11px] text-slate-400">
                         {idx + 1}
                       </td>
+                      <td className="py-2.5 px-3 tabular-nums text-[11px] font-mono text-slate-600 font-bold whitespace-nowrap">
+                        {f.matchId || '-'}
+                      </td>
                       <td className="py-2.5 px-3 tabular-nums text-[11px] text-slate-700 whitespace-nowrap">
                         {f.kickoffDisplay}
                       </td>
@@ -732,24 +756,30 @@ export default function AdminFixturesManager() {
                         <span>{f.awayTeam}</span>
                       </td>
                       <td className="py-2.5 px-3 text-center tabular-nums whitespace-nowrap">
-                        <span className="px-1.5 py-0.5 rounded bg-slate-100 text-slate-800 font-bold mr-1">
-                          {f.odds.homeOdds.toFixed(2)}
-                        </span>
-                        <span className="px-1.5 py-0.5 rounded bg-slate-100 text-slate-800 font-bold mr-1">
-                          {f.odds.drawOdds.toFixed(2)}
-                        </span>
-                        <span className="px-1.5 py-0.5 rounded bg-slate-100 text-slate-800 font-bold">
-                          {f.odds.awayOdds.toFixed(2)}
-                        </span>
+                        {f.odds ? (
+                          <>
+                            <span className="px-1.5 py-0.5 rounded bg-slate-100 text-slate-800 font-bold mr-1">
+                              {f.odds.homeOdds?.toFixed(2)}
+                            </span>
+                            <span className="px-1.5 py-0.5 rounded bg-slate-100 text-slate-800 font-bold mr-1">
+                              {f.odds.drawOdds?.toFixed(2)}
+                            </span>
+                            <span className="px-1.5 py-0.5 rounded bg-slate-100 text-slate-800 font-bold">
+                              {f.odds.awayOdds?.toFixed(2)}
+                            </span>
+                          </>
+                        ) : (
+                          <span className="text-[11px] text-slate-400 italic">No Odds</span>
+                        )}
                       </td>
                       <td className="py-2.5 px-3 text-center tabular-nums text-[11px] text-slate-600 whitespace-nowrap">
-                        {f.odds.doubleChance1X?.toFixed(2)} / {f.odds.doubleChanceX2?.toFixed(2)}
+                        {f.odds ? `${f.odds.doubleChance1X?.toFixed(2) ?? '-'} / ${f.odds.doubleChanceX2?.toFixed(2) ?? '-'}` : '-'}
                       </td>
                       <td className="py-2.5 px-3 text-center tabular-nums text-[11px] text-slate-600 whitespace-nowrap">
-                        O: {f.odds.over25Odds?.toFixed(2)} / U: {f.odds.under25Odds?.toFixed(2)}
+                        {f.odds ? `O: ${f.odds.over25Odds?.toFixed(2) ?? '-'} / U: ${f.odds.under25Odds?.toFixed(2) ?? '-'}` : '-'}
                       </td>
                       <td className="py-2.5 px-3 text-center tabular-nums text-[11px] text-slate-600 whitespace-nowrap">
-                        {f.odds.bttsYesOdds?.toFixed(2)} / {f.odds.bttsNoOdds?.toFixed(2)}
+                        {f.odds ? `${f.odds.bttsYesOdds?.toFixed(2) ?? '-'} / ${f.odds.bttsNoOdds?.toFixed(2) ?? '-'}` : '-'}
                       </td>
                       <td className="py-2.5 px-3 text-right">
                         <button

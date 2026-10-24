@@ -30,6 +30,7 @@ export interface DiscoveredLeague {
 export interface MarketFixture {
   id: string;
   providerId: string;
+  matchId?: string;
   home: string;
   away: string;
   homeLogo?: string;
@@ -309,7 +310,10 @@ function saveDiskCache(): void {
   }
 }
 
-export function makeMarketFixtureDedupeKey(f: { home: string; away: string; kickoffIso?: string; kickoff?: string }): string {
+export function makeMarketFixtureDedupeKey(f: { matchId?: string; home: string; away: string; kickoffIso?: string; kickoff?: string }): string {
+  if (f.matchId) {
+    return `mid_${f.matchId}`;
+  }
   const h = (f.home || '').toLowerCase().replace(/[^a-z0-9]/g, '');
   const a = (f.away || '').toLowerCase().replace(/[^a-z0-9]/g, '');
 
