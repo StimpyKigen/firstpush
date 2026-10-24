@@ -8,7 +8,6 @@ import ScrollToTop from './components/ScrollToTop';
 import ErrorBoundary from './components/ErrorBoundary';
 import OfflineBar from './components/OfflineBar';
 import PWAInstallPrompt from './components/PWAInstallPrompt';
-import PWALoadingScreen from './components/pwa/PWALoadingScreen';
 import AvaChatSupport from './components/AvaChatSupport';
 import { refreshFreeMatches } from './lib/freeMatches';
 import { syncJackpotsFromApi } from './lib/mockData';
@@ -165,7 +164,6 @@ function App() {
 
   return (
     <ErrorBoundary>
-      <PWALoadingScreen />
       <BrowserRouter>
         <ScrollToTop />
         <OfflineBar />
