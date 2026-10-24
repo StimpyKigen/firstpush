@@ -24,7 +24,7 @@
 .ag-panel {
   position: relative;
   flex: 1 1 0;
-  min-width: 0;
+  min-width: 44px;
   min-height: 0;
   overflow: hidden;
   border-radius: var(--ag-radius);
@@ -38,7 +38,16 @@
   box-shadow: 0 10px 30px -18px rgba(0, 0, 0, 0.8);
   will-change: flex-grow, transform;
   -webkit-tap-highlight-color: transparent;
-  transition: box-shadow 0.3s ease;
+  transition: box-shadow 0.3s ease, filter 0.3s ease, opacity 0.3s ease;
+}
+
+.ag-panel:not(.ag-panel--active) {
+  opacity: 0.82;
+}
+
+.ag-panel:not(.ag-panel--active):hover {
+  opacity: 1;
+  filter: brightness(1.18);
 }
 
 .ag-panel:focus-visible {
@@ -130,6 +139,11 @@
     --ag-gap: 8px;
     --ag-radius: 18px;
     perspective: none;
+    height: 420px !important;
+  }
+
+  .ag-panel {
+    min-width: 38px;
   }
 
   .accordion-gallery--mobile-vertical {

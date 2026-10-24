@@ -112,7 +112,7 @@ export default function Home() {
             height={480}
             gap={12}
             radius={24}
-            expandRatio={0.52}
+            expandRatio={0.75}
             duration={0.6}
             ease="power3.out"
             parallax={0.5}
