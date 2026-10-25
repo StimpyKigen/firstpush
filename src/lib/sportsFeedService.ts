@@ -22,6 +22,7 @@ import {
   isCompetitionEligible,
   getCompetitionByProvider,
   getCompetitionById,
+  getPriorityProviderSlugs,
   getEligibleProviderSlugs,
   logSelectedCompetitionsSummary,
 } from './competitionRegistry';
@@ -883,7 +884,7 @@ const SPORTSCORE_HEADERS = {
   'Accept': 'application/json, text/plain, */*',
 };
 
-async function fetchSportScoreWithRetry(url: string, maxRetries = 3, timeoutMs = 15000): Promise<Response> {
+async function fetchSportScoreWithRetry(url: string, maxRetries = 2, timeoutMs = 8000): Promise<Response> {
   let attempt = 0;
   while (attempt <= maxRetries) {
     try {
@@ -917,7 +918,7 @@ async function fetchSportScoreWithRetry(url: string, maxRetries = 3, timeoutMs =
 export async function fetchSportScoreFixturesByCompetition(compSlug: string, date: string): Promise<MarketFixture[]> {
   try {
     const url = `https://sportscore.com/api/v1/fixtures/?sport=football&competition=${encodeURIComponent(compSlug)}&date=${encodeURIComponent(date)}`;
-    const res = await fetchSportScoreWithRetry(url);
+    const res = await fetchSportScoreWithRetry(url, 1, 6000);
     if (!res.ok) return [];
     const data = await res.json();
     const rawMatches: any[] = Array.isArray(data.matches) ? data.matches : [];
@@ -925,7 +926,17 @@ export async function fetchSportScoreFixturesByCompetition(compSlug: string, dat
     const fixtures: MarketFixture[] = [];
     for (const m of rawMatches) {
       if (!isSimulatedReality({ competition: m.competition, country: m.country, home: m.home, away: m.away })) {
-        fixtures.push(normalizeSportScoreMatch(m, nowIso));
+        const normalized = normalizeSportScoreMatch(m, nowIso);
+        const isEligible = isCompetitionEligible({
+          id: normalized.competitionId,
+          providerId: normalized.providerId,
+          slug: normalized.leagueCode,
+          competition: normalized.competition,
+          country: normalized.country,
+        });
+        if (isEligible) {
+          fixtures.push(normalized);
+        }
       }
     }
     return fixtures;
@@ -947,11 +958,12 @@ export async function fetchSportScoreFixturesByDate(date: string): Promise<Marke
   let hasMore = true;
   const nowIso = new Date().toISOString();
   let totalApiCount: number | undefined;
+  const seenFirstUrls = new Set<string>();
 
   while (hasMore) {
     try {
       const url = `https://sportscore.com/api/v1/fixtures/?sport=football&date=${encodeURIComponent(date)}&limit=${limit}&offset=${offset}`;
-      const res = await fetchSportScoreWithRetry(url);
+      const res = await fetchSportScoreWithRetry(url, 2, 8000);
       if (!res.ok) {
         lastSyncError = `SportScore date ${date} offset ${offset} returned HTTP ${res.status}`;
         break;
@@ -966,6 +978,14 @@ export async function fetchSportScoreFixturesByDate(date: string): Promise<Marke
         hasMore = false;
         break;
       }
+
+      // Check if upstream provider ignores offset and returned the same first match
+      const firstSig = rawMatches[0]?.url || `${rawMatches[0]?.home}-${rawMatches[0]?.away}-${rawMatches[0]?.time}`;
+      if (firstSig && seenFirstUrls.has(firstSig)) {
+        hasMore = false;
+        break;
+      }
+      seenFirstUrls.add(firstSig);
 
       for (const m of rawMatches) {
         if (isSimulatedReality({ competition: m.competition, country: m.country, home: m.home, away: m.away })) {
@@ -1063,16 +1083,37 @@ export async function syncSportScoreCatalog(dates?: string[]): Promise<number> {
   ];
 
   let totalIngested = 0;
+
+  // 1. Ingest active live fixtures first for real-time accuracy
+  const live = await fetchSportScoreLiveFixtures();
+  if (live.length > 0) {
+    totalIngested += ingestFixtures(live);
+  }
+
+  // 2. Fetch targeted priority competitions for each target date
+  // (Tier 1 European Majors 1st & 2nd division, Tier 2 UEFA/Internationals, Tier 3 Top 10 domestic)
+  const prioritySlugs = getPriorityProviderSlugs();
+  const CONCURRENCY_LIMIT = 8;
+
   for (const d of targetDates) {
+    // A. Targeted priority competition fetching in concurrency-limited batches
+    for (let i = 0; i < prioritySlugs.length; i += CONCURRENCY_LIMIT) {
+      const batch = prioritySlugs.slice(i, i + CONCURRENCY_LIMIT);
+      const results = await Promise.allSettled(
+        batch.map((slug) => fetchSportScoreFixturesByCompetition(slug, d))
+      );
+      for (const res of results) {
+        if (res.status === 'fulfilled' && res.value.length > 0) {
+          totalIngested += ingestFixtures(res.value);
+        }
+      }
+    }
+
+    // B. Broad calendar date query for general coverage (Tier 4 other top flights)
     const fixtures = await fetchSportScoreFixturesByDate(d);
     if (fixtures.length > 0) {
       totalIngested += ingestFixtures(fixtures);
     }
-  }
-
-  const live = await fetchSportScoreLiveFixtures();
-  if (live.length > 0) {
-    totalIngested += ingestFixtures(live);
   }
 
   return totalIngested;
@@ -1116,8 +1157,7 @@ export async function executeRollingSyncCycle(): Promise<{ updated: number; tota
   try {
     const today = getLocalDateStringEAT(new Date());
     const tomorrow = getLocalDateStringEAT(new Date(Date.now() + 86400000));
-    const dayAfter = getLocalDateStringEAT(new Date(Date.now() + 172800000));
-    const count = await syncSportScoreCatalog([today, tomorrow, dayAfter]);
+    const count = await syncSportScoreCatalog([today, tomorrow]);
     syncCycleCounter++;
     return { updated: count, total: fixturesStore.size };
   } finally {

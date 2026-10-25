@@ -1557,6 +1557,25 @@ export function getEligibleProviderSlugs(): string[] {
 }
 
 /**
+ * Return all high-priority provider slugs (Tiers 1, 2, and 3)
+ * for targeted scheduled and rolling synchronization.
+ */
+export function getPriorityProviderSlugs(): string[] {
+  const priorityComps = [
+    ...TIER_1_MAJOR_EUROPEAN,
+    ...TIER_2_UEFA_INTERNATIONAL,
+    ...TIER_3_SELECTED_DOMESTIC,
+  ];
+  const set = new Set<string>();
+  for (const c of priorityComps) {
+    if (c.providerSlug && c.isEligibleForFetching) {
+      set.add(c.providerSlug);
+    }
+  }
+  return Array.from(set);
+}
+
+/**
  * Diagnostic logger to verify selected competitions and reasoning
  */
 export function logSelectedCompetitionsSummary(): void {

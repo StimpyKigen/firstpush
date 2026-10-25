@@ -87,7 +87,7 @@ export function buildBlurb(home: string, away: string, competition: string, stat
 }
 
 import { BUNDLED_SPORTS_CATALOGUE } from '../data/bundledSportsCatalogue';
-import { resolveCanonicalCompetition } from './canonicalCompetitions';
+import { resolveCanonicalCompetition, isCompetitionEligible } from './canonicalCompetitions';
 
 function mapBundledToHighlights(): HighlightFixture[] {
   // Pre-loaded fixtures removed per user mandate
@@ -175,10 +175,32 @@ export async function fetchDirectSportScoreFixtures(): Promise<HighlightFixture[
     const today = getLocalDateStringEAT(new Date());
     const tomorrow = getLocalDateStringEAT(new Date(Date.now() + 86400000));
 
+    const prioritySlugs = [
+      'english-premier-league',
+      'spanish-la-liga',
+      'bundesliga',
+      'italian-serie-a',
+      'french-ligue-1',
+      'uefa-champions-league',
+      'uefa-europa-league',
+      'uefa-europa-conference-league',
+      'brazilian-serie-a',
+      'united-states-major-league-soccer',
+      'mexico-liga-mx',
+      'saudi-professional-league',
+      'portuguese-primera-liga',
+      'netherlands-eredivisie',
+      'belgian-pro-league',
+      'turkish-super-league',
+      'scottish-premiership',
+    ];
+
     const urls = [
+      `https://sportscore.com/api/v1/fixtures/?sport=football&status=live`,
+      ...prioritySlugs.map((slug) => `https://sportscore.com/api/v1/fixtures/?sport=football&competition=${slug}&date=${today}`),
+      ...prioritySlugs.slice(0, 8).map((slug) => `https://sportscore.com/api/v1/fixtures/?sport=football&competition=${slug}&date=${tomorrow}`),
       `https://sportscore.com/api/v1/fixtures/?sport=football&date=${today}&limit=100`,
       `https://sportscore.com/api/v1/fixtures/?sport=football&date=${tomorrow}&limit=100`,
-      `https://sportscore.com/api/v1/fixtures/?sport=football&status=live`,
     ];
 
     const responses = await Promise.allSettled(
@@ -232,6 +254,15 @@ export async function fetchDirectSportScoreFixtures(): Promise<HighlightFixture[
         country: rawCountry,
         providerId: m.url || `${home}-${away}`,
       });
+
+      const isEligible = isCompetitionEligible({
+        id: canon.id,
+        providerId: m.url || `${home}-${away}`,
+        slug: canon.providerSlug || m.league,
+        competition: canon.name || rawComp,
+        country: canon.country || rawCountry,
+      });
+      if (!isEligible) continue;
 
       const compName = canon.name || rawComp;
       const isoTime = m.time || m.start_at || nowIso;

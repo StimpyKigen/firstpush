@@ -2840,6 +2840,8 @@ export {
   getCompetitionByProvider,
   getCompetitionById,
   getSelectedTier3Competitions,
+  getPriorityProviderSlugs,
+  getEligibleProviderSlugs,
   TIER_1_MAJOR_EUROPEAN,
   TIER_2_UEFA_INTERNATIONAL,
   TIER_3_SELECTED_DOMESTIC,
