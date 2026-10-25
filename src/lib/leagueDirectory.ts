@@ -432,7 +432,7 @@ export function resolveSportScoreDirectoryId(f: {
   // 1. Continental / International multi-country club competitions
   if (
     compType === 'continental_club' ||
-    meta.continent === 'european_competitions' ||
+    (meta.continent === 'european_competitions' && compType !== 'international') ||
     compName.includes('uefa champions league') ||
     compName.includes('uefa europa league') ||
     compName.includes('uefa conference') ||

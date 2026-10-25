@@ -13,6 +13,17 @@
  * 7. International and continental club competitions must never be assigned to a domestic country.
  */
 
+import {
+  TIER_1_MAJOR_EUROPEAN,
+  TIER_2_UEFA_INTERNATIONAL,
+  TIER_3_SELECTED_DOMESTIC,
+  TIER_4_OTHER_TOP_FLIGHT,
+  getCompetitionByProvider,
+  getCompetitionById,
+  isCompetitionEligible,
+  type RegistryCompetition,
+} from './competitionRegistry';
+
 export type ContinentId =
   | 'all'
   | 'european_competitions'
@@ -2211,6 +2222,55 @@ export function getUnclassifiedCompetition(
 }
 
 /**
+ * Convert a Centralized Registry Competition to the standard CanonicalCompetition shape
+ */
+export function registryToCanonical(reg: RegistryCompetition): CanonicalCompetition {
+  const countryMeta = getCountryMeta(reg.countryId || reg.countryName);
+  return {
+    id: reg.id,
+    provider: 'SportScore',
+    providerId: reg.providerId,
+    providerSlug: reg.providerSlug,
+    providerSlugs: Array.from(new Set([reg.providerSlug, ...reg.aliases])),
+    name: reg.canonicalName,
+    country: reg.countryName,
+    countryCode: reg.countryCode || countryMeta.code,
+    countryName: reg.countryName,
+    continent: reg.continent,
+    competitionType: reg.competitionType,
+    type: reg.competitionType,
+    tier: reg.tierNumber,
+    rank: reg.tierNumber,
+    displayPriority: reg.weight,
+    priorityRank: Math.max(1, 1000 - reg.weight),
+    prestigeScore: reg.weight,
+    flag: countryMeta.flag || '⚽',
+    isFeatured: reg.tierNumber <= 2,
+    active: reg.isEligibleForFetching,
+    metadataSource: reg.mappingSource === 'verified_sportscore' ? 'verified_sportscore' : 'reconciled',
+  };
+}
+
+// Hydrate CANONICAL_COMPETITIONS with verified entries from Centralized Registry
+[...TIER_1_MAJOR_EUROPEAN, ...TIER_2_UEFA_INTERNATIONAL, ...TIER_3_SELECTED_DOMESTIC, ...TIER_4_OTHER_TOP_FLIGHT].forEach((reg) => {
+  if (!CANONICAL_COMPETITIONS[reg.id]) {
+    CANONICAL_COMPETITIONS[reg.id] = registryToCanonical(reg);
+  } else {
+    if (reg.providerId && !CANONICAL_COMPETITIONS[reg.id].providerId) {
+      CANONICAL_COMPETITIONS[reg.id].providerId = reg.providerId;
+    }
+    const currentSlugs = CANONICAL_COMPETITIONS[reg.id].providerSlugs || [];
+    reg.aliases.forEach((a) => {
+      if (!currentSlugs.includes(a)) currentSlugs.push(a);
+    });
+    if (reg.providerSlug && !currentSlugs.includes(reg.providerSlug)) {
+      currentSlugs.push(reg.providerSlug);
+    }
+    CANONICAL_COMPETITIONS[reg.id].providerSlugs = currentSlugs;
+  }
+});
+
+/**
  * Robust Canonical Competition Identity Resolver
  * Evaluates provider slug, verified country, and competition title in tandem.
  */
@@ -2226,6 +2286,36 @@ export function resolveCanonicalCompetition(input: {
   const country = (input.country || '').trim();
   const countryLower = country.toLowerCase();
   const provId = (input.providerId || '').toLowerCase().trim();
+
+  // 0. Primary Check: Centralized Authoritative Competition Priority Registry
+  const registryMatch = (provId ? getCompetitionByProvider(provId) : undefined) ||
+    (code ? (getCompetitionById(code) || getCompetitionByProvider(code)) : undefined) ||
+    (comp ? getCompetitionByProvider(comp) : undefined);
+
+  if (registryMatch) {
+    const targetCountry = (registryMatch.countryName || '').toLowerCase();
+    const isTargetDomestic =
+      registryMatch.competitionType === 'domestic_league' ||
+      registryMatch.competitionType === 'lower_division' ||
+      registryMatch.competitionType === 'domestic_cup' ||
+      registryMatch.competitionType === 'super_cup';
+
+    // Guard against cross-country misclassification (e.g. Kenya PL vs English PL)
+    if (
+      isTargetDomestic &&
+      countryLower &&
+      targetCountry &&
+      !countryLower.includes(targetCountry) &&
+      !targetCountry.includes(countryLower)
+    ) {
+      // Conflicting domestic country - do not hijack foreign competition
+    } else {
+      if (CANONICAL_COMPETITIONS[registryMatch.id]) {
+        return CANONICAL_COMPETITIONS[registryMatch.id];
+      }
+      return registryToCanonical(registryMatch);
+    }
+  }
 
   // 1. Direct Canonical ID Lookup (Fast-path)
   if (code && CANONICAL_COMPETITIONS[code]) {
@@ -2744,3 +2834,14 @@ export function resolveCanonicalCompetition(input: {
   // Safe Fallback: NEVER guess into a top flight league without verified metadata
   return getUnclassifiedCompetition(comp || code || 'Other Competition', country, code);
 }
+
+export {
+  isCompetitionEligible,
+  getCompetitionByProvider,
+  getCompetitionById,
+  getSelectedTier3Competitions,
+  TIER_1_MAJOR_EUROPEAN,
+  TIER_2_UEFA_INTERNATIONAL,
+  TIER_3_SELECTED_DOMESTIC,
+  TIER_4_OTHER_TOP_FLIGHT,
+} from './competitionRegistry';

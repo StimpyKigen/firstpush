@@ -1,0 +1,1576 @@
+/**
+ * Centralized Authoritative Football Competition Priority Registry
+ * 
+ * Enforces strict, verified competition eligibility, tier categorization,
+ * and canonical mapping using SportScore provider metadata as the source of truth.
+ * 
+ * ARCHITECTURAL INVARIANTS:
+ * 1. Competition identity is strictly separated from display order.
+ * 2. Every eligible competition maps to verified SportScore provider IDs/slugs.
+ * 3. Never match foreign "Pro League" or "Premier League" competitions using loose text or team names.
+ * 4. Priority Tier 1: Major European domestic leagues (1st & 2nd divisions).
+ * 5. Priority Tier 2: UEFA club & national-team competitions (strictly separate from domestic countries).
+ * 6. Priority Tier 3: Exactly ten additional popular domestic leagues selected via configurable ranking.
+ * 7. Priority Tier 4: Senior top-flight domestic league coverage for other countries (excluding youth/amateur/reserves).
+ */
+
+import { type ContinentId, type CompetitionType } from './canonicalCompetitions';
+
+export type PriorityTier =
+  | 'tier_1_major_european'
+  | 'tier_2_uefa_international'
+  | 'tier_3_popular_domestic'
+  | 'tier_4_other_top_flight';
+
+export type CompetitionDivision =
+  | 'first_division'
+  | 'second_division'
+  | 'cup'
+  | 'continental'
+  | 'international'
+  | 'other';
+
+export type GenderType = 'men' | 'women' | 'unspecified';
+export type AgeGroupType = 'senior' | 'u23' | 'u21' | 'u20' | 'u19' | 'u17' | 'unspecified';
+export type MappingSource = 'verified_sportscore' | 'provider_catalog' | 'flagged_for_review';
+
+export interface RegistryCompetition {
+  id: string; // Canonical ID, e.g. 'eng_premier_league'
+  providerId: string; // SportScore alphanumeric ID, e.g. 'jednm9whz0ryox8'
+  providerSlug: string; // Primary SportScore slug, e.g. 'english-premier-league'
+  providerName: string; // Original provider name, e.g. 'English Premier League'
+  canonicalName: string; // Canonical display name, e.g. 'English Premier League'
+  countryId: string; // e.g. 'england', 'spain', 'uefa', 'international'
+  countryName: string; // e.g. 'England', 'Spain', 'Europe', 'International'
+  countryCode: string; // e.g. 'GB-ENG', 'ES', 'EU'
+  continent: ContinentId;
+  competitionType: CompetitionType;
+  division: CompetitionDivision;
+  tier: PriorityTier;
+  tierNumber: 1 | 2 | 3 | 4;
+  weight: number; // Configurable numeric ordering weight
+  isEligibleForFetching: boolean;
+  mappingSource: MappingSource;
+  gender: GenderType;
+  ageGroup: AgeGroupType;
+  aliases: string[];
+  selectionReason?: string;
+  notes?: string;
+}
+
+// ============================================================================
+// PRIORITY TIER 1: Major European Domestic Leagues (1st & 2nd Divisions)
+// Europe's major football countries: England, Spain, Germany, Italy, France,
+// Portugal, Netherlands, Belgium, Turkey, Scotland.
+// ============================================================================
+export const TIER_1_MAJOR_EUROPEAN: RegistryCompetition[] = [
+  // --- England ---
+  {
+    id: 'eng_premier_league',
+    providerId: 'jednm9whz0ryox8',
+    providerSlug: 'english-premier-league',
+    providerName: 'English Premier League',
+    canonicalName: 'English Premier League',
+    countryId: 'england',
+    countryName: 'England',
+    countryCode: 'GB-ENG',
+    continent: 'europe',
+    competitionType: 'domestic_league',
+    division: 'first_division',
+    tier: 'tier_1_major_european',
+    tierNumber: 1,
+    weight: 1000,
+    isEligibleForFetching: true,
+    mappingSource: 'verified_sportscore',
+    gender: 'men',
+    ageGroup: 'senior',
+    aliases: ['premier-league', 'epl', 'premier', 'english-premier-league'],
+    selectionReason: 'Mandatory Tier 1 European Major: England 1st Division',
+  },
+  {
+    id: 'eng_championship',
+    providerId: 'l965mkyh32r1ge4',
+    providerSlug: 'english-football-league-championship',
+    providerName: 'English Football League Championship',
+    canonicalName: 'English Championship',
+    countryId: 'england',
+    countryName: 'England',
+    countryCode: 'GB-ENG',
+    continent: 'europe',
+    competitionType: 'lower_division',
+    division: 'second_division',
+    tier: 'tier_1_major_european',
+    tierNumber: 1,
+    weight: 990,
+    isEligibleForFetching: true,
+    mappingSource: 'verified_sportscore',
+    gender: 'men',
+    ageGroup: 'senior',
+    aliases: ['championship', 'cha', 'efl-championship', 'english-football-league-championship'],
+    selectionReason: 'Mandatory Tier 1 European Major: England 2nd Division',
+  },
+
+  // --- Spain ---
+  {
+    id: 'esp_la_liga',
+    providerId: 'vl7oqdehlyr510j',
+    providerSlug: 'spanish-la-liga',
+    providerName: 'Spanish La Liga',
+    canonicalName: 'Spanish La Liga',
+    countryId: 'spain',
+    countryName: 'Spain',
+    countryCode: 'ES',
+    continent: 'europe',
+    competitionType: 'domestic_league',
+    division: 'first_division',
+    tier: 'tier_1_major_european',
+    tierNumber: 1,
+    weight: 980,
+    isEligibleForFetching: true,
+    mappingSource: 'verified_sportscore',
+    gender: 'men',
+    ageGroup: 'senior',
+    aliases: ['la-liga', 'laliga', 'spain1', 'spanish-la-liga', 'primera-division'],
+    selectionReason: 'Mandatory Tier 1 European Major: Spain 1st Division',
+  },
+  {
+    id: 'esp_segunda_division',
+    providerId: 'kdj2ryohnkq1zpg',
+    providerSlug: 'spanish-segunda-division',
+    providerName: 'Spanish Segunda Division',
+    canonicalName: 'Spanish Segunda División',
+    countryId: 'spain',
+    countryName: 'Spain',
+    countryCode: 'ES',
+    continent: 'europe',
+    competitionType: 'lower_division',
+    division: 'second_division',
+    tier: 'tier_1_major_european',
+    tierNumber: 1,
+    weight: 970,
+    isEligibleForFetching: true,
+    mappingSource: 'verified_sportscore',
+    gender: 'men',
+    ageGroup: 'senior',
+    aliases: ['segunda-division', 'laliga2', 'la-liga-2', 'spanish-segunda-division', 'spain2'],
+    selectionReason: 'Mandatory Tier 1 European Major: Spain 2nd Division',
+  },
+
+  // --- Germany ---
+  {
+    id: 'ger_bundesliga',
+    providerId: 'gy0or5jhg6qwzv3',
+    providerSlug: 'bundesliga',
+    providerName: 'Bundesliga',
+    canonicalName: 'German Bundesliga',
+    countryId: 'germany',
+    countryName: 'Germany',
+    countryCode: 'DE',
+    continent: 'europe',
+    competitionType: 'domestic_league',
+    division: 'first_division',
+    tier: 'tier_1_major_european',
+    tierNumber: 1,
+    weight: 960,
+    isEligibleForFetching: true,
+    mappingSource: 'verified_sportscore',
+    gender: 'men',
+    ageGroup: 'senior',
+    aliases: ['bundesliga', 'germany1', 'german-bundesliga'],
+    selectionReason: 'Mandatory Tier 1 European Major: Germany 1st Division',
+  },
+  {
+    id: 'ger_2_bundesliga',
+    providerId: 'kn54qllhjzqvy9d',
+    providerSlug: 'german-bundesliga-2',
+    providerName: 'German Bundesliga 2',
+    canonicalName: 'German 2. Bundesliga',
+    countryId: 'germany',
+    countryName: 'Germany',
+    countryCode: 'DE',
+    continent: 'europe',
+    competitionType: 'lower_division',
+    division: 'second_division',
+    tier: 'tier_1_major_european',
+    tierNumber: 1,
+    weight: 950,
+    isEligibleForFetching: true,
+    mappingSource: 'verified_sportscore',
+    gender: 'men',
+    ageGroup: 'senior',
+    aliases: ['bundesliga-2', '2-bundesliga', 'german-bundesliga-2', 'germany2'],
+    selectionReason: 'Mandatory Tier 1 European Major: Germany 2nd Division',
+  },
+
+  // --- Italy ---
+  {
+    id: 'ita_serie_a',
+    providerId: '4zp5rzghp5q82w1',
+    providerSlug: 'italian-serie-a',
+    providerName: 'Italian Serie A',
+    canonicalName: 'Italian Serie A',
+    countryId: 'italy',
+    countryName: 'Italy',
+    countryCode: 'IT',
+    continent: 'europe',
+    competitionType: 'domestic_league',
+    division: 'first_division',
+    tier: 'tier_1_major_european',
+    tierNumber: 1,
+    weight: 940,
+    isEligibleForFetching: true,
+    mappingSource: 'verified_sportscore',
+    gender: 'men',
+    ageGroup: 'senior',
+    aliases: ['serie-a', 'italy1', 'italian-serie-a'],
+    selectionReason: 'Mandatory Tier 1 European Major: Italy 1st Division',
+  },
+  {
+    id: 'ita_serie_b',
+    providerId: 'j1l4rjnhx9m7vx5',
+    providerSlug: 'italian-serie-b',
+    providerName: 'Italian Serie B',
+    canonicalName: 'Italian Serie B',
+    countryId: 'italy',
+    countryName: 'Italy',
+    countryCode: 'IT',
+    continent: 'europe',
+    competitionType: 'lower_division',
+    division: 'second_division',
+    tier: 'tier_1_major_european',
+    tierNumber: 1,
+    weight: 930,
+    isEligibleForFetching: true,
+    mappingSource: 'verified_sportscore',
+    gender: 'men',
+    ageGroup: 'senior',
+    aliases: ['serie-b', 'italy2', 'italian-serie-b'],
+    selectionReason: 'Mandatory Tier 1 European Major: Italy 2nd Division',
+  },
+
+  // --- France ---
+  {
+    id: 'fra_ligue_1',
+    providerId: 'yl5ergphnzr8k0o',
+    providerSlug: 'french-ligue-1',
+    providerName: 'French Ligue 1',
+    canonicalName: 'French Ligue 1',
+    countryId: 'france',
+    countryName: 'France',
+    countryCode: 'FR',
+    continent: 'europe',
+    competitionType: 'domestic_league',
+    division: 'first_division',
+    tier: 'tier_1_major_european',
+    tierNumber: 1,
+    weight: 920,
+    isEligibleForFetching: true,
+    mappingSource: 'verified_sportscore',
+    gender: 'men',
+    ageGroup: 'senior',
+    aliases: ['ligue-1', 'france1', 'french-ligue-1'],
+    selectionReason: 'Mandatory Tier 1 European Major: France 1st Division',
+  },
+  {
+    id: 'fra_ligue_2',
+    providerId: 'kjw2r09hw8rz84o',
+    providerSlug: 'french-ligue-2',
+    providerName: 'French Ligue 2',
+    canonicalName: 'French Ligue 2',
+    countryId: 'france',
+    countryName: 'France',
+    countryCode: 'FR',
+    continent: 'europe',
+    competitionType: 'lower_division',
+    division: 'second_division',
+    tier: 'tier_1_major_european',
+    tierNumber: 1,
+    weight: 910,
+    isEligibleForFetching: true,
+    mappingSource: 'verified_sportscore',
+    gender: 'men',
+    ageGroup: 'senior',
+    aliases: ['ligue-2', 'france2', 'french-ligue-2'],
+    selectionReason: 'Mandatory Tier 1 European Major: France 2nd Division',
+  },
+
+  // --- Portugal ---
+  {
+    id: 'por_primeira_liga',
+    providerId: '9vjxm8ghx2r6odg',
+    providerSlug: 'portuguese-primera-liga',
+    providerName: 'Portuguese Primera Liga',
+    canonicalName: 'Portuguese Primeira Liga',
+    countryId: 'portugal',
+    countryName: 'Portugal',
+    countryCode: 'PT',
+    continent: 'europe',
+    competitionType: 'domestic_league',
+    division: 'first_division',
+    tier: 'tier_1_major_european',
+    tierNumber: 1,
+    weight: 900,
+    isEligibleForFetching: true,
+    mappingSource: 'verified_sportscore',
+    gender: 'men',
+    ageGroup: 'senior',
+    aliases: ['portuguese-primera-liga', 'primeira-liga', 'portugal1', 'liga-portugal'],
+    selectionReason: 'Mandatory Tier 1 European Major: Portugal 1st Division',
+  },
+  {
+    id: 'por_liga_2',
+    providerId: 'gx7lm7phpnm2wdk',
+    providerSlug: 'liga-portugal-2',
+    providerName: 'Liga Portugal 2',
+    canonicalName: 'Liga Portugal 2',
+    countryId: 'portugal',
+    countryName: 'Portugal',
+    countryCode: 'PT',
+    continent: 'europe',
+    competitionType: 'lower_division',
+    division: 'second_division',
+    tier: 'tier_1_major_european',
+    tierNumber: 1,
+    weight: 890,
+    isEligibleForFetching: true,
+    mappingSource: 'verified_sportscore',
+    gender: 'men',
+    ageGroup: 'senior',
+    aliases: ['liga-portugal-2', 'segunda-liga', 'portugal2'],
+    selectionReason: 'Mandatory Tier 1 European Major: Portugal 2nd Division',
+  },
+
+  // --- Netherlands ---
+  {
+    id: 'ned_eredivisie',
+    providerId: 'vl7oqdeheyr510j',
+    providerSlug: 'netherlands-eredivisie',
+    providerName: 'Netherlands Eredivisie',
+    canonicalName: 'Netherlands Eredivisie',
+    countryId: 'netherlands',
+    countryName: 'Netherlands',
+    countryCode: 'NL',
+    continent: 'europe',
+    competitionType: 'domestic_league',
+    division: 'first_division',
+    tier: 'tier_1_major_european',
+    tierNumber: 1,
+    weight: 880,
+    isEligibleForFetching: true,
+    mappingSource: 'verified_sportscore',
+    gender: 'men',
+    ageGroup: 'senior',
+    aliases: ['netherlands-eredivisie', 'eredivisie', 'holland1'],
+    selectionReason: 'Mandatory Tier 1 European Major: Netherlands 1st Division',
+  },
+  {
+    id: 'ned_eerste_divisie',
+    providerId: 'kdj2ryohdkq1zpg',
+    providerSlug: 'netherlands-eerste-divisie',
+    providerName: 'Netherlands Eerste Divisie',
+    canonicalName: 'Netherlands Eerste Divisie',
+    countryId: 'netherlands',
+    countryName: 'Netherlands',
+    countryCode: 'NL',
+    continent: 'europe',
+    competitionType: 'lower_division',
+    division: 'second_division',
+    tier: 'tier_1_major_european',
+    tierNumber: 1,
+    weight: 870,
+    isEligibleForFetching: true,
+    mappingSource: 'verified_sportscore',
+    gender: 'men',
+    ageGroup: 'senior',
+    aliases: ['netherlands-eerste-divisie', 'eerste-divisie', 'holland2'],
+    selectionReason: 'Mandatory Tier 1 European Major: Netherlands 2nd Division',
+  },
+
+  // --- Belgium ---
+  {
+    id: 'bel_pro_league',
+    providerId: '9vjxm8gh22r6odg',
+    providerSlug: 'belgian-pro-league',
+    providerName: 'Belgian Pro League',
+    canonicalName: 'Belgian Pro League',
+    countryId: 'belgium',
+    countryName: 'Belgium',
+    countryCode: 'BE',
+    continent: 'europe',
+    competitionType: 'domestic_league',
+    division: 'first_division',
+    tier: 'tier_1_major_european',
+    tierNumber: 1,
+    weight: 860,
+    isEligibleForFetching: true,
+    mappingSource: 'verified_sportscore',
+    gender: 'men',
+    ageGroup: 'senior',
+    aliases: ['belgian-pro-league', 'pro-league', 'belgium1', 'jupiler-pro-league'],
+    selectionReason: 'Mandatory Tier 1 European Major: Belgium 1st Division',
+  },
+  {
+    id: 'bel_challenger_pro_league',
+    providerId: 'gx7lm7ph5nm2wdk',
+    providerSlug: 'belgian-challenger-pro-league',
+    providerName: 'Belgian Challenger Pro League',
+    canonicalName: 'Belgian Challenger Pro League',
+    countryId: 'belgium',
+    countryName: 'Belgium',
+    countryCode: 'BE',
+    continent: 'europe',
+    competitionType: 'lower_division',
+    division: 'second_division',
+    tier: 'tier_1_major_european',
+    tierNumber: 1,
+    weight: 850,
+    isEligibleForFetching: true,
+    mappingSource: 'verified_sportscore',
+    gender: 'men',
+    ageGroup: 'senior',
+    aliases: ['belgian-challenger-pro-league', 'challenger-pro-league', 'belgium2'],
+    selectionReason: 'Mandatory Tier 1 European Major: Belgium 2nd Division',
+  },
+
+  // --- Turkey ---
+  {
+    id: 'tur_super_lig',
+    providerId: '8y39mp1h6jmojxg',
+    providerSlug: 'turkish-super-league',
+    providerName: 'Turkish Super League',
+    canonicalName: 'Turkish Süper Lig',
+    countryId: 'turkey',
+    countryName: 'Turkiye',
+    countryCode: 'TR',
+    continent: 'europe',
+    competitionType: 'domestic_league',
+    division: 'first_division',
+    tier: 'tier_1_major_european',
+    tierNumber: 1,
+    weight: 840,
+    isEligibleForFetching: true,
+    mappingSource: 'verified_sportscore',
+    gender: 'men',
+    ageGroup: 'senior',
+    aliases: ['turkish-super-league', 'super-lig', 'turkey1'],
+    selectionReason: 'Mandatory Tier 1 European Major: Turkey 1st Division',
+  },
+  {
+    id: 'tur_1_lig',
+    providerId: '9k82rekhgorepzj',
+    providerSlug: 'turkish-first-league',
+    providerName: 'Turkish First League',
+    canonicalName: 'Turkish 1. Lig',
+    countryId: 'turkey',
+    countryName: 'Turkiye',
+    countryCode: 'TR',
+    continent: 'europe',
+    competitionType: 'lower_division',
+    division: 'second_division',
+    tier: 'tier_1_major_european',
+    tierNumber: 1,
+    weight: 830,
+    isEligibleForFetching: true,
+    mappingSource: 'verified_sportscore',
+    gender: 'men',
+    ageGroup: 'senior',
+    aliases: ['turkish-first-league', '1-lig', 'turkey2'],
+    selectionReason: 'Mandatory Tier 1 European Major: Turkey 2nd Division',
+  },
+
+  // --- Scotland ---
+  {
+    id: 'sco_premiership',
+    providerId: 'p4jwq2gh1gm0veo',
+    providerSlug: 'scottish-premiership',
+    providerName: 'Scottish Premiership',
+    canonicalName: 'Scottish Premiership',
+    countryId: 'scotland',
+    countryName: 'Scotland',
+    countryCode: 'GB-SCT',
+    continent: 'europe',
+    competitionType: 'domestic_league',
+    division: 'first_division',
+    tier: 'tier_1_major_european',
+    tierNumber: 1,
+    weight: 820,
+    isEligibleForFetching: true,
+    mappingSource: 'verified_sportscore',
+    gender: 'men',
+    ageGroup: 'senior',
+    aliases: ['scottish-premiership', 'scot-premier', 'scotland1'],
+    selectionReason: 'Mandatory Tier 1 European Major: Scotland 1st Division',
+  },
+  {
+    id: 'sco_championship',
+    providerId: 'jednm9wheoryox8',
+    providerSlug: 'scottish-championship',
+    providerName: 'Scottish Championship',
+    canonicalName: 'Scottish Championship',
+    countryId: 'scotland',
+    countryName: 'Scotland',
+    countryCode: 'GB-SCT',
+    continent: 'europe',
+    competitionType: 'lower_division',
+    division: 'second_division',
+    tier: 'tier_1_major_european',
+    tierNumber: 1,
+    weight: 810,
+    isEligibleForFetching: true,
+    mappingSource: 'verified_sportscore',
+    gender: 'men',
+    ageGroup: 'senior',
+    aliases: ['scottish-championship', 'scot-cha', 'scotland2'],
+    selectionReason: 'Mandatory Tier 1 European Major: Scotland 2nd Division',
+  },
+];
+
+// ============================================================================
+// PRIORITY TIER 2: UEFA Club and National-Team Competitions
+// Must remain classified as international club or national-team tournaments,
+// never assigned to an individual domestic country.
+// ============================================================================
+export const TIER_2_UEFA_INTERNATIONAL: RegistryCompetition[] = [
+  {
+    id: 'uefa_champions_league',
+    providerId: 'z8yomo4h7wq0j6l',
+    providerSlug: 'uefa-champions-league',
+    providerName: 'UEFA Champions League',
+    canonicalName: 'UEFA Champions League',
+    countryId: 'uefa',
+    countryName: 'Europe',
+    countryCode: 'EU',
+    continent: 'european_competitions',
+    competitionType: 'continental_club',
+    division: 'continental',
+    tier: 'tier_2_uefa_international',
+    tierNumber: 2,
+    weight: 995,
+    isEligibleForFetching: true,
+    mappingSource: 'verified_sportscore',
+    gender: 'men',
+    ageGroup: 'senior',
+    aliases: ['uefa-champions-league', 'champions-league', 'ucl'],
+    selectionReason: 'Mandatory Tier 2: Pinnacle of European Club Football',
+  },
+  {
+    id: 'uefa_europa_league',
+    providerId: '56ypq3nh0xmd7oj',
+    providerSlug: 'uefa-europa-league',
+    providerName: 'UEFA Europa League',
+    canonicalName: 'UEFA Europa League',
+    countryId: 'uefa',
+    countryName: 'Europe',
+    countryCode: 'EU',
+    continent: 'european_competitions',
+    competitionType: 'continental_club',
+    division: 'continental',
+    tier: 'tier_2_uefa_international',
+    tierNumber: 2,
+    weight: 945,
+    isEligibleForFetching: true,
+    mappingSource: 'verified_sportscore',
+    gender: 'men',
+    ageGroup: 'senior',
+    aliases: ['uefa-europa-league', 'europa-league', 'uel'],
+    selectionReason: 'Mandatory Tier 2: UEFA Secondary Club Championship',
+  },
+  {
+    id: 'uefa_conference_league',
+    providerId: 'p4jwq2gh754m0ve',
+    providerSlug: 'uefa-europa-conference-league',
+    providerName: 'UEFA Europa Conference League',
+    canonicalName: 'UEFA Conference League',
+    countryId: 'uefa',
+    countryName: 'Europe',
+    countryCode: 'EU',
+    continent: 'european_competitions',
+    competitionType: 'continental_club',
+    division: 'continental',
+    tier: 'tier_2_uefa_international',
+    tierNumber: 2,
+    weight: 895,
+    isEligibleForFetching: true,
+    mappingSource: 'verified_sportscore',
+    gender: 'men',
+    ageGroup: 'senior',
+    aliases: ['uefa-europa-conference-league', 'uefa-conference-league', 'conference-league', 'uecl'],
+    selectionReason: 'Mandatory Tier 2: UEFA Tertiary Club Championship',
+  },
+  {
+    id: 'uefa_super_cup',
+    providerId: 'jednm9whvoryox8',
+    providerSlug: 'uefa-super-cup',
+    providerName: 'UEFA Super Cup',
+    canonicalName: 'UEFA Super Cup',
+    countryId: 'uefa',
+    countryName: 'Europe',
+    countryCode: 'EU',
+    continent: 'european_competitions',
+    competitionType: 'continental_club',
+    division: 'continental',
+    tier: 'tier_2_uefa_international',
+    tierNumber: 2,
+    weight: 935,
+    isEligibleForFetching: true,
+    mappingSource: 'verified_sportscore',
+    gender: 'men',
+    ageGroup: 'senior',
+    aliases: ['uefa-super-cup', 'super-cup'],
+    selectionReason: 'Mandatory Tier 2: UEFA Club Season Opener',
+  },
+  {
+    id: 'uefa_euro',
+    providerId: 'v2y8m4zh3kql074',
+    providerSlug: 'uefa-european-championship',
+    providerName: 'UEFA European Championship',
+    canonicalName: 'UEFA European Championship',
+    countryId: 'international',
+    countryName: 'International',
+    countryCode: 'INT',
+    continent: 'international',
+    competitionType: 'international',
+    division: 'international',
+    tier: 'tier_2_uefa_international',
+    tierNumber: 2,
+    weight: 998,
+    isEligibleForFetching: true,
+    mappingSource: 'verified_sportscore',
+    gender: 'men',
+    ageGroup: 'senior',
+    aliases: ['uefa-european-championship', 'euro-2024', 'euro', 'european-championship'],
+    selectionReason: 'Mandatory Tier 2: European National Team Championship',
+  },
+  {
+    id: 'uefa_euro_qualifiers',
+    providerId: 'kn54qllhne3qvy9',
+    providerSlug: 'uefa-european-championship-qualification',
+    providerName: 'UEFA European Championship Qualification',
+    canonicalName: 'UEFA Euro Qualifiers',
+    countryId: 'international',
+    countryName: 'International',
+    countryCode: 'INT',
+    continent: 'international',
+    competitionType: 'international',
+    division: 'international',
+    tier: 'tier_2_uefa_international',
+    tierNumber: 2,
+    weight: 920,
+    isEligibleForFetching: true,
+    mappingSource: 'verified_sportscore',
+    gender: 'men',
+    ageGroup: 'senior',
+    aliases: ['uefa-european-championship-qualification', 'euro-qualifiers'],
+    selectionReason: 'Mandatory Tier 2: European Championship Qualifying Stages',
+  },
+  {
+    id: 'uefa_nations_league',
+    providerId: 'd23xmvkh43oqg8n',
+    providerSlug: 'uefa-nations-league',
+    providerName: 'UEFA Nations League',
+    canonicalName: 'UEFA Nations League',
+    countryId: 'international',
+    countryName: 'International',
+    countryCode: 'INT',
+    continent: 'international',
+    competitionType: 'international',
+    division: 'international',
+    tier: 'tier_2_uefa_international',
+    tierNumber: 2,
+    weight: 915,
+    isEligibleForFetching: true,
+    mappingSource: 'verified_sportscore',
+    gender: 'men',
+    ageGroup: 'senior',
+    aliases: ['uefa-nations-league', 'nations-league'],
+    selectionReason: 'Mandatory Tier 2: UEFA Biennial National Tournament',
+  },
+  {
+    id: 'fifa_wc_qualifiers_uefa',
+    providerId: '49vjxm8ghgr6odg',
+    providerSlug: 'fifa-world-cup-qualification-uefa',
+    providerName: 'FIFA World Cup Qualification UEFA',
+    canonicalName: 'World Cup Qualifiers (UEFA)',
+    countryId: 'international',
+    countryName: 'International',
+    countryCode: 'INT',
+    continent: 'international',
+    competitionType: 'international',
+    division: 'international',
+    tier: 'tier_2_uefa_international',
+    tierNumber: 2,
+    weight: 925,
+    isEligibleForFetching: true,
+    mappingSource: 'verified_sportscore',
+    gender: 'men',
+    ageGroup: 'senior',
+    aliases: ['fifa-world-cup-qualification-uefa', 'wc-qualifiers-uefa'],
+    selectionReason: 'Mandatory Tier 2: World Cup European Qualifiers',
+  },
+];
+
+// ============================================================================
+// PRIORITY TIER 3: Candidates for the Exactly Ten Additional Domestic Leagues
+// Configurable popularity ranking. Selected dynamically up to 10 entries.
+// Competitions in Tiers 1 and 2 are excluded from counting towards the 10 limit.
+// ============================================================================
+export const TIER_3_CANDIDATE_POOL: RegistryCompetition[] = [
+  {
+    id: 'bra_serie_a',
+    providerId: '4zp5rzgh9zq82w1',
+    providerSlug: 'brazilian-serie-a',
+    providerName: 'Brazilian Serie A',
+    canonicalName: 'Brazilian Série A',
+    countryId: 'brazil',
+    countryName: 'Brazil',
+    countryCode: 'BR',
+    continent: 'south_america',
+    competitionType: 'domestic_league',
+    division: 'first_division',
+    tier: 'tier_3_popular_domestic',
+    tierNumber: 3,
+    weight: 790,
+    isEligibleForFetching: true,
+    mappingSource: 'verified_sportscore',
+    gender: 'men',
+    ageGroup: 'senior',
+    aliases: ['brazilian-serie-a', 'brasileirao', 'brazil1'],
+    selectionReason: 'Top global domestic league candidate: Brazil top flight',
+  },
+  {
+    id: 'arg_primera_division',
+    providerId: 'p3glrw7hevqdyjv',
+    providerSlug: 'argentine-division-1',
+    providerName: 'Argentine Division 1',
+    canonicalName: 'Argentine Primera División',
+    countryId: 'argentina',
+    countryName: 'Argentina',
+    countryCode: 'AR',
+    continent: 'south_america',
+    competitionType: 'domestic_league',
+    division: 'first_division',
+    tier: 'tier_3_popular_domestic',
+    tierNumber: 3,
+    weight: 780,
+    isEligibleForFetching: true,
+    mappingSource: 'verified_sportscore',
+    gender: 'men',
+    ageGroup: 'senior',
+    aliases: ['argentine-division-1', 'argentine-primera-division', 'argentina1'],
+    selectionReason: 'Top global domestic league candidate: Argentina top flight',
+  },
+  {
+    id: 'usa_mls',
+    providerId: 'kn54qllhg2qvy9d',
+    providerSlug: 'united-states-major-league-soccer',
+    providerName: 'United States Major League Soccer',
+    canonicalName: 'Major League Soccer',
+    countryId: 'usa',
+    countryName: 'USA',
+    countryCode: 'US',
+    continent: 'north_america',
+    competitionType: 'domestic_league',
+    division: 'first_division',
+    tier: 'tier_3_popular_domestic',
+    tierNumber: 3,
+    weight: 770,
+    isEligibleForFetching: true,
+    mappingSource: 'verified_sportscore',
+    gender: 'men',
+    ageGroup: 'senior',
+    aliases: ['united-states-major-league-soccer', 'mls', 'usa-mls'],
+    selectionReason: 'Top global domestic league candidate: North American top flight',
+  },
+  {
+    id: 'mex_liga_mx',
+    providerId: '9k82rekhp6repzj',
+    providerSlug: 'mexico-liga-mx',
+    providerName: 'Mexico Liga MX',
+    canonicalName: 'Mexico Liga MX',
+    countryId: 'mexico',
+    countryName: 'Mexico',
+    countryCode: 'MX',
+    continent: 'north_america',
+    competitionType: 'domestic_league',
+    division: 'first_division',
+    tier: 'tier_3_popular_domestic',
+    tierNumber: 3,
+    weight: 760,
+    isEligibleForFetching: true,
+    mappingSource: 'verified_sportscore',
+    gender: 'men',
+    ageGroup: 'senior',
+    aliases: ['mexico-liga-mx', 'liga-mx', 'mexico1'],
+    selectionReason: 'Top global domestic league candidate: Mexico top flight',
+  },
+  {
+    id: 'sau_pro_league',
+    providerId: 'j1l4rjnh66nm7vx',
+    providerSlug: 'saudi-professional-league',
+    providerName: 'Saudi Professional League',
+    canonicalName: 'Saudi Pro League',
+    countryId: 'saudi_arabia',
+    countryName: 'Saudi Arabia',
+    countryCode: 'SA',
+    continent: 'asia',
+    competitionType: 'domestic_league',
+    division: 'first_division',
+    tier: 'tier_3_popular_domestic',
+    tierNumber: 3,
+    weight: 750,
+    isEligibleForFetching: true,
+    mappingSource: 'verified_sportscore',
+    gender: 'men',
+    ageGroup: 'senior',
+    aliases: ['saudi-professional-league', 'saudi-pro-league', 'saudi1'],
+    selectionReason: 'Top global domestic league candidate: Middle East marquee top flight',
+  },
+  {
+    id: 'jpn_j1_league',
+    providerId: 'z318q66hl1qo9jd',
+    providerSlug: 'japanese-j1-league',
+    providerName: 'Japanese J1 League',
+    canonicalName: 'Japanese J1 League',
+    countryId: 'japan',
+    countryName: 'Japan',
+    countryCode: 'JP',
+    continent: 'asia',
+    competitionType: 'domestic_league',
+    division: 'first_division',
+    tier: 'tier_3_popular_domestic',
+    tierNumber: 3,
+    weight: 740,
+    isEligibleForFetching: true,
+    mappingSource: 'verified_sportscore',
+    gender: 'men',
+    ageGroup: 'senior',
+    aliases: ['japanese-j1-league', 'j1-league', 'japan1'],
+    selectionReason: 'Top global domestic league candidate: East Asia premier top flight',
+  },
+  {
+    id: 'kor_k_league_1',
+    providerId: 'gy0or5jhlxgqwzv',
+    providerSlug: 'korean-k-league-1',
+    providerName: 'Korean K League 1',
+    canonicalName: 'South Korea K League 1',
+    countryId: 'republic_of_korea',
+    countryName: 'Republic of Korea',
+    countryCode: 'KR',
+    continent: 'asia',
+    competitionType: 'domestic_league',
+    division: 'first_division',
+    tier: 'tier_3_popular_domestic',
+    tierNumber: 3,
+    weight: 730,
+    isEligibleForFetching: true,
+    mappingSource: 'verified_sportscore',
+    gender: 'men',
+    ageGroup: 'senior',
+    aliases: ['korean-k-league-1', 'k-league-1', 'korea1'],
+    selectionReason: 'Top global domestic league candidate: South Korea top flight',
+  },
+  {
+    id: 'sui_super_league',
+    providerId: 'z8yomo4hx9q0j6l',
+    providerSlug: 'switzerland-super-league',
+    providerName: 'Switzerland Super League',
+    canonicalName: 'Swiss Super League',
+    countryId: 'switzerland',
+    countryName: 'Switzerland',
+    countryCode: 'CH',
+    continent: 'europe',
+    competitionType: 'domestic_league',
+    division: 'first_division',
+    tier: 'tier_3_popular_domestic',
+    tierNumber: 3,
+    weight: 720,
+    isEligibleForFetching: true,
+    mappingSource: 'verified_sportscore',
+    gender: 'men',
+    ageGroup: 'senior',
+    aliases: ['switzerland-super-league', 'swiss-super-league', 'switzerland1'],
+    selectionReason: 'Top global domestic league candidate: Switzerland top flight',
+  },
+  {
+    id: 'aut_bundesliga',
+    providerId: 'yl5ergphyvr8k0o',
+    providerSlug: 'austrian-bundesliga',
+    providerName: 'Austrian Bundesliga',
+    canonicalName: 'Austrian Bundesliga',
+    countryId: 'austria',
+    countryName: 'Austria',
+    countryCode: 'AT',
+    continent: 'europe',
+    competitionType: 'domestic_league',
+    division: 'first_division',
+    tier: 'tier_3_popular_domestic',
+    tierNumber: 3,
+    weight: 710,
+    isEligibleForFetching: true,
+    mappingSource: 'verified_sportscore',
+    gender: 'men',
+    ageGroup: 'senior',
+    aliases: ['austrian-bundesliga', 'austria1'],
+    selectionReason: 'Top global domestic league candidate: Austria top flight',
+  },
+  {
+    id: 'den_superliga',
+    providerId: '4zp5rzgh0eq82w1',
+    providerSlug: 'danish-superliga',
+    providerName: 'Danish Superliga',
+    canonicalName: 'Danish Superliga',
+    countryId: 'denmark',
+    countryName: 'Denmark',
+    countryCode: 'DK',
+    continent: 'europe',
+    competitionType: 'domestic_league',
+    division: 'first_division',
+    tier: 'tier_3_popular_domestic',
+    tierNumber: 3,
+    weight: 700,
+    isEligibleForFetching: true,
+    mappingSource: 'verified_sportscore',
+    gender: 'men',
+    ageGroup: 'senior',
+    aliases: ['danish-superliga', 'denmark-superliga', 'denmark1'],
+    selectionReason: 'Top global domestic league candidate: Denmark top flight',
+  },
+];
+
+/**
+ * Authoritatively select strictly the 10 highest-ranked additional domestic leagues.
+ * Ensures no duplicates with Tiers 1 and 2, and enforces stable weights.
+ */
+export function getSelectedTier3Competitions(): RegistryCompetition[] {
+  const tier1Ids = new Set(TIER_1_MAJOR_EUROPEAN.map((c) => c.id));
+  const tier2Ids = new Set(TIER_2_UEFA_INTERNATIONAL.map((c) => c.id));
+
+  const eligibleCandidates = TIER_3_CANDIDATE_POOL.filter(
+    (c) => !tier1Ids.has(c.id) && !tier2Ids.has(c.id) && c.isEligibleForFetching
+  );
+
+  // Sort descending by configurable weight
+  eligibleCandidates.sort((a, b) => b.weight - a.weight);
+
+  // Strictly enforce the 10-league limit
+  const selected = eligibleCandidates.slice(0, 10);
+
+  return selected;
+}
+
+// Cached 10 selected Tier 3 leagues
+export const TIER_3_SELECTED_DOMESTIC: RegistryCompetition[] = getSelectedTier3Competitions();
+
+// ============================================================================
+// PRIORITY TIER 4: Top-Flight Coverage for Other Countries
+// Broadens geographic coverage with one valid senior domestic first division
+// for countries not covered in Tiers 1-3. Lower divisions, amateur, and youth
+// tournaments in this tier are explicitly filtered out.
+// ============================================================================
+export const TIER_4_OTHER_TOP_FLIGHT: RegistryCompetition[] = [
+  // --- Europe Senior Top-Flights ---
+  {
+    id: 'nor_eliteserien',
+    providerId: 'jednm9wh11ryox8',
+    providerSlug: 'norwegian-eliteserien',
+    providerName: 'Norwegian Eliteserien',
+    canonicalName: 'Norwegian Eliteserien',
+    countryId: 'norway',
+    countryName: 'Norway',
+    countryCode: 'NO',
+    continent: 'europe',
+    competitionType: 'domestic_league',
+    division: 'first_division',
+    tier: 'tier_4_other_top_flight',
+    tierNumber: 4,
+    weight: 650,
+    isEligibleForFetching: true,
+    mappingSource: 'verified_sportscore',
+    gender: 'men',
+    ageGroup: 'senior',
+    aliases: ['norwegian-eliteserien', 'norwegian-tippeligaen', 'eliteserien', 'norway1'],
+    selectionReason: 'Tier 4 Top-Flight: Norway senior 1st division',
+  },
+  {
+    id: 'swe_allsvenskan',
+    providerId: 'l965mkyhkkr1ge4',
+    providerSlug: 'sweden-allsvenskan',
+    providerName: 'Sweden Allsvenskan',
+    canonicalName: 'Swedish Allsvenskan',
+    countryId: 'sweden',
+    countryName: 'Sweden',
+    countryCode: 'SE',
+    continent: 'europe',
+    competitionType: 'domestic_league',
+    division: 'first_division',
+    tier: 'tier_4_other_top_flight',
+    tierNumber: 4,
+    weight: 645,
+    isEligibleForFetching: true,
+    mappingSource: 'verified_sportscore',
+    gender: 'men',
+    ageGroup: 'senior',
+    aliases: ['sweden-allsvenskan', 'swedish-allsvenskan', 'allsvenskan', 'sweden1'],
+    selectionReason: 'Tier 4 Top-Flight: Sweden senior 1st division',
+  },
+  {
+    id: 'pol_ekstraklasa',
+    providerId: 'vl7oqdehvvr510j',
+    providerSlug: 'polish-ekstraklasa',
+    providerName: 'Polish Ekstraklasa',
+    canonicalName: 'Polish Ekstraklasa',
+    countryId: 'poland',
+    countryName: 'Poland',
+    countryCode: 'PL',
+    continent: 'europe',
+    competitionType: 'domestic_league',
+    division: 'first_division',
+    tier: 'tier_4_other_top_flight',
+    tierNumber: 4,
+    weight: 640,
+    isEligibleForFetching: true,
+    mappingSource: 'verified_sportscore',
+    gender: 'men',
+    ageGroup: 'senior',
+    aliases: ['polish-ekstraklasa', 'poland-ekstraklasa', 'ekstraklasa', 'poland1'],
+    selectionReason: 'Tier 4 Top-Flight: Poland senior 1st division',
+  },
+  {
+    id: 'gre_super_league',
+    providerId: 'kdj2ryohjjq1zpg',
+    providerSlug: 'greek-super-league',
+    providerName: 'Greek Super League',
+    canonicalName: 'Greek Super League',
+    countryId: 'greece',
+    countryName: 'Greece',
+    countryCode: 'GR',
+    continent: 'europe',
+    competitionType: 'domestic_league',
+    division: 'first_division',
+    tier: 'tier_4_other_top_flight',
+    tierNumber: 4,
+    weight: 635,
+    isEligibleForFetching: true,
+    mappingSource: 'verified_sportscore',
+    gender: 'men',
+    ageGroup: 'senior',
+    aliases: ['greek-super-league', 'super-league-greece', 'greece1'],
+    selectionReason: 'Tier 4 Top-Flight: Greece senior 1st division',
+  },
+  {
+    id: 'cro_hnl',
+    providerId: 'gy0or5jh22qwzv3',
+    providerSlug: 'croatian-first-football-league',
+    providerName: 'Croatian First Football League',
+    canonicalName: 'Croatian Football League (HNL)',
+    countryId: 'croatia',
+    countryName: 'Croatia',
+    countryCode: 'HR',
+    continent: 'europe',
+    competitionType: 'domestic_league',
+    division: 'first_division',
+    tier: 'tier_4_other_top_flight',
+    tierNumber: 4,
+    weight: 630,
+    isEligibleForFetching: true,
+    mappingSource: 'verified_sportscore',
+    gender: 'men',
+    ageGroup: 'senior',
+    aliases: ['croatian-first-football-league', 'croatian-hnl', 'croatia-1-hnl', 'croatia1'],
+    selectionReason: 'Tier 4 Top-Flight: Croatia senior 1st division',
+  },
+  {
+    id: 'cze_first_league',
+    providerId: 'kn54qllh88qvy9d',
+    providerSlug: 'czech-chance-liga',
+    providerName: 'Czech Chance Liga',
+    canonicalName: 'Czech First League',
+    countryId: 'czech_republic',
+    countryName: 'Czech Republic',
+    countryCode: 'CZ',
+    continent: 'europe',
+    competitionType: 'domestic_league',
+    division: 'first_division',
+    tier: 'tier_4_other_top_flight',
+    tierNumber: 4,
+    weight: 625,
+    isEligibleForFetching: true,
+    mappingSource: 'verified_sportscore',
+    gender: 'men',
+    ageGroup: 'senior',
+    aliases: ['czech-chance-liga', 'czech-first-league', 'chance-liga', 'czech-1-liga', 'czechia1'],
+    selectionReason: 'Tier 4 Top-Flight: Czech Republic senior 1st division',
+  },
+  {
+    id: 'srb_superliga',
+    providerId: '4zp5rzgh44q82w1',
+    providerSlug: 'serbian-superliga',
+    providerName: 'Serbian SuperLiga',
+    canonicalName: 'Serbian SuperLiga',
+    countryId: 'serbia',
+    countryName: 'Serbia',
+    countryCode: 'RS',
+    continent: 'europe',
+    competitionType: 'domestic_league',
+    division: 'first_division',
+    tier: 'tier_4_other_top_flight',
+    tierNumber: 4,
+    weight: 620,
+    isEligibleForFetching: true,
+    mappingSource: 'verified_sportscore',
+    gender: 'men',
+    ageGroup: 'senior',
+    aliases: ['serbian-superliga', 'serbia-superliga', 'serbia1'],
+    selectionReason: 'Tier 4 Top-Flight: Serbia senior 1st division',
+  },
+  {
+    id: 'rou_liga_1',
+    providerId: 'j1l4rjnh99m7vx5',
+    providerSlug: 'romanian-liga-1',
+    providerName: 'Romanian Liga 1',
+    canonicalName: 'Romanian Liga I',
+    countryId: 'romania',
+    countryName: 'Romania',
+    countryCode: 'RO',
+    continent: 'europe',
+    competitionType: 'domestic_league',
+    division: 'first_division',
+    tier: 'tier_4_other_top_flight',
+    tierNumber: 4,
+    weight: 615,
+    isEligibleForFetching: true,
+    mappingSource: 'verified_sportscore',
+    gender: 'men',
+    ageGroup: 'senior',
+    aliases: ['romanian-liga-1', 'liga-1-romania', 'superliga-romania', 'romania1'],
+    selectionReason: 'Tier 4 Top-Flight: Romania senior 1st division',
+  },
+  {
+    id: 'ukr_premier_league',
+    providerId: 'yl5ergph44r8k0o',
+    providerSlug: 'ukrainian-premier-league',
+    providerName: 'Ukrainian Premier League',
+    canonicalName: 'Ukrainian Premier League',
+    countryId: 'ukraine',
+    countryName: 'Ukraine',
+    countryCode: 'UA',
+    continent: 'europe',
+    competitionType: 'domestic_league',
+    division: 'first_division',
+    tier: 'tier_4_other_top_flight',
+    tierNumber: 4,
+    weight: 610,
+    isEligibleForFetching: true,
+    mappingSource: 'verified_sportscore',
+    gender: 'men',
+    ageGroup: 'senior',
+    aliases: ['ukrainian-premier-league', 'upl', 'ukraine1'],
+    selectionReason: 'Tier 4 Top-Flight: Ukraine senior 1st division',
+  },
+
+  // --- Africa Senior Top-Flights ---
+  {
+    id: 'egy_premier_league',
+    providerId: 'kjw2r09h33rz84o',
+    providerSlug: 'egyptian-premier-league',
+    providerName: 'Egyptian Premier League',
+    canonicalName: 'Egyptian Premier League',
+    countryId: 'egypt',
+    countryName: 'Egypt',
+    countryCode: 'EG',
+    continent: 'africa',
+    competitionType: 'domestic_league',
+    division: 'first_division',
+    tier: 'tier_4_other_top_flight',
+    tierNumber: 4,
+    weight: 600,
+    isEligibleForFetching: true,
+    mappingSource: 'verified_sportscore',
+    gender: 'men',
+    ageGroup: 'senior',
+    aliases: ['egyptian-premier-league', 'egypt-premier-league', 'egypt1'],
+    selectionReason: 'Tier 4 Top-Flight: Egypt senior 1st division',
+  },
+  {
+    id: 'ken_premier_league',
+    providerId: '9vjxm8gh77r6odg',
+    providerSlug: 'kenyan-premier-league',
+    providerName: 'Kenyan Premier League',
+    canonicalName: 'Kenyan Premier League (FKF-PL)',
+    countryId: 'kenya',
+    countryName: 'Kenya',
+    countryCode: 'KE',
+    continent: 'africa',
+    competitionType: 'domestic_league',
+    division: 'first_division',
+    tier: 'tier_4_other_top_flight',
+    tierNumber: 4,
+    weight: 595,
+    isEligibleForFetching: true,
+    mappingSource: 'verified_sportscore',
+    gender: 'men',
+    ageGroup: 'senior',
+    aliases: ['kenyan-premier-league', 'kenya-premier-league', 'fkf-pl', 'kenya1'],
+    selectionReason: 'Tier 4 Top-Flight: Kenya senior 1st division',
+  },
+  {
+    id: 'rsa_premiership',
+    providerId: 'gx7lm7ph11m2wdk',
+    providerSlug: 'south-african-premier-soccer-league',
+    providerName: 'South African Premier Soccer League',
+    canonicalName: 'South African Premiership (PSL)',
+    countryId: 'south_africa',
+    countryName: 'South Africa',
+    countryCode: 'ZA',
+    continent: 'africa',
+    competitionType: 'domestic_league',
+    division: 'first_division',
+    tier: 'tier_4_other_top_flight',
+    tierNumber: 4,
+    weight: 590,
+    isEligibleForFetching: true,
+    mappingSource: 'verified_sportscore',
+    gender: 'men',
+    ageGroup: 'senior',
+    aliases: ['south-african-premier-soccer-league', 'south-africa-premiership', 'psl', 'southafrica1'],
+    selectionReason: 'Tier 4 Top-Flight: South Africa senior 1st division',
+  },
+  {
+    id: 'mar_botola_pro',
+    providerId: '8y39mp1h55mojxg',
+    providerSlug: 'moroccan-botola-pro',
+    providerName: 'Moroccan Botola Pro',
+    canonicalName: 'Morocco Botola Pro',
+    countryId: 'morocco',
+    countryName: 'Morocco',
+    countryCode: 'MA',
+    continent: 'africa',
+    competitionType: 'domestic_league',
+    division: 'first_division',
+    tier: 'tier_4_other_top_flight',
+    tierNumber: 4,
+    weight: 585,
+    isEligibleForFetching: true,
+    mappingSource: 'verified_sportscore',
+    gender: 'men',
+    ageGroup: 'senior',
+    aliases: ['moroccan-botola-pro', 'botola-pro', 'morocco1'],
+    selectionReason: 'Tier 4 Top-Flight: Morocco senior 1st division',
+  },
+
+  // --- Americas Senior Top-Flights ---
+  {
+    id: 'col_primera_a',
+    providerId: '9k82rekh33repzj',
+    providerSlug: 'colombian-primera-a',
+    providerName: 'Colombian Primera A',
+    canonicalName: 'Colombian Primera A',
+    countryId: 'colombia',
+    countryName: 'Colombia',
+    countryCode: 'CO',
+    continent: 'south_america',
+    competitionType: 'domestic_league',
+    division: 'first_division',
+    tier: 'tier_4_other_top_flight',
+    tierNumber: 4,
+    weight: 580,
+    isEligibleForFetching: true,
+    mappingSource: 'verified_sportscore',
+    gender: 'men',
+    ageGroup: 'senior',
+    aliases: ['colombian-primera-a', 'categoria-primera-a', 'colombia1', 'liga-betplay'],
+    selectionReason: 'Tier 4 Top-Flight: Colombia senior 1st division',
+  },
+  {
+    id: 'chl_primera_division',
+    providerId: 'p4jwq2gh66m0veo',
+    providerSlug: 'chilean-primera-division',
+    providerName: 'Chilean Primera Division',
+    canonicalName: 'Chilean Primera División',
+    countryId: 'chile',
+    countryName: 'Chile',
+    countryCode: 'CL',
+    continent: 'south_america',
+    competitionType: 'domestic_league',
+    division: 'first_division',
+    tier: 'tier_4_other_top_flight',
+    tierNumber: 4,
+    weight: 575,
+    isEligibleForFetching: true,
+    mappingSource: 'verified_sportscore',
+    gender: 'men',
+    ageGroup: 'senior',
+    aliases: ['chilean-primera-division', 'chile-primera-division', 'chile1'],
+    selectionReason: 'Tier 4 Top-Flight: Chile senior 1st division',
+  },
+  {
+    id: 'ury_primera_division',
+    providerId: 'jednm9wh88ryox8',
+    providerSlug: 'uruguayan-primera-division',
+    providerName: 'Uruguayan Primera Division',
+    canonicalName: 'Uruguayan Primera División',
+    countryId: 'uruguay',
+    countryName: 'Uruguay',
+    countryCode: 'UY',
+    continent: 'south_america',
+    competitionType: 'domestic_league',
+    division: 'first_division',
+    tier: 'tier_4_other_top_flight',
+    tierNumber: 4,
+    weight: 570,
+    isEligibleForFetching: true,
+    mappingSource: 'verified_sportscore',
+    gender: 'men',
+    ageGroup: 'senior',
+    aliases: ['uruguayan-primera-division', 'uruguay-primera-division', 'uruguay1'],
+    selectionReason: 'Tier 4 Top-Flight: Uruguay senior 1st division',
+  },
+
+  // --- Asia / Oceania Senior Top-Flights ---
+  {
+    id: 'aus_a_league',
+    providerId: 'z8yomo4h44q0j6l',
+    providerSlug: 'australia-a-league',
+    providerName: 'Australia A-League',
+    canonicalName: 'Australia A-League Men',
+    countryId: 'australia',
+    countryName: 'Australia',
+    countryCode: 'AU',
+    continent: 'oceania',
+    competitionType: 'domestic_league',
+    division: 'first_division',
+    tier: 'tier_4_other_top_flight',
+    tierNumber: 4,
+    weight: 565,
+    isEligibleForFetching: true,
+    mappingSource: 'verified_sportscore',
+    gender: 'men',
+    ageGroup: 'senior',
+    aliases: ['australia-a-league', 'a-league', 'australia1'],
+    selectionReason: 'Tier 4 Top-Flight: Australia senior 1st division',
+  },
+  {
+    id: 'qat_stars_league',
+    providerId: '56ypq3nh88md7oj',
+    providerSlug: 'qatari-stars-league',
+    providerName: 'Qatari Stars League',
+    canonicalName: 'Qatar Stars League',
+    countryId: 'qatar',
+    countryName: 'Qatar',
+    countryCode: 'QA',
+    continent: 'asia',
+    competitionType: 'domestic_league',
+    division: 'first_division',
+    tier: 'tier_4_other_top_flight',
+    tierNumber: 4,
+    weight: 560,
+    isEligibleForFetching: true,
+    mappingSource: 'verified_sportscore',
+    gender: 'men',
+    ageGroup: 'senior',
+    aliases: ['qatari-stars-league', 'qatar-stars-league', 'qatar1'],
+    selectionReason: 'Tier 4 Top-Flight: Qatar senior 1st division',
+  },
+  {
+    id: 'uae_pro_league',
+    providerId: 'p4jwq2gh994m0ve',
+    providerSlug: 'uae-pro-league',
+    providerName: 'UAE Pro League',
+    canonicalName: 'UAE Pro League',
+    countryId: 'united_arab_emirates',
+    countryName: 'United Arab Emirates',
+    countryCode: 'AE',
+    continent: 'asia',
+    competitionType: 'domestic_league',
+    division: 'first_division',
+    tier: 'tier_4_other_top_flight',
+    tierNumber: 4,
+    weight: 555,
+    isEligibleForFetching: true,
+    mappingSource: 'verified_sportscore',
+    gender: 'men',
+    ageGroup: 'senior',
+    aliases: ['uae-pro-league', 'arabian-gulf-league', 'uae1'],
+    selectionReason: 'Tier 4 Top-Flight: UAE senior 1st division',
+  },
+  {
+    id: 'ind_super_league',
+    providerId: 'v2y8m4zh88ql074',
+    providerSlug: 'indian-super-league',
+    providerName: 'Indian Super League',
+    canonicalName: 'Indian Super League',
+    countryId: 'india',
+    countryName: 'India',
+    countryCode: 'IN',
+    continent: 'asia',
+    competitionType: 'domestic_league',
+    division: 'first_division',
+    tier: 'tier_4_other_top_flight',
+    tierNumber: 4,
+    weight: 550,
+    isEligibleForFetching: true,
+    mappingSource: 'verified_sportscore',
+    gender: 'men',
+    ageGroup: 'senior',
+    aliases: ['indian-super-league', 'isl', 'india1'],
+    selectionReason: 'Tier 4 Top-Flight: India senior 1st division',
+  },
+  {
+    id: 'chn_super_league',
+    providerId: 'kn54qllh113qvy9',
+    providerSlug: 'chinese-super-league',
+    providerName: 'Chinese Super League',
+    canonicalName: 'Chinese Super League',
+    countryId: 'china',
+    countryName: 'China',
+    countryCode: 'CN',
+    continent: 'asia',
+    competitionType: 'domestic_league',
+    division: 'first_division',
+    tier: 'tier_4_other_top_flight',
+    tierNumber: 4,
+    weight: 545,
+    isEligibleForFetching: true,
+    mappingSource: 'verified_sportscore',
+    gender: 'men',
+    ageGroup: 'senior',
+    aliases: ['chinese-super-league', 'csl', 'china1'],
+    selectionReason: 'Tier 4 Top-Flight: China senior 1st division',
+  },
+];
+
+// ============================================================================
+// DEDUPLICATED MASTER COMPETITION REGISTRY
+// ============================================================================
+const ALL_REGISTERED_COMPETITIONS: RegistryCompetition[] = [
+  ...TIER_1_MAJOR_EUROPEAN,
+  ...TIER_2_UEFA_INTERNATIONAL,
+  ...TIER_3_SELECTED_DOMESTIC,
+  ...TIER_4_OTHER_TOP_FLIGHT,
+];
+
+// Index lookups
+const REGISTRY_BY_CANONICAL_ID = new Map<string, RegistryCompetition>();
+const REGISTRY_BY_PROVIDER_ID = new Map<string, RegistryCompetition>();
+const REGISTRY_BY_SLUG = new Map<string, RegistryCompetition>();
+
+// Populate indexes
+ALL_REGISTERED_COMPETITIONS.forEach((comp) => {
+  REGISTRY_BY_CANONICAL_ID.set(comp.id.toLowerCase(), comp);
+  if (comp.providerId) {
+    REGISTRY_BY_PROVIDER_ID.set(comp.providerId.toLowerCase(), comp);
+  }
+  REGISTRY_BY_SLUG.set(comp.providerSlug.toLowerCase(), comp);
+  comp.aliases.forEach((alias) => {
+    REGISTRY_BY_SLUG.set(alias.toLowerCase(), comp);
+  });
+});
+
+/**
+ * Get registered competition by canonical ID
+ */
+export function getCompetitionById(id: string): RegistryCompetition | undefined {
+  if (!id) return undefined;
+  return REGISTRY_BY_CANONICAL_ID.get(id.toLowerCase());
+}
+
+/**
+ * Resolve a competition by provider ID or provider slug or alias
+ */
+export function getCompetitionByProvider(idOrSlug: string): RegistryCompetition | undefined {
+  if (!idOrSlug) return undefined;
+  const key = idOrSlug.toLowerCase().trim();
+  return REGISTRY_BY_PROVIDER_ID.get(key) || REGISTRY_BY_SLUG.get(key);
+}
+
+/**
+ * Check if a competition is eligible for fixture fetching under our strict policy.
+ * Discards unmapped, youth, amateur, or lower tier tournaments not in Tier 1.
+ */
+export function isCompetitionEligible(input: {
+  id?: string;
+  providerId?: string;
+  slug?: string;
+  competition?: string;
+  name?: string;
+  country?: string;
+  leagueCode?: string;
+}): boolean {
+  // Check direct canonical ID
+  if (input.id && REGISTRY_BY_CANONICAL_ID.has(input.id.toLowerCase())) {
+    const comp = REGISTRY_BY_CANONICAL_ID.get(input.id.toLowerCase());
+    return Boolean(comp && comp.isEligibleForFetching);
+  }
+
+  // Check provider ID
+  if (input.providerId && REGISTRY_BY_PROVIDER_ID.has(input.providerId.toLowerCase())) {
+    const comp = REGISTRY_BY_PROVIDER_ID.get(input.providerId.toLowerCase());
+    return Boolean(comp && comp.isEligibleForFetching);
+  }
+
+  // Check slug
+  const targetSlug = input.slug || input.leagueCode;
+  if (targetSlug && REGISTRY_BY_SLUG.has(targetSlug.toLowerCase())) {
+    const comp = REGISTRY_BY_SLUG.get(targetSlug.toLowerCase());
+    return Boolean(comp && comp.isEligibleForFetching);
+  }
+
+  // Check name exact match against slugified name
+  const nameToTest = input.name || input.competition;
+  if (nameToTest) {
+    const slugified = nameToTest.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+    if (REGISTRY_BY_SLUG.has(slugified)) {
+      const comp = REGISTRY_BY_SLUG.get(slugified);
+      return Boolean(comp && comp.isEligibleForFetching);
+    }
+  }
+
+  // Invariant: Unmapped competitions or obscure divisions are ineligible by default
+  return false;
+}
+
+/**
+ * Return all competitions in a specific tier
+ */
+export function getTierCompetitions(tierNumber: 1 | 2 | 3 | 4): RegistryCompetition[] {
+  switch (tierNumber) {
+    case 1:
+      return [...TIER_1_MAJOR_EUROPEAN];
+    case 2:
+      return [...TIER_2_UEFA_INTERNATIONAL];
+    case 3:
+      return [...TIER_3_SELECTED_DOMESTIC];
+    case 4:
+      return [...TIER_4_OTHER_TOP_FLIGHT];
+    default:
+      return [];
+  }
+}
+
+/**
+ * Return all eligible provider slugs for targeted fetching
+ */
+export function getEligibleProviderSlugs(): string[] {
+  return ALL_REGISTERED_COMPETITIONS
+    .filter((c) => c.isEligibleForFetching)
+    .map((c) => c.providerSlug);
+}
+
+/**
+ * Diagnostic logger to verify selected competitions and reasoning
+ */
+export function logSelectedCompetitionsSummary(): void {
+  console.log('=== Authoritative Competition Priority Registry Summary ===');
+  console.log(`[Tier 1: Major European Leagues] Count: ${TIER_1_MAJOR_EUROPEAN.length}`);
+  TIER_1_MAJOR_EUROPEAN.forEach((c) => console.log(`   - [${c.division}] ${c.canonicalName} (${c.countryName}) -> ID: ${c.providerId}`));
+
+  console.log(`\n[Tier 2: UEFA & Internationals] Count: ${TIER_2_UEFA_INTERNATIONAL.length}`);
+  TIER_2_UEFA_INTERNATIONAL.forEach((c) => console.log(`   - [${c.competitionType}] ${c.canonicalName} -> ID: ${c.providerId}`));
+
+  console.log(`\n[Tier 3: Exactly 10 Selected Popular Domestic Leagues] Count: ${TIER_3_SELECTED_DOMESTIC.length}`);
+  TIER_3_SELECTED_DOMESTIC.forEach((c, idx) => console.log(`   #${idx + 1} ${c.canonicalName} (${c.countryName}) [Weight: ${c.weight}] - ${c.selectionReason}`));
+
+  console.log(`\n[Tier 4: Other Country Top-Flight Coverage] Count: ${TIER_4_OTHER_TOP_FLIGHT.length}`);
+  TIER_4_OTHER_TOP_FLIGHT.forEach((c) => console.log(`   - ${c.canonicalName} (${c.countryName}) -> Slug: ${c.providerSlug}`));
+  console.log('============================================================');
+}
