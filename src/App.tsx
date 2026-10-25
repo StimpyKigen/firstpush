@@ -1,5 +1,5 @@
 import { useEffect, Suspense, lazy } from 'react';
-import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AnimatePresence, motion } from 'motion/react';
 import { enforceLightMode } from './lib/themeStore';
 import Navbar from './components/Navbar';
@@ -27,7 +27,6 @@ const FreeMatches = lazy(() => import('./pages/FreeMatches'));
 const FreeMatchRoom = lazy(() => import('./pages/FreeMatchRoom'));
 const Auth = lazy(() => import('./pages/Auth'));
 const Profile = lazy(() => import('./pages/Profile'));
-const P2PComingSoon = lazy(() => import('./pages/P2PComingSoon'));
 const BetSlipRoom = lazy(() => import('./pages/BetSlipRoom'));
 const PrivacyPolicy = lazy(() => import('./pages/PrivacyPolicy'));
 const TermsOfService = lazy(() => import('./pages/TermsOfService'));
@@ -113,9 +112,8 @@ function AnimatedRoutes() {
             <Route path="/slips" element={<BetSlipRoom />} />
             <Route path="/privacy" element={<PrivacyPolicy />} />
             <Route path="/terms" element={<TermsOfService />} />
-            <Route path="/p2p" element={<P2PComingSoon />} />
-            <Route path="/p2p/create" element={<P2PComingSoon />} />
-            <Route path="/p2p/:id" element={<P2PComingSoon />} />
+            <Route path="/p2p" element={<Navigate to="/" replace />} />
+            <Route path="/p2p/*" element={<Navigate to="/" replace />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </motion.div>

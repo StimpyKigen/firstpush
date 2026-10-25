@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { Wallet, Menu, X, UserCircle2, ShieldCheck, LogOut, Settings, Bell, Swords } from 'lucide-react';
+import { Wallet, Menu, X, UserCircle2, ShieldCheck, LogOut, Settings, Bell } from 'lucide-react';
 import { isAdminUser, type Account } from '../../lib/authStore';
 import Avatar from '../Avatar';
 import type { NavLinkItem } from './useNavData';
@@ -60,18 +60,6 @@ export function MobileMenuPanel({
             <span className="text-xs text-slate-500 font-normal">View Profile</span>
           </Link>
 
-          {/* P2P Bets Placed Directly Below View Profile Card */}
-          <Link
-            to="/p2p"
-            onClick={onNavigate}
-            className="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-700 hover:text-[#EEAA04] hover:bg-emerald-50/50 active:bg-emerald-50 active:scale-[0.98] font-bold text-sm transition-all touch-manipulation min-h-[44px]"
-          >
-            <Swords size={18} className="shrink-0 text-[#006C54]" />
-            <span className="truncate">P2P Bets</span>
-            <span className="text-[11px] font-bold bg-[#8A6500]/15 text-[#8A6500] border border-[#8A6500]/30 px-2 py-0.5 rounded-full shrink-0 ml-auto">
-              Soon
-            </span>
-          </Link>
 
           {isAdminUser(currentUser) && (
             <button
@@ -95,18 +83,6 @@ export function MobileMenuPanel({
             <UserCircle2 size={16} /> Sign Up / Log In
           </Link>
 
-          {/* P2P Bets */}
-          <Link
-            to="/p2p"
-            onClick={onNavigate}
-            className="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-700 hover:text-[#EEAA04] hover:bg-emerald-50/50 active:bg-emerald-50 active:scale-[0.98] font-bold text-sm transition-all touch-manipulation min-h-[44px]"
-          >
-            <Swords size={18} className="shrink-0 text-[#006C54]" />
-            <span className="truncate">P2P Bets</span>
-            <span className="text-[11px] font-bold bg-[#8A6500]/15 text-[#8A6500] border border-[#8A6500]/30 px-2 py-0.5 rounded-full shrink-0 ml-auto">
-              Soon
-            </span>
-          </Link>
         </div>
       )}
 

@@ -45,7 +45,6 @@ export default function Footer() {
               <li><Link to="/free" className="hover:text-[#EEAA04] transition-colors">Free Match Slate</Link></li>
               <li><Link to="/slips" className="hover:text-[#EEAA04] transition-colors">Punter Slips Feed</Link></li>
               <li><Link to="/leaderboard" className="hover:text-[#EEAA04] transition-colors">Top Punter Rankings</Link></li>
-              <li><Link to="/p2p" className="hover:text-[#EEAA04] transition-colors">P2P Challenges</Link></li>
             </ul>
           </div>
 

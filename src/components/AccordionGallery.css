@@ -105,7 +105,7 @@
   inset: 0;
   pointer-events: none;
   background:
-    linear-gradient(180deg, transparent 40%, color-mix(in srgb, var(--ag-overlay) 85%, transparent) 100%),
+    linear-gradient(180deg, transparent 25%, color-mix(in srgb, var(--ag-overlay) 75%, transparent) 70%, color-mix(in srgb, var(--ag-overlay) 95%, transparent) 100%),
     color-mix(in srgb, var(--ag-overlay) calc(var(--ag-dim, 0.35) * 100%), transparent);
 }
 
@@ -114,8 +114,9 @@
   left: 18px;
   bottom: 18px;
   right: 18px;
+  max-width: calc(100% - 36px);
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 12px;
   pointer-events: none;
   z-index: 2;
@@ -124,7 +125,8 @@
 .ag-panel__bar {
   flex: 0 0 auto;
   width: 3.5px;
-  height: 28px;
+  min-height: 22px;
+  align-self: stretch;
   border-radius: 3px;
   background: var(--ag-accent);
   opacity: 0;
@@ -135,13 +137,26 @@
   color: var(--ag-text);
   font-family: inherit;
   font-weight: 600;
-  font-size: clamp(0.95rem, 1.35vw, 1.35rem);
+  font-size: clamp(0.95rem, 1.25vw, 1.25rem);
+  line-height: 1.35;
   letter-spacing: 0.01em;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  white-space: normal;
+  word-break: break-word;
+  overflow-wrap: anywhere;
   opacity: 0;
-  text-shadow: 0 2px 14px rgba(0, 0, 0, 0.7);
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.9), 0 1px 3px rgba(0, 0, 0, 0.8);
+}
+
+/* Ensure active panel caption is visible even before or without GSAP transitions */
+.ag-panel--active .ag-panel__bar,
+.ag-panel--active .ag-panel__text {
+  opacity: 1;
+}
+
+/* Standby panels hide captions cleanly so they don't leak through collapsed cards */
+.ag-panel--standby .ag-panel__label {
+  opacity: 0;
+  pointer-events: none;
 }
 
 /* Mobile Touch & Responsive Layout Optimization */
@@ -178,19 +193,23 @@
   }
 
   .ag-panel__label {
-    left: 14px;
-    bottom: 14px;
-    right: 14px;
+    left: 12px;
+    bottom: 12px;
+    right: 12px;
     gap: 8px;
+    max-width: calc(100% - 24px);
   }
 
   .ag-panel__bar {
     width: 3px;
-    height: 20px;
+    min-height: 18px;
+    align-self: stretch;
   }
 
   .ag-panel__text {
-    font-size: 0.95rem;
+    font-size: 0.92rem;
+    line-height: 1.35;
+    white-space: normal;
   }
 }
 

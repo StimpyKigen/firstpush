@@ -32,7 +32,7 @@ export default function AvaChatSupport() {
     {
       id: 'welcome-1',
       sender: 'ava',
-      text: "Habari! 👋 I'm **Ava**, your 24/7 AI Customer Support Specialist for MshindiRoom.\n\nAsk me anything about jackpot consensus, building custom bet slips, unlocking rooms with M-Pesa, 5-star ratings, P2P bets, or gameweek leaderboards!",
+      text: "Habari! 👋 I'm **Ava**, your 24/7 AI Customer Support Specialist for MshindiRoom.\n\nAsk me anything about jackpot consensus, building custom bet slips, unlocking rooms with M-Pesa, 5-star ratings, or gameweek leaderboards!",
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
     },
   ]);

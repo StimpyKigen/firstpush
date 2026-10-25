@@ -448,7 +448,7 @@ export const AccordionGallery: React.FC<AccordionGalleryProps> = ({
               </span>
               <span className="ag-panel__overlay" aria-hidden="true" />
             </span>
-            {showLabels && (
+            {showLabels && Boolean(item.label?.trim()) && (
               <span className="ag-panel__label" aria-hidden="true">
                 <span className="ag-panel__bar" ref={(el) => { barRefs.current[slotIndex] = el; }} />
                 <span className="ag-panel__text" ref={(el) => { textRefs.current[slotIndex] = el; }}>

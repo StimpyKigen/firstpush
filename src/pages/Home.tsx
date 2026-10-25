@@ -79,7 +79,7 @@ export default function Home() {
           "@type": "WebSite",
           "name": "MshindiRoom",
           "url": "https://mshindi.co.ke/",
-          "description": "Kenya's Premier Jackpot Consensus & P2P Betting Community Platform",
+          "description": "Kenya's Premier Jackpot Consensus & Football Community Platform",
           "potentialAction": {
             "@type": "SearchAction",
             "target": "https://mshindi.co.ke/free?q={search_term_string}",
@@ -94,7 +94,7 @@ export default function Home() {
           ========================================================================= */}
       {galleryItems.length > 0 && (
         <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 sm:pt-10">
-          <div className="text-center sm:text-left mb-6">
+          <div className="text-left mb-6">
             <span className="text-[#006C54] font-bold text-xs uppercase tracking-wide block mb-1">
               Weekly Editorial News
             </span>
@@ -138,7 +138,7 @@ export default function Home() {
           'Match video hub' omitted, Thicker Heading applied
           ========================================================================= */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16 sm:pb-20">
-        <div className="text-center sm:text-left mb-6 sm:mb-8">
+        <div className="text-left mb-6 sm:mb-8">
           <h2 className="font-bold sm:font-bold text-2xl sm:text-3xl lg:text-4xl text-slate-900 tracking-tight">
             Videos and Highlights
           </h2>

@@ -133,7 +133,7 @@ export default function WalletPage() {
             </span>
           </div>
           <p className="font-display font-bold text-4xl text-slate-900">Ksh {balance.toLocaleString()}</p>
-          <p className="text-xs text-slate-500 mt-2">Spendable for instant room unlocks &amp; P2P stakes.</p>
+          <p className="text-xs text-slate-500 mt-2">Spendable for instant room unlocks and premium features.</p>
         </div>
 
         {/* Mshindi Tokens Balance */}

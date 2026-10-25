@@ -11,7 +11,7 @@ export interface SeoProps {
   structuredData?: Record<string, any> | Array<Record<string, any>>;
 }
 
-const DEFAULT_TITLE = "MshindiRoom — Kenya's Premier Jackpot Consensus & P2P Bets";
+const DEFAULT_TITLE = "MshindiRoom — Kenya's Premier Jackpot Consensus & Football Community";
 const DEFAULT_DESC = "Join Kenya's leading jackpot consensus community. Analyze Sportpesa, Betika & Mozzart jackpots, challenge top punters, share bet slips, and build winning slips.";
 const DEFAULT_IMAGE = "https://mshindi.co.ke/pwa-512.png";
 const SITE_NAME = "MshindiRoom";
