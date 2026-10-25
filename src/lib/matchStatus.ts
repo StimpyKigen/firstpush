@@ -263,6 +263,68 @@ export function isCompletedMatch(
 }
 
 /**
+ * Format live in-play clock to display the actual match minutes (e.g. 24', 45+2', 78')
+ * instead of '1st Half' or '2nd Half'. Returns 'HT' for halftime and 'FT' for fulltime.
+ */
+export function formatLiveMatchClock(
+  displayClock?: string | null,
+  period?: MatchPeriod,
+  kickoffIso?: string | null
+): string {
+  const clock = String(displayClock || '').trim();
+
+  if (period === 'halftime' || clock.toLowerCase() === 'ht' || clock.toLowerCase() === 'halftime' || clock.toLowerCase() === 'half time') {
+    return 'HT';
+  }
+  if (period === 'penalties' || clock.toLowerCase().includes('pen')) {
+    return 'PEN';
+  }
+
+  // If clock is already a minute string like "24'", "45+2'", "78'", "90+4'"
+  const minMatch = clock.match(/^(\d+(?:\+\d+)?)\s*['`]?$/);
+  if (minMatch) {
+    return `${minMatch[1]}'`;
+  }
+
+  // If clock has embedded numbers like "67 min" or "67m"
+  const embeddedMin = clock.match(/(\d+(?:\+\d+)?)\s*(?:min|m|')/i);
+  if (embeddedMin) {
+    return `${embeddedMin[1]}'`;
+  }
+
+  // If clock is "1st Half" or "2nd Half" or generic "LIVE", calculate elapsed minutes from kickoff
+  if (kickoffIso) {
+    const kMs = new Date(kickoffIso).getTime();
+    if (!isNaN(kMs)) {
+      const elapsedMin = Math.floor((Date.now() - kMs) / 60000);
+      if (period === 'first_half' || clock.toLowerCase().includes('1st')) {
+        const m = Math.max(1, elapsedMin);
+        return m > 45 ? `45+${m - 45}'` : `${m}'`;
+      }
+      if (period === 'second_half' || clock.toLowerCase().includes('2nd')) {
+        const adjustedMin = Math.max(46, elapsedMin - 15);
+        return adjustedMin > 90 ? `90+${adjustedMin - 90}'` : `${adjustedMin}'`;
+      }
+      if (elapsedMin > 0 && elapsedMin < 130) {
+        if (elapsedMin <= 45) return `${elapsedMin}'`;
+        if (elapsedMin <= 60) return 'HT';
+        const secondHalfMin = Math.min(90, Math.max(46, elapsedMin - 15));
+        return secondHalfMin > 90 ? `90+${secondHalfMin - 90}'` : `${secondHalfMin}'`;
+      }
+    }
+  }
+
+  if (period === 'first_half' || clock.toLowerCase().includes('1st')) {
+    return "1'";
+  }
+  if (period === 'second_half' || clock.toLowerCase().includes('2nd')) {
+    return "46'";
+  }
+
+  return clock && !['1st half', '2nd half', 'live'].includes(clock.toLowerCase()) ? clock : "1'";
+}
+
+/**
  * Authoritative score and badge calculator
  */
 export function getMatchScorePresentation(
@@ -271,7 +333,7 @@ export function getMatchScorePresentation(
   kickoffDisplay: string,
   homeScore?: number | null,
   awayScore?: number | null,
-  _kickoffIso?: string | null,
+  kickoffIso?: string | null,
   _nowMs?: number
 ): ScorePresentation {
   const detailed = parseDetailedMatchStatus(rawStatus, statusText);
@@ -358,22 +420,22 @@ export function getMatchScorePresentation(
 
   // 3. Live in progress (1st half, HT, 2nd half, extra time, penalties)
   if (status === 'in') {
-    const isHt = period === 'halftime';
+    const isHt = period === 'halftime' || (displayClock && displayClock.toLowerCase() === 'ht');
     const isExtraTime = period === 'extra_time';
     const isPenalties = period === 'penalties';
 
     const hScore = homeScore !== null && homeScore !== undefined ? Number(homeScore) : 0;
     const aScore = awayScore !== null && awayScore !== undefined ? Number(awayScore) : 0;
 
-    let badgeText = 'LIVE';
+    let badgeText = "1'";
     if (isHt) {
       badgeText = 'HT';
     } else if (isPenalties) {
       badgeText = 'PEN';
     } else if (isExtraTime) {
       badgeText = displayClock || 'ET';
-    } else if (displayClock && displayClock !== 'LIVE' && displayClock !== 'live') {
-      badgeText = displayClock;
+    } else {
+      badgeText = formatLiveMatchClock(displayClock, period, kickoffIso);
     }
 
     return {

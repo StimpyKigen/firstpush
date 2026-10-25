@@ -28,6 +28,7 @@ import {
 } from './competitionRegistry';
 import { enrichFixturesWithBet365Odds } from './sportscoreOddsService';
 import { getHighlightsCutoffWindowEAT } from './competitionPriority';
+import type { MatchIncidentItem } from './freeMatches';
 
 export interface DiscoveredLeague {
   league: string;
@@ -79,6 +80,8 @@ export interface MarketFixture {
   lastSyncTime?: string;
   recordUpdateTime?: string;
   isAuthoritativeCorrection?: boolean;
+  incidents?: MatchIncidentItem[];
+  latestGoalscorer?: string;
 }
 
 export interface MarketResult {

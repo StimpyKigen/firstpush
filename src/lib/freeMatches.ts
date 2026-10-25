@@ -46,6 +46,24 @@ export interface FreeMatch {
   homePct?: number;
   drawPct?: number;
   awayPct?: number;
+  incidents?: MatchIncidentItem[];
+  latestGoalscorer?: string;
+}
+
+export interface MatchIncidentItem {
+  id?: string;
+  time?: number | string;
+  minute?: number | string;
+  type: string;
+  cardType?: 'yellow' | 'red';
+  side?: 'home' | 'away';
+  teamSide?: 'home' | 'away';
+  player?: string;
+  name?: string;
+  is_goal?: boolean;
+  is_card?: boolean;
+  home_score?: number;
+  away_score?: number;
 }
 
 function loadStoredMatches(): FreeMatch[] {
@@ -137,6 +155,8 @@ function toFreeMatch(item: HighlightFixture): FreeMatch {
     homePct: item.homePct,
     drawPct: item.drawPct,
     awayPct: item.awayPct,
+    incidents: (item as any).incidents,
+    latestGoalscorer: (item as any).latestGoalscorer,
   };
 }
 

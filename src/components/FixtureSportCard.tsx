@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import {
   Clock, Users, Flame, Dices, ArrowRight
@@ -10,6 +10,14 @@ import { formatKickoffDateTime24h } from '../lib/competitionPriority';
 import { getCompetitionBanner } from '../lib/competitionBanners';
 import { useCurrentUser } from '../lib/authStore';
 import { useAuthWallStore } from '../lib/authWallStore';
+
+export interface CardNotificationEvent {
+  id: string;
+  side: 'home' | 'away';
+  type: 'goal' | 'yellow_card' | 'red_card';
+  player: string;
+  minute?: number | string;
+}
 
 interface FixtureSportCardProps {
   match: FreeMatch;
@@ -46,6 +54,181 @@ export default function FixtureSportCard({
   const hOdds = match.homeOdds || 2.10;
   const dOdds = match.drawOdds || 3.30;
   const aOdds = match.awayOdds || 3.60;
+
+  // Score glow states (glowing black for 10 seconds when score changes)
+  const [isHomeScoreGlowing, setIsHomeScoreGlowing] = useState(false);
+  const [isAwayScoreGlowing, setIsAwayScoreGlowing] = useState(false);
+  const prevHomeScoreRef = useRef<number | null | undefined>(match.homeScore);
+  const prevAwayScoreRef = useRef<number | null | undefined>(match.awayScore);
+  const homeScoreTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const awayScoreTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Sequential event queue for goalscorer and card notifications (10 seconds each, FIFO, non-overlapping)
+  const [eventQueue, setEventQueue] = useState<CardNotificationEvent[]>([]);
+  const [activeNotification, setActiveNotification] = useState<CardNotificationEvent | null>(null);
+  const notificationTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const seenIncidentKeysRef = useRef<Set<string>>(new Set());
+  const isFirstMountRef = useRef(true);
+
+  // Sequential FIFO Queue Runner
+  // When activeNotification is null and eventQueue has items:
+  // pop the first item, display it for 10 seconds, then clear.
+  // The earlier event completes its full 10 seconds before the next one starts.
+  useEffect(() => {
+    if (!activeNotification && eventQueue.length > 0) {
+      const nextNotification = eventQueue[0];
+      setEventQueue((prev) => prev.slice(1));
+      setActiveNotification(nextNotification);
+
+      if (notificationTimerRef.current) {
+        clearTimeout(notificationTimerRef.current);
+      }
+
+      notificationTimerRef.current = setTimeout(() => {
+        setActiveNotification(null);
+      }, 10000);
+    }
+  }, [activeNotification, eventQueue]);
+
+  // Clean up all timers on unmount
+  useEffect(() => {
+    return () => {
+      if (homeScoreTimerRef.current) clearTimeout(homeScoreTimerRef.current);
+      if (awayScoreTimerRef.current) clearTimeout(awayScoreTimerRef.current);
+      if (notificationTimerRef.current) clearTimeout(notificationTimerRef.current);
+    };
+  }, []);
+
+  // Score Change & Goalscorer Detection
+  useEffect(() => {
+    if (isFirstMountRef.current) {
+      isFirstMountRef.current = false;
+      prevHomeScoreRef.current = match.homeScore;
+      prevAwayScoreRef.current = match.awayScore;
+      // Pre-seed seen incidents so historic events don't spam 10s notifications on mount
+      if (match.incidents && Array.isArray(match.incidents)) {
+        for (const inc of match.incidents) {
+          const key = inc.id || `${inc.type}_${inc.time || inc.minute}_${inc.side || inc.teamSide}_${inc.player || ''}`;
+          seenIncidentKeysRef.current.add(key);
+        }
+      }
+      return;
+    }
+
+    const prevHome = prevHomeScoreRef.current;
+    const currentHome = match.homeScore;
+    if (typeof currentHome === 'number' && typeof prevHome === 'number' && currentHome > prevHome) {
+      setIsHomeScoreGlowing(true);
+      if (homeScoreTimerRef.current) clearTimeout(homeScoreTimerRef.current);
+      homeScoreTimerRef.current = setTimeout(() => {
+        setIsHomeScoreGlowing(false);
+      }, 10000);
+
+      const scorer = match.latestGoalscorer || (match as any).homeScorer;
+      if (scorer) {
+        const goalEvent: CardNotificationEvent = {
+          id: `goal_home_${currentHome}_${Date.now()}`,
+          side: 'home',
+          type: 'goal',
+          player: scorer,
+        };
+        setEventQueue((prev) => [...prev, goalEvent]);
+      }
+    }
+    prevHomeScoreRef.current = currentHome;
+
+    const prevAway = prevAwayScoreRef.current;
+    const currentAway = match.awayScore;
+    if (typeof currentAway === 'number' && typeof prevAway === 'number' && currentAway > prevAway) {
+      setIsAwayScoreGlowing(true);
+      if (awayScoreTimerRef.current) clearTimeout(awayScoreTimerRef.current);
+      awayScoreTimerRef.current = setTimeout(() => {
+        setIsAwayScoreGlowing(false);
+      }, 10000);
+
+      const scorer = match.latestGoalscorer || (match as any).awayScorer;
+      if (scorer) {
+        const goalEvent: CardNotificationEvent = {
+          id: `goal_away_${currentAway}_${Date.now()}`,
+          side: 'away',
+          type: 'goal',
+          player: scorer,
+        };
+        setEventQueue((prev) => [...prev, goalEvent]);
+      }
+    }
+    prevAwayScoreRef.current = currentAway;
+  }, [match.homeScore, match.awayScore, match.latestGoalscorer]);
+
+  // Timeline Incidents Ingestion (Goals, Yellow & Red Cards)
+  useEffect(() => {
+    if (!match.incidents || !Array.isArray(match.incidents) || isFirstMountRef.current) {
+      return;
+    }
+
+    const newEvents: CardNotificationEvent[] = [];
+    for (const inc of match.incidents) {
+      const incKey = inc.id || `${inc.type}_${inc.time || inc.minute}_${inc.side || inc.teamSide}_${inc.player || ''}`;
+      if (seenIncidentKeysRef.current.has(incKey)) {
+        continue;
+      }
+      seenIncidentKeysRef.current.add(incKey);
+
+      const rawType = (inc.type || '').toLowerCase();
+      const isGoal = inc.is_goal || rawType.includes('goal');
+      const isRed = rawType.includes('red') || inc.cardType === 'red';
+      const isYellow = rawType.includes('yellow') || inc.cardType === 'yellow' || inc.is_card;
+      const side = (inc.side || inc.teamSide || 'home') === 'away' ? 'away' : 'home';
+      const player = inc.player || (inc as any).name;
+
+      if (!player) continue;
+
+      if (isGoal) {
+        newEvents.push({
+          id: incKey,
+          side,
+          type: 'goal',
+          player,
+          minute: inc.time || inc.minute,
+        });
+      } else if (isRed) {
+        newEvents.push({
+          id: incKey,
+          side,
+          type: 'red_card',
+          player,
+          minute: inc.time || inc.minute,
+        });
+      } else if (isYellow) {
+        newEvents.push({
+          id: incKey,
+          side,
+          type: 'yellow_card',
+          player,
+          minute: inc.time || inc.minute,
+        });
+      }
+    }
+
+    if (newEvents.length > 0) {
+      setEventQueue((prev) => [...prev, ...newEvents]);
+    }
+  }, [match.incidents]);
+
+  // External / Polling Custom Event Bus for Match Incidents
+  useEffect(() => {
+    const handleMatchIncident = (e: Event) => {
+      const customEvent = e as CustomEvent<CardNotificationEvent>;
+      if (customEvent.detail) {
+        setEventQueue((prev) => [...prev, customEvent.detail]);
+      }
+    };
+
+    window.addEventListener(`match_incident_${match.id}`, handleMatchIncident);
+    return () => {
+      window.removeEventListener(`match_incident_${match.id}`, handleMatchIncident);
+    };
+  }, [match.id]);
 
   // Authoritative status presentation with DD/MM HH:mm in 24h format (without EAT suffix)
   const scorePres = getMatchScorePresentation(
@@ -139,25 +322,23 @@ export default function FixtureSportCard({
           </div>
 
           {scorePres.badgeVariant === 'halftime' ? (
-            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] leading-4 font-semibold bg-amber-100 text-amber-800 border border-amber-300 shrink-0">
-              <span className="w-1.5 h-1.5 rounded-full bg-amber-600" />
-              HT · Half Time
+            <span className="text-[13px] font-bold text-red-600 [text-shadow:0_0_8px_rgba(220,38,38,0.85)] animate-pulse shrink-0 tracking-wide select-none">
+              HT
             </span>
           ) : scorePres.isLive ? (
-            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] leading-4 font-semibold t-num bg-red-100 text-red-700 border border-red-300 animate-pulse shrink-0">
-              <span className="w-1.5 h-1.5 rounded-full bg-red-600" />
+            <span className="text-[13px] font-bold text-red-600 [text-shadow:0_0_8px_rgba(220,38,38,0.85)] animate-pulse tabular-nums shrink-0 tracking-wide select-none">
               {scorePres.badgeText}
             </span>
           ) : scorePres.badgeVariant === 'finished' ? (
-            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] leading-4 font-semibold t-num bg-slate-100 text-slate-700 border border-slate-300 shrink-0">
-              {scorePres.badgeText || 'FT'}
+            <span className="text-[13px] font-bold text-black shrink-0 tracking-wide select-none">
+              FT
             </span>
           ) : scorePres.isPostponedOrCancelled ? (
-            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] leading-4 font-semibold bg-rose-50 text-rose-700 border border-rose-200 shrink-0">
+            <span className="text-[12px] font-medium text-rose-600 shrink-0 select-none">
               {scorePres.badgeText}
             </span>
           ) : (
-            <span className="t-meta flex items-center gap-1 shrink-0 text-slate-700 font-semibold">
+            <span className="t-meta flex items-center gap-1 shrink-0 text-slate-700 font-semibold select-none">
               <Clock size={11} className="text-slate-400" />
               {timeDisplay}
             </span>
@@ -197,11 +378,30 @@ export default function FixtureSportCard({
                   {match.home}
                 </span>
               </div>
-              {scorePres.shouldShowScore && (
-                <span className="t-score shrink-0 min-w-[1ch] text-right">
-                  {scorePres.homeScoreDisplay}
-                </span>
-              )}
+              <div className="flex flex-col items-end shrink-0 min-w-[2ch]">
+                {scorePres.shouldShowScore && (
+                  <span
+                    className={`t-score text-right transition-all duration-300 ${
+                      isHomeScoreGlowing
+                        ? 'text-black [text-shadow:0_0_8px_rgba(0,0,0,0.95),0_0_14px_rgba(0,0,0,0.7)] animate-pulse font-extrabold scale-110'
+                        : ''
+                    }`}
+                  >
+                    {scorePres.homeScoreDisplay}
+                  </span>
+                )}
+                {activeNotification?.side === 'home' && (
+                  <div className="flex items-center justify-end gap-1 mt-0.5 text-[11px] font-bold text-black [text-shadow:0_0_6px_rgba(0,0,0,0.8),0_0_12px_rgba(0,0,0,0.5)] animate-pulse whitespace-nowrap">
+                    {activeNotification.type === 'yellow_card' && (
+                      <span className="w-2 h-2.5 bg-amber-400 rounded-[1px] shadow-sm inline-block shrink-0" title="Yellow Card" />
+                    )}
+                    {activeNotification.type === 'red_card' && (
+                      <span className="w-2 h-2.5 bg-red-600 rounded-[1px] shadow-sm inline-block shrink-0" title="Red Card" />
+                    )}
+                    <span>{activeNotification.player}</span>
+                  </div>
+                )}
+              </div>
             </div>
 
             {/* Away Team */}
@@ -221,11 +421,30 @@ export default function FixtureSportCard({
                   {match.away}
                 </span>
               </div>
-              {scorePres.shouldShowScore && (
-                <span className="t-score shrink-0 min-w-[1ch] text-right">
-                  {scorePres.awayScoreDisplay}
-                </span>
-              )}
+              <div className="flex flex-col items-end shrink-0 min-w-[2ch]">
+                {scorePres.shouldShowScore && (
+                  <span
+                    className={`t-score text-right transition-all duration-300 ${
+                      isAwayScoreGlowing
+                        ? 'text-black [text-shadow:0_0_8px_rgba(0,0,0,0.95),0_0_14px_rgba(0,0,0,0.7)] animate-pulse font-extrabold scale-110'
+                        : ''
+                    }`}
+                  >
+                    {scorePres.awayScoreDisplay}
+                  </span>
+                )}
+                {activeNotification?.side === 'away' && (
+                  <div className="flex items-center justify-end gap-1 mt-0.5 text-[11px] font-bold text-black [text-shadow:0_0_6px_rgba(0,0,0,0.8),0_0_12px_rgba(0,0,0,0.5)] animate-pulse whitespace-nowrap">
+                    {activeNotification.type === 'yellow_card' && (
+                      <span className="w-2 h-2.5 bg-amber-400 rounded-[1px] shadow-sm inline-block shrink-0" title="Yellow Card" />
+                    )}
+                    {activeNotification.type === 'red_card' && (
+                      <span className="w-2 h-2.5 bg-red-600 rounded-[1px] shadow-sm inline-block shrink-0" title="Red Card" />
+                    )}
+                    <span>{activeNotification.player}</span>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </Link>
