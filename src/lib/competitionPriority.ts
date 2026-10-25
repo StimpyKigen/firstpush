@@ -159,7 +159,7 @@ export const COMPETITION_HIERARCHY: CompetitionTier[] = [
     name: 'Domestic Cups & Recognized National Top Flights',
     baseScore: 800,
     patterns: [
-      /fa cup|copa del rey|dfb-pokal|coppa italia|coupe de france/i,
+      /fa cup|efl cup|carabao cup|copa del rey|supercopa|dfb-pokal|dfl-supercup|coppa italia|supercoppa|coupe de france|trophee des champions|knvb beker|taca de portugal|taca da liga|scottish cup|scottish league cup|turkish cup|copa do brasil|copa argentina|us open cup|kings cup/i,
       /egyptian premier league/i,
       /south african premier|dstv prem/i,
       /kenyan premier league|fkf/i,
@@ -345,7 +345,9 @@ export function formatDeviceLocalTime(kickoffIso?: string, fallback: string = ''
  * Formats a fixture's kickoff into DD/MM HH:mm in the user's local device timezone (24h system).
  * Example: "21/10 19:45"
  */
-export function formatKickoffDateTime24h(kickoffIso?: string, fallback: string = ''): string {
+export function formatKickoffDateTime24h(kickoffIso?: string, fallback: string = '', includeTimezone: boolean = true): string {
+  const tzSuffix = includeTimezone ? ' EAT' : '';
+
   // 1. If kickoffIso is provided, ALWAYS format in East Africa Time (EAT, UTC+3)
   if (kickoffIso) {
     const d = new Date(kickoffIso);
@@ -363,7 +365,7 @@ export function formatKickoffDateTime24h(kickoffIso?: string, fallback: string =
       const month = parts.find((p) => p.type === 'month')?.value || '';
       const hour = parts.find((p) => p.type === 'hour')?.value || '';
       const minute = parts.find((p) => p.type === 'minute')?.value || '';
-      return `${day}/${month} ${hour}:${minute} EAT`;
+      return `${day}/${month} ${hour}:${minute}${tzSuffix}`;
     }
   }
 
@@ -374,9 +376,10 @@ export function formatKickoffDateTime24h(kickoffIso?: string, fallback: string =
       const d = verbatimMatch[1].padStart(2, '0');
       const m = verbatimMatch[2].padStart(2, '0');
       const t = verbatimMatch[3];
-      return fallback.includes('EAT') ? `${d}/${m} ${t} EAT` : `${d}/${m} ${t} EAT`;
+      return `${d}/${m} ${t}${tzSuffix}`;
     }
-    return fallback.includes('EAT') ? fallback : `${fallback} EAT`;
+    const cleanFallback = fallback.replace(/\s*EAT$/i, '').trim();
+    return `${cleanFallback}${tzSuffix}`;
   }
 
   return '';
@@ -473,12 +476,37 @@ export function isUpcomingEligible(
 }
 
 /**
+ * Calculates the current day's Highlights time boundary in East Africa Time (EAT, UTC+3):
+ * - Starts at 00:00:00 EAT of that day.
+ * - Cutoff is strictly 06:00:00 AM EAT of the next day.
+ * - Fixtures with kickoff before 00:00:00 EAT or after 06:00:00 AM EAT the next day are strictly excluded.
+ */
+export function getHighlightsCutoffWindowEAT(now: Date | number = Date.now()): {
+  startMs: number;
+  nextDay6amMs: number;
+} {
+  const nowMs = typeof now === 'number' ? now : now.getTime();
+  const eatOffsetMs = 3 * 60 * 60 * 1000;
+  const eatDate = new Date(nowMs + eatOffsetMs);
+  const year = eatDate.getUTCFullYear();
+  const month = eatDate.getUTCMonth();
+  const day = eatDate.getUTCDate();
+
+  const startMs = Date.UTC(year, month, day, 0, 0, 0, 0) - eatOffsetMs;
+  const nextDay6amMs = Date.UTC(year, month, day + 1, 6, 0, 0, 0) - eatOffsetMs;
+
+  return { startMs, nextDay6amMs };
+}
+
+/**
  * Check if fixture is eligible for the Highlights experience:
- * - Strictly excludes completed ('post'), cancelled, postponed, or abandoned fixtures.
- * - Does NOT silently omit eligible games from any competition.
+ * - Strictly excludes completed ('post'), live ('in'), cancelled, postponed, or abandoned fixtures.
+ * - In highlights, ONLY show games that are to be played that day.
+ * - Strictly does NOT show games past 6:00 AM EAT the next day during that day currently.
  */
 export function isHighlightsEligible(
-  fixture: { competition?: string; competitionId?: string; country?: string; status?: any; statusText?: any; period?: any } | null | undefined
+  fixture: { competition?: string; competitionId?: string; country?: string; status?: any; statusText?: any; period?: any; kickoffIso?: any; kickoff?: any } | null | undefined,
+  referenceTime: Date | number = Date.now()
 ): boolean {
   if (!fixture) return false;
   const norm = normalizeMatchStatus(fixture.status, fixture.statusText);
@@ -489,5 +517,12 @@ export function isHighlightsEligible(
   if (fixture.period && ['first_half', 'halftime', 'second_half', 'extra_time', 'penalties'].includes(fixture.period)) {
     return false;
   }
-  return true;
+
+  const kickoffMs = parseFixtureKickoffMs(fixture);
+  if (kickoffMs === null) {
+    return false;
+  }
+
+  const { startMs, nextDay6amMs } = getHighlightsCutoffWindowEAT(referenceTime);
+  return kickoffMs >= startMs && kickoffMs <= nextDay6amMs;
 }

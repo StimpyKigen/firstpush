@@ -27,6 +27,7 @@ import {
   logSelectedCompetitionsSummary,
 } from './competitionRegistry';
 import { enrichFixturesWithBet365Odds } from './sportscoreOddsService';
+import { getHighlightsCutoffWindowEAT } from './competitionPriority';
 
 export interface DiscoveredLeague {
   league: string;
@@ -201,6 +202,24 @@ export function getLocalDateStringEAT(dateInput: Date | string | number = new Da
     month: '2-digit',
     day: '2-digit',
   }).format(d);
+}
+
+/**
+ * Returns an 8-day rolling date window (YYYY-MM-DD) in East Africa Time (EAT, UTC+3).
+ * Spans a full week period (e.g. Sunday to next Sunday).
+ * Automatically updates to the next round of week fixtures on 12:00 AM Monday.
+ */
+export function getWeeklyTargetDatesEAT(nowInput: Date | number = Date.now()): string[] {
+  const nowMs = typeof nowInput === 'number' ? nowInput : nowInput.getTime();
+  const dates: string[] = [];
+  for (let i = 0; i < 8; i++) {
+    const dateMs = nowMs + i * 86400000;
+    const dStr = getLocalDateStringEAT(new Date(dateMs));
+    if (dStr && !dates.includes(dStr)) {
+      dates.push(dStr);
+    }
+  }
+  return dates;
 }
 
 /**
@@ -1103,11 +1122,7 @@ export async function syncSportScoreCatalog(dates?: string[]): Promise<number> {
     hasLoggedRegistrySummary = true;
   }
 
-  const targetDates = dates && dates.length > 0 ? dates : [
-    getLocalDateStringEAT(new Date()),
-    getLocalDateStringEAT(new Date(Date.now() + 86400000)),
-    getLocalDateStringEAT(new Date(Date.now() + 86400000 * 2)),
-  ];
+  const targetDates = dates && dates.length > 0 ? dates : getWeeklyTargetDatesEAT();
 
   let totalIngested = 0;
 
@@ -1143,29 +1158,8 @@ export async function syncSportScoreCatalog(dates?: string[]): Promise<number> {
     }
   }
 
-  // C. Enrich priority upcoming matches with authentic Bet365 odds
-  try {
-    const upcomingToEnrich = Array.from(fixturesStore.values())
-      .filter((f) => f.status === 'pre' && f.matchUrl && f.bookmaker !== 'Bet365')
-      .sort((a, b) => {
-        const aT = a.kickoffIso ? new Date(a.kickoffIso).getTime() : 0;
-        const bT = b.kickoffIso ? new Date(b.kickoffIso).getTime() : 0;
-        return aT - bT;
-      })
-      .slice(0, 45);
-
-    if (upcomingToEnrich.length > 0) {
-      await enrichFixturesWithBet365Odds(upcomingToEnrich, 35, 5);
-      for (const enc of upcomingToEnrich) {
-        if (enc.bookmaker === 'Bet365') {
-          fixturesStore.set(enc.id, enc);
-        }
-      }
-      saveDiskCache();
-    }
-  } catch (err) {
-    console.warn('Bet365 odds enrichment notice in syncSportScoreCatalog:', err);
-  }
+  // NOTE: Speculative odds enrichment removed per mandate.
+  // Odds are strictly fetched on-demand ONLY for fixtures that will actually be displayed.
 
   return totalIngested;
 }
@@ -1206,10 +1200,8 @@ export async function executeRollingSyncCycle(): Promise<{ updated: number; tota
   }
   isRollingSyncing = true;
   try {
-    const today = getLocalDateStringEAT(new Date());
-    const tomorrow = getLocalDateStringEAT(new Date(Date.now() + 86400000));
-    const dayAfter = getLocalDateStringEAT(new Date(Date.now() + 86400000 * 2));
-    const count = await syncSportScoreCatalog([today, tomorrow, dayAfter]);
+    const weeklyDates = getWeeklyTargetDatesEAT();
+    const count = await syncSportScoreCatalog(weeklyDates);
     syncCycleCounter++;
     return { updated: count, total: fixturesStore.size };
   } finally {
@@ -1250,12 +1242,14 @@ export function queryMarketFixtures(options: {
   } else if (scope === 'finished' || scope === 'results' || scope === 'completed') {
     list = list.filter((f) => f.status === 'post' || (f.period && ['full_time', 'after_extra_time', 'after_penalties', 'awarded'].includes(f.period)));
   } else if (scope === 'highlights') {
-    // Highlights MUST NEVER include completed or live matches
-    list = list.filter((f) =>
-      f.status !== 'post' &&
-      f.status !== 'in' &&
-      (!f.period || !['full_time', 'after_extra_time', 'after_penalties', 'awarded', 'first_half', 'halftime', 'second_half', 'extra_time', 'penalties'].includes(f.period))
-    );
+    // Highlights MUST NEVER include completed or live matches, and strictly only shows games to be played that day up to 6am EAT the next day
+    const { startMs: hlStartMs, nextDay6amMs: hlCutoffMs } = getHighlightsCutoffWindowEAT(new Date());
+    list = list.filter((f) => {
+      if (f.status === 'post' || f.status === 'in') return false;
+      if (f.period && ['full_time', 'after_extra_time', 'after_penalties', 'awarded', 'first_half', 'halftime', 'second_half', 'extra_time', 'penalties'].includes(f.period)) return false;
+      const kMs = f.kickoffIso ? new Date(f.kickoffIso).getTime() : 0;
+      return kMs >= hlStartMs && kMs <= hlCutoffMs;
+    });
   } else if (scope === 'today') {
     list = list.filter((f) => {
       const fDate = getLocalDateStringEAT(f.kickoffIso);
@@ -1339,19 +1333,15 @@ export async function getDailyMarketHighlights(force = false): Promise<MarketFix
     }
   }
 
-  const allFixtures = queryMarketFixtures({ scope: 'all' });
-  const unenriched = allFixtures
+  // Strict On-Demand Odds: Only enrich fixtures that are actually displayed in Highlights
+  const highlightsToDisplay = queryMarketFixtures({ scope: 'highlights' });
+  const unenriched = highlightsToDisplay
     .filter((f) => f.status === 'pre' && f.matchUrl && f.bookmaker !== 'Bet365')
-    .sort((a, b) => {
-      const aT = a.kickoffIso ? new Date(a.kickoffIso).getTime() : 0;
-      const bT = b.kickoffIso ? new Date(b.kickoffIso).getTime() : 0;
-      return aT - bT;
-    })
-    .slice(0, 25);
+    .slice(0, 15);
 
   if (unenriched.length > 0) {
     try {
-      await enrichFixturesWithBet365Odds(unenriched, 20, 5);
+      await enrichFixturesWithBet365Odds(unenriched, 15, 5);
       for (const enc of unenriched) {
         if (enc.bookmaker === 'Bet365') {
           fixturesStore.set(enc.id, enc);

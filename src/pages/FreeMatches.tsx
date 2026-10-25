@@ -14,8 +14,10 @@ import {
   getIsFreeMatchesSyncing,
   getHasFreeMatchesSynced,
   refreshFreeMatches,
+  updateFreeMatchOdds,
   type FreeMatch
 } from '../lib/freeMatches';
+import { enrichFixturesWithBet365Odds } from '../lib/sportscoreOddsService';
 import { useBetSlipStore } from '../lib/betSlipStore';
 import { useCurrentUser } from '../lib/authStore';
 import { useAuthWallStore } from '../lib/authWallStore';
@@ -225,7 +227,7 @@ export default function FreeMatches() {
         if (isUpcomingEligible(m, deviceNow)) {
           upcoming++;
         }
-        if (isHighlightsEligible(m)) {
+        if (isHighlightsEligible(m, deviceNow)) {
           highlights++;
         }
       }
@@ -334,7 +336,7 @@ export default function FreeMatches() {
       }
 
       if (activeTab === 'highlights') {
-        return isHighlightsEligible(m);
+        return isHighlightsEligible(m, deviceNow);
       }
 
       // Default: Upcoming tab - strictly enforce real-time upcoming cutoff
@@ -402,6 +404,36 @@ export default function FreeMatches() {
       // Highlights & Live: rank by competition prestige hierarchy
       return sortHighlightsComparator(a, b);
     });
+
+  // On-demand Bet365 odds enrichment: Only fetch odds for matches that are actually displayed
+  const enrichingRef = useRef<Set<string>>(new Set());
+  useEffect(() => {
+    const toEnrich = filteredMatches
+      .slice(0, 12)
+      .filter((m) => m.status === 'pre' && m.matchUrl && m.bookmaker !== 'Bet365' && !enrichingRef.current.has(m.id));
+
+    if (toEnrich.length === 0) return;
+
+    toEnrich.forEach((m) => enrichingRef.current.add(m.id));
+
+    let isMounted = true;
+    enrichFixturesWithBet365Odds(toEnrich, 8, 4)
+      .then(() => {
+        if (!isMounted) return;
+        const enrichedItems = toEnrich.filter((m) => m.bookmaker === 'Bet365');
+        if (enrichedItems.length > 0) {
+          updateFreeMatchOdds(enrichedItems);
+        }
+      })
+      .catch(() => {})
+      .finally(() => {
+        toEnrich.forEach((m) => enrichingRef.current.delete(m.id));
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [filteredMatches]);
 
   // Group matches by sectored leagues when a country (like England) is selected
   const sectoredLeagueGroups = useMemo(() => {

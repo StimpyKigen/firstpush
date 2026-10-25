@@ -47,15 +47,17 @@ export default function FixtureSportCard({
   const dOdds = match.drawOdds || 3.30;
   const aOdds = match.awayOdds || 3.60;
 
-  // Authoritative status presentation with DD/MM HH:mm in 24h format
+  // Authoritative status presentation with DD/MM HH:mm in 24h format (without EAT suffix)
   const scorePres = getMatchScorePresentation(
     match.status,
     match.displayClock,
-    formatKickoffDateTime24h(match.kickoffIso, match.kickoff),
+    formatKickoffDateTime24h(match.kickoffIso, match.kickoff, false),
     match.homeScore,
     match.awayScore,
     match.kickoffIso
   );
+
+  const timeDisplay = (scorePres.badgeText || '').replace(/\s*EAT$/i, '').trim();
 
   const majority = Math.max(consensus.homePct, consensus.drawPct, consensus.awayPct);
   const majLabel =
@@ -131,7 +133,7 @@ export default function FixtureSportCard({
         {/* Card Header: League Info & Kickoff/Score Badge */}
         <div className="flex items-center justify-between gap-2 mb-3 text-xs">
           <div className="min-w-0">
-            <span className="t-label truncate block">
+            <span className="t-label truncate block font-semibold text-slate-800">
               {leagueDisplayTitle}
             </span>
           </div>
@@ -155,9 +157,9 @@ export default function FixtureSportCard({
               {scorePres.badgeText}
             </span>
           ) : (
-            <span className="t-meta flex items-center gap-1 shrink-0 text-slate-600">
+            <span className="t-meta flex items-center gap-1 shrink-0 text-slate-700 font-semibold">
               <Clock size={11} className="text-slate-400" />
-              {scorePres.badgeText}
+              {timeDisplay}
             </span>
           )}
         </div>

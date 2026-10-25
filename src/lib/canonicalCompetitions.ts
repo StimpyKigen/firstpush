@@ -18,6 +18,7 @@ import {
   TIER_2_UEFA_INTERNATIONAL,
   TIER_3_SELECTED_DOMESTIC,
   TIER_4_OTHER_TOP_FLIGHT,
+  DOMESTIC_CUPS,
   getCompetitionByProvider,
   getCompetitionById,
   isCompetitionEligible,
@@ -2275,7 +2276,7 @@ export function registryToCanonical(reg: RegistryCompetition): CanonicalCompetit
 }
 
 // Hydrate CANONICAL_COMPETITIONS with verified entries from Centralized Registry
-[...TIER_1_MAJOR_EUROPEAN, ...TIER_2_UEFA_INTERNATIONAL, ...TIER_3_SELECTED_DOMESTIC, ...TIER_4_OTHER_TOP_FLIGHT].forEach((reg) => {
+[...TIER_1_MAJOR_EUROPEAN, ...TIER_2_UEFA_INTERNATIONAL, ...TIER_3_SELECTED_DOMESTIC, ...TIER_4_OTHER_TOP_FLIGHT, ...DOMESTIC_CUPS].forEach((reg) => {
   if (!CANONICAL_COMPETITIONS[reg.id]) {
     CANONICAL_COMPETITIONS[reg.id] = registryToCanonical(reg);
   } else {

@@ -91,6 +91,7 @@ export function buildBlurb(home: string, away: string, competition: string, stat
 
 import { BUNDLED_SPORTS_CATALOGUE } from '../data/bundledSportsCatalogue';
 import { resolveCanonicalCompetition, isCompetitionEligible } from './canonicalCompetitions';
+import { isHighlightsEligible } from './competitionPriority';
 
 function mapBundledToHighlights(): HighlightFixture[] {
   // Pre-loaded fixtures removed per user mandate
@@ -425,16 +426,11 @@ export async function fetchDailyHighlightFixtures(force = false): Promise<Highli
 
         if (mapped.length > 0) {
           const unenriched = mapped
-            .filter((f) => f.status === 'pre' && f.matchUrl && f.bookmaker !== 'Bet365')
-            .sort((a, b) => {
-              const aT = a.kickoffIso ? new Date(a.kickoffIso).getTime() : 0;
-              const bT = b.kickoffIso ? new Date(b.kickoffIso).getTime() : 0;
-              return aT - bT;
-            })
-            .slice(0, 25);
+            .filter((f) => isHighlightsEligible(f) && f.status === 'pre' && f.matchUrl && f.bookmaker !== 'Bet365')
+            .slice(0, 15);
           if (unenriched.length > 0) {
             try {
-              await enrichFixturesWithBet365Odds(unenriched, 20, 5);
+              await enrichFixturesWithBet365Odds(unenriched, 15, 5);
             } catch {}
           }
           cachedFixtures = mapped;

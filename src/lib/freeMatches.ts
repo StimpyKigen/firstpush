@@ -440,6 +440,39 @@ export function clearAllFreeMatches() {
   } catch {}
 }
 
+export function updateFreeMatchOdds(enriched: FreeMatch[]) {
+  if (!enriched || enriched.length === 0) return;
+  const enrichedMap = new Map(enriched.map((m) => [m.id, m]));
+  let hasChanges = false;
+
+  liveMatches = liveMatches.map((existing) => {
+    const updated = enrichedMap.get(existing.id);
+    if (updated && updated.bookmaker === 'Bet365' && existing.bookmaker !== 'Bet365') {
+      hasChanges = true;
+      return {
+        ...existing,
+        bookmaker: 'Bet365',
+        homeOdds: updated.homeOdds || existing.homeOdds,
+        drawOdds: updated.drawOdds || existing.drawOdds,
+        awayOdds: updated.awayOdds || existing.awayOdds,
+        homePct: updated.homePct || existing.homePct,
+        drawPct: updated.drawPct || existing.drawPct,
+        awayPct: updated.awayPct || existing.awayPct,
+        over25Pct: updated.over25Pct ?? existing.over25Pct,
+      };
+    }
+    return existing;
+  });
+
+  if (hasChanges) {
+    freeMatches.splice(0, freeMatches.length, ...liveMatches);
+    emitFreeMatchesChange();
+    try {
+      localStorage.setItem('mshindi_football_cache_v3', JSON.stringify(liveMatches));
+    } catch {}
+  }
+}
+
 export function getFreeMatch(id: string): FreeMatch | undefined {
   return freeMatches.find((m) => m.id === id);
 }
