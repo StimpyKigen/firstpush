@@ -228,12 +228,18 @@ export default function FixtureSportCard({
           </div>
         </Link>
 
-        {/* Punter Engagement Counter */}
+        {/* Punter Engagement Counter & Odds Source */}
         <div className="flex items-center justify-between t-meta text-slate-700 mt-2.5">
-          <span className="flex items-center gap-1.5">
+          <span className="flex items-center gap-1.5 min-w-0">
             <Users size={12} className="text-[#006C54] shrink-0" />
             <span className="truncate">{consensus.totalVotes.toLocaleString()} punters analyzing</span>
           </span>
+          {match.bookmaker === 'Bet365' && (
+            <span className="shrink-0 inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-semibold bg-[#006C54]/10 text-[#006C54] border border-[#006C54]/20 tracking-tight" title="Authentic Bet365 Odds">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#006C54]" />
+              Bet365 Odds
+            </span>
+          )}
         </div>
 
         {/* 1X2 Market Odds Grid (Treated like rest of card so banner shows through) */}

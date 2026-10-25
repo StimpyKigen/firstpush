@@ -20,6 +20,9 @@
  * 15. Preservation of existing dropdown options, dropdown behavior, component structure, and API contracts
  */
 
+import fs from 'fs';
+import path from 'path';
+
 import {
   TIER_1_MAJOR_EUROPEAN,
   TIER_2_UEFA_INTERNATIONAL,
@@ -76,9 +79,13 @@ function assert(condition: boolean, testName: string, detail?: string) {
 }
 
 async function runAllTests() {
-  console.log('========================================================================');
-  console.log('🧪 RUNNING SPORTSCORE PIPELINE & LEAGUE PRIORITIZATION VERIFICATION');
-  console.log('========================================================================\n');
+  const cachePath = path.join(process.cwd(), '.cache', 'sports_fixtures.json');
+  const cacheBackup = fs.existsSync(cachePath) ? fs.readFileSync(cachePath, 'utf-8') : null;
+
+  try {
+    console.log('========================================================================');
+    console.log('🧪 RUNNING SPORTSCORE PIPELINE & LEAGUE PRIORITIZATION VERIFICATION');
+    console.log('========================================================================\n');
 
   // --------------------------------------------------------------------------
   // CRITERION 1: Mandatory Major European First- and Second-Division Coverage
@@ -536,9 +543,16 @@ async function runAllTests() {
   const emptyHtml = '<div>No odds available</div>';
   assert(parseSportScoreBet365Odds(emptyHtml) === null, '16.9 Gracefully returns null on HTML without Bet365 table');
 
-  console.log('\n========================================================================');
-  console.log(`🎉 ALL ${passed} OF ${total} TESTS PASSED SUCCESSFULLY!`);
-  console.log('========================================================================\n');
+    console.log('\n========================================================================');
+    console.log(`🎉 ALL ${passed} OF ${total} TESTS PASSED SUCCESSFULLY!`);
+    console.log('========================================================================\n');
+  } finally {
+    if (cacheBackup !== null) {
+      try {
+        fs.writeFileSync(cachePath, cacheBackup, 'utf-8');
+      } catch {}
+    }
+  }
 }
 
 runAllTests().catch((err) => {

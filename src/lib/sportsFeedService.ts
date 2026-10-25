@@ -260,6 +260,8 @@ function loadDiskCache(): void {
       if (Array.isArray(parsedFixtures) && parsedFixtures.length > 0) {
         parsedFixtures.forEach((f: MarketFixture) => {
           if (f && f.id) {
+            // Guard against test mock fixtures
+            if (f.id.startsWith('future_') || f.providerId === 'ars_che_001') return;
             if (!f.competitionId) {
               const canon = resolveCanonicalCompetition({
                 competition: f.competition,
@@ -1104,6 +1106,7 @@ export async function syncSportScoreCatalog(dates?: string[]): Promise<number> {
   const targetDates = dates && dates.length > 0 ? dates : [
     getLocalDateStringEAT(new Date()),
     getLocalDateStringEAT(new Date(Date.now() + 86400000)),
+    getLocalDateStringEAT(new Date(Date.now() + 86400000 * 2)),
   ];
 
   let totalIngested = 0;
@@ -1144,9 +1147,15 @@ export async function syncSportScoreCatalog(dates?: string[]): Promise<number> {
   try {
     const upcomingToEnrich = Array.from(fixturesStore.values())
       .filter((f) => f.status === 'pre' && f.matchUrl && f.bookmaker !== 'Bet365')
-      .slice(0, 30);
+      .sort((a, b) => {
+        const aT = a.kickoffIso ? new Date(a.kickoffIso).getTime() : 0;
+        const bT = b.kickoffIso ? new Date(b.kickoffIso).getTime() : 0;
+        return aT - bT;
+      })
+      .slice(0, 45);
+
     if (upcomingToEnrich.length > 0) {
-      await enrichFixturesWithBet365Odds(upcomingToEnrich, 25, 5);
+      await enrichFixturesWithBet365Odds(upcomingToEnrich, 35, 5);
       for (const enc of upcomingToEnrich) {
         if (enc.bookmaker === 'Bet365') {
           fixturesStore.set(enc.id, enc);
@@ -1199,7 +1208,8 @@ export async function executeRollingSyncCycle(): Promise<{ updated: number; tota
   try {
     const today = getLocalDateStringEAT(new Date());
     const tomorrow = getLocalDateStringEAT(new Date(Date.now() + 86400000));
-    const count = await syncSportScoreCatalog([today, tomorrow]);
+    const dayAfter = getLocalDateStringEAT(new Date(Date.now() + 86400000 * 2));
+    const count = await syncSportScoreCatalog([today, tomorrow, dayAfter]);
     syncCycleCounter++;
     return { updated: count, total: fixturesStore.size };
   } finally {
@@ -1318,9 +1328,10 @@ export async function getDailyMarketHighlights(force = false): Promise<MarketFix
     return false;
   });
 
+  const hasBet365Odds = Array.from(fixturesStore.values()).some((f) => f.bookmaker === 'Bet365');
   const isStale = !lastSyncTimestamp || (Date.now() - new Date(lastSyncTimestamp).getTime() > 10 * 60 * 1000);
 
-  if (force || !hasUpcomingOrLive || isStale) {
+  if (force || !hasUpcomingOrLive || !hasBet365Odds || isStale) {
     try {
       await executeRollingSyncCycle();
     } catch (err) {
@@ -1331,11 +1342,16 @@ export async function getDailyMarketHighlights(force = false): Promise<MarketFix
   const allFixtures = queryMarketFixtures({ scope: 'all' });
   const unenriched = allFixtures
     .filter((f) => f.status === 'pre' && f.matchUrl && f.bookmaker !== 'Bet365')
-    .slice(0, 20);
+    .sort((a, b) => {
+      const aT = a.kickoffIso ? new Date(a.kickoffIso).getTime() : 0;
+      const bT = b.kickoffIso ? new Date(b.kickoffIso).getTime() : 0;
+      return aT - bT;
+    })
+    .slice(0, 25);
 
   if (unenriched.length > 0) {
     try {
-      await enrichFixturesWithBet365Odds(unenriched, 15, 5);
+      await enrichFixturesWithBet365Odds(unenriched, 20, 5);
       for (const enc of unenriched) {
         if (enc.bookmaker === 'Bet365') {
           fixturesStore.set(enc.id, enc);

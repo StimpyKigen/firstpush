@@ -55,7 +55,9 @@ function loadStoredMatches(): FreeMatch[] {
     if (raw) {
       const parsed = JSON.parse(raw);
       if (Array.isArray(parsed) && parsed.length > 0) {
-        return parsed.map((m: any) => toFreeMatch(m));
+        return parsed
+          .filter((m: any) => m && m.id && !m.id.startsWith('future_') && m.providerId !== 'ars_che_001')
+          .map((m: any) => toFreeMatch(m));
       }
     }
   } catch {}
@@ -258,15 +260,40 @@ export async function refreshFreeMatches(force = false) {
 
     const mergedMap = new Map<string, FreeMatch>();
 
-    // 1. Cached local stored fixtures
-    for (const m of storedFixtures) {
-      mergedMap.set(makeFreeMatchDedupeKey(m), m);
-    }
-    // 2. Overlay fresh SportScore live highlights (authoritative)
-    for (const m of convertedHighlights) {
-      const key = makeFreeMatchDedupeKey(m);
-      const existing = mergedMap.get(key);
-      mergedMap.set(key, existing ? mergeFreeMatchRecords(existing, m) : m);
+    if (convertedHighlights.length > 0) {
+      // Create lookup map of stored fixtures for fast merging
+      const storedMap = new Map<string, FreeMatch>();
+      for (const m of storedFixtures) {
+        if (!m.id?.startsWith('future_') && m.providerId !== 'ars_che_001') {
+          storedMap.set(makeFreeMatchDedupeKey(m), m);
+        }
+      }
+
+      // Authoritative fresh highlights from server are the primary foundation
+      for (const m of convertedHighlights) {
+        const key = makeFreeMatchDedupeKey(m);
+        const existing = storedMap.get(key);
+        mergedMap.set(key, existing ? mergeFreeMatchRecords(existing, m) : m);
+      }
+
+      // Preserve active admin PDF uploads and genuine live in-play matches from stored fixtures
+      for (const m of storedFixtures) {
+        const key = makeFreeMatchDedupeKey(m);
+        if (!mergedMap.has(key)) {
+          const isAdmin = m.id?.startsWith('admin_') || m.providerId?.startsWith('admin_');
+          const isLive = m.status === 'in';
+          if (isAdmin || isLive) {
+            mergedMap.set(key, m);
+          }
+        }
+      }
+    } else {
+      // Fallback: if server returned no highlights, preserve valid stored fixtures
+      for (const m of storedFixtures) {
+        if (!m.id?.startsWith('future_') && m.providerId !== 'ars_che_001') {
+          mergedMap.set(makeFreeMatchDedupeKey(m), m);
+        }
+      }
     }
 
     const mergedList = Array.from(mergedMap.values());

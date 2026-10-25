@@ -117,6 +117,35 @@ export default defineConfig(() => {
                   return;
                 }
               }
+              if (url.pathname === '/api/sports/match-odds') {
+                try {
+                  const matchUrl = url.searchParams.get('url');
+                  if (!matchUrl) {
+                    res.statusCode = 400;
+                    res.setHeader('Content-Type', 'application/json');
+                    res.end(JSON.stringify({ success: false, error: 'Match URL is required.' }));
+                    return;
+                  }
+                  const { fetchBet365OddsForMatch } = await server.ssrLoadModule('/src/lib/sportscoreOddsService.ts');
+                  const odds = await fetchBet365OddsForMatch(matchUrl);
+                  if (!odds) {
+                    res.statusCode = 404;
+                    res.setHeader('Content-Type', 'application/json');
+                    res.end(JSON.stringify({ success: false, error: 'Bet365 odds not available for this match.' }));
+                    return;
+                  }
+                  res.setHeader('Content-Type', 'application/json');
+                  res.setHeader('Access-Control-Allow-Origin', '*');
+                  res.setHeader('Cache-Control', 'public, max-age=600, s-maxage=1800, stale-while-revalidate=3600');
+                  res.end(JSON.stringify({ success: true, odds }));
+                  return;
+                } catch (err) {
+                  res.statusCode = 500;
+                  res.setHeader('Content-Type', 'application/json');
+                  res.end(JSON.stringify({ success: false, error: String(err) }));
+                  return;
+                }
+              }
               if (url.pathname === '/api/admin/fixtures') {
                 try {
                   const { getSavedAdminFixtures, getSavedAdminBatches, ingestAdminFixtures, clearAllFixtures } = await server.ssrLoadModule('/src/lib/sportsFeedService.ts');
