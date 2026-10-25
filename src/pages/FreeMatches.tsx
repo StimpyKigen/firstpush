@@ -221,12 +221,13 @@ export default function FreeMatches() {
 
       if (isLiveMatch(m, deviceNow)) {
         live++;
-      }
-      if (isUpcomingEligible(m, deviceNow)) {
-        upcoming++;
-      }
-      if (isHighlightsEligible(m)) {
-        highlights++;
+      } else {
+        if (isUpcomingEligible(m, deviceNow)) {
+          upcoming++;
+        }
+        if (isHighlightsEligible(m)) {
+          highlights++;
+        }
       }
     });
 
@@ -325,6 +326,11 @@ export default function FreeMatches() {
       // 3. Active Tab: Live vs Highlights vs Upcoming
       if (activeTab === 'live') {
         return isLiveMatch(m, deviceNow);
+      }
+
+      // Live fixtures must appear EXCLUSIVELY in the Live tab and NEVER in Highlights or Upcoming
+      if (isLiveMatch(m, deviceNow)) {
+        return false;
       }
 
       if (activeTab === 'highlights') {

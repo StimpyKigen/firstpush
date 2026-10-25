@@ -78,7 +78,18 @@ export default function FixtureSportCard({
     /^(uefa|caf|afc|conmebol|concacaf|fifa|club world cup|champions league|europa league|conference league|libertadores|sudamericana)/i.test(match.competition || '') ||
     ['europe', 'international clubs', 'international', 'world', 'general'].includes((match.country || '').toLowerCase());
 
-  const leagueDisplayTitle = (!isContinental && match.country && match.country.trim() && match.country.toLowerCase() !== 'general')
+  const hasCountryPrefix = Boolean(match.country && (
+    match.competition.toLowerCase().includes(match.country.toLowerCase()) ||
+    (match.country.toLowerCase() === 'england' && match.competition.toLowerCase().includes('english')) ||
+    (match.country.toLowerCase() === 'spain' && match.competition.toLowerCase().includes('spanish')) ||
+    (match.country.toLowerCase() === 'france' && match.competition.toLowerCase().includes('french')) ||
+    (match.country.toLowerCase() === 'italy' && match.competition.toLowerCase().includes('italian')) ||
+    (match.country.toLowerCase() === 'germany' && match.competition.toLowerCase().includes('german')) ||
+    (match.country.toLowerCase() === 'portugal' && match.competition.toLowerCase().includes('portuguese')) ||
+    (match.country.toLowerCase() === 'india' && match.competition.toLowerCase().includes('indian'))
+  ));
+
+  const leagueDisplayTitle = (!isContinental && match.country && match.country.trim() && match.country.toLowerCase() !== 'general' && !hasCountryPrefix)
     ? `${match.country} · ${match.competition}`
     : match.competition;
 

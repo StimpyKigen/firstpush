@@ -437,7 +437,7 @@ export const CANONICAL_COMPETITIONS: Record<string, CanonicalCompetition> = {
     isFeatured: true,
     active: true,
     metadataSource: 'verified_sportscore',
-    providerSlugs: ['premier', 'england/premier-league', 'premier-league', 'english-premier-league'],
+    providerSlugs: ['premier', 'england/premier-league', 'premier-league', 'english-premier-league', 'england-premier-league'],
   },
   esp_la_liga: {
     id: 'esp_la_liga',
@@ -639,7 +639,7 @@ export const CANONICAL_COMPETITIONS: Record<string, CanonicalCompetition> = {
     isFeatured: true,
     active: true,
     metadataSource: 'verified_sportscore',
-    providerSlugs: ['portugal1', 'primeira-liga', 'liga-portugal'],
+    providerSlugs: ['portugal1', 'primeira-liga', 'primera-liga', 'liga-portugal', 'portuguese-primera-liga', 'portugal-primera-liga'],
   },
   ned_eredivisie: {
     id: 'ned_eredivisie',
@@ -871,6 +871,29 @@ export const CANONICAL_COMPETITIONS: Record<string, CanonicalCompetition> = {
     active: true,
     metadataSource: 'verified_sportscore',
     providerSlugs: ['iran-cup', 'hazfi-cup'],
+  },
+  ind_super_league: {
+    id: 'ind_super_league',
+    provider: 'SportScore',
+    providerId: 'v2y8m4zh88ql074',
+    providerSlug: 'indian-super-league',
+    name: 'Indian Super League',
+    country: 'India',
+    countryCode: 'IN',
+    countryName: 'India',
+    continent: 'asia',
+    competitionType: 'domestic_league',
+    type: 'domestic_league',
+    tier: 4,
+    rank: 4,
+    displayPriority: 550,
+    priorityRank: 450,
+    prestigeScore: 550,
+    flag: '🇮🇳',
+    isFeatured: false,
+    active: true,
+    metadataSource: 'verified_sportscore',
+    providerSlugs: ['indian-super-league', 'isl', 'india1', 'india-super-league'],
   },
   uzb_pro_league: {
     id: 'uzb_pro_league',
@@ -2305,6 +2328,7 @@ export function resolveCanonicalCompetition(input: {
       isTargetDomestic &&
       countryLower &&
       targetCountry &&
+      !['international', 'general', 'world', 'other', 'unknown', ''].includes(countryLower) &&
       !countryLower.includes(targetCountry) &&
       !targetCountry.includes(countryLower)
     ) {
@@ -2339,6 +2363,7 @@ export function resolveCanonicalCompetition(input: {
         isTargetDomestic &&
         countryLower &&
         targetCountry &&
+        !['international', 'general', 'world', 'other', 'unknown', ''].includes(countryLower) &&
         !countryLower.includes(targetCountry) &&
         !targetCountry.includes(countryLower)
       ) {
@@ -2458,7 +2483,9 @@ export function resolveCanonicalCompetition(input: {
     compLower.includes('premier league 2');
 
   if (!isForeignPremier) {
-    const isExplicitlyForeign = countryLower && !['england', 'united kingdom', 'uk', 'gb-eng', 'great britain'].includes(countryLower);
+    const isExplicitlyForeign =
+      countryLower &&
+      !['england', 'united kingdom', 'uk', 'gb-eng', 'great britain', 'international', 'general', 'world', 'other', 'unknown', ''].includes(countryLower);
     if (!isExplicitlyForeign) {
       if (
         code === 'premier' ||
@@ -2715,8 +2742,33 @@ export function resolveCanonicalCompetition(input: {
   if (code === 'cha' || compLower === 'championship' || compLower === 'efl championship') {
     return CANONICAL_COMPETITIONS.eng_championship;
   }
-  if (code === 'portugal1' || compLower.includes('primeira liga') || compLower.includes('liga portugal')) {
+  if (
+    code === 'portugal1' ||
+    code === 'primeira-liga' ||
+    code === 'primera-liga' ||
+    code === 'liga-portugal' ||
+    compLower.includes('primeira liga') ||
+    compLower.includes('primera liga') ||
+    compLower.includes('liga portugal') ||
+    compLower.includes('portuguese primeira liga') ||
+    compLower.includes('portuguese primera liga') ||
+    compLower.includes('portugal primera liga') ||
+    compLower.includes('portugal primeira liga')
+  ) {
     return CANONICAL_COMPETITIONS.por_primeira_liga;
+  }
+  if (
+    code === 'isl' ||
+    code === 'india1' ||
+    code === 'indian-super-league' ||
+    code === 'india-super-league' ||
+    compLower.includes('indian super league') ||
+    compLower.includes('india super league') ||
+    (compLower.includes('super league') && countryLower.includes('india'))
+  ) {
+    if (CANONICAL_COMPETITIONS.ind_super_league) {
+      return CANONICAL_COMPETITIONS.ind_super_league;
+    }
   }
   if (code === 'holland1' || compLower.includes('eredivisie')) {
     return CANONICAL_COMPETITIONS.ned_eredivisie;

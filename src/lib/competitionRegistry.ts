@@ -84,7 +84,7 @@ export const TIER_1_MAJOR_EUROPEAN: RegistryCompetition[] = [
     mappingSource: 'verified_sportscore',
     gender: 'men',
     ageGroup: 'senior',
-    aliases: ['premier-league', 'epl', 'premier', 'english-premier-league'],
+    aliases: ['premier-league', 'epl', 'premier', 'english-premier-league', 'england-premier-league'],
     selectionReason: 'Mandatory Tier 1 European Major: England 1st Division',
   },
   {
@@ -314,7 +314,7 @@ export const TIER_1_MAJOR_EUROPEAN: RegistryCompetition[] = [
     mappingSource: 'verified_sportscore',
     gender: 'men',
     ageGroup: 'senior',
-    aliases: ['portuguese-primera-liga', 'primeira-liga', 'portugal1', 'liga-portugal'],
+    aliases: ['portuguese-primera-liga', 'portuguese-primeira-liga', 'portugal-primera-liga', 'portugal-primeira-liga', 'primeira-liga', 'primera-liga', 'portugal1', 'liga-portugal'],
     selectionReason: 'Mandatory Tier 1 European Major: Portugal 1st Division',
   },
   {
@@ -1412,7 +1412,7 @@ export const TIER_4_OTHER_TOP_FLIGHT: RegistryCompetition[] = [
     mappingSource: 'verified_sportscore',
     gender: 'men',
     ageGroup: 'senior',
-    aliases: ['indian-super-league', 'isl', 'india1'],
+    aliases: ['indian-super-league', 'isl', 'india1', 'india-super-league'],
     selectionReason: 'Tier 4 Top-Flight: India senior 1st division',
   },
   {
@@ -1480,7 +1480,10 @@ export function getCompetitionById(id: string): RegistryCompetition | undefined 
 export function getCompetitionByProvider(idOrSlug: string): RegistryCompetition | undefined {
   if (!idOrSlug) return undefined;
   const key = idOrSlug.toLowerCase().trim();
-  return REGISTRY_BY_PROVIDER_ID.get(key) || REGISTRY_BY_SLUG.get(key);
+  const direct = REGISTRY_BY_PROVIDER_ID.get(key) || REGISTRY_BY_SLUG.get(key);
+  if (direct) return direct;
+  const slugified = key.replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+  return REGISTRY_BY_SLUG.get(slugified);
 }
 
 /**

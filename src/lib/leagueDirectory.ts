@@ -7,6 +7,7 @@ import {
   getCountryMeta,
   KNOWN_COUNTRIES,
 } from './canonicalCompetitions';
+import { getCompetitionById, getCompetitionByProvider } from './competitionRegistry';
 
 export { type ContinentId, type CompetitionType, getCountryMeta, type CountryMeta } from './canonicalCompetitions';
 
@@ -77,20 +78,37 @@ export function getLeagueMetadata(
   competitionId?: string
 ): LeagueMetadataResult {
   // If a verified canonical ID is already supplied, look it up directly
-  if (competitionId && CANONICAL_COMPETITIONS[competitionId]) {
-    const canon = CANONICAL_COMPETITIONS[competitionId];
-    return {
-      canonicalId: canon.id,
-      standardName: canon.name,
-      country: canon.countryName || canon.country,
-      countryCode: canon.countryCode,
-      countryName: canon.countryName || canon.country,
-      continent: canon.continent,
-      competitionType: canon.competitionType || canon.type,
-      typeLabel: getCompetitionTypeLabel(canon.competitionType || canon.type),
-      rank: canon.rank ?? canon.priorityRank,
-      flag: canon.flag,
-    };
+  if (competitionId) {
+    if (CANONICAL_COMPETITIONS[competitionId]) {
+      const canon = CANONICAL_COMPETITIONS[competitionId];
+      return {
+        canonicalId: canon.id,
+        standardName: canon.name,
+        country: canon.countryName || canon.country,
+        countryCode: canon.countryCode,
+        countryName: canon.countryName || canon.country,
+        continent: canon.continent,
+        competitionType: canon.competitionType || canon.type,
+        typeLabel: getCompetitionTypeLabel(canon.competitionType || canon.type),
+        rank: canon.rank ?? canon.priorityRank,
+        flag: canon.flag,
+      };
+    }
+    const reg = getCompetitionById(competitionId);
+    if (reg) {
+      return {
+        canonicalId: reg.id,
+        standardName: reg.canonicalName,
+        country: reg.countryName,
+        countryCode: reg.countryCode,
+        countryName: reg.countryName,
+        continent: reg.continent,
+        competitionType: reg.competitionType,
+        typeLabel: getCompetitionTypeLabel(reg.competitionType),
+        rank: reg.tierNumber,
+        flag: getCountryMeta(reg.countryId).flag || '⚽',
+      };
+    }
   }
 
   // Resolve canonical identity from provider competition, country, and league code
@@ -429,6 +447,50 @@ export function resolveSportScoreDirectoryId(f: {
     return 'excluded';
   }
 
+  // Primary: Check centralized authoritative competition priority registry
+  const regComp =
+    (f.competitionId ? getCompetitionById(f.competitionId) : undefined) ||
+    getCompetitionByProvider(f.competition) ||
+    (f.leagueCode ? getCompetitionByProvider(f.leagueCode) : undefined) ||
+    (f.providerId ? getCompetitionByProvider(f.providerId) : undefined);
+
+  if (regComp) {
+    const isDomestic =
+      regComp.competitionType === 'domestic_league' ||
+      regComp.competitionType === 'lower_division' ||
+      regComp.competitionType === 'domestic_cup' ||
+      regComp.competitionType === 'super_cup';
+
+    if (isDomestic && regComp.countryId) {
+      if (regComp.countryId === 'england') {
+        const isAmateurOrYouth = regComp.ageGroup !== 'senior' || regComp.division === 'other';
+        return isAmateurOrYouth ? 'england_amateur' : 'england';
+      }
+      if (regComp.countryId === 'spain') {
+        const isAmateurOrYouth = regComp.ageGroup !== 'senior';
+        return isAmateurOrYouth ? 'spain_amateur' : 'spain';
+      }
+      if (regComp.countryId === 'austria') {
+        const isAmateurOrYouth = regComp.ageGroup !== 'senior';
+        return isAmateurOrYouth ? 'austria_amateur' : 'austria';
+      }
+      if (regComp.countryId === 'sweden') {
+        const isAmateurOrYouth = regComp.ageGroup !== 'senior';
+        return isAmateurOrYouth ? 'sweden_amateur' : 'sweden';
+      }
+      const matchConfig = SPORTSCORE_COUNTRY_DIRECTORY_CONFIG.find(
+        (entry) =>
+          entry.id === regComp.countryId ||
+          (entry.country && entry.country.toLowerCase() === regComp.countryId.toLowerCase()) ||
+          (entry.aliases && entry.aliases.includes(regComp.countryId.toLowerCase()))
+      );
+      if (matchConfig) {
+        return matchConfig.id;
+      }
+      return regComp.countryId.toLowerCase();
+    }
+  }
+
   // 1. Continental / International multi-country club competitions
   if (
     compType === 'continental_club' ||
@@ -537,7 +599,7 @@ export function buildSportScoreCountryDirectory(
 
     if (!groupMap.has(dirId)) {
       const configEntry = SPORTSCORE_COUNTRY_DIRECTORY_CONFIG.find((entry) => entry.id === dirId);
-      const cleanCountry = f.country || configEntry?.country || (dirId === 'international_clubs' ? 'International Clubs' : dirId);
+      const cleanCountry = configEntry?.country || (dirId === 'international_clubs' ? 'International Clubs' : f.country || dirId);
       const label = configEntry?.label || (cleanCountry.charAt(0).toUpperCase() + cleanCountry.slice(1));
       const flag = KNOWN_COUNTRIES[cleanCountry.toLowerCase()]?.flag || '';
 

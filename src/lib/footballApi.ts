@@ -300,7 +300,7 @@ export async function fetchDirectSportScoreFixtures(): Promise<HighlightFixture[
         away,
         competition: compName,
         competitionId: canon.id,
-        country: canon.country,
+        country: canon.countryName || canon.country,
         kickoff: kickoffEAT,
         kickoffIso: isoTime,
         tier,

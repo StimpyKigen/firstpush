@@ -165,8 +165,13 @@ const TOP_PRIORITY_LEAGUE_CODES = new Set([
  */
 export function formatEATTime(dateStr: string, timeStr?: string): string {
   try {
-    const iso = timeStr ? `${dateStr}T${timeStr}:00Z` : `${dateStr}T12:00:00Z`;
-    const d = new Date(iso);
+    let d: Date;
+    if (dateStr.includes('T') || dateStr.includes('Z')) {
+      d = new Date(dateStr);
+    } else {
+      const iso = timeStr ? `${dateStr}T${timeStr}:00Z` : `${dateStr}T12:00:00Z`;
+      d = new Date(iso);
+    }
     if (isNaN(d.getTime())) return `${dateStr} ${timeStr || ''}`;
     return new Intl.DateTimeFormat('en-KE', {
       timeZone: 'Africa/Nairobi',
@@ -779,7 +784,7 @@ export function normalizeSportScoreMatch(m: any, nowIso: string, isLiveForce = f
   if (!slug) slug = `${slugify(home)}-vs-${slugify(away)}`;
 
   const isoTime = m.time || m.start_at || nowIso || new Date().toISOString();
-  const kickoffEAT = formatEATTime(isoTime.slice(0, 10), isoTime.slice(11, 16));
+  const kickoffEAT = formatEATTime(isoTime);
 
   const rawStatus = isLiveForce
     ? (String(m.status || '').toLowerCase().includes('half') || String(m.status_text || '').toLowerCase().includes('ht') ? 'halftime' : 'live')
@@ -850,7 +855,7 @@ export function normalizeSportScoreMatch(m: any, nowIso: string, isLiveForce = f
     competition: canon.name,
     competitionId: canon.id,
     leagueCode: slugify(rawComp),
-    country: canon.country || country,
+    country: canon.countryName || canon.country || country,
     kickoff: kickoffEAT,
     kickoffIso: isoTime,
     status,
@@ -1198,8 +1203,12 @@ export function queryMarketFixtures(options: {
   } else if (scope === 'finished' || scope === 'results' || scope === 'completed') {
     list = list.filter((f) => f.status === 'post' || (f.period && ['full_time', 'after_extra_time', 'after_penalties', 'awarded'].includes(f.period)));
   } else if (scope === 'highlights') {
-    // Highlights MUST NEVER include completed matches
-    list = list.filter((f) => f.status !== 'post' && (!f.period || !['full_time', 'after_extra_time', 'after_penalties', 'awarded'].includes(f.period)));
+    // Highlights MUST NEVER include completed or live matches
+    list = list.filter((f) =>
+      f.status !== 'post' &&
+      f.status !== 'in' &&
+      (!f.period || !['full_time', 'after_extra_time', 'after_penalties', 'awarded', 'first_half', 'halftime', 'second_half', 'extra_time', 'penalties'].includes(f.period))
+    );
   } else if (scope === 'today') {
     list = list.filter((f) => {
       const fDate = getLocalDateStringEAT(f.kickoffIso);
@@ -1214,7 +1223,7 @@ export function queryMarketFixtures(options: {
     const nowMs = Date.now();
     list = list.filter((f) => {
       if (f.status !== 'pre') return false;
-      if (f.period && ['full_time', 'after_extra_time', 'after_penalties', 'awarded', 'postponed', 'cancelled', 'abandoned'].includes(f.period)) return false;
+      if (f.period && ['full_time', 'after_extra_time', 'after_penalties', 'awarded', 'postponed', 'cancelled', 'abandoned', 'first_half', 'halftime', 'second_half', 'extra_time', 'penalties'].includes(f.period)) return false;
       const kMs = f.kickoffIso ? new Date(f.kickoffIso).getTime() : 0;
       return kMs >= nowMs;
     });

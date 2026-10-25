@@ -318,10 +318,12 @@ export function parseFixtureKickoffMs(
 export function getDeviceLocalDateString(dateInput: Date | string | number = new Date()): string {
   const d = typeof dateInput === 'string' || typeof dateInput === 'number' ? new Date(dateInput) : dateInput;
   if (isNaN(d.getTime())) return '';
-  const year = d.getFullYear();
-  const month = String(d.getMonth() + 1).padStart(2, '0');
-  const day = String(d.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
+  return new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Africa/Nairobi',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).format(d);
 }
 
 /**
@@ -331,11 +333,12 @@ export function formatDeviceLocalTime(kickoffIso?: string, fallback: string = ''
   if (!kickoffIso) return fallback;
   const d = new Date(kickoffIso);
   if (isNaN(d.getTime())) return fallback;
-  return new Intl.DateTimeFormat(undefined, {
+  return new Intl.DateTimeFormat('en-GB', {
+    timeZone: 'Africa/Nairobi',
     hour: '2-digit',
     minute: '2-digit',
     hour12: false,
-  }).format(d);
+  }).format(d) + ' EAT';
 }
 
 /**
@@ -343,29 +346,7 @@ export function formatDeviceLocalTime(kickoffIso?: string, fallback: string = ''
  * Example: "21/10 19:45"
  */
 export function formatKickoffDateTime24h(kickoffIso?: string, fallback: string = ''): string {
-  // 1. If fallback already has DD/MM HH:mm or DD-MM-YYYY HH:mm format, use it verbatim!
-  if (fallback) {
-    const verbatimMatch = fallback.match(/^(\d{1,2})[/-](\d{1,2})(?:[/-]\d{2,4})?\s+([0-2]?\d:[0-5]\d)/);
-    if (verbatimMatch) {
-      const d = verbatimMatch[1].padStart(2, '0');
-      const m = verbatimMatch[2].padStart(2, '0');
-      const t = verbatimMatch[3];
-      return `${d}/${m} ${t}`;
-    }
-  }
-
-  // 2. If kickoffIso matches ISO format (e.g. 2026-10-22T14:00:00+03:00), extract verbatim components directly
-  if (kickoffIso) {
-    const isoMatch = kickoffIso.match(/^\d{4}-(\d{2})-(\d{2})T(\d{2}):(\d{2})/);
-    if (isoMatch) {
-      const m = isoMatch[1];
-      const d = isoMatch[2];
-      const t = `${isoMatch[3]}:${isoMatch[4]}`;
-      return `${d}/${m} ${t}`;
-    }
-  }
-
-  // 3. Fallback for any other valid date string
+  // 1. If kickoffIso is provided, ALWAYS format in East Africa Time (EAT, UTC+3)
   if (kickoffIso) {
     const d = new Date(kickoffIso);
     if (!isNaN(d.getTime())) {
@@ -382,12 +363,20 @@ export function formatKickoffDateTime24h(kickoffIso?: string, fallback: string =
       const month = parts.find((p) => p.type === 'month')?.value || '';
       const hour = parts.find((p) => p.type === 'hour')?.value || '';
       const minute = parts.find((p) => p.type === 'minute')?.value || '';
-      return `${day}/${month} ${hour}:${minute}`;
+      return `${day}/${month} ${hour}:${minute} EAT`;
     }
   }
 
+  // 2. If fallback already has DD/MM HH:mm or DD-MM-YYYY HH:mm format, use it with EAT
   if (fallback) {
-    return fallback;
+    const verbatimMatch = fallback.match(/^(\d{1,2})[/-](\d{1,2})(?:[/-]\d{2,4})?\s+([0-2]?\d:[0-5]\d)/);
+    if (verbatimMatch) {
+      const d = verbatimMatch[1].padStart(2, '0');
+      const m = verbatimMatch[2].padStart(2, '0');
+      const t = verbatimMatch[3];
+      return fallback.includes('EAT') ? `${d}/${m} ${t} EAT` : `${d}/${m} ${t} EAT`;
+    }
+    return fallback.includes('EAT') ? fallback : `${fallback} EAT`;
   }
 
   return '';
@@ -457,7 +446,7 @@ export function sortUpcomingComparator<T extends { kickoffIso?: any; kickoff?: a
  * - Missing or invalid timestamps are safely excluded and never crash.
  */
 export function isUpcomingEligible(
-  fixture: { status?: any; statusText?: any; kickoffIso?: any; kickoff?: any } | null | undefined,
+  fixture: { status?: any; statusText?: any; kickoffIso?: any; kickoff?: any; period?: any } | null | undefined,
   nowMs: number = Date.now()
 ): boolean {
   if (!fixture) return false;
@@ -468,13 +457,18 @@ export function isUpcomingEligible(
     return false;
   }
 
-  // 2. Parse kickoff timestamp to UTC epoch milliseconds
+  // 2. Period check: must NOT be in an active period
+  if (fixture.period && ['first_half', 'halftime', 'second_half', 'extra_time', 'penalties'].includes(fixture.period)) {
+    return false;
+  }
+
+  // 3. Parse kickoff timestamp to UTC epoch milliseconds
   const kickoffMs = parseFixtureKickoffMs(fixture);
   if (kickoffMs === null) {
     return false;
   }
 
-  // 3. Device clock real-time check: at or after current device time
+  // 4. Device clock real-time check: at or after current device time
   return kickoffMs >= nowMs;
 }
 
@@ -484,11 +478,15 @@ export function isUpcomingEligible(
  * - Does NOT silently omit eligible games from any competition.
  */
 export function isHighlightsEligible(
-  fixture: { competition?: string; competitionId?: string; country?: string; status?: any; statusText?: any } | null | undefined
+  fixture: { competition?: string; competitionId?: string; country?: string; status?: any; statusText?: any; period?: any } | null | undefined
 ): boolean {
   if (!fixture) return false;
   const norm = normalizeMatchStatus(fixture.status, fixture.statusText);
-  if (norm === 'post' || norm === 'cancelled' || norm === 'postponed' || norm === 'abandoned' || norm === 'suspended') {
+  // Live matches ('in'), completed matches ('post'), cancelled, postponed, abandoned, suspended fixtures are NOT eligible for highlights
+  if (norm === 'in' || norm === 'post' || norm === 'cancelled' || norm === 'postponed' || norm === 'abandoned' || norm === 'suspended') {
+    return false;
+  }
+  if (fixture.period && ['first_half', 'halftime', 'second_half', 'extra_time', 'penalties'].includes(fixture.period)) {
     return false;
   }
   return true;
