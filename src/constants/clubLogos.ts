@@ -1,4 +1,4 @@
-﻿// Auto-generated list of club logos with uniform dimensions for GridMotion
+﻿// Auto-generated list of club logos with uniform dimensions and accent color fill for GridMotion
 export const CLUB_LOGOS: string[] = [
     "/images/club-logos/afc_leopards_of_kenya_crest__uniform.jpg",
     "/images/club-logos/arsenal_uniform.jpg",
