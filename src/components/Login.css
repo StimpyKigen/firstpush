@@ -651,7 +651,7 @@ html:has(.login-page-container) {
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: space-between !important;
+    justify-content: center !important;
     overflow: hidden !important;
     overflow-y: hidden !important;
     z-index: 1;
@@ -659,13 +659,9 @@ html:has(.login-page-container) {
     box-sizing: border-box;
   }
 
-  /* Symmetrical lower flex spacer: locks login card in true vertical center */
+  /* Flex spacer not needed when headline is removed */
   .login-page-container::after {
-    content: '' !important;
-    display: block !important;
-    flex: 1 1 0% !important;
-    pointer-events: none !important;
-    width: 100% !important;
+    display: none !important;
   }
 
   /* Upper flex zone: centers headline text in the middle ground above card */

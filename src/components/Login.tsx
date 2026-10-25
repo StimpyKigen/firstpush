@@ -58,19 +58,6 @@ export const Login: React.FC = () => {
         )}
       </div>
 
-      {/* Aurora Animated Headline (Desktop & Mobile) */}
-      <div className="content">
-        <h1 className="title">
-          Kenya&apos;s Football consensus, community slips &amp; match intelligence platform.
-          <div className="aurora" aria-hidden="true">
-            <div className="aurora__item" />
-            <div className="aurora__item" />
-            <div className="aurora__item" />
-            <div className="aurora__item" />
-          </div>
-        </h1>
-      </div>
-
       {/* Main Animated Card */}
       <div className={`card ${isRegister ? 'register' : ''}`}>
         {/* Full Card Mobile Football Pitch Background */}
