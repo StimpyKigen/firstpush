@@ -2,10 +2,25 @@ import React, { useState, useEffect } from 'react';
 import Hero from './Hero';
 import LoginForm from './LoginForm';
 import RegisterForm from './RegisterForm';
+import GridMotion from './GridMotion';
+import { getShuffledClubLogos } from '../constants/clubLogos';
 import './Login.css';
 
 export const Login: React.FC = () => {
   const [isRegister, setIsRegister] = useState(false);
+  const [shuffledLogos, setShuffledLogos] = useState<string[]>([]);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    setShuffledLogos(getShuffledClubLogos());
+
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth <= 720);
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   // Strictly prevent vertical scrolling on the login page across all viewports
   useEffect(() => {
@@ -21,6 +36,28 @@ export const Login: React.FC = () => {
 
   return (
     <div className="login-page-container">
+      {/* Animated Motion Background with Shuffled Club Logos */}
+      <div className="login-grid-motion-bg" aria-hidden="true">
+        {shuffledLogos.length > 0 && (
+          <GridMotion
+            items={shuffledLogos}
+            rows={isMobile ? 5 : 5}
+            aspectRatio={1.0}
+            gap={isMobile ? 10 : 14}
+            radius={14}
+            angle={-10}
+            tilt={0}
+            speed={20}
+            direction="alternate"
+            parallax={0.4}
+            spotlight={0.65}
+            dim={0.45}
+            fade={0.35}
+            grayscale={false}
+          />
+        )}
+      </div>
+
       {/* Aurora Animated Headline (Desktop & Mobile) */}
       <div className="content">
         <h1 className="title">
