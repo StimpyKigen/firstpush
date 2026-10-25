@@ -11,6 +11,7 @@ export interface FreeMatch {
   id: string;
   providerId?: string;
   matchId?: string;
+  matchUrl?: string;
   home: string;
   away: string;
   homeLogo?: string;
@@ -98,6 +99,8 @@ function toFreeMatch(item: HighlightFixture): FreeMatch {
   return {
     id: item.id,
     providerId: item.providerId || item.id,
+    matchId: item.matchId,
+    matchUrl: item.matchUrl,
     home: item.home,
     away: item.away,
     homeLogo: item.homeLogo,
@@ -219,9 +222,32 @@ export async function refreshFreeMatches(force = false) {
         finalAwayScore = existing.awayScore;
       }
 
+      const isIncomingBet365 = incoming.bookmaker === 'Bet365';
+      const isExistingBet365 = existing.bookmaker === 'Bet365';
+      const preferBet365 = isIncomingBet365 || isExistingBet365;
+
+      const finalBookmaker = preferBet365 ? 'Bet365' : (incoming.bookmaker || existing.bookmaker);
+      const finalHomeOdds = isExistingBet365 && !isIncomingBet365 ? existing.homeOdds : (incoming.homeOdds || existing.homeOdds);
+      const finalDrawOdds = isExistingBet365 && !isIncomingBet365 ? existing.drawOdds : (incoming.drawOdds || existing.drawOdds);
+      const finalAwayOdds = isExistingBet365 && !isIncomingBet365 ? existing.awayOdds : (incoming.awayOdds || existing.awayOdds);
+      const finalHomePct = isExistingBet365 && !isIncomingBet365 ? existing.homePct : (incoming.homePct || existing.homePct);
+      const finalDrawPct = isExistingBet365 && !isIncomingBet365 ? existing.drawPct : (incoming.drawPct || existing.drawPct);
+      const finalAwayPct = isExistingBet365 && !isIncomingBet365 ? existing.awayPct : (incoming.awayPct || existing.awayPct);
+      const finalOver25Pct = isExistingBet365 && !isIncomingBet365 ? existing.over25Pct : (incoming.over25Pct ?? existing.over25Pct);
+      const finalMatchUrl = incoming.matchUrl || existing.matchUrl;
+
       return {
         ...existing,
         ...incoming,
+        matchUrl: finalMatchUrl,
+        bookmaker: finalBookmaker,
+        homeOdds: finalHomeOdds,
+        drawOdds: finalDrawOdds,
+        awayOdds: finalAwayOdds,
+        homePct: finalHomePct,
+        drawPct: finalDrawPct,
+        awayPct: finalAwayPct,
+        over25Pct: finalOver25Pct,
         status: finalStatus,
         period: finalPeriod,
         displayClock: finalClock,
@@ -250,7 +276,7 @@ export async function refreshFreeMatches(force = false) {
       liveConsensus = Object.fromEntries(
         liveMatches.map((match, index) => [
           match.id,
-          freeMatchConsensus[match.id] || buildConsensus(match.id, index * 17 + 7, match.homePct || 33, match.drawPct || 34),
+          buildConsensus(match.id, index * 17 + 7, match.homePct || 33, match.drawPct || 34),
         ]),
       ) as Record<string, MatchConsensus>;
 

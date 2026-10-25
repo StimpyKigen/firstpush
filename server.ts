@@ -18,6 +18,7 @@ import {
   getSavedAdminBatches,
   deleteAdminBatch,
 } from './src/lib/sportsFeedService';
+import { fetchBet365OddsForMatch } from './src/lib/sportscoreOddsService';
 import { extractPdfTextServer } from './src/lib/serverPdfParser';
 import { getSavedHomepageFeed, saveHomepageFeed } from './src/lib/serverHomepageFeed';
 import {
@@ -588,6 +589,25 @@ async function startServer() {
       return res.json(data);
     } catch (err: any) {
       return res.status(500).json({ error: 'Failed to fetch match details.' });
+    }
+  });
+
+  app.get('/api/sports/match-odds', async (req: Request, res: Response) => {
+    try {
+      const matchUrl = req.query.url as string;
+      if (!matchUrl) {
+        return res.status(400).json({ success: false, error: 'Match URL is required.' });
+      }
+
+      const odds = await fetchBet365OddsForMatch(matchUrl);
+      if (!odds) {
+        return res.status(404).json({ success: false, error: 'Bet365 odds not available for this match.' });
+      }
+
+      res.setHeader('Cache-Control', 'public, max-age=600, s-maxage=1800, stale-while-revalidate=3600');
+      return res.json({ success: true, odds });
+    } catch (err: any) {
+      return res.status(500).json({ success: false, error: 'Failed to retrieve match odds.' });
     }
   });
 

@@ -56,6 +56,11 @@ import {
   getMatchScorePresentation,
 } from '../src/lib/matchStatus';
 
+import {
+  parseSportScoreBet365Odds,
+  type ParsedBet365Odds,
+} from '../src/lib/sportscoreOddsService';
+
 let passed = 0;
 let total = 0;
 
@@ -480,6 +485,56 @@ async function runAllTests() {
     const dirId = resolveSportScoreDirectoryId({ competition: c.canonicalName, competitionId: c.id });
     assert(configuredIds.has(dirId), `15.4 ${c.canonicalName} maps to existing dropdown category '${dirId}'`);
   }
+
+  // =========================================================================
+  // TEST SUITE 16: Bet365 Pre-Match Odds Parsing & Probability Derivation
+  // =========================================================================
+  console.log('\n--- TEST SUITE 16: Bet365 Pre-Match Odds & Probabilities ---');
+
+  const sampleSportScoreHtml = `
+    <div class="fb-odds">
+      <table class="fb-odds-table">
+        <thead>
+          <tr>
+            <th class="fb-odds-book"><span class="fb-odds-book__chip">BET365</span></th>
+            <th class="grp">1</th><th>X</th><th>2</th>
+            <th class="grp" colspan="2">Asian Handicap</th>
+            <th class="grp">Goals</th><th>Over</th><th>Under</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="fb-odds-row fb-odds-row--prematch">
+            <th>Pre-match odds</th>
+            <td><span class="pr">2.50</span></td>
+            <td><span class="pr">3.40</span></td>
+            <td><span class="pr">2.80</span></td>
+            <td class="fb-odds-ah grp"><span class="ln">+0/0.5</span><span class="pr">1.95</span></td>
+            <td class="fb-odds-ah"><span class="ln">-0/0.5</span><span class="pr">1.85</span></td>
+            <td class="ln grp">2.5</td>
+            <td><span class="pr">1.90</span></td>
+            <td><span class="pr">1.90</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  `;
+
+  const parsedOdds = parseSportScoreBet365Odds(sampleSportScoreHtml);
+  assert(parsedOdds !== null, '16.1 Successfully parses Bet365 table from SportScore HTML');
+  assert(parsedOdds?.bookmaker === 'Bet365', '16.2 Bookmaker is correctly identified as Bet365');
+  assert(parsedOdds?.homeOdds === 2.50, '16.3 Home odds correctly extracted as 2.50');
+  assert(parsedOdds?.drawOdds === 3.40, '16.4 Draw odds correctly extracted as 3.40');
+  assert(parsedOdds?.awayOdds === 2.80, '16.5 Away odds correctly extracted as 2.80');
+  assert(
+    (parsedOdds?.homePct ?? 0) + (parsedOdds?.drawPct ?? 0) + (parsedOdds?.awayPct ?? 0) === 100,
+    '16.6 Margin-free implied probabilities sum exactly to 100%'
+  );
+  assert(parsedOdds?.goalsLine === 2.5, '16.7 Goals line correctly parsed as 2.5');
+  assert(parsedOdds?.over25Pct === 50, '16.8 Over 2.5 probability calibrated to 50% for 1.90/1.90 line');
+
+  // Verify graceful degradation on HTML without Bet365 odds
+  const emptyHtml = '<div>No odds available</div>';
+  assert(parseSportScoreBet365Odds(emptyHtml) === null, '16.9 Gracefully returns null on HTML without Bet365 table');
 
   console.log('\n========================================================================');
   console.log(`🎉 ALL ${passed} OF ${total} TESTS PASSED SUCCESSFULLY!`);

@@ -1,8 +1,11 @@
 import { type MatchPeriod, type MatchStatus, parseDetailedMatchStatus } from './matchStatus';
+import { enrichFixturesWithBet365Odds } from './sportscoreOddsService';
 
 export interface HighlightFixture {
   id: string;
   providerId?: string;
+  matchId?: string;
+  matchUrl?: string;
   home: string;
   away: string;
   homeLogo?: string;
@@ -296,6 +299,7 @@ export async function fetchDirectSportScoreFixtures(): Promise<HighlightFixture[
       mapped.push({
         id: fid,
         providerId: fid,
+        matchUrl: m.url || undefined,
         home,
         away,
         competition: compName,
@@ -325,6 +329,12 @@ export async function fetchDirectSportScoreFixtures(): Promise<HighlightFixture[
         over25Pct: 48 + (hash % 18),
         over35Pct: 28 + (hash % 14),
       });
+    }
+
+    if (mapped.length > 0) {
+      try {
+        await enrichFixturesWithBet365Odds(mapped, 25, 5);
+      } catch {}
     }
 
     return mapped;
@@ -377,6 +387,8 @@ export async function fetchDailyHighlightFixtures(force = false): Promise<Highli
           return {
             id: fid,
             providerId: m.providerId || fid,
+            matchId: m.matchId,
+            matchUrl: m.matchUrl || m.url || undefined,
             home: m.home,
             away: m.away,
             competition: compName,
@@ -393,7 +405,7 @@ export async function fetchDailyHighlightFixtures(force = false): Promise<Highli
             homeOdds: m.homeOdds,
             drawOdds: m.drawOdds,
             awayOdds: m.awayOdds,
-            bookmaker: 'Market Consensus',
+            bookmaker: m.bookmaker || 'Market Consensus',
             syncedAt: `Live Consensus · ${syncTimeLabel}`,
             lastSyncTime: m.lastSyncTime || m.syncedAt,
             status: m.status || 'pre',
@@ -412,6 +424,14 @@ export async function fetchDailyHighlightFixtures(force = false): Promise<Highli
         });
 
         if (mapped.length > 0) {
+          const unenriched = mapped
+            .filter((f) => f.status === 'pre' && f.matchUrl && f.bookmaker !== 'Bet365')
+            .slice(0, 20);
+          if (unenriched.length > 0) {
+            try {
+              await enrichFixturesWithBet365Odds(unenriched, 15, 5);
+            } catch {}
+          }
           cachedFixtures = mapped;
           lastFetchedTime = Date.now();
           try {

@@ -26,6 +26,7 @@ import {
   getEligibleProviderSlugs,
   logSelectedCompetitionsSummary,
 } from './competitionRegistry';
+import { enrichFixturesWithBet365Odds } from './sportscoreOddsService';
 
 export interface DiscoveredLeague {
   league: string;
@@ -39,6 +40,7 @@ export interface MarketFixture {
   id: string;
   providerId: string;
   matchId?: string;
+  matchUrl?: string;
   home: string;
   away: string;
   homeLogo?: string;
@@ -724,15 +726,27 @@ export function ingestFixtures(fixtures: MarketFixture[], isAuthoritative = fals
         }
       }
 
-      // Preserve existing betting odds/consensus model predictions if incoming is from pure live score widget
-      const mergedHomeOdds = f.homeOdds || existing.homeOdds;
-      const mergedDrawOdds = f.drawOdds || existing.drawOdds;
-      const mergedAwayOdds = f.awayOdds || existing.awayOdds;
+      // Preserve authentic Bet365 odds and bookmaker if incoming is from generic sync
+      const isIncomingBet365 = f.bookmaker === 'Bet365';
+      const isExistingBet365 = existing.bookmaker === 'Bet365';
+      const preferBet365 = isIncomingBet365 || isExistingBet365;
+
+      const mergedBookmaker = preferBet365 ? 'Bet365' : (f.bookmaker || existing.bookmaker || 'Market Consensus');
+      const mergedHomeOdds = isExistingBet365 && !isIncomingBet365 ? existing.homeOdds : (f.homeOdds || existing.homeOdds);
+      const mergedDrawOdds = isExistingBet365 && !isIncomingBet365 ? existing.drawOdds : (f.drawOdds || existing.drawOdds);
+      const mergedAwayOdds = isExistingBet365 && !isIncomingBet365 ? existing.awayOdds : (f.awayOdds || existing.awayOdds);
+      const mergedHomePct = isExistingBet365 && !isIncomingBet365 ? existing.homePct : (f.homePct || existing.homePct);
+      const mergedDrawPct = isExistingBet365 && !isIncomingBet365 ? existing.drawPct : (f.drawPct || existing.drawPct);
+      const mergedAwayPct = isExistingBet365 && !isIncomingBet365 ? existing.awayPct : (f.awayPct || existing.awayPct);
+      const mergedOver25Pct = isExistingBet365 && !isIncomingBet365 ? existing.over25Pct : (f.over25Pct ?? existing.over25Pct);
+      const mergedMatchUrl = f.matchUrl || existing.matchUrl;
 
       fixturesStore.set(targetId, {
         ...existing,
         ...f,
         id: targetId,
+        matchUrl: mergedMatchUrl,
+        bookmaker: mergedBookmaker,
         status: finalStatus,
         period: finalPeriod,
         displayClock: finalClock,
@@ -744,6 +758,10 @@ export function ingestFixtures(fixtures: MarketFixture[], isAuthoritative = fals
         homeOdds: mergedHomeOdds,
         drawOdds: mergedDrawOdds,
         awayOdds: mergedAwayOdds,
+        homePct: mergedHomePct,
+        drawPct: mergedDrawPct,
+        awayPct: mergedAwayPct,
+        over25Pct: mergedOver25Pct,
         syncedAt: f.syncedAt || nowIso,
         lastSyncTime: nowIso,
         recordUpdateTime: nowIso,
@@ -848,6 +866,7 @@ export function normalizeSportScoreMatch(m: any, nowIso: string, isLiveForce = f
   return {
     id: `mkt-ss-${slug}`,
     providerId: slug,
+    matchUrl: m.url || undefined,
     home,
     away,
     homeLogo: m.home_logo || undefined,
@@ -1121,6 +1140,24 @@ export async function syncSportScoreCatalog(dates?: string[]): Promise<number> {
     }
   }
 
+  // C. Enrich priority upcoming matches with authentic Bet365 odds
+  try {
+    const upcomingToEnrich = Array.from(fixturesStore.values())
+      .filter((f) => f.status === 'pre' && f.matchUrl && f.bookmaker !== 'Bet365')
+      .slice(0, 30);
+    if (upcomingToEnrich.length > 0) {
+      await enrichFixturesWithBet365Odds(upcomingToEnrich, 25, 5);
+      for (const enc of upcomingToEnrich) {
+        if (enc.bookmaker === 'Bet365') {
+          fixturesStore.set(enc.id, enc);
+        }
+      }
+      saveDiskCache();
+    }
+  } catch (err) {
+    console.warn('Bet365 odds enrichment notice in syncSportScoreCatalog:', err);
+  }
+
   return totalIngested;
 }
 
@@ -1288,6 +1325,25 @@ export async function getDailyMarketHighlights(force = false): Promise<MarketFix
       await executeRollingSyncCycle();
     } catch (err) {
       console.warn('SportScore rolling sync notice in getDailyMarketHighlights:', err);
+    }
+  }
+
+  const allFixtures = queryMarketFixtures({ scope: 'all' });
+  const unenriched = allFixtures
+    .filter((f) => f.status === 'pre' && f.matchUrl && f.bookmaker !== 'Bet365')
+    .slice(0, 20);
+
+  if (unenriched.length > 0) {
+    try {
+      await enrichFixturesWithBet365Odds(unenriched, 15, 5);
+      for (const enc of unenriched) {
+        if (enc.bookmaker === 'Bet365') {
+          fixturesStore.set(enc.id, enc);
+        }
+      }
+      saveDiskCache();
+    } catch (err) {
+      console.warn('Bet365 odds enrichment notice in getDailyMarketHighlights:', err);
     }
   }
 
