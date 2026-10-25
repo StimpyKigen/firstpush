@@ -49,7 +49,7 @@ export const Login: React.FC = () => {
             tilt={0}
             speed={20}
             direction="alternate"
-            parallax={0.4}
+            parallax={0}
             spotlight={0.65}
             dim={0.45}
             fade={0.35}
