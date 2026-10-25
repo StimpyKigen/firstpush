@@ -17,6 +17,8 @@ import {
   type FreeMatch
 } from '../lib/freeMatches';
 import { useBetSlipStore } from '../lib/betSlipStore';
+import { useCurrentUser } from '../lib/authStore';
+import { useAuthWallStore } from '../lib/authWallStore';
 import { showToast } from '../lib/notificationStore';
 import QuickBetBuilderModal, { type MatchForBuilder } from '../components/QuickBetBuilderModal';
 import { MatchListSkeleton } from '../components/skeleton';
@@ -137,9 +139,21 @@ export default function FreeMatches() {
   const builderLegs = useBetSlipStore((s) => s.builderLegs);
   const toggleBuilderLeg = useBetSlipStore((s) => s.toggleBuilderLeg);
 
+  const currentUser = useCurrentUser();
+  const openAuthWall = useAuthWallStore((s) => s.openAuthWall);
+
   const handleToggleLeg = (m: FreeMatch, market: string, pick: string, odds: number, e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
+
+    if (!currentUser) {
+      openAuthWall({
+        actionType: 'builder_pick',
+        title: 'Sign In to Make Selections',
+        message: 'Sign up or log in to select market odds and add selections to your Bet Builder slip.',
+      });
+      return;
+    }
 
     const legId = `${m.id}-${market}-${pick}`;
     const exists = builderLegs.some((l) => l.id === legId);

@@ -4,6 +4,8 @@ import { X, Dices, Check, ArrowRight, Sparkles, Trophy } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useBetSlipStore, type BuiltSlipLeg } from '../lib/betSlipStore';
 import { generateOddsForFixture, type BuilderFixture } from '../lib/builderFixtures';
+import { useCurrentUser } from '../lib/authStore';
+import { useAuthWallStore } from '../lib/authWallStore';
 import { showToast } from '../lib/notificationStore';
 import Modal from './ui/Modal';
 
@@ -31,6 +33,8 @@ export default function QuickBetBuilderModal({
   onClose,
 }: QuickBetBuilderModalProps) {
   const navigate = useNavigate();
+  const currentUser = useCurrentUser();
+  const openAuthWall = useAuthWallStore((s) => s.openAuthWall);
   const builderLegs = useBetSlipStore((s) => s.builderLegs);
   const toggleBuilderLeg = useBetSlipStore((s) => s.toggleBuilderLeg);
 
@@ -66,6 +70,16 @@ export default function QuickBetBuilderModal({
 
   function handleSelectLeg(market: string, pick: string, odds: number) {
     if (!fixtureAdapter) return;
+
+    if (!currentUser) {
+      openAuthWall({
+        actionType: 'builder_pick',
+        title: 'Sign In to Make Selections',
+        message: 'Sign up or log in to select market odds and add selections to your Bet Builder slip.',
+      });
+      return;
+    }
+
     const legId = `${fixtureAdapter.id}-${market}-${pick}`;
 
     const newLeg: BuiltSlipLeg = {

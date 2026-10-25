@@ -9,6 +9,7 @@ import SeoHead from '../components/SeoHead';
 import { subscribeToJackpots, getJackpotsSnapshot } from '../lib/mockData';
 import { useUserPicks } from '../lib/userPicksStore';
 import { isAdminUser, useCurrentUser } from '../lib/authStore';
+import { useAuthWallStore } from '../lib/authWallStore';
 import Avatar from '../components/Avatar';
 import StarRating from '../components/StarRating';
 import PlayerProfileModal from '../components/PlayerProfileModal';
@@ -56,7 +57,18 @@ export default function Leaderboard() {
     requestedTab === 'leaderboard' || requestedTab === 'ranks' ? 'leaderboard' : 'rooms'
   );
 
+  const openAuthWall = useAuthWallStore((s) => s.openAuthWall);
+
   const handleTabChange = (tab: 'rooms' | 'leaderboard') => {
+    if (tab === 'leaderboard' && !user) {
+      openAuthWall({
+        actionType: 'leaderboard',
+        title: 'Sign In to View Leaderboards',
+        message: 'Sign up or log in to view top punter rankings, gameweek performance, and star ratings.',
+      });
+      return;
+    }
+
     setMainTab(tab);
     if (tab === 'rooms') {
       searchParams.delete('tab');

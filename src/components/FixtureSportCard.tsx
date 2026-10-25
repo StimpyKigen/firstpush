@@ -8,6 +8,8 @@ import type { MatchConsensus } from '../lib/types';
 import { getMatchScorePresentation } from '../lib/matchStatus';
 import { formatKickoffDateTime24h } from '../lib/competitionPriority';
 import { getCompetitionBanner } from '../lib/competitionBanners';
+import { useCurrentUser } from '../lib/authStore';
+import { useAuthWallStore } from '../lib/authWallStore';
 
 interface FixtureSportCardProps {
   match: FreeMatch;
@@ -24,6 +26,9 @@ export default function FixtureSportCard({
   onToggleLeg,
   onOpenBetBuilder,
 }: FixtureSportCardProps) {
+  const currentUser = useCurrentUser();
+  const openAuthWall = useAuthWallStore((s) => s.openAuthWall);
+
   // Competition background banner (e.g. UEFA Champions League)
   const banner = getCompetitionBanner(match.competition, match.competitionId, match.country);
 
@@ -146,8 +151,21 @@ export default function FixtureSportCard({
           )}
         </div>
 
-        {/* Team Names, Logos & Live/FT Score (Circled initials removed completely) */}
-        <Link to={`/free/${match.id}`} className="block group">
+        {/* Team Names, Logos & Live/FT Score */}
+        <Link
+          to={`/free/${match.id}`}
+          onClick={(e) => {
+            if (!currentUser) {
+              e.preventDefault();
+              openAuthWall({
+                actionType: 'details',
+                title: 'Sign In for Details & Discussions',
+                message: 'Sign up or log in to view match intelligence, tactical lineups, pitch tracker, and join live fan discussions.',
+              });
+            }
+          }}
+          className="block group"
+        >
           <div className="space-y-2">
             {/* Home Team */}
             <div className="flex items-center justify-between gap-2 min-w-0">
@@ -212,7 +230,19 @@ export default function FixtureSportCard({
           <div className="grid grid-cols-3 gap-1.5 text-center">
             <button
               type="button"
-              onClick={(e) => onToggleLeg('Match Result (1X2)', `${match.home} Win (1)`, hOdds, e)}
+              onClick={(e) => {
+                if (!currentUser) {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  openAuthWall({
+                    actionType: 'builder_pick',
+                    title: 'Sign In to Make Selections',
+                    message: 'Sign up or log in to select market odds and add selections to your Bet Builder slip.',
+                  });
+                  return;
+                }
+                onToggleLeg('Match Result (1X2)', `${match.home} Win (1)`, hOdds, e);
+              }}
               className={`rounded-xl py-1.5 px-1 border transition-all duration-150 active:scale-[0.98] min-h-[40px] flex flex-col items-center justify-center gap-0.5 cursor-pointer ${
                 isHomeSelected
                   ? 'bg-[#006C54] text-white font-bold border-[#005441] shadow-xs'
@@ -235,7 +265,19 @@ export default function FixtureSportCard({
 
             <button
               type="button"
-              onClick={(e) => onToggleLeg('Match Result (1X2)', 'Draw (X)', dOdds, e)}
+              onClick={(e) => {
+                if (!currentUser) {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  openAuthWall({
+                    actionType: 'builder_pick',
+                    title: 'Sign In to Make Selections',
+                    message: 'Sign up or log in to select market odds and add selections to your Bet Builder slip.',
+                  });
+                  return;
+                }
+                onToggleLeg('Match Result (1X2)', 'Draw (X)', dOdds, e);
+              }}
               className={`rounded-xl py-1.5 px-1 border transition-all duration-150 active:scale-[0.98] min-h-[40px] flex flex-col items-center justify-center gap-0.5 cursor-pointer ${
                 isDrawSelected
                   ? 'bg-[#006C54] text-white font-bold border-[#005441] shadow-xs'
@@ -258,7 +300,19 @@ export default function FixtureSportCard({
 
             <button
               type="button"
-              onClick={(e) => onToggleLeg('Match Result (1X2)', `${match.away} Win (2)`, aOdds, e)}
+              onClick={(e) => {
+                if (!currentUser) {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  openAuthWall({
+                    actionType: 'builder_pick',
+                    title: 'Sign In to Make Selections',
+                    message: 'Sign up or log in to select market odds and add selections to your Bet Builder slip.',
+                  });
+                  return;
+                }
+                onToggleLeg('Match Result (1X2)', `${match.away} Win (2)`, aOdds, e);
+              }}
               className={`rounded-xl py-1.5 px-1 border transition-all duration-150 active:scale-[0.98] min-h-[40px] flex flex-col items-center justify-center gap-0.5 cursor-pointer ${
                 isAwaySelected
                   ? 'bg-[#006C54] text-white font-bold border-[#005441] shadow-xs'
@@ -314,6 +368,16 @@ export default function FixtureSportCard({
 
         <Link
           to={`/free/${match.id}`}
+          onClick={(e) => {
+            if (!currentUser) {
+              e.preventDefault();
+              openAuthWall({
+                actionType: 'details',
+                title: 'Sign In for Details & Discussions',
+                message: 'Sign up or log in to view match intelligence, tactical lineups, pitch tracker, and join live fan discussions.',
+              });
+            }
+          }}
           className="inline-flex items-center gap-1 text-xs font-semibold text-[#006C54] hover:text-[#005441] transition-colors"
         >
           <span>Details &amp; Discussion</span>
@@ -322,7 +386,15 @@ export default function FixtureSportCard({
 
         <button
           type="button"
-          onClick={() =>
+          onClick={() => {
+            if (!currentUser) {
+              openAuthWall({
+                actionType: 'builder',
+                title: 'Sign In to Use Bet Builder',
+                message: 'Sign up or log in to select market odds, build custom accumulators, and share verified bet slips.',
+              });
+              return;
+            }
             onOpenBetBuilder({
               id: match.id,
               home: match.home,
@@ -333,8 +405,8 @@ export default function FixtureSportCard({
               drawOdds: dOdds,
               awayOdds: aOdds,
               bookmaker: match.bookmaker,
-            })
-          }
+            });
+          }}
           className="inline-flex items-center gap-1 text-xs font-semibold text-slate-700 hover:text-[#006C54] transition-colors cursor-pointer py-1 px-1.5"
         >
           <Dices size={13} className="text-[#EEAA04]" />

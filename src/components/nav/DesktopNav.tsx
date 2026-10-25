@@ -111,7 +111,7 @@ export default function DesktopNav({
             to="/auth"
             className="bg-black hover:bg-[#444950] text-white border border-transparent text-xs xl:text-sm font-bold px-4 xl:px-5 h-9 rounded-full inline-flex items-center gap-1.5 whitespace-nowrap shrink-0 active:scale-95 transition-colors"
           >
-            <UserCircle2 size={15} /> Log In
+            <UserCircle2 size={15} /> Get Started
           </Link>
         )}
       </div>

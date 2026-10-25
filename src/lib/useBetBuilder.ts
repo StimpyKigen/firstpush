@@ -3,6 +3,7 @@ import { getCombinedBuilderFixtures, type BuilderFixture } from './builderFixtur
 import { subscribeToFreeMatches, getFreeMatchesSnapshot } from './freeMatches';
 import { useBetSlipStore } from './betSlipStore';
 import { useCurrentUser } from './authStore';
+import { useAuthWallStore } from './authWallStore';
 import { showToast } from './notificationStore';
 import { moderateText } from './contentModeration';
 
@@ -70,6 +71,15 @@ export function useBetBuilder(onPublished?: () => void) {
   const modResult = useMemo(() => moderateText(`${publishNote} ${bookieCode} ${bookieLink}`), [publishNote, bookieCode, bookieLink]);
 
   function toggleLeg(fixture: BuilderFixture, market: string, pick: string, odds: number) {
+    if (!currentUser) {
+      useAuthWallStore.getState().openAuthWall({
+        actionType: 'builder_pick',
+        title: 'Sign In to Make Selections',
+        message: 'Sign up or log in to select market odds and add selections to your Bet Builder slip.',
+      });
+      return;
+    }
+
     const legId = `${fixture.id}-${market}-${pick}`;
 
     toggleBuilderLeg({

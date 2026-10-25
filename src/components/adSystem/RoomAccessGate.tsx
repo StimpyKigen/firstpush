@@ -9,6 +9,7 @@ import AdLoadingScreen from './AdLoadingScreen';
 import PayGate from '../PayGate';
 import type { Jackpot } from '../../lib/types';
 import { showToast } from '../../lib/notificationStore';
+import { useAuthWallStore } from '../../lib/authWallStore';
 
 interface RoomAccessGateProps {
   jackpot: Jackpot;
@@ -18,6 +19,7 @@ interface RoomAccessGateProps {
 
 export default function RoomAccessGate({ jackpot, children, onUnlocked }: RoomAccessGateProps) {
   const currentUser = useCurrentUser();
+  const openAuthWall = useAuthWallStore((s) => s.openAuthWall);
   const userId = currentUser?.phone || currentUser?.username || 'guest-punter';
   const storeSnapshot = useAdStore();
 
@@ -59,6 +61,15 @@ export default function RoomAccessGate({ jackpot, children, onUnlocked }: RoomAc
   }, [accessCheck.allowed, accessCheck.reason, accessCheck.token]);
 
   async function handleWatchAdClick() {
+    if (!currentUser) {
+      openAuthWall({
+        actionType: 'jackpot',
+        title: 'Sign In to Unlock Room',
+        message: 'Sign up or log in to watch rewarded ads, earn free 15-minute room access tokens, and analyze crowd picks.',
+      });
+      return;
+    }
+
     setAdBlockerError(null);
     setMode('loading_ad');
 
@@ -342,8 +353,18 @@ export default function RoomAccessGate({ jackpot, children, onUnlocked }: RoomAc
             </div>
 
             <button
-              onClick={() => setMode('pay_permanent')}
-              className="w-full py-3 rounded-xl bg-gradient-to-r from-gold via-amber-400 to-gold-2 hover:from-gold-2 hover:to-gold text-black font-bold text-xs shadow-md transition-all flex items-center justify-center gap-2 mt-2"
+              onClick={() => {
+                if (!currentUser) {
+                  openAuthWall({
+                    actionType: 'jackpot',
+                    title: 'Sign In to Unlock Room',
+                    message: `Sign up or log in to unlock ${jackpot.name} permanently via M-Pesa or wallet balance.`,
+                  });
+                  return;
+                }
+                setMode('pay_permanent');
+              }}
+              className="w-full py-3 rounded-xl bg-gradient-to-r from-gold via-amber-400 to-gold-2 hover:from-gold-2 hover:to-gold text-black font-bold text-xs shadow-md transition-all flex items-center justify-center gap-2 mt-2 cursor-pointer"
             >
               <Smartphone size={15} />
               <span>Pay Ksh {jackpot.entryFee} (Permanent)</span>

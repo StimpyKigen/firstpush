@@ -4,8 +4,12 @@ import type { Jackpot } from '../lib/types';
 import { useWallet } from '../lib/store';
 import { getTotalSharedPicksCount } from '../lib/mockData';
 import { getBookieTheme } from '../lib/bookies';
+import { useCurrentUser } from '../lib/authStore';
+import { useAuthWallStore } from '../lib/authWallStore';
 
 export default function JackpotCard({ jackpot, index }: { jackpot: Jackpot; index: number; key?: any }) {
+  const currentUser = useCurrentUser();
+  const openAuthWall = useAuthWallStore((s) => s.openAuthWall);
   const unlocked = useWallet((s) => s.isRoomUnlocked(jackpot.id));
   const bookieTheme = getBookieTheme(jackpot.bookie);
   const totalSharedPicks = getTotalSharedPicksCount(jackpot);
@@ -19,6 +23,16 @@ export default function JackpotCard({ jackpot, index }: { jackpot: Jackpot; inde
   return (
     <Link
       to={`/room/${jackpot.id}`}
+      onClick={(e) => {
+        if (!currentUser && !unlocked) {
+          e.preventDefault();
+          openAuthWall({
+            actionType: 'jackpot',
+            title: 'Sign In to Unlock Room',
+            message: `Sign up or log in to unlock ${jackpot.name} consensus data, post your picks, and compete for the leaderboard crown.`,
+          });
+        }
+      }}
       className="animate-rise group relative flex flex-col border rounded-xl overflow-hidden hover:shadow-md transition-all active:scale-[0.985] touch-manipulation hover:-translate-y-1"
       style={{
         animationDelay: `${index * 50}ms`,

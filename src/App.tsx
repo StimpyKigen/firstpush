@@ -9,6 +9,7 @@ import ErrorBoundary from './components/ErrorBoundary';
 import OfflineBar from './components/OfflineBar';
 import PWAInstallPrompt from './components/PWAInstallPrompt';
 import AvaChatSupport from './components/AvaChatSupport';
+import AuthWallModal from './components/AuthWallModal';
 import { refreshFreeMatches } from './lib/freeMatches';
 import { syncJackpotsFromApi } from './lib/mockData';
 import { startDailyHighlightSync } from './lib/footballApi';
@@ -167,6 +168,7 @@ function App() {
         <OfflineBar />
         <PWAInstallPrompt />
         <AvaChatSupport />
+        <AuthWallModal />
         {/*
           Outer frame: fills the full viewport with warm ivory background
         */}

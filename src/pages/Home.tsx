@@ -6,6 +6,8 @@ import {
   getHomepageFeedSnapshot,
 } from '../lib/homepageFeedStore';
 import AccordionGallery, { type AccordionGalleryItem } from '../components/AccordionGallery';
+import { useCurrentUser } from '../lib/authStore';
+import { useAuthWallStore } from '../lib/authWallStore';
 
 export default function Home() {
   // Subscribe to live homepage feed store
@@ -14,6 +16,9 @@ export default function Home() {
     getHomepageFeedSnapshot,
     getHomepageFeedSnapshot
   );
+
+  const currentUser = useCurrentUser();
+  const openAuthWall = useAuthWallStore((s) => s.openAuthWall);
 
   const publishedPhotos = feed.carouselItems.filter((i) => i.published);
   const publishedVideos = feed.videoItems.filter((v) => v.published);
@@ -166,8 +171,37 @@ export default function Home() {
                       loading="lazy"
                       className="w-full h-full border-0"
                     />
+                    {!currentUser && (
+                      <button
+                        type="button"
+                        onClick={() =>
+                          openAuthWall({
+                            actionType: 'video',
+                            title: 'Sign In to Play Highlights',
+                            message: 'Sign up or log in to stream full match video highlights, press conferences, and tactical reviews.',
+                          })
+                        }
+                        className="absolute inset-0 z-20 bg-black/45 hover:bg-black/25 flex items-center justify-center cursor-pointer transition-colors group"
+                        aria-label={`Play ${video.title} (Sign in required)`}
+                      >
+                        <div className="w-14 h-14 rounded-full bg-[#006C54] hover:bg-[#005441] text-white flex items-center justify-center shadow-xl group-hover:scale-110 active:scale-95 transition-transform">
+                          <Play size={22} fill="currentColor" className="ml-0.5 text-white" />
+                        </div>
+                      </button>
+                    )}
                   </div>
-                  <div className="p-4 flex items-start gap-2.5 flex-1 bg-white">
+                  <div
+                    className={`p-4 flex items-start gap-2.5 flex-1 bg-white ${!currentUser ? 'cursor-pointer' : ''}`}
+                    onClick={() => {
+                      if (!currentUser) {
+                        openAuthWall({
+                          actionType: 'video',
+                          title: 'Sign In to Play Highlights',
+                          message: 'Sign up or log in to stream full match video highlights, press conferences, and tactical reviews.',
+                        });
+                      }
+                    }}
+                  >
                     <div className="mt-0.5 text-[#006C54] shrink-0">
                       <Play size={15} fill="currentColor" />
                     </div>
@@ -196,8 +230,37 @@ export default function Home() {
                         loading="lazy"
                         className="w-full h-full border-0"
                       />
+                      {!currentUser && (
+                        <button
+                          type="button"
+                          onClick={() =>
+                            openAuthWall({
+                              actionType: 'video',
+                              title: 'Sign In to Play Highlights',
+                              message: 'Sign up or log in to stream full match video highlights, press conferences, and tactical reviews.',
+                            })
+                          }
+                          className="absolute inset-0 z-20 bg-black/45 hover:bg-black/25 flex items-center justify-center cursor-pointer transition-colors group"
+                          aria-label={`Play ${video.title} (Sign in required)`}
+                        >
+                          <div className="w-12 h-12 rounded-full bg-[#006C54] hover:bg-[#005441] text-white flex items-center justify-center shadow-xl group-hover:scale-110 active:scale-95 transition-transform">
+                            <Play size={18} fill="currentColor" className="ml-0.5 text-white" />
+                          </div>
+                        </button>
+                      )}
                     </div>
-                    <div className="p-3.5 flex items-center justify-between gap-3 bg-white">
+                    <div
+                      className={`p-3.5 flex items-center justify-between gap-3 bg-white ${!currentUser ? 'cursor-pointer' : ''}`}
+                      onClick={() => {
+                        if (!currentUser) {
+                          openAuthWall({
+                            actionType: 'video',
+                            title: 'Sign In to Play Highlights',
+                            message: 'Sign up or log in to stream full match video highlights, press conferences, and tactical reviews.',
+                          });
+                        }
+                      }}
+                    >
                       <div className="flex items-start gap-2 min-w-0">
                         <div className="mt-0.5 text-[#006C54] shrink-0">
                           <Play size={14} fill="currentColor" />

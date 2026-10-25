@@ -8,6 +8,7 @@ import { Conviction, GamblerPick, Outcome } from '../lib/types';
 import { getBookieTheme } from '../lib/bookies';
 import { useWallet } from '../lib/store';
 import { useAuth, useCurrentUser } from '../lib/authStore';
+import { useAuthWallStore } from '../lib/authWallStore';
 import { useUserPicks } from '../lib/userPicksStore';
 import PayGate from '../components/PayGate';
 import RoomAccessGate from '../components/adSystem/RoomAccessGate';
@@ -30,6 +31,7 @@ export default function Room() {
   const jackpot = id ? activeJackpots.find((j) => j.id === id) || getJackpot(id) : undefined;
   const unlocked = useWallet((s) => (jackpot ? s.isRoomUnlocked(jackpot.id) : false));
   const currentUser = useCurrentUser();
+  const openAuthWall = useAuthWallStore((s) => s.openAuthWall);
   const username = currentUser?.username || 'Guest Punter';
 
   const { savePick, getPick, getExtraLikes } = useUserPicks();
@@ -62,6 +64,15 @@ export default function Room() {
   const progressPct = Math.round((pickedCount / totalMatches) * 100);
 
   const startEdit = (matchId: string) => {
+    if (!currentUser) {
+      openAuthWall({
+        actionType: 'jackpot',
+        title: 'Sign In to Post Picks',
+        message: 'Sign up or log in to submit your 17-leg predictions and compete on the leaderboard.',
+      });
+      return;
+    }
+
     const existing = getPick(jackpot.id, matchId);
     if (existing) {
       if (existing.editCount >= 2) {
@@ -82,6 +93,15 @@ export default function Room() {
   };
 
   const handlePostPick = (matchId: string) => {
+    if (!currentUser) {
+      openAuthWall({
+        actionType: 'jackpot',
+        title: 'Sign In to Post Picks',
+        message: 'Sign up or log in to submit your predictions and compete for the leaderboard crown.',
+      });
+      return;
+    }
+
     if (!reasoning.trim()) {
       setFormError('Please provide your reasoning for this pick.');
       return;

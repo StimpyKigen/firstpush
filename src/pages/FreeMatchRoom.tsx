@@ -9,6 +9,7 @@ import {
 } from '../lib/freeMatches';
 import { GamblerPick, Outcome } from '../lib/types';
 import { useCurrentUser } from '../lib/authStore';
+import { useAuthWallStore } from '../lib/authWallStore';
 import { useUserPicks } from '../lib/userPicksStore';
 import OutcomeBar from '../components/OutcomeBar';
 import DiscussionPanel from '../components/DiscussionPanel';
@@ -24,6 +25,7 @@ export default function FreeMatchRoom() {
   const match = id ? matches.find((item) => item.id === id) : undefined;
 
   const currentUser = useCurrentUser();
+  const openAuthWall = useAuthWallStore((s) => s.openAuthWall);
   const username = currentUser?.username || 'Guest Punter';
   const { savePick, getPick } = useUserPicks();
 
@@ -50,6 +52,15 @@ export default function FreeMatchRoom() {
   const outcomeColor = myPickRecord?.pick === '1' ? '#006C54' : myPickRecord?.pick === 'X' ? '#8A6500' : '#e41e3f';
 
   const handlePostPick = () => {
+    if (!currentUser) {
+      openAuthWall({
+        actionType: 'discussion',
+        title: 'Sign In to Post Picks & Reasoning',
+        message: 'Sign up or log in to submit your prediction and share reasoning with fellow punters.',
+      });
+      return;
+    }
+
     if (!reasoning.trim()) {
       setErrorMsg('Please provide your reasoning for this pick.');
       return;
@@ -110,7 +121,17 @@ export default function FreeMatchRoom() {
         <div className="inline-flex items-center gap-4 sm:gap-6 py-1.5 px-4">
           <button
             type="button"
-            onClick={() => setRoomTab('details')}
+            onClick={() => {
+              if (!currentUser) {
+                openAuthWall({
+                  actionType: 'details',
+                  title: 'Sign In for Match Details',
+                  message: 'Sign up or log in to view match intelligence, tactical lineups, pitch incident tracker, and H2H statistics.',
+                });
+                return;
+              }
+              setRoomTab('details');
+            }}
             className={`text-sm sm:text-base transition-colors flex items-center gap-2 cursor-pointer select-none ${
               roomTab === 'details'
                 ? 'font-bold text-[#006C54]'
@@ -125,7 +146,17 @@ export default function FreeMatchRoom() {
 
           <button
             type="button"
-            onClick={() => setRoomTab('discussion')}
+            onClick={() => {
+              if (!currentUser) {
+                openAuthWall({
+                  actionType: 'discussion',
+                  title: 'Sign In to Join Discussion',
+                  message: 'Sign up or log in to participate in live match room debates and fan discussions.',
+                });
+                return;
+              }
+              setRoomTab('discussion');
+            }}
             className={`text-sm sm:text-base transition-colors flex items-center gap-2 cursor-pointer select-none ${
               roomTab === 'discussion'
                 ? 'font-bold text-[#006C54]'
