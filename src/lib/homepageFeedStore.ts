@@ -14,6 +14,7 @@ import { db } from '../firebase';
 export interface HomepageCarouselItem {
   id: string;
   imageUrl: string;
+  heading?: string;
   caption?: string;
   link?: string;
   published: boolean;
@@ -144,21 +145,24 @@ const DEFAULT_FEED: HomepageFeedData = {
     {
       id: 'slide-1',
       imageUrl: '/images/hero-striker.jpg',
-      caption: 'Hazard magic has Chelsea sitting pretty at the top of the Premier League table.',
+      heading: 'Match of the year is coming',
+      caption: 'Hazard magic has Chelsea sitting pretty at the top of the Premier League table with tactical dominance and decisive finishing.',
       published: true,
       createdAt: new Date().toISOString(),
     },
     {
       id: 'slide-2',
       imageUrl: '/images/celebration.jpg',
-      caption: 'Community consensus rallies behind a massive weekend derby slate across Europe.',
+      heading: 'Derby day showdown across Europe',
+      caption: 'Community consensus rallies behind a massive weekend derby slate across Europe with record pundit engagement.',
       published: true,
       createdAt: new Date().toISOString(),
     },
     {
       id: 'slide-3',
       imageUrl: '/images/match-action.jpg',
-      caption: 'High-stakes continental drama unfolds as top contenders battle for supremacy.',
+      heading: 'Continental supremacy on the line',
+      caption: 'High-stakes continental drama unfolds as top contenders battle for supremacy in the knockout tournament rounds.',
       published: true,
       createdAt: new Date().toISOString(),
     },
@@ -326,11 +330,13 @@ export function subscribeToHomepageFeed(listener: () => void) {
 // Action API for Admin Console
 // -------------------------------------------------------------
 
-export function addCarouselItem(item: { imageUrl: string; caption?: string; published?: boolean }) {
+export function addCarouselItem(item: { imageUrl: string; heading?: string; caption?: string; link?: string; published?: boolean }) {
   const newItem: HomepageCarouselItem = {
     id: `carousel-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
     imageUrl: item.imageUrl.trim(),
-    caption: item.caption?.trim(),
+    heading: item.heading?.trim() || undefined,
+    caption: item.caption?.trim() || undefined,
+    link: item.link?.trim() || undefined,
     published: item.published !== undefined ? item.published : true,
     createdAt: new Date().toISOString(),
   };

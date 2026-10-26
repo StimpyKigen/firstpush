@@ -39,8 +39,8 @@ export default function AdminHomepageFeed() {
 
   // Carousel Photos Form State
   const [photoUrl, setPhotoUrl] = useState('');
+  const [photoHeading, setPhotoHeading] = useState('');
   const [photoCaption, setPhotoCaption] = useState('');
-  const [showCaptionInput, setShowCaptionInput] = useState(false);
   const [isPhotoPreviewOpen, setIsPhotoPreviewOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -85,13 +85,14 @@ export default function AdminHomepageFeed() {
 
     addCarouselItem({
       imageUrl: photoUrl.trim(),
+      heading: photoHeading.trim() || undefined,
       caption: photoCaption.trim() || undefined,
       published: true,
     });
 
     setPhotoUrl('');
+    setPhotoHeading('');
     setPhotoCaption('');
-    setShowCaptionInput(false);
     setIsPhotoPreviewOpen(false);
     if (fileInputRef.current) fileInputRef.current.value = '';
 
@@ -208,43 +209,44 @@ export default function AdminHomepageFeed() {
             </div>
           </div>
 
-          {/* Caption with '+' button */}
-          <div>
-            <div className="flex items-center justify-between mb-2">
-              <label className="text-xs font-semibold text-slate-700 uppercase tracking-wide">
-                Photo Caption
+          {/* Two Explicit Caption Inputs: 1. Carousel heading, 2. Carousel caption */}
+          <div className="space-y-4">
+            {/* 1. Carousel Heading */}
+            <div>
+              <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wide mb-1.5">
+                1. Carousel Heading
               </label>
-              {!showCaptionInput && (
-                <button
-                  type="button"
-                  onClick={() => setShowCaptionInput(true)}
-                  className="text-xs font-semibold text-[#006C54] hover:text-[#005441] flex items-center gap-1 transition-colors cursor-pointer"
-                >
-                  <Plus size={14} /> Add Short Caption
-                </button>
-              )}
+              <input
+                type="text"
+                placeholder="e.g. Match of the year is coming"
+                value={photoHeading}
+                onChange={(e) => setPhotoHeading(e.target.value)}
+                maxLength={90}
+                className="w-full bg-[#FFFFF0] border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#006C54] focus:ring-1 focus:ring-[#006C54] transition-all"
+              />
+              <span className="text-[11px] text-slate-400 mt-1 block">
+                Prominent large white headline displayed on the left side of the slide.
+              </span>
             </div>
 
-            {showCaptionInput ? (
-              <div className="relative">
-                <textarea
-                  rows={2}
-                  placeholder="Enter a brief, impactful caption to display on the bottom foreground of the photo..."
-                  value={photoCaption}
-                  onChange={(e) => setPhotoCaption(e.target.value)}
-                  maxLength={160}
-                  className="w-full bg-[#FFFFF0] border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#006C54] focus:ring-1 focus:ring-[#006C54] transition-all resize-none"
-                />
-                <div className="flex justify-between items-center text-[11px] text-slate-400 mt-1">
-                  <span>Captions appear over an Apple-style bottom gradient scrim for crystal-clear readability.</span>
-                  <span>{photoCaption.length} / 160</span>
-                </div>
+            {/* 2. Carousel Caption */}
+            <div>
+              <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wide mb-1.5">
+                2. Carousel Caption
+              </label>
+              <textarea
+                rows={3}
+                placeholder="Enter the detailed story description or narrative text to display on the right side..."
+                value={photoCaption}
+                onChange={(e) => setPhotoCaption(e.target.value)}
+                maxLength={300}
+                className="w-full bg-[#FFFFF0] border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#006C54] focus:ring-1 focus:ring-[#006C54] transition-all resize-none"
+              />
+              <div className="flex justify-between items-center text-[11px] text-slate-400 mt-1">
+                <span>Displayed in smaller, elegant text on the right side that never cuts into the photo.</span>
+                <span>{photoCaption.length} / 300</span>
               </div>
-            ) : (
-              <p className="text-xs text-slate-400 italic">
-                No caption currently attached. Click &quot;+ Add Short Caption&quot; above if you would like text overlay.
-              </p>
-            )}
+            </div>
           </div>
 
           {/* Action Buttons: Preview & Publish */}
@@ -268,52 +270,65 @@ export default function AdminHomepageFeed() {
             )}
           </div>
 
-          {/* Visual Preview Box */}
+          {/* Visual Preview Box (Exact Mock of Faded Green Layout with 3:4 Photo, Left Heading & Right Caption) */}
           {isPhotoPreviewOpen && photoUrl.trim() && (
-            <div className="mt-4 p-4 bg-[#F5F5F7] border border-slate-200 rounded-2xl">
-              <div className="flex items-center justify-between mb-3">
-                <span className="text-xs font-semibold text-slate-700">Live Visual Confirmation Preview</span>
+            <div className="mt-4 p-5 bg-gradient-to-b from-[#02241b] via-[#032e23] to-[#011c15] border border-[#054d3c] rounded-3xl text-white shadow-xl">
+              <div className="flex items-center justify-between mb-4 border-b border-white/10 pb-2">
+                <span className="text-xs font-bold text-[#4ADE80] uppercase tracking-wider">
+                  Live Visual Confirmation Preview
+                </span>
                 <button
                   type="button"
                   onClick={() => setIsPhotoPreviewOpen(false)}
-                  className="text-slate-400 hover:text-slate-600 cursor-pointer"
+                  className="text-white/60 hover:text-white cursor-pointer"
                 >
-                  <X size={14} />
+                  <X size={15} />
                 </button>
               </div>
 
-              {/* Exact Mock of Homepage Carousel Card */}
-              <div className="relative w-full max-w-[280px] sm:max-w-[320px] mx-auto aspect-[4/5] sm:aspect-[9/16] max-h-[70vh] rounded-3xl overflow-hidden bg-slate-950 shadow-md flex items-center justify-center">
-                {/* Ambient blurred backdrop */}
-                <img
-                  src={photoUrl}
-                  alt=""
-                  aria-hidden="true"
-                  className="absolute inset-0 w-full h-full object-cover filter blur-2xl opacity-25 scale-110 pointer-events-none"
-                />
-                {/* Crisp Uncropped Image */}
-                <img
-                  src={photoUrl}
-                  alt="Preview"
-                  className="relative z-10 w-full h-full object-contain p-2"
-                  onError={(e) => {
-                    (e.target as HTMLElement).style.display = 'none';
-                  }}
-                />
-                {/* Foreground Scrim Overlay */}
-                <div className="absolute inset-0 z-10 bg-gradient-to-t from-black/90 via-black/35 to-transparent pointer-events-none" />
+              {/* Exact Mock of Homepage Carousel Layout */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-center">
+                {/* Left: Heading */}
+                <div className="space-y-2">
+                  <span className="inline-block px-2.5 py-0.5 rounded-full bg-white/10 text-white/80 text-[10px] font-bold uppercase tracking-wider">
+                    NEW · Editorial Preview
+                  </span>
+                  <h3 className="text-2xl sm:text-3xl font-black text-white leading-tight tracking-tight">
+                    {photoHeading || 'Match of the year is coming'}
+                  </h3>
+                </div>
 
-                {photoCaption ? (
-                  <div className="absolute bottom-5 left-4 right-4 text-white z-20">
-                    <p className="font-semibold text-xs sm:text-sm leading-snug drop-shadow-sm line-clamp-4">
-                      {photoCaption}
-                    </p>
+                {/* Center: 3:4 Photo with faded edges */}
+                <div className="flex flex-col items-center">
+                  <div className="relative w-full max-w-[220px] aspect-[3/4] rounded-2xl overflow-hidden shadow-2xl bg-black">
+                    <img
+                      src={photoUrl}
+                      alt="Preview"
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        (e.target as HTMLElement).style.display = 'none';
+                      }}
+                    />
+                    {/* Faded edges overlay */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-[#02241b]/80 via-transparent to-[#02241b]/30 pointer-events-none" />
                   </div>
-                ) : (
-                  <div className="absolute bottom-4 left-4 text-xs text-white/60 z-20">
-                    (No caption attached · image only)
+                  {/* Minimalist dots indicator */}
+                  <div className="flex items-center gap-1.5 mt-3">
+                    <span className="w-5 h-1.5 rounded-full bg-[#4ADE80]" />
+                    <span className="w-1.5 h-1.5 rounded-full bg-white/30" />
+                    <span className="w-1.5 h-1.5 rounded-full bg-white/30" />
                   </div>
-                )}
+                </div>
+
+                {/* Right: Caption */}
+                <div className="space-y-2">
+                  <span className="text-[10px] font-bold text-white/50 uppercase tracking-widest block">
+                    Story Summary
+                  </span>
+                  <p className="text-xs text-slate-300 leading-relaxed">
+                    {photoCaption || 'Detailed narrative description will render here on the right side of the photo console without overlapping.'}
+                  </p>
+                </div>
               </div>
             </div>
           )}
@@ -322,7 +337,7 @@ export default function AdminHomepageFeed() {
         {/* Existing Carousel Items Table / List */}
         <div className="mt-8 pt-6 border-t border-slate-100">
           <h4 className="text-xs font-semibold text-slate-800 uppercase tracking-wide mb-4">
-            Active Editorial Feed ({feed.carouselItems.length}) · Full Uncropped Cards
+            Active Editorial Feed ({feed.carouselItems.length}) · Cards
           </h4>
 
           {feed.carouselItems.length === 0 ? (
@@ -335,27 +350,28 @@ export default function AdminHomepageFeed() {
                 <div
                   key={item.id}
                   className={`relative border rounded-2xl overflow-hidden transition-all flex flex-col justify-between ${
-                    item.published ? 'bg-[#FFFFF0] border-slate-200' : 'bg-slate-50 border-slate-200 opacity-60'
+                    item.published ? 'bg-[#FFFFF0] border-slate-200 shadow-xs' : 'bg-slate-50 border-slate-200 opacity-60'
                   }`}
                 >
-                  <div className="relative aspect-[4/5] sm:aspect-[9/16] bg-slate-950 overflow-hidden flex items-center justify-center">
+                  <div className="relative aspect-[3/4] bg-slate-950 overflow-hidden flex items-center justify-center">
                     <img
                       src={item.imageUrl}
                       alt=""
-                      aria-hidden="true"
-                      className="absolute inset-0 w-full h-full object-cover filter blur-xl opacity-25 scale-110 pointer-events-none"
+                      className="w-full h-full object-cover"
                     />
-                    <img
-                      src={item.imageUrl}
-                      alt=""
-                      className="relative z-10 w-full h-full object-contain p-1"
-                    />
-                    <div className="absolute inset-0 z-10 bg-gradient-to-t from-black/85 via-black/25 to-transparent pointer-events-none" />
-                    {item.caption && (
-                      <p className="absolute bottom-2.5 left-2.5 right-2.5 z-20 text-white text-[11px] font-medium leading-snug line-clamp-3">
-                        {item.caption}
-                      </p>
-                    )}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-transparent pointer-events-none" />
+                    <div className="absolute bottom-2.5 left-2.5 right-2.5 z-20 text-white">
+                      {item.heading && (
+                        <p className="text-xs font-bold leading-tight line-clamp-2 mb-0.5">
+                          {item.heading}
+                        </p>
+                      )}
+                      {item.caption && (
+                        <p className="text-[10px] text-slate-300 font-normal leading-snug line-clamp-2">
+                          {item.caption}
+                        </p>
+                      )}
+                    </div>
                   </div>
 
                   <div className="p-3 flex items-center justify-between gap-1 border-t border-slate-100 text-xs">
