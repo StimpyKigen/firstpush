@@ -2,16 +2,18 @@ import React, { useState } from 'react';
 
 export interface SkeletonProps extends React.HTMLAttributes<HTMLDivElement> {
   variant?: 'rect' | 'circle' | 'pill' | 'text';
+  tone?: 'light' | 'dark';
   className?: string;
 }
 
 /**
  * Base atomic Skeleton component.
- * Uses warm ivory shimmer matching Mshindi design system (#E8E8D5 base, #FFFFF0 sheen).
+ * Uses warm ivory shimmer matching Mshindi light surfaces or dark stadium-emerald shimmer (#06372a) for dark sections.
  * Accessible with role="presentation" and aria-hidden="true".
  */
 export function Skeleton({
   variant = 'rect',
+  tone = 'light',
   className = '',
   style,
   ...props
@@ -23,11 +25,13 @@ export function Skeleton({
     text: 'rounded-md h-4 my-0.5',
   }[variant];
 
+  const shimmerClass = tone === 'dark' ? 'skeleton-shimmer-dark' : 'skeleton-shimmer';
+
   return (
     <div
       role="presentation"
       aria-hidden="true"
-      className={`skeleton-shimmer shrink-0 ${variantClass} ${className}`}
+      className={`${shimmerClass} shrink-0 ${variantClass} ${className}`}
       style={style}
       {...props}
     />

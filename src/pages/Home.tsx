@@ -8,6 +8,11 @@ import {
 } from '../lib/homepageFeedStore';
 import { useCurrentUser } from '../lib/authStore';
 import { useAuthWallStore } from '../lib/authWallStore';
+import { EditorialCarouselSkeleton } from '../components/skeleton';
+import {
+  useCarouselCardLoader,
+  preloadCarouselImage,
+} from '../lib/carouselImagePreloader';
 
 /**
  * Extracts standard 11-character YouTube video ID from various URL formats
@@ -49,31 +54,6 @@ export default function Home() {
     }
   }, [publishedPhotos.length, activeCarouselIndex]);
 
-  // 1. Preload all published carousel images into browser memory & cache
-  useEffect(() => {
-    if (!publishedPhotos || publishedPhotos.length === 0) return;
-    publishedPhotos.forEach((photo) => {
-      if (photo.imageUrl) {
-        const img = new Image();
-        img.src = photo.imageUrl;
-      }
-    });
-  }, [publishedPhotos]);
-
-  // 2. Pre-decode upcoming slide image ahead of time for zero-flicker transitions
-  useEffect(() => {
-    if (publishedPhotos.length <= 1) return;
-    const nextIdx = (activeCarouselIndex + 1) % publishedPhotos.length;
-    const nextPhoto = publishedPhotos[nextIdx];
-    if (nextPhoto?.imageUrl) {
-      const preloadImg = new Image();
-      preloadImg.src = nextPhoto.imageUrl;
-      if (typeof preloadImg.decode === 'function') {
-        preloadImg.decode().catch(() => {});
-      }
-    }
-  }, [activeCarouselIndex, publishedPhotos]);
-
   // Maximum 5 indicator dots at the bottom of the pictures
   const MAX_CAROUSEL_INDICATORS = 5;
   const visibleDotIndices = useMemo(() => {
@@ -98,14 +78,10 @@ export default function Home() {
   const goToSlide = (nextIdx: number) => {
     if (isTransitioningRef.current || nextIdx === activeIndexRef.current) return;
     
-    // Pre-decode target image immediately before transition begins
+    // Pre-decode target image with high priority immediately before transition begins
     const targetPhoto = publishedPhotos[nextIdx];
     if (targetPhoto?.imageUrl) {
-      const targetImg = new Image();
-      targetImg.src = targetPhoto.imageUrl;
-      if (typeof targetImg.decode === 'function') {
-        targetImg.decode().catch(() => {});
-      }
+      preloadCarouselImage(targetPhoto.imageUrl, 'high');
     }
 
     isTransitioningRef.current = true;
@@ -125,6 +101,13 @@ export default function Home() {
 
   // Current Active Photo
   const currentPhoto = publishedPhotos[activeCarouselIndex] || publishedPhotos[0];
+
+  // Coordinated Carousel Card & Image Preloader Hook
+  const { isReady: isCardReady, displayImageUrl } = useCarouselCardLoader(
+    currentPhoto,
+    publishedPhotos,
+    activeCarouselIndex
+  );
 
   // Carousel Next / Prev Navigation
   const nextSlide = () => {
@@ -284,87 +267,113 @@ export default function Home() {
               </h1>
             </div>
 
-            {/* 2-Column Console Layout: Photo on Left (Enlarged Horizontally & Vertically on Mobile), Text on Right (Pushed to Right Edge) */}
-            <div className="grid grid-cols-12 gap-1.5 sm:gap-6 lg:gap-10 items-start relative z-10">
-              {/* LEFT SIDE: 3:4 Photo with faded edges and bottom dots (Enlarged on Mobile) */}
-              <div className="col-span-8 sm:col-span-5 lg:col-span-4 flex flex-col items-start sm:items-center justify-start">
+            {/* 2-Column Console Layout: Either Coordinated Dark Skeleton OR Ready Content */}
+            {!isCardReady ? (
+              <EditorialCarouselSkeleton
+                indicatorSlot={
+                  publishedPhotos.length > 1 ? (
+                    <div className="flex items-center justify-center gap-1.5 sm:gap-2 mt-3 sm:mt-5 select-none w-full max-w-[310px] sm:max-w-[290px] lg:max-w-[340px]" aria-label="Carousel pagination">
+                      {visibleDotIndices.map((slideIdx) => (
+                        <button
+                          key={slideIdx}
+                          type="button"
+                          onClick={() => goToSlide(slideIdx)}
+                          className={`transition-all duration-300 rounded-full cursor-pointer focus:outline-none ${
+                            slideIdx === activeCarouselIndex
+                              ? 'w-5 sm:w-7 h-1.5 sm:h-2 bg-[#4ADE80] shadow-[0_0_8px_#4ADE80]'
+                              : 'w-1.5 sm:w-2 h-1.5 sm:h-2 bg-white/30 hover:bg-white/60'
+                          }`}
+                          aria-label={`Go to slide ${slideIdx + 1} of ${publishedPhotos.length}`}
+                          aria-current={slideIdx === activeCarouselIndex ? 'true' : 'false'}
+                        />
+                      ))}
+                    </div>
+                  ) : null
+                }
+              />
+            ) : (
+              <div className="grid grid-cols-12 gap-1.5 sm:gap-6 lg:gap-10 items-start relative z-10 animate-editorial-fade-in">
+                {/* LEFT SIDE: 3:4 Photo with faded edges and bottom dots (Enlarged on Mobile) */}
+                <div className="col-span-8 sm:col-span-5 lg:col-span-4 flex flex-col items-start sm:items-center justify-start">
+                  <div
+                    className={`relative w-full max-w-[310px] sm:max-w-[290px] lg:max-w-[340px] aspect-[3/4] min-h-[350px] sm:min-h-[360px] lg:min-h-[420px] rounded-2xl sm:rounded-2xl lg:rounded-3xl overflow-hidden shadow-[0_12px_36px_rgba(0,0,0,0.65)] bg-[#06372a] transition-opacity duration-500 ease-in-out ${
+                      isCarouselFading ? 'opacity-0' : 'opacity-100'
+                    }`}
+                  >
+                    {/* Active Photo with High-Priority Eager Loading & Verified Image Fallback */}
+                    <img
+                      src={displayImageUrl}
+                      alt={currentPhoto.heading || currentPhoto.caption || 'Active carousel story'}
+                      loading="eager"
+                      decoding="async"
+                      sizes="(max-width: 640px) 310px, (max-width: 1024px) 290px, 340px"
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        const target = e.currentTarget;
+                        if (!target.src.includes('hero-striker.jpg')) {
+                          target.src = '/images/hero-striker.jpg';
+                        }
+                      }}
+                    />
+
+                    {/* Subtle inner border for crisp edge definition without fading */}
+                    <div className="absolute inset-0 ring-1 ring-inset ring-white/10 rounded-2xl sm:rounded-2xl lg:rounded-3xl pointer-events-none" />
+                  </div>
+
+                  {/* Minimalist Bottom Indicator (Capped at 5 dots max with smooth sliding window) */}
+                  {publishedPhotos.length > 1 && (
+                    <div className="flex items-center justify-center gap-1.5 sm:gap-2 mt-3 sm:mt-5 select-none w-full max-w-[310px] sm:max-w-[290px] lg:max-w-[340px]" aria-label="Carousel pagination">
+                      {visibleDotIndices.map((slideIdx) => (
+                        <button
+                          key={slideIdx}
+                          type="button"
+                          onClick={() => goToSlide(slideIdx)}
+                          className={`transition-all duration-300 rounded-full cursor-pointer focus:outline-none ${
+                            slideIdx === activeCarouselIndex
+                              ? 'w-5 sm:w-7 h-1.5 sm:h-2 bg-[#4ADE80] shadow-[0_0_8px_#4ADE80]'
+                              : 'w-1.5 sm:w-2 h-1.5 sm:h-2 bg-white/30 hover:bg-white/60'
+                          }`}
+                          aria-label={`Go to slide ${slideIdx + 1} of ${publishedPhotos.length}`}
+                          aria-current={slideIdx === activeCarouselIndex ? 'true' : 'false'}
+                        />
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* RIGHT SIDE: Big News Heading in Gold Accent on TOP of Smaller Caption Text (Pushed to Right Edge) */}
                 <div
-                  className={`relative w-full max-w-[310px] sm:max-w-[290px] lg:max-w-[340px] aspect-[3/4] min-h-[350px] sm:min-h-[360px] lg:min-h-[420px] rounded-2xl sm:rounded-2xl lg:rounded-3xl overflow-hidden shadow-[0_12px_36px_rgba(0,0,0,0.65)] bg-black/90 transition-opacity duration-500 ease-in-out ${
+                  className={`col-span-4 sm:col-span-7 lg:col-span-8 flex flex-col justify-start space-y-1.5 sm:space-y-4 text-left pl-1 sm:pl-4 lg:pl-6 pr-1 sm:pr-0 transition-opacity duration-500 ease-in-out ${
                     isCarouselFading ? 'opacity-0' : 'opacity-100'
                   }`}
                 >
-                  {/* Active Photo with High-Priority Eager Loading & Verified Image Fallback */}
-                  <img
-                    src={currentPhoto.imageUrl || '/images/hero-striker.jpg'}
-                    alt={currentPhoto.heading || currentPhoto.caption || 'Active carousel story'}
-                    loading="eager"
-                    decoding="async"
-                    className="w-full h-full object-cover"
-                    onError={(e) => {
-                      const target = e.currentTarget;
-                      if (!target.src.includes('hero-striker.jpg')) {
-                        target.src = '/images/hero-striker.jpg';
-                      }
-                    }}
-                  />
+                  {currentPhoto.heading && currentPhoto.heading.trim() ? (
+                    <h2 className="text-xs sm:text-2xl md:text-4xl lg:text-5xl xl:text-6xl font-black text-[#D4AF37] leading-snug sm:leading-tight tracking-tight drop-shadow-md">
+                      {currentPhoto.heading}
+                    </h2>
+                  ) : null}
 
-                  {/* Subtle inner border for crisp edge definition without fading */}
-                  <div className="absolute inset-0 ring-1 ring-inset ring-white/10 rounded-2xl sm:rounded-2xl lg:rounded-3xl pointer-events-none" />
+                  {/* On mobile: thicker font-bold with compact size. On desktop: significantly larger font size to match heading */}
+                  {currentPhoto.caption && currentPhoto.caption.trim() ? (
+                    <p className="text-[10px] sm:text-lg md:text-xl lg:text-2xl xl:text-3xl text-slate-100 font-bold sm:font-medium leading-snug sm:leading-relaxed max-w-xl sm:max-w-3xl drop-shadow-xs">
+                      {currentPhoto.caption}
+                    </p>
+                  ) : null}
+
+                  {currentPhoto.link && (
+                    <a
+                      href={currentPhoto.link}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 sm:gap-2 text-[9px] sm:text-xs font-bold text-[#4ADE80] hover:text-[#22c55e] transition-colors uppercase tracking-wider pt-0.5 sm:pt-2 group w-fit"
+                    >
+                      <span>Continue Reading</span>
+                      <span className="group-hover:translate-x-1 transition-transform">→</span>
+                    </a>
+                  )}
                 </div>
-
-                {/* Minimalist Bottom Indicator (Capped at 5 dots max with smooth sliding window) */}
-                {publishedPhotos.length > 1 && (
-                  <div className="flex items-center justify-center gap-1.5 sm:gap-2 mt-3 sm:mt-5 select-none w-full max-w-[310px] sm:max-w-[290px] lg:max-w-[340px]" aria-label="Carousel pagination">
-                    {visibleDotIndices.map((slideIdx) => (
-                      <button
-                        key={slideIdx}
-                        type="button"
-                        onClick={() => goToSlide(slideIdx)}
-                        className={`transition-all duration-300 rounded-full cursor-pointer focus:outline-none ${
-                          slideIdx === activeCarouselIndex
-                            ? 'w-5 sm:w-7 h-1.5 sm:h-2 bg-[#4ADE80] shadow-[0_0_8px_#4ADE80]'
-                            : 'w-1.5 sm:w-2 h-1.5 sm:h-2 bg-white/30 hover:bg-white/60'
-                        }`}
-                        aria-label={`Go to slide ${slideIdx + 1} of ${publishedPhotos.length}`}
-                        aria-current={slideIdx === activeCarouselIndex ? 'true' : 'false'}
-                      />
-                    ))}
-                  </div>
-                )}
               </div>
-
-              {/* RIGHT SIDE: Big News Heading in Gold Accent on TOP of Smaller Caption Text (Pushed to Right Edge) */}
-              <div
-                className={`col-span-4 sm:col-span-7 lg:col-span-8 flex flex-col justify-start space-y-1.5 sm:space-y-4 text-left pl-1 sm:pl-4 lg:pl-6 pr-1 sm:pr-0 transition-opacity duration-500 ease-in-out ${
-                  isCarouselFading ? 'opacity-0' : 'opacity-100'
-                }`}
-              >
-                {currentPhoto.heading && currentPhoto.heading.trim() ? (
-                  <h2 className="text-xs sm:text-2xl md:text-4xl lg:text-5xl xl:text-6xl font-black text-[#D4AF37] leading-snug sm:leading-tight tracking-tight drop-shadow-md">
-                    {currentPhoto.heading}
-                  </h2>
-                ) : null}
-
-                {/* On mobile: thicker font-bold with compact size. On desktop: significantly larger font size to match heading */}
-                {currentPhoto.caption && currentPhoto.caption.trim() ? (
-                  <p className="text-[10px] sm:text-lg md:text-xl lg:text-2xl xl:text-3xl text-slate-100 font-bold sm:font-medium leading-snug sm:leading-relaxed max-w-xl sm:max-w-3xl drop-shadow-xs">
-                    {currentPhoto.caption}
-                  </p>
-                ) : null}
-
-                {currentPhoto.link && (
-                  <a
-                    href={currentPhoto.link}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1 sm:gap-2 text-[9px] sm:text-xs font-bold text-[#4ADE80] hover:text-[#22c55e] transition-colors uppercase tracking-wider pt-0.5 sm:pt-2 group w-fit"
-                  >
-                    <span>Continue Reading</span>
-                    <span className="group-hover:translate-x-1 transition-transform">→</span>
-                  </a>
-                )}
-              </div>
-            </div>
+            )}
           </div>
         </section>
       )}

@@ -6,3 +6,4 @@ export * from './WalletSkeleton';
 export * from './RoomDetailSkeleton';
 export * from './BetSlipSkeleton';
 export * from './PageSkeleton';
+export * from './EditorialCarouselSkeleton';
