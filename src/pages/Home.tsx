@@ -340,14 +340,14 @@ export default function Home() {
                 }`}
               >
                 {currentPhoto.heading && currentPhoto.heading.trim() ? (
-                  <h2 className="text-xs sm:text-2xl md:text-4xl lg:text-5xl xl:text-6xl font-black text-[#D4AF37] leading-snug sm:leading-tight tracking-tight drop-shadow-sm">
+                  <h2 className="text-xs sm:text-2xl md:text-4xl lg:text-5xl xl:text-6xl font-black text-[#D4AF37] leading-snug sm:leading-tight tracking-tight drop-shadow-md">
                     {currentPhoto.heading}
                   </h2>
                 ) : null}
 
-                {/* On mobile and desktop: When no caption is written, leave it empty (no placeholder/default text) */}
+                {/* On mobile: thicker font-bold with compact size. On desktop: significantly larger font size to match heading */}
                 {currentPhoto.caption && currentPhoto.caption.trim() ? (
-                  <p className="text-[10px] sm:text-xs md:text-sm lg:text-base text-slate-200/90 leading-normal sm:leading-relaxed font-normal max-w-xl">
+                  <p className="text-[10px] sm:text-lg md:text-xl lg:text-2xl xl:text-3xl text-slate-100 font-bold sm:font-medium leading-snug sm:leading-relaxed max-w-xl sm:max-w-3xl drop-shadow-xs">
                     {currentPhoto.caption}
                   </p>
                 ) : null}
