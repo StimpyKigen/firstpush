@@ -78,12 +78,12 @@ export default function Home() {
     }
   };
 
-  // 3-Second Automatic Carousel Rotation without user interaction
+  // 6-Second Automatic Carousel Rotation without user interaction
   useEffect(() => {
     if (publishedPhotos.length <= 1) return;
     const interval = setInterval(() => {
       setActiveCarouselIndex((prev) => (prev + 1) % publishedPhotos.length);
-    }, 3000);
+    }, 6000);
     return () => clearInterval(interval);
   }, [publishedPhotos.length]);
 
