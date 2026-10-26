@@ -344,10 +344,10 @@ export default function AdminHomepageFeed() {
               </div>
 
               {/* Exact Mock of Homepage Carousel 2-Column Layout */}
-              <div className="grid grid-cols-12 gap-4 items-start">
-                {/* Left: 3:4 Photo with faded edges & dots */}
-                <div className="col-span-5 sm:col-span-4 flex flex-col items-center justify-start">
-                  <div className="relative w-full max-w-[180px] aspect-[3/4] rounded-2xl overflow-hidden shadow-2xl bg-black">
+              <div className="grid grid-cols-12 gap-2.5 sm:gap-4 items-start">
+                {/* Left: 3:4 Photo with faded edges & dots (Expanded on Mobile) */}
+                <div className="col-span-7 sm:col-span-5 lg:col-span-4 flex flex-col items-center justify-start">
+                  <div className="relative w-full max-w-[220px] aspect-[3/4] rounded-2xl overflow-hidden shadow-2xl bg-black">
                     <img
                       src={photoUrl}
                       alt="Preview"
@@ -368,9 +368,9 @@ export default function AdminHomepageFeed() {
                   </div>
                 </div>
 
-                {/* Right: Heading on Top of Caption (Aligned at Top with Gold Accent) */}
-                <div className="col-span-7 sm:col-span-8 flex flex-col justify-start space-y-2 text-left pl-2">
-                  <h3 className="text-lg sm:text-2xl font-black text-[#D4AF37] leading-tight tracking-tight">
+                {/* Right: Heading on Top of Caption (Aligned at Top with Gold Accent, Pushed to Edge) */}
+                <div className="col-span-5 sm:col-span-7 lg:col-span-8 flex flex-col justify-start space-y-2 text-left pl-1 sm:pl-2">
+                  <h3 className="text-base sm:text-2xl font-black text-[#D4AF37] leading-tight tracking-tight">
                     {photoHeading || 'Match of the year is coming'}
                   </h3>
                   <p className="text-xs sm:text-sm text-slate-200/90 leading-relaxed font-normal">

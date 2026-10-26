@@ -139,10 +139,10 @@ export default function Home() {
             </div>
 
             {/* 2-Column Console Layout: Photo on Left, Text on Right (Aligned at Top) */}
-            <div className="grid grid-cols-12 gap-3 sm:gap-6 lg:gap-10 items-start relative z-10">
-              {/* LEFT SIDE: 3:4 Photo with faded edges and bottom dots */}
-              <div className="col-span-6 sm:col-span-5 lg:col-span-4 flex flex-col items-center justify-start">
-                <div className="relative w-full max-w-[170px] sm:max-w-[240px] lg:max-w-[320px] aspect-[3/4] rounded-xl sm:rounded-2xl lg:rounded-3xl overflow-hidden shadow-[0_12px_36px_rgba(0,0,0,0.6)] bg-black/90">
+            <div className="grid grid-cols-12 gap-2.5 sm:gap-6 lg:gap-10 items-start relative z-10">
+              {/* LEFT SIDE: 3:4 Photo with faded edges and bottom dots (Expanded on Mobile) */}
+              <div className="col-span-7 sm:col-span-5 lg:col-span-4 flex flex-col items-center justify-start">
+                <div className="relative w-full max-w-[240px] sm:max-w-[280px] lg:max-w-[340px] aspect-[3/4] rounded-2xl sm:rounded-2xl lg:rounded-3xl overflow-hidden shadow-[0_12px_36px_rgba(0,0,0,0.65)] bg-black/90">
                   {/* Active Photo */}
                   <img
                     src={currentPhoto.imageUrl}
@@ -153,7 +153,7 @@ export default function Home() {
                   {/* Gracefully Faded Edges into Uniform Green Background */}
                   <div className="absolute inset-0 bg-gradient-to-t from-[#02241b] via-transparent to-[#02241b]/30 pointer-events-none" />
                   <div className="absolute inset-0 bg-gradient-to-r from-[#02241b]/50 via-transparent to-[#02241b]/50 pointer-events-none" />
-                  <div className="absolute inset-0 ring-1 ring-inset ring-white/10 rounded-xl sm:rounded-2xl lg:rounded-3xl pointer-events-none" />
+                  <div className="absolute inset-0 ring-1 ring-inset ring-white/10 rounded-2xl sm:rounded-2xl lg:rounded-3xl pointer-events-none" />
                 </div>
 
                 {/* Minimalist Bottom Indicator (Dots directly under the photo) */}
@@ -177,8 +177,8 @@ export default function Home() {
                 )}
               </div>
 
-              {/* RIGHT SIDE: Big News Heading in Gold Accent on TOP of Smaller Caption Text (Aligned at Top) */}
-              <div className="col-span-6 sm:col-span-7 lg:col-span-8 flex flex-col justify-start space-y-2 sm:space-y-4 text-left pl-1 sm:pl-4 lg:pl-6">
+              {/* RIGHT SIDE: Big News Heading in Gold Accent on TOP of Smaller Caption Text (Aligned at Top, Pushed to Edge) */}
+              <div className="col-span-5 sm:col-span-7 lg:col-span-8 flex flex-col justify-start space-y-2 sm:space-y-4 text-left pl-0.5 sm:pl-4 lg:pl-6">
                 <h2 className="text-base sm:text-2xl md:text-4xl lg:text-5xl xl:text-6xl font-black text-[#D4AF37] leading-tight tracking-tight drop-shadow-sm">
                   {currentPhoto.heading || currentPhoto.caption?.slice(0, 42) || 'Match of the year is coming'}
                 </h2>
