@@ -11,8 +11,10 @@ import {
   Link as LinkIcon,
   X,
   Play,
-  Code2
+  Code2,
+  Loader2
 } from 'lucide-react';
+import { uploadFeedImage } from '../../lib/mediaUploadService';
 import {
   subscribeToHomepageFeed,
   getHomepageFeedSnapshot,
@@ -56,9 +58,11 @@ export default function AdminHomepageFeed() {
 
   // Database Persistence & Loading State
   const [isSaving, setIsSaving] = useState(false);
+  const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
+  const [uploadStatus, setUploadStatus] = useState('');
 
-  // Handle Photo File Upload
-  const handlePhotoFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  // Handle Photo File Upload with Canvas Compression & Cloud Persistence
+  const handlePhotoFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -67,15 +71,33 @@ export default function AdminHomepageFeed() {
       return;
     }
 
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      const dataUrl = event.target?.result as string;
-      if (dataUrl) {
-        setPhotoUrl(dataUrl);
-        showToast({ title: 'Photo Loaded', message: 'Image loaded successfully.', type: 'info' });
-      }
-    };
-    reader.readAsDataURL(file);
+    setIsUploadingPhoto(true);
+    setUploadStatus('Optimizing image...');
+    try {
+      const { url, source } = await uploadFeedImage(file, (msg) => setUploadStatus(msg));
+      setPhotoUrl(url);
+      const sourceLabel = source === 'storage'
+        ? 'Firebase Cloud Storage'
+        : source === 'server'
+          ? 'Server Media Storage'
+          : 'Optimized Media';
+      showToast({
+        title: 'Photo Uploaded',
+        message: `Saved to ${sourceLabel} successfully. Ready to publish!`,
+        type: 'success',
+      });
+    } catch (err: any) {
+      console.error('[AdminFeed] Upload error:', err);
+      showToast({
+        title: 'Upload Failed',
+        message: err?.message || 'Could not process and upload photo.',
+        type: 'error',
+      });
+    } finally {
+      setIsUploadingPhoto(false);
+      setUploadStatus('');
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
   };
 
   // Submit Carousel Photo (Awaits Confirmed Database Save)
@@ -251,18 +273,38 @@ export default function AdminHomepageFeed() {
                   type="file"
                   accept="image/*"
                   onChange={handlePhotoFileUpload}
+                  disabled={isUploadingPhoto}
                   className="hidden"
                   id="admin-photo-upload"
                 />
                 <label
-                  htmlFor="admin-photo-upload"
-                  className="w-full h-full flex items-center justify-center gap-2 bg-[#FFFFF0] hover:bg-slate-50 border border-slate-300 hover:border-slate-400 text-slate-700 font-semibold text-xs px-3 py-2.5 rounded-xl cursor-pointer transition-colors"
+                  htmlFor={isUploadingPhoto ? undefined : 'admin-photo-upload'}
+                  className={`w-full h-full flex items-center justify-center gap-2 border font-semibold text-xs px-3 py-2.5 rounded-xl transition-all ${
+                    isUploadingPhoto
+                      ? 'bg-emerald-50 border-emerald-300 text-emerald-800 cursor-wait'
+                      : 'bg-[#FFFFF0] hover:bg-slate-50 border-slate-300 hover:border-slate-400 text-slate-700 cursor-pointer'
+                  }`}
                 >
-                  <Upload size={14} className="text-[#006C54]" />
-                  <span>Upload Local File</span>
+                  {isUploadingPhoto ? (
+                    <>
+                      <Loader2 size={14} className="text-[#006C54] animate-spin" />
+                      <span className="truncate">{uploadStatus || 'Optimizing & Uploading...'}</span>
+                    </>
+                  ) : (
+                    <>
+                      <Upload size={14} className="text-[#006C54]" />
+                      <span>Upload Local File</span>
+                    </>
+                  )}
                 </label>
               </div>
             </div>
+            {uploadStatus && isUploadingPhoto && (
+              <p className="text-[11px] text-[#006C54] mt-1.5 flex items-center gap-1.5">
+                <Loader2 size={12} className="animate-spin" />
+                <span>{uploadStatus}</span>
+              </p>
+            )}
           </div>
 
           {/* Two Explicit Caption Inputs: 1. Carousel heading, 2. Carousel caption */}

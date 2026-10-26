@@ -1,6 +1,7 @@
 import 'dotenv/config';
 import express, { Request, Response, NextFunction } from 'express';
 import path from 'path';
+import fs from 'fs';
 import { createServer as createViteServer } from 'vite';
 import { GoogleGenAI } from '@google/genai';
 import { fetchSportpesaMegaMirror, fetchBetikaMidweekMirror } from './src/lib/jackpotMirrorService';
@@ -189,6 +190,38 @@ async function startServer() {
       }
     } catch (err: any) {
       res.status(500).json({ success: false, error: 'Failed to save homepage feed' });
+    }
+  });
+
+  // Media Upload API (Authoritative Server Storage for Feed & Admin Media)
+  app.post('/api/admin/upload-media', (req: Request, res: Response) => {
+    try {
+      const { dataUrl, fileName, folder = 'feed' } = req.body || {};
+      if (!dataUrl || !fileName) {
+        return res.status(400).json({ success: false, error: 'dataUrl and fileName are required' });
+      }
+
+      // Extract base64 buffer
+      const matches = dataUrl.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/);
+      const buffer = matches && matches[2]
+        ? Buffer.from(matches[2], 'base64')
+        : Buffer.from(dataUrl, 'base64');
+
+      const cleanFileName = String(fileName).replace(/[^a-zA-Z0-9._-]/g, '_');
+      const cleanFolder = String(folder).replace(/[^a-zA-Z0-9_-]/g, '_');
+      const targetDir = path.join(process.cwd(), 'public', 'images', 'uploads', cleanFolder);
+      if (!fs.existsSync(targetDir)) {
+        fs.mkdirSync(targetDir, { recursive: true });
+      }
+
+      const filePath = path.join(targetDir, cleanFileName);
+      fs.writeFileSync(filePath, buffer);
+
+      const publicUrl = `/images/uploads/${cleanFolder}/${cleanFileName}`;
+      res.json({ success: true, url: publicUrl });
+    } catch (err: any) {
+      console.error('[UploadMedia] Server error:', err);
+      res.status(500).json({ success: false, error: err?.message || 'Failed to upload media' });
     }
   });
 

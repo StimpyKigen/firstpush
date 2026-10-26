@@ -1,0 +1,55 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    // Platform Super-Administrator phone number: 0743304579 (canonical: +254743304579 / 254743304579)
+    function isAdmin() {
+      return isSignedIn() && (
+        request.auth.token.phone_number == '+254743304579' ||
+        request.auth.token.phone_number == '254743304579' ||
+        request.auth.token.phone_number == '0743304579' ||
+        request.auth.token.admin == true
+      );
+    }
+
+    // Default deny catch-all
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+
+    // 1. Homepage Editorial Feed Media (carousel photos, hero graphics, news posters)
+    // Public read so all visitors and PWA users can view photos; upload and delete strictly restricted to admin 0743304579
+    match /feed/{fileName} {
+      allow read: if true;
+      allow write, delete: if isAdmin()
+        && request.resource.size < 10 * 1024 * 1024
+        && request.resource.contentType.matches('image/.*');
+    }
+
+    // 2. Fixtures & Match Slates (PDF documents and fixture slates)
+    // Public read; upload and delete restricted to admin 0743304579
+    match /fixtures/{fileName} {
+      allow read: if true;
+      allow write, delete: if isAdmin()
+        && request.resource.size < 15 * 1024 * 1024;
+    }
+
+    // 3. Custom Platform Avatars (SVG/PNG vector badges)
+    match /avatars/{fileName} {
+      allow read: if true;
+      allow write, delete: if isAdmin()
+        && request.resource.size < 5 * 1024 * 1024;
+    }
+
+    // 4. Moderating Dictionary Backups & JSON Exports
+    match /moderation/{fileName} {
+      allow read: if isAdmin();
+      allow write, delete: if isAdmin()
+        && request.resource.size < 5 * 1024 * 1024;
+    }
+  }
+}

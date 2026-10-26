@@ -7,8 +7,23 @@ service cloud.firestore {
       return request.auth != null;
     }
 
+    // Platform Super-Administrator: 0743304579 (normalized formats: +254743304579, 254743304579, 0743304579)
+    function isAdmin() {
+      return isSignedIn() && (
+        request.auth.token.phone_number == '+254743304579' ||
+        request.auth.token.phone_number == '254743304579' ||
+        request.auth.token.phone_number == '0743304579' ||
+        request.auth.token.admin == true
+      );
+    }
+
     function isOwner(userId) {
-      return isSignedIn() && (request.auth.uid == userId || request.auth.token.phone_number == userId);
+      return isSignedIn() && (
+        request.auth.uid == userId ||
+        request.auth.token.phone_number == userId ||
+        request.auth.token.phone_number == ('+254' + userId) ||
+        request.auth.token.phone_number == ('254' + userId)
+      );
     }
 
     function isValidId(id) {
@@ -20,43 +35,82 @@ service cloud.firestore {
       allow read, write: if false;
     }
 
-    // Site content (homepage editorial feed, announcements, highlights, carousels, videos): public read & write
+    // 1. SITE CONTENT & EDITORIAL FEED (homepage carousel, highlights, editorial news)
+    // Public read so all visitors see latest news; upload/publish and delete strictly restricted to admin 0743304579
     match /siteContent/{docId} {
-      allow read, write: if true;
+      allow read: if true;
+      allow create, update, delete: if isAdmin();
     }
 
-    // Users collection: only the owner can create or update their own profile
+    match /feed/{feedId} {
+      allow read: if true;
+      allow create, update, delete: if isAdmin();
+    }
+
+    // 2. JACKPOT ROOMS & CONSENSUS ARENAS (rooms management, live sync, settlement)
+    // Public read for punters; creating/publishing and deleting rooms restricted strictly to admin 0743304579
+    match /jackpots/{jackpotId} {
+      allow read: if true;
+      allow create, update, delete: if isAdmin();
+    }
+
+    match /rooms/{roomId} {
+      allow read: if true;
+      allow create, update, delete: if isAdmin();
+    }
+
+    // 3. SPORTS FIXTURES & BATCHES (PDF parsed fixtures, match slates, odds slates)
+    // Public read for match schedules; ingestion, modification, and clearing restricted strictly to admin 0743304579
+    match /fixtures/{fixtureId} {
+      allow read: if true;
+      allow create, update, delete: if isAdmin();
+    }
+
+    match /fixturesBatches/{batchId} {
+      allow read: if true;
+      allow create, update, delete: if isAdmin();
+    }
+
+    // 4. MODERATING DICTIONARY (banned keywords, profanity, scam heuristics)
+    // Public read for client chat moderation; uploading dictionary entries, editing, or deleting restricted strictly to admin 0743304579
+    match /moderationDictionary/{docId} {
+      allow read: if true;
+      allow create, update, delete: if isAdmin();
+    }
+
+    // USERS COLLECTION: user owns their profile, admin has full administrative oversight
     match /users/{userId} {
       allow read: if isSignedIn();
-      allow create, update: if isOwner(userId);
-      allow delete: if false;
+      allow create, update: if isOwner(userId) || isAdmin();
+      allow delete: if isAdmin();
     }
 
-    // Player Ratings collection: public read, write restricted to profile owner
+    // PLAYER RATINGS: public read, write restricted to profile owner or admin
     match /playerRatings/{userId} {
       allow read: if true;
-      allow create, update: if isOwner(userId);
-      allow delete: if false;
+      allow create, update: if isOwner(userId) || isAdmin();
+      allow delete: if isAdmin();
 
       // History subcollection
       match /history/{historyId} {
         allow read: if true;
-        allow create: if isOwner(userId);
-        allow update, delete: if false;
+        allow create: if isOwner(userId) || isAdmin();
+        allow update, delete: if isAdmin();
       }
     }
 
-    // Picks collection: public read, modification/deletion restricted strictly to the pick author
+    // PICKS COLLECTION: public read, author or admin can create/update/delete
     match /picks/{pickId} {
       allow read: if true;
       allow create: if isSignedIn() && (
         request.resource.data.userId == request.auth.uid ||
-        request.resource.data.userId == request.auth.token.phone_number
+        request.resource.data.userId == request.auth.token.phone_number ||
+        isAdmin()
       );
-      allow update, delete: if isSignedIn() && (
+      allow update, delete: if (isSignedIn() && (
         resource.data.userId == request.auth.uid ||
         resource.data.userId == request.auth.token.phone_number
-      );
+      )) || isAdmin();
     }
   }
 }

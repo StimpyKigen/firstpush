@@ -1,6 +1,7 @@
 import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
 import path from 'path';
+import fs from 'fs';
 import { defineConfig } from 'vite';
 
 export default defineConfig(() => {
@@ -237,6 +238,49 @@ export default defineConfig(() => {
                 } catch (err) {
                   res.statusCode = 500;
                   res.setHeader('Content-Type', 'application/json');
+                  res.end(JSON.stringify({ success: false, error: String(err) }));
+                  return;
+                }
+              }
+              if (url.pathname === '/api/admin/upload-media') {
+                try {
+                  res.setHeader('Content-Type', 'application/json');
+                  res.setHeader('Access-Control-Allow-Origin', '*');
+                  if (req.method === 'POST') {
+                    let body = '';
+                    req.on('data', (chunk: any) => { body += chunk; });
+                    req.on('end', () => {
+                      try {
+                        const parsed = JSON.parse(body || '{}');
+                        const { dataUrl, fileName, folder = 'feed' } = parsed;
+                        if (!dataUrl || !fileName) {
+                          res.statusCode = 400;
+                          res.end(JSON.stringify({ success: false, error: 'dataUrl and fileName are required' }));
+                          return;
+                        }
+                        const matches = dataUrl.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/);
+                        const buffer = matches && matches[2]
+                          ? Buffer.from(matches[2], 'base64')
+                          : Buffer.from(dataUrl, 'base64');
+
+                        const cleanFileName = String(fileName).replace(/[^a-zA-Z0-9._-]/g, '_');
+                        const cleanFolder = String(folder).replace(/[^a-zA-Z0-9_-]/g, '_');
+                        const targetDir = path.join(process.cwd(), 'public', 'images', 'uploads', cleanFolder);
+                        if (!fs.existsSync(targetDir)) {
+                          fs.mkdirSync(targetDir, { recursive: true });
+                        }
+                        fs.writeFileSync(path.join(targetDir, cleanFileName), buffer);
+                        const publicUrl = `/images/uploads/${cleanFolder}/${cleanFileName}`;
+                        res.end(JSON.stringify({ success: true, url: publicUrl }));
+                      } catch (e: any) {
+                        res.statusCode = 500;
+                        res.end(JSON.stringify({ success: false, error: e?.message || 'Upload failed' }));
+                      }
+                    });
+                    return;
+                  }
+                } catch (err: any) {
+                  res.statusCode = 500;
                   res.end(JSON.stringify({ success: false, error: String(err) }));
                   return;
                 }
