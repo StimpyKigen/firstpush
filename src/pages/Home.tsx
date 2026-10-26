@@ -1,5 +1,5 @@
 import React, { useState, useSyncExternalStore, useRef } from 'react';
-import { ChevronLeft, ChevronRight, Play } from 'lucide-react';
+import { Play } from 'lucide-react';
 import SeoHead from '../components/SeoHead';
 import {
   subscribeToHomepageFeed,
@@ -113,17 +113,18 @@ export default function Home() {
 
       {/* =========================================================================
           1. WEEKLY EDITORIAL NEWS (REDESIGNED CAROUSEL CONSOLE)
-          - Faded green accent background for the entire section
-          - Heading in white
+          - Edge-to-edge full width faded green background with NO borders
+          - Hugging the top and bottom separator
+          - 'Weekly Editorial' in pure white with no background/border
           - Left: Big news heading (words cutting in slightly over the photo on desktop)
           - Center: Single active card (3:4 aspect ratio with gracefully faded edges)
           - Bottom: Minimalist dots indicator
           - Right: Caption in smaller font (never cuts into the photo)
           ========================================================================= */}
       {publishedPhotos.length > 0 && currentPhoto && (
-        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 sm:pt-10">
+        <section className="w-full bg-gradient-to-b from-[#02241b] via-[#032e23] to-[#011c15] text-white">
           <div
-            className="relative overflow-hidden rounded-3xl bg-gradient-to-b from-[#02241b] via-[#032e23] to-[#011c15] border border-[#054d3c]/50 p-6 sm:p-8 lg:p-12 shadow-[0_20px_50px_rgba(1,26,20,0.85)] text-white"
+            className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 relative overflow-hidden"
             onTouchStart={handleCarouselTouchStart}
             onTouchMove={handleCarouselTouchMove}
             onTouchEnd={handleCarouselTouchEnd}
@@ -132,11 +133,10 @@ export default function Home() {
             <div className="absolute -top-32 -left-32 w-80 h-80 bg-[#006C54]/25 rounded-full filter blur-3xl pointer-events-none" />
             <div className="absolute -bottom-32 -right-32 w-80 h-80 bg-[#00A87E]/20 rounded-full filter blur-3xl pointer-events-none" />
 
-            {/* Section Heading in Crisp White */}
+            {/* Section Heading in Crisp White with NO background and NO border */}
             <div className="text-left mb-6 sm:mb-10 relative z-10">
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#006C54]/30 border border-[#4ADE80]/30 text-[#4ADE80] font-bold text-xs uppercase tracking-wider mb-2">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#4ADE80] animate-pulse" />
-                Weekly Editorial News
+              <span className="text-white font-bold text-xs uppercase tracking-wider block mb-1.5">
+                Weekly Editorial
               </span>
               <h1 className="font-extrabold text-2xl sm:text-3xl lg:text-4xl text-white tracking-tight">
                 Top Stories &amp; Matchday Perspectives
@@ -147,12 +147,6 @@ export default function Home() {
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-4 items-center relative z-10">
               {/* LEFT SIDE: Big News Heading (Words cutting in slightly over photo if necessary) */}
               <div className="lg:col-span-4 flex flex-col justify-center space-y-4 text-left z-20 xl:-mr-8">
-                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md text-[#4ADE80] text-[11px] font-bold uppercase tracking-wider w-fit">
-                  <span>NEW</span>
-                  <span className="text-white/40">·</span>
-                  <span className="text-white/80">Matchday Analysis</span>
-                </div>
-
                 <h2 className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-black text-white leading-[1.06] tracking-tight drop-shadow-md">
                   {currentPhoto.heading || currentPhoto.caption?.slice(0, 42) || 'Match of the year is coming'}
                 </h2>
@@ -209,37 +203,9 @@ export default function Home() {
 
               {/* RIGHT SIDE: Carousel Caption (Smaller font size, never cuts into the photo) */}
               <div className="lg:col-span-4 flex flex-col justify-center space-y-3 text-left lg:pl-6 z-10">
-                <span className="text-[11px] font-bold text-[#4ADE80] uppercase tracking-widest block">
-                  Story Details
-                </span>
                 <p className="text-xs sm:text-sm text-slate-200/90 leading-relaxed font-normal max-w-sm">
                   {currentPhoto.caption || 'Hazard magic has Chelsea sitting pretty at the top of the Premier League table with tactical dominance and decisive finishing.'}
                 </p>
-
-                {/* Desktop Chevron Next/Prev Controls */}
-                {publishedPhotos.length > 1 && (
-                  <div className="hidden lg:flex items-center gap-2 pt-4">
-                    <button
-                      type="button"
-                      onClick={prevSlide}
-                      className="p-2 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors cursor-pointer"
-                      aria-label="Previous slide"
-                    >
-                      <ChevronLeft size={16} />
-                    </button>
-                    <span className="text-xs tabular-nums text-slate-400 font-semibold px-1">
-                      {activeCarouselIndex + 1} / {publishedPhotos.length}
-                    </span>
-                    <button
-                      type="button"
-                      onClick={nextSlide}
-                      className="p-2 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors cursor-pointer"
-                      aria-label="Next slide"
-                    >
-                      <ChevronRight size={16} />
-                    </button>
-                  </div>
-                )}
               </div>
             </div>
           </div>
@@ -249,9 +215,7 @@ export default function Home() {
       {/* =========================================================================
           2. HORIZONTAL LINE SEPARATOR
           ========================================================================= */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="border-t border-slate-200 my-8 sm:my-12" />
-      </div>
+      <div className="w-full border-t border-slate-200 mb-8 sm:mb-12" />
 
       {/* =========================================================================
           3. VIDEOS AND HIGHLIGHTS SECTION (THUMBNAIL-FIRST DESIGN)
@@ -319,15 +283,15 @@ export default function Home() {
                           {/* Subtle dark backdrop overlay */}
                           <div className="absolute inset-0 bg-black/20 group-hover:bg-black/30 transition-colors" />
 
-                          {/* Prominent MshindiRoom-Branded Play Button (Emerald & Gold) */}
+                          {/* Prominent MshindiRoom-Branded Play Button (Emerald with Ivory White Play Icon) */}
                           <button
                             type="button"
                             onClick={() => handlePlayVideo(video)}
-                            className="absolute inset-0 flex items-center justify-center cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#D4AF37]"
+                            className="absolute inset-0 flex items-center justify-center cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#006C54]"
                             aria-label={`Play ${video.title}`}
                           >
-                            <div className="w-16 h-16 sm:w-18 sm:h-18 rounded-full bg-[#006C54] border-2 border-[#D4AF37] shadow-[0_0_25px_rgba(0,108,84,0.65),0_0_10px_rgba(212,175,55,0.4)] flex items-center justify-center group-hover:scale-110 active:scale-95 transition-all duration-300">
-                              <Play size={24} fill="#D4AF37" className="ml-1 text-[#D4AF37]" />
+                            <div className="w-16 h-16 sm:w-18 sm:h-18 rounded-full bg-[#006C54] hover:bg-[#005441] shadow-[0_4px_24px_rgba(0,108,84,0.65)] flex items-center justify-center group-hover:scale-110 active:scale-95 transition-all duration-300">
+                              <Play size={24} fill="#FFFFF0" className="ml-1 text-[#FFFFF0]" />
                             </div>
                           </button>
                         </div>
@@ -397,15 +361,15 @@ export default function Home() {
                             {/* Subtle dark backdrop overlay */}
                             <div className="absolute inset-0 bg-black/20 group-hover:bg-black/30 transition-colors" />
 
-                            {/* Prominent MshindiRoom-Branded Play Button (Emerald & Gold) */}
+                            {/* Prominent MshindiRoom-Branded Play Button (Emerald with Ivory White Play Icon) */}
                             <button
                               type="button"
                               onClick={() => handlePlayVideo(video)}
-                              className="absolute inset-0 flex items-center justify-center cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#D4AF37]"
+                              className="absolute inset-0 flex items-center justify-center cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#006C54]"
                               aria-label={`Play ${video.title}`}
                             >
-                              <div className="w-14 h-14 rounded-full bg-[#006C54] border-2 border-[#D4AF37] shadow-[0_0_20px_rgba(0,108,84,0.65),0_0_8px_rgba(212,175,55,0.4)] flex items-center justify-center active:scale-95 transition-all">
-                                <Play size={20} fill="#D4AF37" className="ml-1 text-[#D4AF37]" />
+                              <div className="w-14 h-14 rounded-full bg-[#006C54] hover:bg-[#005441] shadow-[0_4px_20px_rgba(0,108,84,0.65)] flex items-center justify-center active:scale-95 transition-all">
+                                <Play size={20} fill="#FFFFF0" className="ml-1 text-[#FFFFF0]" />
                               </div>
                             </button>
                           </div>
