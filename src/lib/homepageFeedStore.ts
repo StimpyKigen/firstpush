@@ -5,7 +5,7 @@
  * 1. Carousel Photos with optional bottom foreground captions.
  * 2. Videos and Highlights YouTube embeds.
  * 
- * Persisted in localStorage so administrative updates remain immediate and durable.
+ * Persisted in Cloud Firestore and authoritative server database (`data/homepage_feed.json`).
  */
 
 import { doc, setDoc, onSnapshot } from 'firebase/firestore';
@@ -148,7 +148,7 @@ const DEFAULT_FEED: HomepageFeedData = {
       heading: 'Match of the year is coming',
       caption: 'Hazard magic has Chelsea sitting pretty at the top of the Premier League table with tactical dominance and decisive finishing.',
       published: true,
-      createdAt: new Date().toISOString(),
+      createdAt: '2026-10-22T00:00:00.000Z',
     },
     {
       id: 'slide-2',
@@ -156,7 +156,7 @@ const DEFAULT_FEED: HomepageFeedData = {
       heading: 'Derby day showdown across Europe',
       caption: 'Community consensus rallies behind a massive weekend derby slate across Europe with record pundit engagement.',
       published: true,
-      createdAt: new Date().toISOString(),
+      createdAt: '2026-10-22T00:00:00.000Z',
     },
     {
       id: 'slide-3',
@@ -164,7 +164,7 @@ const DEFAULT_FEED: HomepageFeedData = {
       heading: 'Continental supremacy on the line',
       caption: 'High-stakes continental drama unfolds as top contenders battle for supremacy in the knockout tournament rounds.',
       published: true,
-      createdAt: new Date().toISOString(),
+      createdAt: '2026-10-22T00:00:00.000Z',
     },
   ],
   videoItems: [
@@ -174,7 +174,8 @@ const DEFAULT_FEED: HomepageFeedData = {
       embedUrl: 'https://www.youtube.com/embed/aqz-KE-bpKQ',
       title: 'Premier League Matchweek Highlights & Tactical Breakdown',
       published: true,
-      createdAt: new Date().toISOString(),
+      createdAt: '2026-10-22T00:00:00.000Z',
+      type: 'youtube',
     },
     {
       id: 'video-2',
@@ -182,7 +183,8 @@ const DEFAULT_FEED: HomepageFeedData = {
       embedUrl: 'https://www.youtube.com/embed/kJQP7kiw5Fk',
       title: 'Top 10 Weekend Goals & Decisive Match-Winning Moments',
       published: true,
-      createdAt: new Date().toISOString(),
+      createdAt: '2026-10-22T00:00:00.000Z',
+      type: 'youtube',
     },
   ],
 };
@@ -231,44 +233,52 @@ function setupCloudSync() {
 
   // 2. Real-time Cloud Firestore synchronization across all users and devices
   try {
-    const feedRef = doc(db, FIRESTORE_COLLECTION, FIRESTORE_DOC);
-    onSnapshot(
-      feedRef,
-      (snapshot) => {
-        if (snapshot.exists()) {
-          const cloudData = snapshot.data() as HomepageFeedData;
-          if (cloudData && Array.isArray(cloudData.carouselItems) && Array.isArray(cloudData.videoItems)) {
-            currentFeed = cloudData;
-            try {
-              localStorage.setItem(STORAGE_KEY, JSON.stringify(cloudData));
-            } catch {}
-            listeners.forEach((l) => l());
+    if (db) {
+      const feedRef = doc(db, FIRESTORE_COLLECTION, FIRESTORE_DOC);
+      onSnapshot(
+        feedRef,
+        (snapshot) => {
+          if (snapshot.exists()) {
+            const cloudData = snapshot.data() as HomepageFeedData;
+            if (cloudData && Array.isArray(cloudData.carouselItems) && Array.isArray(cloudData.videoItems)) {
+              currentFeed = cloudData;
+              try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(cloudData));
+              } catch {}
+              listeners.forEach((l) => l());
+            }
           }
+        },
+        (error) => {
+          console.warn('[HomepageFeed] Firestore listener notice (using server database API):', error.message);
         }
-      },
-      (error) => {
-        console.warn('[HomepageFeed] Firestore listener notice (using local/server cache):', error.message);
-      }
-    );
-  } catch (err) {
-    console.warn('[HomepageFeed] Cloud sync initialization fallback:', err);
+      );
+    }
+  } catch (err: any) {
+    console.warn('[HomepageFeed] Cloud sync initialization fallback:', err?.message || err);
   }
 
-  // 3. Backend API sync fallback (hydrates if Firestore is offline or cold)
+  // 3. Backend API sync (hydrates from authoritative persistent server database)
   try {
     fetch('/api/homepage-feed')
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => {
         if (data && data.success && data.feed && Array.isArray(data.feed.carouselItems)) {
-          // If local is default or server has items, adopt server feed
-          const localIsDefault = !localStorage.getItem(STORAGE_KEY);
-          if (localIsDefault || data.feed.carouselItems.length > 0) {
-            currentFeed = data.feed;
-            try {
-              localStorage.setItem(STORAGE_KEY, JSON.stringify(data.feed));
-            } catch {}
-            listeners.forEach((l) => l());
+          const isServerDefault = Boolean(data.feed._isDefault);
+          const hasLocalEdits = Boolean(localStorage.getItem(STORAGE_KEY));
+
+          // Never let default mock fallback overwrite existing local changes
+          if (isServerDefault && hasLocalEdits) {
+            // Push local edits to server so the server database is initialized with current records
+            persistToCloud(currentFeed);
+            return;
           }
+
+          currentFeed = data.feed;
+          try {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(data.feed));
+          } catch {}
+          listeners.forEach((l) => l());
         }
       })
       .catch(() => {});
@@ -280,39 +290,52 @@ if (typeof window !== 'undefined') {
   setupCloudSync();
 }
 
-async function persistToCloud(data: HomepageFeedData) {
-  // 1. Write to Cloud Firestore
+/**
+ * Persists feed data to Cloud Firestore and the server database backend.
+ * Returns confirmation of which database writes succeeded.
+ */
+export async function persistToCloud(data: HomepageFeedData): Promise<{
+  success: boolean;
+  firestoreSaved: boolean;
+  serverSaved: boolean;
+  error?: string;
+}> {
+  let firestoreSaved = false;
+  let serverSaved = false;
+  let lastError: string | undefined;
+
+  // 1. Write to Cloud Firestore (if available & configured)
   try {
-    const feedRef = doc(db, FIRESTORE_COLLECTION, FIRESTORE_DOC);
-    await setDoc(feedRef, data, { merge: true });
+    if (db) {
+      const feedRef = doc(db, FIRESTORE_COLLECTION, FIRESTORE_DOC);
+      await setDoc(feedRef, data, { merge: true });
+      firestoreSaved = true;
+    }
   } catch (err: any) {
+    lastError = err?.message || 'Firestore write failed';
     console.warn('[HomepageFeed] Firestore push notice:', err?.message || err);
   }
 
-  // 2. Persist to server backend disk cache (/api/homepage-feed)
+  // 2. Persist to server backend database (/api/homepage-feed)
   try {
-    await fetch('/api/homepage-feed', {
+    const res = await fetch('/api/homepage-feed', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data),
     });
+    if (res.ok) {
+      serverSaved = true;
+    } else {
+      const errJson = await res.json().catch(() => null);
+      lastError = errJson?.error || `Server responded with status ${res.status}`;
+    }
   } catch (err: any) {
+    lastError = err?.message || 'Server network request failed';
     console.warn('[HomepageFeed] Server feed push notice:', err?.message || err);
   }
-}
 
-function emitChange(syncCloud = true) {
-  if (typeof window !== 'undefined') {
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(currentFeed));
-    } catch (err) {
-      console.warn('Could not persist homepage feed to storage:', err);
-    }
-  }
-  listeners.forEach((listener) => listener());
-  if (syncCloud && typeof window !== 'undefined') {
-    persistToCloud(currentFeed);
-  }
+  const success = firestoreSaved || serverSaved;
+  return { success, firestoreSaved, serverSaved, error: success ? undefined : lastError };
 }
 
 export function getHomepageFeedSnapshot(): HomepageFeedData {
@@ -327,10 +350,10 @@ export function subscribeToHomepageFeed(listener: () => void) {
 }
 
 // -------------------------------------------------------------
-// Action API for Admin Console
+// Action API for Admin Console (with Guaranteed DB Persistence)
 // -------------------------------------------------------------
 
-export function addCarouselItem(item: { imageUrl: string; heading?: string; caption?: string; link?: string; published?: boolean }) {
+export async function addCarouselItem(item: { imageUrl: string; heading?: string; caption?: string; link?: string; published?: boolean }) {
   const newItem: HomepageCarouselItem = {
     id: `carousel-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
     imageUrl: item.imageUrl.trim(),
@@ -341,33 +364,69 @@ export function addCarouselItem(item: { imageUrl: string; heading?: string; capt
     createdAt: new Date().toISOString(),
   };
 
-  currentFeed = {
+  const nextFeed: HomepageFeedData = {
     ...currentFeed,
     carouselItems: [newItem, ...currentFeed.carouselItems],
   };
-  emitChange();
+
+  const result = await persistToCloud(nextFeed);
+  if (!result.success) {
+    throw new Error(result.error || 'Failed to persist carousel slide to database.');
+  }
+
+  currentFeed = nextFeed;
+  if (typeof window !== 'undefined') {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(currentFeed));
+    } catch {}
+  }
+  listeners.forEach((l) => l());
   return newItem;
 }
 
-export function toggleCarouselItemPublish(id: string) {
-  currentFeed = {
+export async function toggleCarouselItemPublish(id: string) {
+  const nextFeed: HomepageFeedData = {
     ...currentFeed,
     carouselItems: currentFeed.carouselItems.map((c) =>
       c.id === id ? { ...c, published: !c.published } : c
     ),
   };
-  emitChange();
+
+  const result = await persistToCloud(nextFeed);
+  if (!result.success) {
+    throw new Error(result.error || 'Failed to update carousel visibility in database.');
+  }
+
+  currentFeed = nextFeed;
+  if (typeof window !== 'undefined') {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(currentFeed));
+    } catch {}
+  }
+  listeners.forEach((l) => l());
 }
 
-export function deleteCarouselItem(id: string) {
-  currentFeed = {
+export async function deleteCarouselItem(id: string) {
+  const nextFeed: HomepageFeedData = {
     ...currentFeed,
     carouselItems: currentFeed.carouselItems.filter((c) => c.id !== id),
   };
-  emitChange();
+
+  const result = await persistToCloud(nextFeed);
+  if (!result.success) {
+    throw new Error(result.error || 'Failed to delete carousel photo from database.');
+  }
+
+  currentFeed = nextFeed;
+  if (typeof window !== 'undefined') {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(currentFeed));
+    } catch {}
+  }
+  listeners.forEach((l) => l());
 }
 
-export function addVideoItem(item: { youtubeUrl: string; title: string; published?: boolean }) {
+export async function addVideoItem(item: { youtubeUrl: string; title: string; published?: boolean }) {
   const embed = normalizeYouTubeEmbedUrl(item.youtubeUrl);
   if (!embed) {
     throw new Error('Please enter a valid YouTube video or embed URL.');
@@ -383,15 +442,27 @@ export function addVideoItem(item: { youtubeUrl: string; title: string; publishe
     type: 'youtube',
   };
 
-  currentFeed = {
+  const nextFeed: HomepageFeedData = {
     ...currentFeed,
     videoItems: [newVideo, ...currentFeed.videoItems],
   };
-  emitChange();
+
+  const result = await persistToCloud(nextFeed);
+  if (!result.success) {
+    throw new Error(result.error || 'Failed to persist video to database.');
+  }
+
+  currentFeed = nextFeed;
+  if (typeof window !== 'undefined') {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(currentFeed));
+    } catch {}
+  }
+  listeners.forEach((l) => l());
   return newVideo;
 }
 
-export function addCustomEmbedItem(item: { embedUrl: string; title: string; published?: boolean }) {
+export async function addCustomEmbedItem(item: { embedUrl: string; title: string; published?: boolean }) {
   const embed = normalizeCustomEmbedUrl(item.embedUrl);
   if (!embed) {
     throw new Error('Please enter a valid embed URL or <iframe> snippet.');
@@ -407,33 +478,79 @@ export function addCustomEmbedItem(item: { embedUrl: string; title: string; publ
     type: 'custom',
   };
 
-  currentFeed = {
+  const nextFeed: HomepageFeedData = {
     ...currentFeed,
     videoItems: [newEmbed, ...currentFeed.videoItems],
   };
-  emitChange();
+
+  const result = await persistToCloud(nextFeed);
+  if (!result.success) {
+    throw new Error(result.error || 'Failed to persist embed to database.');
+  }
+
+  currentFeed = nextFeed;
+  if (typeof window !== 'undefined') {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(currentFeed));
+    } catch {}
+  }
+  listeners.forEach((l) => l());
   return newEmbed;
 }
 
-export function toggleVideoItemPublish(id: string) {
-  currentFeed = {
+export async function toggleVideoItemPublish(id: string) {
+  const nextFeed: HomepageFeedData = {
     ...currentFeed,
     videoItems: currentFeed.videoItems.map((v) =>
       v.id === id ? { ...v, published: !v.published } : v
     ),
   };
-  emitChange();
+
+  const result = await persistToCloud(nextFeed);
+  if (!result.success) {
+    throw new Error(result.error || 'Failed to update video visibility in database.');
+  }
+
+  currentFeed = nextFeed;
+  if (typeof window !== 'undefined') {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(currentFeed));
+    } catch {}
+  }
+  listeners.forEach((l) => l());
 }
 
-export function deleteVideoItem(id: string) {
-  currentFeed = {
+export async function deleteVideoItem(id: string) {
+  const nextFeed: HomepageFeedData = {
     ...currentFeed,
     videoItems: currentFeed.videoItems.filter((v) => v.id !== id),
   };
-  emitChange();
+
+  const result = await persistToCloud(nextFeed);
+  if (!result.success) {
+    throw new Error(result.error || 'Failed to delete video from database.');
+  }
+
+  currentFeed = nextFeed;
+  if (typeof window !== 'undefined') {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(currentFeed));
+    } catch {}
+  }
+  listeners.forEach((l) => l());
 }
 
-export function resetHomepageFeedToDefault() {
+export async function resetHomepageFeedToDefault() {
+  const result = await persistToCloud(DEFAULT_FEED);
+  if (!result.success) {
+    throw new Error(result.error || 'Failed to reset homepage feed in database.');
+  }
+
   currentFeed = DEFAULT_FEED;
-  emitChange();
+  if (typeof window !== 'undefined') {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(currentFeed));
+    } catch {}
+  }
+  listeners.forEach((l) => l());
 }

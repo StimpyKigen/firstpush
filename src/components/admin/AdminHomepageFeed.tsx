@@ -54,6 +54,9 @@ export default function AdminHomepageFeed() {
   const [customEmbedCaption, setCustomEmbedCaption] = useState('');
   const [isCustomPreviewOpen, setIsCustomPreviewOpen] = useState(false);
 
+  // Database Persistence & Loading State
+  const [isSaving, setIsSaving] = useState(false);
+
   // Handle Photo File Upload
   const handlePhotoFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -75,40 +78,48 @@ export default function AdminHomepageFeed() {
     reader.readAsDataURL(file);
   };
 
-  // Submit Carousel Photo
-  const handlePublishPhoto = (e: React.FormEvent) => {
+  // Submit Carousel Photo (Awaits Confirmed Database Save)
+  const handlePublishPhoto = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!photoUrl.trim()) {
       showToast({ title: 'Photo Required', message: 'Please upload an image or provide an image URL.', type: 'error' });
       return;
     }
 
-    addCarouselItem({
-      imageUrl: photoUrl.trim(),
-      heading: photoHeading.trim() || undefined,
-      caption: photoCaption.trim() || undefined,
-      published: true,
-    });
+    setIsSaving(true);
+    try {
+      await addCarouselItem({
+        imageUrl: photoUrl.trim(),
+        heading: photoHeading.trim() || undefined,
+        caption: photoCaption.trim() || undefined,
+        published: true,
+      });
 
-    setPhotoUrl('');
-    setPhotoHeading('');
-    setPhotoCaption('');
-    setIsPhotoPreviewOpen(false);
-    if (fileInputRef.current) fileInputRef.current.value = '';
+      setPhotoUrl('');
+      setPhotoHeading('');
+      setPhotoCaption('');
+      setIsPhotoPreviewOpen(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
 
-    showToast({ title: 'Carousel Photo Published', message: 'New photo slide is now live on the homepage.', type: 'success' });
+      showToast({ title: 'Carousel Photo Saved', message: 'Slide saved to database and live on homepage.', type: 'success' });
+    } catch (err: any) {
+      showToast({ title: 'Database Save Failed', message: err?.message || 'Could not save carousel slide to database.', type: 'error' });
+    } finally {
+      setIsSaving(false);
+    }
   };
 
-  // Submit YouTube Video
-  const handlePublishVideo = (e: React.FormEvent) => {
+  // Submit YouTube Video (Awaits Confirmed Database Save)
+  const handlePublishVideo = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!videoUrl.trim()) {
       showToast({ title: 'URL Required', message: 'Please enter a YouTube video URL.', type: 'error' });
       return;
     }
 
+    setIsSaving(true);
     try {
-      addVideoItem({
+      await addVideoItem({
         youtubeUrl: videoUrl.trim(),
         title: videoTitle.trim() || 'Match Highlights & Tactical Analysis',
         published: true,
@@ -118,24 +129,27 @@ export default function AdminHomepageFeed() {
       setVideoTitle('');
       setIsVideoPreviewOpen(false);
 
-      showToast({ title: 'Highlight Video Published', message: 'Video added to homepage Highlights.', type: 'success' });
+      showToast({ title: 'Highlight Video Saved', message: 'Video saved to database and live on homepage.', type: 'success' });
     } catch (err: any) {
-      showToast({ title: 'Invalid URL', message: err.message || 'Could not parse YouTube link.', type: 'error' });
+      showToast({ title: 'Database Save Failed', message: err?.message || 'Could not save video to database.', type: 'error' });
+    } finally {
+      setIsSaving(false);
     }
   };
 
   const previewEmbedUrl = videoUrl ? normalizeYouTubeEmbedUrl(videoUrl) : null;
 
-  // Submit Custom Non-YouTube Embed
-  const handlePublishCustomEmbed = (e: React.FormEvent) => {
+  // Submit Custom Non-YouTube Embed (Awaits Confirmed Database Save)
+  const handlePublishCustomEmbed = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!customEmbedUrl.trim()) {
       showToast({ title: 'Embed Link Required', message: 'Please enter an embed URL or <iframe> snippet.', type: 'error' });
       return;
     }
 
+    setIsSaving(true);
     try {
-      addCustomEmbedItem({
+      await addCustomEmbedItem({
         embedUrl: customEmbedUrl.trim(),
         title: customEmbedCaption.trim() || 'Featured Media Embed',
         published: true,
@@ -145,9 +159,51 @@ export default function AdminHomepageFeed() {
       setCustomEmbedCaption('');
       setIsCustomPreviewOpen(false);
 
-      showToast({ title: 'Custom Embed Published', message: 'Embed added to homepage highlights.', type: 'success' });
+      showToast({ title: 'Custom Embed Saved', message: 'Embed saved to database and live on homepage.', type: 'success' });
     } catch (err: any) {
-      showToast({ title: 'Invalid Embed Link', message: err.message || 'Could not parse embed URL.', type: 'error' });
+      showToast({ title: 'Database Save Failed', message: err?.message || 'Could not save embed to database.', type: 'error' });
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  // Carousel Item Actions
+  const handleToggleCarousel = async (id: string) => {
+    try {
+      await toggleCarouselItemPublish(id);
+      showToast({ title: 'Updated', message: 'Carousel visibility updated in database.', type: 'info' });
+    } catch (err: any) {
+      showToast({ title: 'Update Failed', message: err?.message || 'Could not update carousel visibility.', type: 'error' });
+    }
+  };
+
+  const handleDeleteCarousel = async (id: string) => {
+    if (!confirm('Delete this carousel photo?')) return;
+    try {
+      await deleteCarouselItem(id);
+      showToast({ title: 'Photo Removed', message: 'Carousel slide removed from database.', type: 'info' });
+    } catch (err: any) {
+      showToast({ title: 'Delete Failed', message: err?.message || 'Could not delete carousel photo from database.', type: 'error' });
+    }
+  };
+
+  // Video Item Actions
+  const handleToggleVideo = async (id: string) => {
+    try {
+      await toggleVideoItemPublish(id);
+      showToast({ title: 'Updated', message: 'Video visibility updated in database.', type: 'info' });
+    } catch (err: any) {
+      showToast({ title: 'Update Failed', message: err?.message || 'Could not update video visibility.', type: 'error' });
+    }
+  };
+
+  const handleDeleteVideo = async (id: string) => {
+    if (!confirm('Delete this highlight from the feed?')) return;
+    try {
+      await deleteVideoItem(id);
+      showToast({ title: 'Highlight Removed', message: 'Video removed from database.', type: 'info' });
+    } catch (err: any) {
+      showToast({ title: 'Delete Failed', message: err?.message || 'Could not delete video from database.', type: 'error' });
     }
   };
 
@@ -253,9 +309,10 @@ export default function AdminHomepageFeed() {
           <div className="flex flex-wrap items-center gap-3 pt-2">
             <button
               type="submit"
-              className="bg-[#006C54] hover:bg-[#005441] text-white font-semibold text-xs px-5 py-2.5 rounded-xl transition-all cursor-pointer shadow-xs active:scale-95"
+              disabled={isSaving}
+              className="bg-[#006C54] hover:bg-[#005441] disabled:opacity-50 text-white font-semibold text-xs px-5 py-2.5 rounded-xl transition-all cursor-pointer shadow-xs active:scale-95"
             >
-              Publish to Homepage Carousel
+              {isSaving ? 'Saving to Database...' : 'Publish to Homepage Carousel'}
             </button>
 
             {photoUrl.trim() && (
@@ -287,9 +344,9 @@ export default function AdminHomepageFeed() {
               </div>
 
               {/* Exact Mock of Homepage Carousel 2-Column Layout */}
-              <div className="grid grid-cols-12 gap-4 items-center">
+              <div className="grid grid-cols-12 gap-4 items-start">
                 {/* Left: 3:4 Photo with faded edges & dots */}
-                <div className="col-span-5 sm:col-span-4 flex flex-col items-center">
+                <div className="col-span-5 sm:col-span-4 flex flex-col items-center justify-start">
                   <div className="relative w-full max-w-[180px] aspect-[3/4] rounded-2xl overflow-hidden shadow-2xl bg-black">
                     <img
                       src={photoUrl}
@@ -311,9 +368,9 @@ export default function AdminHomepageFeed() {
                   </div>
                 </div>
 
-                {/* Right: Heading on Top of Caption */}
-                <div className="col-span-7 sm:col-span-8 flex flex-col justify-center space-y-2 text-left pl-2">
-                  <h3 className="text-lg sm:text-2xl font-black text-white leading-tight tracking-tight">
+                {/* Right: Heading on Top of Caption (Aligned at Top with Gold Accent) */}
+                <div className="col-span-7 sm:col-span-8 flex flex-col justify-start space-y-2 text-left pl-2">
+                  <h3 className="text-lg sm:text-2xl font-black text-[#D4AF37] leading-tight tracking-tight">
                     {photoHeading || 'Match of the year is coming'}
                   </h3>
                   <p className="text-xs sm:text-sm text-slate-200/90 leading-relaxed font-normal">
@@ -377,7 +434,7 @@ export default function AdminHomepageFeed() {
                     <div className="flex items-center gap-1">
                       <button
                         type="button"
-                        onClick={() => toggleCarouselItemPublish(item.id)}
+                        onClick={() => handleToggleCarousel(item.id)}
                         className="px-2 py-0.5 rounded-lg text-[11px] font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 transition-colors cursor-pointer flex items-center gap-1"
                         title={item.published ? 'Omit from homepage' : 'Publish to homepage'}
                       >
@@ -394,12 +451,7 @@ export default function AdminHomepageFeed() {
 
                       <button
                         type="button"
-                        onClick={() => {
-                          if (confirm('Delete this carousel photo?')) {
-                            deleteCarouselItem(item.id);
-                            showToast({ title: 'Photo Removed', message: 'Carousel slide deleted.', type: 'info' });
-                          }
-                        }}
+                        onClick={() => handleDeleteCarousel(item.id)}
                         className="p-1 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
                         title="Delete photo"
                       >
@@ -465,9 +517,10 @@ export default function AdminHomepageFeed() {
           <div className="flex flex-wrap items-center gap-3 pt-2">
             <button
               type="submit"
-              className="bg-[#006C54] hover:bg-[#005441] text-white font-semibold text-xs px-5 py-2.5 rounded-xl transition-all cursor-pointer shadow-xs active:scale-95"
+              disabled={isSaving}
+              className="bg-[#006C54] hover:bg-[#005441] disabled:opacity-50 text-white font-semibold text-xs px-5 py-2.5 rounded-xl transition-all cursor-pointer shadow-xs active:scale-95"
             >
-              Publish Video Highlight
+              {isSaving ? 'Saving to Database...' : 'Publish Video Highlight'}
             </button>
 
             {previewEmbedUrl && (
@@ -557,9 +610,10 @@ export default function AdminHomepageFeed() {
             <div className="flex flex-wrap items-center gap-3 pt-2">
               <button
                 type="submit"
-                className="bg-[#006C54] hover:bg-[#005441] text-white font-semibold text-xs px-5 py-2.5 rounded-xl transition-all cursor-pointer shadow-xs active:scale-95"
+                disabled={isSaving}
+                className="bg-[#006C54] hover:bg-[#005441] disabled:opacity-50 text-white font-semibold text-xs px-5 py-2.5 rounded-xl transition-all cursor-pointer shadow-xs active:scale-95"
               >
-                Publish Custom Embed
+                {isSaving ? 'Saving to Database...' : 'Publish Custom Embed'}
               </button>
 
               {previewCustomEmbedUrl && (
@@ -656,7 +710,7 @@ export default function AdminHomepageFeed() {
                         <div className="flex items-center gap-1.5">
                           <button
                             type="button"
-                            onClick={() => toggleVideoItemPublish(v.id)}
+                            onClick={() => handleToggleVideo(v.id)}
                             className="px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 transition-colors cursor-pointer flex items-center gap-1"
                           >
                             {v.published ? (
@@ -672,12 +726,7 @@ export default function AdminHomepageFeed() {
 
                           <button
                             type="button"
-                            onClick={() => {
-                              if (confirm('Delete this highlight from the feed?')) {
-                                deleteVideoItem(v.id);
-                                showToast({ title: 'Highlight Removed', message: 'Item deleted from highlights.', type: 'info' });
-                              }
-                            }}
+                            onClick={() => handleDeleteVideo(v.id)}
                             className="p-1 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
                             title="Delete highlight"
                           >

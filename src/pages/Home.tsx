@@ -123,7 +123,7 @@ export default function Home() {
       {publishedPhotos.length > 0 && currentPhoto && (
         <section className="w-full bg-[#02241b] text-white">
           <div
-            className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 relative overflow-hidden"
+            className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 relative overflow-hidden"
             onTouchStart={handleCarouselTouchStart}
             onTouchMove={handleCarouselTouchMove}
             onTouchEnd={handleCarouselTouchEnd}
@@ -138,11 +138,11 @@ export default function Home() {
               </h1>
             </div>
 
-            {/* 2-Column Console Layout: Photo on Left, Text on Right (Both Desktop & Mobile) */}
-            <div className="grid grid-cols-12 gap-3 sm:gap-6 lg:gap-10 items-center relative z-10">
+            {/* 2-Column Console Layout: Photo on Left, Text on Right (Aligned at Top) */}
+            <div className="grid grid-cols-12 gap-3 sm:gap-6 lg:gap-10 items-start relative z-10">
               {/* LEFT SIDE: 3:4 Photo with faded edges and bottom dots */}
-              <div className="col-span-5 sm:col-span-4 lg:col-span-4 flex flex-col items-center justify-center">
-                <div className="relative w-full max-w-[140px] sm:max-w-[240px] lg:max-w-[320px] aspect-[3/4] rounded-xl sm:rounded-2xl lg:rounded-3xl overflow-hidden shadow-[0_12px_36px_rgba(0,0,0,0.6)] bg-black/90">
+              <div className="col-span-6 sm:col-span-5 lg:col-span-4 flex flex-col items-center justify-start">
+                <div className="relative w-full max-w-[170px] sm:max-w-[240px] lg:max-w-[320px] aspect-[3/4] rounded-xl sm:rounded-2xl lg:rounded-3xl overflow-hidden shadow-[0_12px_36px_rgba(0,0,0,0.6)] bg-black/90">
                   {/* Active Photo */}
                   <img
                     src={currentPhoto.imageUrl}
@@ -177,9 +177,9 @@ export default function Home() {
                 )}
               </div>
 
-              {/* RIGHT SIDE: Big News Heading on TOP of Smaller Caption Text */}
-              <div className="col-span-7 sm:col-span-8 lg:col-span-8 flex flex-col justify-center space-y-2 sm:space-y-4 text-left pl-1 sm:pl-4 lg:pl-6">
-                <h2 className="text-base sm:text-2xl md:text-4xl lg:text-5xl xl:text-6xl font-black text-white leading-tight tracking-tight drop-shadow-sm">
+              {/* RIGHT SIDE: Big News Heading in Gold Accent on TOP of Smaller Caption Text (Aligned at Top) */}
+              <div className="col-span-6 sm:col-span-7 lg:col-span-8 flex flex-col justify-start space-y-2 sm:space-y-4 text-left pl-1 sm:pl-4 lg:pl-6">
+                <h2 className="text-base sm:text-2xl md:text-4xl lg:text-5xl xl:text-6xl font-black text-[#D4AF37] leading-tight tracking-tight drop-shadow-sm">
                   {currentPhoto.heading || currentPhoto.caption?.slice(0, 42) || 'Match of the year is coming'}
                 </h2>
 
