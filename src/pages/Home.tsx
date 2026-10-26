@@ -347,10 +347,16 @@ export default function Home() {
                   >
                     {/* Responsive 16:9 Video Player / Thumbnail Area */}
                     <div className="relative w-full aspect-[16/9] bg-black overflow-hidden group select-none">
-                      {isPlaying && videoId ? (
-                        /* Native YouTube Iframe (Autoplay with full native controls) */
+                      {isPlaying && (videoId || video.embedUrl) ? (
+                        /* Native Video Iframe (Autoplay immediately without secondary YouTube button) */
                         <iframe
-                          src={`https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0&modestbranding=1`}
+                          src={
+                            videoId
+                              ? `https://www.youtube.com/embed/${videoId}?autoplay=1&playsinline=1&enablejsapi=1&rel=0&modestbranding=1`
+                              : video.embedUrl?.includes('?')
+                              ? `${video.embedUrl}&autoplay=1&playsinline=1`
+                              : `${video.embedUrl}?autoplay=1&playsinline=1`
+                          }
                           title={video.title}
                           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                           allowFullScreen
@@ -428,9 +434,15 @@ export default function Home() {
                     >
                       {/* Responsive 16:9 Video Player / Thumbnail Area */}
                       <div className="relative w-full aspect-[16/9] bg-black overflow-hidden group select-none">
-                        {isPlaying && videoId ? (
+                        {isPlaying && (videoId || video.embedUrl) ? (
                           <iframe
-                            src={`https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0&modestbranding=1`}
+                            src={
+                              videoId
+                                ? `https://www.youtube.com/embed/${videoId}?autoplay=1&playsinline=1&enablejsapi=1&rel=0&modestbranding=1`
+                                : video.embedUrl?.includes('?')
+                                ? `${video.embedUrl}&autoplay=1&playsinline=1`
+                                : `${video.embedUrl}?autoplay=1&playsinline=1`
+                            }
                             title={video.title}
                             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                             allowFullScreen
@@ -477,7 +489,7 @@ export default function Home() {
 
                       {/* Video Title Row */}
                       <div
-                        className={`p-3.5 flex items-center justify-between gap-3 bg-white ${!isPlaying ? 'cursor-pointer' : ''}`}
+                        className={`p-3.5 flex items-center gap-3 bg-white ${!isPlaying ? 'cursor-pointer' : ''}`}
                         onClick={() => !isPlaying && handlePlayVideo(video)}
                       >
                         <div className="flex items-start gap-2 min-w-0">
@@ -488,9 +500,6 @@ export default function Home() {
                             {video.title}
                           </h3>
                         </div>
-                        <span className="text-[11px] tabular-nums font-semibold text-slate-400 shrink-0">
-                          {idx + 1}/{publishedVideos.length}
-                        </span>
                       </div>
                     </div>
                   );
