@@ -26,7 +26,7 @@ const DEFAULT_FEED: HomepageFeedData = {
       imageUrl: '/images/hero-striker.jpg',
       heading: 'Match of the year is coming',
       caption: 'Hazard magic has Chelsea sitting pretty at the top of the Premier League table with tactical dominance and decisive finishing.',
-      published: true,
+      published: false,
       createdAt: '2026-10-22T00:00:00.000Z',
     },
     {
@@ -34,7 +34,7 @@ const DEFAULT_FEED: HomepageFeedData = {
       imageUrl: '/images/celebration.jpg',
       heading: 'Derby day showdown across Europe',
       caption: 'Community consensus rallies behind a massive weekend derby slate across Europe with record pundit engagement.',
-      published: true,
+      published: false,
       createdAt: '2026-10-22T00:00:00.000Z',
     },
     {
@@ -42,7 +42,7 @@ const DEFAULT_FEED: HomepageFeedData = {
       imageUrl: '/images/match-action.jpg',
       heading: 'Continental supremacy on the line',
       caption: 'High-stakes continental drama unfolds as top contenders battle for supremacy in the knockout tournament rounds.',
-      published: true,
+      published: false,
       createdAt: '2026-10-22T00:00:00.000Z',
     },
   ],

@@ -269,13 +269,13 @@ export default function Home() {
       {publishedPhotos.length > 0 && currentPhoto && (
         <section className="w-full bg-[#02241b] text-white">
           <div
-            className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 relative overflow-hidden"
+            className="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8 py-10 sm:py-16 relative overflow-hidden"
             onTouchStart={handleCarouselTouchStart}
             onTouchMove={handleCarouselTouchMove}
             onTouchEnd={handleCarouselTouchEnd}
           >
             {/* Section Heading in Crisp White with NO background and NO border */}
-            <div className="text-left mb-6 sm:mb-10 relative z-10">
+            <div className="text-left mb-5 sm:mb-10 relative z-10 px-1 sm:px-0">
               <span className="text-white font-bold text-xs uppercase tracking-wider block mb-1.5">
                 Weekly Editorial
               </span>
@@ -284,12 +284,12 @@ export default function Home() {
               </h1>
             </div>
 
-            {/* 2-Column Console Layout: Photo on Left (Enlarged on Mobile), Text on Right (Pushed to Right Edge) */}
-            <div className="grid grid-cols-12 gap-3 sm:gap-6 lg:gap-10 items-start relative z-10">
-              {/* LEFT SIDE: 3:4 Photo with faded edges and bottom dots (Enlarged & Prominent on Mobile) */}
-              <div className="col-span-7 sm:col-span-5 lg:col-span-4 flex flex-col items-start sm:items-center justify-start">
+            {/* 2-Column Console Layout: Photo on Left (Enlarged Horizontally & Vertically on Mobile), Text on Right (Pushed to Right Edge) */}
+            <div className="grid grid-cols-12 gap-1.5 sm:gap-6 lg:gap-10 items-start relative z-10">
+              {/* LEFT SIDE: 3:4 Photo with faded edges and bottom dots (Enlarged on Mobile) */}
+              <div className="col-span-8 sm:col-span-5 lg:col-span-4 flex flex-col items-start sm:items-center justify-start">
                 <div
-                  className={`relative w-full max-w-[270px] sm:max-w-[290px] lg:max-w-[340px] aspect-[3/4] min-h-[290px] sm:min-h-[360px] lg:min-h-[420px] rounded-2xl sm:rounded-2xl lg:rounded-3xl overflow-hidden shadow-[0_12px_36px_rgba(0,0,0,0.65)] bg-black/90 transition-opacity duration-500 ease-in-out ${
+                  className={`relative w-full max-w-[310px] sm:max-w-[290px] lg:max-w-[340px] aspect-[3/4] min-h-[350px] sm:min-h-[360px] lg:min-h-[420px] rounded-2xl sm:rounded-2xl lg:rounded-3xl overflow-hidden shadow-[0_12px_36px_rgba(0,0,0,0.65)] bg-black/90 transition-opacity duration-500 ease-in-out ${
                     isCarouselFading ? 'opacity-0' : 'opacity-100'
                   }`}
                 >
@@ -316,7 +316,7 @@ export default function Home() {
 
                 {/* Minimalist Bottom Indicator (Capped at 5 dots max with smooth sliding window) */}
                 {publishedPhotos.length > 1 && (
-                  <div className="flex items-center justify-center gap-1.5 sm:gap-2 mt-3 sm:mt-5 select-none w-full max-w-[270px] sm:max-w-[290px] lg:max-w-[340px]" aria-label="Carousel pagination">
+                  <div className="flex items-center justify-center gap-1.5 sm:gap-2 mt-3 sm:mt-5 select-none w-full max-w-[310px] sm:max-w-[290px] lg:max-w-[340px]" aria-label="Carousel pagination">
                     {visibleDotIndices.map((slideIdx) => (
                       <button
                         key={slideIdx}
@@ -337,19 +337,19 @@ export default function Home() {
 
               {/* RIGHT SIDE: Big News Heading in Gold Accent on TOP of Smaller Caption Text (Pushed to Right Edge) */}
               <div
-                className={`col-span-5 sm:col-span-7 lg:col-span-8 flex flex-col justify-start space-y-1.5 sm:space-y-4 text-left pl-2.5 sm:pl-4 lg:pl-6 transition-opacity duration-500 ease-in-out ${
+                className={`col-span-4 sm:col-span-7 lg:col-span-8 flex flex-col justify-start space-y-1.5 sm:space-y-4 text-left pl-1 sm:pl-4 lg:pl-6 pr-1 sm:pr-0 transition-opacity duration-500 ease-in-out ${
                   isCarouselFading ? 'opacity-0' : 'opacity-100'
                 }`}
               >
                 {currentPhoto.heading && currentPhoto.heading.trim() ? (
-                  <h2 className="text-base sm:text-2xl md:text-4xl lg:text-5xl xl:text-6xl font-black text-[#D4AF37] leading-tight tracking-tight drop-shadow-sm">
+                  <h2 className="text-xs sm:text-2xl md:text-4xl lg:text-5xl xl:text-6xl font-black text-[#D4AF37] leading-snug sm:leading-tight tracking-tight drop-shadow-sm">
                     {currentPhoto.heading}
                   </h2>
                 ) : null}
 
                 {/* On mobile and desktop: When no caption is written, leave it empty (no placeholder/default text) */}
                 {currentPhoto.caption && currentPhoto.caption.trim() ? (
-                  <p className="text-[11px] sm:text-xs md:text-sm lg:text-base text-slate-200/90 leading-relaxed font-normal max-w-xl">
+                  <p className="text-[10px] sm:text-xs md:text-sm lg:text-base text-slate-200/90 leading-normal sm:leading-relaxed font-normal max-w-xl">
                     {currentPhoto.caption}
                   </p>
                 ) : null}
@@ -359,7 +359,7 @@ export default function Home() {
                     href={currentPhoto.link}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1.5 sm:gap-2 text-[10px] sm:text-xs font-bold text-[#4ADE80] hover:text-[#22c55e] transition-colors uppercase tracking-wider pt-1 sm:pt-2 group w-fit"
+                    className="inline-flex items-center gap-1 sm:gap-2 text-[9px] sm:text-xs font-bold text-[#4ADE80] hover:text-[#22c55e] transition-colors uppercase tracking-wider pt-0.5 sm:pt-2 group w-fit"
                   >
                     <span>Continue Reading</span>
                     <span className="group-hover:translate-x-1 transition-transform">→</span>
