@@ -32,8 +32,30 @@ export default function Home() {
   const publishedPhotos = feed.carouselItems.filter((i) => i.published);
   const publishedVideos = feed.videoItems.filter((v) => v.published);
 
-  // Active Carousel Slide Index
+  // Active Carousel Slide Index & 1-Second Smooth Fade State
   const [activeCarouselIndex, setActiveCarouselIndex] = useState(0);
+  const [isCarouselFading, setIsCarouselFading] = useState(false);
+  const isTransitioningRef = useRef(false);
+  const activeIndexRef = useRef(0);
+
+  useEffect(() => {
+    activeIndexRef.current = activeCarouselIndex;
+  }, [activeCarouselIndex]);
+
+  // Smooth slide change function: 500ms fade-out, swap slide, 500ms fade-in = 1 second smooth transition
+  const goToSlide = (nextIdx: number) => {
+    if (isTransitioningRef.current || nextIdx === activeIndexRef.current) return;
+    isTransitioningRef.current = true;
+    setIsCarouselFading(true);
+
+    setTimeout(() => {
+      setActiveCarouselIndex(nextIdx);
+      setIsCarouselFading(false);
+      setTimeout(() => {
+        isTransitioningRef.current = false;
+      }, 500);
+    }, 500);
+  };
 
   // Active playing video ID (thumbnail-first playback)
   const [activeVideoId, setActiveVideoId] = useState<string | null>(null);
@@ -44,13 +66,13 @@ export default function Home() {
   // Carousel Next / Prev Navigation
   const nextSlide = () => {
     if (publishedPhotos.length > 0) {
-      setActiveCarouselIndex((prev) => (prev + 1) % publishedPhotos.length);
+      goToSlide((activeIndexRef.current + 1) % publishedPhotos.length);
     }
   };
 
   const prevSlide = () => {
     if (publishedPhotos.length > 0) {
-      setActiveCarouselIndex((prev) => (prev - 1 + publishedPhotos.length) % publishedPhotos.length);
+      goToSlide((activeIndexRef.current - 1 + publishedPhotos.length) % publishedPhotos.length);
     }
   };
 
@@ -78,11 +100,12 @@ export default function Home() {
     }
   };
 
-  // 6-Second Automatic Carousel Rotation without user interaction
+  // 6-Second Automatic Carousel Rotation with 1-Second Fade Transition
   useEffect(() => {
     if (publishedPhotos.length <= 1) return;
     const interval = setInterval(() => {
-      setActiveCarouselIndex((prev) => (prev + 1) % publishedPhotos.length);
+      const nextIdx = (activeIndexRef.current + 1) % publishedPhotos.length;
+      goToSlide(nextIdx);
     }, 6000);
     return () => clearInterval(interval);
   }, [publishedPhotos.length]);
@@ -202,14 +225,24 @@ export default function Home() {
             <div className="grid grid-cols-12 gap-3 sm:gap-6 lg:gap-10 items-start relative z-10">
               {/* LEFT SIDE: 3:4 Photo with faded edges and bottom dots (Enlarged & Prominent on Mobile) */}
               <div className="col-span-7 sm:col-span-5 lg:col-span-4 flex flex-col items-start sm:items-center justify-start">
-                <div className="relative w-full max-w-[270px] sm:max-w-[290px] lg:max-w-[340px] aspect-[3/4] rounded-2xl sm:rounded-2xl lg:rounded-3xl overflow-hidden shadow-[0_12px_36px_rgba(0,0,0,0.65)] bg-black/90">
-                  {/* Active Photo */}
+                <div
+                  className={`relative w-full max-w-[270px] sm:max-w-[290px] lg:max-w-[340px] aspect-[3/4] min-h-[290px] sm:min-h-[360px] lg:min-h-[420px] rounded-2xl sm:rounded-2xl lg:rounded-3xl overflow-hidden shadow-[0_12px_36px_rgba(0,0,0,0.65)] bg-black/90 transition-opacity duration-500 ease-in-out ${
+                    isCarouselFading ? 'opacity-0' : 'opacity-100'
+                  }`}
+                >
+                  {/* Active Photo with High-Priority Eager Loading & Verified Image Fallback */}
                   <img
-                    src={currentPhoto.imageUrl}
+                    src={currentPhoto.imageUrl || '/images/hero-striker.jpg'}
                     alt={currentPhoto.heading || currentPhoto.caption || 'Active carousel story'}
-                    referrerPolicy="no-referrer"
-                    loading="lazy"
-                    className="w-full h-full object-cover transition-all duration-700 ease-out"
+                    loading="eager"
+                    decoding="async"
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      const target = e.currentTarget;
+                      if (!target.src.includes('hero-striker.jpg')) {
+                        target.src = '/images/hero-striker.jpg';
+                      }
+                    }}
                   />
 
                   {/* Gracefully Faded Edges into Uniform Green Background */}
@@ -225,7 +258,7 @@ export default function Home() {
                       <button
                         key={idx}
                         type="button"
-                        onClick={() => setActiveCarouselIndex(idx)}
+                        onClick={() => goToSlide(idx)}
                         className={`transition-all duration-300 rounded-full cursor-pointer focus:outline-none ${
                           idx === activeCarouselIndex
                             ? 'w-5 sm:w-7 h-1.5 sm:h-2 bg-[#4ADE80] shadow-[0_0_8px_#4ADE80]'
@@ -240,7 +273,11 @@ export default function Home() {
               </div>
 
               {/* RIGHT SIDE: Big News Heading in Gold Accent on TOP of Smaller Caption Text (Pushed to Right Edge) */}
-              <div className="col-span-5 sm:col-span-7 lg:col-span-8 flex flex-col justify-start space-y-1.5 sm:space-y-4 text-left pl-2.5 sm:pl-4 lg:pl-6">
+              <div
+                className={`col-span-5 sm:col-span-7 lg:col-span-8 flex flex-col justify-start space-y-1.5 sm:space-y-4 text-left pl-2.5 sm:pl-4 lg:pl-6 transition-opacity duration-500 ease-in-out ${
+                  isCarouselFading ? 'opacity-0' : 'opacity-100'
+                }`}
+              >
                 {currentPhoto.heading && currentPhoto.heading.trim() ? (
                   <h2 className="text-base sm:text-2xl md:text-4xl lg:text-5xl xl:text-6xl font-black text-[#D4AF37] leading-tight tracking-tight drop-shadow-sm">
                     {currentPhoto.heading}

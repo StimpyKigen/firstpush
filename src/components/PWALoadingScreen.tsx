@@ -38,11 +38,8 @@ export default function PWALoadingScreen() {
     }
     setIsPwa(true);
 
-    // Preload all club logo images and pitch textures
-    const assetsToPreload = [
-      ...CLUB_LOGOS,
-      '/images/auth-pitch-bg.jpg',
-    ];
+    // Preload all club logo images
+    const assetsToPreload = [...CLUB_LOGOS];
 
     let loadedCount = 0;
     const totalAssets = assetsToPreload.length;
@@ -100,14 +97,14 @@ export default function PWALoadingScreen() {
 
   return (
     <div
-      className={`fixed inset-0 z-[999999] w-screen h-screen overflow-hidden bg-[#0b1015] flex flex-col items-center justify-center select-none transition-opacity duration-700 ease-out ${
+      className={`fixed inset-0 z-[999999] w-screen h-screen overflow-hidden bg-black flex flex-col items-center justify-center select-none transition-opacity duration-700 ease-out ${
         isExiting ? 'opacity-0 pointer-events-none' : 'opacity-100'
       }`}
       aria-label="MshindiRoom Application Loading"
       role="dialog"
       aria-modal="true"
     >
-      {/* Animated Motion Grid Background with Shuffled Club Logos */}
+      {/* Animated Motion Grid Background with Shuffled Club Logos in Full Vibrant Colors */}
       <div className="absolute inset-0 w-full h-full overflow-hidden pointer-events-none">
         {assetsLoaded && shuffledLogos.length > 0 && (
           <GridMotion
@@ -121,23 +118,13 @@ export default function PWALoadingScreen() {
             speed={20}
             direction="alternate"
             parallax={0}
-            spotlight={0.65}
-            dim={0.45}
-            fade={0.35}
+            spotlight={0}
+            dim={0}
+            fade={0}
             grayscale={false}
+            tileColor="#12161f"
           />
         )}
-      </div>
-
-      {/* Atmospheric Pitch Overlay */}
-      <div className="absolute inset-0 pointer-events-none">
-        <img
-          src="/images/auth-pitch-bg.jpg"
-          alt=""
-          className="w-full h-full object-cover opacity-35 mix-blend-overlay"
-        />
-        {/* Radial vignette spotlight */}
-        <div className="absolute inset-0 bg-radial from-transparent via-[#0b1015]/50 to-[#0b1015]/95" />
       </div>
     </div>
   );
