@@ -225,7 +225,7 @@ export default function AdminHomepageFeed() {
                 className="w-full bg-[#FFFFF0] border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#006C54] focus:ring-1 focus:ring-[#006C54] transition-all"
               />
               <span className="text-[11px] text-slate-400 mt-1 block">
-                Prominent large white headline displayed on the left side of the slide.
+                Prominent headline displayed on the right side, directly on top of the caption.
               </span>
             </div>
 
@@ -236,14 +236,14 @@ export default function AdminHomepageFeed() {
               </label>
               <textarea
                 rows={3}
-                placeholder="Enter the detailed story description or narrative text to display on the right side..."
+                placeholder="Enter the detailed story description or narrative text to display below the heading..."
                 value={photoCaption}
                 onChange={(e) => setPhotoCaption(e.target.value)}
                 maxLength={300}
                 className="w-full bg-[#FFFFF0] border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#006C54] focus:ring-1 focus:ring-[#006C54] transition-all resize-none"
               />
               <div className="flex justify-between items-center text-[11px] text-slate-400 mt-1">
-                <span>Displayed in smaller, elegant text on the right side that never cuts into the photo.</span>
+                <span>Displayed in smaller, elegant text directly beneath the heading on the right side.</span>
                 <span>{photoCaption.length} / 300</span>
               </div>
             </div>
@@ -270,9 +270,9 @@ export default function AdminHomepageFeed() {
             )}
           </div>
 
-          {/* Visual Preview Box (Exact Mock of Faded Green Layout with 3:4 Photo, Left Heading & Right Caption) */}
+          {/* Visual Preview Box (Exact Mock of Uniform Green Layout with 3:4 Photo Left & Heading/Caption Right) */}
           {isPhotoPreviewOpen && photoUrl.trim() && (
-            <div className="mt-4 p-5 bg-gradient-to-b from-[#02241b] via-[#032e23] to-[#011c15] border border-[#054d3c] rounded-3xl text-white shadow-xl">
+            <div className="mt-4 p-5 bg-[#02241b] border border-[#054d3c] rounded-3xl text-white shadow-xl">
               <div className="flex items-center justify-between mb-4 border-b border-white/10 pb-2">
                 <span className="text-xs font-bold text-[#4ADE80] uppercase tracking-wider">
                   Live Visual Confirmation Preview
@@ -286,21 +286,11 @@ export default function AdminHomepageFeed() {
                 </button>
               </div>
 
-              {/* Exact Mock of Homepage Carousel Layout */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-center">
-                {/* Left: Heading */}
-                <div className="space-y-2">
-                  <span className="inline-block px-2.5 py-0.5 rounded-full bg-white/10 text-white/80 text-[10px] font-bold uppercase tracking-wider">
-                    NEW · Editorial Preview
-                  </span>
-                  <h3 className="text-2xl sm:text-3xl font-black text-white leading-tight tracking-tight">
-                    {photoHeading || 'Match of the year is coming'}
-                  </h3>
-                </div>
-
-                {/* Center: 3:4 Photo with faded edges */}
-                <div className="flex flex-col items-center">
-                  <div className="relative w-full max-w-[220px] aspect-[3/4] rounded-2xl overflow-hidden shadow-2xl bg-black">
+              {/* Exact Mock of Homepage Carousel 2-Column Layout */}
+              <div className="grid grid-cols-12 gap-4 items-center">
+                {/* Left: 3:4 Photo with faded edges & dots */}
+                <div className="col-span-5 sm:col-span-4 flex flex-col items-center">
+                  <div className="relative w-full max-w-[180px] aspect-[3/4] rounded-2xl overflow-hidden shadow-2xl bg-black">
                     <img
                       src={photoUrl}
                       alt="Preview"
@@ -310,23 +300,24 @@ export default function AdminHomepageFeed() {
                       }}
                     />
                     {/* Faded edges overlay */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-[#02241b]/80 via-transparent to-[#02241b]/30 pointer-events-none" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-[#02241b] via-transparent to-[#02241b]/30 pointer-events-none" />
+                    <div className="absolute inset-0 bg-gradient-to-r from-[#02241b]/50 via-transparent to-[#02241b]/50 pointer-events-none" />
                   </div>
                   {/* Minimalist dots indicator */}
-                  <div className="flex items-center gap-1.5 mt-3">
+                  <div className="flex items-center gap-1.5 mt-2.5">
                     <span className="w-5 h-1.5 rounded-full bg-[#4ADE80]" />
                     <span className="w-1.5 h-1.5 rounded-full bg-white/30" />
                     <span className="w-1.5 h-1.5 rounded-full bg-white/30" />
                   </div>
                 </div>
 
-                {/* Right: Caption */}
-                <div className="space-y-2">
-                  <span className="text-[10px] font-bold text-white/50 uppercase tracking-widest block">
-                    Story Summary
-                  </span>
-                  <p className="text-xs text-slate-300 leading-relaxed">
-                    {photoCaption || 'Detailed narrative description will render here on the right side of the photo console without overlapping.'}
+                {/* Right: Heading on Top of Caption */}
+                <div className="col-span-7 sm:col-span-8 flex flex-col justify-center space-y-2 text-left pl-2">
+                  <h3 className="text-lg sm:text-2xl font-black text-white leading-tight tracking-tight">
+                    {photoHeading || 'Match of the year is coming'}
+                  </h3>
+                  <p className="text-xs sm:text-sm text-slate-200/90 leading-relaxed font-normal">
+                    {photoCaption || 'Detailed narrative description will render here directly underneath the heading on the right side of the photo console.'}
                   </p>
                 </div>
               </div>

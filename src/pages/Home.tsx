@@ -113,26 +113,21 @@ export default function Home() {
 
       {/* =========================================================================
           1. WEEKLY EDITORIAL NEWS (REDESIGNED CAROUSEL CONSOLE)
-          - Edge-to-edge full width faded green background with NO borders
-          - Hugging the top and bottom separator
+          - Uniform faded green background (#02241b) across the entire section
+          - Edge-to-edge full width with NO borders, hugging top & bottom separator
           - 'Weekly Editorial' in pure white with no background/border
-          - Left: Big news heading (words cutting in slightly over the photo on desktop)
-          - Center: Single active card (3:4 aspect ratio with gracefully faded edges)
-          - Bottom: Minimalist dots indicator
-          - Right: Caption in smaller font (never cuts into the photo)
+          - Left: 3:4 active photo alone with smoothly faded edges & dots below
+          - Right: Big news heading on top of the smaller caption text
+          - Mobile: Side-by-side (photo on left, text on right) with proportional text
           ========================================================================= */}
       {publishedPhotos.length > 0 && currentPhoto && (
-        <section className="w-full bg-gradient-to-b from-[#02241b] via-[#032e23] to-[#011c15] text-white">
+        <section className="w-full bg-[#02241b] text-white">
           <div
             className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 relative overflow-hidden"
             onTouchStart={handleCarouselTouchStart}
             onTouchMove={handleCarouselTouchMove}
             onTouchEnd={handleCarouselTouchEnd}
           >
-            {/* Ambient subtle green glow backdrops */}
-            <div className="absolute -top-32 -left-32 w-80 h-80 bg-[#006C54]/25 rounded-full filter blur-3xl pointer-events-none" />
-            <div className="absolute -bottom-32 -right-32 w-80 h-80 bg-[#00A87E]/20 rounded-full filter blur-3xl pointer-events-none" />
-
             {/* Section Heading in Crisp White with NO background and NO border */}
             <div className="text-left mb-6 sm:mb-10 relative z-10">
               <span className="text-white font-bold text-xs uppercase tracking-wider block mb-1.5">
@@ -143,30 +138,11 @@ export default function Home() {
               </h1>
             </div>
 
-            {/* 3-Column Console Layout (Desktop) / Stacked (Mobile) */}
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-4 items-center relative z-10">
-              {/* LEFT SIDE: Big News Heading (Words cutting in slightly over photo if necessary) */}
-              <div className="lg:col-span-4 flex flex-col justify-center space-y-4 text-left z-20 xl:-mr-8">
-                <h2 className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-black text-white leading-[1.06] tracking-tight drop-shadow-md">
-                  {currentPhoto.heading || currentPhoto.caption?.slice(0, 42) || 'Match of the year is coming'}
-                </h2>
-
-                {currentPhoto.link && (
-                  <a
-                    href={currentPhoto.link}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 text-xs font-bold text-[#4ADE80] hover:text-[#22c55e] transition-colors uppercase tracking-wider pt-2 group w-fit"
-                  >
-                    <span>Continue Reading</span>
-                    <span className="group-hover:translate-x-1 transition-transform">→</span>
-                  </a>
-                )}
-              </div>
-
-              {/* CENTER CONSOLE: The Active Photo Alone (3:4 Aspect Ratio, Edges Fading Gracefully) */}
-              <div className="lg:col-span-4 flex flex-col items-center justify-center relative z-10 my-2 lg:my-0">
-                <div className="relative w-full max-w-[280px] sm:max-w-[320px] lg:max-w-[340px] aspect-[3/4] rounded-3xl overflow-hidden shadow-[0_12px_40px_rgba(0,0,0,0.65)] bg-black/90">
+            {/* 2-Column Console Layout: Photo on Left, Text on Right (Both Desktop & Mobile) */}
+            <div className="grid grid-cols-12 gap-3 sm:gap-6 lg:gap-10 items-center relative z-10">
+              {/* LEFT SIDE: 3:4 Photo with faded edges and bottom dots */}
+              <div className="col-span-5 sm:col-span-4 lg:col-span-4 flex flex-col items-center justify-center">
+                <div className="relative w-full max-w-[140px] sm:max-w-[240px] lg:max-w-[320px] aspect-[3/4] rounded-xl sm:rounded-2xl lg:rounded-3xl overflow-hidden shadow-[0_12px_36px_rgba(0,0,0,0.6)] bg-black/90">
                   {/* Active Photo */}
                   <img
                     src={currentPhoto.imageUrl}
@@ -174,15 +150,15 @@ export default function Home() {
                     className="w-full h-full object-cover transition-all duration-700 ease-out"
                   />
 
-                  {/* Gracefully Faded Edges into Faded Green Background */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-[#011c15] via-transparent to-[#02241b]/40 pointer-events-none" />
-                  <div className="absolute inset-0 bg-gradient-to-r from-[#02241b]/60 via-transparent to-[#02241b]/60 pointer-events-none" />
-                  <div className="absolute inset-0 ring-1 ring-inset ring-white/15 rounded-3xl pointer-events-none" />
+                  {/* Gracefully Faded Edges into Uniform Green Background */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#02241b] via-transparent to-[#02241b]/30 pointer-events-none" />
+                  <div className="absolute inset-0 bg-gradient-to-r from-[#02241b]/50 via-transparent to-[#02241b]/50 pointer-events-none" />
+                  <div className="absolute inset-0 ring-1 ring-inset ring-white/10 rounded-xl sm:rounded-2xl lg:rounded-3xl pointer-events-none" />
                 </div>
 
                 {/* Minimalist Bottom Indicator (Dots directly under the photo) */}
                 {publishedPhotos.length > 1 && (
-                  <div className="flex items-center justify-center gap-2 mt-5 select-none" aria-label="Carousel pagination">
+                  <div className="flex items-center justify-center gap-1.5 sm:gap-2 mt-3 sm:mt-5 select-none" aria-label="Carousel pagination">
                     {publishedPhotos.map((_, idx) => (
                       <button
                         key={idx}
@@ -190,8 +166,8 @@ export default function Home() {
                         onClick={() => setActiveCarouselIndex(idx)}
                         className={`transition-all duration-300 rounded-full cursor-pointer focus:outline-none ${
                           idx === activeCarouselIndex
-                            ? 'w-7 h-2 bg-[#4ADE80] shadow-[0_0_10px_#4ADE80]'
-                            : 'w-2 h-2 bg-white/30 hover:bg-white/60'
+                            ? 'w-5 sm:w-7 h-1.5 sm:h-2 bg-[#4ADE80] shadow-[0_0_8px_#4ADE80]'
+                            : 'w-1.5 sm:w-2 h-1.5 sm:h-2 bg-white/30 hover:bg-white/60'
                         }`}
                         aria-label={`Go to slide ${idx + 1} of ${publishedPhotos.length}`}
                         aria-current={idx === activeCarouselIndex ? 'true' : 'false'}
@@ -201,11 +177,27 @@ export default function Home() {
                 )}
               </div>
 
-              {/* RIGHT SIDE: Carousel Caption (Smaller font size, never cuts into the photo) */}
-              <div className="lg:col-span-4 flex flex-col justify-center space-y-3 text-left lg:pl-6 z-10">
-                <p className="text-xs sm:text-sm text-slate-200/90 leading-relaxed font-normal max-w-sm">
+              {/* RIGHT SIDE: Big News Heading on TOP of Smaller Caption Text */}
+              <div className="col-span-7 sm:col-span-8 lg:col-span-8 flex flex-col justify-center space-y-2 sm:space-y-4 text-left pl-1 sm:pl-4 lg:pl-6">
+                <h2 className="text-base sm:text-2xl md:text-4xl lg:text-5xl xl:text-6xl font-black text-white leading-tight tracking-tight drop-shadow-sm">
+                  {currentPhoto.heading || currentPhoto.caption?.slice(0, 42) || 'Match of the year is coming'}
+                </h2>
+
+                <p className="text-[11px] sm:text-xs md:text-sm lg:text-base text-slate-200/90 leading-relaxed font-normal max-w-xl">
                   {currentPhoto.caption || 'Hazard magic has Chelsea sitting pretty at the top of the Premier League table with tactical dominance and decisive finishing.'}
                 </p>
+
+                {currentPhoto.link && (
+                  <a
+                    href={currentPhoto.link}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 sm:gap-2 text-[10px] sm:text-xs font-bold text-[#4ADE80] hover:text-[#22c55e] transition-colors uppercase tracking-wider pt-1 sm:pt-2 group w-fit"
+                  >
+                    <span>Continue Reading</span>
+                    <span className="group-hover:translate-x-1 transition-transform">→</span>
+                  </a>
+                )}
               </div>
             </div>
           </div>
