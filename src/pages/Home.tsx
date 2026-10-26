@@ -1,4 +1,4 @@
-import React, { useState, useSyncExternalStore, useRef } from 'react';
+import React, { useState, useEffect, useSyncExternalStore, useRef } from 'react';
 import { Play } from 'lucide-react';
 import SeoHead from '../components/SeoHead';
 import {
@@ -78,6 +78,66 @@ export default function Home() {
     }
   };
 
+  // 3-Second Automatic Carousel Rotation without user interaction
+  useEffect(() => {
+    if (publishedPhotos.length <= 1) return;
+    const interval = setInterval(() => {
+      setActiveCarouselIndex((prev) => (prev + 1) % publishedPhotos.length);
+    }, 3000);
+    return () => clearInterval(interval);
+  }, [publishedPhotos.length]);
+
+  // Outside Tap (Not Scroll) Detection to Pause Active Video & Return Mshindi Play Button
+  useEffect(() => {
+    if (!activeVideoId) return;
+
+    let pointerStartX = 0;
+    let pointerStartY = 0;
+    let hasScrolled = false;
+
+    const onPointerDown = (e: MouseEvent | TouchEvent) => {
+      const x = 'touches' in e ? e.touches[0].clientX : e.clientX;
+      const y = 'touches' in e ? e.touches[0].clientY : e.clientY;
+      pointerStartX = x;
+      pointerStartY = y;
+      hasScrolled = false;
+    };
+
+    const onPointerMove = (e: MouseEvent | TouchEvent) => {
+      const x = 'touches' in e ? e.touches[0].clientX : e.clientX;
+      const y = 'touches' in e ? e.touches[0].clientY : e.clientY;
+      if (Math.hypot(x - pointerStartX, y - pointerStartY) > 10) {
+        hasScrolled = true;
+      }
+    };
+
+    const onPointerUp = (e: MouseEvent | TouchEvent) => {
+      if (hasScrolled) return; // User was scrolling, do not pause
+
+      const target = e.target as HTMLElement | null;
+      if (!target) return;
+
+      const isInside = target.closest(`[data-video-card-id="${activeVideoId}"]`);
+      if (!isInside) {
+        setActiveVideoId(null);
+      }
+    };
+
+    window.addEventListener('touchstart', onPointerDown, { passive: true });
+    window.addEventListener('touchmove', onPointerMove, { passive: true });
+    window.addEventListener('touchend', onPointerUp, { passive: true });
+    window.addEventListener('mousedown', onPointerDown);
+    window.addEventListener('mouseup', onPointerUp);
+
+    return () => {
+      window.removeEventListener('touchstart', onPointerDown);
+      window.removeEventListener('touchmove', onPointerMove);
+      window.removeEventListener('touchend', onPointerUp);
+      window.removeEventListener('mousedown', onPointerDown);
+      window.removeEventListener('mouseup', onPointerUp);
+    };
+  }, [activeVideoId]);
+
   // Video Play Click Handler
   const handlePlayVideo = (video: HomepageVideoItem) => {
     if (!currentUser) {
@@ -138,11 +198,11 @@ export default function Home() {
               </h1>
             </div>
 
-            {/* 2-Column Console Layout: Photo on Left, Text on Right (Aligned at Top) */}
-            <div className="grid grid-cols-12 gap-2.5 sm:gap-6 lg:gap-10 items-start relative z-10">
-              {/* LEFT SIDE: 3:4 Photo with faded edges and bottom dots (Expanded on Mobile) */}
-              <div className="col-span-7 sm:col-span-5 lg:col-span-4 flex flex-col items-center justify-start">
-                <div className="relative w-full max-w-[240px] sm:max-w-[280px] lg:max-w-[340px] aspect-[3/4] rounded-2xl sm:rounded-2xl lg:rounded-3xl overflow-hidden shadow-[0_12px_36px_rgba(0,0,0,0.65)] bg-black/90">
+            {/* 2-Column Console Layout: Photo on Left (Enlarged on Mobile), Text on Right (Pushed to Right Edge) */}
+            <div className="grid grid-cols-12 gap-3 sm:gap-6 lg:gap-10 items-start relative z-10">
+              {/* LEFT SIDE: 3:4 Photo with faded edges and bottom dots (Enlarged & Prominent on Mobile) */}
+              <div className="col-span-7 sm:col-span-5 lg:col-span-4 flex flex-col items-start sm:items-center justify-start">
+                <div className="relative w-full max-w-[270px] sm:max-w-[290px] lg:max-w-[340px] aspect-[3/4] rounded-2xl sm:rounded-2xl lg:rounded-3xl overflow-hidden shadow-[0_12px_36px_rgba(0,0,0,0.65)] bg-black/90">
                   {/* Active Photo */}
                   <img
                     src={currentPhoto.imageUrl}
@@ -160,7 +220,7 @@ export default function Home() {
 
                 {/* Minimalist Bottom Indicator (Dots directly under the photo) */}
                 {publishedPhotos.length > 1 && (
-                  <div className="flex items-center justify-center gap-1.5 sm:gap-2 mt-3 sm:mt-5 select-none" aria-label="Carousel pagination">
+                  <div className="flex items-center justify-center gap-1.5 sm:gap-2 mt-3 sm:mt-5 select-none w-full max-w-[270px] sm:max-w-[290px] lg:max-w-[340px]" aria-label="Carousel pagination">
                     {publishedPhotos.map((_, idx) => (
                       <button
                         key={idx}
@@ -179,17 +239,20 @@ export default function Home() {
                 )}
               </div>
 
-              {/* RIGHT SIDE: Big News Heading in Gold Accent on TOP of Smaller Caption Text (Aligned at Top, Pushed to Edge) */}
-              <div className="col-span-5 sm:col-span-7 lg:col-span-8 flex flex-col justify-start space-y-2 sm:space-y-4 text-left pl-0.5 sm:pl-4 lg:pl-6">
-                <h2 className="text-base sm:text-2xl md:text-4xl lg:text-5xl xl:text-6xl font-black text-[#D4AF37] leading-tight tracking-tight drop-shadow-sm">
-                  {currentPhoto.heading || (currentPhoto.caption ? currentPhoto.caption.slice(0, 42) : 'Top Stories & Perspectives')}
-                </h2>
+              {/* RIGHT SIDE: Big News Heading in Gold Accent on TOP of Smaller Caption Text (Pushed to Right Edge) */}
+              <div className="col-span-5 sm:col-span-7 lg:col-span-8 flex flex-col justify-start space-y-1.5 sm:space-y-4 text-left pl-2.5 sm:pl-4 lg:pl-6">
+                {currentPhoto.heading && currentPhoto.heading.trim() ? (
+                  <h2 className="text-base sm:text-2xl md:text-4xl lg:text-5xl xl:text-6xl font-black text-[#D4AF37] leading-tight tracking-tight drop-shadow-sm">
+                    {currentPhoto.heading}
+                  </h2>
+                ) : null}
 
-                {(currentPhoto.caption || !currentPhoto.heading) && (
+                {/* On mobile and desktop: When no caption is written, leave it empty (no placeholder/default text) */}
+                {currentPhoto.caption && currentPhoto.caption.trim() ? (
                   <p className="text-[11px] sm:text-xs md:text-sm lg:text-base text-slate-200/90 leading-relaxed font-normal max-w-xl">
-                    {currentPhoto.caption || 'Community consensus rallies behind top weekend fixtures and tactical matchday showdowns across Europe.'}
+                    {currentPhoto.caption}
                   </p>
-                )}
+                ) : null}
 
                 {currentPhoto.link && (
                   <a
@@ -214,10 +277,11 @@ export default function Home() {
       <div className="w-full border-t border-slate-200 mb-8 sm:mb-12" />
 
       {/* =========================================================================
-          3. VIDEOS AND HIGHLIGHTS SECTION (THUMBNAIL-FIRST DESIGN)
+          3. VIDEOS AND HIGHLIGHTS SECTION (COMPACT THUMBNAIL-FIRST DESIGN)
           - Before play: Text-free YouTube thumbnail with central emerald & gold play button
           - When clicked: Replaces thumbnail with native YouTube iframe with autoplay
           - Zero layout shifts (aspect-[16/9])
+          - Outside stationary tap pauses playback and returns the Mshindi play button
           ========================================================================= */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16 sm:pb-20">
         <div className="text-left mb-6 sm:mb-8">
@@ -232,8 +296,8 @@ export default function Home() {
           </div>
         ) : (
           <>
-            {/* DESKTOP VIEW: Side-by-Side Multi-Column Grid */}
-            <div className="hidden md:grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {/* DESKTOP VIEW: Compact Multi-Column Grid */}
+            <div className="hidden md:grid md:grid-cols-2 lg:grid-cols-3 gap-5 max-w-6xl mx-auto">
               {publishedVideos.map((video) => {
                 const videoId = extractYouTubeId(video.embedUrl) || extractYouTubeId(video.youtubeUrl);
                 const isPlaying = activeVideoId === video.id;
@@ -241,7 +305,8 @@ export default function Home() {
                 return (
                   <div
                     key={video.id}
-                    className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-xs hover:shadow-md transition-shadow flex flex-col"
+                    data-video-card-id={video.id}
+                    className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-xs hover:shadow-md transition-shadow flex flex-col max-w-[340px] w-full mx-auto"
                   >
                     {/* Responsive 16:9 Video Player / Thumbnail Area */}
                     <div className="relative w-full aspect-[16/9] bg-black overflow-hidden group select-none">
@@ -311,9 +376,9 @@ export default function Home() {
               })}
             </div>
 
-            {/* MOBILE VIEW: Sideward Scroll with Smooth Snap & Indicators */}
+            {/* MOBILE VIEW: Compact Sideward Scroll with Smooth Snap & Indicators */}
             <div className="block md:hidden">
-              <div className="flex overflow-x-auto snap-x snap-mandatory gap-4 pb-4 px-4 sm:px-0 -mx-4 sm:mx-0 no-scrollbar">
+              <div className="flex overflow-x-auto snap-x snap-mandatory gap-3 pb-4 px-4 sm:px-0 -mx-4 sm:mx-0 no-scrollbar">
                 {publishedVideos.map((video, idx) => {
                   const videoId = extractYouTubeId(video.embedUrl) || extractYouTubeId(video.youtubeUrl);
                   const isPlaying = activeVideoId === video.id;
@@ -321,7 +386,8 @@ export default function Home() {
                   return (
                     <div
                       key={video.id}
-                      className="w-[84vw] max-w-[340px] shrink-0 snap-center bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm flex flex-col"
+                      data-video-card-id={video.id}
+                      className="w-[70vw] max-w-[275px] shrink-0 snap-center bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm flex flex-col"
                     >
                       {/* Responsive 16:9 Video Player / Thumbnail Area */}
                       <div className="relative w-full aspect-[16/9] bg-black overflow-hidden group select-none">
