@@ -182,12 +182,14 @@ export default function Home() {
               {/* RIGHT SIDE: Big News Heading in Gold Accent on TOP of Smaller Caption Text (Aligned at Top, Pushed to Edge) */}
               <div className="col-span-5 sm:col-span-7 lg:col-span-8 flex flex-col justify-start space-y-2 sm:space-y-4 text-left pl-0.5 sm:pl-4 lg:pl-6">
                 <h2 className="text-base sm:text-2xl md:text-4xl lg:text-5xl xl:text-6xl font-black text-[#D4AF37] leading-tight tracking-tight drop-shadow-sm">
-                  {currentPhoto.heading || currentPhoto.caption?.slice(0, 42) || 'Match of the year is coming'}
+                  {currentPhoto.heading || (currentPhoto.caption ? currentPhoto.caption.slice(0, 42) : 'Top Stories & Perspectives')}
                 </h2>
 
-                <p className="text-[11px] sm:text-xs md:text-sm lg:text-base text-slate-200/90 leading-relaxed font-normal max-w-xl">
-                  {currentPhoto.caption || 'Hazard magic has Chelsea sitting pretty at the top of the Premier League table with tactical dominance and decisive finishing.'}
-                </p>
+                {(currentPhoto.caption || !currentPhoto.heading) && (
+                  <p className="text-[11px] sm:text-xs md:text-sm lg:text-base text-slate-200/90 leading-relaxed font-normal max-w-xl">
+                    {currentPhoto.caption || 'Community consensus rallies behind top weekend fixtures and tactical matchday showdowns across Europe.'}
+                  </p>
+                )}
 
                 {currentPhoto.link && (
                   <a

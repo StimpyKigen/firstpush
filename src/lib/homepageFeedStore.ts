@@ -143,6 +143,14 @@ export function normalizeCustomEmbedUrl(input: string): string | null {
 const DEFAULT_FEED: HomepageFeedData = {
   carouselItems: [
     {
+      id: 'carousel-featured-reference',
+      imageUrl: 'https://mp3tourl.com/images/1793039738103-776c77ad-d580-4fc7-b2ec-44663adcbfd2.jpg',
+      heading: 'Top Stories & Matchday Perspectives',
+      caption: 'Community consensus rallies behind top weekend fixtures and tactical matchday showdowns across Europe.',
+      published: true,
+      createdAt: '2026-10-26T22:00:00.000Z',
+    },
+    {
       id: 'slide-1',
       imageUrl: '/images/hero-striker.jpg',
       heading: 'Match of the year is coming',
@@ -304,11 +312,19 @@ export async function persistToCloud(data: HomepageFeedData): Promise<{
   let serverSaved = false;
   let lastError: string | undefined;
 
+  // Deep sanitize payload: removes all undefined keys and enforces valid JSON
+  const cleanData: HomepageFeedData = JSON.parse(
+    JSON.stringify({
+      ...data,
+      updatedAt: new Date().toISOString(),
+    })
+  );
+
   // 1. Write to Cloud Firestore (if available & configured)
   try {
     if (db) {
       const feedRef = doc(db, FIRESTORE_COLLECTION, FIRESTORE_DOC);
-      await setDoc(feedRef, data, { merge: true });
+      await setDoc(feedRef, cleanData, { merge: true });
       firestoreSaved = true;
     }
   } catch (err: any) {
@@ -316,21 +332,30 @@ export async function persistToCloud(data: HomepageFeedData): Promise<{
     console.warn('[HomepageFeed] Firestore push notice:', err?.message || err);
   }
 
-  // 2. Persist to server backend database (/api/homepage-feed)
+  // 2. Persist to server backend database (/api/homepage-feed) with a 5s safety timeout
   try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 5000);
+
     const res = await fetch('/api/homepage-feed', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data),
-    });
+      body: JSON.stringify(cleanData),
+      signal: controller.signal,
+    }).finally(() => clearTimeout(timeoutId));
+
     if (res.ok) {
       serverSaved = true;
     } else {
       const errJson = await res.json().catch(() => null);
-      lastError = errJson?.error || `Server responded with status ${res.status}`;
+      if (!firestoreSaved) {
+        lastError = errJson?.error || `Server responded with status ${res.status}`;
+      }
     }
   } catch (err: any) {
-    lastError = err?.message || 'Server network request failed';
+    if (!firestoreSaved) {
+      lastError = err?.message || 'Server network request failed';
+    }
     console.warn('[HomepageFeed] Server feed push notice:', err?.message || err);
   }
 
@@ -357,9 +382,9 @@ export async function addCarouselItem(item: { imageUrl: string; heading?: string
   const newItem: HomepageCarouselItem = {
     id: `carousel-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
     imageUrl: item.imageUrl.trim(),
-    heading: item.heading?.trim() || undefined,
-    caption: item.caption?.trim() || undefined,
-    link: item.link?.trim() || undefined,
+    heading: item.heading?.trim() || '',
+    caption: item.caption?.trim() || '',
+    link: item.link?.trim() || '',
     published: item.published !== undefined ? item.published : true,
     createdAt: new Date().toISOString(),
   };

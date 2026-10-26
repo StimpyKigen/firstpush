@@ -212,10 +212,10 @@ export default defineConfig(() => {
               }
               if (url.pathname === '/api/homepage-feed') {
                 try {
-                  const { getSavedHomepageFeed, saveHomepageFeed } = await server.ssrLoadModule('/src/lib/serverHomepageFeed.ts');
                   res.setHeader('Content-Type', 'application/json');
                   res.setHeader('Access-Control-Allow-Origin', '*');
                   if (req.method === 'GET') {
+                    const { getSavedHomepageFeed } = await server.ssrLoadModule('/src/lib/serverHomepageFeed.ts');
                     const feed = getSavedHomepageFeed();
                     res.end(JSON.stringify({ success: true, feed }));
                     return;
@@ -223,14 +223,15 @@ export default defineConfig(() => {
                   if (req.method === 'POST') {
                     let body = '';
                     req.on('data', (chunk: any) => { body += chunk; });
-                    req.on('end', () => {
+                    req.on('end', async () => {
                       try {
+                        const { saveHomepageFeed } = await server.ssrLoadModule('/src/lib/serverHomepageFeed.ts');
                         const parsed = JSON.parse(body || '{}');
                         saveHomepageFeed(parsed);
                         res.end(JSON.stringify({ success: true, feed: parsed }));
-                      } catch (e) {
+                      } catch (e: any) {
                         res.statusCode = 400;
-                        res.end(JSON.stringify({ success: false, error: 'Invalid JSON payload' }));
+                        res.end(JSON.stringify({ success: false, error: e?.message || 'Invalid JSON payload' }));
                       }
                     });
                     return;

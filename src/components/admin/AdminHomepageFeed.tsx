@@ -87,8 +87,8 @@ export default function AdminHomepageFeed() {
     try {
       await addCarouselItem({
         imageUrl: cleanUrl,
-        heading: photoHeading.trim() || undefined,
-        caption: photoCaption.trim() || undefined,
+        heading: photoHeading.trim() || '',
+        caption: photoCaption.trim() || '',
         published: true,
       });
 

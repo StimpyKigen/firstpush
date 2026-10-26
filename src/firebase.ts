@@ -8,7 +8,7 @@
 
 import { initializeApp, getApps, getApp, FirebaseApp } from 'firebase/app';
 import { getAuth, Auth } from 'firebase/auth';
-import { getFirestore, Firestore } from 'firebase/firestore';
+import { initializeFirestore, getFirestore, Firestore } from 'firebase/firestore';
 import { getStorage, FirebaseStorage } from 'firebase/storage';
 import firebaseConfigData from '../firebase-applet-config.json';
 
@@ -28,7 +28,13 @@ const databaseId = (import.meta.env.VITE_FIREBASE_FIRESTORE_DATABASE_ID as strin
 // Ensure Firebase is initialized only once across the entire application
 export const app: FirebaseApp = getApps().length ? getApp() : initializeApp(firebaseConfig);
 export const auth: Auth = getAuth(app);
-export const db: Firestore = getFirestore(app, databaseId);
+export const db: Firestore = (() => {
+  try {
+    return initializeFirestore(app, { ignoreUndefinedProperties: true }, databaseId);
+  } catch {
+    return getFirestore(app, databaseId);
+  }
+})();
 export const storage: FirebaseStorage = getStorage(app);
 
 // Startup Debug Logging

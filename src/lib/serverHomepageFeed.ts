@@ -14,6 +14,14 @@ const FALLBACK_CACHE_FILE = path.join(targetDir, 'homepage_feed.json');
 const DEFAULT_FEED: HomepageFeedData = {
   carouselItems: [
     {
+      id: 'carousel-featured-reference',
+      imageUrl: 'https://mp3tourl.com/images/1793039738103-776c77ad-d580-4fc7-b2ec-44663adcbfd2.jpg',
+      heading: 'Top Stories & Matchday Perspectives',
+      caption: 'Community consensus rallies behind top weekend fixtures and tactical matchday showdowns across Europe.',
+      published: true,
+      createdAt: '2026-10-26T22:00:00.000Z',
+    },
+    {
       id: 'slide-1',
       imageUrl: '/images/hero-striker.jpg',
       heading: 'Match of the year is coming',
