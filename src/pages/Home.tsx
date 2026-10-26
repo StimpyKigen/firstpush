@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useSyncExternalStore, useRef } from 'react';
+import React, { useState, useEffect, useSyncExternalStore, useRef, useMemo } from 'react';
 import { Play } from 'lucide-react';
 import SeoHead from '../components/SeoHead';
 import {
@@ -42,9 +42,72 @@ export default function Home() {
     activeIndexRef.current = activeCarouselIndex;
   }, [activeCarouselIndex]);
 
+  // Keep active index within valid bounds when feed updates dynamically
+  useEffect(() => {
+    if (publishedPhotos.length > 0 && activeCarouselIndex >= publishedPhotos.length) {
+      setActiveCarouselIndex(0);
+    }
+  }, [publishedPhotos.length, activeCarouselIndex]);
+
+  // 1. Preload all published carousel images into browser memory & cache
+  useEffect(() => {
+    if (!publishedPhotos || publishedPhotos.length === 0) return;
+    publishedPhotos.forEach((photo) => {
+      if (photo.imageUrl) {
+        const img = new Image();
+        img.src = photo.imageUrl;
+      }
+    });
+  }, [publishedPhotos]);
+
+  // 2. Pre-decode upcoming slide image ahead of time for zero-flicker transitions
+  useEffect(() => {
+    if (publishedPhotos.length <= 1) return;
+    const nextIdx = (activeCarouselIndex + 1) % publishedPhotos.length;
+    const nextPhoto = publishedPhotos[nextIdx];
+    if (nextPhoto?.imageUrl) {
+      const preloadImg = new Image();
+      preloadImg.src = nextPhoto.imageUrl;
+      if (typeof preloadImg.decode === 'function') {
+        preloadImg.decode().catch(() => {});
+      }
+    }
+  }, [activeCarouselIndex, publishedPhotos]);
+
+  // Maximum 5 indicator dots at the bottom of the pictures
+  const MAX_CAROUSEL_INDICATORS = 5;
+  const visibleDotIndices = useMemo(() => {
+    const total = publishedPhotos.length;
+    if (total <= MAX_CAROUSEL_INDICATORS) {
+      return Array.from({ length: total }, (_, i) => i);
+    }
+    let start = activeCarouselIndex - Math.floor(MAX_CAROUSEL_INDICATORS / 2);
+    let end = activeCarouselIndex + Math.floor(MAX_CAROUSEL_INDICATORS / 2);
+
+    if (start < 0) {
+      start = 0;
+      end = MAX_CAROUSEL_INDICATORS - 1;
+    } else if (end >= total) {
+      end = total - 1;
+      start = total - MAX_CAROUSEL_INDICATORS;
+    }
+    return Array.from({ length: MAX_CAROUSEL_INDICATORS }, (_, i) => start + i);
+  }, [publishedPhotos.length, activeCarouselIndex]);
+
   // Smooth slide change function: 500ms fade-out, swap slide, 500ms fade-in = 1 second smooth transition
   const goToSlide = (nextIdx: number) => {
     if (isTransitioningRef.current || nextIdx === activeIndexRef.current) return;
+    
+    // Pre-decode target image immediately before transition begins
+    const targetPhoto = publishedPhotos[nextIdx];
+    if (targetPhoto?.imageUrl) {
+      const targetImg = new Image();
+      targetImg.src = targetPhoto.imageUrl;
+      if (typeof targetImg.decode === 'function') {
+        targetImg.decode().catch(() => {});
+      }
+    }
+
     isTransitioningRef.current = true;
     setIsCarouselFading(true);
 
@@ -251,21 +314,21 @@ export default function Home() {
                   <div className="absolute inset-0 ring-1 ring-inset ring-white/10 rounded-2xl sm:rounded-2xl lg:rounded-3xl pointer-events-none" />
                 </div>
 
-                {/* Minimalist Bottom Indicator (Dots directly under the photo) */}
+                {/* Minimalist Bottom Indicator (Capped at 5 dots max with smooth sliding window) */}
                 {publishedPhotos.length > 1 && (
                   <div className="flex items-center justify-center gap-1.5 sm:gap-2 mt-3 sm:mt-5 select-none w-full max-w-[270px] sm:max-w-[290px] lg:max-w-[340px]" aria-label="Carousel pagination">
-                    {publishedPhotos.map((_, idx) => (
+                    {visibleDotIndices.map((slideIdx) => (
                       <button
-                        key={idx}
+                        key={slideIdx}
                         type="button"
-                        onClick={() => goToSlide(idx)}
+                        onClick={() => goToSlide(slideIdx)}
                         className={`transition-all duration-300 rounded-full cursor-pointer focus:outline-none ${
-                          idx === activeCarouselIndex
+                          slideIdx === activeCarouselIndex
                             ? 'w-5 sm:w-7 h-1.5 sm:h-2 bg-[#4ADE80] shadow-[0_0_8px_#4ADE80]'
                             : 'w-1.5 sm:w-2 h-1.5 sm:h-2 bg-white/30 hover:bg-white/60'
                         }`}
-                        aria-label={`Go to slide ${idx + 1} of ${publishedPhotos.length}`}
-                        aria-current={idx === activeCarouselIndex ? 'true' : 'false'}
+                        aria-label={`Go to slide ${slideIdx + 1} of ${publishedPhotos.length}`}
+                        aria-current={slideIdx === activeCarouselIndex ? 'true' : 'false'}
                       />
                     ))}
                   </div>
