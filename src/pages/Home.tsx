@@ -308,9 +308,7 @@ export default function Home() {
                     }}
                   />
 
-                  {/* Gracefully Faded Edges into Uniform Green Background */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-[#02241b] via-transparent to-[#02241b]/30 pointer-events-none" />
-                  <div className="absolute inset-0 bg-gradient-to-r from-[#02241b]/50 via-transparent to-[#02241b]/50 pointer-events-none" />
+                  {/* Subtle inner border for crisp edge definition without fading */}
                   <div className="absolute inset-0 ring-1 ring-inset ring-white/10 rounded-2xl sm:rounded-2xl lg:rounded-3xl pointer-events-none" />
                 </div>
 
