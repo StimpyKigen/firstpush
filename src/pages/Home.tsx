@@ -147,6 +147,8 @@ export default function Home() {
                   <img
                     src={currentPhoto.imageUrl}
                     alt={currentPhoto.heading || currentPhoto.caption || 'Active carousel story'}
+                    referrerPolicy="no-referrer"
+                    loading="lazy"
                     className="w-full h-full object-cover transition-all duration-700 ease-out"
                   />
 

@@ -1,4 +1,4 @@
-import React, { useState, useSyncExternalStore, useRef } from 'react';
+import React, { useState, useSyncExternalStore } from 'react';
 import {
   Image as ImageIcon,
   Plus,
@@ -7,14 +7,11 @@ import {
   Trash2,
   Check,
   EyeOff,
-  Upload,
   Link as LinkIcon,
   X,
   Play,
-  Code2,
-  Loader2
+  Code2
 } from 'lucide-react';
-import { uploadFeedImage } from '../../lib/mediaUploadService';
 import {
   subscribeToHomepageFeed,
   getHomepageFeedSnapshot,
@@ -32,6 +29,25 @@ import {
 } from '../../lib/homepageFeedStore';
 import { showToast } from '../../lib/notificationStore';
 
+/**
+ * Normalizes pasted image URLs:
+ * - Extracts clean URL from pasted <img> snippets or markdown ![...](...)
+ * - Trims whitespace and surrounding quotes
+ */
+export function normalizeImageUrl(input: string): string {
+  if (!input) return '';
+  let str = input.trim();
+  if (str.includes('<img') && str.includes('src=')) {
+    const match = str.match(/src=["']([^"']+)["']/i);
+    if (match && match[1]) str = match[1].trim();
+  } else if (str.startsWith('![') && str.includes('(') && str.endsWith(')')) {
+    const match = str.match(/\(([^)]+)\)$/);
+    if (match && match[1]) str = match[1].trim();
+  }
+  str = str.replace(/^["']|["']$/g, '').trim();
+  return str;
+}
+
 export default function AdminHomepageFeed() {
   const feed = useSyncExternalStore(
     subscribeToHomepageFeed,
@@ -44,7 +60,6 @@ export default function AdminHomepageFeed() {
   const [photoHeading, setPhotoHeading] = useState('');
   const [photoCaption, setPhotoCaption] = useState('');
   const [isPhotoPreviewOpen, setIsPhotoPreviewOpen] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Video Form State
   const [videoUrl, setVideoUrl] = useState('');
@@ -58,60 +73,20 @@ export default function AdminHomepageFeed() {
 
   // Database Persistence & Loading State
   const [isSaving, setIsSaving] = useState(false);
-  const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
-  const [uploadStatus, setUploadStatus] = useState('');
 
-  // Handle Photo File Upload with Canvas Compression & Cloud Persistence
-  const handlePhotoFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    if (!file.type.startsWith('image/')) {
-      showToast({ title: 'Invalid File', message: 'Please select a valid image file (PNG, JPG, WebP).', type: 'error' });
-      return;
-    }
-
-    setIsUploadingPhoto(true);
-    setUploadStatus('Optimizing image...');
-    try {
-      const { url, source } = await uploadFeedImage(file, (msg) => setUploadStatus(msg));
-      setPhotoUrl(url);
-      const sourceLabel = source === 'storage'
-        ? 'Firebase Cloud Storage'
-        : source === 'server'
-          ? 'Server Media Storage'
-          : 'Optimized Media';
-      showToast({
-        title: 'Photo Uploaded',
-        message: `Saved to ${sourceLabel} successfully. Ready to publish!`,
-        type: 'success',
-      });
-    } catch (err: any) {
-      console.error('[AdminFeed] Upload error:', err);
-      showToast({
-        title: 'Upload Failed',
-        message: err?.message || 'Could not process and upload photo.',
-        type: 'error',
-      });
-    } finally {
-      setIsUploadingPhoto(false);
-      setUploadStatus('');
-      if (fileInputRef.current) fileInputRef.current.value = '';
-    }
-  };
-
-  // Submit Carousel Photo (Awaits Confirmed Database Save)
+  // Submit Carousel Photo (Same direct URL flow as video embeds)
   const handlePublishPhoto = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!photoUrl.trim()) {
-      showToast({ title: 'Photo Required', message: 'Please upload an image or provide an image URL.', type: 'error' });
+    const cleanUrl = normalizeImageUrl(photoUrl);
+    if (!cleanUrl) {
+      showToast({ title: 'Image URL Required', message: 'Please paste a valid web image URL.', type: 'error' });
       return;
     }
 
     setIsSaving(true);
     try {
       await addCarouselItem({
-        imageUrl: photoUrl.trim(),
+        imageUrl: cleanUrl,
         heading: photoHeading.trim() || undefined,
         caption: photoCaption.trim() || undefined,
         published: true,
@@ -121,9 +96,8 @@ export default function AdminHomepageFeed() {
       setPhotoHeading('');
       setPhotoCaption('');
       setIsPhotoPreviewOpen(false);
-      if (fileInputRef.current) fileInputRef.current.value = '';
 
-      showToast({ title: 'Carousel Photo Saved', message: 'Slide saved to database and live on homepage.', type: 'success' });
+      showToast({ title: 'Carousel Slide Published', message: 'Image slide saved to database and live on homepage.', type: 'success' });
     } catch (err: any) {
       showToast({ title: 'Database Save Failed', message: err?.message || 'Could not save carousel slide to database.', type: 'error' });
     } finally {
@@ -253,58 +227,32 @@ export default function AdminHomepageFeed() {
         {/* Carousel Creation Form */}
         <form onSubmit={handlePublishPhoto} className="mt-6 space-y-4">
           <div>
-            <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wide mb-2">
-              Photo Source
+            <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wide mb-2 flex items-center justify-between">
+              <span>Image Web URL</span>
+              <span className="text-[11px] text-slate-400 font-normal lowercase">Direct link (.jpg, .png, .webp, https://...)</span>
             </label>
-            <div className="grid grid-cols-1 sm:grid-cols-12 gap-3">
-              <div className="sm:col-span-8 relative">
-                <input
-                  type="text"
-                  placeholder="Paste image URL (e.g. https://... or /images/...)"
-                  value={photoUrl}
-                  onChange={(e) => setPhotoUrl(e.target.value)}
-                  className="w-full bg-[#FFFFF0] border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#006C54] focus:ring-1 focus:ring-[#006C54] transition-all"
-                />
-              </div>
-
-              <div className="sm:col-span-4">
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="image/*"
-                  onChange={handlePhotoFileUpload}
-                  disabled={isUploadingPhoto}
-                  className="hidden"
-                  id="admin-photo-upload"
-                />
-                <label
-                  htmlFor={isUploadingPhoto ? undefined : 'admin-photo-upload'}
-                  className={`w-full h-full flex items-center justify-center gap-2 border font-semibold text-xs px-3 py-2.5 rounded-xl transition-all ${
-                    isUploadingPhoto
-                      ? 'bg-emerald-50 border-emerald-300 text-emerald-800 cursor-wait'
-                      : 'bg-[#FFFFF0] hover:bg-slate-50 border-slate-300 hover:border-slate-400 text-slate-700 cursor-pointer'
-                  }`}
+            <div className="relative">
+              <input
+                type="text"
+                placeholder="Paste image link (e.g. https://images.unsplash.com/... or https://i.imgur.com/... or any photo URL)"
+                value={photoUrl}
+                onChange={(e) => setPhotoUrl(e.target.value)}
+                className="w-full bg-[#FFFFF0] border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#006C54] focus:ring-1 focus:ring-[#006C54] transition-all pr-9"
+              />
+              {photoUrl && (
+                <button
+                  type="button"
+                  onClick={() => setPhotoUrl('')}
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-1 cursor-pointer"
+                  title="Clear URL"
                 >
-                  {isUploadingPhoto ? (
-                    <>
-                      <Loader2 size={14} className="text-[#006C54] animate-spin" />
-                      <span className="truncate">{uploadStatus || 'Optimizing & Uploading...'}</span>
-                    </>
-                  ) : (
-                    <>
-                      <Upload size={14} className="text-[#006C54]" />
-                      <span>Upload Local File</span>
-                    </>
-                  )}
-                </label>
-              </div>
+                  <X size={14} />
+                </button>
+              )}
             </div>
-            {uploadStatus && isUploadingPhoto && (
-              <p className="text-[11px] text-[#006C54] mt-1.5 flex items-center gap-1.5">
-                <Loader2 size={12} className="animate-spin" />
-                <span>{uploadStatus}</span>
-              </p>
-            )}
+            <span className="text-[11px] text-slate-400 mt-1 block">
+              Paste an image link from anywhere on the web. It saves directly to the database and displays immediately on the homepage carousel.
+            </span>
           </div>
 
           {/* Two Explicit Caption Inputs: 1. Carousel heading, 2. Carousel caption */}
@@ -393,6 +341,8 @@ export default function AdminHomepageFeed() {
                     <img
                       src={photoUrl}
                       alt="Preview"
+                      referrerPolicy="no-referrer"
+                      loading="lazy"
                       className="w-full h-full object-cover"
                       onError={(e) => {
                         (e.target as HTMLElement).style.display = 'none';
@@ -446,7 +396,9 @@ export default function AdminHomepageFeed() {
                   <div className="relative aspect-[3/4] bg-slate-950 overflow-hidden flex items-center justify-center">
                     <img
                       src={item.imageUrl}
-                      alt=""
+                      alt={item.heading || 'Editorial photo'}
+                      referrerPolicy="no-referrer"
+                      loading="lazy"
                       className="w-full h-full object-cover"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-transparent pointer-events-none" />
