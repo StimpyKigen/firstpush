@@ -33,15 +33,15 @@ export function EditorialCarouselSkeleton({ className = '' }: EditorialCarouselS
 
         {/* TEXT CONTAINER: Hugs photo with controlled allowance on desktop */}
         <div className="flex-1 flex flex-col justify-start space-y-1.5 sm:space-y-3.5 text-left px-1 sm:px-0 pt-2 sm:pt-1 max-w-2xl lg:max-w-3xl">
-          {/* Big News Heading Skeleton (Gold-equivalent proportion) */}
-          <div className="space-y-1 sm:space-y-2.5 w-full">
+          {/* Big News Heading Skeleton (Gold-equivalent proportion, decreased by 25%) */}
+          <div className="space-y-1 sm:space-y-2 w-full">
             <Skeleton
               tone="dark"
-              className="h-5 sm:h-7 md:h-9 lg:h-11 w-11/12 rounded-md sm:rounded-lg"
+              className="h-4 sm:h-5 md:h-7 lg:h-9 w-11/12 rounded-md sm:rounded-lg"
             />
             <Skeleton
               tone="dark"
-              className="h-5 sm:h-7 md:h-9 lg:h-11 w-4/5 rounded-md sm:rounded-lg"
+              className="h-4 sm:h-5 md:h-7 lg:h-9 w-4/5 rounded-md sm:rounded-lg"
             />
           </div>
 

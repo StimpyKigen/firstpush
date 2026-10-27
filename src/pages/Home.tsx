@@ -336,9 +336,9 @@ export default function Home() {
                   </p>
                 ) : null}
 
-                {/* Thick prominent heading on mobile and desktop */}
+                {/* Thick prominent heading on mobile and desktop (decreased by 25%) */}
                 {currentPhoto.heading && currentPhoto.heading.trim() ? (
-                  <h2 className="text-base xs:text-lg sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-black text-[#D4AF37] leading-tight tracking-tight drop-shadow-md">
+                  <h2 className="text-sm xs:text-base sm:text-lg md:text-2xl lg:text-3xl xl:text-4xl font-black text-[#D4AF37] leading-tight tracking-tight drop-shadow-md">
                     {currentPhoto.heading}
                   </h2>
                 ) : null}
