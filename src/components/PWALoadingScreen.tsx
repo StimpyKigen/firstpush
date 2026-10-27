@@ -91,6 +91,20 @@ export default function PWALoadingScreen() {
     return () => clearTimeout(timer);
   }, [isPwa, assetsLoaded, isDone]);
 
+  // 4. Synchronize theme-color: black on loading screen, ivory in-app
+  useEffect(() => {
+    const metaTheme = document.querySelector('meta[name="theme-color"]');
+    if (isPwa && !isExiting && !isDone) {
+      if (metaTheme) metaTheme.setAttribute('content', '#000000');
+    } else {
+      if (metaTheme) metaTheme.setAttribute('content', '#FFFFF0');
+    }
+
+    return () => {
+      if (metaTheme) metaTheme.setAttribute('content', '#FFFFF0');
+    };
+  }, [isPwa, isExiting, isDone]);
+
   if (!isPwa || isDone) {
     return null;
   }

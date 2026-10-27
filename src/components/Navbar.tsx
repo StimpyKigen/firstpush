@@ -105,7 +105,7 @@ export default function Navbar() {
       {/* Mobile menu backdrop: blocks scroll and interaction on everything behind the menu */}
       {!hideMobileMenu && open && (
         <div
-          className="fixed inset-0 top-16 z-40 bg-black/20 backdrop-blur-[1px] lg:hidden"
+          className="fixed inset-0 top-16 z-40 bg-black/40 lg:hidden"
           onClick={() => setOpen(false)}
           aria-hidden="true"
         />
