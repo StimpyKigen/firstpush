@@ -20,10 +20,10 @@ export function EditorialCarouselSkeleton({ className = '' }: EditorialCarouselS
       label="Loading matchday stories and perspectives..."
       className={`w-full ${className}`}
     >
-      <div className="flex flex-col sm:grid sm:grid-cols-12 sm:gap-6 lg:gap-10 items-start relative z-10 w-full select-none">
-        {/* PHOTO CONTAINER: Compact on mobile for 1-screen fit, full column on desktop */}
-        <div className="w-full sm:col-span-5 lg:col-span-4 flex flex-col items-start px-1 sm:px-0">
-          <div className="relative w-[180px] xs:w-[200px] sm:w-full sm:max-w-[290px] lg:max-w-[340px] aspect-[3/4] min-h-0 sm:min-h-[360px] lg:min-h-[420px] rounded-xl sm:rounded-2xl lg:rounded-3xl overflow-hidden shadow-[0_8px_24px_rgba(0,0,0,0.65)] ring-1 ring-inset ring-white/10 bg-[#06372a]">
+      <div className="flex flex-col sm:flex-row sm:items-start sm:gap-6 lg:gap-7 relative z-10 w-full select-none">
+        {/* PHOTO CONTAINER: Compact on mobile for 1-screen fit, matching desktop photo */}
+        <div className="w-full sm:w-auto sm:shrink-0 flex flex-col items-start px-1 sm:px-0">
+          <div className="relative w-[180px] xs:w-[200px] sm:w-[280px] lg:w-[320px] aspect-[3/4] min-h-0 sm:min-h-[360px] lg:min-h-[415px] rounded-xl sm:rounded-2xl lg:rounded-3xl overflow-hidden shadow-[0_8px_24px_rgba(0,0,0,0.65)] ring-1 ring-inset ring-white/10 bg-[#06372a]">
             <Skeleton
               tone="dark"
               className="w-full h-full rounded-xl sm:rounded-2xl lg:rounded-3xl"
@@ -31,8 +31,8 @@ export function EditorialCarouselSkeleton({ className = '' }: EditorialCarouselS
           </div>
         </div>
 
-        {/* TEXT CONTAINER: Fits on 1 screen on mobile without scrolling */}
-        <div className="w-full sm:col-span-7 lg:col-span-8 flex flex-col justify-start space-y-1.5 sm:space-y-3.5 text-left px-1 sm:px-0 sm:pl-4 lg:pl-6 pt-2 sm:pt-0">
+        {/* TEXT CONTAINER: Hugs photo with controlled allowance on desktop */}
+        <div className="flex-1 flex flex-col justify-start space-y-1.5 sm:space-y-3.5 text-left px-1 sm:px-0 pt-2 sm:pt-1 max-w-2xl lg:max-w-3xl">
           {/* Big News Heading Skeleton (Gold-equivalent proportion) */}
           <div className="space-y-1 sm:space-y-2.5 w-full">
             <Skeleton

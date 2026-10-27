@@ -151,30 +151,6 @@ const DEFAULT_FEED: HomepageFeedData = {
       published: true,
       createdAt: '2026-10-26T22:00:00.000Z',
     },
-    {
-      id: 'slide-1',
-      imageUrl: '/images/hero-striker.jpg',
-      heading: 'Match of the year is coming',
-      caption: 'Hazard magic has Chelsea sitting pretty at the top of the Premier League table with tactical dominance and decisive finishing.',
-      published: false,
-      createdAt: '2026-10-22T00:00:00.000Z',
-    },
-    {
-      id: 'slide-2',
-      imageUrl: '/images/celebration.jpg',
-      heading: 'Derby day showdown across Europe',
-      caption: 'Community consensus rallies behind a massive weekend derby slate across Europe with record pundit engagement.',
-      published: false,
-      createdAt: '2026-10-22T00:00:00.000Z',
-    },
-    {
-      id: 'slide-3',
-      imageUrl: '/images/match-action.jpg',
-      heading: 'Continental supremacy on the line',
-      caption: 'High-stakes continental drama unfolds as top contenders battle for supremacy in the knockout tournament rounds.',
-      published: false,
-      createdAt: '2026-10-22T00:00:00.000Z',
-    },
   ],
   videoItems: [
     {
@@ -205,12 +181,9 @@ function loadStoredFeed(): HomepageFeedData {
     if (!raw) return DEFAULT_FEED;
     const parsed = JSON.parse(raw);
     if (parsed && Array.isArray(parsed.carouselItems) && Array.isArray(parsed.videoItems)) {
-      // Ensure omitted mock slides are never rendered from stale storage
-      parsed.carouselItems = parsed.carouselItems.map((item: HomepageCarouselItem) => {
-        if (['slide-1', 'slide-2', 'slide-3'].includes(item.id)) {
-          return { ...item, published: false };
-        }
-        return item;
+      // Strictly filter out any legacy or deleted mock slides from stale local storage
+      parsed.carouselItems = parsed.carouselItems.filter((item: HomepageCarouselItem) => {
+        return !['slide-1', 'slide-2', 'slide-3'].includes(item.id);
       });
       return parsed;
     }

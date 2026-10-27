@@ -8,7 +8,7 @@ async function run() {
   const testId = `test-persist-${Date.now()}`;
   const testItem = {
     id: testId,
-    imageUrl: '/images/hero-striker.jpg',
+    imageUrl: 'https://images.unsplash.com/photo-1508098682722-e99c43a406b2',
     heading: 'Database Persistence Test Title',
     caption: 'Database Persistence Test Caption',
     published: true,

@@ -82,9 +82,9 @@ assert(
   'EditorialCarouselSkeleton requests dark stadium tone for skeletons'
 );
 assert(
-  skeletonContent.includes('w-full sm:col-span-5 lg:col-span-4') &&
-  skeletonContent.includes('w-full sm:col-span-7 lg:col-span-8'),
-  'EditorialCarouselSkeleton matches stacked mobile layout and 2-column desktop grid'
+  skeletonContent.includes('sm:flex-row') &&
+  skeletonContent.includes('sm:gap-6 lg:gap-7'),
+  'EditorialCarouselSkeleton matches desktop hugging layout with sm:gap-6 lg:gap-7 allowance'
 );
 
 // 3. Verify Carousel Preloader & Intelligent Cache
@@ -100,8 +100,8 @@ assert(
   'carouselImagePreloader exports in-memory failedImagesCache Set'
 );
 assert(
-  preloaderContent.includes('/images/hero-striker.jpg'),
-  'carouselImagePreloader configures /images/hero-striker.jpg as reliable fallback'
+  !preloaderContent.includes('/images/hero-striker.jpg'),
+  'carouselImagePreloader strictly does NOT include deleted mock photos like hero-striker.jpg'
 );
 assert(
   preloaderContent.includes('priority: \'high\' | \'normal\' | \'low\''),
@@ -116,12 +116,8 @@ assert(
   'useCarouselCardLoader implements request ID token to prevent race conditions during rapid slide navigation'
 );
 assert(
-  preloaderContent.includes('4500'),
-  'useCarouselCardLoader includes 4.5s safety timeout to prevent infinite skeleton on flaky network'
-);
-assert(
-  preloaderContent.includes('requestIdleCallback'),
-  'useCarouselCardLoader schedules low-priority distant preloads during idle intervals'
+  preloaderContent.includes('preloadCarouselImage(photo.imageUrl'),
+  'useCarouselCardLoader preloads active and remaining slides'
 );
 
 // 4. Verify Home.tsx Integration
@@ -129,24 +125,24 @@ const homePath = resolve(rootDir, 'src/pages/Home.tsx');
 const homeContent = readFileSync(homePath, 'utf8');
 
 assert(
-  homeContent.includes('useCarouselCardLoader') && homeContent.includes('EditorialCarouselSkeleton'),
-  'Home.tsx imports useCarouselCardLoader and EditorialCarouselSkeleton'
+  homeContent.includes('hasInitiallyLoaded') && homeContent.includes('EditorialCarouselSkeleton'),
+  'Home.tsx imports and uses hasInitiallyLoaded to show skeleton ONLY during initial fetch'
 );
 assert(
-  homeContent.includes('!isCardReady ? ('),
-  'Home.tsx renders EditorialCarouselSkeleton when card is not ready'
+  homeContent.includes('!hasInitiallyLoaded ? ('),
+  'Home.tsx renders EditorialCarouselSkeleton only when carousels have not initially loaded'
 );
 assert(
-  homeContent.includes('displayImageUrl'),
-  'Home.tsx uses displayImageUrl with verified image fallback'
+  !homeContent.includes('hero-striker.jpg'),
+  'Home.tsx strictly avoids falling back to deleted mock photos like hero-striker.jpg'
 );
 assert(
   homeContent.includes('bg-[#06372a]'),
   'Home.tsx uses dark stadium bg-[#06372a] instead of black void'
 );
 assert(
-  homeContent.includes('sizes="(max-width: 640px) 200px, (max-width: 1024px) 290px, 340px"'),
-  'Home.tsx includes responsive sizes attribute for optimal image rasterization'
+  homeContent.includes('sm:flex-row sm:items-start sm:gap-6 lg:gap-7'),
+  'Home.tsx desktop layout pushes caption to hug photo with controlled allowance'
 );
 assert(
   homeContent.includes('animate-editorial-fade-in'),

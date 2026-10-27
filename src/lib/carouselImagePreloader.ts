@@ -13,14 +13,6 @@ export const loadedImagesCache = new Set<string>();
 // In-memory cache of failed image URLs to avoid repeated failing network calls
 export const failedImagesCache = new Set<string>();
 
-const FALLBACK_IMAGE_URL = '/images/hero-striker.jpg';
-// Also preload fallback image once in background
-if (typeof window !== 'undefined') {
-  const fallbackImg = new Image();
-  fallbackImg.src = FALLBACK_IMAGE_URL;
-  fallbackImg.onload = () => loadedImagesCache.add(FALLBACK_IMAGE_URL);
-}
-
 /**
  * Preloads and hardware-decodes a single image URL with priority control.
  * Reuses browser cache and deduplicates requests.
@@ -86,14 +78,13 @@ export interface UseCarouselCardLoaderResult {
 }
 
 /**
- * React hook that coordinates image loading and skeleton display for the active carousel card.
+ * React hook that coordinates image loading for the active carousel card.
  *
  * Guarantees:
- * 1. Both photo and caption display skeleton placeholders until the image is decoded and ready.
- * 2. Instant reveal without skeleton flicker for already-cached images.
- * 3. Race-condition-free state updates during fast navigation or auto-rotation.
- * 4. Priority-based background preloading of adjacent and distant slides.
- * 5. Automatic fallback recovery so cards are never stuck in an infinite skeleton.
+ * 1. Only loads and presents verified active carousel photos.
+ * 2. Instant reveal without flicker for already-cached images.
+ * 3. Race-condition-free state updates during navigation or auto-rotation.
+ * 4. Priority-based background preloading of adjacent and remaining slides.
  */
 export function useCarouselCardLoader(
   currentPhoto: HomepageCarouselItem | undefined,
@@ -109,18 +100,17 @@ export function useCarouselCardLoader(
   });
 
   const [displayImageUrl, setDisplayImageUrl] = useState<string>(() => {
-    if (!targetUrl || failedImagesCache.has(targetUrl)) return FALLBACK_IMAGE_URL;
     return targetUrl;
   });
 
   const activeRequestIdRef = useRef<number>(0);
 
-  // 1. Primary Loader: Track active slide loading state with hardware decoding & safety timeout
+  // 1. Primary Loader: Track active slide loading state with hardware decoding
   useEffect(() => {
     const requestId = ++activeRequestIdRef.current;
 
     if (!targetUrl) {
-      setDisplayImageUrl(FALLBACK_IMAGE_URL);
+      setDisplayImageUrl('');
       setLoadState('loaded');
       return;
     }
@@ -132,93 +122,47 @@ export function useCarouselCardLoader(
       return;
     }
 
-    // If previously failed, immediately fall back
+    // If previously failed, retain target URL without mock resurrection
     if (failedImagesCache.has(targetUrl)) {
-      setDisplayImageUrl(FALLBACK_IMAGE_URL);
+      setDisplayImageUrl(targetUrl);
       setLoadState('loaded');
       return;
     }
 
-    // Transition into loading state
-    setLoadState('loading');
-
-    // 4.5-second safety timer: prevent infinite skeleton under flaky network
-    const safetyTimer = setTimeout(() => {
-      if (activeRequestIdRef.current === requestId) {
-        setDisplayImageUrl((prev) => (prev ? prev : FALLBACK_IMAGE_URL));
-        setLoadState('loaded');
-      }
-    }, 4500);
-
     // Fetch and decode the active image with high priority
     preloadCarouselImage(targetUrl, 'high').then((success) => {
       if (activeRequestIdRef.current !== requestId) return; // Stale request, ignore
-      clearTimeout(safetyTimer);
 
-      if (success) {
-        setDisplayImageUrl(targetUrl);
-        setLoadState('loaded');
-      } else {
-        // Primary failed; verify fallback image
-        preloadCarouselImage(FALLBACK_IMAGE_URL, 'high').then(() => {
-          if (activeRequestIdRef.current !== requestId) return;
-          setDisplayImageUrl(FALLBACK_IMAGE_URL);
-          setLoadState('loaded');
-        });
-      }
+      setDisplayImageUrl(targetUrl);
+      setLoadState('loaded');
     });
-
-    return () => {
-      clearTimeout(safetyTimer);
-    };
   }, [targetUrl]);
 
-  // 2. Background Preloading: Prioritize adjacent slides (Priority 2) and idle distant slides (Priority 3)
+  // 2. Background Preloading: Eagerly preload adjacent and all remaining active slides
   useEffect(() => {
     if (!allPhotos || allPhotos.length <= 1) return;
 
     const total = allPhotos.length;
-
-    // Priority 2: Next and previous slides (immediate anticipation)
     const nextIdx = (activeIndex + 1) % total;
     const prevIdx = (activeIndex - 1 + total) % total;
 
+    // High priority for immediate adjacent slides
     const nextUrl = allPhotos[nextIdx]?.imageUrl;
     const prevUrl = allPhotos[prevIdx]?.imageUrl;
 
     if (nextUrl) {
-      preloadCarouselImage(nextUrl, 'normal');
+      preloadCarouselImage(nextUrl, 'high');
     }
     if (prevUrl && prevUrl !== nextUrl) {
-      preloadCarouselImage(prevUrl, 'normal');
+      preloadCarouselImage(prevUrl, 'high');
     }
 
-    // Priority 3: Distant slides preloaded lazily when browser is idle
-    const distantIndices = allPhotos
-      .map((_, i) => i)
-      .filter((i) => i !== activeIndex && i !== nextIdx && i !== prevIdx);
-
-    if (distantIndices.length > 0) {
-      const scheduleIdle =
-        typeof window !== 'undefined' && 'requestIdleCallback' in window
-          ? (window as any).requestIdleCallback
-          : (cb: () => void) => setTimeout(cb, 1200);
-
-      const idleHandle = scheduleIdle(() => {
-        distantIndices.forEach((idx) => {
-          const distantUrl = allPhotos[idx]?.imageUrl;
-          if (distantUrl) {
-            preloadCarouselImage(distantUrl, 'low');
-          }
-        });
-      });
-
-      return () => {
-        if (typeof window !== 'undefined' && 'cancelIdleCallback' in window && typeof idleHandle === 'number') {
-          (window as any).cancelIdleCallback(idleHandle);
-        }
-      };
-    }
+    // Normal priority for all other active slides in carousel
+    allPhotos.forEach((photo, idx) => {
+      if (idx !== activeIndex && idx !== nextIdx && idx !== prevIdx && photo?.imageUrl) {
+        preloadCarouselImage(photo.imageUrl, 'normal');
+      }
+    });
   }, [activeIndex, allPhotos]);
 
   return {

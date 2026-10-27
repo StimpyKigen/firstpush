@@ -34,8 +34,44 @@ export default function Home() {
   const currentUser = useCurrentUser();
   const openAuthWall = useAuthWallStore((s) => s.openAuthWall);
 
-  const publishedPhotos = feed.carouselItems.filter((i) => i.published);
+  const publishedPhotos = useMemo(() => {
+    return feed.carouselItems.filter(
+      (i) => i.published && Boolean(i.imageUrl && i.imageUrl.trim()) && !['slide-1', 'slide-2', 'slide-3'].includes(i.id)
+    );
+  }, [feed.carouselItems]);
   const publishedVideos = feed.videoItems.filter((v) => v.published);
+
+  // Initial load state: only show skeleton loader while fetching carousels on mount.
+  // Once the carousels start showing, hasInitiallyLoaded turns true permanently
+  // so that NO skeleton loader ever shows again during slide transitions or auto-rotation.
+  const [hasInitiallyLoaded, setHasInitiallyLoaded] = useState(false);
+
+  useEffect(() => {
+    if (hasInitiallyLoaded) return;
+
+    if (publishedPhotos.length > 0) {
+      // Preload all active photos immediately in parallel
+      publishedPhotos.forEach((photo) => {
+        if (photo.imageUrl) {
+          preloadCarouselImage(photo.imageUrl, 'high');
+        }
+      });
+
+      const firstImage = publishedPhotos[0]?.imageUrl;
+      if (firstImage) {
+        preloadCarouselImage(firstImage, 'high').finally(() => {
+          setHasInitiallyLoaded(true);
+        });
+      } else {
+        setHasInitiallyLoaded(true);
+      }
+    } else {
+      const timer = setTimeout(() => {
+        setHasInitiallyLoaded(true);
+      }, 600);
+      return () => clearTimeout(timer);
+    }
+  }, [publishedPhotos, hasInitiallyLoaded]);
 
   // Active Carousel Slide Index & 1-Second Smooth Fade State
   const [activeCarouselIndex, setActiveCarouselIndex] = useState(0);
@@ -231,7 +267,21 @@ export default function Home() {
           - Right: Big news heading on top of the smaller caption text
           - Mobile: Side-by-side (photo on left, text on right) with proportional text
           ========================================================================= */}
-      {publishedPhotos.length > 0 && currentPhoto && (
+      {!hasInitiallyLoaded ? (
+        <section className="w-full bg-[#02241b] text-white">
+          <div className="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8 py-4 sm:py-16 relative overflow-hidden">
+            <div className="text-left mb-3 sm:mb-10 relative z-10 px-1 sm:px-0">
+              <span className="text-white font-bold text-xs uppercase tracking-wider block mb-1">
+                Weekly Editorial
+              </span>
+              <h1 className="font-extrabold text-xl sm:text-3xl lg:text-4xl text-white tracking-tight">
+                Top Stories &amp; Matchday Perspectives
+              </h1>
+            </div>
+            <EditorialCarouselSkeleton />
+          </div>
+        </section>
+      ) : publishedPhotos.length > 0 && currentPhoto ? (
         <section className="w-full bg-[#02241b] text-white">
           <div
             className="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8 py-4 sm:py-16 relative overflow-hidden"
@@ -249,83 +299,73 @@ export default function Home() {
               </h1>
             </div>
 
-            {/* 2-Column Console Layout on Desktop, Compact 1-Screen Stacked Layout on Mobile */}
-            {!isCardReady ? (
-              <EditorialCarouselSkeleton />
-            ) : (
-              <div className="flex flex-col sm:grid sm:grid-cols-12 sm:gap-6 lg:gap-10 items-start relative z-10 animate-editorial-fade-in">
-                {/* PHOTO CONTAINER: Compact on mobile for 1-screen fit, full column on desktop */}
-                <div className="w-full sm:col-span-5 lg:col-span-4 flex flex-col items-start px-1 sm:px-0">
-                  <div
-                    className={`relative w-[180px] xs:w-[200px] sm:w-full sm:max-w-[290px] lg:max-w-[340px] aspect-[3/4] min-h-0 sm:min-h-[360px] lg:min-h-[420px] rounded-xl sm:rounded-2xl lg:rounded-3xl overflow-hidden shadow-[0_8px_24px_rgba(0,0,0,0.65)] bg-[#06372a] transition-opacity duration-500 ease-in-out ${
-                      isCarouselFading ? 'opacity-0' : 'opacity-100'
-                    }`}
-                  >
-                    {/* Active Photo with High-Priority Eager Loading & Verified Image Fallback */}
-                    <img
-                      src={displayImageUrl}
-                      alt={currentPhoto.heading || currentPhoto.caption || 'Active carousel story'}
-                      loading="eager"
-                      decoding="async"
-                      sizes="(max-width: 640px) 200px, (max-width: 1024px) 290px, 340px"
-                      className="w-full h-full object-cover"
-                      onError={(e) => {
-                        const target = e.currentTarget;
-                        if (!target.src.includes('hero-striker.jpg')) {
-                          target.src = '/images/hero-striker.jpg';
-                        }
-                      }}
-                    />
-
-                    {/* Subtle inner border for crisp edge definition without fading */}
-                    <div className="absolute inset-0 ring-1 ring-inset ring-white/10 rounded-xl sm:rounded-2xl lg:rounded-3xl pointer-events-none" />
-                  </div>
-                </div>
-
-                {/* TEXT CONTAINER: Fits on 1 screen on mobile without scrolling */}
+            {/* Desktop: Caption hugs photo with controlled allowance; Mobile: compact 1-screen fit */}
+            <div className="flex flex-col sm:flex-row sm:items-start sm:gap-6 lg:gap-7 relative z-10 animate-editorial-fade-in">
+              {/* PHOTO CONTAINER: Compact on mobile for 1-screen fit, neatly hugging text on desktop */}
+              <div className="w-full sm:w-auto sm:shrink-0 flex flex-col items-start px-1 sm:px-0">
                 <div
-                  className={`w-full sm:col-span-7 lg:col-span-8 flex flex-col justify-start space-y-1.5 sm:space-y-3.5 text-left px-1 sm:px-0 sm:pl-4 lg:pl-6 pt-2 sm:pt-0 transition-opacity duration-500 ease-in-out ${
+                  className={`relative w-[180px] xs:w-[200px] sm:w-[280px] lg:w-[320px] aspect-[3/4] min-h-0 sm:min-h-[360px] lg:min-h-[415px] rounded-xl sm:rounded-2xl lg:rounded-3xl overflow-hidden shadow-[0_8px_24px_rgba(0,0,0,0.65)] bg-[#06372a] transition-opacity duration-500 ease-in-out ${
                     isCarouselFading ? 'opacity-0' : 'opacity-100'
                   }`}
                 >
-                  {/* Photo & News Source Credit: Below the photo from the left, above caption heading */}
-                  {currentPhoto.source && currentPhoto.source.trim() ? (
-                    <p className="text-[10px] sm:text-xs text-slate-400/80 italic tracking-wide">
-                      Source: <span className="text-slate-300 font-medium not-italic">{currentPhoto.source}</span>
-                    </p>
-                  ) : null}
+                  {/* Active Photo: Strictly from active carousel, with high priority and async decoding */}
+                  <img
+                    src={currentPhoto.imageUrl}
+                    alt={currentPhoto.heading || currentPhoto.caption || 'Active carousel story'}
+                    loading="eager"
+                    decoding="async"
+                    sizes="(max-width: 640px) 200px, (max-width: 1024px) 280px, 320px"
+                    className="w-full h-full object-cover"
+                  />
 
-                  {/* Thick prominent heading on mobile and desktop */}
-                  {currentPhoto.heading && currentPhoto.heading.trim() ? (
-                    <h2 className="text-base xs:text-lg sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-black text-[#D4AF37] leading-tight tracking-tight drop-shadow-md">
-                      {currentPhoto.heading}
-                    </h2>
-                  ) : null}
-
-                  {/* Thicker font-bold on mobile, refined font size on desktop */}
-                  {currentPhoto.caption && currentPhoto.caption.trim() ? (
-                    <p className="text-xs xs:text-sm sm:text-sm md:text-base lg:text-lg xl:text-xl text-slate-100 font-bold sm:font-normal leading-snug sm:leading-relaxed max-w-xl sm:max-w-2xl lg:max-w-3xl drop-shadow-sm">
-                      {currentPhoto.caption}
-                    </p>
-                  ) : null}
-
-                  {currentPhoto.link && (
-                    <a
-                      href={currentPhoto.link}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1.5 sm:gap-2 text-[11px] sm:text-xs font-bold text-[#4ADE80] hover:text-[#22c55e] transition-colors uppercase tracking-wider pt-0.5 sm:pt-1.5 group w-fit"
-                    >
-                      <span>Continue Reading</span>
-                      <span className="group-hover:translate-x-1 transition-transform">→</span>
-                    </a>
-                  )}
+                  {/* Subtle inner border for crisp edge definition without fading */}
+                  <div className="absolute inset-0 ring-1 ring-inset ring-white/10 rounded-xl sm:rounded-2xl lg:rounded-3xl pointer-events-none" />
                 </div>
               </div>
-            )}
+
+              {/* TEXT CONTAINER: Hugs photo with sm:gap-6 lg:gap-7 allowance on desktop, 1-screen fit on mobile */}
+              <div
+                className={`flex-1 flex flex-col justify-start space-y-1.5 sm:space-y-3.5 text-left px-1 sm:px-0 pt-2 sm:pt-1 max-w-2xl lg:max-w-3xl transition-opacity duration-500 ease-in-out ${
+                  isCarouselFading ? 'opacity-0' : 'opacity-100'
+                }`}
+              >
+                {/* Photo & News Source Credit: Below the photo from the left, above caption heading */}
+                {currentPhoto.source && currentPhoto.source.trim() ? (
+                  <p className="text-[10px] sm:text-xs text-slate-400/80 italic tracking-wide">
+                    Source: <span className="text-slate-300 font-medium not-italic">{currentPhoto.source}</span>
+                  </p>
+                ) : null}
+
+                {/* Thick prominent heading on mobile and desktop */}
+                {currentPhoto.heading && currentPhoto.heading.trim() ? (
+                  <h2 className="text-base xs:text-lg sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-black text-[#D4AF37] leading-tight tracking-tight drop-shadow-md">
+                    {currentPhoto.heading}
+                  </h2>
+                ) : null}
+
+                {/* Thicker font-bold on mobile, refined font size on desktop */}
+                {currentPhoto.caption && currentPhoto.caption.trim() ? (
+                  <p className="text-xs xs:text-sm sm:text-sm md:text-base lg:text-lg xl:text-xl text-slate-100 font-bold sm:font-normal leading-snug sm:leading-relaxed max-w-xl sm:max-w-2xl lg:max-w-3xl drop-shadow-sm">
+                    {currentPhoto.caption}
+                  </p>
+                ) : null}
+
+                {currentPhoto.link && (
+                  <a
+                    href={currentPhoto.link}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 sm:gap-2 text-[11px] sm:text-xs font-bold text-[#4ADE80] hover:text-[#22c55e] transition-colors uppercase tracking-wider pt-0.5 sm:pt-1.5 group w-fit"
+                  >
+                    <span>Continue Reading</span>
+                    <span className="group-hover:translate-x-1 transition-transform">→</span>
+                  </a>
+                )}
+              </div>
+            </div>
           </div>
         </section>
-      )}
+      ) : null}
 
       {/* =========================================================================
           2. HORIZONTAL LINE SEPARATOR
