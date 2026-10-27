@@ -124,6 +124,23 @@ function AnimatedRoutes() {
   );
 }
 
+function MainContent() {
+  const location = useLocation();
+  const isHomePage = location.pathname === '/';
+
+  return (
+    <main
+      className={`flex-1 flex flex-col w-full overflow-x-hidden ${
+        isHomePage
+          ? 'pb-0 lg:pb-0'
+          : 'pb-[calc(5.25rem+env(safe-area-inset-bottom,0px))] lg:pb-12'
+      }`}
+    >
+      <AnimatedRoutes />
+    </main>
+  );
+}
+
 function ConditionalFooter() {
   const location = useLocation();
   const currentUser = useCurrentUser();
@@ -181,9 +198,7 @@ function App() {
           */}
           <div className="app-shell w-full flex-1 flex flex-col">
             <Navbar />
-            <main className="flex-1 flex flex-col w-full pb-[calc(5.25rem+env(safe-area-inset-bottom,0px))] lg:pb-12 overflow-x-hidden">
-              <AnimatedRoutes />
-            </main>
+            <MainContent />
             <ConditionalFooter />
           </div>
         </div>
