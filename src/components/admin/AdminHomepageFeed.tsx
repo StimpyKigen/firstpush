@@ -59,6 +59,7 @@ export default function AdminHomepageFeed() {
   const [photoUrl, setPhotoUrl] = useState('');
   const [photoHeading, setPhotoHeading] = useState('');
   const [photoCaption, setPhotoCaption] = useState('');
+  const [photoSource, setPhotoSource] = useState('');
   const [isPhotoPreviewOpen, setIsPhotoPreviewOpen] = useState(false);
 
   // Video Form State
@@ -89,12 +90,14 @@ export default function AdminHomepageFeed() {
         imageUrl: cleanUrl,
         heading: photoHeading.trim() || '',
         caption: photoCaption.trim() || '',
+        source: photoSource.trim() || '',
         published: true,
       });
 
       setPhotoUrl('');
       setPhotoHeading('');
       setPhotoCaption('');
+      setPhotoSource('');
       setIsPhotoPreviewOpen(false);
 
       showToast({ title: 'Carousel Slide Published', message: 'Image slide saved to database and live on homepage.', type: 'success' });
@@ -293,6 +296,25 @@ export default function AdminHomepageFeed() {
                 <span>{photoCaption.length} / 300</span>
               </div>
             </div>
+
+            {/* 3. Photo & News Source Credit */}
+            <div>
+              <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wide mb-1.5 flex items-center justify-between">
+                <span>3. Photo &amp; News Source (Optional)</span>
+                <span className="text-[11px] text-slate-400 font-normal lowercase">Credit or photographer</span>
+              </label>
+              <input
+                type="text"
+                placeholder="e.g. Reuters / Action Images, Getty Images, AFP, Standard Media"
+                value={photoSource}
+                onChange={(e) => setPhotoSource(e.target.value)}
+                maxLength={80}
+                className="w-full bg-[#FFFFF0] border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#006C54] focus:ring-1 focus:ring-[#006C54] transition-all"
+              />
+              <span className="text-[11px] text-slate-400 mt-1 block">
+                Appears in faded grey italic text just below the photo on the left above the caption heading. If omitted, nothing will be displayed.
+              </span>
+            </div>
           </div>
 
           {/* Action Buttons: Preview & Publish */}
@@ -333,9 +355,9 @@ export default function AdminHomepageFeed() {
                 </button>
               </div>
 
-              {/* Exact Mock of Homepage Carousel 2-Column Layout */}
+              {/* Exact Mock of Homepage Carousel Layout */}
               <div className="grid grid-cols-12 gap-2.5 sm:gap-4 items-start">
-                {/* Left: 3:4 Photo with faded edges & dots (Expanded on Mobile) */}
+                {/* Left: 3:4 Photo */}
                 <div className="col-span-7 sm:col-span-5 lg:col-span-4 flex flex-col items-center justify-start">
                   <div className="relative w-full max-w-[220px] aspect-[3/4] rounded-2xl overflow-hidden shadow-2xl bg-black">
                     <img
@@ -352,16 +374,15 @@ export default function AdminHomepageFeed() {
                     <div className="absolute inset-0 bg-gradient-to-t from-[#02241b] via-transparent to-[#02241b]/30 pointer-events-none" />
                     <div className="absolute inset-0 bg-gradient-to-r from-[#02241b]/50 via-transparent to-[#02241b]/50 pointer-events-none" />
                   </div>
-                  {/* Minimalist dots indicator */}
-                  <div className="flex items-center gap-1.5 mt-2.5">
-                    <span className="w-5 h-1.5 rounded-full bg-[#4ADE80]" />
-                    <span className="w-1.5 h-1.5 rounded-full bg-white/30" />
-                    <span className="w-1.5 h-1.5 rounded-full bg-white/30" />
-                  </div>
                 </div>
 
-                {/* Right: Heading on Top of Caption (Aligned at Top with Gold Accent, Pushed to Edge) */}
-                <div className="col-span-5 sm:col-span-7 lg:col-span-8 flex flex-col justify-start space-y-2 text-left pl-1 sm:pl-2">
+                {/* Right: Source, Heading, Caption */}
+                <div className="col-span-5 sm:col-span-7 lg:col-span-8 flex flex-col justify-start space-y-1.5 text-left pl-1 sm:pl-2">
+                  {photoSource.trim() ? (
+                    <p className="text-[10px] sm:text-xs text-slate-400/80 italic tracking-wide">
+                      Source: <span className="text-slate-300 font-medium not-italic">{photoSource}</span>
+                    </p>
+                  ) : null}
                   <h3 className="text-base sm:text-2xl font-black text-[#D4AF37] leading-tight tracking-tight">
                     {photoHeading || 'Match of the year is coming'}
                   </h3>
@@ -403,6 +424,11 @@ export default function AdminHomepageFeed() {
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-transparent pointer-events-none" />
                     <div className="absolute bottom-2.5 left-2.5 right-2.5 z-20 text-white">
+                      {item.source && (
+                        <p className="text-[9px] text-slate-300/80 italic line-clamp-1 mb-0.5">
+                          Source: {item.source}
+                        </p>
+                      )}
                       {item.heading && (
                         <p className="text-xs font-bold leading-tight line-clamp-2 mb-0.5">
                           {item.heading}

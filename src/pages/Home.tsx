@@ -288,15 +288,23 @@ export default function Home() {
                     isCarouselFading ? 'opacity-0' : 'opacity-100'
                   }`}
                 >
+                  {/* Photo & News Source Credit: Below the photo from the left, above caption heading */}
+                  {currentPhoto.source && currentPhoto.source.trim() ? (
+                    <p className="text-[10px] sm:text-xs text-slate-400/80 italic tracking-wide">
+                      Source: <span className="text-slate-300 font-medium not-italic">{currentPhoto.source}</span>
+                    </p>
+                  ) : null}
+
+                  {/* Thick prominent heading on mobile and desktop */}
                   {currentPhoto.heading && currentPhoto.heading.trim() ? (
                     <h2 className="text-base xs:text-lg sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-black text-[#D4AF37] leading-tight tracking-tight drop-shadow-md">
                       {currentPhoto.heading}
                     </h2>
                   ) : null}
 
-                  {/* Refined font size on desktop (reduced by 50%), compact on mobile for zero scroll */}
+                  {/* Thicker font-bold on mobile, refined font size on desktop */}
                   {currentPhoto.caption && currentPhoto.caption.trim() ? (
-                    <p className="text-xs xs:text-sm sm:text-sm md:text-base lg:text-lg xl:text-xl text-slate-100 font-normal leading-snug sm:leading-relaxed max-w-xl sm:max-w-2xl lg:max-w-3xl drop-shadow-sm">
+                    <p className="text-xs xs:text-sm sm:text-sm md:text-base lg:text-lg xl:text-xl text-slate-100 font-bold sm:font-normal leading-snug sm:leading-relaxed max-w-xl sm:max-w-2xl lg:max-w-3xl drop-shadow-sm">
                       {currentPhoto.caption}
                     </p>
                   ) : null}

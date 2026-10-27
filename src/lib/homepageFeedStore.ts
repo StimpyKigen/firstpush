@@ -16,6 +16,7 @@ export interface HomepageCarouselItem {
   imageUrl: string;
   heading?: string;
   caption?: string;
+  source?: string;
   link?: string;
   published: boolean;
   createdAt: string;
@@ -385,12 +386,13 @@ export function subscribeToHomepageFeed(listener: () => void) {
 // Action API for Admin Console (with Guaranteed DB Persistence)
 // -------------------------------------------------------------
 
-export async function addCarouselItem(item: { imageUrl: string; heading?: string; caption?: string; link?: string; published?: boolean }) {
+export async function addCarouselItem(item: { imageUrl: string; heading?: string; caption?: string; source?: string; link?: string; published?: boolean }) {
   const newItem: HomepageCarouselItem = {
     id: `carousel-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
     imageUrl: item.imageUrl.trim(),
     heading: item.heading?.trim() || '',
     caption: item.caption?.trim() || '',
+    source: item.source?.trim() || '',
     link: item.link?.trim() || '',
     published: item.published !== undefined ? item.published : true,
     createdAt: new Date().toISOString(),
