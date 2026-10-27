@@ -74,8 +74,8 @@ assert(
 );
 assert(
   skeletonContent.includes('aspect-[3/4]') &&
-  skeletonContent.includes('min-h-[350px]'),
-  'EditorialCarouselSkeleton matches exact 3:4 photo aspect ratio and min-h-[350px]'
+  skeletonContent.includes('min-h-0'),
+  'EditorialCarouselSkeleton matches exact 3:4 photo aspect ratio and min-h-0 for 1-screen mobile fit'
 );
 assert(
   skeletonContent.includes('tone="dark"'),
@@ -145,7 +145,7 @@ assert(
   'Home.tsx uses dark stadium bg-[#06372a] instead of black void'
 );
 assert(
-  homeContent.includes('sizes="(max-width: 640px) 440px, (max-width: 1024px) 290px, 340px"'),
+  homeContent.includes('sizes="(max-width: 640px) 200px, (max-width: 1024px) 290px, 340px"'),
   'Home.tsx includes responsive sizes attribute for optimal image rasterization'
 );
 assert(

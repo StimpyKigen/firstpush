@@ -234,30 +234,30 @@ export default function Home() {
       {publishedPhotos.length > 0 && currentPhoto && (
         <section className="w-full bg-[#02241b] text-white">
           <div
-            className="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8 py-10 sm:py-16 relative overflow-hidden"
+            className="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8 py-4 sm:py-16 relative overflow-hidden"
             onTouchStart={handleCarouselTouchStart}
             onTouchMove={handleCarouselTouchMove}
             onTouchEnd={handleCarouselTouchEnd}
           >
             {/* Section Heading in Crisp White with NO background and NO border */}
-            <div className="text-left mb-5 sm:mb-10 relative z-10 px-1 sm:px-0">
-              <span className="text-white font-bold text-xs uppercase tracking-wider block mb-1.5">
+            <div className="text-left mb-3 sm:mb-10 relative z-10 px-1 sm:px-0">
+              <span className="text-white font-bold text-xs uppercase tracking-wider block mb-1">
                 Weekly Editorial
               </span>
-              <h1 className="font-extrabold text-2xl sm:text-3xl lg:text-4xl text-white tracking-tight">
+              <h1 className="font-extrabold text-xl sm:text-3xl lg:text-4xl text-white tracking-tight">
                 Top Stories &amp; Matchday Perspectives
               </h1>
             </div>
 
-            {/* 2-Column Console Layout on Desktop, Stacked Hero Layout on Mobile */}
+            {/* 2-Column Console Layout on Desktop, Compact 1-Screen Stacked Layout on Mobile */}
             {!isCardReady ? (
               <EditorialCarouselSkeleton />
             ) : (
               <div className="flex flex-col sm:grid sm:grid-cols-12 sm:gap-6 lg:gap-10 items-start relative z-10 animate-editorial-fade-in">
-                {/* PHOTO CONTAINER: Full width enlarged hero on mobile, col-span-5/4 on desktop */}
+                {/* PHOTO CONTAINER: Compact on mobile for 1-screen fit, full column on desktop */}
                 <div className="w-full sm:col-span-5 lg:col-span-4 flex flex-col items-start px-1 sm:px-0">
                   <div
-                    className={`relative w-full max-w-[440px] sm:max-w-[290px] lg:max-w-[340px] aspect-[3/4] min-h-[350px] sm:min-h-[360px] lg:min-h-[420px] rounded-2xl sm:rounded-2xl lg:rounded-3xl overflow-hidden shadow-[0_12px_36px_rgba(0,0,0,0.65)] bg-[#06372a] transition-opacity duration-500 ease-in-out ${
+                    className={`relative w-[180px] xs:w-[200px] sm:w-full sm:max-w-[290px] lg:max-w-[340px] aspect-[3/4] min-h-0 sm:min-h-[360px] lg:min-h-[420px] rounded-xl sm:rounded-2xl lg:rounded-3xl overflow-hidden shadow-[0_8px_24px_rgba(0,0,0,0.65)] bg-[#06372a] transition-opacity duration-500 ease-in-out ${
                       isCarouselFading ? 'opacity-0' : 'opacity-100'
                     }`}
                   >
@@ -267,7 +267,7 @@ export default function Home() {
                       alt={currentPhoto.heading || currentPhoto.caption || 'Active carousel story'}
                       loading="eager"
                       decoding="async"
-                      sizes="(max-width: 640px) 440px, (max-width: 1024px) 290px, 340px"
+                      sizes="(max-width: 640px) 200px, (max-width: 1024px) 290px, 340px"
                       className="w-full h-full object-cover"
                       onError={(e) => {
                         const target = e.currentTarget;
@@ -278,25 +278,25 @@ export default function Home() {
                     />
 
                     {/* Subtle inner border for crisp edge definition without fading */}
-                    <div className="absolute inset-0 ring-1 ring-inset ring-white/10 rounded-2xl sm:rounded-2xl lg:rounded-3xl pointer-events-none" />
+                    <div className="absolute inset-0 ring-1 ring-inset ring-white/10 rounded-xl sm:rounded-2xl lg:rounded-3xl pointer-events-none" />
                   </div>
                 </div>
 
-                {/* TEXT CONTAINER: Shifted directly to bottom on mobile, starting on same vertical line as section heading */}
+                {/* TEXT CONTAINER: Fits on 1 screen on mobile without scrolling */}
                 <div
-                  className={`w-full sm:col-span-7 lg:col-span-8 flex flex-col justify-start space-y-2 sm:space-y-4 text-left px-1 sm:px-0 sm:pl-4 lg:pl-6 pt-4 sm:pt-0 transition-opacity duration-500 ease-in-out ${
+                  className={`w-full sm:col-span-7 lg:col-span-8 flex flex-col justify-start space-y-1.5 sm:space-y-3.5 text-left px-1 sm:px-0 sm:pl-4 lg:pl-6 pt-2 sm:pt-0 transition-opacity duration-500 ease-in-out ${
                     isCarouselFading ? 'opacity-0' : 'opacity-100'
                   }`}
                 >
                   {currentPhoto.heading && currentPhoto.heading.trim() ? (
-                    <h2 className="text-xl sm:text-2xl md:text-4xl lg:text-5xl xl:text-6xl font-black text-[#D4AF37] leading-tight tracking-tight drop-shadow-md">
+                    <h2 className="text-base xs:text-lg sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-black text-[#D4AF37] leading-tight tracking-tight drop-shadow-md">
                       {currentPhoto.heading}
                     </h2>
                   ) : null}
 
-                  {/* Significantly bigger font size on desktop, comfortable prominent font on mobile */}
+                  {/* Refined font size on desktop (reduced by 50%), compact on mobile for zero scroll */}
                   {currentPhoto.caption && currentPhoto.caption.trim() ? (
-                    <p className="text-sm xs:text-base sm:text-2xl md:text-3xl lg:text-4xl xl:text-[2.65rem] xl:leading-[1.25] text-slate-100 font-medium sm:font-normal leading-relaxed sm:leading-snug max-w-xl sm:max-w-3xl lg:max-w-4xl drop-shadow-sm">
+                    <p className="text-xs xs:text-sm sm:text-sm md:text-base lg:text-lg xl:text-xl text-slate-100 font-normal leading-snug sm:leading-relaxed max-w-xl sm:max-w-2xl lg:max-w-3xl drop-shadow-sm">
                       {currentPhoto.caption}
                     </p>
                   ) : null}
@@ -306,7 +306,7 @@ export default function Home() {
                       href={currentPhoto.link}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm font-bold text-[#4ADE80] hover:text-[#22c55e] transition-colors uppercase tracking-wider pt-1 sm:pt-3 group w-fit"
+                      className="inline-flex items-center gap-1.5 sm:gap-2 text-[11px] sm:text-xs font-bold text-[#4ADE80] hover:text-[#22c55e] transition-colors uppercase tracking-wider pt-0.5 sm:pt-1.5 group w-fit"
                     >
                       <span>Continue Reading</span>
                       <span className="group-hover:translate-x-1 transition-transform">→</span>
