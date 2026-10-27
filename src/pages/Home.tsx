@@ -35,9 +35,16 @@ export default function Home() {
   const openAuthWall = useAuthWallStore((s) => s.openAuthWall);
 
   const publishedPhotos = useMemo(() => {
-    return feed.carouselItems.filter(
-      (i) => i.published && Boolean(i.imageUrl && i.imageUrl.trim()) && !['slide-1', 'slide-2', 'slide-3'].includes(i.id)
-    );
+    return feed.carouselItems
+      .filter(
+        (i) => i.published && Boolean(i.imageUrl && i.imageUrl.trim()) && !['slide-1', 'slide-2', 'slide-3'].includes(i.id)
+      )
+      .sort((a, b) => {
+        const orderA = typeof a.order === 'number' ? a.order : 9999;
+        const orderB = typeof b.order === 'number' ? b.order : 9999;
+        if (orderA !== orderB) return orderA - orderB;
+        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+      });
   }, [feed.carouselItems]);
   const publishedVideos = feed.videoItems.filter((v) => v.published);
 

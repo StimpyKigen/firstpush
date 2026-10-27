@@ -10,16 +10,24 @@
 
 import { doc, setDoc, onSnapshot } from 'firebase/firestore';
 import { db } from '../firebase';
+import { deleteCarouselPhotoStorage } from './carouselStorageService';
 
 export interface HomepageCarouselItem {
   id: string;
   imageUrl: string;
+  storagePath?: string; // Canonical Firebase Storage path (e.g. homepage-carousel/{photoId}/{fileName}.webp)
   heading?: string;
   caption?: string;
   source?: string;
   link?: string;
+  order?: number; // Explicit display order (1, 2, 3...)
   published: boolean;
   createdAt: string;
+  updatedAt?: string;
+  createdBy?: string; // Authenticated admin phone or UID
+  updatedBy?: string; // Authenticated admin phone or UID
+  dimensions?: { width: number; height: number };
+  fileSize?: number;
 }
 
 export interface HomepageVideoItem {
@@ -359,16 +367,40 @@ export function subscribeToHomepageFeed(listener: () => void) {
 // Action API for Admin Console (with Guaranteed DB Persistence)
 // -------------------------------------------------------------
 
-export async function addCarouselItem(item: { imageUrl: string; heading?: string; caption?: string; source?: string; link?: string; published?: boolean }) {
+export async function addCarouselItem(item: {
+  imageUrl: string;
+  storagePath?: string;
+  heading?: string;
+  caption?: string;
+  source?: string;
+  link?: string;
+  published?: boolean;
+  order?: number;
+  createdBy?: string;
+  dimensions?: { width: number; height: number };
+  fileSize?: number;
+}) {
+  const now = new Date().toISOString();
+  const existingOrders = currentFeed.carouselItems
+    .map((c) => (typeof c.order === 'number' ? c.order : 0));
+  const nextOrder = existingOrders.length > 0 ? Math.max(...existingOrders) + 1 : 1;
+
   const newItem: HomepageCarouselItem = {
     id: `carousel-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
     imageUrl: item.imageUrl.trim(),
+    storagePath: item.storagePath?.trim() || undefined,
     heading: item.heading?.trim() || '',
     caption: item.caption?.trim() || '',
     source: item.source?.trim() || '',
     link: item.link?.trim() || '',
+    order: typeof item.order === 'number' ? item.order : nextOrder,
     published: item.published !== undefined ? item.published : true,
-    createdAt: new Date().toISOString(),
+    createdAt: now,
+    updatedAt: now,
+    createdBy: item.createdBy?.trim() || undefined,
+    updatedBy: item.createdBy?.trim() || undefined,
+    dimensions: item.dimensions,
+    fileSize: item.fileSize,
   };
 
   const nextFeed: HomepageFeedData = {
@@ -391,11 +423,115 @@ export async function addCarouselItem(item: { imageUrl: string; heading?: string
   return newItem;
 }
 
+export async function updateCarouselItem(
+  id: string,
+  updates: Partial<Omit<HomepageCarouselItem, 'id' | 'createdAt'>>
+) {
+  const now = new Date().toISOString();
+  const existing = currentFeed.carouselItems.find((c) => c.id === id);
+  if (!existing) {
+    throw new Error('Carousel photo record not found.');
+  }
+
+  const nextFeed: HomepageFeedData = {
+    ...currentFeed,
+    carouselItems: currentFeed.carouselItems.map((c) => {
+      if (c.id !== id) return c;
+      return {
+        ...c,
+        ...updates,
+        heading: updates.heading !== undefined ? updates.heading.trim() : c.heading,
+        caption: updates.caption !== undefined ? updates.caption.trim() : c.caption,
+        source: updates.source !== undefined ? updates.source.trim() : c.source,
+        link: updates.link !== undefined ? updates.link.trim() : c.link,
+        order: typeof updates.order === 'number' ? updates.order : c.order,
+        updatedAt: now,
+      };
+    }),
+  };
+
+  const result = await persistToCloud(nextFeed);
+  if (!result.success) {
+    throw new Error(result.error || 'Failed to update carousel photo in database.');
+  }
+
+  currentFeed = nextFeed;
+  if (typeof window !== 'undefined') {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(currentFeed));
+    } catch {}
+  }
+  listeners.forEach((l) => l());
+  return nextFeed.carouselItems.find((c) => c.id === id)!;
+}
+
+export async function replaceCarouselItemPhoto(
+  id: string,
+  photoData: {
+    imageUrl: string;
+    storagePath: string;
+    dimensions?: { width: number; height: number };
+    fileSize?: number;
+    updatedBy?: string;
+  }
+) {
+  const existing = currentFeed.carouselItems.find((c) => c.id === id);
+  if (!existing) {
+    throw new Error('Carousel photo not found.');
+  }
+  const oldStoragePath = existing.storagePath;
+
+  const updated = await updateCarouselItem(id, {
+    imageUrl: photoData.imageUrl,
+    storagePath: photoData.storagePath,
+    dimensions: photoData.dimensions,
+    fileSize: photoData.fileSize,
+    updatedBy: photoData.updatedBy,
+  });
+
+  // Safe deferred cleanup: Only clean old storage object after successful database update
+  if (oldStoragePath && oldStoragePath !== photoData.storagePath) {
+    deleteCarouselPhotoStorage(oldStoragePath).catch((err) => {
+      console.warn('[HomepageFeedStore] Old storage object cleanup warning:', oldStoragePath, err);
+    });
+  }
+
+  return updated;
+}
+
+export async function reorderCarouselItems(orderedIds: string[]) {
+  const idToOrder = new Map(orderedIds.map((id, index) => [id, index + 1]));
+  const now = new Date().toISOString();
+
+  const nextFeed: HomepageFeedData = {
+    ...currentFeed,
+    carouselItems: currentFeed.carouselItems.map((c) => {
+      if (idToOrder.has(c.id)) {
+        return { ...c, order: idToOrder.get(c.id)!, updatedAt: now };
+      }
+      return c;
+    }),
+  };
+
+  const result = await persistToCloud(nextFeed);
+  if (!result.success) {
+    throw new Error(result.error || 'Failed to persist carousel order in database.');
+  }
+
+  currentFeed = nextFeed;
+  if (typeof window !== 'undefined') {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(currentFeed));
+    } catch {}
+  }
+  listeners.forEach((l) => l());
+}
+
 export async function toggleCarouselItemPublish(id: string) {
   const nextFeed: HomepageFeedData = {
     ...currentFeed,
     carouselItems: currentFeed.carouselItems.map((c) =>
-      c.id === id ? { ...c, published: !c.published } : c
+      c.id === id ? { ...c, published: !c.published, updatedAt: new Date().toISOString() } : c
     ),
   };
 
@@ -414,6 +550,9 @@ export async function toggleCarouselItemPublish(id: string) {
 }
 
 export async function deleteCarouselItem(id: string) {
+  const targetItem = currentFeed.carouselItems.find((c) => c.id === id);
+  const oldStoragePath = targetItem?.storagePath;
+
   const nextFeed: HomepageFeedData = {
     ...currentFeed,
     carouselItems: currentFeed.carouselItems.filter((c) => c.id !== id),
@@ -431,6 +570,13 @@ export async function deleteCarouselItem(id: string) {
     } catch {}
   }
   listeners.forEach((l) => l());
+
+  // Clean up Storage object if it exists and is stored in Firebase Storage
+  if (oldStoragePath) {
+    deleteCarouselPhotoStorage(oldStoragePath).catch((err) => {
+      console.warn('[HomepageFeedStore] Storage cleanup notice for deleted photo:', oldStoragePath, err);
+    });
+  }
 }
 
 export async function addVideoItem(item: { youtubeUrl: string; title: string; published?: boolean }) {

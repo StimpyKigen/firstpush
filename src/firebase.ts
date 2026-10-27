@@ -12,18 +12,32 @@ import { initializeFirestore, getFirestore, Firestore } from 'firebase/firestore
 import { getStorage, FirebaseStorage } from 'firebase/storage';
 import firebaseConfigData from '../firebase-applet-config.json';
 
-// Single source of truth for Firebase configuration
-export const firebaseConfig = {
-  apiKey: (import.meta.env.VITE_FIREBASE_API_KEY as string) || firebaseConfigData.apiKey || '',
-  authDomain: (import.meta.env.VITE_FIREBASE_AUTH_DOMAIN as string) || firebaseConfigData.authDomain || '',
-  projectId: (import.meta.env.VITE_FIREBASE_PROJECT_ID as string) || firebaseConfigData.projectId || '',
-  storageBucket: (import.meta.env.VITE_FIREBASE_STORAGE_BUCKET as string) || firebaseConfigData.storageBucket || '',
-  messagingSenderId: (import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID as string) || firebaseConfigData.messagingSenderId || '',
-  appId: (import.meta.env.VITE_FIREBASE_APP_ID as string) || firebaseConfigData.appId || '',
-  measurementId: (import.meta.env.VITE_FIREBASE_MEASUREMENT_ID as string) || firebaseConfigData.measurementId || '',
+const getEnv = (key: string): string => {
+  try {
+    if (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env[key]) {
+      return import.meta.env[key] as string;
+    }
+  } catch {}
+  try {
+    if (typeof process !== 'undefined' && process.env && process.env[key]) {
+      return process.env[key] as string;
+    }
+  } catch {}
+  return '';
 };
 
-const databaseId = (import.meta.env.VITE_FIREBASE_FIRESTORE_DATABASE_ID as string) || firebaseConfigData.firestoreDatabaseId || '(default)';
+// Single source of truth for Firebase configuration
+export const firebaseConfig = {
+  apiKey: getEnv('VITE_FIREBASE_API_KEY') || firebaseConfigData.apiKey || '',
+  authDomain: getEnv('VITE_FIREBASE_AUTH_DOMAIN') || firebaseConfigData.authDomain || '',
+  projectId: getEnv('VITE_FIREBASE_PROJECT_ID') || firebaseConfigData.projectId || '',
+  storageBucket: getEnv('VITE_FIREBASE_STORAGE_BUCKET') || firebaseConfigData.storageBucket || '',
+  messagingSenderId: getEnv('VITE_FIREBASE_MESSAGING_SENDER_ID') || firebaseConfigData.messagingSenderId || '',
+  appId: getEnv('VITE_FIREBASE_APP_ID') || firebaseConfigData.appId || '',
+  measurementId: getEnv('VITE_FIREBASE_MEASUREMENT_ID') || firebaseConfigData.measurementId || '',
+};
+
+const databaseId = getEnv('VITE_FIREBASE_FIRESTORE_DATABASE_ID') || firebaseConfigData.firestoreDatabaseId || '(default)';
 
 // Ensure Firebase is initialized only once across the entire application
 export const app: FirebaseApp = getApps().length ? getApp() : initializeApp(firebaseConfig);

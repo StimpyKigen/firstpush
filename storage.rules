@@ -21,35 +21,53 @@ service firebase.storage {
       allow read, write: if false;
     }
 
-    // 1. Homepage Editorial Feed Media (carousel photos, hero graphics, news posters)
+    // 1. Dedicated Homepage Editorial Carousel WebP Media (structured storage)
+    // Structure: homepage-carousel/{photoId}/{uniqueFilename}.webp
+    // - Public read for homepage visitors and clients
+    // - Upload & replacement strictly restricted to verified admin, enforcing WebP MIME and 5MB limit
+    // - Deletion strictly restricted to verified admin (distinguished from upload so request.resource is not checked)
+    match /homepage-carousel/{photoId}/{fileName} {
+      allow read: if true;
+      allow create, update: if isAdmin()
+        && request.resource.size <= 5 * 1024 * 1024
+        && request.resource.contentType == 'image/webp'
+        && fileName.matches('^[a-zA-Z0-9_\\-\\.]+\\.webp$');
+      allow delete: if isAdmin();
+    }
+
+    // 2. Legacy Homepage Editorial Feed Media (carousel photos, hero graphics, news posters)
     // Public read so all visitors and PWA users can view photos; upload and delete strictly restricted to admin 0743304579
     match /feed/{fileName} {
       allow read: if true;
-      allow write, delete: if isAdmin()
+      allow create, update: if isAdmin()
         && request.resource.size < 10 * 1024 * 1024
         && request.resource.contentType.matches('image/.*');
+      allow delete: if isAdmin();
     }
 
-    // 2. Fixtures & Match Slates (PDF documents and fixture slates)
+    // 3. Fixtures & Match Slates (PDF documents and fixture slates)
     // Public read; upload and delete restricted to admin 0743304579
     match /fixtures/{fileName} {
       allow read: if true;
-      allow write, delete: if isAdmin()
+      allow create, update: if isAdmin()
         && request.resource.size < 15 * 1024 * 1024;
+      allow delete: if isAdmin();
     }
 
-    // 3. Custom Platform Avatars (SVG/PNG vector badges)
+    // 4. Custom Platform Avatars (SVG/PNG vector badges)
     match /avatars/{fileName} {
       allow read: if true;
-      allow write, delete: if isAdmin()
+      allow create, update: if isAdmin()
         && request.resource.size < 5 * 1024 * 1024;
+      allow delete: if isAdmin();
     }
 
-    // 4. Moderating Dictionary Backups & JSON Exports
+    // 5. Moderating Dictionary Backups & JSON Exports
     match /moderation/{fileName} {
       allow read: if isAdmin();
-      allow write, delete: if isAdmin()
+      allow create, update: if isAdmin()
         && request.resource.size < 5 * 1024 * 1024;
+      allow delete: if isAdmin();
     }
   }
 }
