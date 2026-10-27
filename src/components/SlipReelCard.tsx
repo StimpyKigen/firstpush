@@ -1,15 +1,14 @@
-import { useState } from 'react';
+import { useState, useRef, useMemo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import {
   Heart, Bookmark, Send, MessageCircle,
   Copy, Check, ExternalLink, Clock, Trophy, Zap, X,
-  ChevronUp, ChevronDown
+  ChevronLeft, ChevronRight
 } from 'lucide-react';
 import Avatar from './Avatar';
-import { useBetSlipStore } from '../lib/betSlipStore';
+import { useBetSlipStore, type BetSlipPost, type BuiltSlipLeg } from '../lib/betSlipStore';
 import { useCountdown } from '../lib/useCountdown';
 import { getEarliestKickoff } from '../lib/kickoffParser';
-import type { BetSlipPost } from '../lib/betSlipStore';
 import { showToast } from '../lib/notificationStore';
 import { useFollowStore } from '../lib/followStore';
 import { useCurrentUser } from '../lib/authStore';
@@ -55,6 +54,38 @@ export default function SlipReelCard({
   const [showCommentsModal, setShowCommentsModal] = useState(false);
   const [isCaptionExpanded, setIsCaptionExpanded] = useState(false);
   const [likePop, setLikePop] = useState(false);
+  const [activeChunkIndex, setActiveChunkIndex] = useState(0);
+  const carouselRef = useRef<HTMLDivElement>(null);
+
+  // Group fixtures into chunks of max 5 per slide for the horizontal swipe carousel
+  const fixtureChunks = useMemo(() => {
+    const chunks: BuiltSlipLeg[][] = [];
+    for (let i = 0; i < legs.length; i += 5) {
+      chunks.push(legs.slice(i, i + 5));
+    }
+    return chunks;
+  }, [legs]);
+
+  const handleScrollCarousel = (e: React.UIEvent<HTMLDivElement>) => {
+    const el = e.currentTarget;
+    const slideWidth = el.clientWidth;
+    if (slideWidth > 0) {
+      const newIdx = Math.round(el.scrollLeft / slideWidth);
+      if (newIdx !== activeChunkIndex && newIdx >= 0 && newIdx < fixtureChunks.length) {
+        setActiveChunkIndex(newIdx);
+      }
+    }
+  };
+
+  const scrollToChunk = (idx: number) => {
+    if (carouselRef.current && idx >= 0 && idx < fixtureChunks.length) {
+      carouselRef.current.scrollTo({
+        left: idx * carouselRef.current.clientWidth,
+        behavior: 'smooth',
+      });
+      setActiveChunkIndex(idx);
+    }
+  };
 
   function handleLike() {
     toggleLike(post.id);
@@ -126,14 +157,20 @@ export default function SlipReelCard({
       {/* ── AMBIENT SUBTLE PATTERN ── */}
       <div className="absolute inset-0 bg-gradient-to-b from-[#FFFFF0] via-[#FAF9EC] to-[#F5F5E4] pointer-events-none" />
 
-      {/* ── CENTER BET SLIP TICKET CONTENT ── */}
-      <div className="relative z-10 flex flex-col h-full pt-13 pb-32 pl-4 pr-2.5 sm:pl-5 sm:pr-3">
-        {/* Ticket Container */}
-        <div className="flex flex-col flex-1 min-h-0 overflow-hidden">
-          {/* Ticket Header Bar */}
-          <div className="pb-2 pt-1 px-0.5 flex items-start justify-between gap-3 shrink-0">
-            <div className="flex items-center gap-2 pt-0.5">
-              <span className="text-black text-sm sm:text-base font-bold tabular-nums leading-none">
+      {/* ── MAIN CONTENT CONTAINER (FULL HEIGHT FLEX) ── */}
+      <div
+        className="relative z-10 flex flex-col h-full justify-between px-3.5 sm:px-5"
+        style={{
+          paddingTop: 'calc(max(14px, env(safe-area-inset-top, 0px)) + 46px)',
+          paddingBottom: 'max(12px, env(safe-area-inset-bottom, 0px))',
+        }}
+      >
+        {/* ── TOP HEADER BLOCK (Below SlipFeed top bar) ── */}
+        <div className="shrink-0 flex flex-col gap-1.5 pb-1">
+          {/* Row 2: Odds & Legs Count (Left) + Countdown / Live Badge (Right) */}
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-2">
+              <span className="text-black text-base sm:text-lg font-bold tabular-nums leading-none">
                 {slip.totalOdds.toFixed(2)}x
               </span>
               <span className="text-xs font-bold uppercase tracking-wide text-slate-500 leading-none">
@@ -141,316 +178,291 @@ export default function SlipReelCard({
               </span>
             </div>
 
-            {/* Top Right: Countdown & Booking Code (Vertically inline with interaction buttons) */}
-            <div className="flex flex-col items-end gap-1 shrink-0">
-              {/* Countdown / Live Badge */}
-              {countdown.isLive ? (
-                <div className="flex items-center gap-1.5 text-emerald-600">
-                  <span className="relative flex h-2 w-2">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-                    <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500 shadow-[0_0_8px_#10b981]" />
-                  </span>
-                  <span className="text-xs tabular-nums font-bold lowercase tracking-wide text-emerald-600 drop-shadow-[0_0_6px_rgba(16,185,129,0.6)]">
-                    live
-                  </span>
-                </div>
-              ) : (
-                <div className="flex items-center gap-1.5 text-xs tabular-nums font-bold text-[#8A6500]">
-                  <Clock size={12} className="text-[#8A6500]" />
-                  <span>{countdown.isUnknown ? 'Pending KO' : countdown.label}</span>
-                </div>
-              )}
-
-              {/* Booking Code Pill */}
-              {(slip.bookieCode || slip.bookieLink) && (
-                <div className="flex items-center gap-1.5 pt-0.5">
-                  {slip.bookieCode && (
-                    <button
-                      onClick={handleCopyCode}
-                      className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-slate-900 text-white text-[11px] tabular-nums font-bold shadow-xs active:scale-95 transition-all hover:bg-slate-800 cursor-pointer"
-                    >
-                      {copiedCode ? <Check size={11} className="text-emerald-400" /> : <Copy size={11} />}
-                      <span>{slip.bookieCode}</span>
-                    </button>
-                  )}
-                  {slip.bookieLink && (
-                    <a
-                      href={slip.bookieLink}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-white border border-slate-300 text-slate-800 text-[11px] font-bold hover:bg-slate-50 active:scale-95 transition-all"
-                    >
-                      <ExternalLink size={10} className="text-[#006C54]" />
-                      <span>Open</span>
-                    </a>
-                  )}
-                </div>
-              )}
-            </div>
+            {/* Countdown / Live Indicator */}
+            {countdown.isLive ? (
+              <div className="flex items-center gap-1.5 text-emerald-600">
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500 shadow-[0_0_8px_#10b981]" />
+                </span>
+                <span className="text-xs tabular-nums font-bold lowercase tracking-wide text-emerald-600 drop-shadow-[0_0_6px_rgba(16,185,129,0.6)]">
+                  live
+                </span>
+              </div>
+            ) : (
+              <div className="flex items-center gap-1.5 text-xs tabular-nums font-bold text-[#8A6500]">
+                <Clock size={12} className="text-[#8A6500]" />
+                <span>{countdown.isUnknown ? 'Pending KO' : countdown.label}</span>
+              </div>
+            )}
           </div>
 
-          {/* Centered Scrollable Matches Container */}
+          {/* Row 3: Bookmaker Tag (Left) + Booking Code Pill (Right, below Countdown) */}
+          <div className="flex items-center justify-between gap-2 min-h-[26px]">
+            <div className="flex items-center gap-1.5 truncate">
+              {post.bookmaker && (
+                <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider truncate">
+                  {post.bookmaker}
+                </span>
+              )}
+            </div>
+
+            {/* Booking Code Pill */}
+            {(slip.bookieCode || slip.bookieLink) && (
+              <div className="flex items-center gap-1.5 shrink-0">
+                {slip.bookieCode && (
+                  <button
+                    onClick={handleCopyCode}
+                    className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-slate-900 text-white text-[11px] tabular-nums font-bold shadow-xs active:scale-95 transition-all hover:bg-slate-800 cursor-pointer"
+                  >
+                    {copiedCode ? <Check size={11} className="text-emerald-400" /> : <Copy size={11} />}
+                    <span>{slip.bookieCode}</span>
+                  </button>
+                )}
+                {slip.bookieLink && (
+                  <a
+                    href={slip.bookieLink}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-white border border-slate-300 text-slate-800 text-[11px] font-bold hover:bg-slate-50 active:scale-95 transition-all"
+                  >
+                    <ExternalLink size={10} className="text-[#006C54]" />
+                    <span>Open</span>
+                  </a>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* ── MIDDLE FIXTURES AREA (Max 5 per slide, swipe carousel if > 5) ── */}
+        {/* Note: NO visible line between booking code and fixture list as requested */}
+        <div className="flex-1 min-h-0 relative flex flex-col justify-center my-auto py-1">
+          {/* Carousel Navigation Buttons for Desktop (Left / Right Chevrons) */}
+          {fixtureChunks.length > 1 && (
+            <>
+              <button
+                onClick={() => scrollToChunk(activeChunkIndex - 1)}
+                disabled={activeChunkIndex === 0}
+                aria-label="Previous fixtures slide"
+                className="hidden sm:flex absolute -left-2 top-1/2 -translate-y-1/2 z-20 w-7 h-7 rounded-full bg-white/95 border border-slate-200 shadow-md text-slate-700 disabled:opacity-20 items-center justify-center transition-all cursor-pointer hover:bg-white active:scale-90"
+              >
+                <ChevronLeft size={16} />
+              </button>
+              <button
+                onClick={() => scrollToChunk(activeChunkIndex + 1)}
+                disabled={activeChunkIndex === fixtureChunks.length - 1}
+                aria-label="Next fixtures slide"
+                className="hidden sm:flex absolute -right-2 top-1/2 -translate-y-1/2 z-20 w-7 h-7 rounded-full bg-white/95 border border-slate-200 shadow-md text-slate-700 disabled:opacity-20 items-center justify-center transition-all cursor-pointer hover:bg-white active:scale-90"
+              >
+                <ChevronRight size={16} />
+              </button>
+            </>
+          )}
+
+          {/* Swipeable Carousel Container */}
           <div
-            className={`flex-1 min-h-0 py-1 pl-0.5 pr-9.5 sm:pr-11 flex flex-col overflow-y-auto slip-legs-scroll ${
-              legs.length >= 7 ? 'justify-start' : 'justify-center'
-            }`}
+            ref={carouselRef}
+            onScroll={handleScrollCarousel}
+            className="flex-1 min-h-0 w-full overflow-x-auto flex snap-x snap-mandatory slip-legs-carousel"
             style={{
               scrollbarWidth: 'none',
-              touchAction: 'pan-y',
-              overscrollBehaviorY: 'contain',
+              touchAction: 'pan-x pan-y',
+              overscrollBehaviorX: 'contain',
             }}
           >
-            {legs.length <= 3 ? (
-              /* ── 1 to 3 GAMES: Standard 1-Column Layout ── */
-              <div className="grid grid-cols-1 gap-2.5 w-full my-auto">
-                {legs.map((leg, i) => (
+            {fixtureChunks.map((chunk, chunkIdx) => (
+              <div
+                key={chunkIdx}
+                className="w-full min-w-full h-full flex flex-col justify-center gap-1.5 sm:gap-2 px-0.5 snap-center shrink-0"
+              >
+                {chunk.map((leg, legIdx) => (
                   <motion.div
                     key={leg.id}
                     initial={isActive ? { opacity: 0, y: 6 } : false}
                     animate={isActive ? { opacity: 1, y: 0 } : {}}
-                    transition={{ delay: 0.04 + i * 0.04, duration: 0.28, ease: 'easeOut' }}
-                    className="p-3 bg-[#FFFFF0] border border-[#E6E6D2] rounded-xl flex items-center justify-between gap-3 shadow-2xs"
+                    transition={{ delay: 0.03 + legIdx * 0.03, duration: 0.24, ease: 'easeOut' }}
+                    className="p-2 sm:p-2.5 bg-white/80 border border-[#E6E6D2] rounded-xl flex items-center justify-between gap-2.5 shadow-2xs hover:bg-white transition-colors"
                   >
                     <div className="min-w-0 flex-1">
-                      <p className="text-[11px] font-bold uppercase tracking-wide text-[#006C54] truncate mb-0.5">
-                        {leg.competition}
-                      </p>
-                      <p className="font-display font-bold text-xs sm:text-sm text-slate-900 truncate leading-snug">
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-[#006C54] truncate">
+                          {leg.competition}
+                        </span>
+                        <div className="flex items-center gap-1 text-[10px] text-slate-400 tabular-nums shrink-0">
+                          <Clock size={9} />
+                          <span>{leg.kickoff}</span>
+                        </div>
+                      </div>
+                      <p className="font-display font-bold text-xs sm:text-sm text-slate-900 truncate leading-snug mt-0.5">
                         {leg.homeTeam} <span className="text-slate-400 font-normal text-xs">v</span> {leg.awayTeam}
                       </p>
-                      <div className="flex items-center gap-1.5 mt-0.5 text-xs">
-                        <span className="font-bold text-slate-700">{leg.market}:</span>
-                        <span className="text-[#006C54] font-bold">{leg.pick}</span>
-                      </div>
-                      <div className="flex items-center gap-1 text-[11px] text-slate-400 tabular-nums mt-0.5">
-                        <Clock size={10} />
-                        <span>{leg.kickoff}</span>
+                      <div className="flex items-center gap-1.5 mt-0.5 text-[11px] truncate">
+                        <span className="font-semibold text-slate-500">{leg.market}:</span>
+                        <span className="text-[#006C54] font-bold truncate">{leg.pick}</span>
                       </div>
                     </div>
 
                     {/* Individual Leg Odds Pill */}
-                    <div className="shrink-0">
-                      <div className="bg-amber-50/80 text-[#8A6500] rounded-xl px-2.5 py-1.5 text-center min-w-[48px]">
-                        <span className="tabular-nums font-bold text-xs sm:text-sm block leading-none">
-                          {leg.odds.toFixed(2)}
-                        </span>
-                        <span className="text-[11px] uppercase text-amber-900/60 font-bold block mt-0.5">odds</span>
-                      </div>
+                    <div className="shrink-0 bg-amber-50/80 border border-amber-200/50 text-[#8A6500] rounded-xl px-2 py-1.5 text-center min-w-[46px]">
+                      <span className="tabular-nums font-bold text-xs sm:text-sm block leading-none">
+                        {leg.odds.toFixed(2)}
+                      </span>
+                      <span className="text-[9px] uppercase text-amber-900/60 font-bold block mt-0.5 leading-none">odds</span>
                     </div>
                   </motion.div>
                 ))}
               </div>
-            ) : (
-              /* ── 4+ GAMES: Adaptive 2-Column Grid (2 to max 3 rows visible) ── */
-              <div className={`grid grid-cols-2 w-full my-auto ${legs.length === 4 ? 'gap-2' : 'gap-1.5'}`}>
-                {legs.map((leg, i) => {
-                  const isSuperCompact = legs.length >= 5;
-                  return (
-                    <motion.div
-                      key={leg.id}
-                      initial={isActive ? { opacity: 0, y: 6 } : false}
-                      animate={isActive ? { opacity: 1, y: 0 } : {}}
-                      transition={{ delay: 0.03 + i * 0.03, duration: 0.25, ease: 'easeOut' }}
-                      className={`${
-                        isSuperCompact ? 'p-2' : 'p-2.5'
-                      } bg-[#FFFFF0] border border-[#E6E6D2] rounded-xl flex flex-col justify-between shadow-2xs`}
-                    >
-                      <div className="min-w-0">
-                        <p className="text-[11px] font-bold uppercase tracking-wide text-[#006C54] truncate">
-                          {leg.competition}
-                        </p>
-                        <p className={`font-display font-bold text-slate-900 truncate leading-tight mt-0.5 ${
-                          isSuperCompact ? 'text-[11px]' : 'text-xs'
-                        }`}>
-                          {leg.homeTeam} <span className="text-slate-400 font-normal text-[11px]">v</span> {leg.awayTeam}
-                        </p>
-                        <p className="text-[11px] text-slate-600 truncate mt-0.5">
-                          <span className="font-bold text-slate-700">{leg.market}: </span>
-                          <span className="text-[#006C54] font-bold">{leg.pick}</span>
-                        </p>
-                      </div>
-
-                      <div className="flex items-center justify-between mt-1 pt-1 border-t border-[#E6E6D2]/60">
-                        <div className="flex items-center gap-0.5 text-[11px] text-slate-400 tabular-nums truncate">
-                          <Clock size={9} className="shrink-0" />
-                          <span className="truncate">{leg.kickoff}</span>
-                        </div>
-                        <div className="bg-amber-50/80 text-[#8A6500] rounded-md px-1.5 py-0.5 text-center shrink-0">
-                          <span className="tabular-nums font-bold text-[11px] block leading-none">
-                            {leg.odds.toFixed(2)}
-                          </span>
-                        </div>
-                      </div>
-                    </motion.div>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-
-      {/* ── RIGHT VERTICAL ACTION BAR (INSTAGRAM REELS STYLE) ── */}
-      <div className="absolute right-2.5 sm:right-3 top-[50%] z-20 flex flex-col items-center gap-3.5 pointer-events-auto">
-        {/* Like Button (Heart) */}
-        <button
-          onClick={handleLike}
-          aria-label={post.likedByMe ? 'Unlike slip' : 'Like slip'}
-          className="flex flex-col items-center gap-0.5 group active:scale-125 transition-transform"
-        >
-          <div className="relative p-1">
-            <AnimatePresence>
-              {likePop && (
-                <motion.div
-                  key="pop"
-                  initial={{ scale: 1, opacity: 1 }}
-                  animate={{ scale: 2.2, opacity: 0 }}
-                  exit={{}}
-                  transition={{ duration: 0.4, ease: 'easeOut' }}
-                  className="absolute inset-0 flex items-center justify-center pointer-events-none"
-                >
-                  <Heart size={28} className="text-rose-500 fill-rose-500" />
-                </motion.div>
-              )}
-            </AnimatePresence>
-            <Heart
-              size={28}
-              className={`transition-colors ${
-                post.likedByMe ? 'text-rose-500 fill-rose-500' : 'text-slate-800 hover:text-slate-900 stroke-[1.8]'
-              }`}
-            />
-          </div>
-          <span className="text-[11px] font-bold text-slate-800 tabular-nums leading-none">
-            {post.likes}
-          </span>
-        </button>
-
-        {/* Comment / Discussion Button */}
-        <button
-          onClick={() => setShowCommentsModal(true)}
-          aria-label="View comments"
-          className="flex flex-col items-center gap-0.5 group active:scale-125 transition-transform"
-        >
-          <div className="p-1">
-            <MessageCircle size={28} className="text-slate-800 hover:text-slate-900 stroke-[1.8]" />
-          </div>
-          <span className="text-[11px] font-bold text-slate-800 tabular-nums leading-none">
-            {legs.length * 3 + 4}
-          </span>
-        </button>
-
-        {/* Share / Send Button (Paper Airplane) */}
-        <button
-          onClick={handleShare}
-          aria-label="Share slip"
-          className="flex flex-col items-center gap-0.5 group active:scale-125 transition-transform"
-        >
-          <div className="p-1">
-            <Send size={26} className="text-slate-800 hover:text-slate-900 stroke-[1.8] -rotate-12" />
-          </div>
-          <span className="text-[11px] font-bold text-slate-800 leading-none">
-            Share
-          </span>
-        </button>
-
-        {/* Save / Bookmark Button */}
-        <button
-          onClick={handleSave}
-          aria-label="Save slip"
-          className="flex flex-col items-center gap-0.5 group active:scale-125 transition-transform"
-        >
-          <div className="p-1">
-            <Bookmark
-              size={26}
-              className={
-                post.savedByMe ? 'text-amber-500 fill-amber-500' : 'text-slate-800 hover:text-slate-900 stroke-[1.8]'
-              }
-            />
-          </div>
-          <span className="text-[11px] font-bold text-slate-800 leading-none">
-            {post.savedByMe ? 'Saved' : 'Save'}
-          </span>
-        </button>
-
-        {/* Desktop Scroll Indicators (Grey, sitting just below the Save button) */}
-        {(onPrev || onNext) && (
-          <div className="hidden sm:flex flex-col items-center gap-1.5 pt-2">
-            <button
-              onClick={onPrev}
-              disabled={!canPrev}
-              aria-label="Previous slip"
-              className="w-7 h-7 rounded-full bg-slate-200/80 hover:bg-slate-300 text-slate-500 hover:text-slate-700 disabled:opacity-20 flex items-center justify-center transition-all cursor-pointer active:scale-95 shadow-2xs"
-            >
-              <ChevronUp size={15} />
-            </button>
-            <button
-              onClick={onNext}
-              disabled={!canNext}
-              aria-label="Next slip"
-              className="w-7 h-7 rounded-full bg-slate-200/80 hover:bg-slate-300 text-slate-500 hover:text-slate-700 disabled:opacity-20 flex items-center justify-center transition-all cursor-pointer active:scale-95 shadow-2xs"
-            >
-              <ChevronDown size={15} />
-            </button>
-          </div>
-        )}
-      </div>
-
-      {/* ── BOTTOM CREATOR & CAPTION OVERLAY ── */}
-      <div
-        className="absolute left-4 right-18 z-20 flex flex-col gap-1.5 pointer-events-auto"
-        style={{
-          bottom: 'max(24px, calc(env(safe-area-inset-bottom) + 10px))',
-        }}
-      >
-        {/* Creator Row */}
-        <div className="flex items-center gap-2.5 flex-wrap">
-          {/* Creator Avatar - Prominent Rounded Square */}
-          <Avatar name={post.postedBy} seed={post.postedByAvatarSeed} size={36} showBorder={true} />
-
-          <div className="flex items-center gap-1.5 min-w-0">
-            <span className="font-display font-bold text-sm text-slate-900 truncate">
-              {post.postedBy}
-            </span>
+            ))}
           </div>
 
-          {!isSelf && (
-            <button
-              onClick={handleFollowToggle}
-              className={`px-3 py-0.5 text-xs font-bold rounded-lg border transition-all active:scale-95 ${
-                following
-                  ? 'border-slate-300 bg-white/90 text-slate-700 hover:bg-white'
-                  : 'border-slate-900 bg-slate-900 text-white hover:bg-slate-800'
-              }`}
-            >
-              {following ? 'Following' : 'Follow'}
-            </button>
+          {/* Carousel Slide Indicators (Dots + Label when > 1 slide) */}
+          {fixtureChunks.length > 1 && (
+            <div className="flex items-center justify-center gap-1.5 pt-1.5 shrink-0">
+              {fixtureChunks.map((_, dotIdx) => (
+                <button
+                  key={dotIdx}
+                  onClick={() => scrollToChunk(dotIdx)}
+                  aria-label={`Go to slide ${dotIdx + 1}`}
+                  className={`h-1.5 rounded-full transition-all cursor-pointer ${
+                    dotIdx === activeChunkIndex
+                      ? 'w-4 bg-[#006C54]'
+                      : 'w-1.5 bg-slate-300 hover:bg-slate-400'
+                  }`}
+                />
+              ))}
+              <span className="text-[10px] font-bold text-slate-400 tabular-nums ml-1">
+                {activeChunkIndex + 1}/{fixtureChunks.length}
+              </span>
+            </div>
           )}
         </div>
 
-        {/* Bookmaker Tag */}
-        {post.bookmaker && (
-          <div className="text-xs text-slate-500 font-semibold truncate">
-            <span>{post.bookmaker}</span>
-          </div>
-        )}
+        {/* ── BOTTOM SECTION: USER AVATAR & INTERACTION BUTTONS ── */}
+        <div className="shrink-0 pt-2">
+          {/* Horizontal Line separating fixtures from user avatar */}
+          <div className="border-t border-[#E6E6D2] mb-2" />
 
-        {/* Caption / Note */}
-        {post.note && (
-          <div className="text-xs text-slate-800 leading-snug">
-            <span className={isCaptionExpanded ? '' : 'line-clamp-2'}>
-              {post.note}
-            </span>
-            {post.note.length > 70 && (
-              <button
-                onClick={() => setIsCaptionExpanded(!isCaptionExpanded)}
-                className="text-slate-500 hover:text-slate-900 font-bold ml-1 text-[11px]"
-              >
-                {isCaptionExpanded ? 'less' : 'more'}
-              </button>
+          {/* User Avatar + Follow + Caption Note */}
+          <div className="flex flex-col gap-1 px-0.5">
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2 min-w-0">
+                <Avatar name={post.postedBy} seed={post.postedByAvatarSeed} size={32} showBorder={true} />
+                <span className="font-display font-bold text-xs sm:text-sm text-slate-900 truncate">
+                  {post.postedBy}
+                </span>
+              </div>
+
+              {!isSelf && (
+                <button
+                  onClick={handleFollowToggle}
+                  className={`px-3 py-1 text-[11px] font-bold rounded-lg border transition-all active:scale-95 cursor-pointer shrink-0 ${
+                    following
+                      ? 'border-slate-300 bg-white/90 text-slate-700 hover:bg-white'
+                      : 'border-slate-900 bg-slate-900 text-white hover:bg-slate-800'
+                  }`}
+                >
+                  {following ? 'Following' : 'Follow'}
+                </button>
+              )}
+            </div>
+
+            {/* Caption / Note (if present) */}
+            {post.note && (
+              <div className="text-[11px] sm:text-xs text-slate-700 leading-snug pt-0.5">
+                <span className={isCaptionExpanded ? '' : 'line-clamp-1 sm:line-clamp-2'}>
+                  {post.note}
+                </span>
+                {post.note.length > 60 && (
+                  <button
+                    onClick={() => setIsCaptionExpanded(!isCaptionExpanded)}
+                    className="text-slate-500 hover:text-slate-900 font-bold ml-1 text-[10px] cursor-pointer"
+                  >
+                    {isCaptionExpanded ? 'less' : 'more'}
+                  </button>
+                )}
+              </div>
             )}
           </div>
-        )}
 
+          {/* Interaction Buttons Row: Heart on left, Comments & Share in middle, Save on right */}
+          <div className="flex items-center justify-between pt-2 px-0.5">
+            {/* Left: Like (Heart) */}
+            <button
+              onClick={handleLike}
+              aria-label={post.likedByMe ? 'Unlike slip' : 'Like slip'}
+              className="flex items-center gap-1.5 py-1 px-2 -ml-1 rounded-full hover:bg-slate-200/50 active:scale-95 transition-all cursor-pointer group"
+            >
+              <div className="relative flex items-center justify-center">
+                <AnimatePresence>
+                  {likePop && (
+                    <motion.div
+                      key="pop"
+                      initial={{ scale: 1, opacity: 1 }}
+                      animate={{ scale: 2.2, opacity: 0 }}
+                      exit={{}}
+                      transition={{ duration: 0.4, ease: 'easeOut' }}
+                      className="absolute inset-0 flex items-center justify-center pointer-events-none"
+                    >
+                      <Heart size={20} className="text-rose-500 fill-rose-500" />
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+                <Heart
+                  size={20}
+                  className={`transition-colors ${
+                    post.likedByMe
+                      ? 'text-rose-500 fill-rose-500'
+                      : 'text-slate-700 group-hover:text-slate-900 stroke-[2]'
+                  }`}
+                />
+              </div>
+              <span className="text-xs font-bold text-slate-800 tabular-nums">
+                {post.likes}
+              </span>
+            </button>
+
+            {/* Middle: Comments & Share */}
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => setShowCommentsModal(true)}
+                aria-label="View comments"
+                className="flex items-center gap-1.5 py-1 px-2 rounded-full hover:bg-slate-200/50 active:scale-95 transition-all cursor-pointer text-slate-700 hover:text-slate-900"
+              >
+                <MessageCircle size={19} className="stroke-[2]" />
+                <span className="text-xs font-bold tabular-nums">{legs.length * 3 + 4}</span>
+              </button>
+
+              <button
+                onClick={handleShare}
+                aria-label="Share slip"
+                className="flex items-center gap-1.5 py-1 px-2 rounded-full hover:bg-slate-200/50 active:scale-95 transition-all cursor-pointer text-slate-700 hover:text-slate-900"
+              >
+                <Send size={18} className="stroke-[2] -rotate-12" />
+                <span className="text-xs font-bold hidden xs:inline">Share</span>
+              </button>
+            </div>
+
+            {/* Right: Save (Bookmark) */}
+            <button
+              onClick={handleSave}
+              aria-label="Save slip"
+              className="flex items-center gap-1.5 py-1 px-2 -mr-1 rounded-full hover:bg-slate-200/50 active:scale-95 transition-all cursor-pointer group"
+            >
+              <Bookmark
+                size={20}
+                className={`transition-colors ${
+                  post.savedByMe
+                    ? 'text-amber-500 fill-amber-500'
+                    : 'text-slate-700 group-hover:text-slate-900 stroke-[2]'
+                }`}
+              />
+              <span className="text-xs font-bold text-slate-800">
+                {post.savedByMe ? 'Saved' : 'Save'}
+              </span>
+            </button>
+          </div>
+        </div>
       </div>
 
 
@@ -532,7 +544,12 @@ export default function SlipReelCard({
         )}
       </AnimatePresence>
 
-      <style>{`.slip-legs-scroll::-webkit-scrollbar { display: none; }`}</style>
+      <style>{`
+        .slip-legs-scroll::-webkit-scrollbar,
+        .slip-legs-carousel::-webkit-scrollbar {
+          display: none;
+        }
+      `}</style>
     </div>
   );
 }

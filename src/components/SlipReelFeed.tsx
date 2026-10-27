@@ -1,6 +1,6 @@
 import { useRef, useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { ChevronUp, Layers, X } from 'lucide-react';
+import { ChevronUp, ChevronDown, Layers, X } from 'lucide-react';
 import SlipReelCard from './SlipReelCard';
 import type { BetSlipPost } from '../lib/betSlipStore';
 
@@ -180,8 +180,8 @@ export default function SlipReelFeed({ posts, onClose }: SlipReelFeedProps) {
 
         {/* ── TOP BAR (SlipFeed Header) ──────────────────────────────── */}
         <div
-          className="absolute top-0 left-0 right-0 z-30 flex items-center justify-between gap-2 px-4"
-          style={{ paddingTop: 'max(14px, env(safe-area-inset-top))' }}
+          className="absolute top-0 left-0 right-0 z-30 flex items-center justify-between gap-2 px-4 bg-[#FFFFF0] pb-2"
+          style={{ paddingTop: 'max(14px, env(safe-area-inset-top, 0px))' }}
         >
           <div className="flex items-center">
             <h2 className="font-display font-bold text-xl text-slate-900 tracking-tight leading-none">
@@ -215,6 +215,26 @@ export default function SlipReelFeed({ posts, onClose }: SlipReelFeedProps) {
               <X size={16} />
             </button>
           </div>
+        </div>
+
+        {/* Desktop floating scroll arrows */}
+        <div className="hidden sm:flex absolute -right-14 top-1/2 -translate-y-1/2 flex-col gap-2 z-40">
+          <button
+            onClick={goPrev}
+            disabled={activeIndex === 0}
+            aria-label="Previous slip"
+            className="w-9 h-9 rounded-full bg-white/95 hover:bg-white text-slate-800 disabled:opacity-20 border border-slate-200 shadow-md flex items-center justify-center transition-all cursor-pointer active:scale-95"
+          >
+            <ChevronUp size={18} />
+          </button>
+          <button
+            onClick={goNext}
+            disabled={activeIndex === reelPosts.length - 1}
+            aria-label="Next slip"
+            className="w-9 h-9 rounded-full bg-white/95 hover:bg-white text-slate-800 disabled:opacity-20 border border-slate-200 shadow-md flex items-center justify-center transition-all cursor-pointer active:scale-95"
+          >
+            <ChevronDown size={18} />
+          </button>
         </div>
 
 
