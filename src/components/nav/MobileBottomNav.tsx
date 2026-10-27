@@ -42,7 +42,7 @@ export default function MobileBottomNav({ pathname, builderLegsCount, currentUse
   return (
     <nav
       aria-label="Primary Mobile Navigation"
-      className="lg:hidden fixed inset-x-0 bottom-0 z-40 select-none mobile-bottom-nav w-full"
+      className="lg:hidden fixed inset-x-0 bottom-0 z-40 select-none mobile-bottom-nav w-full bg-[#FFFFF0] border-t border-[#E6E6D2]"
       style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
     >
       <div className="relative h-[52px] w-full max-w-lg mx-auto">

@@ -741,19 +741,41 @@ table { border-color: var(--color-line); }
 
 /* ==========================================================================
    Mobile Bottom Navigation (TikTok-style, full-width fixed bar)
+   Solid ivory, crisp hairline border, zero blur or shadows in browser & PWA
    ========================================================================== */
 .mobile-bottom-nav {
-  background-color: #FFFFF0;
-  border-top: 1px solid #E6E6D2;
-  box-shadow: 0 -1px 3px rgba(10, 19, 23, 0.03), 0 -4px 12px rgba(10, 19, 23, 0.02);
+  background-color: #FFFFF0 !important;
+  border-top: 1px solid #E6E6D2 !important;
+  box-shadow: none !important;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
 }
 
 @supports ((-webkit-backdrop-filter: blur(1px)) or (backdrop-filter: blur(1px))) {
   .mobile-bottom-nav {
-    background-color: rgba(255, 255, 240, 0.92) !important;
-    -webkit-backdrop-filter: blur(16px);
-    backdrop-filter: blur(16px);
-    border-top-color: rgba(230, 230, 210, 0.85) !important;
+    background-color: #FFFFF0 !important;
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+    border-top: 1px solid #E6E6D2 !important;
+    box-shadow: none !important;
+  }
+}
+
+/* Standalone PWA / In-App: strictly eliminate all blur effects */
+@media (display-mode: standalone) {
+  .mobile-bottom-nav {
+    background-color: #FFFFF0 !important;
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+    box-shadow: none !important;
+    border-top: 1px solid #E6E6D2 !important;
+  }
+  .mobile-nav-glass {
+    background-color: #FFFFF0 !important;
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+    box-shadow: none !important;
+    border-color: #E6E6D2 !important;
   }
 }
 

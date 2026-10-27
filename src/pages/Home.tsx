@@ -54,25 +54,7 @@ export default function Home() {
     }
   }, [publishedPhotos.length, activeCarouselIndex]);
 
-  // Maximum 5 indicator dots at the bottom of the pictures
-  const MAX_CAROUSEL_INDICATORS = 5;
-  const visibleDotIndices = useMemo(() => {
-    const total = publishedPhotos.length;
-    if (total <= MAX_CAROUSEL_INDICATORS) {
-      return Array.from({ length: total }, (_, i) => i);
-    }
-    let start = activeCarouselIndex - Math.floor(MAX_CAROUSEL_INDICATORS / 2);
-    let end = activeCarouselIndex + Math.floor(MAX_CAROUSEL_INDICATORS / 2);
 
-    if (start < 0) {
-      start = 0;
-      end = MAX_CAROUSEL_INDICATORS - 1;
-    } else if (end >= total) {
-      end = total - 1;
-      start = total - MAX_CAROUSEL_INDICATORS;
-    }
-    return Array.from({ length: MAX_CAROUSEL_INDICATORS }, (_, i) => start + i);
-  }, [publishedPhotos.length, activeCarouselIndex]);
 
   // Smooth slide change function: 500ms fade-out, swap slide, 500ms fade-in = 1 second smooth transition
   const goToSlide = (nextIdx: number) => {
@@ -267,36 +249,15 @@ export default function Home() {
               </h1>
             </div>
 
-            {/* 2-Column Console Layout: Either Coordinated Dark Skeleton OR Ready Content */}
+            {/* 2-Column Console Layout on Desktop, Stacked Hero Layout on Mobile */}
             {!isCardReady ? (
-              <EditorialCarouselSkeleton
-                indicatorSlot={
-                  publishedPhotos.length > 1 ? (
-                    <div className="flex items-center justify-center gap-1.5 sm:gap-2 mt-3 sm:mt-5 select-none w-full max-w-[310px] sm:max-w-[290px] lg:max-w-[340px]" aria-label="Carousel pagination">
-                      {visibleDotIndices.map((slideIdx) => (
-                        <button
-                          key={slideIdx}
-                          type="button"
-                          onClick={() => goToSlide(slideIdx)}
-                          className={`transition-all duration-300 rounded-full cursor-pointer focus:outline-none ${
-                            slideIdx === activeCarouselIndex
-                              ? 'w-5 sm:w-7 h-1.5 sm:h-2 bg-[#4ADE80] shadow-[0_0_8px_#4ADE80]'
-                              : 'w-1.5 sm:w-2 h-1.5 sm:h-2 bg-white/30 hover:bg-white/60'
-                          }`}
-                          aria-label={`Go to slide ${slideIdx + 1} of ${publishedPhotos.length}`}
-                          aria-current={slideIdx === activeCarouselIndex ? 'true' : 'false'}
-                        />
-                      ))}
-                    </div>
-                  ) : null
-                }
-              />
+              <EditorialCarouselSkeleton />
             ) : (
-              <div className="grid grid-cols-12 gap-1.5 sm:gap-6 lg:gap-10 items-start relative z-10 animate-editorial-fade-in">
-                {/* LEFT SIDE: 3:4 Photo with faded edges and bottom dots (Enlarged on Mobile) */}
-                <div className="col-span-8 sm:col-span-5 lg:col-span-4 flex flex-col items-start sm:items-center justify-start">
+              <div className="flex flex-col sm:grid sm:grid-cols-12 sm:gap-6 lg:gap-10 items-start relative z-10 animate-editorial-fade-in">
+                {/* PHOTO CONTAINER: Full width enlarged hero on mobile, col-span-5/4 on desktop */}
+                <div className="w-full sm:col-span-5 lg:col-span-4 flex flex-col items-start px-1 sm:px-0">
                   <div
-                    className={`relative w-full max-w-[310px] sm:max-w-[290px] lg:max-w-[340px] aspect-[3/4] min-h-[350px] sm:min-h-[360px] lg:min-h-[420px] rounded-2xl sm:rounded-2xl lg:rounded-3xl overflow-hidden shadow-[0_12px_36px_rgba(0,0,0,0.65)] bg-[#06372a] transition-opacity duration-500 ease-in-out ${
+                    className={`relative w-full max-w-[440px] sm:max-w-[290px] lg:max-w-[340px] aspect-[3/4] min-h-[350px] sm:min-h-[360px] lg:min-h-[420px] rounded-2xl sm:rounded-2xl lg:rounded-3xl overflow-hidden shadow-[0_12px_36px_rgba(0,0,0,0.65)] bg-[#06372a] transition-opacity duration-500 ease-in-out ${
                       isCarouselFading ? 'opacity-0' : 'opacity-100'
                     }`}
                   >
@@ -306,7 +267,7 @@ export default function Home() {
                       alt={currentPhoto.heading || currentPhoto.caption || 'Active carousel story'}
                       loading="eager"
                       decoding="async"
-                      sizes="(max-width: 640px) 310px, (max-width: 1024px) 290px, 340px"
+                      sizes="(max-width: 640px) 440px, (max-width: 1024px) 290px, 340px"
                       className="w-full h-full object-cover"
                       onError={(e) => {
                         const target = e.currentTarget;
@@ -319,43 +280,23 @@ export default function Home() {
                     {/* Subtle inner border for crisp edge definition without fading */}
                     <div className="absolute inset-0 ring-1 ring-inset ring-white/10 rounded-2xl sm:rounded-2xl lg:rounded-3xl pointer-events-none" />
                   </div>
-
-                  {/* Minimalist Bottom Indicator (Capped at 5 dots max with smooth sliding window) */}
-                  {publishedPhotos.length > 1 && (
-                    <div className="flex items-center justify-center gap-1.5 sm:gap-2 mt-3 sm:mt-5 select-none w-full max-w-[310px] sm:max-w-[290px] lg:max-w-[340px]" aria-label="Carousel pagination">
-                      {visibleDotIndices.map((slideIdx) => (
-                        <button
-                          key={slideIdx}
-                          type="button"
-                          onClick={() => goToSlide(slideIdx)}
-                          className={`transition-all duration-300 rounded-full cursor-pointer focus:outline-none ${
-                            slideIdx === activeCarouselIndex
-                              ? 'w-5 sm:w-7 h-1.5 sm:h-2 bg-[#4ADE80] shadow-[0_0_8px_#4ADE80]'
-                              : 'w-1.5 sm:w-2 h-1.5 sm:h-2 bg-white/30 hover:bg-white/60'
-                          }`}
-                          aria-label={`Go to slide ${slideIdx + 1} of ${publishedPhotos.length}`}
-                          aria-current={slideIdx === activeCarouselIndex ? 'true' : 'false'}
-                        />
-                      ))}
-                    </div>
-                  )}
                 </div>
 
-                {/* RIGHT SIDE: Big News Heading in Gold Accent on TOP of Smaller Caption Text (Pushed to Right Edge) */}
+                {/* TEXT CONTAINER: Shifted directly to bottom on mobile, starting on same vertical line as section heading */}
                 <div
-                  className={`col-span-4 sm:col-span-7 lg:col-span-8 flex flex-col justify-start space-y-1.5 sm:space-y-4 text-left pl-1 sm:pl-4 lg:pl-6 pr-1 sm:pr-0 transition-opacity duration-500 ease-in-out ${
+                  className={`w-full sm:col-span-7 lg:col-span-8 flex flex-col justify-start space-y-2 sm:space-y-4 text-left px-1 sm:px-0 sm:pl-4 lg:pl-6 pt-4 sm:pt-0 transition-opacity duration-500 ease-in-out ${
                     isCarouselFading ? 'opacity-0' : 'opacity-100'
                   }`}
                 >
                   {currentPhoto.heading && currentPhoto.heading.trim() ? (
-                    <h2 className="text-xs sm:text-2xl md:text-4xl lg:text-5xl xl:text-6xl font-black text-[#D4AF37] leading-snug sm:leading-tight tracking-tight drop-shadow-md">
+                    <h2 className="text-xl sm:text-2xl md:text-4xl lg:text-5xl xl:text-6xl font-black text-[#D4AF37] leading-tight tracking-tight drop-shadow-md">
                       {currentPhoto.heading}
                     </h2>
                   ) : null}
 
-                  {/* On mobile: thicker font-bold with compact size. On desktop: significantly larger font size to match heading */}
+                  {/* Significantly bigger font size on desktop, comfortable prominent font on mobile */}
                   {currentPhoto.caption && currentPhoto.caption.trim() ? (
-                    <p className="text-[10px] sm:text-lg md:text-xl lg:text-2xl xl:text-3xl text-slate-100 font-bold sm:font-medium leading-snug sm:leading-relaxed max-w-xl sm:max-w-3xl drop-shadow-xs">
+                    <p className="text-sm xs:text-base sm:text-2xl md:text-3xl lg:text-4xl xl:text-[2.65rem] xl:leading-[1.25] text-slate-100 font-medium sm:font-normal leading-relaxed sm:leading-snug max-w-xl sm:max-w-3xl lg:max-w-4xl drop-shadow-sm">
                       {currentPhoto.caption}
                     </p>
                   ) : null}
@@ -365,7 +306,7 @@ export default function Home() {
                       href={currentPhoto.link}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1 sm:gap-2 text-[9px] sm:text-xs font-bold text-[#4ADE80] hover:text-[#22c55e] transition-colors uppercase tracking-wider pt-0.5 sm:pt-2 group w-fit"
+                      className="inline-flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm font-bold text-[#4ADE80] hover:text-[#22c55e] transition-colors uppercase tracking-wider pt-1 sm:pt-3 group w-fit"
                     >
                       <span>Continue Reading</span>
                       <span className="group-hover:translate-x-1 transition-transform">→</span>

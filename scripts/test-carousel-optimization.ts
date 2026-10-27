@@ -74,22 +74,17 @@ assert(
 );
 assert(
   skeletonContent.includes('aspect-[3/4]') &&
-  skeletonContent.includes('max-w-[310px]') &&
   skeletonContent.includes('min-h-[350px]'),
-  'EditorialCarouselSkeleton matches exact 3:4 photo aspect ratio, max-w-[310px], min-h-[350px]'
+  'EditorialCarouselSkeleton matches exact 3:4 photo aspect ratio and min-h-[350px]'
 );
 assert(
   skeletonContent.includes('tone="dark"'),
   'EditorialCarouselSkeleton requests dark stadium tone for skeletons'
 );
 assert(
-  skeletonContent.includes('indicatorSlot'),
-  'EditorialCarouselSkeleton supports indicatorSlot for interactive navigation during loading'
-);
-assert(
-  skeletonContent.includes('col-span-8 sm:col-span-5 lg:col-span-4') &&
-  skeletonContent.includes('col-span-4 sm:col-span-7 lg:col-span-8'),
-  'EditorialCarouselSkeleton preserves exact 2-column grid layout on mobile & desktop'
+  skeletonContent.includes('w-full sm:col-span-5 lg:col-span-4') &&
+  skeletonContent.includes('w-full sm:col-span-7 lg:col-span-8'),
+  'EditorialCarouselSkeleton matches stacked mobile layout and 2-column desktop grid'
 );
 
 // 3. Verify Carousel Preloader & Intelligent Cache
@@ -150,7 +145,7 @@ assert(
   'Home.tsx uses dark stadium bg-[#06372a] instead of black void'
 );
 assert(
-  homeContent.includes('sizes="(max-width: 640px) 310px, (max-width: 1024px) 290px, 340px"'),
+  homeContent.includes('sizes="(max-width: 640px) 440px, (max-width: 1024px) 290px, 340px"'),
   'Home.tsx includes responsive sizes attribute for optimal image rasterization'
 );
 assert(
