@@ -106,11 +106,14 @@ function runTests() {
     'Videos & Highlights has main heading "Tune in to Post-match Highlights, Post-match Punditry and other Featured Videos"'
   );
 
-  // 8. Desktop Videos Edge-to-Edge
+  // 8. Desktop Videos Edge-to-Edge with Compact max-w-[340px] Iframe Size
   assert(
-    homeCode.includes('hidden md:block w-full px-3 sm:px-6 lg:px-8 xl:px-10') &&
-    homeCode.includes('grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 w-full'),
-    'Desktop Videos span edge-to-edge from absolute left to absolute right across desktop'
+    homeCode.includes('hidden md:block w-full px-3 sm:px-6 lg:px-8 xl:px-10'),
+    'Desktop Videos span edge-to-edge across desktop'
+  );
+  assert(
+    homeCode.includes('max-w-[340px] w-full mx-auto'),
+    'Desktop video card maintains max-w-[340px] to keep the 16:9 video iframe compact as before'
   );
 
   // 9. Minimalistic Heart Icon on Bottom Right of Video Cards

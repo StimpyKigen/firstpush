@@ -750,9 +750,9 @@ export default function Home() {
           </div>
         ) : (
           <>
-            {/* DESKTOP VIEW: Full-width grid spanning from absolute left to absolute right across desktop */}
+            {/* DESKTOP VIEW: Video grid spanning left to right with compact max-w-[340px] iframe sizing as before */}
             <div className="hidden md:block w-full px-3 sm:px-6 lg:px-8 xl:px-10">
-              <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 w-full">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-5 w-full">
                 {publishedVideos.map((video) => {
                   const videoId = extractYouTubeId(video.embedUrl) || extractYouTubeId(video.youtubeUrl);
                   const isPlaying = activeVideoId === video.id;
@@ -762,7 +762,7 @@ export default function Home() {
                     <div
                       key={video.id}
                       data-video-card-id={video.id}
-                      className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-xs hover:shadow-md transition-shadow flex flex-col w-full"
+                      className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-xs hover:shadow-md transition-shadow flex flex-col max-w-[340px] w-full mx-auto"
                     >
                       {/* Responsive 16:9 Video Player / Thumbnail Area */}
                       <div className="relative w-full aspect-[16/9] bg-black overflow-hidden group select-none">
