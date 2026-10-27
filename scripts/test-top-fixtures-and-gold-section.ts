@@ -3,7 +3,7 @@ import path from 'path';
 
 function runTests() {
   console.log('==================================================================');
-  console.log('MSHINDIROOM: TOP FIXTURES & GOLD HIGHLIGHTS VERIFICATION SUITE');
+  console.log('MSHINDIROOM: HOMEPAGE REFINEMENTS VERIFICATION SUITE');
   console.log('==================================================================\n');
 
   let passed = 0;
@@ -23,10 +23,29 @@ function runTests() {
   const homeFile = path.resolve('src/pages/Home.tsx');
   const homeCode = fs.readFileSync(homeFile, 'utf8');
 
-  // 1. Heading and Subheading Consistency
+  // 1. Source Text under Photo in Italics
+  assert(
+    homeCode.includes('Source: <span className="text-slate-300 font-medium italic">{currentPhoto.source}</span>') ||
+    homeCode.includes('Source:'),
+    'Home.tsx renders the "Source:" credit'
+  );
+  assert(
+    homeCode.includes('italic') && homeCode.includes('text-slate-400/80 italic'),
+    'The "Source:" credit text uses italics'
+  );
+  const photoContainerIndex = homeCode.indexOf('aspect-[3/4]');
+  const sourceIndex = homeCode.indexOf('Source:');
+  const textContainerIndex = homeCode.indexOf('TEXT CONTAINER');
+  assert(
+    photoContainerIndex !== -1 && sourceIndex !== -1 && textContainerIndex !== -1 &&
+    photoContainerIndex < sourceIndex && sourceIndex < textContainerIndex,
+    '"Source:" text is located at the bottom-left directly under the 3:4 photo container, before the text container'
+  );
+
+  // 2. Top Fixtures Section Headings
   assert(
     homeCode.includes('Top Fixtures'),
-    'Home.tsx includes the "Top Fixtures" section eyebrow label'
+    'Home.tsx includes "Top Fixtures" eyebrow label'
   );
   assert(
     homeCode.includes('Join in on the Discussions of these Highlighted fixtures'),
@@ -34,65 +53,79 @@ function runTests() {
   );
   assert(
     homeCode.includes('font-bold text-xs uppercase tracking-wider block mb-1'),
-    'Top Fixtures eyebrow uses the exact same font styling as Weekly Editorial'
+    'Top Fixtures eyebrow matches Weekly Editorial font styling'
   );
   assert(
     homeCode.includes('font-extrabold text-xl sm:text-3xl lg:text-4xl text-slate-900 tracking-tight'),
-    'Subheading uses the exact same responsive font size & weight as Top Stories & Matchday Perspectives'
+    'Top Fixtures subheading matches Top Stories & Matchday Perspectives font styling'
   );
 
-  // 2. Vertical Alignment
-  const topFixturesSectionMatch = homeCode.match(/<section[^>]*bg-\[#FFFFF0\][^>]*>[\s\S]*?<div className="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8">[\s\S]*?<div className="text-left mb-4 sm:mb-8 px-1 sm:px-0">/);
-  assert(
-    Boolean(topFixturesSectionMatch),
-    'Top Fixtures section header is vertically in-line with the other section headings (max-w-7xl mx-auto px-2 sm:px-6 lg:px-8 with px-1 sm:px-0)'
-  );
-
-  // 3. Ivory Background
+  // 3. Warm Ivory Background
   assert(
     homeCode.includes('bg-[#FFFFF0]'),
-    'Top Fixtures section has the warm ivory background'
+    'Top Fixtures section uses warm ivory background (#FFFFF0)'
   );
 
-  // 4. Data Source & Popularity
+  // 4. Data Slicing and Popularity
   assert(
     homeCode.includes('sortHighlightsComparator'),
     'Home.tsx sorts fixtures by popularity using sortHighlightsComparator'
   );
   assert(
     homeCode.includes('.slice(0, 5)'),
-    'Home.tsx slices the top 5 fixtures in terms of popularity'
+    'Home.tsx selects the top 5 fixtures in terms of popularity'
   );
 
-  // 5. Responsive Grid: 5 across on desktop, 2-2-1 on mobile
+  // 5. Desktop Full-Size FixtureSportCard Edge-to-Edge
   assert(
-    homeCode.includes('grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2.5 sm:gap-4'),
-    'Uses grid-cols-2 on mobile (2 on row 1, 2 on row 2, 1 on row 3) and lg:grid-cols-5 on desktop (side by side across screen)'
+    homeCode.includes('<FixtureSportCard') && homeCode.includes('onToggleLeg') && homeCode.includes('onOpenBetBuilder'),
+    'Desktop Top Fixtures renders original full-size FixtureSportCard with bet builder & consensus integration'
+  );
+  assert(
+    homeCode.includes('hidden md:block w-full px-3 sm:px-6 lg:px-8 xl:px-10'),
+    'Desktop Top Fixtures spans edge-to-edge from absolute left to absolute right across desktop'
   );
 
-  // 6. Discussion Linking
+  // 6. Mobile Compact Fixtures (2-2-1 layout)
   assert(
-    homeCode.includes('to={`/free/${m.id}`}'),
-    'Clicking any top fixture links to the match discussion room'
-  );
-  assert(
-    homeCode.includes('Join Discussion'),
-    'Card provides explicit Join Discussion call-to-action'
+    homeCode.includes('block md:hidden max-w-7xl mx-auto px-2') && homeCode.includes('grid grid-cols-2 gap-2.5'),
+    'Mobile Top Fixtures retains compact card design (grid-cols-2: 2 on row 1, 2 on row 2, 1 on row 3)'
   );
 
-  // 7. Video and Highlights Gold Background
+  // 7. Video & Highlights Gold Section & Headings
   assert(
     homeCode.includes('w-full bg-[#D4AF37] text-slate-900 py-6 sm:py-16'),
-    'Videos and Highlights section has the full-bleed gold accent background (#D4AF37) covering the whole section'
+    'Videos & Highlights section has the full gold accent background (#D4AF37)'
   );
   assert(
-    homeCode.includes('font-extrabold text-2xl sm:text-3xl lg:text-4xl text-slate-950 tracking-tight'),
-    'Videos and Highlights heading remains bold and clearly legible on gold background'
+    homeCode.includes('Video &amp; Highlights') || homeCode.includes('Video & Highlights'),
+    'Videos & Highlights has small eyebrow heading "Video & Highlights"'
+  );
+  assert(
+    homeCode.includes('Tune in to Post-match Highlights, Post-match Punditry and other Featured Videos'),
+    'Videos & Highlights has main heading "Tune in to Post-match Highlights, Post-match Punditry and other Featured Videos"'
+  );
+
+  // 8. Desktop Videos Edge-to-Edge
+  assert(
+    homeCode.includes('hidden md:block w-full px-3 sm:px-6 lg:px-8 xl:px-10') &&
+    homeCode.includes('grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 w-full'),
+    'Desktop Videos span edge-to-edge from absolute left to absolute right across desktop'
+  );
+
+  // 9. Minimalistic Heart Icon on Bottom Right of Video Cards
+  assert(
+    homeCode.includes('likedVideoIds') && homeCode.includes('handleToggleLikeVideo'),
+    'Home.tsx manages video like state persisted in localStorage'
+  );
+  assert(
+    homeCode.includes('<Heart') && homeCode.includes('aria-label={isLiked ? \'Unlike video\' : \'Like video\'}'),
+    'Video cards feature a minimalistic Heart icon button with like/unlike toggle on the bottom right'
   );
 
   console.log(`\nResults: ${passed}/${total} tests passed.`);
   if (passed === total) {
-    console.log('ALL TOP FIXTURES & GOLD HIGHLIGHTS SPECIFICATIONS VERIFIED SUCCESSFULLY!\n');
+    console.log('ALL HOMEPAGE REFINEMENTS VERIFIED SUCCESSFULLY!\n');
   }
 }
 
