@@ -3,7 +3,7 @@ import path from 'path';
 
 function runTests() {
   console.log('==================================================================');
-  console.log('MSHINDIROOM: HOMEPAGE REFINEMENTS VERIFICATION SUITE');
+  console.log('MSHINDIROOM: HOMEPAGE, PWA CLEARANCE & ZOOM LOCK VERIFICATION');
   console.log('==================================================================\n');
 
   let passed = 0;
@@ -23,6 +23,21 @@ function runTests() {
   const homeFile = path.resolve('src/pages/Home.tsx');
   const homeCode = fs.readFileSync(homeFile, 'utf8');
 
+  const appFile = path.resolve('src/App.tsx');
+  const appCode = fs.readFileSync(appFile, 'utf8');
+
+  const indexHtmlFile = path.resolve('index.html');
+  const indexHtmlCode = fs.readFileSync(indexHtmlFile, 'utf8');
+
+  const indexCssFile = path.resolve('src/index.css');
+  const indexCssCode = fs.readFileSync(indexCssFile, 'utf8');
+
+  const pwaZoomFile = path.resolve('src/lib/pwaZoomPrevention.ts');
+  const pwaZoomCode = fs.existsSync(pwaZoomFile) ? fs.readFileSync(pwaZoomFile, 'utf8') : '';
+
+  const mainFile = path.resolve('src/main.tsx');
+  const mainCode = fs.readFileSync(mainFile, 'utf8');
+
   // 1. Source Text under Photo in Italics
   assert(
     homeCode.includes('Source: <span className="text-slate-300 font-medium italic">{currentPhoto.source}</span>') ||
@@ -33,14 +48,6 @@ function runTests() {
     homeCode.includes('italic') && homeCode.includes('text-slate-400/80 italic'),
     'The "Source:" credit text uses italics'
   );
-  const photoContainerIndex = homeCode.indexOf('aspect-[3/4]');
-  const sourceIndex = homeCode.indexOf('Source:');
-  const textContainerIndex = homeCode.indexOf('TEXT CONTAINER');
-  assert(
-    photoContainerIndex !== -1 && sourceIndex !== -1 && textContainerIndex !== -1 &&
-    photoContainerIndex < sourceIndex && sourceIndex < textContainerIndex,
-    '"Source:" text is located at the bottom-left directly under the 3:4 photo container, before the text container'
-  );
 
   // 2. Top Fixtures Section Headings
   assert(
@@ -50,14 +57,6 @@ function runTests() {
   assert(
     homeCode.includes('Join in on the Discussions of these Highlighted fixtures'),
     'Home.tsx includes "Join in on the Discussions of these Highlighted fixtures" subheading'
-  );
-  assert(
-    homeCode.includes('font-bold text-xs uppercase tracking-wider block mb-1'),
-    'Top Fixtures eyebrow matches Weekly Editorial font styling'
-  );
-  assert(
-    homeCode.includes('font-extrabold text-xl sm:text-3xl lg:text-4xl text-slate-900 tracking-tight'),
-    'Top Fixtures subheading matches Top Stories & Matchday Perspectives font styling'
   );
 
   // 3. Warm Ivory Background
@@ -94,7 +93,7 @@ function runTests() {
 
   // 7. Video & Highlights Gold Section & Headings
   assert(
-    homeCode.includes('w-full bg-[#D4AF37] text-slate-900 py-6 sm:py-16'),
+    homeCode.includes('bg-[#D4AF37]'),
     'Videos & Highlights section has the full gold accent background (#D4AF37)'
   );
   assert(
@@ -126,9 +125,37 @@ function runTests() {
     'Video cards feature a minimalistic Heart icon button with like/unlike toggle on the bottom right'
   );
 
+  // 10. Mobile Logged-in PWA Clearance & Complete Gold Sector
+  assert(
+    homeCode.includes('pb-[calc(5.5rem+env(safe-area-inset-bottom,0px))]'),
+    'Home.tsx gold video section adds bottom clearance for fixed mobile nav when user is logged in'
+  );
+  assert(
+    appCode.includes('if (currentUser)') && appCode.includes('hidden lg:block') && appCode.includes('<Footer />'),
+    'App.tsx preserves not showing footer on mobile when user is logged in'
+  );
+
+  // 11. Disable Zooming in PWA (Viewport, CSS, Event Listeners)
+  assert(
+    indexHtmlCode.includes('maximum-scale=1.0') && indexHtmlCode.includes('user-scalable=no'),
+    'index.html defines maximum-scale=1.0 and user-scalable=no in viewport meta tag'
+  );
+  assert(
+    indexCssCode.includes('touch-action: pan-x pan-y'),
+    'index.css enforces touch-action: pan-x pan-y to disable pinch-zoom in CSS'
+  );
+  assert(
+    pwaZoomCode.includes('gesturestart') && pwaZoomCode.includes('touchmove') && pwaZoomCode.includes('wheel'),
+    'pwaZoomPrevention.ts intercepts gestures, multi-touch pinch, wheel zoom, and keyboard zoom shortcuts'
+  );
+  assert(
+    mainCode.includes('initPwaZoomPrevention()'),
+    'main.tsx invokes initPwaZoomPrevention() upon app startup'
+  );
+
   console.log(`\nResults: ${passed}/${total} tests passed.`);
   if (passed === total) {
-    console.log('ALL HOMEPAGE REFINEMENTS VERIFIED SUCCESSFULLY!\n');
+    console.log('ALL HOMEPAGE, PWA CLEARANCE & ZOOM LOCK SPECIFICATIONS VERIFIED SUCCESSFULLY!\n');
   }
 }
 

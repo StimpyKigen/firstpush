@@ -730,7 +730,13 @@ export default function Home() {
           - Desktop: Spanning from absolute left all the way to absolute right across desktop
           - Minimalistic heart icon on bottom right of video cards
           ========================================================================= */}
-      <section className="w-full bg-[#D4AF37] text-slate-900 py-6 sm:py-16">
+      <section
+        className={`w-full bg-[#D4AF37] text-slate-900 pt-6 sm:pt-16 ${
+          currentUser
+            ? 'pb-[calc(5.5rem+env(safe-area-inset-bottom,0px))] sm:pb-16'
+            : 'pb-6 sm:pb-16'
+        }`}
+      >
         <div className="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8 mb-6 sm:mb-8">
           <div className="text-left px-1 sm:px-0">
             <span className="text-slate-900/80 font-bold text-xs uppercase tracking-wider block mb-1">

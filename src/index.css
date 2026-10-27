@@ -238,7 +238,7 @@ code, kbd, samp, pre { font-family: var(--font-mono) !important; }
 html {
   scroll-behavior: smooth;
   overscroll-behavior-y: none;
-  touch-action: manipulation;
+  touch-action: pan-x pan-y;
   -webkit-tap-highlight-color: transparent;
   -webkit-text-size-adjust: 100%;
 }
@@ -247,6 +247,7 @@ body {
   background-color: #FFFFF0;
   color: var(--color-cream);
   min-height: 100dvh;
+  touch-action: pan-x pan-y;
 }
 
 input, textarea, select, [contenteditable="true"], .select-text {
