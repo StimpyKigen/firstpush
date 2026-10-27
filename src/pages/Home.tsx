@@ -1,11 +1,23 @@
 import React, { useState, useEffect, useSyncExternalStore, useRef, useMemo } from 'react';
-import { Play } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { Play, Clock, MessageSquare } from 'lucide-react';
 import SeoHead from '../components/SeoHead';
 import {
   subscribeToHomepageFeed,
   getHomepageFeedSnapshot,
   type HomepageVideoItem,
 } from '../lib/homepageFeedStore';
+import {
+  subscribeToFreeMatches,
+  getFreeMatchesSnapshot,
+  refreshFreeMatches,
+  type FreeMatch,
+} from '../lib/freeMatches';
+import {
+  sortHighlightsComparator,
+  formatKickoffDateTime24h,
+} from '../lib/competitionPriority';
+import { normalizeMatchStatus } from '../lib/matchStatus';
 import { useCurrentUser } from '../lib/authStore';
 import { useAuthWallStore } from '../lib/authWallStore';
 import { EditorialCarouselSkeleton } from '../components/skeleton';
@@ -47,6 +59,28 @@ export default function Home() {
       });
   }, [feed.carouselItems]);
   const publishedVideos = feed.videoItems.filter((v) => v.published);
+
+  // Subscribe to live Free Matches store for popular top fixtures
+  const allFreeMatches = useSyncExternalStore(
+    subscribeToFreeMatches,
+    getFreeMatchesSnapshot,
+    getFreeMatchesSnapshot
+  );
+
+  // Sync free matches on mount if cache is not populated
+  useEffect(() => {
+    if (allFreeMatches.length === 0) {
+      refreshFreeMatches().catch(() => {});
+    }
+  }, [allFreeMatches.length]);
+
+  // Top 5 Highlighted Fixtures sorted by popularity
+  const topFixtures = useMemo(() => {
+    return [...allFreeMatches]
+      .filter((m) => m && m.id && m.home && m.away)
+      .sort(sortHighlightsComparator)
+      .slice(0, 5);
+  }, [allFreeMatches]);
 
   // Initial load state: only show skeleton loader while fetching carousels on mount.
   // Once the carousels start showing, hasInitiallyLoaded turns true permanently
@@ -375,29 +409,216 @@ export default function Home() {
       ) : null}
 
       {/* =========================================================================
-          2. HORIZONTAL LINE SEPARATOR
+          2. TOP FIXTURES (HIGHLIGHTED POPULAR MATCHES)
+          - Warm ivory background (#FFFFF0)
+          - Eyebrow: 'Top Fixtures' with exact same font styling as 'Weekly Editorial'
+          - Subheading: 'Join in on the Discussions of these Highlighted fixtures'
+            with exact same font size & weight as 'Top Stories & Match Perspectives'
+          - In line vertically with the other section headings (max-w-7xl mx-auto px-2 sm:px-6 lg:px-8)
+          - Desktop: Top 5 popular fixtures side by side from absolute left to absolute right
+          - Mobile: Compact card sizes, 2 side by side on row 1, 2 on row 2, 1 on row 3 (grid-cols-2)
           ========================================================================= */}
-      <div className="w-full border-t border-slate-200 mb-8 sm:mb-12" />
+      <section className="w-full bg-[#FFFFF0] text-slate-900 py-6 sm:py-12 border-b border-amber-900/10">
+        <div className="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8">
+          {/* Section Heading in line vertically with other headings */}
+          <div className="text-left mb-4 sm:mb-8 px-1 sm:px-0">
+            <span className="text-[#006C54] font-bold text-xs uppercase tracking-wider block mb-1">
+              Top Fixtures
+            </span>
+            <h2 className="font-extrabold text-xl sm:text-3xl lg:text-4xl text-slate-900 tracking-tight">
+              Join in on the Discussions of these Highlighted fixtures
+            </h2>
+          </div>
+
+          {/* Desktop: Side-by-side from absolute left to absolute right (wrapping if narrower)
+              Mobile: Compact cards, 2 side by side on row 1, 2 on row 2, 1 on row 3 (grid-cols-2) */}
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2.5 sm:gap-4">
+            {topFixtures.length === 0 ? (
+              /* Loading Skeletons matching exact grid layout */
+              Array.from({ length: 5 }).map((_, idx) => (
+                <div
+                  key={`top-fixture-skel-${idx}`}
+                  className="bg-white border border-slate-200/80 rounded-xl sm:rounded-2xl p-2.5 sm:p-3.5 shadow-2xs animate-pulse flex flex-col justify-between min-h-[125px]"
+                >
+                  <div>
+                    <div className="flex items-center justify-between gap-1 mb-2">
+                      <div className="h-2.5 w-14 bg-slate-200 rounded" />
+                      <div className="h-2.5 w-10 bg-slate-200 rounded" />
+                    </div>
+                    <div className="space-y-2 mt-2">
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="flex items-center gap-1.5 flex-1">
+                          <div className="w-4 h-4 rounded-full bg-slate-200 shrink-0" />
+                          <div className="h-3 w-16 bg-slate-200 rounded" />
+                        </div>
+                        <div className="h-3 w-3 bg-slate-200 rounded" />
+                      </div>
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="flex items-center gap-1.5 flex-1">
+                          <div className="w-4 h-4 rounded-full bg-slate-200 shrink-0" />
+                          <div className="h-3 w-16 bg-slate-200 rounded" />
+                        </div>
+                        <div className="h-3 w-3 bg-slate-200 rounded" />
+                      </div>
+                    </div>
+                  </div>
+                  <div className="mt-2.5 pt-2 border-t border-slate-100 flex items-center justify-between">
+                    <div className="h-2.5 w-12 bg-slate-200 rounded" />
+                    <div className="h-2.5 w-8 bg-slate-200 rounded" />
+                  </div>
+                </div>
+              ))
+            ) : (
+              topFixtures.map((m) => {
+                const isLive = normalizeMatchStatus(m.status, m.displayClock) === 'in';
+                const isFinished = normalizeMatchStatus(m.status, m.displayClock) === 'post';
+                const hasScores =
+                  (m.homeScore !== null && m.homeScore !== undefined) ||
+                  (m.awayScore !== null && m.awayScore !== undefined);
+
+                return (
+                  <Link
+                    key={m.id}
+                    to={`/free/${m.id}`}
+                    onClick={(e) => {
+                      if (!currentUser) {
+                        e.preventDefault();
+                        openAuthWall({
+                          actionType: 'details',
+                          title: 'Sign In for Details & Discussions',
+                          message:
+                            'Sign up or log in to view match intelligence, tactical lineups, pitch tracker, and join live fan discussions.',
+                        });
+                      }
+                    }}
+                    className="bg-white border border-slate-200/90 hover:border-[#006C54] rounded-xl sm:rounded-2xl p-2.5 sm:p-3.5 shadow-xs hover:shadow-md transition-all flex flex-col justify-between group cursor-pointer text-left select-none"
+                  >
+                    <div>
+                      {/* Top Row: League & Status */}
+                      <div className="flex items-center justify-between gap-1 mb-2 text-xs">
+                        <span className="text-[10px] sm:text-[11px] font-semibold text-slate-500 uppercase tracking-wider truncate max-w-[85px] sm:max-w-[125px]">
+                          {m.competition || 'Football'}
+                        </span>
+                        {isLive ? (
+                          <span className="inline-flex items-center gap-1 text-[10px] sm:text-[11px] font-bold text-red-600 animate-pulse shrink-0">
+                            <span className="w-1.5 h-1.5 rounded-full bg-red-600" />
+                            <span>{m.displayClock || 'LIVE'}</span>
+                          </span>
+                        ) : isFinished ? (
+                          <span className="text-[10px] sm:text-[11px] font-bold text-black bg-slate-100 px-1.5 py-0.2 rounded shrink-0">
+                            FT
+                          </span>
+                        ) : (
+                          <span className="text-[10px] sm:text-[11px] font-medium text-slate-600 flex items-center gap-1 shrink-0">
+                            <Clock size={11} className="text-slate-400" />
+                            <span>{formatKickoffDateTime24h(m.kickoffIso || m.kickoff, m.kickoff)}</span>
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Teams and Scores */}
+                      <div className="space-y-1.5 sm:space-y-2">
+                        {/* Home Team */}
+                        <div className="flex items-center justify-between gap-1.5 min-w-0">
+                          <div className="flex items-center gap-1.5 min-w-0 truncate">
+                            {m.homeLogo ? (
+                              <img
+                                src={m.homeLogo}
+                                alt=""
+                                loading="lazy"
+                                decoding="async"
+                                referrerPolicy="no-referrer"
+                                className="w-4 h-4 sm:w-5 sm:h-5 object-contain shrink-0"
+                                onError={(e) => {
+                                  (e.currentTarget as HTMLElement).style.display = 'none';
+                                }}
+                              />
+                            ) : (
+                              <span className="w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-slate-100 text-slate-700 text-[10px] font-bold flex items-center justify-center shrink-0">
+                                {m.home.charAt(0)}
+                              </span>
+                            )}
+                            <span className="text-[11px] sm:text-xs font-bold text-slate-800 group-hover:text-[#006C54] transition-colors truncate">
+                              {m.home}
+                            </span>
+                          </div>
+                          {hasScores && (
+                            <span className="text-xs sm:text-sm font-extrabold text-slate-900 shrink-0">
+                              {m.homeScore ?? 0}
+                            </span>
+                          )}
+                        </div>
+
+                        {/* Away Team */}
+                        <div className="flex items-center justify-between gap-1.5 min-w-0">
+                          <div className="flex items-center gap-1.5 min-w-0 truncate">
+                            {m.awayLogo ? (
+                              <img
+                                src={m.awayLogo}
+                                alt=""
+                                loading="lazy"
+                                decoding="async"
+                                referrerPolicy="no-referrer"
+                                className="w-4 h-4 sm:w-5 sm:h-5 object-contain shrink-0"
+                                onError={(e) => {
+                                  (e.currentTarget as HTMLElement).style.display = 'none';
+                                }}
+                              />
+                            ) : (
+                              <span className="w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-slate-100 text-slate-700 text-[10px] font-bold flex items-center justify-center shrink-0">
+                                {m.away.charAt(0)}
+                              </span>
+                            )}
+                            <span className="text-[11px] sm:text-xs font-bold text-slate-800 group-hover:text-[#006C54] transition-colors truncate">
+                              {m.away}
+                            </span>
+                          </div>
+                          {hasScores && (
+                            <span className="text-xs sm:text-sm font-extrabold text-slate-900 shrink-0">
+                              {m.awayScore ?? 0}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Footer: Discussion Prompt */}
+                    <div className="mt-2.5 pt-2 border-t border-slate-100 flex items-center justify-between gap-1">
+                      <div className="flex items-center gap-1 text-[10px] text-slate-500 font-medium truncate">
+                        <MessageSquare size={11} className="text-[#006C54] shrink-0" />
+                        <span className="truncate">Discussion</span>
+                      </div>
+                      <span className="text-[10px] sm:text-[11px] font-bold text-[#006C54] group-hover:translate-x-0.5 transition-transform flex items-center gap-0.5 shrink-0">
+                        Join Discussion <span>→</span>
+                      </span>
+                    </div>
+                  </Link>
+                );
+              })
+            )}
+          </div>
+        </div>
+      </section>
 
       {/* =========================================================================
           3. VIDEOS AND HIGHLIGHTS SECTION (COMPACT THUMBNAIL-FIRST DESIGN)
-          - Before play: Text-free YouTube thumbnail with central emerald & gold play button
-          - When clicked: Replaces thumbnail with native YouTube iframe with autoplay
-          - Zero layout shifts (aspect-[16/9])
-          - Outside stationary tap pauses playback and returns the Mshindi play button
+          - Background color of the gold accent (#D4AF37) covering the whole section
+          - Edge-to-edge full width same as the topmost green section
+          - Everything else stays exactly the same
           ========================================================================= */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16 sm:pb-20">
-        <div className="text-left mb-6 sm:mb-8">
-          <h2 className="font-bold sm:font-bold text-2xl sm:text-3xl lg:text-4xl text-slate-900 tracking-tight">
-            Videos and Highlights
-          </h2>
-        </div>
-
-        {publishedVideos.length === 0 ? (
-          <div className="bg-white border border-slate-200 rounded-2xl p-8 text-center text-slate-400 text-xs max-w-md mx-auto shadow-2xs">
-            No highlights or media embeds published yet. Admin can publish videos and embeds via the Admin Console.
+      <section className="w-full bg-[#D4AF37] text-slate-900 py-6 sm:py-16">
+        <div className="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8">
+          <div className="text-left mb-6 sm:mb-8 px-1 sm:px-0">
+            <h2 className="font-extrabold text-2xl sm:text-3xl lg:text-4xl text-slate-950 tracking-tight">
+              Videos and Highlights
+            </h2>
           </div>
-        ) : (
+
+          {publishedVideos.length === 0 ? (
+            <div className="bg-white/90 border border-slate-200 rounded-2xl p-8 text-center text-slate-600 text-xs max-w-md mx-auto shadow-2xs">
+              No highlights or media embeds published yet. Admin can publish videos and embeds via the Admin Console.
+            </div>
+          ) : (
           <>
             {/* DESKTOP VIEW: Compact Multi-Column Grid */}
             <div className="hidden md:grid md:grid-cols-2 lg:grid-cols-3 gap-5 max-w-6xl mx-auto">
@@ -574,6 +795,7 @@ export default function Home() {
             </div>
           </>
         )}
+        </div>
       </section>
     </div>
   );
