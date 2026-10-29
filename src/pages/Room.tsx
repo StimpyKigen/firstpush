@@ -294,11 +294,15 @@ export default function Room() {
       {!isUnlocked ? (
         <PayGate jackpot={jackpot} onUnlocked={() => setUnlockedLocal(true)} />
       ) : (
-        <div className="flex flex-col gap-4">
-          {/* Gameweek Leaderboard & Shared Picks Prior to Closure Panel */}
-          <GameweekLeaderboard jackpot={jackpot} totalUserPicksCount={pickedCount} />
+        <div className="space-y-8">
+          {/* Standalone Gameweek Leaderboard Section */}
+          <section aria-label="Gameweek Leaderboard">
+            <GameweekLeaderboard jackpot={jackpot} totalUserPicksCount={pickedCount} />
+          </section>
 
-          {jackpot.matches.map((match, idx) => {
+          {/* Jackpot Match Legs Section */}
+          <section aria-label="Jackpot Matches" className="flex flex-col gap-4">
+            {jackpot.matches.map((match, idx) => {
             const consensus = jackpot.consensus[match.id];
             const open = openMatch === match.id;
             const myPickRecord = getPick(jackpot.id, match.id);
@@ -357,6 +361,7 @@ export default function Room() {
               />
             );
           })}
+          </section>
         </div>
       )}
     </div>
