@@ -52,7 +52,7 @@ export interface User {
 Page access control is enforced via React components reading `useCurrentUser()` from `authStore.ts`:
 
 - **Public Routes**: Home (`/`), How It Works (`/how-it-works`), Leaderboard (`/leaderboard`), Free Matches (`/free`).
-- **PayGate Protected Routes**: Jackpot Consensus Rooms (`/room/:roomId`) require either KSh 10 wallet payment or rewarded ad watch.
+- **PayGate Protected Routes**: Jackpot Consensus Rooms (`/room/:roomId`) require KSh 10 unlock via M-Pesa, wallet balance, or Mshindi Tokens.
 - **Auth Required Routes**: Wallet (`/wallet`), Profile (`/profile`), Create P2P Wager (`/p2p`), Bet Slip Submission (`/betslip`).
 
 If an unauthenticated user attempts to perform a protected action, they are redirected to `/auth` with a toast prompt.

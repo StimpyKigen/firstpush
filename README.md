@@ -21,7 +21,7 @@
 
 ## ✨ Key Features
 
-- **🏆 Live Jackpot Consensus Engine**: Real-time aggregation of punter picks across 15 to 17 leg jackpots (SportPesa, Betika, MozzartBet, Odibets). Punters unlock consensus rooms for a flat KSh 10 fee.
+- **🏆 Live Jackpot Consensus Engine**: Real-time aggregation of punter picks across 15 to 17 leg jackpots (SportPesa, Betika, MozzartBet, Odibets). Punters unlock consensus rooms for a flat KSh 10 fee via M-Pesa, wallet balance, or Mshindi Tokens.
 - **🤖 Ava 24/7 AI Support & Site Guide**: Gemini 3.6 Flash-powered assistant offering instant guidance on room unlocks, leaderboards, M-Pesa deposits, and platform features.
 - **⚽ Free Match Prediction Rooms**: Open discussion rooms for top daily European and African football matches with live consensus bars, reasoning feeds, and social discussions.
 - **⚔️ P2P Custom 1v1 Wagers**: Create and challenge friends or community members on custom outcomes with M-Pesa escrow or room tokens.
@@ -51,9 +51,7 @@
 ├── scripts/                     # Deployment and build scripts
 ├── src/
 │   ├── components/              # Reusable UI components & Modals
-│   │   └── adSystem/            # Rewarded ad player and room gates
 │   ├── lib/                     # Core business logic, stores, & Firebase helpers
-│   │   └── adSystem/            # Ad network providers and state engine
 │   ├── pages/                   # Application route views (Home, Room, Auth, Wallet, etc.)
 │   ├── types/                   # TypeScript interfaces and types
 │   ├── App.tsx                  # Root App routing & global layout

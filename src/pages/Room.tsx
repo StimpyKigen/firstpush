@@ -1,19 +1,17 @@
 import { useState, useEffect, useSyncExternalStore } from 'react';
-import { useParams, Link, Navigate } from 'react-router-dom';
-import { ArrowLeft, Users, Clock, MessageSquarePlus, Trophy, ChevronDown, CheckCircle2, XCircle, RadioTower, Sparkles, Edit3, ListChecks } from 'lucide-react';
+import { useParams, Navigate } from 'react-router-dom';
+import { Users, Clock, Trophy, ChevronDown, CheckCircle2, XCircle, RadioTower, Sparkles, ListChecks } from 'lucide-react';
 import SeoHead from '../components/SeoHead';
 import { scrollIntoViewIfNeeded } from '../lib/viewportScroll';
 import { getJackpot, subscribeToJackpots, getJackpotsSnapshot } from '../lib/mockData';
 import { Conviction, GamblerPick, Outcome } from '../lib/types';
 import { getBookieTheme } from '../lib/bookies';
 import { useWallet } from '../lib/store';
-import { useAuth, useCurrentUser } from '../lib/authStore';
+import { useCurrentUser } from '../lib/authStore';
 import { useAuthWallStore } from '../lib/authWallStore';
 import { useUserPicks } from '../lib/userPicksStore';
 import PayGate from '../components/PayGate';
-import RoomAccessGate from '../components/adSystem/RoomAccessGate';
 import OutcomeBar from '../components/OutcomeBar';
-import PickCard from '../components/PickCard';
 import DiscussionPanel from '../components/DiscussionPanel';
 import GameweekLeaderboard from '../components/GameweekLeaderboard';
 import Avatar from '../components/Avatar';
@@ -131,6 +129,11 @@ export default function Room() {
       setOpenMatch(null); // All collapse to give clear view of completed slip!
     }
   };
+
+  void CONVICTIONS;
+  void editingMatchId;
+  void formError;
+  void startEdit;
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
@@ -289,7 +292,9 @@ export default function Room() {
         </div>
       )}
 
-      <RoomAccessGate jackpot={jackpot} onUnlocked={() => setUnlockedLocal(true)}>
+      {!isUnlocked ? (
+        <PayGate jackpot={jackpot} onUnlocked={() => setUnlockedLocal(true)} />
+      ) : (
         <div className="flex flex-col gap-4">
           {/* Gameweek Leaderboard & Shared Picks Prior to Closure Panel */}
           <GameweekLeaderboard jackpot={jackpot} totalUserPicksCount={pickedCount} />
@@ -326,6 +331,7 @@ export default function Room() {
               const scoreB = likesB * 10 + starsB * 5;
               return scoreB - scoreA;
             });
+            void sortedPicks;
 
             return (
               <RoomMatchCard
@@ -353,7 +359,7 @@ export default function Room() {
             );
           })}
         </div>
-      </RoomAccessGate>
+      )}
     </div>
   );
 }
@@ -399,6 +405,9 @@ function RoomMatchCard({
   handlePostPick: (matchId: string) => void;
   savePick: any;
 }) {
+  void getExtraLikes;
+  void setConviction;
+
   // Auto-collapse on scroll outside (>75px) or click outside
   const containerRef = useAutoCollapse<HTMLDivElement>(open, () => {
     onToggleOpen();
@@ -534,7 +543,7 @@ function RoomMatchCard({
             onSubmit={() => handlePostPick(match.id)}
             submitted={!!myPickRecord}
             label="Gamblers' Discussion"
-            onEditPick={(id, pick, r) => savePick(jackpot.id, match.id, pick, r, conviction)}
+            onEditPick={(_id, pick, r) => savePick(jackpot.id, match.id, pick, r, conviction)}
           />
 
           {jackpot.status === 'settled' && match.result && (
@@ -551,4 +560,3 @@ function RoomMatchCard({
     </div>
   );
 }
-

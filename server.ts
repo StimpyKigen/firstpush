@@ -1,4 +1,5 @@
 import 'dotenv/config';
+import crypto from 'crypto';
 import express, { Request, Response, NextFunction } from 'express';
 import path from 'path';
 import fs from 'fs';
@@ -22,15 +23,15 @@ import {
 import { fetchBet365OddsForMatch } from './src/lib/sportscoreOddsService';
 import { extractPdfTextServer } from './src/lib/serverPdfParser';
 import { getSavedHomepageFeed, saveHomepageFeed } from './src/lib/serverHomepageFeed';
-import {
-  createAdChallenge,
-  verifyAndGrantRewardToken,
-  authorizeRoomAccess,
-  getAuditLogs,
-  getRewardedAccessRecords,
-  logAuditEvent,
-  generateHmacSignature,
-} from './src/lib/adSystem/adServerDb';
+
+const ADMIN_TOKEN_SECRET =
+  process.env.ADMIN_SECRET ||
+  process.env.GEMINI_API_KEY ||
+  crypto.randomBytes(32).toString('hex');
+
+function signAdminPayload(data: string): string {
+  return crypto.createHmac('sha256', ADMIN_TOKEN_SECRET).update(data).digest('hex');
+}
 
 // Lightweight in-memory rate limiter for high concurrency protection
 interface RateLimitBucket {
@@ -97,11 +98,9 @@ async function startServer() {
   // Rate Limiting Rules
   const generalApiLimiter = createRateLimiter(60_000, 120); // 120 reqs / min
   const geminiAiLimiter = createRateLimiter(60_000, 20);    // 20 AI reqs / min
-  const adSecurityLimiter = createRateLimiter(60_000, 30);  // 30 reqs / min for ad security endpoints
 
   app.use('/api/', generalApiLimiter);
   app.use('/api/gemini/', geminiAiLimiter);
-  app.use('/api/rewarded-ads/', adSecurityLimiter);
 
   // Health check API
   app.get('/api/health', (req, res) => {
@@ -225,189 +224,8 @@ async function startServer() {
     }
   });
 
-  // =========================================================================
-  // SECURE REWARDED AD ACCESS SYSTEM API ENDPOINTS
-  // =========================================================================
-
   /**
-   * 1. Request an Ad Challenge (Single-Use Nonce & Session)
-   */
-  app.post('/api/rewarded-ads/challenge', (req: Request, res: Response) => {
-    try {
-      const { userId, roomId, adProvider } = req.body || {};
-      const clientIp = (req.headers['x-forwarded-for'] as string) || req.socket.remoteAddress || 'unknown_ip';
-      const userAgent = req.headers['user-agent'] || 'unknown_agent';
-
-      if (!userId || !roomId) {
-        return res.status(400).json({ error: 'User ID and Room ID are required parameters.' });
-      }
-
-      const result = createAdChallenge(userId, roomId, adProvider || 'google_admob', clientIp, userAgent);
-      if (!result.success) {
-        return res.status(429).json({ error: result.error });
-      }
-
-      return res.json({
-        success: true,
-        challengeId: result.challengeId,
-        nonce: result.nonce,
-        signature: result.signature,
-        minWatchDurationSeconds: result.minWatchDurationSeconds,
-        timestamp: Date.now(),
-      });
-    } catch (err: any) {
-      console.error('Ad Challenge Error:', err);
-      return res.status(500).json({ error: 'Internal server error while initializing ad challenge.' });
-    }
-  });
-
-  /**
-   * 2. Verify Completed Rewarded Ad & Grant 15-Minute Access Token
-   */
-  app.post('/api/rewarded-ads/verify', (req: Request, res: Response) => {
-    try {
-      const { userId, roomId, challengeId, watchDurationSeconds, adProvider, clientSignature } = req.body || {};
-      const clientIp = (req.headers['x-forwarded-for'] as string) || req.socket.remoteAddress || 'unknown_ip';
-      const userAgent = req.headers['user-agent'] || 'unknown_agent';
-
-      if (!userId || !roomId || !challengeId) {
-        return res.status(400).json({ error: 'Missing required validation fields: userId, roomId, challengeId.' });
-      }
-
-      const result = verifyAndGrantRewardToken(
-        userId,
-        roomId,
-        challengeId,
-        Number(watchDurationSeconds) || 0,
-        adProvider || 'google_admob',
-        clientSignature,
-        clientIp,
-        userAgent
-      );
-
-      if (!result.success) {
-        return res.status(400).json({
-          success: false,
-          error: result.error,
-          code: result.code,
-        });
-      }
-
-      return res.json({
-        success: true,
-        token: result.token,
-        tokenPayload: result.tokenPayload,
-        message: 'Reward verified successfully. 15-minute access token granted.',
-      });
-    } catch (err: any) {
-      console.error('Ad Verify Error:', err);
-      return res.status(500).json({ error: 'Internal server error during ad reward verification.' });
-    }
-  });
-
-  /**
-   * 3. Authorization Middleware Endpoint for Premium Room Access
-   */
-  app.post('/api/rewarded-ads/verify-room-access', (req: Request, res: Response) => {
-    try {
-      const { userId, roomId, token, isPremiumSubscriber } = req.body || {};
-      const clientIp = (req.headers['x-forwarded-for'] as string) || req.socket.remoteAddress || 'unknown_ip';
-
-      if (!userId || !roomId) {
-        return res.status(400).json({ error: 'User ID and Room ID are required for room access check.' });
-      }
-
-      const result = authorizeRoomAccess(userId, roomId, token, Boolean(isPremiumSubscriber), clientIp);
-
-      if (!result.allowed) {
-        return res.status(403).json({
-          allowed: false,
-          reason: result.reason,
-          error: result.error,
-        });
-      }
-
-      return res.json({
-        allowed: true,
-        reason: result.reason,
-        expiresAt: result.expiresAt,
-        remainingSeconds: result.remainingSeconds,
-      });
-    } catch (err: any) {
-      console.error('Room Access Check Error:', err);
-      return res.status(500).json({ error: 'Internal server error validating room access authorization.' });
-    }
-  });
-
-  /**
-   * 4. Server-Side Verification Callback (Google AdMob / Unity SSV Webhook)
-   */
-  app.get('/api/rewarded-ads/ssv-callback', (req: Request, res: Response) => {
-    try {
-      const { ad_network, user_id, custom_data, key_id, signature } = req.query || {};
-      const clientIp = (req.headers['x-forwarded-for'] as string) || req.socket.remoteAddress || 'unknown_ip';
-
-      logAuditEvent(
-        'REWARD_VERIFIED',
-        String(user_id || 'unknown'),
-        'ssv_callback',
-        `SSV Callback received from ${ad_network || 'Google AdMob'}`,
-        clientIp,
-        { query: req.query }
-      );
-
-      return res.status(200).send('OK');
-    } catch (err: any) {
-      return res.status(500).send('SSV Error');
-    }
-  });
-
-  /**
-   * 5. Audit Logs for Fraud Investigation (Admin Authenticated)
-   */
-  app.get('/api/rewarded-ads/audit-logs', (req: Request, res: Response) => {
-    try {
-      const adminToken = req.headers['x-admin-token'] as string;
-      const adminKey = (req.headers['x-admin-key'] || req.query.adminKey) as string;
-      const expectedKey = process.env.ADMIN_SECRET || 'mshindi_admin_audit_key_2026';
-      
-      const isAuthorized = adminKey === expectedKey || (adminToken && adminToken.length > 20);
-      if (!isAuthorized) {
-        return res.status(401).json({ error: 'Unauthorized: Admin authentication key or token required.' });
-      }
-
-      const userId = req.query.userId as string;
-      const logs = getAuditLogs(userId);
-      return res.json({ success: true, count: logs.length, logs });
-    } catch (err: any) {
-      return res.status(500).json({ error: 'Failed to retrieve audit logs.' });
-    }
-  });
-
-  /**
-   * 6. Rewarded Access Records Database Query (Admin Authenticated)
-   */
-  app.get('/api/rewarded-ads/records', (req: Request, res: Response) => {
-    try {
-      const adminToken = req.headers['x-admin-token'] as string;
-      const adminKey = (req.headers['x-admin-key'] || req.query.adminKey) as string;
-      const expectedKey = process.env.ADMIN_SECRET || 'mshindi_admin_audit_key_2026';
-      
-      const isAuthorized = adminKey === expectedKey || (adminToken && adminToken.length > 20);
-      if (!isAuthorized) {
-        return res.status(401).json({ error: 'Unauthorized: Admin authentication key or token required.' });
-      }
-
-      const userId = req.query.userId as string;
-      const records = getRewardedAccessRecords(userId);
-      return res.json({ success: true, count: records.length, records });
-    } catch (err: any) {
-      return res.status(500).json({ error: 'Failed to retrieve access records.' });
-    }
-  });
-
-  /**
-   * 7. Super-Admin PIN Verification Endpoint
+   * Super-Admin PIN Verification Endpoint
    * Securely validates administrator PIN on backend and issues signed 2-hour admin token
    */
   app.post('/api/admin/verify-pin', (req: Request, res: Response) => {
@@ -428,7 +246,7 @@ async function startServer() {
       const now = Date.now();
       const expiresAt = now + 2 * 60 * 60 * 1000;
       const adminPayload = `${ADMIN_PHONE}:super_admin:${now}:${expiresAt}`;
-      const signature = generateHmacSignature(adminPayload);
+      const signature = signAdminPayload(adminPayload);
       const token = Buffer.from(JSON.stringify({ phone: ADMIN_PHONE, role: 'super_admin', expiresAt, signature })).toString('base64');
 
       return res.json({
@@ -446,11 +264,11 @@ async function startServer() {
   const redeemedMpesaCodesLedger = new Set<string>();
 
   /**
-   * 8. Server-Side M-Pesa Code Verification & Anti-Replay Ledger
+   * Server-Side M-Pesa Code Verification & Anti-Replay Ledger
    */
   app.post('/api/mpesa/verify-code', (req: Request, res: Response) => {
     try {
-      const { code, amount, userId, roomId } = req.body || {};
+      const { code, amount } = req.body || {};
       const cleanCode = String(code || '').trim().toUpperCase();
 
       if (!/^[A-Z0-9]{8,12}$/.test(cleanCode)) {
@@ -463,14 +281,6 @@ async function startServer() {
 
       // Record code in server ledger
       redeemedMpesaCodesLedger.add(cleanCode);
-
-      logAuditEvent(
-        'REWARD_VERIFIED',
-        String(userId || 'anonymous'),
-        String(roomId || 'wallet'),
-        `M-Pesa payment code ${cleanCode} verified for Ksh ${amount || 10}`,
-        req.ip
-      );
 
       return res.json({
         success: true,
@@ -707,7 +517,7 @@ Key Platform Details about MshindiRoom:
 - What is MshindiRoom?: Kenya's premier punter community where sports fans analyze football bet slips, form consensus on 17-leg jackpots (SportPesa Mega Jackpot, Betika Midweek, MozzartBet 16, Odibets, etc.), play P2P wagers, build custom bet slips, rate punters, and view live gameweek leaderboards.
 - Bookie Relationship: MshindiRoom is an analytical consensus community, NOT a licensed gambling operator. Punters place real bets directly on their bookies (SportPesa, Betika, etc.). MshindiRoom helps punters compare picks and pool knowledge.
 - Jackpot Consensus Rooms vs Bet Builder (Key Differences):
-  1. **Jackpot Rooms**: Fixed 13-17 match pools provided by bookmakers (SportPesa Mega Jackpot, Betika Midweek, MozzartBet, etc.) where all punters analyze the same fixed match list. Unlocking a room (flat rate of KSh 10 via M-Pesa or ad token) reveals live community consensus percentages across all legs, 17-leg slip generators, verified punter chat, and qualifies your submitted slip for the Gameweek Leaderboard crown and Rating Points (RP).
+  1. **Jackpot Rooms**: Fixed 13-17 match pools provided by bookmakers (SportPesa Mega Jackpot, Betika Midweek, MozzartBet, etc.) where all punters analyze the same fixed match list. Unlocking a room (flat rate of KSh 10 via M-Pesa, wallet balance, or Mshindi Tokens) reveals live community consensus percentages across all legs, 17-leg slip generators, verified punter chat, and qualifies your submitted slip for the Gameweek Leaderboard crown and Rating Points (RP).
   2. **Bet Builder**: A 100% FREE interactive custom accumulator tool. Instead of pre-set jackpot pools, you select individual daily matches, pick your outcomes (1X2, Over/Under 2.5, Both Teams To Score, Double Chance), aggregate odds in real-time, generate copyable bookie slip codes (SportPesa, Betika, Mozzart, 22Bet, Odibets), or share your custom multi-leg slip in the community slip feed.
 - Gameweek Leaderboard & Crown: The eligible punter whose slip comes closest to the official winning jackpot outcome takes the #1 Leaderboard Crown! Equal scores are tied and settled by earliest slip submission time.
 - 5-Star Punter Rating: Ratings range from 1.0 to 5.0 stars in half-star steps. They increase as slip accuracy improves over time and gain a bonus when crowned #1 in a jackpot.
@@ -717,7 +527,7 @@ Key Platform Details about MshindiRoom:
 - Support Email: support@mshindiroom.co.ke
 
 Strict Rules for Ava:
-- STRICT UNLOCK FEE: The flat fee rate for Jackpot Rooms is strictly **KSh 10** for every punter. Bet Builder is **100% FREE** to use. NEVER mention KSh 20, KSh 50, or any other price.
+- STRICT UNLOCK FEE: The flat fee rate for Jackpot Rooms is strictly **KSh 10** for every punter (payable via M-Pesa, wallet balance, or Mshindi Tokens). Bet Builder is **100% FREE** to use. NEVER mention KSh 20, KSh 50, or any other price.
 - CLEAR FEATURE COMPARISON: When asked about Bet Builder or Jackpot Rooms, clearly explain that Jackpot Rooms are fixed bookmaker pools (SportPesa, Betika) for the Leaderboard Crown (KSh 10 unlock), whereas Bet Builder is a free custom multi-match accumulator tool for daily fixtures.
 - STRICT FACTUAL RESTRAINT: When explaining jackpot analysis, consensus data, or prizes, NEVER add foreign or external information, fake bookmaker bonuses, or unverified claims. Stick strictly to MshindiRoom's platform rules and features.
 - Respond in a warm, polite, encouraging Kenyan customer support style.

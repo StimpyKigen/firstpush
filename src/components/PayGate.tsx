@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { Lock, ShieldCheck, Copy, Check, Loader2, KeyRound, Smartphone, AlertCircle, Coins, Sparkles } from 'lucide-react';
 import { useWallet } from '../lib/store';
+import { useCurrentUser } from '../lib/authStore';
+import { useAuthWallStore } from '../lib/authWallStore';
 import { RECEIVER_MPESA_NUMBER, RECEIVER_NAME, isValidMpesaCode, normalizeCode } from '../lib/mpesa';
 import type { Jackpot } from '../lib/types';
 import { showToast } from '../lib/notificationStore';
@@ -8,6 +10,8 @@ import { showToast } from '../lib/notificationStore';
 type Step = 'intro' | 'sent' | 'verify';
 
 export default function PayGate({ jackpot, onUnlocked }: { jackpot: Jackpot; onUnlocked: () => void }) {
+  const currentUser = useCurrentUser();
+  const openAuthWall = useAuthWallStore((s) => s.openAuthWall);
   const balance = useWallet((s) => s.balance);
   const mshindiTokens = useWallet((s) => s.mshindiTokens);
   const isCodeUsed = useWallet((s) => s.isCodeUsed);
@@ -28,6 +32,18 @@ export default function PayGate({ jackpot, onUnlocked }: { jackpot: Jackpot; onU
   const earnedTokens = Math.max(1, Math.floor(jackpot.entryFee * 0.04)); // e.g., 100 Ksh -> 4 MT, 50 Ksh -> 2 MT
   const canPayWithTokens = mshindiTokens >= tokenCost;
 
+  function requireAuth(): boolean {
+    if (!currentUser) {
+      openAuthWall({
+        actionType: 'jackpot',
+        title: 'Sign In to Unlock Room',
+        message: `Sign up or log in to unlock ${jackpot.name} permanently via M-Pesa, Wallet Balance, or Mshindi Tokens.`,
+      });
+      return false;
+    }
+    return true;
+  }
+
   function copyNumber() {
     navigator.clipboard?.writeText(RECEIVER_MPESA_NUMBER.replace(/\s/g, ''));
     setCopied(true);
@@ -35,6 +51,7 @@ export default function PayGate({ jackpot, onUnlocked }: { jackpot: Jackpot; onU
   }
 
   function payWithTokens() {
+    if (!requireAuth()) return;
     const res = unlockRoomWithTokens(jackpot.id, tokenCost, jackpot.name);
     if (res.ok) {
       showToast({
@@ -49,6 +66,7 @@ export default function PayGate({ jackpot, onUnlocked }: { jackpot: Jackpot; onU
   }
 
   function payWithBalance() {
+    if (!requireAuth()) return;
     unlockRoomWithBalance(jackpot.id, jackpot.entryFee, jackpot.name);
     showToast({
       type: 'success',
@@ -59,6 +77,7 @@ export default function PayGate({ jackpot, onUnlocked }: { jackpot: Jackpot; onU
   }
 
   async function verifyCode() {
+    if (!requireAuth()) return;
     setError('');
     const clean = normalizeCode(code);
     if (!isValidMpesaCode(clean)) {
@@ -141,7 +160,7 @@ export default function PayGate({ jackpot, onUnlocked }: { jackpot: Jackpot; onU
                 disabled={!canPayWithTokens}
                 className={`inline-flex flex-col items-center justify-center p-3 rounded-xl border transition-all text-center ${
                   canPayWithTokens
-                    ? 'bg-gradient-to-r from-amber-500/20 via-gold/25 to-amber-500/20 border-gold/60 hover:border-gold text-gold font-bold'
+                    ? 'bg-gradient-to-r from-amber-500/20 via-gold/25 to-amber-500/20 border-gold/60 hover:border-gold text-gold font-bold cursor-pointer'
                     : 'bg-panel-2 border-line/60 text-cream-dim/60 opacity-65 cursor-not-allowed'
                 }`}
               >
@@ -158,8 +177,11 @@ export default function PayGate({ jackpot, onUnlocked }: { jackpot: Jackpot; onU
 
               {/* Option 2: Pay M-Pesa */}
               <button
-                onClick={() => setStep('sent')}
-                className="inline-flex items-center justify-between px-4 bg-emerald-2 hover:bg-emerald text-ink font-bold text-sm h-12 rounded-xl transition-all"
+                onClick={() => {
+                  if (!requireAuth()) return;
+                  setStep('sent');
+                }}
+                className="inline-flex items-center justify-between px-4 bg-emerald-2 hover:bg-emerald text-ink font-bold text-sm h-12 rounded-xl transition-all cursor-pointer"
               >
                 <span className="flex items-center gap-2">
                   <Smartphone size={16} /> Pay via M-Pesa
@@ -173,7 +195,7 @@ export default function PayGate({ jackpot, onUnlocked }: { jackpot: Jackpot; onU
               <button
                 onClick={payWithBalance}
                 disabled={!canPayFromBalance}
-                className="inline-flex items-center justify-between px-4 bg-panel-2 hover:bg-line disabled:opacity-40 disabled:cursor-not-allowed text-cream font-semibold text-sm h-12 rounded-xl border border-line transition-all"
+                className="inline-flex items-center justify-between px-4 bg-panel-2 hover:bg-line disabled:opacity-40 disabled:cursor-not-allowed text-cream font-semibold text-sm h-12 rounded-xl border border-line transition-all cursor-pointer"
               >
                 <span>Use Wallet Balance (Ksh {balance})</span>
                 <span className="text-[11px] text-gold font-bold">+{earnedTokens} MT</span>

@@ -20,12 +20,11 @@ This document serves as a self-maintaining knowledge base for technical issues, 
 
 ### Issue 002: Infinite Re-render Loop with `useSyncExternalStore`
 
-- **Problem**: Continuous re-rendering and high CPU usage in avatar picker and rewarded ad player components.
+- **Problem**: Continuous re-rendering and high CPU usage in avatar picker components.
 - **Root Cause**: The `getSnapshot` callback passed to `useSyncExternalStore` returned a newly instantiated object on every invocation, breaking object reference equality.
-- **Solution**: Implemented cached snapshot state variables in `avatarStore.ts` and `adStore.ts` that update reference pointers only when underlying values mutate.
+- **Solution**: Implemented cached snapshot state variables in `avatarStore.ts` that update reference pointers only when underlying values mutate.
 - **Files Affected**:
   - `src/lib/avatarStore.ts`
-  - `src/lib/adSystem/adStore.ts`
 
 ---
 

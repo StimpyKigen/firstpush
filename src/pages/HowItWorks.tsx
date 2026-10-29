@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { Unlock, MessagesSquare, Trophy, ShieldCheck, Sparkles, Lock, CalendarDays, Target, Dices, Layers, Copy, Share2, CheckCircle2 } from 'lucide-react';
+import { Unlock, Trophy, ShieldCheck, Sparkles, Lock, CalendarDays, Target, Dices, Layers, Copy, Share2, CheckCircle2 } from 'lucide-react';
 import StarRating from '../components/StarRating';
 import SeoHead from '../components/SeoHead';
 import BackNavButton from '../components/BackNavButton';
@@ -18,7 +18,7 @@ const steps = [
   {
     icon: Lock,
     title: '3. Jackpot Rooms are exclusive',
-    body: 'For fixed 13-17 match jackpot pools (SportPesa Mega, Betika Midweek, Mozzart, Odibets), unlock live community consensus stats for a flat fee of Ksh 10 via M-Pesa or ad tokens.',
+    body: 'For fixed 13-17 match jackpot pools (SportPesa Mega, Betika Midweek, Mozzart, Odibets), unlock live community consensus stats for a flat fee of Ksh 10 via M-Pesa, wallet balance, or Mshindi Tokens.',
   },
   {
     icon: Trophy,
@@ -226,4 +226,3 @@ export default function HowItWorks() {
     </div>
   );
 }
-

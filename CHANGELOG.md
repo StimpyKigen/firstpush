@@ -13,13 +13,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Gemini 3.6 Flash Integration**: Upgraded Ava Customer Support Specialist to Google Gemini 3.6 Flash model with enhanced system prompt instructions enforcing KSh 10 room unlock rates and factual restraint.
 - **Jackpot Webpage Parser API**: Added AI-powered webpage scraper parser endpoint (`/api/gemini/parse-jackpot-text`) allowing admins to paste raw bookmaker jackpot web text to generate match fixtures automatically.
 - **PWA Push Notifications & Installation**: Added service worker registration (`swRegister.ts`), web app manifest, and `PWAInstallPrompt` component for iOS/Android home screen installation.
-- **Ad Network Rewarded Room Gates**: Integrated rewarded ad player components (`RewardedAdPlayer.tsx`, `RoomAccessGate.tsx`) supporting video ad watches for temporary room unlocks.
+- **Token & Wallet Room Gates**: Integrated `PayGate.tsx` supporting permanent room unlocks via M-Pesa, Wallet Balance, and Mshindi Tokens.
 - **Comprehensive Documentation Suite**: Created 21 technical specification documents in `/docs/` covering architecture, database, API, wallet, security, PWA, and release processes.
 
 ### Fixed
 - **React Hook Rules Compliance**: Fixed React runtime errors (`Invalid hook call` / `Cannot read properties of null (reading 'useState')`) caused by early return statements placed before hook invocations in `BetSlipRoom.tsx`, `CreateBet.tsx`, and `P2PBets.tsx`.
 - **Duplicate React Bundles**: Resolved duplicate React package resolutions by adding `dedupe: ['react', 'react-dom', 'react-router-dom', 'zustand']` in `vite.config.ts`.
-- **Local Store Snapshots**: Fixed infinite re-render loops in `useSyncExternalStore` hooks across `avatarStore.ts` and `adStore.ts` by stabilizing cached snapshot references.
+- **Local Store Snapshots**: Fixed infinite re-render loops in `useSyncExternalStore` hooks across `avatarStore.ts` by stabilizing cached snapshot references.
 
 ---
 

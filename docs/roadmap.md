@@ -13,7 +13,7 @@
 - ✅ **Jackpot Consensus Engine**: Real-time aggregation for SportPesa Mega, Betika Midweek, MozzartBet, Odibets.
 - ✅ **Consensus Slip Auto-Generators**: Pure Consensus, Balanced Smart, and Value Risk slips.
 - ✅ **Free Match Prediction Rooms**: Open discussion rooms for daily European & African matches.
-- ✅ **PayGate Room Access**: KSh 10 flat unlock fee via M-Pesa or rewarded video ad watch.
+- ✅ **PayGate Room Access**: KSh 10 flat unlock fee via M-Pesa, wallet balance, or Mshindi Tokens.
 
 ### 2.2 AI Integrations
 - ✅ **Ava 24/7 AI Customer Support**: Google Gemini 3.6 Flash assistant with Kenyan support persona.

@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
-import { ShieldCheck, X, Trophy, Lock, Tv, ShieldAlert, Newspaper, KeyRound, CalendarDays } from 'lucide-react';
-import AdminAdSettingsModal from './adSystem/AdminAdSettingsModal';
+import { ShieldCheck, X, Trophy, Lock, ShieldAlert, Newspaper, KeyRound, CalendarDays } from 'lucide-react';
 import AdminModerationDashboard from './AdminModerationDashboard';
 import AdminHomepageFeed from './admin/AdminHomepageFeed';
 import AdminFixturesManager from './admin/AdminFixturesManager';
@@ -24,7 +23,6 @@ export default function JackpotAdminModal({ isOpen, onClose }: JackpotAdminModal
   const [adminPinInput, setAdminPinInput] = useState('');
   const [pinError, setPinError] = useState('');
   const [isVerifying, setIsVerifying] = useState(false);
-  const [showAdSettingsModal, setShowAdSettingsModal] = useState(false);
   const [activeAdminTab, setActiveAdminTab] = useState<AdminTab>('jackpots');
 
   const form = useJackpotAdminForm();
@@ -137,15 +135,6 @@ export default function JackpotAdminModal({ isOpen, onClose }: JackpotAdminModal
 
           <div className="flex items-center gap-2 sm:gap-3">
             <button
-              type="button"
-              onClick={() => setShowAdSettingsModal(true)}
-              className="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-semibold text-xs flex items-center gap-1.5 transition-colors cursor-pointer"
-            >
-              <Tv size={14} className="text-[#006C54]" />
-              <span className="hidden sm:inline">Ad Settings</span>
-            </button>
-
-            <button
               onClick={onClose}
               aria-label="Close"
               className="p-1.5 rounded-full text-slate-400 hover:text-slate-800 hover:bg-slate-100 transition-colors cursor-pointer"
@@ -154,11 +143,6 @@ export default function JackpotAdminModal({ isOpen, onClose }: JackpotAdminModal
             </button>
           </div>
         </div>
-
-        <AdminAdSettingsModal
-          isOpen={showAdSettingsModal}
-          onClose={() => setShowAdSettingsModal(false)}
-        />
 
         {/* APPLE-STYLE SEGMENTED NAVIGATION BAR */}
         {isAdminUnlocked && (

@@ -55,7 +55,7 @@ export default function Footer() {
               <li><Link to="/terms" className="hover:text-[#EEAA04] transition-colors">Terms of Use</Link></li>
               <li><Link to="/privacy" className="hover:text-[#EEAA04] transition-colors">Privacy Policy</Link></li>
               <li><Link to="/how-it-works" className="hover:text-[#EEAA04] transition-colors">How Consensus Works</Link></li>
-              <li><a href="mailto:support@mshindi.co.ke" className="hover:text-[#EEAA04] transition-colors">Interest-Based Ads &amp; Inquiries</a></li>
+              <li><a href="mailto:support@mshindi.co.ke" className="hover:text-[#EEAA04] transition-colors">Contact &amp; Inquiries</a></li>
               <li><span className="text-slate-400">Responsible Gaming (18+)</span></li>
             </ul>
           </div>

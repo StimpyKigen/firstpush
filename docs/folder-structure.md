@@ -78,19 +78,14 @@
     │   ├── OfflineBar.tsx           # Offline connectivity banner
     │   ├── OtpInput.tsx             # 6-Digit OTP verification field
     │   ├── OutcomeBar.tsx           # Consensus percentage bar (1, X, 2)
-    │   ├── PayGate.tsx              # KSh 10 M-Pesa room unlock modal
+    │   ├── PayGate.tsx              # KSh 10 M-Pesa / Wallet / Token room unlock gate
     │   ├── PickCard.tsx             # Match prediction selector card
     │   ├── PinInput.tsx             # 4-Digit M-Pesa PIN prompt
     │   ├── PlayerProfileModal.tsx   # Punter stats modal
     │   ├── PWAInstallPrompt.tsx     # Mobile home screen install banner
     │   ├── ReportModal.tsx          # Flag/Report content modal
     │   ├── ScrollToTop.tsx          # Route change scroll reset
-    │   ├── StarRating.tsx           # 5-Star rating visualization
-    │   └── adSystem/                # Ad Network Components
-    │       ├── AdLoadingScreen.tsx  # Ad player loading transition
-    │       ├── AdminAdSettingsModal.tsx # Ad provider settings modal
-    │       ├── RewardedAdPlayer.tsx # Rewarded video ad player
-    │       └── RoomAccessGate.tsx   # PayGate vs Ad Gate selector
+    │   └── StarRating.tsx           # 5-Star rating visualization
     │
     ├── lib/                         # State Stores & Business Logic
     │   ├── authStore.ts             # User session & profile store

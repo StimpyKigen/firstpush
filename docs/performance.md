@@ -27,7 +27,7 @@ Vite chunks vendor libraries (`react`, `react-dom`, `lucide-react`, `motion`) se
 1. **Tab Inactivity Bandwidth Saver (`src/lib/footballApi.ts`)**:
    Automatically pauses background live match score polling when the user switches browser tabs or minimizes the window.
 2. **Synchronized External Stores (`useSyncExternalStore`)**:
-   All local stores maintain stable cached snapshot references (`avatarStore.ts`, `adStore.ts`) to prevent unnecessary React component re-renders.
+   All local stores maintain stable cached snapshot references (`avatarStore.ts`) to prevent unnecessary React component re-renders.
 
 ---
 
