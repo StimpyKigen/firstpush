@@ -37,6 +37,8 @@ export interface BetSlipPost {
   note: string;
   tags: string[];
   likes: number;
+  shares?: number;
+  saves?: number;
   likedByMe?: boolean;
   savedByMe?: boolean;
   createdAt: string;
@@ -70,6 +72,7 @@ interface BetSlipStoreState {
   setParsed: (postId: string, parsed: ParsedSlip | null, parseError?: string) => void;
   toggleLike: (postId: string) => void;
   toggleSave: (postId: string) => void;
+  incrementShare: (postId: string) => void;
   addComment: (postId: string, user: string, text: string) => void;
 }
 
@@ -84,6 +87,8 @@ const INITIAL_POSTS: BetSlipPost[] = [
     note: 'Built 3-leg high confidence accumulator with EPL & Champions League value picks! Odds total @ 4.85x.',
     tags: ['Value Pick', 'Bet Builder', 'EPL'],
     likes: 38,
+    shares: 12,
+    saves: 19,
     createdAt: new Date(Date.now() - 3600000 * 1).toISOString(),
     builtSlip: {
       totalOdds: 4.85,
@@ -148,6 +153,8 @@ const INITIAL_POSTS: BetSlipPost[] = [
     note: 'Combined 4 high-probability double chances for tonight.',
     tags: ['Value Pick', 'Multibet'],
     likes: 24,
+    shares: 7,
+    saves: 11,
     createdAt: new Date(Date.now() - 3600000 * 2).toISOString(),
     parsed: {
       id: 'parsed-1',
@@ -169,6 +176,8 @@ const INITIAL_POSTS: BetSlipPost[] = [
     note: 'Booking code for 22Bet weekend multibet. Copy and load on 22Bet app!',
     tags: ['Long Shot', '22Bet'],
     likes: 41,
+    shares: 15,
+    saves: 22,
     createdAt: new Date(Date.now() - 3600000 * 5).toISOString(),
   },
 ];
@@ -227,6 +236,8 @@ export const useBetSlipStore = create<BetSlipStoreState>((set) => ({
       tags,
       builtSlip,
       likes: 0,
+      shares: 0,
+      saves: 0,
       createdAt: new Date().toISOString(),
       parsed: undefined,
     };
@@ -287,7 +298,25 @@ export const useBetSlipStore = create<BetSlipStoreState>((set) => ({
     set((state) => ({
       posts: state.posts.map((p) => {
         if (p.id !== postId) return p;
-        return { ...p, savedByMe: !p.savedByMe };
+        const savedByMe = !p.savedByMe;
+        const currentSaves = p.saves ?? 0;
+        return {
+          ...p,
+          savedByMe,
+          saves: savedByMe ? currentSaves + 1 : Math.max(0, currentSaves - 1),
+        };
+      }),
+    }));
+  },
+
+  incrementShare: (postId) => {
+    set((state) => ({
+      posts: state.posts.map((p) => {
+        if (p.id !== postId) return p;
+        return {
+          ...p,
+          shares: (p.shares ?? 0) + 1,
+        };
       }),
     }));
   },

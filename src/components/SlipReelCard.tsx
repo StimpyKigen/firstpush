@@ -1,8 +1,8 @@
 import { useState, useRef, useMemo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import {
-  Heart, Bookmark, Send, MessageCircle,
-  Copy, Check, ExternalLink, Clock, Trophy, Zap, X,
+  Heart, Bookmark, Send,
+  Copy, Check, ExternalLink, Clock,
   ChevronLeft, ChevronRight
 } from 'lucide-react';
 import Avatar from './Avatar';
@@ -25,15 +25,11 @@ interface SlipReelCardProps {
 
 export default function SlipReelCard({
   post,
-  index,
   isActive,
-  onPrev,
-  onNext,
-  canPrev,
-  canNext
 }: SlipReelCardProps) {
   const toggleLike = useBetSlipStore((s) => s.toggleLike);
   const toggleSave = useBetSlipStore((s) => s.toggleSave);
+  const incrementShare = useBetSlipStore((s) => s.incrementShare);
 
   const currentUser = useCurrentUser();
   const currentUsername = currentUser?.username || '';
@@ -51,17 +47,16 @@ export default function SlipReelCard({
   const countdown = useCountdown(earliestKickoff);
 
   const [copiedCode, setCopiedCode] = useState(false);
-  const [showCommentsModal, setShowCommentsModal] = useState(false);
   const [isCaptionExpanded, setIsCaptionExpanded] = useState(false);
   const [likePop, setLikePop] = useState(false);
   const [activeChunkIndex, setActiveChunkIndex] = useState(0);
   const carouselRef = useRef<HTMLDivElement>(null);
 
-  // Group fixtures into chunks of max 5 per slide for the horizontal swipe carousel
+  // Group fixtures into chunks of max 8 per slide for the horizontal swipe carousel
   const fixtureChunks = useMemo(() => {
     const chunks: BuiltSlipLeg[][] = [];
-    for (let i = 0; i < legs.length; i += 5) {
-      chunks.push(legs.slice(i, i + 5));
+    for (let i = 0; i < legs.length; i += 8) {
+      chunks.push(legs.slice(i, i + 8));
     }
     return chunks;
   }, [legs]);
@@ -109,6 +104,7 @@ export default function SlipReelCard({
     if (navigator.share) {
       try {
         await navigator.share({ title: 'MshindiRoom Bet Slip', text: shareText, url: window.location.href });
+        incrementShare(post.id);
         return;
       } catch {
         /* user cancelled */
@@ -120,6 +116,7 @@ export default function SlipReelCard({
   async function handleCopyLink() {
     try {
       await navigator.clipboard.writeText(window.location.href);
+      incrementShare(post.id);
       showToast({ type: 'success', title: 'Link Copied', message: 'Slip link copied to clipboard!' });
     } catch {
       showToast({ type: 'warning', title: 'Copy failed', message: 'Could not copy link to clipboard.' });
@@ -197,45 +194,34 @@ export default function SlipReelCard({
             )}
           </div>
 
-          {/* Row 3: Bookmaker Tag (Left) + Booking Code Pill (Right, below Countdown) */}
-          <div className="flex items-center justify-between gap-2 min-h-[26px]">
-            <div className="flex items-center gap-1.5 truncate">
-              {post.bookmaker && (
-                <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider truncate">
-                  {post.bookmaker}
-                </span>
+          {/* Row 3: Booking Code Pill (Right, below Countdown — no bookmaker label under Total Odds) */}
+          {(slip.bookieCode || slip.bookieLink) && (
+            <div className="flex items-center justify-end gap-1.5">
+              {slip.bookieCode && (
+                <button
+                  onClick={handleCopyCode}
+                  className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-slate-900 text-white text-[11px] tabular-nums font-bold shadow-xs active:scale-95 transition-all hover:bg-slate-800 cursor-pointer"
+                >
+                  {copiedCode ? <Check size={11} className="text-emerald-400" /> : <Copy size={11} />}
+                  <span>{slip.bookieCode}</span>
+                </button>
+              )}
+              {slip.bookieLink && (
+                <a
+                  href={slip.bookieLink}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-white border border-slate-300 text-slate-800 text-[11px] font-bold hover:bg-slate-50 active:scale-95 transition-all"
+                >
+                  <ExternalLink size={10} className="text-[#006C54]" />
+                  <span>Open</span>
+                </a>
               )}
             </div>
-
-            {/* Booking Code Pill */}
-            {(slip.bookieCode || slip.bookieLink) && (
-              <div className="flex items-center gap-1.5 shrink-0">
-                {slip.bookieCode && (
-                  <button
-                    onClick={handleCopyCode}
-                    className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-slate-900 text-white text-[11px] tabular-nums font-bold shadow-xs active:scale-95 transition-all hover:bg-slate-800 cursor-pointer"
-                  >
-                    {copiedCode ? <Check size={11} className="text-emerald-400" /> : <Copy size={11} />}
-                    <span>{slip.bookieCode}</span>
-                  </button>
-                )}
-                {slip.bookieLink && (
-                  <a
-                    href={slip.bookieLink}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-white border border-slate-300 text-slate-800 text-[11px] font-bold hover:bg-slate-50 active:scale-95 transition-all"
-                  >
-                    <ExternalLink size={10} className="text-[#006C54]" />
-                    <span>Open</span>
-                  </a>
-                )}
-              </div>
-            )}
-          </div>
+          )}
         </div>
 
-        {/* ── MIDDLE FIXTURES AREA (Max 5 per slide, swipe carousel if > 5) ── */}
+        {/* ── MIDDLE FIXTURES AREA (Max 8 per slide, swipe carousel if > 8) ── */}
         {/* Note: NO visible line between booking code and fixture list as requested */}
         <div className="flex-1 min-h-0 relative flex flex-col justify-center my-auto py-1">
           {/* Carousel Navigation Buttons for Desktop (Left / Right Chevrons) */}
@@ -271,49 +257,61 @@ export default function SlipReelCard({
               overscrollBehaviorX: 'contain',
             }}
           >
-            {fixtureChunks.map((chunk, chunkIdx) => (
-              <div
-                key={chunkIdx}
-                className="w-full min-w-full h-full flex flex-col justify-center gap-1.5 sm:gap-2 px-0.5 snap-center shrink-0"
-              >
-                {chunk.map((leg, legIdx) => (
-                  <motion.div
-                    key={leg.id}
-                    initial={isActive ? { opacity: 0, y: 6 } : false}
-                    animate={isActive ? { opacity: 1, y: 0 } : {}}
-                    transition={{ delay: 0.03 + legIdx * 0.03, duration: 0.24, ease: 'easeOut' }}
-                    className="p-2 sm:p-2.5 bg-white/80 border border-[#E6E6D2] rounded-xl flex items-center justify-between gap-2.5 shadow-2xs hover:bg-white transition-colors"
-                  >
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center justify-between gap-2">
-                        <span className="text-[10px] font-bold uppercase tracking-wider text-[#006C54] truncate">
-                          {leg.competition}
-                        </span>
-                        <div className="flex items-center gap-1 text-[10px] text-slate-400 tabular-nums shrink-0">
-                          <Clock size={9} />
-                          <span>{leg.kickoff}</span>
+            {fixtureChunks.map((chunk, chunkIdx) => {
+              const isDense = chunk.length > 5;
+              return (
+                <div
+                  key={chunkIdx}
+                  className={`w-full min-w-full h-full flex flex-col justify-center ${
+                    isDense ? 'gap-1' : 'gap-1.5 sm:gap-2'
+                  } px-0.5 snap-center shrink-0`}
+                >
+                  {chunk.map((leg, legIdx) => (
+                    <motion.div
+                      key={leg.id}
+                      initial={isActive ? { opacity: 0, y: 6 } : false}
+                      animate={isActive ? { opacity: 1, y: 0 } : {}}
+                      transition={{ delay: 0.03 + legIdx * 0.03, duration: 0.24, ease: 'easeOut' }}
+                      className={`${
+                        isDense ? 'px-2.5 py-1 sm:py-1.5' : 'p-2 sm:p-2.5'
+                      } bg-white/80 border border-[#E6E6D2] rounded-xl flex items-center justify-between gap-2.5 shadow-2xs hover:bg-white transition-colors`}
+                    >
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="text-[10px] font-bold uppercase tracking-wider text-[#006C54] truncate leading-tight">
+                            {leg.competition}
+                          </span>
+                          <div className="flex items-center gap-1 text-[10px] text-slate-400 tabular-nums shrink-0 leading-tight">
+                            <Clock size={9} />
+                            <span>{leg.kickoff}</span>
+                          </div>
+                        </div>
+                        <p
+                          className={`font-display font-bold text-xs sm:text-sm text-slate-900 truncate ${
+                            isDense ? 'leading-tight' : 'leading-snug mt-0.5'
+                          }`}
+                        >
+                          {leg.homeTeam} <span className="text-slate-400 font-normal text-xs">v</span> {leg.awayTeam}
+                        </p>
+                        <div
+                          className={`flex items-center gap-1.5 text-[11px] truncate ${
+                            isDense ? 'leading-tight' : 'mt-0.5'
+                          }`}
+                        >
+                          <span className="font-semibold text-slate-500">{leg.market}:</span>
+                          <span className="text-[#006C54] font-bold truncate">{leg.pick}</span>
                         </div>
                       </div>
-                      <p className="font-display font-bold text-xs sm:text-sm text-slate-900 truncate leading-snug mt-0.5">
-                        {leg.homeTeam} <span className="text-slate-400 font-normal text-xs">v</span> {leg.awayTeam}
-                      </p>
-                      <div className="flex items-center gap-1.5 mt-0.5 text-[11px] truncate">
-                        <span className="font-semibold text-slate-500">{leg.market}:</span>
-                        <span className="text-[#006C54] font-bold truncate">{leg.pick}</span>
-                      </div>
-                    </div>
 
-                    {/* Individual Leg Odds Pill */}
-                    <div className="shrink-0 bg-amber-50/80 border border-amber-200/50 text-[#8A6500] rounded-xl px-2 py-1.5 text-center min-w-[46px]">
-                      <span className="tabular-nums font-bold text-xs sm:text-sm block leading-none">
+                      {/* Individual Leg Odds Number (no bordered background) */}
+                      <span className="shrink-0 tabular-nums font-bold text-xs sm:text-sm text-[#8A6500] leading-none pl-1">
                         {leg.odds.toFixed(2)}
                       </span>
-                      <span className="text-[9px] uppercase text-amber-900/60 font-bold block mt-0.5 leading-none">odds</span>
-                    </div>
-                  </motion.div>
-                ))}
-              </div>
-            ))}
+                    </motion.div>
+                  ))}
+                </div>
+              );
+            })}
           </div>
 
           {/* Carousel Slide Indicators (Dots + Label when > 1 slide) */}
@@ -385,13 +383,13 @@ export default function SlipReelCard({
             )}
           </div>
 
-          {/* Interaction Buttons Row: Heart on left, Comments & Share in middle, Save on right */}
-          <div className="flex items-center justify-between pt-2 px-0.5">
-            {/* Left: Like (Heart) */}
+          {/* Centrally Positioned Interaction Buttons Row: Like, Share, Save (Icon + Counter) */}
+          <div className="flex items-center justify-center gap-8 sm:gap-10 pt-2">
+            {/* Like (Heart) */}
             <button
               onClick={handleLike}
               aria-label={post.likedByMe ? 'Unlike slip' : 'Like slip'}
-              className="flex items-center gap-1.5 py-1 px-2 -ml-1 rounded-full hover:bg-slate-200/50 active:scale-95 transition-all cursor-pointer group"
+              className="flex items-center gap-1.5 py-1 px-2.5 rounded-full hover:bg-slate-200/50 active:scale-95 transition-all cursor-pointer group"
             >
               <div className="relative flex items-center justify-center">
                 <AnimatePresence>
@@ -422,32 +420,23 @@ export default function SlipReelCard({
               </span>
             </button>
 
-            {/* Middle: Comments & Share */}
-            <div className="flex items-center gap-3">
-              <button
-                onClick={() => setShowCommentsModal(true)}
-                aria-label="View comments"
-                className="flex items-center gap-1.5 py-1 px-2 rounded-full hover:bg-slate-200/50 active:scale-95 transition-all cursor-pointer text-slate-700 hover:text-slate-900"
-              >
-                <MessageCircle size={19} className="stroke-[2]" />
-                <span className="text-xs font-bold tabular-nums">{legs.length * 3 + 4}</span>
-              </button>
+            {/* Share (Send) */}
+            <button
+              onClick={handleShare}
+              aria-label="Share slip"
+              className="flex items-center gap-1.5 py-1 px-2.5 rounded-full hover:bg-slate-200/50 active:scale-95 transition-all cursor-pointer group text-slate-700 hover:text-slate-900"
+            >
+              <Send size={19} className="stroke-[2] -rotate-12 transition-colors group-hover:text-slate-900" />
+              <span className="text-xs font-bold text-slate-800 tabular-nums">
+                {post.shares ?? 0}
+              </span>
+            </button>
 
-              <button
-                onClick={handleShare}
-                aria-label="Share slip"
-                className="flex items-center gap-1.5 py-1 px-2 rounded-full hover:bg-slate-200/50 active:scale-95 transition-all cursor-pointer text-slate-700 hover:text-slate-900"
-              >
-                <Send size={18} className="stroke-[2] -rotate-12" />
-                <span className="text-xs font-bold hidden xs:inline">Share</span>
-              </button>
-            </div>
-
-            {/* Right: Save (Bookmark) */}
+            {/* Save (Bookmark) */}
             <button
               onClick={handleSave}
-              aria-label="Save slip"
-              className="flex items-center gap-1.5 py-1 px-2 -mr-1 rounded-full hover:bg-slate-200/50 active:scale-95 transition-all cursor-pointer group"
+              aria-label={post.savedByMe ? 'Remove from saved' : 'Save slip'}
+              className="flex items-center gap-1.5 py-1 px-2.5 rounded-full hover:bg-slate-200/50 active:scale-95 transition-all cursor-pointer group"
             >
               <Bookmark
                 size={20}
@@ -457,92 +446,13 @@ export default function SlipReelCard({
                     : 'text-slate-700 group-hover:text-slate-900 stroke-[2]'
                 }`}
               />
-              <span className="text-xs font-bold text-slate-800">
-                {post.savedByMe ? 'Saved' : 'Save'}
+              <span className="text-xs font-bold text-slate-800 tabular-nums">
+                {post.saves ?? 0}
               </span>
             </button>
           </div>
         </div>
       </div>
-
-
-      {/* ── COMMENTS & INSIGHTS MODAL ── */}
-      <AnimatePresence>
-        {showCommentsModal && (
-          <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/50 backdrop-blur-xs">
-            <div className="fixed inset-0" onClick={() => setShowCommentsModal(false)} />
-            <motion.div
-              initial={{ y: '100%' }}
-              animate={{ y: 0 }}
-              exit={{ y: '100%' }}
-              transition={{ type: 'spring', damping: 25, stiffness: 250 }}
-              className="relative z-10 w-full sm:max-w-md bg-white rounded-t-3xl sm:rounded-3xl border border-slate-200 max-h-[75vh] flex flex-col shadow-2xl overflow-hidden"
-            >
-              <div className="p-4 border-b border-slate-100 flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <MessageCircle size={18} className="text-[#006C54]" />
-                  <h3 className="font-display font-bold text-sm uppercase tracking-wide text-slate-900">
-                    Slip Discussion &amp; Analysis
-                  </h3>
-                </div>
-                <button
-                  onClick={() => setShowCommentsModal(false)}
-                  className="w-7 h-7 rounded-full bg-slate-100 flex items-center justify-center text-slate-600 hover:bg-slate-200"
-                >
-                  <X size={15} />
-                </button>
-              </div>
-
-              <div className="flex-1 overflow-y-auto p-4 space-y-3">
-                <div className="p-3 bg-[#F5F5E4] rounded-xl border border-[#E6E6D2]">
-                  <div className="flex items-center gap-2 mb-1">
-                    <Avatar name={post.postedBy} seed={post.postedByAvatarSeed} size={24} />
-                    <span className="font-bold text-xs text-slate-900">{post.postedBy} (Author)</span>
-                  </div>
-                  <p className="text-xs text-slate-700 leading-relaxed">
-                    {post.note || 'Multi-leg bet slip curated by top community punter.'}
-                  </p>
-                </div>
-
-                <div className="text-xs text-slate-500 pt-2 pb-1 font-bold uppercase tracking-wide">
-                  Matches in this Slip ({legs.length}):
-                </div>
-                {legs.map((leg) => (
-                  <div key={leg.id} className="text-xs p-2.5 rounded-lg border border-slate-100 bg-white flex items-center justify-between">
-                    <div>
-                      <p className="font-bold text-slate-900">{leg.homeTeam} v {leg.awayTeam}</p>
-                      <p className="text-[11px] text-[#006C54]">{leg.market}: {leg.pick}</p>
-                    </div>
-                    <span className="tabular-nums font-bold text-slate-800">@{leg.odds.toFixed(2)}</span>
-                  </div>
-                ))}
-              </div>
-
-              <div className="p-3 border-t border-slate-100 bg-slate-50 flex items-center gap-2">
-                <input
-                  type="text"
-                  placeholder="Add a comment to this slip..."
-                  className="flex-1 bg-white border border-slate-300 rounded-full px-4 py-2 text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#006C54]"
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') {
-                      showToast({ type: 'success', title: 'Comment Shared', message: 'Your comment was added to this slip!' });
-                      (e.target as HTMLInputElement).value = '';
-                    }
-                  }}
-                />
-                <button
-                  onClick={() => {
-                    showToast({ type: 'success', title: 'Comment Shared', message: 'Your comment was added to this slip!' });
-                  }}
-                  className="p-2 rounded-full bg-[#006C54] text-white hover:bg-[#005441]"
-                >
-                  <Send size={14} />
-                </button>
-              </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
 
       <style>{`
         .slip-legs-scroll::-webkit-scrollbar,
