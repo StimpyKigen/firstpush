@@ -134,11 +134,11 @@ export default function MatchFiltersToolbar({
     onResetFilters();
   };
 
-  // Theme-specific accent classes
+  // Theme-specific accent classes (no background behind number indicators)
   const theme = isGold
     ? {
         tabActiveText: 'font-bold text-[#B88000]',
-        tabActiveBadge: 'bg-[#EEAA04]/20 text-[#9A6B00]',
+        tabActiveCount: 'text-[#B88000]',
         pillHoverShadow: 'hover:shadow-[0_2px_6px_rgba(238,170,4,0.14)]',
         pillActive: 'border-[#EEAA04] text-[#B88000] ring-2 ring-[#EEAA04]/25',
         pillIdle: 'border-[#DCDCC8] text-slate-800 hover:border-[#EEAA04]',
@@ -146,11 +146,11 @@ export default function MatchFiltersToolbar({
         dotColor: 'bg-[#EEAA04]',
         chevronOpen: 'rotate-180 text-[#C48B03]',
         rowSelected: 'bg-[#EEAA04]/15 text-[#9A6B00] font-bold',
-        completedBadgeText: 'text-[#9A6B00]',
+        selectedRowCount: 'text-[#9A6B00]',
         checkColor: 'text-[#C48B03]',
         subAccordionBorder: 'border-[#EEAA04]/40',
         subRowSelected: 'bg-[#EEAA04] text-slate-950 font-bold',
-        subRowSelectedCount: 'text-slate-900/75',
+        subRowSelectedCount: 'text-slate-950',
         subRowCheck: 'text-slate-950',
         searchBtnActive: 'bg-[#EEAA04]/20 text-[#B88000]',
         searchBtnIdle: 'text-[#C48B03] hover:text-[#9A6B00] hover:bg-[#EEAA04]/15',
@@ -158,12 +158,12 @@ export default function MatchFiltersToolbar({
           'border-[#EEAA04]/50 focus-within:border-[#EEAA04] focus-within:ring-2 focus-within:ring-[#EEAA04]/20',
         filterTag: 'bg-[#EEAA04]/15 border-[#EEAA04]/35 text-[#9A6B00]',
         sectorSelected: 'bg-[#EEAA04] text-slate-950 shadow-xs',
-        sectorSelectedBadge: 'bg-black/10 text-slate-950',
+        sectorSelectedCount: 'text-slate-950',
         sectorIdle: 'bg-[#FFFFF0] border border-[#DCDCC8] text-slate-700 hover:border-[#EEAA04]',
       }
     : {
         tabActiveText: 'font-bold text-[#006C54]',
-        tabActiveBadge: 'bg-[#E8F5EE] text-[#006C54]',
+        tabActiveCount: 'text-[#006C54]',
         pillHoverShadow: 'hover:shadow-[0_2px_6px_rgba(0,108,84,0.08)]',
         pillActive: 'border-[#006C54] text-[#006C54] ring-2 ring-[#006C54]/15',
         pillIdle: 'border-[#DCDCC8] text-slate-800 hover:border-[#006C54]',
@@ -171,11 +171,11 @@ export default function MatchFiltersToolbar({
         dotColor: 'bg-[#006C54]',
         chevronOpen: 'rotate-180 text-[#006C54]',
         rowSelected: 'bg-[#006C54]/10 text-[#006C54] font-bold',
-        completedBadgeText: 'text-[#006C54]',
+        selectedRowCount: 'text-[#006C54]',
         checkColor: 'text-[#006C54]',
         subAccordionBorder: 'border-[#006C54]/25',
         subRowSelected: 'bg-[#006C54] text-white font-bold',
-        subRowSelectedCount: 'text-white/80',
+        subRowSelectedCount: 'text-white',
         subRowCheck: 'text-white',
         searchBtnActive: 'bg-[#006C54]/15 text-[#006C54]',
         searchBtnIdle: 'text-[#006C54] hover:text-[#005441] hover:bg-[#006C54]/10',
@@ -183,7 +183,7 @@ export default function MatchFiltersToolbar({
           'border-[#006C54]/40 focus-within:border-[#006C54] focus-within:ring-2 focus-within:ring-[#006C54]/15',
         filterTag: 'bg-[#006C54]/10 border-[#006C54]/20 text-[#006C54]',
         sectorSelected: 'bg-[#006C54] text-white shadow-xs',
-        sectorSelectedBadge: 'bg-white/20 text-white',
+        sectorSelectedCount: 'text-white',
         sectorIdle: 'bg-[#FFFFF0] border border-[#DCDCC8] text-slate-700 hover:border-[#006C54]',
       };
 
@@ -197,7 +197,7 @@ export default function MatchFiltersToolbar({
             <button
               type="button"
               onClick={() => onTabChange('highlights')}
-              className={`text-xs sm:text-[13px] transition-colors flex items-center gap-1.5 sm:gap-2 cursor-pointer select-none ${
+              className={`text-xs sm:text-[13px] transition-colors flex items-center gap-1 sm:gap-1.5 cursor-pointer select-none group ${
                 activeTab === 'highlights'
                   ? theme.tabActiveText
                   : 'font-medium text-slate-500 hover:text-slate-800'
@@ -205,8 +205,10 @@ export default function MatchFiltersToolbar({
             >
               <span>Highlights</span>
               <span
-                className={`text-[11px] sm:text-[11px] tabular-nums px-1.5 py-0.2 rounded-full font-bold transition-colors ${
-                  activeTab === 'highlights' ? theme.tabActiveBadge : 'bg-slate-100 text-slate-500'
+                className={`text-[11px] tabular-nums font-bold transition-colors ${
+                  activeTab === 'highlights'
+                    ? theme.tabActiveCount
+                    : 'text-slate-500 group-hover:text-slate-800'
                 }`}
               >
                 {counts.highlights}
@@ -220,13 +222,13 @@ export default function MatchFiltersToolbar({
             <button
               type="button"
               onClick={() => onTabChange('live')}
-              className={`text-xs sm:text-[13px] transition-colors flex items-center gap-1.5 sm:gap-2 cursor-pointer select-none ${
+              className={`text-xs sm:text-[13px] transition-colors flex items-center gap-1 sm:gap-1.5 cursor-pointer select-none group ${
                 activeTab === 'live'
                   ? theme.tabActiveText
                   : 'font-medium text-slate-500 hover:text-slate-800'
               }`}
             >
-              <span className="relative flex h-1.5 w-1.5 sm:h-2 sm:w-2 shrink-0">
+              <span className="relative flex h-1.5 w-1.5 sm:h-2 sm:w-2 shrink-0 mr-0.5">
                 <span
                   className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${
                     counts.live > 0 ? 'bg-red-400' : 'bg-slate-400'
@@ -240,8 +242,10 @@ export default function MatchFiltersToolbar({
               </span>
               <span>Live</span>
               <span
-                className={`text-[11px] sm:text-[11px] tabular-nums px-1.5 py-0.2 rounded-full font-bold transition-colors ${
-                  activeTab === 'live' ? theme.tabActiveBadge : 'bg-slate-100 text-slate-500'
+                className={`text-[11px] tabular-nums font-bold transition-colors ${
+                  activeTab === 'live'
+                    ? theme.tabActiveCount
+                    : 'text-slate-500 group-hover:text-slate-800'
                 }`}
               >
                 {counts.live}
@@ -255,7 +259,7 @@ export default function MatchFiltersToolbar({
             <button
               type="button"
               onClick={() => onTabChange('upcoming')}
-              className={`text-xs sm:text-[13px] transition-colors flex items-center gap-1.5 sm:gap-2 cursor-pointer select-none ${
+              className={`text-xs sm:text-[13px] transition-colors flex items-center gap-1 sm:gap-1.5 cursor-pointer select-none group ${
                 activeTab === 'upcoming'
                   ? theme.tabActiveText
                   : 'font-medium text-slate-500 hover:text-slate-800'
@@ -263,8 +267,10 @@ export default function MatchFiltersToolbar({
             >
               <span>Upcoming</span>
               <span
-                className={`text-[11px] sm:text-[11px] tabular-nums px-1.5 py-0.2 rounded-full font-bold transition-colors ${
-                  activeTab === 'upcoming' ? theme.tabActiveBadge : 'bg-slate-100 text-slate-500'
+                className={`text-[11px] tabular-nums font-bold transition-colors ${
+                  activeTab === 'upcoming'
+                    ? theme.tabActiveCount
+                    : 'text-slate-500 group-hover:text-slate-800'
                 }`}
               >
                 {counts.upcoming}
@@ -321,7 +327,9 @@ export default function MatchFiltersToolbar({
                     </span>
                     <div className="flex items-center gap-1.5">
                       <span
-                        className={`text-[11px] tabular-nums px-1.5 py-0.5 rounded bg-[#F5F5E4] border border-[#E6E6D2] ${theme.completedBadgeText} font-bold`}
+                        className={`text-[11px] tabular-nums font-bold ${
+                          selectedDate === 'completed' ? theme.selectedRowCount : 'text-slate-500'
+                        }`}
                       >
                         {completedTodayCount}
                       </span>
@@ -348,7 +356,11 @@ export default function MatchFiltersToolbar({
                       <Calendar size={13} className={theme.iconColor} /> All Dates
                     </span>
                     <div className="flex items-center gap-1.5">
-                      <span className="text-[11px] tabular-nums px-1.5 py-0.5 rounded bg-[#F5F5E4] border border-[#E6E6D2] text-slate-600 font-bold">
+                      <span
+                        className={`text-[11px] tabular-nums font-bold ${
+                          selectedDate === 'all' ? theme.selectedRowCount : 'text-slate-500'
+                        }`}
+                      >
                         {allDatesCount}
                       </span>
                       {selectedDate === 'all' && <Check size={14} className={theme.checkColor} />}
@@ -375,7 +387,11 @@ export default function MatchFiltersToolbar({
                       >
                         <span className="truncate pr-2 font-medium">{d.label}</span>
                         <div className="flex items-center gap-1.5 shrink-0">
-                          <span className="text-[11px] tabular-nums px-1.5 py-0.2 rounded bg-slate-100 text-slate-600 font-bold">
+                          <span
+                            className={`text-[11px] tabular-nums font-bold ${
+                              isSelected ? theme.selectedRowCount : 'text-slate-500'
+                            }`}
+                          >
                             {d.count}
                           </span>
                           {isSelected && <Check size={13} className={theme.checkColor} />}
@@ -428,7 +444,13 @@ export default function MatchFiltersToolbar({
                   >
                     <span className="truncate pr-2">All Competitions</span>
                     <div className="flex items-center gap-2 shrink-0">
-                      <span className="text-[11px] tabular-nums text-slate-500">
+                      <span
+                        className={`text-[11px] tabular-nums ${
+                          leagueFilter === 'all'
+                            ? `${theme.selectedRowCount} font-bold`
+                            : 'text-slate-500'
+                        }`}
+                      >
                         {directoryData.totalMatches}
                       </span>
                       {leagueFilter === 'all' && <Check size={13} className={theme.checkColor} />}
@@ -471,7 +493,15 @@ export default function MatchFiltersToolbar({
                           </button>
 
                           <div className="flex items-center gap-1.5 shrink-0">
-                            <span className="text-[11px] tabular-nums text-slate-500">{row.count}</span>
+                            <span
+                              className={`text-[11px] tabular-nums ${
+                                isAnySubSelected
+                                  ? `${theme.selectedRowCount} font-bold`
+                                  : 'text-slate-500'
+                              }`}
+                            >
+                              {row.count}
+                            </span>
                             {isSelected && <Check size={13} className={theme.checkColor} />}
                             {hasMultipleLeagues && (
                               <button
@@ -521,7 +551,9 @@ export default function MatchFiltersToolbar({
                                   <div className="flex items-center gap-1.5 shrink-0">
                                     <span
                                       className={`tabular-nums text-[11px] ${
-                                        isSubSelected ? theme.subRowSelectedCount : 'text-slate-500'
+                                        isSubSelected
+                                          ? `${theme.subRowSelectedCount} font-bold`
+                                          : 'text-slate-500'
                                       }`}
                                     >
                                       {lg.count}
@@ -678,10 +710,8 @@ export default function MatchFiltersToolbar({
           >
             <span>All {selectedDirectoryLabel} Leagues</span>
             <span
-              className={`text-[11px] tabular-nums px-1.5 py-0.2 rounded-full font-bold ${
-                selectedSubLeague === 'all'
-                  ? theme.sectorSelectedBadge
-                  : 'bg-slate-100 text-slate-600'
+              className={`text-[11px] tabular-nums font-bold ${
+                selectedSubLeague === 'all' ? theme.sectorSelectedCount : 'text-slate-500'
               }`}
             >
               {filteredTotalCount}
@@ -701,8 +731,8 @@ export default function MatchFiltersToolbar({
               >
                 <span>{g.league}</span>
                 <span
-                  className={`text-[11px] tabular-nums px-1.5 py-0.2 rounded-full font-bold ${
-                    isSelected ? theme.sectorSelectedBadge : 'bg-slate-100 text-slate-600'
+                  className={`text-[11px] tabular-nums font-bold ${
+                    isSelected ? theme.sectorSelectedCount : 'text-slate-500'
                   }`}
                 >
                   {g.count}
@@ -715,4 +745,3 @@ export default function MatchFiltersToolbar({
     </>
   );
 }
-

@@ -628,13 +628,17 @@ function BuilderFixtureItem({
             {/* Expand More Markets */}
             <button
               onClick={() => onToggleExpand(isExpanded ? null : fixture.id)}
-              className={`px-2.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1 cursor-pointer ${
-                isExpanded ? 'bg-gold/15 text-gold' : 'text-cream-dim hover:text-cream'
+              className={`px-2 py-2 rounded-xl text-xs font-bold transition-all inline-flex items-center justify-center gap-0.5 leading-none cursor-pointer ${
+                isExpanded ? 'text-gold' : 'text-cream-dim hover:text-cream'
               }`}
               title="More Markets"
             >
-              <span>Markets</span>
-              {isExpanded ? <ChevronUp size={14} /> : <Plus size={14} />}
+              <span className="leading-none">Markets</span>
+              {isExpanded ? (
+                <ChevronUp size={12} strokeWidth={2.5} className="shrink-0" />
+              ) : (
+                <Plus size={11} strokeWidth={2.5} className="shrink-0" />
+              )}
             </button>
           </div>
         )}
