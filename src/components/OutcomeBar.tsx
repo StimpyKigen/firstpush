@@ -62,10 +62,9 @@ export default function OutcomeBar({
               <span className="font-display font-bold text-2xl sm:text-3xl leading-none" style={{ color: isMajority ? o.color : '#1c1e21' }}>
                 {val}%
               </span>
-              <div className="mt-1 px-2.5 py-0.5 rounded-full bg-[#FFFFF0] border border-line flex items-center gap-1.5 text-[11px] tabular-nums font-bold shadow-2xs">
-                <span className="text-cream-dim text-[11px] uppercase">Odds</span>
-                <span className="text-[#8A6500] font-bold">{oddsVal.toFixed(2)}</span>
-              </div>
+              <span className="mt-1 text-[11px] tabular-nums text-[#8A6500] font-bold">
+                {oddsVal.toFixed(2)}
+              </span>
             </div>
           );
         })}

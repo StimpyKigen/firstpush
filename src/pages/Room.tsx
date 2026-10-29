@@ -483,12 +483,8 @@ function RoomMatchCard({
           {/* Highlighted Pick Badge */}
           {myPickRecord ? (
             <span
-              className="inline-flex items-center gap-1.5 text-xs font-bold px-3 py-1 rounded-xl shadow-sm animate-rise"
-              style={{
-                backgroundColor: `${outcomeColor}22`,
-                color: outcomeColor,
-                border: `1px solid ${outcomeColor}66`,
-              }}
+              className="inline-flex items-center gap-1.5 text-xs font-bold animate-rise"
+              style={{ color: outcomeColor }}
             >
               <CheckCircle2 size={13} />
               MY PICK: {myPickRecord.pick}

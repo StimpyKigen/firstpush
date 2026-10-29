@@ -97,7 +97,7 @@ export default function GameweekLeaderboard({ jackpot, totalUserPicksCount }: Ga
 
           <button
             type="button"
-            className="flex items-center gap-1.5 text-xs font-bold text-cream bg-ink-2 hover:bg-gold/20 hover:text-gold border border-line hover:border-gold/40 px-3.5 py-1.5 rounded-xl transition-all"
+            className="flex items-center gap-1 text-xs font-bold text-cream hover:text-gold py-1 transition-colors cursor-pointer"
           >
             <span>{isExpanded ? 'Hide' : 'View Section'}</span>
             {isExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
