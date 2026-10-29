@@ -139,12 +139,9 @@ export default function PayGate({ jackpot, onUnlocked }: { jackpot: Jackpot; onU
         </p>
       </div>
 
-      <div
-        className="w-full max-w-sm mx-auto bg-[#FFFFFF] border border-line rounded-xl px-6 pt-6 pb-8 flex flex-col gap-4 text-left"
-        style={{ backgroundColor: '#FFFFFF' }}
-      >
+      <div className="w-full max-w-sm mx-auto flex flex-col gap-4 text-left">
         <div className="text-center">
-          <span className="text-cream-dim text-sm">One-time access</span>
+          <span className="text-cream-dim text-sm font-bold">One-time access</span>
           <p className="font-display font-bold text-4xl text-gold mt-0.5">Ksh {jackpot.entryFee}</p>
         </div>
 

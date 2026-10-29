@@ -178,7 +178,7 @@ export default function Room() {
               }}
             />
             <div>
-              <p className="text-xs text-slate-500 font-bold uppercase tracking-wide">{jackpot.bookie} · {jackpot.gameweek}</p>
+              <p className="text-xs text-slate-500 font-bold uppercase tracking-wide">{jackpot.gameweek}</p>
               <h1 className="font-display font-bold text-2xl sm:text-4xl text-slate-900 uppercase tracking-tight">{jackpot.name}</h1>
             </div>
           </div>
