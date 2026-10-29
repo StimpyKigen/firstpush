@@ -139,7 +139,7 @@ export default function PayGate({ jackpot, onUnlocked }: { jackpot: Jackpot; onU
         </p>
       </div>
 
-      <div className="w-full max-w-sm mx-auto bg-ink-2 border border-line rounded-xl p-5 flex flex-col gap-4 text-left">
+      <div className="w-full max-w-sm mx-auto bg-ink-2 border border-line rounded-xl px-6 pt-6 pb-8 flex flex-col gap-4 text-left">
         <div className="text-center">
           <span className="text-cream-dim text-sm">One-time access</span>
           <p className="font-display font-bold text-4xl text-gold mt-0.5">Ksh {jackpot.entryFee}</p>
@@ -153,7 +153,7 @@ export default function PayGate({ jackpot, onUnlocked }: { jackpot: Jackpot; onU
               disabled={!canPayWithTokens}
               className="inline-flex items-center justify-center px-4 bg-gold hover:bg-gold-2 disabled:opacity-50 disabled:cursor-not-allowed text-black font-bold text-sm h-12 rounded-xl transition-all cursor-pointer"
             >
-              <span>Unlock with Mshindi Tokens ({mshindiTokens} MT)</span>
+              <span className="whitespace-nowrap">Unlock with Mshindi Tokens</span>
             </button>
 
             {/* Option 2: Pay M-Pesa */}
@@ -162,13 +162,16 @@ export default function PayGate({ jackpot, onUnlocked }: { jackpot: Jackpot; onU
                 if (!requireAuth()) return;
                 setStep('sent');
               }}
-              className="inline-flex items-center justify-between px-4 bg-emerald-2 hover:bg-emerald text-ink font-bold text-sm h-12 rounded-xl transition-all cursor-pointer"
+              className="inline-flex items-center justify-center px-4 bg-emerald-2 hover:bg-emerald text-ink font-bold text-sm h-12 rounded-xl transition-all cursor-pointer"
             >
-              <span className="flex items-center gap-2">
-                <Smartphone size={16} /> Pay via M-Pesa
-              </span>
-              <span className="text-[11px] bg-ink/20 px-2 py-0.5 rounded-full font-bold uppercase">
-                +{earnedTokens} MT
+              <span className="inline-grid text-left">
+                <span className="invisible h-0 overflow-hidden select-none font-bold whitespace-nowrap" aria-hidden="true">
+                  Unlock with Mshindi Tokens
+                </span>
+                <span className="flex items-center gap-2 whitespace-nowrap">
+                  <Smartphone size={16} className="shrink-0" />
+                  <span>Pay via M-Pesa</span>
+                </span>
               </span>
             </button>
 
@@ -176,10 +179,14 @@ export default function PayGate({ jackpot, onUnlocked }: { jackpot: Jackpot; onU
             <button
               onClick={payWithBalance}
               disabled={!canPayFromBalance}
-              className="inline-flex items-center justify-between px-4 bg-panel-2 hover:bg-line disabled:opacity-40 disabled:cursor-not-allowed text-cream font-semibold text-sm h-12 rounded-xl border border-line transition-all cursor-pointer"
+              className="inline-flex items-center justify-center px-4 bg-panel-2 hover:bg-line disabled:opacity-40 disabled:cursor-not-allowed text-cream font-semibold text-sm h-12 rounded-xl border border-line transition-all cursor-pointer"
             >
-              <span>Use Wallet Balance (Ksh {balance})</span>
-              <span className="text-[11px] text-gold font-bold">+{earnedTokens} MT</span>
+              <span className="inline-grid text-left">
+                <span className="invisible h-0 overflow-hidden select-none font-bold whitespace-nowrap" aria-hidden="true">
+                  Unlock with Mshindi Tokens
+                </span>
+                <span className="whitespace-nowrap">Use Wallet Balance</span>
+              </span>
             </button>
           </div>
         )}
