@@ -1,6 +1,6 @@
 import {
   Dices, Layers, Trash2, Send,
-  Sparkles, X, Trophy, ChevronDown, ChevronUp, Link2,
+  Sparkles, X, Trophy, ChevronDown, ChevronUp, Plus, Link2,
   Radio, RotateCcw, CheckCircle2
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
@@ -628,13 +628,13 @@ function BuilderFixtureItem({
             {/* Expand More Markets */}
             <button
               onClick={() => onToggleExpand(isExpanded ? null : fixture.id)}
-              className={`px-3 py-2 rounded-xl border text-xs font-bold transition-all flex items-center gap-1 ${
-                isExpanded ? 'bg-gold/20 text-gold border-gold' : 'bg-ink-2 border-line text-cream-dim hover:text-cream'
+              className={`px-2.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1 cursor-pointer ${
+                isExpanded ? 'bg-gold/15 text-gold' : 'text-cream-dim hover:text-cream'
               }`}
               title="More Markets"
             >
               <span>Markets</span>
-              {isExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+              {isExpanded ? <ChevronUp size={14} /> : <Plus size={14} />}
             </button>
           </div>
         )}

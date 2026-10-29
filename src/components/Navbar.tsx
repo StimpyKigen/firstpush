@@ -9,19 +9,27 @@ import { useBackToClose } from '../lib/useBackToClose';
 
 export default function Navbar() {
   const location = useLocation();
-  const { links, balance, mshindiTokens, currentUser, logOut, navigate, builderLegsCount } = useNavData();
+  const { links, balance, currentUser, logOut, navigate, builderLegsCount } = useNavData();
   const [open, setOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const [adminModalOpen, setAdminModalOpen] = useState(false);
   const isAuthPage = location.pathname.startsWith('/auth') || location.pathname === '/login';
   const isProfilePage = location.pathname.startsWith('/profile');
-  const hideMobileMenu = isAuthPage || (Boolean(currentUser) && isProfilePage);
+  const isLoggedOutPrimaryPage =
+    !currentUser &&
+    (location.pathname === '/' ||
+      location.pathname.startsWith('/free') ||
+      location.pathname.startsWith('/slips') ||
+      location.pathname.startsWith('/leaderboard') ||
+      location.pathname.startsWith('/jackpot') ||
+      location.pathname.startsWith('/room'));
+  const hideMobileMenu = isAuthPage || isLoggedOutPrimaryPage || (Boolean(currentUser) && isProfilePage);
 
-  // Close menus on route change
+  // Close menus on route or auth state change
   useEffect(() => {
     setOpen(false);
     setProfileOpen(false);
-  }, [location.pathname]);
+  }, [location.pathname, currentUser]);
 
   // Intercept back button to dismiss mobile hamburger menu and desktop dropdown first
   useBackToClose(open, () => setOpen(false));
@@ -29,7 +37,7 @@ export default function Navbar() {
 
   // Lock background scroll when mobile hamburger is open
   useEffect(() => {
-    if (open) {
+    if (open && !hideMobileMenu) {
       const originalBodyOverflow = document.body.style.overflow;
       const originalHtmlOverflow = document.documentElement.style.overflow;
       document.body.style.overflow = 'hidden';
@@ -39,7 +47,7 @@ export default function Navbar() {
         document.documentElement.style.overflow = originalHtmlOverflow;
       };
     }
-  }, [open]);
+  }, [open, hideMobileMenu]);
 
   function handleLogout() {
     logOut();

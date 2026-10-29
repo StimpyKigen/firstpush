@@ -107,7 +107,6 @@ export function MobileMenuPanel({
         <div className="flex items-center gap-2.5 px-3.5 py-3 rounded-xl text-slate-700 hover:text-slate-900 hover:bg-[#F5F5E4] transition-all cursor-default min-h-[44px]">
           <Bell size={17} className="shrink-0" />
           <span className="text-sm font-semibold">Notifications</span>
-          <span className="ml-auto text-[11px] font-bold uppercase tracking-wide bg-[#EEAA04]/20 text-[#8A6500] px-1.5 py-0.5 rounded-full shrink-0">Soon</span>
         </div>
 
         {/* Log Out Button at the very bottom below Notifications */}
@@ -123,4 +122,3 @@ export function MobileMenuPanel({
     </div>
   );
 }
-
