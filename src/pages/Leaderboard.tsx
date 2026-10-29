@@ -1,7 +1,7 @@
 import { useState, useMemo, useSyncExternalStore, useRef, useEffect } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import {
-  Trophy, Crown, Medal, Flame, Clock, CheckCircle2, Users, Search, X,
+  Trophy, Crown, Medal, Flame, Clock, CheckCircle2, Users, Search,
   Filter, Target, ExternalLink,
   Layers, ChevronUp, ChevronDown, SlidersHorizontal, Archive
 } from 'lucide-react';
@@ -82,8 +82,6 @@ export default function Leaderboard() {
   const [roomBookie, setRoomBookie] = useState<Bookie | 'All'>('All');
   const [roomStatus, setRoomStatus] = useState<RoomStatus | 'All'>('All');
   const [roomQuery, setRoomQuery] = useState('');
-  const [isSearchOpen, setIsSearchOpen] = useState(false);
-  const searchInputRef = useRef<HTMLInputElement>(null);
   const [roomViewTab, setRoomViewTab] = useState<'active' | 'archive'>('active');
   const [isAdminModalOpen, setIsAdminModalOpen] = useState(false);
   const [isStatusDropdownOpen, setIsStatusDropdownOpen] = useState(false);
@@ -402,45 +400,6 @@ export default function Leaderboard() {
                   {archivedRooms.length}
                 </span>
               </button>
-
-              {/* Clean search icon beside Archives with no background/border */}
-              <div className="flex items-center gap-1.5 ml-1">
-                {isSearchOpen ? (
-                  <div className="flex items-center gap-1.5 animate-rise pl-1">
-                    <Search size={15} className="text-slate-400 shrink-0" />
-                    <input
-                      ref={searchInputRef}
-                      value={roomQuery}
-                      onChange={(e) => setRoomQuery(e.target.value)}
-                      placeholder="Search rooms..."
-                      autoFocus
-                      className="bg-transparent border-b border-slate-300 text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#006C54] w-32 sm:w-48 py-1 transition-all"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setRoomQuery('');
-                        setIsSearchOpen(false);
-                      }}
-                      className="text-slate-400 hover:text-slate-600 p-0.5 cursor-pointer"
-                    >
-                      <X size={14} />
-                    </button>
-                  </div>
-                ) : (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setIsSearchOpen(true);
-                      setTimeout(() => searchInputRef.current?.focus(), 50);
-                    }}
-                    title="Search rooms"
-                    className="p-2 text-slate-400 hover:text-slate-700 transition-colors cursor-pointer"
-                  >
-                    <Search size={16} />
-                  </button>
-                )}
-              </div>
             </div>
           </div>
 
@@ -503,8 +462,8 @@ export default function Leaderboard() {
                           setRoomStatus(s);
                           setIsStatusDropdownOpen(false);
                         }}
-                        className={`w-full px-3.5 py-2 text-left flex items-center justify-between transition-colors cursor-pointer ${
-                          isSelected ? 'bg-emerald-50 text-[#006C54] font-bold' : 'text-slate-700 hover:bg-slate-50 font-medium'
+                        className={`w-full px-3.5 py-2 text-left flex items-center justify-between hover:bg-slate-50 transition-colors cursor-pointer ${
+                          isSelected ? 'text-slate-900 font-bold' : 'text-slate-700 font-medium'
                         }`}
                       >
                         <span>{label}</span>
