@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useSyncExternalStore } from 'react';
-import { useParams, Navigate } from 'react-router-dom';
+import { useParams, Navigate, useLocation } from 'react-router-dom';
 import { Users, Clock, Trophy, ChevronDown, CheckCircle2, XCircle, RadioTower, Sparkles } from 'lucide-react';
 import SeoHead from '../components/SeoHead';
 import { scrollIntoViewIfNeeded } from '../lib/viewportScroll';
@@ -53,6 +53,21 @@ export default function Room() {
 
   const bookieTheme = getBookieTheme(jackpot.bookie);
   const isUnlocked = unlocked || unlockedLocal;
+
+  const location = useLocation();
+  const paygateRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!isUnlocked) {
+      const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
+      if (isMobile || location.hash === '#unlock') {
+        const timer = setTimeout(() => {
+          paygateRef.current?.scrollIntoView({ behavior: 'auto', block: 'start' });
+        }, 50);
+        return () => clearTimeout(timer);
+      }
+    }
+  }, [isUnlocked, location.hash]);
 
   // Slip progress calculations
   const totalMatches = jackpot.matches.length;
@@ -279,7 +294,9 @@ export default function Room() {
       )}
 
       {!isUnlocked ? (
-        <PayGate jackpot={jackpot} onUnlocked={() => setUnlockedLocal(true)} />
+        <div ref={paygateRef} id="unlock" className="scroll-mt-4">
+          <PayGate jackpot={jackpot} onUnlocked={() => setUnlockedLocal(true)} />
+        </div>
       ) : (
         <div className="space-y-8">
           {/* Standalone Gameweek Leaderboard Section */}

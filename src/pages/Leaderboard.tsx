@@ -1,4 +1,4 @@
-import { useState, useMemo, useSyncExternalStore } from 'react';
+import { useState, useMemo, useSyncExternalStore, useRef, useEffect } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import {
   Trophy, Crown, Medal, Flame, Clock, CheckCircle2, Users, Search,
@@ -84,6 +84,18 @@ export default function Leaderboard() {
   const [roomQuery, setRoomQuery] = useState('');
   const [roomViewTab, setRoomViewTab] = useState<'active' | 'archive'>('active');
   const [isAdminModalOpen, setIsAdminModalOpen] = useState(false);
+  const [isStatusDropdownOpen, setIsStatusDropdownOpen] = useState(false);
+  const statusDropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (statusDropdownRef.current && !statusDropdownRef.current.contains(event.target as Node)) {
+        setIsStatusDropdownOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   // State for Leaderboard & Standings Tab
   const [filterTab, setFilterTab] = useState<'all' | 'my' | DisplayRoomStatus>('all');
@@ -262,7 +274,7 @@ export default function Leaderboard() {
 
       {/* Desktop View: Pill Switcher & Stats (sm: and up) */}
       <div className="hidden sm:flex sm:flex-row sm:items-center justify-between gap-4">
-        <div className="inline-flex items-center p-1 bg-[#F5F5E4] border border-[#D4D4C0] rounded-full shadow-2xs self-start">
+        <div className="inline-flex items-center p-1 bg-[#F5F5E4] rounded-full shadow-2xs self-start">
           <button
             type="button"
             onClick={() => handleTabChange('rooms')}
@@ -357,7 +369,7 @@ export default function Leaderboard() {
           </div>
 
           {/* View Mode Navigation Tabs: Active vs Archive (Text Highlight Without Green Pill) */}
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-white border border-slate-200 rounded-2xl p-2 shadow-xs">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-white rounded-2xl p-2 shadow-xs">
             <div className="flex items-center gap-1 min-w-0">
               <button
                 onClick={() => {
@@ -440,21 +452,53 @@ export default function Leaderboard() {
             })}
           </div>
 
-          {/* Status Filter Pills */}
-          <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1 -mx-4 px-4 sm:mx-0 sm:px-0 flex-nowrap sm:flex-wrap">
-            {roomStatusOptions.map((s) => (
+          {/* Status Filter Dropdown */}
+          <div className="flex items-center gap-2">
+            <div ref={statusDropdownRef} className="relative inline-block text-left">
               <button
-                key={s}
-                onClick={() => setRoomStatus(s)}
-                className={`px-4 py-2 rounded-full text-xs font-bold border capitalize transition-all shrink-0 whitespace-nowrap active:scale-95 ${
-                  roomStatus === s
-                    ? 'bg-slate-900 border-slate-900 text-white shadow-xs font-bold'
-                    : 'border-slate-200 text-slate-600 bg-white hover:border-slate-300 hover:bg-slate-50'
-                }`}
+                type="button"
+                onClick={() => setIsStatusDropdownOpen((v) => !v)}
+                className="h-9 px-4 rounded-full bg-white hover:bg-slate-50 border border-slate-200 text-slate-800 text-xs font-bold inline-flex items-center gap-2 active:scale-95 transition-all shadow-2xs cursor-pointer"
               >
-                {s === 'All' ? (roomViewTab === 'active' ? 'All Active' : 'All Settled') : s}
+                <span className="text-slate-400 font-medium">Status:</span>
+                <span>
+                  {roomStatus === 'All'
+                    ? (roomViewTab === 'active' ? 'All Active' : 'All Settled')
+                    : roomStatus.charAt(0).toUpperCase() + roomStatus.slice(1)}
+                </span>
+                <ChevronDown
+                  size={14}
+                  className={`text-slate-400 transition-transform duration-200 ${isStatusDropdownOpen ? 'rotate-180 text-slate-600' : ''}`}
+                />
               </button>
-            ))}
+
+              {isStatusDropdownOpen && (
+                <div className="absolute left-0 mt-1.5 w-44 bg-white border border-slate-200 rounded-xl shadow-lg py-1.5 z-40 animate-rise text-xs">
+                  {roomStatusOptions.map((s) => {
+                    const isSelected = roomStatus === s;
+                    const label = s === 'All'
+                      ? (roomViewTab === 'active' ? 'All Active' : 'All Settled')
+                      : s.charAt(0).toUpperCase() + s.slice(1);
+                    return (
+                      <button
+                        key={s}
+                        type="button"
+                        onClick={() => {
+                          setRoomStatus(s);
+                          setIsStatusDropdownOpen(false);
+                        }}
+                        className={`w-full px-3.5 py-2 text-left flex items-center justify-between transition-colors cursor-pointer ${
+                          isSelected ? 'bg-emerald-50 text-[#006C54] font-bold' : 'text-slate-700 hover:bg-slate-50 font-medium'
+                        }`}
+                      >
+                        <span>{label}</span>
+                        {isSelected && <CheckCircle2 size={13} className="text-[#006C54]" />}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Archive Banner when in Archive mode */}

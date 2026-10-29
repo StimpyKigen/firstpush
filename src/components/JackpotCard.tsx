@@ -22,7 +22,7 @@ export default function JackpotCard({ jackpot, index }: { jackpot: Jackpot; inde
 
   return (
     <Link
-      to={`/room/${jackpot.id}`}
+      to={`/room/${jackpot.id}${unlocked ? '' : '#unlock'}`}
       onClick={(e) => {
         if (!currentUser && !unlocked) {
           e.preventDefault();
@@ -61,7 +61,6 @@ export default function JackpotCard({ jackpot, index }: { jackpot: Jackpot; inde
               />
             </div>
             <div>
-              <p className="text-[11px] text-slate-500 font-bold uppercase tracking-wide">{jackpot.bookie}</p>
               <h3 className="font-display font-bold text-lg leading-tight text-slate-900 group-hover:text-[#006C54] transition-colors">{jackpot.name}</h3>
             </div>
           </div>
