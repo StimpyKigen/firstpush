@@ -164,14 +164,9 @@ export default function PayGate({ jackpot, onUnlocked }: { jackpot: Jackpot; onU
               }}
               className="w-full inline-flex items-center justify-center px-6 bg-emerald-2 hover:bg-emerald text-ink font-bold text-sm h-12 rounded-xl border border-transparent transition-all cursor-pointer"
             >
-              <span className="inline-grid text-left">
-                <span className="invisible h-0 overflow-hidden select-none font-bold whitespace-nowrap" aria-hidden="true">
-                  Unlock with Mshindi Tokens
-                </span>
-                <span className="flex items-center gap-2 whitespace-nowrap">
-                  <Smartphone size={16} className="shrink-0" />
-                  <span>Pay via M-Pesa</span>
-                </span>
+              <span className="flex items-center gap-2 whitespace-nowrap">
+                <Smartphone size={16} className="shrink-0" />
+                <span>Pay via M-Pesa</span>
               </span>
             </button>
 
@@ -181,14 +176,9 @@ export default function PayGate({ jackpot, onUnlocked }: { jackpot: Jackpot; onU
               disabled={!canPayFromBalance}
               className="w-full inline-flex items-center justify-center px-6 bg-[#FFFFFF] hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed text-cream font-bold text-sm h-12 rounded-xl border border-line transition-all cursor-pointer"
             >
-              <span className="inline-grid text-left">
-                <span className="invisible h-0 overflow-hidden select-none font-bold whitespace-nowrap" aria-hidden="true">
-                  Unlock with Mshindi Tokens
-                </span>
-                <span className="flex items-center gap-2 whitespace-nowrap">
-                  <Wallet size={16} className="shrink-0" />
-                  <span>Use Wallet Balance</span>
-                </span>
+              <span className="flex items-center gap-2 whitespace-nowrap">
+                <Wallet size={16} className="shrink-0" />
+                <span>Use Wallet Balance</span>
               </span>
             </button>
           </div>
