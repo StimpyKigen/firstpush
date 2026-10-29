@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Trophy, Crown, Star, Sparkles, Medal, Users, ChevronDown, ChevronUp, ShieldCheck, Clock, TrendingUp, TrendingDown, RadioTower, Flame, CheckCircle2 } from 'lucide-react';
+import { useState } from 'react';
+import { Crown, Medal, Users, ChevronDown, ChevronUp, Clock, TrendingUp, TrendingDown, RadioTower } from 'lucide-react';
 import type { Jackpot, LeaderboardEntry } from '../lib/types';
 import Avatar from './Avatar';
 import StarRating from './StarRating';
@@ -42,39 +42,28 @@ export default function GameweekLeaderboard({ jackpot, totalUserPicksCount }: Ga
         onClick={() => setIsExpanded(!isExpanded)}
         className="w-full p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 cursor-pointer hover:bg-panel-2/50 transition-colors select-none"
       >
-        <div className="flex items-center gap-3 min-w-0">
-          <div className={`w-10 h-10 rounded-xl border flex items-center justify-center shrink-0 ${
-            statusInfo.status === 'live'
-              ? 'bg-rose-500/15 border-rose-500/30 text-rose-300'
-              : statusInfo.status === 'settled'
-              ? 'bg-emerald-500/15 border-emerald-500/30 text-emerald-300'
-              : 'bg-amber-500/10 border-amber-500/30 text-amber-300'
-          }`}>
-            <Trophy size={20} />
-          </div>
-          <div className="min-w-0">
-            <div className="flex items-center gap-2 flex-wrap">
-              <h3 className="font-display font-bold text-base text-cream flex items-center gap-2">
-                Gameweek Leaderboard
-              </h3>
+        <div className="min-w-0">
+          <div className="flex items-center gap-2 flex-wrap">
+            <h3 className="font-display font-bold text-base text-cream flex items-center gap-2">
+              Gameweek Leaderboard
+            </h3>
 
-              {/* Minimalist 3-state badge */}
-              <span className={`text-[11px] font-bold uppercase px-2 py-0.5 rounded-md border flex items-center gap-1.5 ${statusInfo.badgeClass}`}>
-                <span className={`w-1.5 h-1.5 rounded-full ${statusInfo.dotClass}`} />
-                {statusInfo.label}
-              </span>
-            </div>
-            
-            <p className="text-xs text-cream-dim truncate mt-0.5">
-              {isLeaderboardActive && topLeader ? (
-                <span>
-                  <strong className="text-cream">Current #1 Leader:</strong> {topLeader.username} ({topLeader.correct}/{completedCount} legs)
-                </span>
-              ) : (
-                'Room leaderboard activates once matches kick off and results update.'
-              )}
-            </p>
+            {/* Minimalist 3-state badge */}
+            <span className={`text-[11px] font-bold uppercase px-2 py-0.5 rounded-md border flex items-center gap-1.5 ${statusInfo.badgeClass}`}>
+              <span className={`w-1.5 h-1.5 rounded-full ${statusInfo.dotClass}`} />
+              {statusInfo.label}
+            </span>
           </div>
+
+          <p className="text-xs text-cream-dim truncate mt-0.5">
+            {isLeaderboardActive && topLeader ? (
+              <span>
+                <strong className="text-cream">Current #1 Leader:</strong> {topLeader.username} ({topLeader.correct}/{completedCount} legs)
+              </span>
+            ) : (
+              'Room leaderboard activates once matches kick off and results update.'
+            )}
+          </p>
         </div>
 
         {/* Action Controls & Highlights */}
@@ -102,26 +91,21 @@ export default function GameweekLeaderboard({ jackpot, totalUserPicksCount }: Ga
           
           {/* Shared Picks Prior to Closure Highlight Banner */}
           <div className="bg-gradient-to-r from-emerald-950/40 via-panel-2 to-gold/10 border border-gold/30 rounded-xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-md">
-            <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-xl bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 flex items-center justify-center font-bold shrink-0">
-                <Users size={18} />
+            <div>
+              <div className="flex items-center gap-2">
+                <h4 className="font-display font-bold text-cream text-sm">
+                  Picks Shared Prior to Closure
+                </h4>
+                <span className="flex h-2 w-2 rounded-full bg-emerald-400 animate-ping" />
               </div>
-              <div>
-                <div className="flex items-center gap-2">
-                  <h4 className="font-display font-bold text-cream text-sm">
-                    Picks Shared Prior to Closure
-                  </h4>
-                  <span className="flex h-2 w-2 rounded-full bg-emerald-400 animate-ping" />
-                </div>
-                <p className="text-xs text-cream-dim mt-0.5">
-                  Live tally of predictions posted by gamblers before this room closes.
-                </p>
-              </div>
+              <p className="text-xs text-cream-dim mt-0.5">
+                Live tally of predictions posted by gamblers before this room closes.
+              </p>
             </div>
 
-            <div className="bg-ink border border-gold/40 px-3.5 py-1.5 rounded-xl text-center shrink-0 self-stretch sm:self-auto flex sm:flex-col justify-between sm:justify-center items-center gap-1">
+            <div className="shrink-0 self-stretch sm:self-auto flex sm:flex-col justify-between sm:justify-center items-center sm:items-end gap-1">
               <span className="text-[11px] uppercase font-bold tracking-wide text-cream-dim">Total Shared Picks</span>
-              <span className="font-display font-bold text-gold text-base sm:text-lg">
+              <span className="font-display font-bold text-gold text-base sm:text-lg tabular-nums">
                 {totalSharedPicks.toLocaleString()}
               </span>
             </div>
@@ -129,15 +113,11 @@ export default function GameweekLeaderboard({ jackpot, totalUserPicksCount }: Ga
 
           {/* Gameweek Leaderboard Title & Ranking Info */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-line pb-3">
-            <p className="text-xs text-cream-dim flex items-center gap-1.5">
-              <ShieldCheck size={14} className="text-emerald-400 shrink-0" />
+            <p className="text-xs text-cream-dim">
               {isLeaderboardActive
                 ? `Standings recalculate live as legs finish. (${completedCount} of ${totalMatches} games concluded)`
                 : 'Leaderboard is pending match results. Standings activate once games kick off and results are updated by Admin.'}
             </p>
-            <span className="inline-flex items-center gap-1.5 text-[11px] font-bold text-emerald-300 bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-0.5 rounded-full w-fit">
-              <Sparkles size={12} /> Tiered Star Boosts (#1: +1.0★ · #2: +0.5★ · #3: +0.25★)
-            </span>
           </div>
 
           {!isLeaderboardActive ? (
@@ -306,4 +286,3 @@ export default function GameweekLeaderboard({ jackpot, totalUserPicksCount }: Ga
     </div>
   );
 }
-

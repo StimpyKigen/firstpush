@@ -1,4 +1,4 @@
-import { useState, useEffect, useSyncExternalStore } from 'react';
+import { useState, useEffect, useRef, useSyncExternalStore } from 'react';
 import { useParams, Navigate } from 'react-router-dom';
 import { Users, Clock, Trophy, ChevronDown, CheckCircle2, XCircle, RadioTower, Sparkles, ListChecks } from 'lucide-react';
 import SeoHead from '../components/SeoHead';
@@ -17,7 +17,6 @@ import GameweekLeaderboard from '../components/GameweekLeaderboard';
 import Avatar from '../components/Avatar';
 import StarRating from '../components/StarRating';
 import { getPunterStats, getStarRating } from '../lib/punterRatings';
-import { useAutoCollapse } from '../lib/useAutoCollapse';
 import BackNavButton from '../components/BackNavButton';
 import { RoomDetailSkeleton } from '../components/skeleton';
 
@@ -408,10 +407,7 @@ function RoomMatchCard({
   void getExtraLikes;
   void setConviction;
 
-  // Auto-collapse on scroll outside (>75px) or click outside
-  const containerRef = useAutoCollapse<HTMLDivElement>(open, () => {
-    onToggleOpen();
-  }, 75);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   // Viewport-aware scroll: bring active match leg into view smoothly
   useEffect(() => {
@@ -465,7 +461,7 @@ function RoomMatchCard({
           <span className={`tabular-nums text-xs font-bold rounded-md px-2 py-1 shrink-0 ${
             myPickRecord ? 'bg-gold text-ink' : 'text-cream-dim bg-ink-2'
           }`}>
-            #{idx + 1}
+            {idx + 1}
           </span>
           <div className="min-w-0">
             <div className="font-semibold text-cream truncate flex items-center gap-2">
