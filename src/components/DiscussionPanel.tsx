@@ -5,15 +5,6 @@ import CompactPickRow from './CompactPickRow';
 import ModerationWarningBox from './ModerationWarningBox';
 import { sortPicksByVisibility, getTopPick } from '../lib/pickSorting';
 import { moderateText } from '../lib/contentModeration';
-import { useCurrentUser } from '../lib/authStore';
-import {
-  MessageScrollerProvider,
-  MessageScroller,
-  MessageScrollerViewport,
-  MessageScrollerContent,
-  MessageScrollerItem,
-  MessageScrollerButton,
-} from './ui/message-scroller';
 import { PickRowSkeleton } from './skeleton';
 
 interface DiscussionPanelProps {
@@ -35,6 +26,7 @@ const SHOW_INITIAL = 8;
 
 export default function DiscussionPanel({
   picks,
+  matchId,
   myPick,
   onPickChange,
   myReason,
@@ -47,8 +39,15 @@ export default function DiscussionPanel({
   loading = false,
 }: DiscussionPanelProps) {
   const [showAll, setShowAll] = useState(false);
-  const currentUser = useCurrentUser();
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const commentsViewportRef = useRef<HTMLDivElement>(null);
+
+  // Always start from the topmost comment whenever a comment section loads or switches match
+  useEffect(() => {
+    if (commentsViewportRef.current) {
+      commentsViewportRef.current.scrollTop = 0;
+    }
+  }, [matchId]);
 
   // Moderate reasoning text dynamically
   const modResult = useMemo(() => moderateText(myReason), [myReason]);
@@ -172,45 +171,37 @@ export default function DiscussionPanel({
         </div>
       </div>
 
-      {/* Message Scroller Container with Message Cards */}
+      {/* Top-Anchored Comments Viewport */}
       <div className="bg-slate-100/50 border border-slate-200 rounded-xl overflow-hidden shadow-2xs">
-        <MessageScrollerProvider autoScroll>
-          <MessageScroller className="h-[460px] max-h-[60vh] w-full">
-            <MessageScrollerViewport className="p-3 sm:p-4">
-              <MessageScrollerContent className="space-y-3">
-                {loading ? (
-                  <div className="space-y-3">
-                    <PickRowSkeleton />
-                    <PickRowSkeleton />
-                    <PickRowSkeleton />
-                  </div>
-                ) : visiblePicks.length === 0 ? (
-                  <div className="py-12 text-center text-slate-500 space-y-1">
-                    <p className="font-display font-bold text-sm uppercase tracking-wide text-slate-700">No Punter Comments Yet</p>
-                    <p className="text-xs">Be the first in the arena to post your prediction and analysis above!</p>
-                  </div>
-                ) : (
-                  visiblePicks.map((p) => (
-                    <MessageScrollerItem
-                      key={p.id}
-                      messageId={p.id}
-                      scrollAnchor={p.username.toLowerCase() === currentUser?.username.toLowerCase()}
-                    >
-                      <CompactPickRow
-                        pick={p}
-                        isTopPick={topPick?.id === p.id}
-                        onEdit={onEditPick}
-                      />
-                    </MessageScrollerItem>
-                  ))
-                )}
-              </MessageScrollerContent>
-            </MessageScrollerViewport>
-
-            {/* Jump to latest message button */}
-            <MessageScrollerButton />
-          </MessageScroller>
-        </MessageScrollerProvider>
+        <div
+          ref={commentsViewportRef}
+          className="h-[460px] max-h-[60vh] w-full overflow-y-auto overscroll-contain p-3 sm:p-4"
+        >
+          <div className="flex flex-col gap-3 py-1">
+            {loading ? (
+              <div className="space-y-3">
+                <PickRowSkeleton />
+                <PickRowSkeleton />
+                <PickRowSkeleton />
+              </div>
+            ) : visiblePicks.length === 0 ? (
+              <div className="py-12 text-center text-slate-500 space-y-1">
+                <p className="font-display font-bold text-sm uppercase tracking-wide text-slate-700">No Punter Comments Yet</p>
+                <p className="text-xs">Be the first in the arena to post your prediction and analysis above!</p>
+              </div>
+            ) : (
+              visiblePicks.map((p) => (
+                <div key={p.id} className="min-w-0 shrink-0">
+                  <CompactPickRow
+                    pick={p}
+                    isTopPick={topPick?.id === p.id}
+                    onEdit={onEditPick}
+                  />
+                </div>
+              ))
+            )}
+          </div>
+        </div>
 
         {/* Show more toggle */}
         {hasMore && !showAll && (
