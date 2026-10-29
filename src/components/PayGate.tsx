@@ -139,19 +139,22 @@ export default function PayGate({ jackpot, onUnlocked }: { jackpot: Jackpot; onU
         </p>
       </div>
 
-      <div className="w-full max-w-sm mx-auto bg-ink-2 border border-line rounded-xl px-6 pt-6 pb-8 flex flex-col gap-4 text-left">
+      <div
+        className="w-full max-w-sm mx-auto bg-[#FFFFFF] border border-line rounded-xl px-6 pt-6 pb-8 flex flex-col gap-4 text-left"
+        style={{ backgroundColor: '#FFFFFF' }}
+      >
         <div className="text-center">
           <span className="text-cream-dim text-sm">One-time access</span>
           <p className="font-display font-bold text-4xl text-gold mt-0.5">Ksh {jackpot.entryFee}</p>
         </div>
 
         {step === 'intro' && (
-          <div className="flex flex-col gap-2.5">
+          <div className="w-fit max-w-full mx-auto flex flex-col gap-2.5">
             {/* Option 1: Redeem Mshindi Tokens */}
             <button
               onClick={payWithTokens}
               disabled={!canPayWithTokens}
-              className="inline-flex items-center justify-center px-4 bg-gold hover:bg-gold-2 disabled:opacity-50 disabled:cursor-not-allowed text-black font-bold text-sm h-12 rounded-xl transition-all cursor-pointer"
+              className="w-full inline-flex items-center justify-center px-6 bg-gold hover:bg-gold-2 disabled:opacity-50 disabled:cursor-not-allowed text-black font-bold text-sm h-12 rounded-xl border border-transparent transition-all cursor-pointer"
             >
               <span className="whitespace-nowrap">Unlock with Mshindi Tokens</span>
             </button>
@@ -162,7 +165,7 @@ export default function PayGate({ jackpot, onUnlocked }: { jackpot: Jackpot; onU
                 if (!requireAuth()) return;
                 setStep('sent');
               }}
-              className="inline-flex items-center justify-center px-4 bg-emerald-2 hover:bg-emerald text-ink font-bold text-sm h-12 rounded-xl transition-all cursor-pointer"
+              className="w-full inline-flex items-center justify-center px-6 bg-emerald-2 hover:bg-emerald text-ink font-bold text-sm h-12 rounded-xl border border-transparent transition-all cursor-pointer"
             >
               <span className="inline-grid text-left">
                 <span className="invisible h-0 overflow-hidden select-none font-bold whitespace-nowrap" aria-hidden="true">
@@ -179,7 +182,7 @@ export default function PayGate({ jackpot, onUnlocked }: { jackpot: Jackpot; onU
             <button
               onClick={payWithBalance}
               disabled={!canPayFromBalance}
-              className="inline-flex items-center justify-center px-4 bg-panel-2 hover:bg-line disabled:opacity-40 disabled:cursor-not-allowed text-cream font-semibold text-sm h-12 rounded-xl border border-line transition-all cursor-pointer"
+              className="w-full inline-flex items-center justify-center px-6 bg-panel-2 hover:bg-line disabled:opacity-40 disabled:cursor-not-allowed text-cream font-semibold text-sm h-12 rounded-xl border border-line transition-all cursor-pointer"
             >
               <span className="inline-grid text-left">
                 <span className="invisible h-0 overflow-hidden select-none font-bold whitespace-nowrap" aria-hidden="true">
