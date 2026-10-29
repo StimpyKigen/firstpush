@@ -89,7 +89,7 @@ export default function GameweekLeaderboard({ jackpot, totalUserPicksCount }: Ga
         {/* Action Controls & Highlights */}
         <div className="flex items-center justify-between sm:justify-end gap-3 shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-line/40">
           <div className="flex items-center gap-2 text-xs tabular-nums">
-            <span className="inline-flex items-center gap-1.5 bg-ink px-3 py-1.5 rounded-xl border border-line text-cream-dim">
+            <span className="inline-flex items-center gap-1.5 text-cream-dim">
               <Users size={13} className="text-gold" />
               <strong className="text-gold">{totalSharedPicks.toLocaleString()}</strong> Shared Picks
             </span>

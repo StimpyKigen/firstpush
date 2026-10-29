@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useSyncExternalStore } from 'react';
 import { useParams, Navigate } from 'react-router-dom';
-import { Users, Clock, Trophy, ChevronDown, CheckCircle2, XCircle, RadioTower, Sparkles, ListChecks } from 'lucide-react';
+import { Users, Clock, Trophy, ChevronDown, CheckCircle2, XCircle, RadioTower, Sparkles } from 'lucide-react';
 import SeoHead from '../components/SeoHead';
 import { scrollIntoViewIfNeeded } from '../lib/viewportScroll';
 import { getJackpot, subscribeToJackpots, getJackpotsSnapshot } from '../lib/mockData';
@@ -169,22 +169,14 @@ export default function Room() {
       >
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <div
-              className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0 shadow-xs overflow-hidden border p-1"
-              style={{ background: bookieTheme.iconBg, borderColor: bookieTheme.border }}
-            >
-              <img
-                src={bookieTheme.logo}
-                alt={jackpot.bookie}
-                className="w-full h-full object-contain rounded-lg select-none"
-                onError={(e) => {
-                  e.currentTarget.style.display = 'none';
-                  if (e.currentTarget.parentElement) {
-                    e.currentTarget.parentElement.innerText = jackpot.bookie.slice(0, 2).toUpperCase();
-                  }
-                }}
-              />
-            </div>
+            <img
+              src={bookieTheme.logo}
+              alt={jackpot.bookie}
+              className="w-12 h-12 object-contain rounded-lg shrink-0 select-none"
+              onError={(e) => {
+                e.currentTarget.style.display = 'none';
+              }}
+            />
             <div>
               <p className="text-xs text-slate-500 font-bold uppercase tracking-wide">{jackpot.bookie} · {jackpot.gameweek}</p>
               <h1 className="font-display font-bold text-2xl sm:text-4xl text-slate-900 uppercase tracking-tight">{jackpot.name}</h1>
@@ -219,23 +211,18 @@ export default function Room() {
       {isUnlocked && (
         <div className="mb-8 bg-white border border-slate-200 rounded-2xl p-5 sm:p-6 shadow-xs relative overflow-hidden">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-3">
-            <div className="flex items-center gap-2.5">
-              <div className="w-9 h-9 rounded-md bg-[#006C54]/10 text-[#006C54] flex items-center justify-center shrink-0">
-                <ListChecks size={18} />
-              </div>
-              <div>
-                <h2 className="font-display font-bold text-base sm:text-lg text-slate-900 uppercase tracking-tight flex items-center gap-2">
-                  Room Betting Slip Progress
-                  {pickedCount === totalMatches && (
-                    <span className="inline-flex items-center gap-1 text-xs font-bold text-[#006C54] uppercase tracking-wide">
-                      <Sparkles size={13} /> 100% Complete!
-                    </span>
-                  )}
-                </h2>
-                <p className="text-xs text-slate-500">
-                  {pickedCount} of {totalMatches} matches completed ({progressPct}%)
-                </p>
-              </div>
+            <div>
+              <h2 className="font-display font-bold text-base sm:text-lg text-slate-900 uppercase tracking-tight flex items-center gap-2">
+                Room Betting Slip Progress
+                {pickedCount === totalMatches && (
+                  <span className="inline-flex items-center gap-1 text-xs font-bold text-[#006C54] uppercase tracking-wide">
+                    <Sparkles size={13} /> 100% Complete!
+                  </span>
+                )}
+              </h2>
+              <p className="text-xs text-slate-500">
+                {pickedCount} of {totalMatches} matches completed ({progressPct}%)
+              </p>
             </div>
 
             <div className="flex items-center gap-2 self-start sm:self-auto">

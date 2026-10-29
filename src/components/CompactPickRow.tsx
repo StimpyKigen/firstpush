@@ -1,34 +1,15 @@
-import React, { useState } from 'react';
-import { ThumbsUp, Flame, Gem, Dices, Pencil, Check, X, Crown, ShieldAlert, Flag } from 'lucide-react';
+import { useState } from 'react';
+import { ThumbsUp, Pencil, Check, Crown, Flag } from 'lucide-react';
 import type { GamblerPick, Outcome } from '../lib/types';
 import Avatar from './Avatar';
 import StarRating from './StarRating';
 import PlayerProfileModal from './PlayerProfileModal';
 import ReportModal from './ReportModal';
 import { getStarRating } from '../lib/punterRatings';
-import { useAuth, useCurrentUser } from '../lib/authStore';
+import { useCurrentUser } from '../lib/authStore';
 import { usePickEdits } from '../lib/pickEditStore';
-import { computeVisibilityScore } from '../lib/pickSorting';
 import { moderateText } from '../lib/contentModeration';
 import ModerationWarningBox from './ModerationWarningBox';
-
-const outcomeDot: Record<string, string> = {
-  '1': '#006C54',
-  X: '#8A6500',
-  '2': '#e41e3f',
-};
-
-const pickBtnStyle: Record<Outcome, string> = {
-  '1': 'bg-emerald-2 border-emerald-2 text-ink',
-  X: 'bg-gold border-gold text-ink',
-  '2': 'bg-danger border-danger text-white',
-};
-
-const convictionMeta: Record<string, { icon: typeof Flame; color: string; label: string }> = {
-  Banker: { icon: Flame, color: 'text-emerald-2', label: 'Banker' },
-  'Value Pick': { icon: Gem, color: 'text-gold', label: 'Value' },
-  'Long Shot': { icon: Dices, color: 'text-danger', label: 'Long' },
-};
 
 interface CompactPickRowProps {
   key?: any;
@@ -51,9 +32,6 @@ export default function CompactPickRow({ pick, isTopPick, onEdit }: CompactPickR
   const [editReason, setEditReason] = useState(pick.reasoning);
 
   const isMine = currentUser?.username === pick.username;
-  const conv = convictionMeta[pick.conviction] || convictionMeta['Banker'];
-  const ConvIcon = conv.icon;
-  const dotColor = outcomeDot[pick.pick];
   const reasoning = pick.reasoning;
   const isLong = reasoning.length > 120;
   const displayText = expanded || !isLong ? reasoning : reasoning.slice(0, 120) + '...';
@@ -219,12 +197,9 @@ export default function CompactPickRow({ pick, isTopPick, onEdit }: CompactPickR
         )}
       </div>
 
-      {/* Message Card Footer: Conviction, Reactions & Actions */}
+      {/* Message Card Footer: Reactions & Actions */}
       <div className="flex items-center justify-between gap-2 pt-1 border-t border-slate-100 text-xs">
         <div className="flex items-center gap-2 min-w-0 flex-wrap">
-          <span className={`inline-flex items-center gap-1 text-[11px] font-bold uppercase tracking-wide ${conv.color}`}>
-            <ConvIcon size={12} /> {conv.label}
-          </span>
           {isMine && !canEdit && (
             <span className="text-[11px] tabular-nums text-slate-400 font-bold">Edited 2/2</span>
           )}
@@ -255,14 +230,14 @@ export default function CompactPickRow({ pick, isTopPick, onEdit }: CompactPickR
 
           <button
             onClick={handleLike}
-            className={`h-7 px-2.5 rounded-md text-xs font-bold uppercase tracking-wide flex items-center gap-1.5 transition-all active:scale-95 border cursor-pointer ${
+            className={`h-7 px-1.5 text-xs font-bold tabular-nums flex items-center gap-1.5 transition-all active:scale-95 cursor-pointer ${
               liked
-                ? 'bg-[#EEAA04]/20 border-[#EEAA04] text-slate-950 shadow-2xs'
-                : 'bg-white hover:bg-slate-50 border-slate-200 text-slate-600 hover:text-slate-900'
+                ? 'text-slate-950'
+                : 'text-slate-600 hover:text-slate-900'
             }`}
             title="Agree with this pick"
           >
-            <ThumbsUp size={11} className={liked ? 'fill-[#EEAA04] text-[#EEAA04]' : 'text-slate-400'} />
+            <ThumbsUp size={12} className={liked ? 'fill-[#EEAA04] text-[#EEAA04]' : 'text-slate-400'} />
             <span>{likes}</span>
           </button>
         </div>

@@ -1,5 +1,5 @@
-import React, { useState, useRef, useEffect, useMemo } from 'react';
-import { MessageSquarePlus, Send, ChevronDown, Users, Crown, ShieldAlert, Sparkles } from 'lucide-react';
+import { useState, useRef, useEffect, useMemo } from 'react';
+import { MessageSquarePlus, Send, ChevronDown, Users } from 'lucide-react';
 import type { GamblerPick, Outcome } from '../lib/types';
 import CompactPickRow from './CompactPickRow';
 import ModerationWarningBox from './ModerationWarningBox';
@@ -148,12 +148,12 @@ export default function DiscussionPanel({
           <div className="flex items-center justify-between gap-2 pt-1 flex-wrap">
             <div className="text-xs font-bold flex items-center gap-1.5">
               {!myPick ? (
-                <span className="text-amber-700 bg-amber-50 px-2 py-0.5 rounded text-[11px] border border-amber-200">
+                <span className="text-amber-700 text-[11px]">
                   Select 1, X, or 2 above
                 </span>
               ) : (
-                <span className="text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded text-[11px] border border-emerald-200">
-                  Selected: {myPick === '1' ? 'Home Win (1)' : myPick === 'X' ? 'Draw (X)' : 'Away Win (2)'}
+                <span className="text-emerald-700 text-[11px]">
+                  Selected: {myPick === '1' ? 'Home Win' : myPick === 'X' ? 'Draw' : 'Away Win'}
                 </span>
               )}
             </div>
