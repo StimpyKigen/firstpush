@@ -1,11 +1,14 @@
 import {
-  Search, Dices, Layers, Trash2, Send,
-  Sparkles, X, Trophy, ChevronDown, ChevronUp, Link2
+  Dices, Layers, Trash2, Send,
+  Sparkles, X, Trophy, ChevronDown, ChevronUp, Link2,
+  Radio, RotateCcw, CheckCircle2
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import ModerationWarningBox from './ModerationWarningBox';
+import MatchFiltersToolbar from './MatchFiltersToolbar';
 import { useBetBuilder } from '../lib/useBetBuilder';
 import { generateOddsForFixture, type BuilderFixture } from '../lib/builderFixtures';
+import { isCompletedMatch } from '../lib/matchStatus';
 import type { BuiltSlipLeg } from '../lib/betSlipStore';
 import Modal from './ui/Modal';
 
@@ -18,11 +21,28 @@ const BOOKMAKER_OPTIONS = ['SportPesa', 'Betika', '22Bet', '1xBet', 'MozzartBet'
 
 export default function BetBuilder({ onPublished }: BetBuilderProps) {
   const {
+    activeTab,
+    handleTabClick,
+    selectedDate,
+    setSelectedDate,
+    selectedDateLabel,
+    todayDateStr,
+    counts,
+    completedTodayCount,
+    allDatesCount,
+    availableDates,
+    leagueFilter,
+    selectedSubLeague,
+    setSelectedSubLeague,
+    selectedDirectoryLabel,
+    directoryData,
+    handleLeagueFilterChange,
+    sectoredLeagueGroups,
+    sectoredLeagueSummaries,
+    visibleSectors,
     searchQuery,
     setSearchQuery,
-    selectedLeague,
-    setSelectedLeague,
-    availableLeagues,
+    resetFilters,
     expandedFixtureId,
     setExpandedFixtureId,
     simulatedStake,
@@ -66,7 +86,7 @@ export default function BetBuilder({ onPublished }: BetBuilderProps) {
               Build Custom Accumulators
             </h2>
             <p className="text-xs text-cream-dim mt-1 max-w-lg leading-relaxed">
-              Search teams, combine match result, over/under, double chance & BTTS markets into a clean custom slip, then publish to community or attach your official bookie code!
+              Search teams, combine match result, over/under, double chance &amp; BTTS markets into a clean custom slip, then publish to community or attach your official bookie code!
             </p>
           </div>
 
@@ -79,53 +99,122 @@ export default function BetBuilder({ onPublished }: BetBuilderProps) {
         </div>
       </div>
 
-      {/* Search & League Selector */}
-      <div className="space-y-3">
-        <div className="relative">
-          <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gold" />
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search teams or leagues (e.g. Arsenal, Real Madrid, Gor Mahia, EPL)..."
-            className="w-full bg-panel border border-line focus:border-gold rounded-2xl pl-10 pr-10 py-3 text-sm text-cream placeholder:text-cream-dim/50 focus:outline-none shadow-sm"
-          />
-          {searchQuery && (
-            <button
-              onClick={() => setSearchQuery('')}
-              aria-label="Clear search"
-              className="absolute right-3.5 top-1/2 -translate-y-1/2 text-cream-dim hover:text-cream"
-            >
-              <X size={15} />
-            </button>
-          )}
-        </div>
-
-        {/* League Chips */}
-        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none">
-          {availableLeagues.map((league) => (
-            <button
-              key={league}
-              onClick={() => setSelectedLeague(league)}
-              className={`text-xs font-bold px-3 py-1.5 rounded-full border shrink-0 transition-all ${
-                selectedLeague === league
-                  ? 'bg-gold text-ink border-gold font-bold shadow'
-                  : 'bg-panel border-line text-cream-dim hover:text-cream hover:border-gold/30'
-              }`}
-            >
-              {league}
-            </button>
-          ))}
-        </div>
-      </div>
+      {/* Match Filters Toolbar (Free Matches filter options styled with Gold accent) */}
+      <MatchFiltersToolbar
+        accent="gold"
+        activeTab={activeTab}
+        onTabChange={handleTabClick}
+        counts={counts}
+        selectedDate={selectedDate}
+        selectedDateLabel={selectedDateLabel}
+        onSelectDate={setSelectedDate}
+        completedTodayCount={completedTodayCount}
+        allDatesCount={allDatesCount}
+        availableDates={availableDates}
+        leagueFilter={leagueFilter}
+        selectedSubLeague={selectedSubLeague}
+        selectedDirectoryLabel={selectedDirectoryLabel}
+        directoryData={directoryData}
+        onLeagueFilterChange={handleLeagueFilterChange}
+        onSelectSubLeague={setSelectedSubLeague}
+        sectoredLeagues={sectoredLeagueSummaries}
+        filteredTotalCount={filteredFixtures.length}
+        searchQuery={searchQuery}
+        onSearchQueryChange={setSearchQuery}
+        onResetFilters={resetFilters}
+      />
 
       {/* Fixtures List */}
       <div className="space-y-3">
-        {filteredFixtures.length === 0 ? (
-          <div className="bg-panel border border-dashed border-line rounded-2xl p-8 text-center">
-            <Trophy size={32} className="mx-auto text-cream-dim/30 mb-2" />
-            <p className="text-sm font-bold text-cream">No matching fixtures found</p>
-            <p className="text-xs text-cream-dim mt-1">Try a different team name or clear league filters.</p>
+        {activeTab === 'live' && filteredFixtures.length === 0 ? (
+          <div className="bg-panel border border-line rounded-2xl p-8 text-center flex flex-col items-center gap-3 shadow-xs">
+            <Radio size={34} className="text-cream-dim/50 animate-pulse" />
+            <h3 className="font-display font-bold text-base sm:text-lg text-cream uppercase tracking-tight">
+              No Matches Currently In-Play
+            </h3>
+            <p className="text-xs text-cream-dim leading-relaxed max-w-md">
+              There are no live games in progress right now. Browse upcoming fixtures to build your accumulator slip!
+            </p>
+            <div className="flex items-center gap-2 mt-1">
+              <button
+                type="button"
+                onClick={() => {
+                  handleTabClick('upcoming');
+                  setSelectedDate('all');
+                }}
+                className="inline-flex items-center gap-2 bg-gold hover:bg-gold-2 text-slate-950 font-bold text-xs uppercase tracking-wide px-5 h-9 rounded-full shadow-xs transition-colors cursor-pointer active:scale-95"
+              >
+                Browse Upcoming ({counts.upcoming})
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  handleTabClick('upcoming');
+                  setSelectedDate(todayDateStr);
+                }}
+                className="inline-flex items-center gap-2 bg-panel-2 hover:bg-line text-cream font-bold text-xs uppercase tracking-wide px-4 h-9 rounded-full border border-line transition-colors cursor-pointer"
+              >
+                Today&apos;s Slate
+              </button>
+            </div>
+          </div>
+        ) : filteredFixtures.length === 0 ? (
+          <div className="bg-panel border border-dashed border-line rounded-2xl p-8 text-center flex flex-col items-center gap-2.5">
+            {selectedDate === 'completed' ? (
+              <>
+                <CheckCircle2 size={32} className="text-[#C48B03]" />
+                <p className="text-sm font-bold text-cream">No Completed Matches Yet Today</p>
+                <p className="text-xs text-cream-dim max-w-md">
+                  Finished fixtures will appear here with final scores as today&apos;s matches conclude.
+                </p>
+              </>
+            ) : (
+              <>
+                <Trophy size={32} className="text-cream-dim/30" />
+                <p className="text-sm font-bold text-cream">No matching fixtures found</p>
+                <p className="text-xs text-cream-dim">
+                  No matches found for &quot;<strong className="text-cream">{searchQuery || selectedDirectoryLabel}</strong>&quot; under {activeTab} view.
+                </p>
+              </>
+            )}
+            <button
+              type="button"
+              onClick={resetFilters}
+              className="mt-2 inline-flex items-center gap-1.5 bg-gold hover:bg-gold-2 text-slate-950 font-bold text-xs uppercase tracking-wide px-4 py-2 rounded-full transition-colors cursor-pointer active:scale-95"
+            >
+              <RotateCcw size={13} /> Reset Filters
+            </button>
+          </div>
+        ) : sectoredLeagueGroups.length > 1 && leagueFilter !== 'all' ? (
+          <div className="space-y-8">
+            {visibleSectors.map((sector) => (
+              <div key={sector.league} className="space-y-3">
+                <div className="flex items-center justify-between pb-2 border-b border-[#EEAA04]/35">
+                  <div className="flex items-center gap-2">
+                    <span className="w-2.5 h-2.5 rounded-full bg-[#EEAA04]" />
+                    <h3 className="font-display font-bold text-sm sm:text-base text-cream tracking-tight uppercase">
+                      {sector.league}
+                    </h3>
+                  </div>
+                  <span className="text-[11px] tabular-nums font-bold px-2.5 py-0.5 rounded-full bg-[#EEAA04]/20 text-[#9A6B00]">
+                    {sector.fixtures.length} {sector.fixtures.length === 1 ? 'Fixture' : 'Fixtures'}
+                  </span>
+                </div>
+                <div className="space-y-3">
+                  {sector.fixtures.map((fixture) => (
+                    <BuilderFixtureItem
+                      key={fixture.id}
+                      fixture={fixture}
+                      isExpanded={expandedFixtureId === fixture.id}
+                      onToggleExpand={setExpandedFixtureId}
+                      cartLegs={cartLegs}
+                      isLegSelected={isLegSelected}
+                      toggleLeg={toggleLeg}
+                    />
+                  ))}
+                </div>
+              </div>
+            ))}
           </div>
         ) : (
           filteredFixtures.map((fixture) => (
@@ -468,6 +557,7 @@ function BuilderFixtureItem({
 }: BuilderFixtureItemProps) {
   const oddsData = generateOddsForFixture(fixture);
   const legsInThisMatch = cartLegs.filter((l) => l.matchId === fixture.id);
+  const isFinished = isCompletedMatch(fixture);
 
   return (
     <div
@@ -484,6 +574,11 @@ function BuilderFixtureItem({
                 <span className="bg-rose-500/20 text-rose-400 border border-rose-500/40 text-[11px] font-bold px-1.5 py-0.5 rounded-full flex items-center gap-1 animate-pulse">
                   <span className="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
                   LIVE {fixture.homeScore !== null && fixture.awayScore !== null ? `${fixture.homeScore} - ${fixture.awayScore}` : ''}
+                </span>
+              )}
+              {isFinished && (
+                <span className="bg-slate-200/70 text-slate-700 border border-slate-300 text-[11px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
+                  FT {fixture.homeScore !== null && fixture.awayScore !== null ? `${fixture.homeScore} - ${fixture.awayScore}` : ''}
                 </span>
               )}
               <span className="text-gold">{fixture.competition}</span>
@@ -503,43 +598,51 @@ function BuilderFixtureItem({
           </div>
         </div>
 
-        {/* Quick 1X2 Market Buttons */}
-        <div className="flex items-center gap-1.5 shrink-0">
-          {oddsData.matchResult.map((m) => {
-            const selected = isLegSelected(fixture.id, 'Match Result (1X2)', m.label);
-            return (
-              <button
-                key={m.code}
-                onClick={() => toggleLeg(fixture, 'Match Result (1X2)', m.label, m.odds)}
-                className={`flex-1 sm:flex-none tabular-nums font-bold text-xs px-3 py-2 rounded-xl border transition-all flex flex-col items-center justify-center min-w-[62px] ${
-                  selected
-                    ? 'bg-gold text-ink border-gold shadow font-bold scale-105'
-                    : 'bg-ink border-line text-cream hover:border-gold/50'
-                }`}
-              >
-                <span className="text-[11px] text-cream-dim uppercase">{m.code}</span>
-                <span className={selected ? 'text-ink' : 'text-gold'}>{m.odds.toFixed(2)}</span>
-              </button>
-            );
-          })}
+        {/* Quick 1X2 Market Buttons (or Finished Badge for Completed Matches) */}
+        {isFinished ? (
+          <div className="flex items-center shrink-0">
+            <span className="text-xs font-bold text-slate-500 bg-panel-2 border border-line px-3 py-1.5 rounded-xl">
+              Match Completed
+            </span>
+          </div>
+        ) : (
+          <div className="flex items-center gap-1.5 shrink-0">
+            {oddsData.matchResult.map((m) => {
+              const selected = isLegSelected(fixture.id, 'Match Result (1X2)', m.label);
+              return (
+                <button
+                  key={m.code}
+                  onClick={() => toggleLeg(fixture, 'Match Result (1X2)', m.label, m.odds)}
+                  className={`flex-1 sm:flex-none tabular-nums font-bold text-xs px-3 py-2 rounded-xl border transition-all flex flex-col items-center justify-center min-w-[62px] ${
+                    selected
+                      ? 'bg-gold text-ink border-gold shadow font-bold scale-105'
+                      : 'bg-ink border-line text-cream hover:border-gold/50'
+                  }`}
+                >
+                  <span className="text-[11px] text-cream-dim uppercase">{m.code}</span>
+                  <span className={selected ? 'text-ink' : 'text-gold'}>{m.odds.toFixed(2)}</span>
+                </button>
+              );
+            })}
 
-          {/* Expand More Markets */}
-          <button
-            onClick={() => onToggleExpand(isExpanded ? null : fixture.id)}
-            className={`px-3 py-2 rounded-xl border text-xs font-bold transition-all flex items-center gap-1 ${
-              isExpanded ? 'bg-gold/20 text-gold border-gold' : 'bg-ink-2 border-line text-cream-dim hover:text-cream'
-            }`}
-            title="More Markets"
-          >
-            <span>Markets</span>
-            {isExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
-          </button>
-        </div>
+            {/* Expand More Markets */}
+            <button
+              onClick={() => onToggleExpand(isExpanded ? null : fixture.id)}
+              className={`px-3 py-2 rounded-xl border text-xs font-bold transition-all flex items-center gap-1 ${
+                isExpanded ? 'bg-gold/20 text-gold border-gold' : 'bg-ink-2 border-line text-cream-dim hover:text-cream'
+              }`}
+              title="More Markets"
+            >
+              <span>Markets</span>
+              {isExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Expanded Markets Accordion */}
       <AnimatePresence>
-        {isExpanded && (
+        {isExpanded && !isFinished && (
           <motion.div
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: 'auto', opacity: 1 }}

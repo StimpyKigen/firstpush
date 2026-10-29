@@ -1,13 +1,10 @@
 import { useState, useMemo, useRef, useEffect, useSyncExternalStore } from 'react';
 import {
-  Unlock, Calendar, Search, X, SearchX,
-  Check, ChevronDown, RotateCcw,
-  Radio, CheckCircle2, RefreshCw
+  Unlock, Calendar, SearchX,
+  RotateCcw, Radio, CheckCircle2, RefreshCw
 } from 'lucide-react';
 import SeoHead from '../components/SeoHead';
 import {
-  freeMatches,
-  freeMatchConsensus,
   getFreeMatchesSnapshot,
   getFreeMatchConsensusSnapshot,
   subscribeToFreeMatches,
@@ -30,7 +27,8 @@ import {
   resolveSportScoreDirectoryId,
 } from '../lib/leagueDirectory';
 import FixtureSportCard from '../components/FixtureSportCard';
-import { normalizeMatchStatus, isLiveMatch, isCompletedMatch } from '../lib/matchStatus';
+import MatchFiltersToolbar, { type FilterScopeTab } from '../components/MatchFiltersToolbar';
+import { isLiveMatch, isCompletedMatch } from '../lib/matchStatus';
 import {
   sortHighlightsComparator,
   sortUpcomingComparator,
@@ -39,10 +37,8 @@ import {
   getDeviceLocalDateString,
 } from '../lib/competitionPriority';
 
-type ScopeTab = 'highlights' | 'live' | 'upcoming';
-
 export default function FreeMatches() {
-  const [activeTab, setActiveTab] = useState<ScopeTab>('highlights');
+  const [activeTab, setActiveTab] = useState<FilterScopeTab>('highlights');
   const [selectedDate, setSelectedDate] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedMatchForBuilder, setSelectedMatchForBuilder] = useState<MatchForBuilder | null>(null);
@@ -60,66 +56,11 @@ export default function FreeMatches() {
     }
   });
 
-  // Apple-inspired toolbar dropdown & popover states
   const [selectedSubLeague, setSelectedSubLeague] = useState<string>('all');
-  const [expandedCountryIds, setExpandedCountryIds] = useState<string[]>([]);
-  const [isDateDropdownOpen, setIsDateDropdownOpen] = useState(false);
-  const [isLeagueDropdownOpen, setIsLeagueDropdownOpen] = useState(false);
-  const [leagueSearchQuery, setLeagueSearchQuery] = useState('');
-  const [isSearchOpen, setIsSearchOpen] = useState(false);
-
-  const dateDropdownRef = useRef<HTMLDivElement>(null);
-  const leagueDropdownRef = useRef<HTMLDivElement>(null);
-  const searchContainerRef = useRef<HTMLDivElement>(null);
-  const searchInputRef = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      const target = event.target as Node;
-      if (dateDropdownRef.current && !dateDropdownRef.current.contains(target)) {
-        setIsDateDropdownOpen(false);
-      }
-      if (leagueDropdownRef.current && !leagueDropdownRef.current.contains(target)) {
-        setIsLeagueDropdownOpen(false);
-        setLeagueSearchQuery('');
-      }
-      if (searchContainerRef.current && !searchContainerRef.current.contains(target)) {
-        if (!searchQuery) {
-          setIsSearchOpen(false);
-        }
-      }
-    }
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [searchQuery]);
-
-  const toggleDateDropdown = () => {
-    setIsDateDropdownOpen((prev) => !prev);
-    setIsLeagueDropdownOpen(false);
-  };
-
-  const toggleLeagueDropdown = () => {
-    setIsLeagueDropdownOpen((prev) => !prev);
-    setIsDateDropdownOpen(false);
-  };
-
-  const toggleSearch = () => {
-    setIsSearchOpen((prev) => {
-      const next = !prev;
-      if (next) {
-        setTimeout(() => searchInputRef.current?.focus(), 60);
-      }
-      return next;
-    });
-    setIsDateDropdownOpen(false);
-    setIsLeagueDropdownOpen(false);
-  };
 
   const handleLeagueFilterChange = (val: string, subLeague: string = 'all') => {
     setLeagueFilter(val);
     setSelectedSubLeague(subLeague);
-    setIsLeagueDropdownOpen(false);
-    setLeagueSearchQuery('');
     try {
       localStorage.setItem('mshindi_freematch_league_filter', val);
     } catch {}
@@ -127,8 +68,6 @@ export default function FreeMatches() {
 
   const resetFilters = () => {
     setSearchQuery('');
-    setLeagueSearchQuery('');
-    setIsSearchOpen(false);
     setSelectedSubLeague('all');
     handleLeagueFilterChange('all');
     setSelectedDate('all');
@@ -210,7 +149,6 @@ export default function FreeMatches() {
     return getDeviceLocalDateString(d);
   }, [deviceNow]);
 
-  // Scope Counts for Row 1 Segmented Control
   // Scope Counts for Row 1 Segmented Control
   const counts = useMemo(() => {
     let live = 0;
@@ -346,8 +284,8 @@ export default function FreeMatches() {
 
   // Build SportScore Country Directory with dynamic fixture counts across all available matches (independent of active tab)
   const directoryData = useMemo(() => {
-    return buildSportScoreCountryDirectory(matches, leagueSearchQuery);
-  }, [matches, leagueSearchQuery]);
+    return buildSportScoreCountryDirectory(matches);
+  }, [matches]);
 
   // Current selected directory label for the dropdown trigger
   const selectedDirectoryLabel = useMemo(() => {
@@ -448,19 +386,24 @@ export default function FreeMatches() {
       map.get(comp)!.push(m);
     });
 
-    map.forEach((matches, league) => {
-      groups.push({ league, matches });
+    map.forEach((groupMatches, league) => {
+      groups.push({ league, matches: groupMatches });
     });
 
     return groups;
   }, [filteredMatches]);
+
+  const sectoredLeagueSummaries = useMemo(
+    () => sectoredLeagueGroups.map((g) => ({ league: g.league, count: g.matches.length })),
+    [sectoredLeagueGroups]
+  );
 
   const visibleSectors = useMemo(() => {
     if (selectedSubLeague === 'all') return sectoredLeagueGroups;
     return sectoredLeagueGroups.filter((g) => g.league === selectedSubLeague);
   }, [sectoredLeagueGroups, selectedSubLeague]);
 
-  const handleTabClick = (tab: ScopeTab) => {
+  const handleTabClick = (tab: FilterScopeTab) => {
     setActiveTab(tab);
     if (tab === 'live' || selectedDate === 'completed') {
       setSelectedDate('all');
@@ -508,546 +451,30 @@ export default function FreeMatches() {
         </p>
       </div>
 
-      {/* APPLE-INSPIRED MATCH FILTERS TOOLBAR (PHOTO B) */}
-      <div className="max-w-4xl mx-auto mb-6 sm:mb-8">
-        {/* ROW 1 — Match Status Inline Tab Switcher */}
-        <div className="flex justify-center mb-3 sm:mb-4">
-          <div className="inline-flex items-center gap-2.5 sm:gap-4 py-1 px-2.5 sm:px-3">
-            {/* Highlights Tab (Default on page load) */}
-            <button
-              type="button"
-              onClick={() => handleTabClick('highlights')}
-              className={`text-xs sm:text-[13px] transition-colors flex items-center gap-1.5 sm:gap-2 cursor-pointer select-none ${
-                activeTab === 'highlights'
-                  ? 'font-bold text-[#006C54]'
-                  : 'font-medium text-slate-500 hover:text-slate-800'
-              }`}
-            >
-              <span>Highlights</span>
-              <span
-                className={`text-[11px] sm:text-[11px] tabular-nums px-1.5 py-0.2 rounded-full font-bold transition-colors ${
-                  activeTab === 'highlights'
-                    ? 'bg-[#E8F5EE] text-[#006C54]'
-                    : 'bg-slate-100 text-slate-500'
-                }`}
-              >
-                {counts.highlights}
-              </span>
-            </button>
-
-            {/* Vertical Divider 1 */}
-            <div className="h-3 sm:h-3.5 w-[1px] bg-slate-300 shrink-0" aria-hidden="true" />
-
-            {/* Live Tab */}
-            <button
-              type="button"
-              onClick={() => handleTabClick('live')}
-              className={`text-xs sm:text-[13px] transition-colors flex items-center gap-1.5 sm:gap-2 cursor-pointer select-none ${
-                activeTab === 'live'
-                  ? 'font-bold text-[#006C54]'
-                  : 'font-medium text-slate-500 hover:text-slate-800'
-              }`}
-            >
-              <span className="relative flex h-1.5 w-1.5 sm:h-2 sm:w-2 shrink-0">
-                <span
-                  className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${
-                    counts.live > 0 ? 'bg-red-400' : 'bg-slate-400'
-                  }`}
-                />
-                <span
-                  className={`relative inline-flex rounded-full h-1.5 w-1.5 sm:h-2 sm:w-2 ${
-                    counts.live > 0 ? 'bg-red-500' : 'bg-slate-400'
-                  }`}
-                />
-              </span>
-              <span>Live</span>
-              <span
-                className={`text-[11px] sm:text-[11px] tabular-nums px-1.5 py-0.2 rounded-full font-bold transition-colors ${
-                  activeTab === 'live'
-                    ? 'bg-[#E8F5EE] text-[#006C54]'
-                    : 'bg-slate-100 text-slate-500'
-                }`}
-              >
-                {counts.live}
-              </span>
-            </button>
-
-            {/* Vertical Divider 2 */}
-            <div className="h-3 sm:h-3.5 w-[1px] bg-slate-300 shrink-0" aria-hidden="true" />
-
-            {/* Upcoming Tab */}
-            <button
-              type="button"
-              onClick={() => handleTabClick('upcoming')}
-              className={`text-xs sm:text-[13px] transition-colors flex items-center gap-1.5 sm:gap-2 cursor-pointer select-none ${
-                activeTab === 'upcoming'
-                  ? 'font-bold text-[#006C54]'
-                  : 'font-medium text-slate-500 hover:text-slate-800'
-              }`}
-            >
-              <span>Upcoming</span>
-              <span
-                className={`text-[11px] sm:text-[11px] tabular-nums px-1.5 py-0.2 rounded-full font-bold transition-colors ${
-                  activeTab === 'upcoming'
-                    ? 'bg-[#E8F5EE] text-[#006C54]'
-                    : 'bg-slate-100 text-slate-500'
-                }`}
-              >
-                {counts.upcoming}
-              </span>
-            </button>
-          </div>
-        </div>
-
-        {/* ROW 2 — Filters and Search Toolbar (Two dropdowns + borderless search icon) */}
-        <div className="flex items-center justify-center gap-1.5 sm:gap-2.5 flex-wrap sm:flex-nowrap px-1">
-          {/* Control 1: Dates Dropdown */}
-          <div className="relative" ref={dateDropdownRef}>
-            <button
-              type="button"
-              onClick={toggleDateDropdown}
-              className={`h-8 sm:h-8.5 px-3 sm:px-3.5 rounded-full bg-[#FFFFF0] border text-xs sm:text-[13px] font-semibold flex items-center gap-1.5 sm:gap-2 transition-all shadow-[0_1px_3px_rgba(0,0,0,0.03)] hover:shadow-[0_2px_6px_rgba(0,108,84,0.08)] cursor-pointer select-none ${
-                isDateDropdownOpen || selectedDate !== 'all'
-                  ? 'border-[#006C54] text-[#006C54] ring-2 ring-[#006C54]/15'
-                  : 'border-[#DCDCC8] text-slate-800 hover:border-[#006C54]'
-              }`}
-              aria-expanded={isDateDropdownOpen}
-              aria-label="Filter by match date"
-            >
-              <Calendar size={13.5} className="text-[#006C54] shrink-0" />
-              <span>{selectedDate === 'all' ? 'Dates' : selectedDateLabel}</span>
-              {selectedDate !== 'all' && (
-                <span className="w-1.5 h-1.5 rounded-full bg-[#006C54] shrink-0" />
-              )}
-              <ChevronDown
-                size={13}
-                className={`text-slate-500 transition-transform duration-200 shrink-0 ${
-                  isDateDropdownOpen ? 'rotate-180 text-[#006C54]' : ''
-                }`}
-              />
-            </button>
-
-            {/* Dates Dropdown Menu */}
-            {isDateDropdownOpen && (
-              <div className="absolute left-1/2 -translate-x-1/2 sm:left-0 sm:translate-x-0 mt-2 w-72 sm:w-80 bg-[#FFFFF0] border border-[#DCDCC8] rounded-2xl shadow-2xl py-2 z-50 max-h-[380px] overflow-y-auto text-xs divide-y divide-[#E6E6D2]">
-                {/* 1. FIRST OPTION: COMPLETED (Finished matches of today) */}
-                <div className="p-1">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setSelectedDate('completed');
-                      setIsDateDropdownOpen(false);
-                    }}
-                    className={`w-full px-3 py-2 rounded-xl text-left flex items-center justify-between transition-colors cursor-pointer ${
-                      selectedDate === 'completed'
-                        ? 'bg-[#006C54]/10 text-[#006C54] font-bold'
-                        : 'hover:bg-[#F5F5E4] text-slate-700 font-semibold'
-                    }`}
-                  >
-                    <span className="flex items-center gap-2">
-                      <CheckCircle2 size={13} className="text-[#006C54]" /> Completed
-                    </span>
-                    <div className="flex items-center gap-1.5">
-                      <span className="text-[11px] tabular-nums px-1.5 py-0.5 rounded bg-[#F5F5E4] border border-[#E6E6D2] text-[#006C54] font-bold">
-                        {completedTodayCount}
-                      </span>
-                      {selectedDate === 'completed' && <Check size={14} className="text-[#006C54]" />}
-                    </div>
-                  </button>
-                </div>
-
-                {/* 2. ALL DATES */}
-                <div className="p-1">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setSelectedDate('all');
-                      setIsDateDropdownOpen(false);
-                    }}
-                    className={`w-full px-3 py-2 rounded-xl text-left flex items-center justify-between transition-colors cursor-pointer ${
-                      selectedDate === 'all'
-                        ? 'bg-[#006C54]/10 text-[#006C54] font-bold'
-                        : 'hover:bg-[#F5F5E4] text-slate-700 font-semibold'
-                    }`}
-                  >
-                    <span className="flex items-center gap-2">
-                      <Calendar size={13} className="text-[#006C54]" /> All Dates
-                    </span>
-                    <div className="flex items-center gap-1.5">
-                      <span className="text-[11px] tabular-nums px-1.5 py-0.5 rounded bg-[#F5F5E4] border border-[#E6E6D2] text-slate-600 font-bold">
-                        {allDatesCount}
-                      </span>
-                      {selectedDate === 'all' && <Check size={14} className="text-[#006C54]" />}
-                    </div>
-                  </button>
-                </div>
-
-                <div className="p-1 space-y-0.5">
-                  {availableDates.map((d) => {
-                    const isSelected = selectedDate === d.dStr;
-                    return (
-                      <button
-                        key={d.dStr}
-                        type="button"
-                        onClick={() => {
-                          setSelectedDate(d.dStr);
-                          setIsDateDropdownOpen(false);
-                        }}
-                        className={`w-full px-3 py-2 rounded-xl text-left flex items-center justify-between transition-colors cursor-pointer ${
-                          isSelected
-                            ? 'bg-[#006C54]/10 text-[#006C54] font-bold'
-                            : 'hover:bg-[#F5F5E4] text-slate-700 font-medium'
-                        }`}
-                      >
-                        <span className="truncate pr-2 font-medium">{d.label}</span>
-                        <div className="flex items-center gap-1.5 shrink-0">
-                          <span className="text-[11px] tabular-nums px-1.5 py-0.2 rounded bg-slate-100 text-slate-600 font-bold">
-                            {d.count}
-                          </span>
-                          {isSelected && <Check size={13} className="text-[#006C54]" />}
-                        </div>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Control 2: SportScore Country Directory Dropdown */}
-          <div className="relative" ref={leagueDropdownRef}>
-            <button
-              type="button"
-              onClick={toggleLeagueDropdown}
-              className={`h-8 sm:h-8.5 px-3 sm:px-3.5 rounded-full bg-[#FFFFF0] border text-xs sm:text-[13px] font-semibold flex items-center gap-1.5 sm:gap-2 transition-all shadow-[0_1px_3px_rgba(0,0,0,0.03)] hover:shadow-[0_2px_6px_rgba(0,108,84,0.08)] cursor-pointer select-none max-w-[200px] sm:max-w-[250px] ${
-                isLeagueDropdownOpen || leagueFilter !== 'all'
-                  ? 'border-[#006C54] text-[#006C54] ring-2 ring-[#006C54]/15'
-                  : 'border-[#DCDCC8] text-slate-800 hover:border-[#006C54]'
-              }`}
-              aria-expanded={isLeagueDropdownOpen}
-              aria-label="Filter by country or competition"
-            >
-              <span className="truncate">
-                {selectedDirectoryLabel}
-              </span>
-              {leagueFilter !== 'all' && (
-                <span className="w-1.5 h-1.5 rounded-full bg-[#006C54] shrink-0" />
-              )}
-              <ChevronDown
-                size={13}
-                className={`text-slate-500 transition-transform duration-200 shrink-0 ${
-                  isLeagueDropdownOpen ? 'rotate-180 text-[#006C54]' : ''
-                }`}
-              />
-            </button>
-
-            {/* SportScore Country Directory Menu */}
-            {isLeagueDropdownOpen && (
-              <div className="absolute left-1/2 -translate-x-1/2 sm:left-0 sm:translate-x-0 mt-2 w-72 sm:w-80 bg-[#FFFFF0] border border-[#DCDCC8] rounded-2xl shadow-2xl z-50 max-h-[380px] overflow-hidden flex flex-col text-xs">
-                {/* Search Input Header inside dropdown */}
-                <div className="p-2 border-b border-[#E6E6D2] bg-[#FBFBF0] shrink-0">
-                  <div className="relative">
-                    <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
-                    <input
-                      type="text"
-                      value={leagueSearchQuery}
-                      onChange={(e) => setLeagueSearchQuery(e.target.value)}
-                      placeholder="Search country or competition..."
-                      className="w-full bg-[#FFFFF0] border border-[#DCDCC8] rounded-xl pl-8 pr-7 py-1.5 text-xs text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-[#006C54] focus:ring-1 focus:ring-[#006C54]"
-                      autoFocus
-                    />
-                    {leagueSearchQuery && (
-                      <button
-                        type="button"
-                        onClick={() => setLeagueSearchQuery('')}
-                        className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-0.5 cursor-pointer"
-                        title="Clear search"
-                      >
-                        <X size={12} />
-                      </button>
-                    )}
-                  </div>
-                </div>
-
-                {/* Scrollable Directory Rows */}
-                <div className="overflow-y-auto divide-y divide-[#E6E6D2]/60 p-1 flex-1">
-                  {/* All Competitions Row */}
-                  {(!leagueSearchQuery || 'all competitions'.includes(leagueSearchQuery.toLowerCase())) && (
-                    <button
-                      type="button"
-                      onClick={() => handleLeagueFilterChange('all')}
-                      className={`w-full px-3 py-2 rounded-lg text-left flex items-center justify-between transition-colors cursor-pointer ${
-                        leagueFilter === 'all'
-                          ? 'bg-[#006C54]/10 text-[#006C54] font-bold'
-                          : 'hover:bg-[#F5F5E4] text-slate-800 font-medium'
-                      }`}
-                    >
-                      <span className="truncate pr-2">All Competitions</span>
-                      <div className="flex items-center gap-2 shrink-0">
-                        <span className="text-[11px] tabular-nums text-slate-500">
-                          {directoryData.totalMatches}
-                        </span>
-                        {leagueFilter === 'all' && <Check size={13} className="text-[#006C54]" />}
-                      </div>
-                    </button>
-                  )}
-
-                  {/* SportScore Country / Category Rows */}
-                  {directoryData.rows.map((row) => {
-                    const isSelected = leagueFilter === row.id && selectedSubLeague === 'all';
-                    const isAnySubSelected = leagueFilter === row.id;
-                    const hasMultipleLeagues = row.leagues && row.leagues.length > 1;
-                    const isExpanded = expandedCountryIds.includes(row.id);
-
-                    return (
-                      <div key={row.id} className="transition-colors">
-                        {/* Country Row */}
-                        <div
-                          className={`w-full px-3 py-2 rounded-lg flex items-center justify-between transition-colors ${
-                            isAnySubSelected
-                              ? 'bg-[#006C54]/10 text-[#006C54] font-bold'
-                              : 'hover:bg-[#F5F5E4] text-slate-800 font-medium'
-                          }`}
-                        >
-                          <button
-                            type="button"
-                            onClick={() => {
-                              if (hasMultipleLeagues) {
-                                setExpandedCountryIds((prev) =>
-                                  prev.includes(row.id) ? prev.filter((id) => id !== row.id) : [...prev, row.id]
-                                );
-                              } else {
-                                handleLeagueFilterChange(row.id, 'all');
-                              }
-                            }}
-                            className="flex-1 text-left flex items-center gap-2 truncate cursor-pointer mr-2"
-                          >
-                            <span className="truncate">{row.label}</span>
-                          </button>
-
-                          <div className="flex items-center gap-1.5 shrink-0">
-                            <span className="text-[11px] tabular-nums text-slate-500">{row.count}</span>
-                            {isSelected && <Check size={13} className="text-[#006C54]" />}
-                            {hasMultipleLeagues && (
-                              <button
-                                type="button"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setExpandedCountryIds((prev) =>
-                                    prev.includes(row.id) ? prev.filter((id) => id !== row.id) : [...prev, row.id]
-                                  );
-                                }}
-                                className="p-1 text-slate-400 hover:text-slate-700 transition-transform cursor-pointer"
-                                title={isExpanded ? 'Collapse leagues' : 'Expand leagues'}
-                              >
-                                <ChevronDown
-                                  size={13}
-                                  className={`transition-transform duration-200 ${isExpanded ? 'rotate-180 text-[#006C54]' : ''}`}
-                                />
-                              </button>
-                            )}
-                          </div>
-                        </div>
-
-                        {/* Expanded Accordion Subsection for Countries with Multiple Leagues */}
-                        {hasMultipleLeagues && isExpanded && (
-                          <div className="ml-4 pl-3 border-l-2 border-[#006C54]/25 my-1 space-y-0.5 animate-fade-in">
-                            {/* Display only the specific leagues (no 'All [Country] Leagues' item) */}
-                            {row.leagues.map((lg) => {
-                              const isSubSelected = leagueFilter === row.id && selectedSubLeague === lg.league;
-                              return (
-                                <button
-                                  key={lg.league}
-                                  type="button"
-                                  onClick={() => handleLeagueFilterChange(row.id, lg.league)}
-                                  className={`w-full px-2.5 py-1.5 rounded-md text-left flex items-center justify-between text-[11px] transition-colors cursor-pointer ${
-                                    isSubSelected
-                                      ? 'bg-[#006C54] text-white font-bold'
-                                      : 'hover:bg-[#F5F5E4] text-slate-700 font-medium'
-                                  }`}
-                                >
-                                  <span className="truncate pr-2">{lg.league}</span>
-                                  <div className="flex items-center gap-1.5 shrink-0">
-                                    <span className={`tabular-nums text-[11px] ${isSubSelected ? 'text-white/80' : 'text-slate-500'}`}>
-                                      {lg.count}
-                                    </span>
-                                    {isSubSelected && <Check size={12} className="text-white" />}
-                                  </div>
-                                </button>
-                              );
-                            })}
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
-
-                  {directoryData.rows.length === 0 && (
-                    <div className="py-6 text-center text-slate-400 text-xs">
-                      No country or competition matching &quot;{leagueSearchQuery}&quot;
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Control 3: Search Icon Button (Borderless, clean icon) */}
-          <div className="relative" ref={searchContainerRef}>
-            <button
-              type="button"
-              onClick={toggleSearch}
-              className={`p-1.5 sm:p-2 rounded-lg flex items-center justify-center shrink-0 transition-colors cursor-pointer select-none ${
-                isSearchOpen || searchQuery
-                  ? 'bg-[#006C54]/15 text-[#006C54]'
-                  : 'text-[#006C54] hover:text-[#005441] hover:bg-[#006C54]/10'
-              }`}
-              aria-label="Search matches"
-              title="Search matches"
-            >
-              <Search size={16} strokeWidth={2.2} />
-            </button>
-          </div>
-        </div>
-
-        {/* EXPANDABLE SEARCH BAR (Apple-Style) */}
-        {(isSearchOpen || searchQuery) && (
-          <div className="w-full max-w-md mx-auto mt-3 animate-in fade-in slide-in-from-top-1 duration-200">
-            <div className="relative flex items-center bg-[#FFFFF0] border border-[#006C54]/40 rounded-full shadow-md focus-within:border-[#006C54] focus-within:ring-2 focus-within:ring-[#006C54]/15 transition-all">
-              <Search size={15} className="absolute left-3.5 text-[#006C54] pointer-events-none" />
-              <input
-                ref={searchInputRef}
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search teams, competition or country..."
-                className="w-full bg-transparent pl-9 sm:pl-10 pr-16 py-2 text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none"
-              />
-              <div className="absolute right-2 flex items-center gap-1">
-                {searchQuery && (
-                  <button
-                    type="button"
-                    onClick={() => setSearchQuery('')}
-                    className="p-1 rounded-full hover:bg-slate-200/60 text-slate-400 hover:text-slate-700 transition-colors cursor-pointer"
-                    title="Clear search"
-                  >
-                    <X size={13} />
-                  </button>
-                )}
-                <button
-                  type="button"
-                  onClick={() => setIsSearchOpen(false)}
-                  className="text-[11px] font-bold text-slate-500 hover:text-slate-800 px-2 py-1 rounded-full hover:bg-slate-200/50 cursor-pointer"
-                  title="Close search bar"
-                >
-                  Done
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* ACTIVE FILTER TAGS ROW */}
-        {(selectedDate !== 'all' || leagueFilter !== 'all' || searchQuery) && (
-          <div className="flex items-center justify-center flex-wrap gap-1.5 mt-3 text-xs">
-            {selectedDate !== 'all' && (
-              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-[#006C54]/10 border border-[#006C54]/20 text-[#006C54] font-semibold text-[11px]">
-                <span>Date: {selectedDateLabel}</span>
-                <button
-                  type="button"
-                  onClick={() => setSelectedDate('all')}
-                  className="hover:text-red-600 transition-colors cursor-pointer"
-                  aria-label="Clear date filter"
-                >
-                  <X size={12} />
-                </button>
-              </span>
-            )}
-            {leagueFilter !== 'all' && (
-              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-[#006C54]/10 border border-[#006C54]/20 text-[#006C54] font-semibold text-[11px]">
-                <span>Competition: {selectedDirectoryLabel}</span>
-                <button
-                  type="button"
-                  onClick={() => handleLeagueFilterChange('all')}
-                  className="hover:text-red-600 transition-colors cursor-pointer"
-                  aria-label="Clear competition filter"
-                >
-                  <X size={12} />
-                </button>
-              </span>
-            )}
-            {searchQuery && (
-              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-[#006C54]/10 border border-[#006C54]/20 text-[#006C54] font-semibold text-[11px]">
-                <span>Search: &quot;{searchQuery}&quot;</span>
-                <button
-                  type="button"
-                  onClick={() => setSearchQuery('')}
-                  className="hover:text-red-600 transition-colors cursor-pointer"
-                  aria-label="Clear search filter"
-                >
-                  <X size={12} />
-                </button>
-              </span>
-            )}
-            <button
-              type="button"
-              onClick={resetFilters}
-              className="text-[11px] font-bold text-slate-500 hover:text-red-600 underline ml-1 cursor-pointer"
-            >
-              Reset all
-            </button>
-          </div>
-        )}
-      </div>
-
-      {/* SUB-LEAGUE SECTOR PILLS (For countries with multiple leagues like England) */}
-      {leagueFilter !== 'all' && sectoredLeagueGroups.length > 1 && (
-        <div className="flex items-center justify-center gap-2 flex-wrap mb-6 max-w-4xl mx-auto animate-fade-in">
-          <button
-            type="button"
-            onClick={() => setSelectedSubLeague('all')}
-            className={`px-3.5 py-1.5 rounded-full text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer select-none ${
-              selectedSubLeague === 'all'
-                ? 'bg-[#006C54] text-white shadow-xs'
-                : 'bg-[#FFFFF0] border border-[#DCDCC8] text-slate-700 hover:border-[#006C54]'
-            }`}
-          >
-            <span>All {selectedDirectoryLabel} Leagues</span>
-            <span
-              className={`text-[11px] tabular-nums px-1.5 py-0.2 rounded-full font-bold ${
-                selectedSubLeague === 'all' ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-600'
-              }`}
-            >
-              {filteredMatches.length}
-            </span>
-          </button>
-
-          {sectoredLeagueGroups.map((g) => {
-            const isSelected = selectedSubLeague === g.league;
-            return (
-              <button
-                key={g.league}
-                type="button"
-                onClick={() => setSelectedSubLeague(g.league)}
-                className={`px-3.5 py-1.5 rounded-full text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer select-none ${
-                  isSelected
-                    ? 'bg-[#006C54] text-white shadow-xs'
-                    : 'bg-[#FFFFF0] border border-[#DCDCC8] text-slate-700 hover:border-[#006C54]'
-                }`}
-              >
-                <span>{g.league}</span>
-                <span
-                  className={`text-[11px] tabular-nums px-1.5 py-0.2 rounded-full font-bold ${
-                    isSelected ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-600'
-                  }`}
-                >
-                  {g.matches.length}
-                </span>
-              </button>
-            );
-          })}
-        </div>
-      )}
+      {/* APPLE-INSPIRED MATCH FILTERS TOOLBAR */}
+      <MatchFiltersToolbar
+        accent="emerald"
+        activeTab={activeTab}
+        onTabChange={handleTabClick}
+        counts={counts}
+        selectedDate={selectedDate}
+        selectedDateLabel={selectedDateLabel}
+        onSelectDate={setSelectedDate}
+        completedTodayCount={completedTodayCount}
+        allDatesCount={allDatesCount}
+        availableDates={availableDates}
+        leagueFilter={leagueFilter}
+        selectedSubLeague={selectedSubLeague}
+        selectedDirectoryLabel={selectedDirectoryLabel}
+        directoryData={directoryData}
+        onLeagueFilterChange={handleLeagueFilterChange}
+        onSelectSubLeague={setSelectedSubLeague}
+        sectoredLeagues={sectoredLeagueSummaries}
+        filteredTotalCount={filteredMatches.length}
+        searchQuery={searchQuery}
+        onSearchQueryChange={setSearchQuery}
+        onResetFilters={resetFilters}
+      />
 
       {/* FIXTURES LIST / SKELETON LOADER / RESILIENT EMPTY STATES */}
       {matches.length === 0 && (getIsFreeMatchesSyncing() || !getHasFreeMatchesSynced()) ? (

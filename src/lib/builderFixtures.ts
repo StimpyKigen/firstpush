@@ -1,13 +1,21 @@
 import { getFreeMatchesSnapshot } from './freeMatches';
-import type { MatchStatus } from './matchStatus';
+import type { MatchPeriod, MatchStatus } from './matchStatus';
 
 export interface BuilderFixture {
   id: string;
+  providerId?: string;
   homeTeam: string;
   awayTeam: string;
   competition: string;
+  competitionId?: string;
+  leagueCode?: string;
+  country?: string;
   kickoff: string;
+  kickoffIso?: string;
   status?: MatchStatus;
+  period?: MatchPeriod;
+  displayClock?: string;
+  blurb?: string;
   homeScore?: number | null;
   awayScore?: number | null;
   homeOdds?: number;
@@ -26,35 +34,40 @@ export interface BuilderFixture {
 
 export function getCombinedBuilderFixtures(): BuilderFixture[] {
   const freeSnap = getFreeMatchesSnapshot();
-  // Keep betting interface focused on eligible upcoming and live events (filter out completed)
-  return freeSnap
-    .filter((m) => m.status !== 'post')
-    .map((m) => {
-      const hOdds = m.homeOdds || 2.00;
-      const dOdds = m.drawOdds || 3.30;
-      const aOdds = m.awayOdds || 3.80;
-      return {
-        id: m.id,
-        homeTeam: m.home,
-        awayTeam: m.away,
-        competition: m.competition,
-        kickoff: m.kickoff,
-        status: m.status,
-        homeScore: m.homeScore,
-        awayScore: m.awayScore,
-        homeOdds: hOdds,
-        drawOdds: dOdds,
-        awayOdds: aOdds,
-        bookmaker: m.bookmaker || 'Market Consensus',
-        homeProb: m.homePct ? +(m.homePct / 100).toFixed(2) : +(1 / hOdds).toFixed(2),
-        drawProb: m.drawPct ? +(m.drawPct / 100).toFixed(2) : +(1 / dOdds).toFixed(2),
-        awayProb: m.awayPct ? +(m.awayPct / 100).toFixed(2) : +(1 / aOdds).toFixed(2),
-        bttsYesPct: m.bttsYesPct,
-        over15Pct: m.over15Pct,
-        over25Pct: m.over25Pct,
-        over35Pct: m.over35Pct,
-      };
-    });
+  return freeSnap.map((m) => {
+    const hOdds = m.homeOdds || 2.00;
+    const dOdds = m.drawOdds || 3.30;
+    const aOdds = m.awayOdds || 3.80;
+    return {
+      id: m.id,
+      providerId: m.providerId,
+      homeTeam: m.home,
+      awayTeam: m.away,
+      competition: m.competition,
+      competitionId: m.competitionId,
+      leagueCode: m.leagueCode,
+      country: m.country,
+      kickoff: m.kickoff,
+      kickoffIso: m.kickoffIso,
+      status: m.status,
+      period: m.period,
+      displayClock: m.displayClock,
+      blurb: m.blurb,
+      homeScore: m.homeScore,
+      awayScore: m.awayScore,
+      homeOdds: hOdds,
+      drawOdds: dOdds,
+      awayOdds: aOdds,
+      bookmaker: m.bookmaker || 'Market Consensus',
+      homeProb: m.homePct ? +(m.homePct / 100).toFixed(2) : +(1 / hOdds).toFixed(2),
+      drawProb: m.drawPct ? +(m.drawPct / 100).toFixed(2) : +(1 / dOdds).toFixed(2),
+      awayProb: m.awayPct ? +(m.awayPct / 100).toFixed(2) : +(1 / aOdds).toFixed(2),
+      bttsYesPct: m.bttsYesPct,
+      over15Pct: m.over15Pct,
+      over25Pct: m.over25Pct,
+      over35Pct: m.over35Pct,
+    };
+  });
 }
 
 // Calculate realistic odds for various markets based on real bookmaker odds or model probabilities
