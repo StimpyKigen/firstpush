@@ -43,14 +43,11 @@ export default function JackpotCard({ jackpot, index }: { jackpot: Jackpot; inde
       <div className="p-5 sm:p-6 flex flex-col gap-4 flex-1">
         <div className="flex items-start justify-between gap-3">
           <div className="flex items-center gap-3">
-            <div
-              className="w-11 h-11 rounded-lg flex items-center justify-center shrink-0 shadow-xs overflow-hidden border p-1"
-              style={{ background: bookieTheme.iconBg, borderColor: bookieTheme.border }}
-            >
+            <div className="w-11 h-11 flex items-center justify-center shrink-0">
               <img
                 src={bookieTheme.logo}
                 alt={jackpot.bookie}
-                className="w-full h-full object-contain rounded-md select-none"
+                className="w-full h-full object-contain select-none"
                 loading="lazy"
                 onError={(e) => {
                   e.currentTarget.style.display = 'none';
@@ -82,11 +79,9 @@ export default function JackpotCard({ jackpot, index }: { jackpot: Jackpot; inde
           </span>
         </div>
 
-        {/* Clean Typographic Gameweek & Match Count (No Pill Container) */}
+        {/* Clean Typographic Gameweek (No Pill Container) */}
         <div className="flex items-center gap-2 text-xs text-slate-500 flex-wrap">
           <span className="font-bold text-slate-800 uppercase tracking-wide">{jackpot.gameweek}</span>
-          <span className="text-slate-300">·</span>
-          <span className="font-semibold text-slate-600">{jackpot.matches.length} matches</span>
         </div>
 
         {/* Clean Live Sync Text Label */}

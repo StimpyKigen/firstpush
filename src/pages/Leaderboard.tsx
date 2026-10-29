@@ -1,7 +1,7 @@
 import { useState, useMemo, useSyncExternalStore, useRef, useEffect } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import {
-  Trophy, Crown, Medal, Flame, Clock, CheckCircle2, Users, Search,
+  Trophy, Crown, Medal, Flame, Clock, CheckCircle2, Users, Search, X,
   Filter, Target, ExternalLink,
   Layers, ChevronUp, ChevronDown, SlidersHorizontal, Archive
 } from 'lucide-react';
@@ -82,6 +82,8 @@ export default function Leaderboard() {
   const [roomBookie, setRoomBookie] = useState<Bookie | 'All'>('All');
   const [roomStatus, setRoomStatus] = useState<RoomStatus | 'All'>('All');
   const [roomQuery, setRoomQuery] = useState('');
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const searchInputRef = useRef<HTMLInputElement>(null);
   const [roomViewTab, setRoomViewTab] = useState<'active' | 'archive'>('active');
   const [isAdminModalOpen, setIsAdminModalOpen] = useState(false);
   const [isStatusDropdownOpen, setIsStatusDropdownOpen] = useState(false);
@@ -272,23 +274,23 @@ export default function Leaderboard() {
         </div>
       </div>
 
-      {/* Desktop View: Pill Switcher & Stats (sm: and up) */}
+      {/* Desktop View: Clean Text Tab Switcher & Stats (sm: and up) */}
       <div className="hidden sm:flex sm:flex-row sm:items-center justify-between gap-4">
-        <div className="inline-flex items-center p-1 bg-[#F5F5E4] rounded-full shadow-2xs self-start">
+        <div className="inline-flex items-center gap-3 self-start">
           <button
             type="button"
             onClick={() => handleTabChange('rooms')}
-            className={`px-4 sm:px-6 py-2 rounded-full font-display font-bold text-xs sm:text-sm flex items-center gap-2 transition-all active:scale-95 ${
+            className={`py-2 px-1 font-display text-sm flex items-center gap-2 transition-all active:scale-95 cursor-pointer ${
               mainTab === 'rooms'
-                ? 'bg-[#006C54] text-white shadow-xs'
-                : 'text-slate-700 hover:text-slate-900 hover:bg-[#E6E6D2]/60'
+                ? 'text-[#006C54] font-bold'
+                : 'text-slate-500 font-bold hover:text-slate-800'
             }`}
           >
-            <Flame size={15} />
+            <Flame size={16} className={mainTab === 'rooms' ? 'text-[#006C54]' : 'text-slate-400'} />
             <span>Jackpot Rooms</span>
             <span
               className={`text-[11px] px-2 py-0.5 rounded-full tabular-nums font-bold ${
-                mainTab === 'rooms' ? 'bg-white text-[#006C54]' : 'bg-[#E6E6D2] text-slate-700'
+                mainTab === 'rooms' ? 'bg-emerald-50 text-[#006C54]' : 'bg-slate-100 text-slate-500'
               }`}
             >
               {activeRooms.length}
@@ -298,13 +300,13 @@ export default function Leaderboard() {
           <button
             type="button"
             onClick={() => handleTabChange('leaderboard')}
-            className={`px-4 sm:px-6 py-2 rounded-full font-display font-bold text-xs sm:text-sm flex items-center gap-2 transition-all active:scale-95 ${
+            className={`py-2 px-1 font-display text-sm flex items-center gap-2 transition-all active:scale-95 cursor-pointer ${
               mainTab === 'leaderboard'
-                ? 'bg-[#006C54] text-white shadow-xs'
-                : 'text-slate-700 hover:text-slate-900 hover:bg-[#E6E6D2]/60'
+                ? 'text-[#006C54] font-bold'
+                : 'text-slate-500 font-bold hover:text-slate-800'
             }`}
           >
-            <Trophy size={15} />
+            <Trophy size={16} className={mainTab === 'leaderboard' ? 'text-[#006C54]' : 'text-slate-400'} />
             <span>Leaderboards &amp; Ranks</span>
           </button>
         </div>
@@ -345,8 +347,8 @@ export default function Leaderboard() {
               </p>
             </div>
 
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-              {isAuthorizedAdmin && (
+            {isAuthorizedAdmin && (
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
                 <button
                   onClick={() => setIsAdminModalOpen(true)}
                   className="h-10 px-4 rounded-full bg-white hover:bg-slate-50 border border-slate-300 text-slate-800 text-xs font-bold uppercase tracking-wide inline-flex items-center gap-2 active:scale-95 transition-all shadow-2xs cursor-pointer"
@@ -354,29 +356,19 @@ export default function Leaderboard() {
                   <SlidersHorizontal size={14} className="text-[#006C54]" />
                   <span>Jackpot Admin Console</span>
                 </button>
-              )}
-
-              <div className="relative">
-                <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
-                <input
-                  value={roomQuery}
-                  onChange={(e) => setRoomQuery(e.target.value)}
-                  placeholder="Search rooms..."
-                  className="bg-white border border-slate-200 rounded-full pl-9 pr-4 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#006C54] w-full sm:w-64 shadow-xs transition-all"
-                />
               </div>
-            </div>
+            )}
           </div>
 
           {/* View Mode Navigation Tabs: Active vs Archive (Text Highlight Without Green Pill) */}
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-white rounded-2xl p-2 shadow-xs">
-            <div className="flex items-center gap-1 min-w-0">
+          <div className="flex items-center justify-between gap-3 bg-white rounded-2xl p-2 shadow-xs">
+            <div className="flex items-center gap-1 min-w-0 flex-wrap">
               <button
                 onClick={() => {
                   setRoomViewTab('active');
                   setRoomStatus('All');
                 }}
-                className={`px-4 py-2 font-display text-xs sm:text-sm flex items-center gap-2 transition-all active:scale-95 ${
+                className={`px-4 py-2 font-display text-xs sm:text-sm flex items-center gap-2 transition-all active:scale-95 cursor-pointer ${
                   roomViewTab === 'active'
                     ? 'text-[#006C54] font-bold'
                     : 'text-slate-500 font-bold hover:text-slate-800'
@@ -396,7 +388,7 @@ export default function Leaderboard() {
                   setRoomViewTab('archive');
                   setRoomStatus('All');
                 }}
-                className={`px-4 py-2 font-display text-xs sm:text-sm flex items-center gap-2 transition-all active:scale-95 ${
+                className={`px-4 py-2 font-display text-xs sm:text-sm flex items-center gap-2 transition-all active:scale-95 cursor-pointer ${
                   roomViewTab === 'archive'
                     ? 'text-[#006C54] font-bold'
                     : 'text-slate-500 font-bold hover:text-slate-800'
@@ -410,20 +402,45 @@ export default function Leaderboard() {
                   {archivedRooms.length}
                 </span>
               </button>
-            </div>
 
-            <div className="text-xs text-slate-500 px-3 py-1 flex items-center gap-2 tabular-nums shrink-0">
-              {roomViewTab === 'active' ? (
-                <span className="flex items-center gap-1.5 text-emerald-700 font-bold">
-                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                  <span>Showing live &amp; upcoming rooms</span>
-                </span>
-              ) : (
-                <span className="flex items-center gap-1.5 text-slate-600 font-bold">
-                  <CheckCircle2 size={13} className="text-emerald-600" />
-                  <span>Showing completed &amp; settled archives</span>
-                </span>
-              )}
+              {/* Clean search icon beside Archives with no background/border */}
+              <div className="flex items-center gap-1.5 ml-1">
+                {isSearchOpen ? (
+                  <div className="flex items-center gap-1.5 animate-rise pl-1">
+                    <Search size={15} className="text-slate-400 shrink-0" />
+                    <input
+                      ref={searchInputRef}
+                      value={roomQuery}
+                      onChange={(e) => setRoomQuery(e.target.value)}
+                      placeholder="Search rooms..."
+                      autoFocus
+                      className="bg-transparent border-b border-slate-300 text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#006C54] w-32 sm:w-48 py-1 transition-all"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setRoomQuery('');
+                        setIsSearchOpen(false);
+                      }}
+                      className="text-slate-400 hover:text-slate-600 p-0.5 cursor-pointer"
+                    >
+                      <X size={14} />
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsSearchOpen(true);
+                      setTimeout(() => searchInputRef.current?.focus(), 50);
+                    }}
+                    title="Search rooms"
+                    className="p-2 text-slate-400 hover:text-slate-700 transition-colors cursor-pointer"
+                  >
+                    <Search size={16} />
+                  </button>
+                )}
+              </div>
             </div>
           </div>
 
@@ -460,7 +477,6 @@ export default function Leaderboard() {
                 onClick={() => setIsStatusDropdownOpen((v) => !v)}
                 className="h-9 px-4 rounded-full bg-white hover:bg-slate-50 border border-slate-200 text-slate-800 text-xs font-bold inline-flex items-center gap-2 active:scale-95 transition-all shadow-2xs cursor-pointer"
               >
-                <span className="text-slate-400 font-medium">Status:</span>
                 <span>
                   {roomStatus === 'All'
                     ? (roomViewTab === 'active' ? 'All Active' : 'All Settled')
