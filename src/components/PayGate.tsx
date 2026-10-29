@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Copy, Check, Loader2, KeyRound, Smartphone, AlertCircle } from 'lucide-react';
+import { Copy, Check, Loader2, KeyRound, Smartphone, AlertCircle, Wallet } from 'lucide-react';
 import { useWallet } from '../lib/store';
 import { useCurrentUser } from '../lib/authStore';
 import { useAuthWallStore } from '../lib/authWallStore';
@@ -179,13 +179,16 @@ export default function PayGate({ jackpot, onUnlocked }: { jackpot: Jackpot; onU
             <button
               onClick={payWithBalance}
               disabled={!canPayFromBalance}
-              className="w-full inline-flex items-center justify-center px-6 bg-panel-2 hover:bg-line disabled:opacity-40 disabled:cursor-not-allowed text-cream font-semibold text-sm h-12 rounded-xl border border-line transition-all cursor-pointer"
+              className="w-full inline-flex items-center justify-center px-6 bg-[#FFFFFF] hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed text-cream font-bold text-sm h-12 rounded-xl border border-line transition-all cursor-pointer"
             >
               <span className="inline-grid text-left">
                 <span className="invisible h-0 overflow-hidden select-none font-bold whitespace-nowrap" aria-hidden="true">
                   Unlock with Mshindi Tokens
                 </span>
-                <span className="whitespace-nowrap">Use Wallet Balance</span>
+                <span className="flex items-center gap-2 whitespace-nowrap">
+                  <Wallet size={16} className="shrink-0" />
+                  <span>Use Wallet Balance</span>
+                </span>
               </span>
             </button>
           </div>
