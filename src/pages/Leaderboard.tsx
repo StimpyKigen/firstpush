@@ -1,7 +1,7 @@
 import { useState, useMemo, useSyncExternalStore, useRef, useEffect } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import {
-  Trophy, Crown, Medal, Flame, Clock, CheckCircle2, Users, Search,
+  Trophy, Crown, Medal, Flame, Clock, CheckCircle2, Users,
   Filter, Target, ExternalLink,
   Layers, ChevronUp, ChevronDown, SlidersHorizontal, Archive
 } from 'lucide-react';
@@ -286,11 +286,7 @@ export default function Leaderboard() {
           >
             <Flame size={16} className={mainTab === 'rooms' ? 'text-[#006C54]' : 'text-slate-400'} />
             <span>Jackpot Rooms</span>
-            <span
-              className={`text-[11px] px-2 py-0.5 rounded-full tabular-nums font-bold ${
-                mainTab === 'rooms' ? 'bg-emerald-50 text-[#006C54]' : 'bg-slate-100 text-slate-500'
-              }`}
-            >
+            <span className="text-xs tabular-nums font-bold">
               {activeRooms.length}
             </span>
           </button>
@@ -479,25 +475,20 @@ export default function Leaderboard() {
           {/* Archive Banner when in Archive mode */}
           {roomViewTab === 'archive' && (
             <div className="bg-white border border-slate-200 rounded-2xl p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-sm animate-rise">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center text-slate-700 shrink-0">
-                  <Archive size={20} />
-                </div>
-                <div>
-                  <h3 className="font-display font-bold text-base text-slate-900">Jackpot Archives &amp; Settlement History</h3>
-                  <p className="text-xs text-slate-500 mt-0.5 leading-relaxed">
-                    Settled jackpot rooms are retained for up to 90 days. You can review verified crowd accuracy, winning leg slips, and historical gameweek leaderboards.
-                  </p>
-                </div>
+              <div>
+                <h3 className="font-display font-bold text-base text-slate-900">Jackpot Archives &amp; Settlement History</h3>
+                <p className="text-xs text-slate-500 mt-0.5 leading-relaxed">
+                  Settled jackpot rooms are retained for up to 90 days. You can review verified crowd accuracy, winning leg slips, and historical gameweek leaderboards.
+                </p>
               </div>
               <button
                 onClick={() => {
                   setRoomViewTab('active');
                   setRoomStatus('All');
                 }}
-                className="px-4 py-2 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-800 text-xs font-bold transition-all shrink-0"
+                className="px-4 py-2 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-800 text-xs font-bold transition-all shrink-0 cursor-pointer"
               >
-                ← Back to Active Rooms
+                Back to Active Rooms
               </button>
             </div>
           )}
@@ -617,18 +608,6 @@ export default function Leaderboard() {
                   <CheckCircle2 size={12} /> Settled
                 </button>
               </div>
-
-              {/* Search Input */}
-              <div className="relative shrink-0 sm:w-56">
-                <Search size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
-                <input
-                  type="text"
-                  placeholder="Search room..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-200 focus:border-[#006C54] rounded-full pl-9 pr-3 py-1.5 text-xs text-slate-900 focus:outline-none placeholder:text-slate-400 transition-all"
-                />
-              </div>
             </div>
 
             {/* Bookie Pill Selection With Logos */}
@@ -663,9 +642,6 @@ export default function Leaderboard() {
           {/* Empty State */}
           {filteredLeaderboardJackpots.length === 0 ? (
             <div className="bg-white border border-slate-200 rounded-2xl p-8 text-center space-y-3 max-w-sm mx-auto my-6 shadow-xs">
-              <div className="w-10 h-10 rounded-xl bg-amber-50 border border-amber-200 text-[#8A6500] flex items-center justify-center mx-auto">
-                <Trophy size={20} />
-              </div>
               <h3 className="font-display font-bold text-sm text-slate-900">No Rooms Found</h3>
               <p className="text-xs text-slate-500 leading-relaxed">
                 {filterTab === 'my'
@@ -717,14 +693,16 @@ export default function Leaderboard() {
                       <div className="min-w-0 space-y-1 flex-1">
                         <div className="flex items-center justify-between gap-2">
                           <div className="flex items-center gap-2 flex-wrap text-xs">
-                            <div
-                              className="w-4 h-4 rounded flex items-center justify-center p-0.5 overflow-hidden border shrink-0 shadow-2xs"
-                              style={{ background: cardTheme.iconBg, borderColor: cardTheme.border }}
-                            >
+                            <div className="w-4 h-4 flex items-center justify-center shrink-0">
                               <img src={cardTheme.logo} alt={jackpot.bookie} className="w-full h-full object-contain" />
                             </div>
                             <span className="text-[11px] font-bold uppercase tracking-wide text-slate-800">
                               {jackpot.bookie}
+                            </span>
+                            <span className="text-slate-300">·</span>
+                            <span className="text-[11px] font-bold uppercase tracking-wide flex items-center gap-1.5 text-slate-600">
+                              <span className={`w-1.5 h-1.5 rounded-full ${statusInfo.dotClass}`} />
+                              {statusInfo.label}
                             </span>
 
                             {userPerf.participated && (
@@ -735,14 +713,6 @@ export default function Leaderboard() {
                                 </span>
                               </>
                             )}
-                          </div>
-
-                          {/* Mobile Right-Side Status Indicator */}
-                          <div className="sm:hidden">
-                            <span className="text-[11px] font-bold uppercase tracking-wide flex items-center gap-1.5 text-slate-600">
-                              <span className={`w-1.5 h-1.5 rounded-full ${statusInfo.dotClass}`} />
-                              {statusInfo.label}
-                            </span>
                           </div>
                         </div>
 
@@ -756,28 +726,20 @@ export default function Leaderboard() {
                         </p>
                       </div>
 
-                      {/* Right Side Prize Pool, Desktop Status & Custom Side-by-Side Text Buttons */}
-                      <div className="flex items-center justify-between sm:justify-end gap-3 sm:gap-4 shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-100">
-                        {/* Desktop Status Indicator (Right Side) */}
-                        <div className="hidden sm:block">
-                          <span className="text-[11px] font-bold uppercase tracking-wide flex items-center gap-1.5 text-slate-600">
-                            <span className={`w-1.5 h-1.5 rounded-full ${statusInfo.dotClass}`} />
-                            {statusInfo.label}
-                          </span>
-                        </div>
-
-                        <div className="text-left sm:text-right">
-                          <span className="text-[11px] uppercase font-bold text-slate-400 tracking-wide">Bookie Jackpot</span>
-                          <p className="font-display font-bold text-[#8A6500] text-base sm:text-lg leading-none">
+                      {/* Right Side Prize Pool & Action Links Below */}
+                      <div className="flex flex-col items-end gap-1 shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-100 self-end sm:self-center">
+                        <div className="text-right">
+                          <span className="text-[11px] uppercase font-bold text-slate-400 tracking-wide block">Bookie Jackpot</span>
+                          <p className="font-display font-bold text-[#8A6500] text-base sm:text-lg leading-tight">
                             {jackpot.prizePool}
                           </p>
                         </div>
 
-                        {/* Side-by-Side Text Buttons with No Pill Background */}
-                        <div className="flex items-center gap-3">
+                        {/* Side-by-Side Text Buttons on a row below */}
+                        <div className="flex items-center gap-3 mt-0.5">
                           <Link
                             to={`/room/${jackpot.id}`}
-                            className="text-xs font-bold text-slate-600 hover:text-[#006C54] flex items-center gap-1 transition-colors py-1"
+                            className="text-xs font-bold text-slate-600 hover:text-[#006C54] flex items-center gap-1 transition-colors py-0.5"
                           >
                             <span>Enter Room</span>
                             <ExternalLink size={12} />
@@ -786,7 +748,7 @@ export default function Leaderboard() {
                           <button
                             type="button"
                             onClick={() => toggleRoomExpand(jackpot.id)}
-                            className={`text-xs font-bold flex items-center gap-1 transition-colors cursor-pointer py-1 ${
+                            className={`text-xs font-bold flex items-center gap-1 transition-colors cursor-pointer py-0.5 ${
                               isExpanded
                                 ? 'text-[#006C54] font-bold'
                                 : 'text-slate-600 hover:text-slate-900'
@@ -847,7 +809,7 @@ export default function Leaderboard() {
                                   <div className="flex items-center justify-center gap-1">
                                     <RankIcon size={14} className={isFirst ? 'text-[#8A6500]' : 'text-slate-400'} />
                                     <span className={`font-display font-bold text-xs ${isFirst ? 'text-[#8A6500]' : 'text-slate-700'}`}>
-                                      #{e.rank}
+                                      {e.rank}
                                     </span>
                                   </div>
 
@@ -912,9 +874,9 @@ export default function Leaderboard() {
                                       {/* Rank */}
                                       <td className="py-2 px-2 sm:px-3 font-bold text-[11px] sm:text-xs whitespace-nowrap">
                                         {entry.rank === 1 ? (
-                                          <span className="text-[#8A6500] font-bold">#1 👑</span>
+                                          <span className="text-[#8A6500] font-bold">1</span>
                                         ) : (
-                                          <span className="tabular-nums text-slate-500">#{entry.rank}</span>
+                                          <span className="tabular-nums text-slate-500">{entry.rank}</span>
                                         )}
                                       </td>
 
