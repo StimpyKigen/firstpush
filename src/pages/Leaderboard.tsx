@@ -370,9 +370,7 @@ export default function Leaderboard() {
               >
                 <Flame size={15} className={roomViewTab === 'active' ? 'text-[#006C54]' : 'text-slate-400'} />
                 <span>Active Rooms</span>
-                <span className={`text-[11px] px-2 py-0.5 rounded-full tabular-nums font-bold ${
-                  roomViewTab === 'active' ? 'bg-emerald-50 text-[#006C54]' : 'bg-slate-100 text-slate-500'
-                }`}>
+                <span className="text-xs tabular-nums font-bold">
                   {activeRooms.length}
                 </span>
               </button>
@@ -390,9 +388,7 @@ export default function Leaderboard() {
               >
                 <Archive size={15} className={roomViewTab === 'archive' ? 'text-[#006C54]' : 'text-slate-400'} />
                 <span>Archives</span>
-                <span className={`text-[11px] px-2 py-0.5 rounded-full tabular-nums font-bold ${
-                  roomViewTab === 'archive' ? 'bg-emerald-50 text-[#006C54]' : 'bg-slate-100 text-slate-500'
-                }`}>
+                <span className="text-xs tabular-nums font-bold">
                   {archivedRooms.length}
                 </span>
               </button>
