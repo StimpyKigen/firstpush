@@ -282,16 +282,17 @@ export default function WalletPage() {
         /* Mshindi Tokens Panel */
         <div className="space-y-8 animate-rise">
           {/* How To Earn Card */}
-          <div className="bg-gradient-to-br from-panel to-ink-2 border border-gold/40 rounded-2xl p-6 sm:p-8 relative overflow-hidden">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="font-display font-bold text-xl text-gold flex items-center gap-2">
-                <Gift size={20} /> How Mshindi Tokens Work
+          <div className="bg-gradient-to-br from-panel to-ink-2 border border-gold/40 rounded-2xl p-4 sm:p-8 relative overflow-hidden">
+            <div className="flex items-center justify-between gap-2.5 mb-4">
+              <h2 className="font-display font-bold text-base sm:text-xl text-gold flex items-center gap-1.5 sm:gap-2 min-w-0">
+                <Gift size={18} className="shrink-0 sm:w-5 sm:h-5" /> How Mshindi Tokens Work
               </h2>
               <button
                 onClick={() => setInviteModalOpen(true)}
-                className="inline-flex items-center gap-1.5 bg-[#8A6500] hover:bg-[#6d4f00] text-[#FFFFF0] font-bold text-xs px-3.5 py-2 rounded-full transition-all shadow-md"
+                className="inline-flex items-center gap-1 sm:gap-1.5 bg-[#8A6500] hover:bg-[#6d4f00] text-[#FFFFF0] font-bold text-[11px] sm:text-xs px-2.5 py-1.5 sm:px-3.5 sm:py-2 rounded-full transition-all shadow-xs sm:shadow-md shrink-0 whitespace-nowrap active:scale-95 cursor-pointer"
               >
-                <UserPlus size={14} /> Invite Friends (+4 MT)
+                <UserPlus size={13} className="shrink-0" />
+                <span>Invite<span className="hidden sm:inline"> Friends</span> (+4 MT)</span>
               </button>
             </div>
 
