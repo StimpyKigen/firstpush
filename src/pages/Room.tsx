@@ -34,7 +34,7 @@ export default function Room() {
   const { savePick, getPick, getExtraLikes } = useUserPicks();
 
   const [unlockedLocal, setUnlockedLocal] = useState(false);
-  const [openMatch, setOpenMatch] = useState<string | null>(jackpot?.matches[0]?.id ?? null);
+  const [openMatch, setOpenMatch] = useState<string | null>(null);
 
   // Form states per match or active match
   const [selectedOutcome, setSelectedOutcome] = useState<Outcome>('1');
@@ -295,7 +295,13 @@ export default function Room() {
 
       {!isUnlocked ? (
         <div ref={paygateRef} id="unlock" className="scroll-mt-4">
-          <PayGate jackpot={jackpot} onUnlocked={() => setUnlockedLocal(true)} />
+          <PayGate
+            jackpot={jackpot}
+            onUnlocked={() => {
+              setUnlockedLocal(true);
+              setOpenMatch(null);
+            }}
+          />
         </div>
       ) : (
         <div className="space-y-8">
