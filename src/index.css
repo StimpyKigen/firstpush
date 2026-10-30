@@ -784,3 +784,273 @@ table { border-color: var(--color-line); }
   }
 }
 
+
+
+/* ==========================================================================
+   MshindiRoom — Dark Mode Colour System (#202522)
+   Foundation:
+     - Main page background:      #202522
+     - Primary card background:   #2A312D
+     - Secondary card background: #2F3732
+     - Elevated surfaces:         #343C36
+     - Primary text:              #F4F5EF
+     - Secondary text:            #B5BDB6
+     - Muted text:                #929D95
+     - Primary accent green:      #66CF11
+     - Dark accent green:         #266E0C
+     - Accent gold:               #FFC72C
+     - Subtle dividers:           #414A43
+   ========================================================================== */
+
+html.dark {
+  color-scheme: dark;
+
+  --color-ink: #202522;
+  --color-ink-2: #2A312D;
+  --color-panel: #2A312D;
+  --color-panel-2: #2F3732;
+  --color-line: #414A43;
+  --color-hairline: #414A43;
+  --color-cream: #F4F5EF;
+  --color-cream-dim: #B5BDB6;
+  --color-ink-deep: #F4F5EF;
+  --color-charcoal: #B5BDB6;
+  --color-steel: #929D95;
+  --color-stone: #929D95;
+  --color-frame-bg: #202522;
+
+  --text-primary: #F4F5EF;
+  --text-secondary: #B5BDB6;
+  --text-muted: #929D95;
+  --text-disabled: #66758a;
+  --text-link: #66CF11;
+
+  --color-1: #FFC72C;
+  --color-gold: #FFC72C;
+  --color-emerald: #66CF11;
+  --color-brand-primary: #66CF11;
+}
+
+html.dark body {
+  background-color: #202522 !important;
+  color: #F4F5EF !important;
+}
+
+html.dark .app-shell {
+  background-color: #202522 !important;
+  color: #F4F5EF !important;
+}
+
+html.dark .mobile-nav-glass {
+  background-color: #202522 !important;
+  border-color: #414A43 !important;
+}
+
+html.dark .mobile-bottom-nav {
+  background-color: #202522 !important;
+  border-top-color: #414A43 !important;
+}
+
+@media (min-width: 1024px) {
+  html.dark .mobile-nav-glass {
+    background-color: #202522 !important;
+    border-color: #414A43 !important;
+  }
+}
+
+@media (display-mode: standalone) {
+  html.dark .mobile-bottom-nav {
+    background-color: #202522 !important;
+    border-top: 1px solid #414A43 !important;
+  }
+  html.dark .mobile-nav-glass {
+    background-color: #202522 !important;
+    border-color: #414A43 !important;
+  }
+}
+
+/* Scrollbars in Dark Mode */
+html.dark ::-webkit-scrollbar-track {
+  background: #202522 !important;
+}
+html.dark ::-webkit-scrollbar-thumb {
+  background: #414A43 !important;
+}
+html.dark ::-webkit-scrollbar-thumb:hover {
+  background: #929D95 !important;
+}
+
+/* Skeleton Shimmer in Dark Mode */
+html.dark .skeleton-shimmer {
+  background-color: #2F3732 !important;
+}
+html.dark .skeleton-shimmer::after {
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(52, 60, 54, 0.7) 50%,
+    transparent 100%
+  ) !important;
+}
+
+/* ==========================================================================
+   Protected Homepage Section (Strict Invariant)
+   The green-and-gold homepage sections retain their exact colors in light & dark mode.
+   ========================================================================== */
+.theme-protected,
+.theme-protected * {
+  color-scheme: light !important;
+}
+
+html.dark .theme-protected.bg-\[\#02241b\],
+html.dark .theme-protected [class*="bg-[#02241b]"] {
+  background-color: #02241b !important;
+}
+
+html.dark .theme-protected.bg-\[\#D4AF37\],
+html.dark .theme-protected [class*="bg-[#D4AF37]"] {
+  background-color: #D4AF37 !important;
+}
+
+html.dark .theme-protected .bg-white,
+html.dark .theme-protected [class*="bg-white"] {
+  background-color: #FFFFF0 !important;
+  color: #1c1e21 !important;
+}
+
+html.dark .theme-protected .text-slate-900,
+html.dark .theme-protected [class*="text-slate-900"] {
+  color: #0f172a !important;
+}
+
+html.dark .theme-protected .text-slate-950,
+html.dark .theme-protected [class*="text-slate-950"] {
+  color: #020617 !important;
+}
+
+html.dark .theme-protected .text-slate-800 {
+  color: #1e293b !important;
+}
+
+html.dark .theme-protected .text-slate-700 {
+  color: #334155 !important;
+}
+
+html.dark .theme-protected .text-slate-600 {
+  color: #475569 !important;
+}
+
+html.dark .theme-protected .text-slate-500 {
+  color: #64748b !important;
+}
+
+html.dark .theme-protected .text-slate-400 {
+  color: #94a3b8 !important;
+}
+
+html.dark .theme-protected .border-slate-200 {
+  border-color: #e2e8f0 !important;
+}
+
+/* ==========================================================================
+   Non-Protected Dark Mode Color Remapping (Outside .theme-protected)
+   ========================================================================== */
+
+/* Primary Card Background: #2A312D */
+html.dark :not(.theme-protected, .theme-protected *):where(.bg-white) {
+  background-color: #2A312D !important;
+}
+html.dark :not(.theme-protected, .theme-protected *):where([class*="bg-[#FFFFF0]"]):not([class*="min-h-screen"]):not([class*="app-shell"]) {
+  background-color: #2A312D !important;
+}
+
+/* Secondary Card Background: #2F3732 */
+html.dark :not(.theme-protected, .theme-protected *):where(.bg-slate-50),
+html.dark :not(.theme-protected, .theme-protected *):where([class*="bg-[#F5F5E4]"]) {
+  background-color: #2F3732 !important;
+}
+
+/* Elevated Surfaces: #343C36 */
+html.dark :not(.theme-protected, .theme-protected *):where(.bg-slate-100),
+html.dark :not(.theme-protected, .theme-protected *):where([class*="bg-[#ECECD8]"]),
+html.dark :not(.theme-protected, .theme-protected *):where(.hover\:bg-slate-50:hover),
+html.dark :not(.theme-protected, .theme-protected *):where(.espn-dropdown),
+html.dark :not(.theme-protected, .theme-protected *):where(.ios-dropdown) {
+  background-color: #343C36 !important;
+}
+
+/* Subtle Dividers & Borders: #414A43 */
+html.dark :not(.theme-protected, .theme-protected *):where(.border-slate-100),
+html.dark :not(.theme-protected, .theme-protected *):where(.border-slate-200),
+html.dark :not(.theme-protected, .theme-protected *):where(.border-slate-300),
+html.dark :not(.theme-protected, .theme-protected *):where([class*="border-[#E6E6D2]"]),
+html.dark :not(.theme-protected, .theme-protected *):where([class*="border-[#DCDCC8]"]),
+html.dark :not(.theme-protected, .theme-protected *):where([class*="border-[#D4D4C0]"]) {
+  border-color: #414A43 !important;
+}
+
+/* Primary Text: #F4F5EF */
+html.dark :not(.theme-protected, .theme-protected *):where(.text-slate-900),
+html.dark :not(.theme-protected, .theme-protected *):where(.text-slate-800),
+html.dark :not(.theme-protected, .theme-protected *):where([class*="text-[#1c1e21]"]),
+html.dark :not(.theme-protected, .theme-protected *):where([class*="text-[#0a1317]"]),
+html.dark :not(.theme-protected, .theme-protected *):where(.text-black) {
+  color: #F4F5EF !important;
+}
+
+/* Secondary Text: #B5BDB6 */
+html.dark :not(.theme-protected, .theme-protected *):where(.text-slate-700),
+html.dark :not(.theme-protected, .theme-protected *):where(.text-slate-600),
+html.dark :not(.theme-protected, .theme-protected *):where([class*="text-[#444950]"]) {
+  color: #B5BDB6 !important;
+}
+
+/* Muted Text: #929D95 */
+html.dark :not(.theme-protected, .theme-protected *):where(.text-slate-500),
+html.dark :not(.theme-protected, .theme-protected *):where(.text-slate-400),
+html.dark :not(.theme-protected, .theme-protected *):where([class*="text-[#5d6c7b]"]),
+html.dark :not(.theme-protected, .theme-protected *):where([class*="text-[#8595a4]"]) {
+  color: #929D95 !important;
+}
+
+/* Accent Gold in Dark Mode: #FFC72C */
+html.dark :not(.theme-protected, .theme-protected *):where(.text-gold),
+html.dark :not(.theme-protected, .theme-protected *):where(.text-amber-400),
+html.dark :not(.theme-protected, .theme-protected *):where(.text-amber-300) {
+  color: #FFC72C !important;
+}
+
+/* Primary Accent Green in Dark Mode: #66CF11 */
+html.dark :not(.theme-protected, .theme-protected *):where(.text-\[\#006C54\]),
+html.dark :not(.theme-protected, .theme-protected *):where(.text-emerald-600) {
+  color: #66CF11 !important;
+}
+
+/* Form Controls in Dark Mode */
+html.dark input:not([type="checkbox"]):not([type="radio"]),
+html.dark textarea,
+html.dark select {
+  background-color: #2A312D !important;
+  border-color: #414A43 !important;
+  color: #F4F5EF !important;
+}
+html.dark input::placeholder,
+html.dark textarea::placeholder {
+  color: #929D95 !important;
+}
+
+/* Interactive Button Variants in Dark Mode */
+html.dark .btn-ghost {
+  color: #F4F5EF !important;
+  border-color: #414A43 !important;
+}
+html.dark .btn-ghost:hover {
+  background-color: #2F3732 !important;
+}
+html.dark .btn-secondary {
+  color: #F4F5EF !important;
+  border-color: #F4F5EF !important;
+}
+html.dark .btn-secondary:hover {
+  background-color: rgba(244, 245, 239, 0.08) !important;
+}

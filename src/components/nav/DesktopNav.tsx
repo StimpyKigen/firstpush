@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import { UserCircle2, UserCog, ShieldCheck, LogOut } from 'lucide-react';
 import { isAdminUser, type Account } from '../../lib/authStore';
 import Avatar from '../Avatar';
+import ThemeToggle from '../ThemeToggle';
 import type { NavLinkItem } from './useNavData';
 
 interface DesktopNavProps {
@@ -39,13 +40,13 @@ export default function DesktopNav({
               className={`group inline-flex items-center gap-1.5 px-2.5 xl:px-3 py-1.5 text-xs xl:text-[13px] whitespace-nowrap shrink-0 transition-colors ${
                 active
                   ? 'text-[#EEAA04] font-bold'
-                  : 'text-[#1c1e21] font-bold hover:text-[#EEAA04]'
+                  : 'text-[#1c1e21] dark:text-[#F4F5EF] font-bold hover:text-[#EEAA04]'
               }`}
             >
               <l.icon
                 size={14}
                 className={`shrink-0 hidden xl:block transition-colors ${
-                  active ? 'text-[#EEAA04]' : 'text-[#5d6c7b] group-hover:text-[#EEAA04]'
+                  active ? 'text-[#EEAA04]' : 'text-[#5d6c7b] dark:text-[#B5BDB6] group-hover:text-[#EEAA04]'
                 }`}
               />
               <span className="transition-colors">{l.label}</span>
@@ -64,8 +65,10 @@ export default function DesktopNav({
         })}
       </nav>
 
-      {/* Desktop right-side controls: profile */}
-      <div className="hidden lg:flex items-center gap-2 xl:gap-2.5 shrink-0 ml-1 sm:ml-2 xl:ml-4 z-10">
+      {/* Desktop right-side controls: Theme toggle + profile / CTA with adequate breathing room */}
+      <div className="hidden lg:flex items-center gap-3.5 xl:gap-5 shrink-0 ml-1 sm:ml-2 xl:ml-4 z-10">
+        <ThemeToggle />
+
         {currentUser ? (
           <div className="relative shrink-0">
             <button
@@ -77,11 +80,11 @@ export default function DesktopNav({
               <Avatar name={currentUser.username} seed={currentUser.phone.length} size={32} avatarId={currentUser.avatarId} />
             </button>
             {profileOpen && (
-              <div className="absolute right-0 top-full mt-2 w-52 bg-[#FFFFF0] border border-[#E6E6D2] rounded-2xl shadow-xl p-1.5 overflow-hidden animate-rise z-50">
+              <div className="absolute right-0 top-full mt-2 w-52 bg-[#FFFFF0] dark:bg-[#343C36] border border-[#E6E6D2] dark:border-[#414A43] rounded-2xl shadow-xl p-1.5 overflow-hidden animate-rise z-50">
                 <Link
                   to="/profile"
                   onClick={() => setProfileOpen(false)}
-                  className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-semibold text-slate-700 hover:text-slate-900 hover:bg-[#F5F5E4] transition-colors"
+                  className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-semibold text-slate-700 dark:text-[#F4F5EF] hover:text-slate-900 dark:hover:text-white hover:bg-[#F5F5E4] dark:hover:bg-[#2F3732] transition-colors"
                 >
                   <UserCog size={15} /> My Profile
                 </Link>
@@ -91,15 +94,15 @@ export default function DesktopNav({
                       setProfileOpen(false);
                       onOpenAdminModal();
                     }}
-                    className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-bold text-[#006C54] hover:bg-emerald-50 transition-colors"
+                    className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-bold text-[#006C54] dark:text-[#66CF11] hover:bg-emerald-50 dark:hover:bg-[#2F3732] transition-colors"
                   >
                     <ShieldCheck size={15} /> Jackpot Admin
                   </button>
                 )}
-                <div className="my-1 border-t border-[#E6E6D2]" />
+                <div className="my-1 border-t border-[#E6E6D2] dark:border-[#414A43]" />
                 <button
                   onClick={onLogout}
-                  className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-bold text-rose-600 hover:bg-rose-50 transition-colors"
+                  className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-bold text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-colors"
                 >
                   <LogOut size={15} /> Log Out
                 </button>
@@ -118,4 +121,3 @@ export default function DesktopNav({
     </>
   );
 }
-

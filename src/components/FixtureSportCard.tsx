@@ -283,7 +283,7 @@ export default function FixtureSportCard({
       className={`group relative overflow-hidden border rounded-2xl p-4 sm:p-5 flex flex-col justify-between transition-all duration-200 ${
         banner
           ? `${banner.cardBg || 'bg-gradient-to-b from-[#E3EFFE] via-[#F0F6FE] to-[#FFFFF0]'} ${banner.borderColor || 'border-[#7BA7F8]'} ${banner.borderHoverColor || 'hover:border-[#0A3B8C]'} ${banner.shadow || 'shadow-[0_2px_12px_rgba(10,59,140,0.09)] hover:shadow-[0_4px_18px_rgba(10,59,140,0.16)]'}`
-          : 'bg-[#FFFFF0] border-[#DCDCC8] hover:border-[#006C54]/50 shadow-[0_1px_4px_rgba(0,0,0,0.03)] hover:shadow-[0_4px_14px_rgba(0,108,84,0.08)]'
+          : 'bg-[#FFFFF0] dark:bg-[#2A312D] border-[#DCDCC8] dark:border-[#414A43] hover:border-[#006C54]/50 dark:hover:border-[#66CF11]/50 shadow-[0_1px_4px_rgba(0,0,0,0.03)] hover:shadow-[0_4px_14px_rgba(0,108,84,0.08)]'
       }`}
     >
       {/* Dynamic Faded Competition Background Banner */}
@@ -486,7 +486,7 @@ export default function FixtureSportCard({
                   ? 'bg-[#006C54] text-white font-bold border-[#005441] shadow-xs'
                   : banner
                   ? `bg-white/15 hover:bg-white/35 text-slate-800 ${banner.oddsBorderColor || 'border-[#7BA7F8]/50 hover:border-[#0A3B8C]'} backdrop-blur-[1px]`
-                  : 'bg-transparent hover:bg-black/[0.04] text-slate-800 border-[#DCDCC8] hover:border-[#006C54]'
+                  : 'bg-transparent hover:bg-black/[0.04] dark:hover:bg-white/[0.06] text-slate-800 dark:text-[#F4F5EF] border-[#DCDCC8] dark:border-[#414A43] hover:border-[#006C54] dark:hover:border-[#66CF11]'
               }`}
             >
               <span
@@ -521,7 +521,7 @@ export default function FixtureSportCard({
                   ? 'bg-[#006C54] text-white font-bold border-[#005441] shadow-xs'
                   : banner
                   ? `bg-white/15 hover:bg-white/35 text-slate-800 ${banner.oddsBorderColor || 'border-[#7BA7F8]/50 hover:border-[#0A3B8C]'} backdrop-blur-[1px]`
-                  : 'bg-transparent hover:bg-black/[0.04] text-slate-800 border-[#DCDCC8] hover:border-[#006C54]'
+                  : 'bg-transparent hover:bg-black/[0.04] dark:hover:bg-white/[0.06] text-slate-800 dark:text-[#F4F5EF] border-[#DCDCC8] dark:border-[#414A43] hover:border-[#006C54] dark:hover:border-[#66CF11]'
               }`}
             >
               <span
@@ -556,7 +556,7 @@ export default function FixtureSportCard({
                   ? 'bg-[#006C54] text-white font-bold border-[#005441] shadow-xs'
                   : banner
                   ? `bg-white/15 hover:bg-white/35 text-slate-800 ${banner.oddsBorderColor || 'border-[#7BA7F8]/50 hover:border-[#0A3B8C]'} backdrop-blur-[1px]`
-                  : 'bg-transparent hover:bg-black/[0.04] text-slate-800 border-[#DCDCC8] hover:border-[#006C54]'
+                  : 'bg-transparent hover:bg-black/[0.04] dark:hover:bg-white/[0.06] text-slate-800 dark:text-[#F4F5EF] border-[#DCDCC8] dark:border-[#414A43] hover:border-[#006C54] dark:hover:border-[#66CF11]'
               }`}
             >
               <span
@@ -581,7 +581,7 @@ export default function FixtureSportCard({
             </span>
             <span className="t-num font-semibold text-slate-800">{majority}%</span>
           </div>
-          <div className={`w-full rounded-full h-1.5 flex overflow-hidden ${banner ? banner.consensusTrackBg || 'bg-[#DDE8F8]' : 'bg-[#E6E6D2]'}`}>
+          <div className={`w-full rounded-full h-1.5 flex overflow-hidden ${banner ? banner.consensusTrackBg || 'bg-[#DDE8F8]' : 'bg-[#E6E6D2] dark:bg-[#414A43]'}`}>
             <div
               style={{ width: `${consensus.homePct}%` }}
               className="bg-[#006C54] transition-all duration-500"
@@ -602,7 +602,7 @@ export default function FixtureSportCard({
       </div>
 
       {/* Card Footer: Details & Discussion Link & Borderless Bet Builder Button */}
-      <div className={`relative z-10 pt-3 mt-3 border-t flex items-center justify-between gap-2 ${banner ? banner.dividerColor || 'border-[#D9E7F9]' : 'border-[#F0F0E4]'}`}>
+      <div className={`relative z-10 pt-3 mt-3 border-t flex items-center justify-between gap-2 ${banner ? banner.dividerColor || 'border-[#D9E7F9]' : 'border-[#F0F0E4] dark:border-[#414A43]'}`}>
 
         <Link
           to={`/free/${match.id}`}

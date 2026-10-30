@@ -34,11 +34,23 @@
     <script>
       (function () {
         try {
+          var savedTheme = localStorage.getItem('mshindi-theme');
+          var isDark = savedTheme === 'dark' || (!savedTheme && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
+          if (isDark) {
+            document.documentElement.classList.add('dark');
+            document.documentElement.classList.remove('light');
+          } else {
+            document.documentElement.classList.add('light');
+            document.documentElement.classList.remove('dark');
+          }
           var pwa = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true || /[?&](pwa|splash|loading)=1/.test(location.search);
           if (pwa) {
             document.documentElement.setAttribute('data-splash', 'active');
             document.querySelector('meta[name=theme-color]').setAttribute('content', '#11492D');
             document.documentElement.style.backgroundColor = '#11492D';
+          } else if (isDark) {
+            var meta = document.querySelector('meta[name=theme-color]');
+            if (meta) meta.setAttribute('content', '#202522');
           }
         } catch (e) {}
       })();

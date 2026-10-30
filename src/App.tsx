@@ -1,7 +1,7 @@
 import { useEffect, Suspense, lazy } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AnimatePresence, motion } from 'motion/react';
-import { enforceLightMode } from './lib/themeStore';
+import { initTheme } from './lib/themeStore';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import ScrollToTop from './components/ScrollToTop';
@@ -164,7 +164,7 @@ function ConditionalFooter() {
 function App() {
   // Ensure light theme is strictly enforced across all client sessions
   useEffect(() => {
-    enforceLightMode();
+    initTheme();
   }, []);
 
   // Initial data sync and background updates (runs strictly once)
@@ -191,7 +191,7 @@ function App() {
         {/*
           Outer frame: fills the full viewport with warm ivory background
         */}
-        <div className="min-h-dvh w-full flex flex-col font-body bg-[#FFFFF0] text-slate-900 antialiased selection:bg-[#006C54]/20 transition-colors duration-200">
+        <div className="min-h-dvh w-full flex flex-col font-body bg-[#FFFFF0] dark:bg-[#202522] text-slate-900 dark:text-[#F4F5EF] antialiased selection:bg-[#006C54]/20 transition-colors duration-200">
           {/*
             App shell: full responsive container spanning edge-to-edge on phones,
             and expansive desktop canvas on larger displays.

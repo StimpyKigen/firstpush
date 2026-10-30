@@ -350,7 +350,7 @@ export default function Home() {
   };
 
   return (
-    <div className="bg-[#FFFFF0] text-slate-900 min-h-screen">
+    <div className="bg-[#FFFFF0] dark:bg-[#202522] text-slate-900 dark:text-[#F4F5EF] min-h-screen">
       <SeoHead
         title="MshindiRoom — Kenya's Premier Sports Consensus & Jackpot Arena"
         description="Pool consensus with Kenya's top punters for SportPesa Mega Jackpot, Betika Midweek & Mozzart Daily. View crowd picks, share bet slips & track bookie predictions."
@@ -379,7 +379,7 @@ export default function Home() {
           - Mobile: Side-by-side (photo on left, text on right) with proportional text
           ========================================================================= */}
       {!hasInitiallyLoaded ? (
-        <section className="w-full bg-[#02241b] text-white">
+        <section className="theme-protected w-full bg-[#02241b] text-white">
           <div className="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8 py-4 sm:py-16 relative overflow-hidden">
             <div className="text-left mb-3 sm:mb-10 relative z-10 px-1 sm:px-0">
               <span className="text-white font-bold text-xs uppercase tracking-wider block mb-1">
@@ -393,7 +393,7 @@ export default function Home() {
           </div>
         </section>
       ) : publishedPhotos.length > 0 && currentPhoto ? (
-        <section className="w-full bg-[#02241b] text-white">
+        <section className="theme-protected w-full bg-[#02241b] text-white">
           <div
             className="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8 py-4 sm:py-16 relative overflow-hidden"
             onTouchStart={handleCarouselTouchStart}
@@ -731,7 +731,7 @@ export default function Home() {
           - Minimalistic heart icon on bottom right of video cards
           ========================================================================= */}
       <section
-        className={`w-full bg-[#D4AF37] text-slate-900 pt-6 sm:pt-16 ${
+        className={`theme-protected w-full bg-[#D4AF37] text-slate-900 pt-6 sm:pt-16 ${
           currentUser
             ? 'pb-[calc(5.5rem+env(safe-area-inset-bottom,0px))] sm:pb-16'
             : 'pb-6 sm:pb-16'

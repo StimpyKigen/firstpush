@@ -4,6 +4,7 @@ import JackpotAdminModal from './JackpotAdminModal';
 import DesktopNav from './nav/DesktopNav';
 import { MobileHeaderControls, MobileMenuPanel } from './nav/MobileHeader';
 import MobileBottomNav from './nav/MobileBottomNav';
+import ThemeToggle from './ThemeToggle';
 import { useNavData } from './nav/useNavData';
 import { useBackToClose } from '../lib/useBackToClose';
 
@@ -58,7 +59,7 @@ export default function Navbar() {
   return (
     <>
       <header
-        className="sticky top-0 z-50 border-b mobile-nav-glass lg:bg-[#FFFFF0] lg:border-[#E6E6D2] transition-colors"
+        className="sticky top-0 z-50 border-b mobile-nav-glass lg:bg-[#FFFFF0] dark:lg:bg-[#202522] lg:border-[#E6E6D2] dark:lg:border-[#414A43] transition-colors"
         style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between gap-4 h-16">
@@ -89,11 +90,15 @@ export default function Navbar() {
             onLogout={handleLogout}
           />
 
-          {!hideMobileMenu && (
+          {!hideMobileMenu ? (
             <MobileHeaderControls
               open={open}
               setOpen={setOpen}
             />
+          ) : (
+            <div className="flex lg:hidden items-center shrink-0">
+              <ThemeToggle />
+            </div>
           )}
         </div>
 

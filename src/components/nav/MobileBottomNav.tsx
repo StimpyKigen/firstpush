@@ -42,7 +42,7 @@ export default function MobileBottomNav({ pathname, builderLegsCount, currentUse
   return (
     <nav
       aria-label="Primary Mobile Navigation"
-      className="lg:hidden fixed inset-x-0 bottom-0 z-40 select-none mobile-bottom-nav w-full bg-[#FFFFF0] border-t border-[#E6E6D2]"
+      className="lg:hidden fixed inset-x-0 bottom-0 z-40 select-none mobile-bottom-nav w-full bg-[#FFFFF0] dark:bg-[#202522] border-t border-[#E6E6D2] dark:border-[#414A43]"
       style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
     >
       <div className="relative h-[52px] w-full max-w-lg mx-auto">
@@ -50,7 +50,7 @@ export default function MobileBottomNav({ pathname, builderLegsCount, currentUse
         {hasActive && (
           <span
             aria-hidden="true"
-            className="pointer-events-none absolute top-0 h-[2.5px] w-8 rounded-full bg-[#006C54] transition-all duration-300 ease-out z-10"
+            className="pointer-events-none absolute top-0 h-[2.5px] w-8 rounded-full bg-[#006C54] dark:bg-[#66CF11] transition-all duration-300 ease-out z-10"
             style={{
               left: `calc((${activeIndex} + 0.5) * (100% / ${count}) - 16px)`,
             }}
@@ -75,13 +75,13 @@ export default function MobileBottomNav({ pathname, builderLegsCount, currentUse
                     size={20}
                     className={`transition-colors duration-200 ${
                       tab.isActive
-                        ? 'text-[#006C54] stroke-[2.35]'
-                        : 'text-[#5d6c7b] group-hover:text-[#0a1317]'
+                        ? 'text-[#006C54] dark:text-[#66CF11] stroke-[2.35]'
+                        : 'text-[#5d6c7b] dark:text-[#B5BDB6] group-hover:text-[#0a1317] dark:group-hover:text-[#F4F5EF]'
                     }`}
                   />
                   {!!tab.badge && tab.badge > 0 && (
                     <span
-                      className={`absolute -top-1.5 -right-2.5 font-bold text-[11px] h-3.5 min-w-[15px] px-1 rounded-full flex items-center justify-center shadow-xs border border-[#FFFFF0] ${
+                      className={`absolute -top-1.5 -right-2.5 font-bold text-[11px] h-3.5 min-w-[15px] px-1 rounded-full flex items-center justify-center shadow-xs border border-[#FFFFF0] dark:border-[#202522] ${
                         tab.isActive ? 'bg-[#EEAA04] text-[#0a1317]' : 'bg-[#006C54] text-[#EEAA04]'
                       }`}
                     >
@@ -92,8 +92,8 @@ export default function MobileBottomNav({ pathname, builderLegsCount, currentUse
                 <span
                   className={`text-[11px] leading-tight tracking-tight mt-0.5 truncate max-w-full px-0.5 transition-colors duration-200 ${
                     tab.isActive
-                      ? 'font-bold text-[#006C54]'
-                      : 'font-medium text-[#5d6c7b] group-hover:text-[#0a1317]'
+                      ? 'font-bold text-[#006C54] dark:text-[#66CF11]'
+                      : 'font-medium text-[#5d6c7b] dark:text-[#B5BDB6] group-hover:text-[#0a1317] dark:group-hover:text-[#F4F5EF]'
                   }`}
                 >
                   {tab.label}

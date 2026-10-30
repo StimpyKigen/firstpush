@@ -89,7 +89,8 @@ export default function PWALoadingScreen() {
       // App loaded: release the splash lock and return status bar to ivory/white
       root.removeAttribute('data-splash');
       root.style.backgroundColor = '';
-      if (metaTheme) metaTheme.setAttribute('content', '#FFFFF0');
+      const isDark = root.classList.contains('dark');
+      if (metaTheme) metaTheme.setAttribute('content', isDark ? '#202522' : '#FFFFF0');
     }
   }, [isPwa, isExiting, isDone]);
 
