@@ -114,9 +114,9 @@ export default function JackpotAdminModal({ isOpen, onClose }: JackpotAdminModal
       overlayClassName="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/40 backdrop-blur-md overflow-y-auto"
     >
       <div className="relative w-full max-w-5xl bg-[#FFFFF0] border border-[#E5E5EA] rounded-3xl shadow-2xl overflow-hidden my-6 animate-rise text-slate-900 flex flex-col max-h-[90vh]">
-        {/* APPLE-INSPIRED CONSOLE HEADER */}
-        <div className="flex items-center justify-between px-6 py-4.5 border-b border-[#E5E5EA] bg-white">
-          <div className="flex items-center gap-3">
+        {/* APPLE-INSPIRED CONSOLE HEADER & SEGMENTED TABS */}
+        <div className="bg-white border-b border-[#E5E5EA] shrink-0">
+          <div className="flex items-center justify-between px-6 pt-5 pb-3 sm:pb-4">
             <div>
               <div className="flex items-center gap-2">
                 <h2 className="font-semibold text-base sm:text-lg text-slate-900 tracking-tight">
@@ -126,13 +126,11 @@ export default function JackpotAdminModal({ isOpen, onClose }: JackpotAdminModal
                   Super Admin
                 </span>
               </div>
-              <p className="text-xs text-slate-500 hidden sm:block">
+              <p className="text-xs text-slate-500 hidden sm:block mt-0.5">
                 Manage weekly homepage news, live jackpot consensus rooms, and moderation safety
               </p>
             </div>
-          </div>
 
-          <div className="flex items-center gap-2 sm:gap-3">
             <button
               onClick={onClose}
               aria-label="Close"
@@ -141,66 +139,66 @@ export default function JackpotAdminModal({ isOpen, onClose }: JackpotAdminModal
               <X size={18} />
             </button>
           </div>
-        </div>
 
-        {/* APPLE-STYLE SEGMENTED NAVIGATION BAR */}
-        {isAdminUnlocked && (
-          <div className="px-6 py-2.5 bg-[#F5F5F7] border-b border-[#E5E5EA] overflow-x-auto">
-            <div className="inline-flex items-center bg-white border border-[#E5E5EA] rounded-xl p-1 gap-1 shadow-2xs">
-              <button
-                type="button"
-                onClick={() => setActiveAdminTab('jackpots')}
-                className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
-                  activeAdminTab === 'jackpots'
-                    ? 'bg-[#006C54] text-white shadow-xs'
-                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
-                }`}
-              >
-                <Trophy size={14} />
-                <span>Jackpot Rooms</span>
-              </button>
+          {/* APPLE-STYLE SEGMENTED NAVIGATION BAR */}
+          {isAdminUnlocked && (
+            <div className="px-6 pb-3 overflow-x-auto">
+              <div className="inline-flex items-center bg-[#F5F5F7] border border-[#E5E5EA] rounded-xl p-1 gap-1 shadow-2xs">
+                <button
+                  type="button"
+                  onClick={() => setActiveAdminTab('jackpots')}
+                  className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
+                    activeAdminTab === 'jackpots'
+                      ? 'bg-[#006C54] text-white shadow-xs'
+                      : 'text-slate-600 hover:text-slate-900 hover:bg-white/70'
+                  }`}
+                >
+                  <Trophy size={14} />
+                  <span>Jackpot Rooms</span>
+                </button>
 
-              <button
-                type="button"
-                onClick={() => setActiveAdminTab('moderation')}
-                className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
-                  activeAdminTab === 'moderation'
-                    ? 'bg-[#006C54] text-white shadow-xs'
-                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
-                }`}
-              >
-                <ShieldAlert size={14} />
-                <span>Moderation</span>
-              </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveAdminTab('moderation')}
+                  className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
+                    activeAdminTab === 'moderation'
+                      ? 'bg-[#006C54] text-white shadow-xs'
+                      : 'text-slate-600 hover:text-slate-900 hover:bg-white/70'
+                  }`}
+                >
+                  <ShieldAlert size={14} />
+                  <span>Moderation</span>
+                </button>
 
-              <button
-                type="button"
-                onClick={() => setActiveAdminTab('feed')}
-                className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
-                  activeAdminTab === 'feed'
-                    ? 'bg-[#006C54] text-white shadow-xs'
-                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
-                }`}
-              >
-                <Newspaper size={14} />
-                <span>Homepage Feed</span>
-              </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveAdminTab('feed')}
+                  className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
+                    activeAdminTab === 'feed'
+                      ? 'bg-[#006C54] text-white shadow-xs'
+                      : 'text-slate-600 hover:text-slate-900 hover:bg-white/70'
+                  }`}
+                >
+                  <Newspaper size={14} />
+                  <span>Homepage Feed</span>
+                </button>
 
-              <button
-                type="button"
-                onClick={() => setActiveAdminTab('fixtures')}
-                className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
-                  activeAdminTab === 'fixtures'
-                    ? 'bg-[#006C54] text-white shadow-xs'
-                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
-                }`}
-              >
-                <CalendarDays size={14} />
-                <span>Fixtures</span>
-              </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveAdminTab('fixtures')}
+                  className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
+                    activeAdminTab === 'fixtures'
+                      ? 'bg-[#006C54] text-white shadow-xs'
+                      : 'text-slate-600 hover:text-slate-900 hover:bg-white/70'
+                  }`}
+                >
+                  <CalendarDays size={14} />
+                  <span>Fixtures</span>
+                </button>
+              </div>
             </div>
-          </div>
-        )}
+          )}
+        </div>
 
         {/* BODY CONTENT AREA */}
         <div className="flex-1 overflow-y-auto">

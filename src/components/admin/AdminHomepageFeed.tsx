@@ -20,6 +20,7 @@ import {
   AlertCircle,
   Layers,
   Sparkles,
+  Newspaper,
 } from 'lucide-react';
 import {
   subscribeToHomepageFeed,
@@ -526,7 +527,20 @@ export default function AdminHomepageFeed() {
   const previewCustomEmbedUrl = customEmbedUrl ? normalizeCustomEmbedUrl(customEmbedUrl) : null;
 
   return (
-    <div className="space-y-8 text-slate-900">
+    <div className="space-y-6 text-slate-900">
+      {/* Homepage Feed Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[#E5E5EA]">
+        <div>
+          <h3 className="font-semibold text-lg text-slate-900 tracking-tight flex items-center gap-2">
+            <Newspaper size={18} className="text-[#006C54]" />
+            Homepage Feed &amp; Editorial Manager
+          </h3>
+          <p className="text-xs text-slate-500 mt-1">
+            Manage weekly homepage matchday stories, WebP editorial carousels, and match preview video embeds.
+          </p>
+        </div>
+      </div>
+
       {/* =========================================================================
           SECTION 1: CAROUSEL WEBP PHOTO MANAGEMENT (FIREBASE STORAGE DIRECT UPLOADS)
           ========================================================================= */}
