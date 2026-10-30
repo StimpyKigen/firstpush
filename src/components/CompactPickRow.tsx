@@ -171,8 +171,6 @@ export default function CompactPickRow({ pick, isTopPick, onEdit }: CompactPickR
 
             <div className="flex items-center gap-2 mt-0.5 text-xs text-slate-400">
               <StarRating rating={getStarRating(pick.username)} size={10} showNumber={false} />
-              <span>·</span>
-              <span className="text-[11px] tabular-nums text-slate-500">{pick.timeAgo}</span>
             </div>
           </div>
         </div>
@@ -200,8 +198,9 @@ export default function CompactPickRow({ pick, isTopPick, onEdit }: CompactPickR
       {/* Message Card Footer: Reactions & Actions */}
       <div className="flex items-center justify-between gap-2 pt-1 border-t border-slate-100 text-xs">
         <div className="flex items-center gap-2 min-w-0 flex-wrap">
+          <span className="text-[11px] tabular-nums text-slate-400 font-medium">{pick.timeAgo}</span>
           {isMine && !canEdit && (
-            <span className="text-[11px] tabular-nums text-slate-400 font-bold">Edited 2/2</span>
+            <span className="text-[11px] tabular-nums text-slate-400 font-bold">· Edited 2/2</span>
           )}
         </div>
 

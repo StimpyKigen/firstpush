@@ -1,6 +1,6 @@
 import { useState, useMemo, useRef, useEffect, useSyncExternalStore } from 'react';
 import {
-  Unlock, Calendar, SearchX,
+  Calendar, SearchX,
   RotateCcw, Radio, CheckCircle2, RefreshCw
 } from 'lucide-react';
 import SeoHead from '../components/SeoHead';
@@ -430,16 +430,12 @@ export default function FreeMatches() {
       {/* Editorial Header */}
       <div className="text-center mb-6 sm:mb-8">
         <div className="flex items-center justify-center gap-2.5 flex-wrap mb-2.5 text-xs font-bold uppercase tracking-wide text-slate-500">
-          <span className="inline-flex items-center gap-1.5 text-slate-700">
-            <Unlock size={13} className="text-[#006C54]" /> Always Free · No Paywall
-          </span>
-          <span className="text-slate-300 font-normal">·</span>
           <span className="inline-flex items-center gap-1.5 text-[#006C54] font-bold">
             <Radio size={13} className="animate-pulse" /> Live Market Feed
           </span>
           <span className="text-slate-300 font-normal">·</span>
           <span className="inline-flex items-center gap-1.5 text-slate-600">
-            <Calendar size={13} className="text-slate-400" /> All Times in EAT (UTC+3)
+            <Calendar size={13} className="text-slate-400" /> All Times in EAT
           </span>
         </div>
 

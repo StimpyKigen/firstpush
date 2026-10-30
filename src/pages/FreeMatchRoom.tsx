@@ -166,10 +166,10 @@ export default function FreeMatchRoom() {
             <span>Fan Discussion</span>
             {consensus && (
               <span
-                className={`text-[11px] tabular-nums px-2 py-0.5 rounded-full font-bold transition-colors ${
+                className={`text-[11px] tabular-nums font-bold transition-colors ${
                   roomTab === 'discussion'
-                    ? 'bg-[#E8F5EE] text-[#006C54]'
-                    : 'bg-slate-100 text-slate-500'
+                    ? 'text-[#006C54]'
+                    : 'text-slate-500'
                 }`}
               >
                 {consensus.totalVotes}
@@ -255,9 +255,7 @@ export default function FreeMatchRoom() {
           {/* Community Picks & Consensus Split Banner (Border removed on icon before text) */}
           <div className="bg-[#FFFFF0] border border-[#DCDCC8] rounded-2xl p-4 sm:p-5 flex items-center justify-between gap-3 shadow-xs">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-[#006C54]/10 text-[#006C54] flex items-center justify-center font-bold shrink-0">
-                <Users size={20} />
-              </div>
+              <Users size={20} className="text-[#006C54] shrink-0" />
               <div>
                 <h3 className="font-display font-bold text-slate-900 text-sm sm:text-base uppercase tracking-tight">
                   Community Picks &amp; Consensus Split
