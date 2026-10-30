@@ -17,7 +17,7 @@ export const Switch = React.forwardRef<
 >(({ className, icon, thumbClassName, ...props }, ref) => (
   <SwitchPrimitive.Root
     className={cn(
-      "peer inline-flex h-5 w-9 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent shadow-xs transition-colors focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:cursor-not-allowed disabled:opacity-50 data-[state=checked]:bg-[#006C54] data-[state=unchecked]:bg-slate-300 dark:data-[state=unchecked]:bg-[#343C36]",
+      "peer inline-flex h-5 w-9 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent shadow-xs transition-colors focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:cursor-not-allowed disabled:opacity-50 data-[state=checked]:bg-[#006C54] data-[state=unchecked]:bg-[#202522]",
       className
     )}
     {...props}
@@ -39,6 +39,7 @@ Switch.displayName = SwitchPrimitive.Root.displayName;
  * Connected Theme Switcher component for MshindiRoom.
  * Supports the customized switch layout with Sun/Moon icons,
  * toggles dark/light theme, and synchronizes with localStorage and documentElement.
+ * In light mode: Charcoal (#202522) track with charcoal (#202522) sun on white thumb.
  * In dark mode: Emerald green (#006C54) track with ivory (#F4F5EF) moon on charcoal (#202522) thumb.
  * Sized proportionally on mobile and desktop.
  */
@@ -54,12 +55,12 @@ export const ThemeToggleSwitch: React.FC<{ className?: string }> = ({ className 
             isDark ? (
               <MoonIcon className="h-3.5 w-3.5 text-[#F4F5EF] stroke-[2.2]" />
             ) : (
-              <SunMediumIcon className="h-3.5 w-3.5 text-amber-500 stroke-[2.2]" />
+              <SunMediumIcon className="h-3.5 w-3.5 text-[#202522] stroke-[2.2]" />
             )
           }
           checked={isDark}
           onCheckedChange={toggleTheme}
-          className="h-7 w-12 data-[state=checked]:bg-[#006C54] data-[state=unchecked]:bg-[#D4D4C0] border border-transparent shadow-inner"
+          className="h-7 w-12 data-[state=checked]:bg-[#006C54] data-[state=unchecked]:bg-[#202522] border border-transparent shadow-inner"
           thumbClassName="h-6 w-6 data-[state=checked]:translate-x-5 shadow-md flex items-center justify-center bg-white data-[state=checked]:bg-[#202522]"
         />
       </div>
