@@ -82,9 +82,6 @@ export default function PunterProfileModal({ username, onClose }: PunterProfileM
         <div className="flex items-start gap-4 pt-2">
           <div className="relative shrink-0">
             <Avatar name={username} seed={username.length} size={56} />
-            <span className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-gold border-2 border-ink flex items-center justify-center">
-              <Sparkles size={10} className="text-ink" />
-            </span>
           </div>
 
           <div className="min-w-0 flex-1">

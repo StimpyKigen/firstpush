@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { LifeBuoy, X, MessageCircle, Mail, Phone as PhoneIcon, ChevronRight } from 'lucide-react';
+import { X, MessageCircle, Mail, Phone as PhoneIcon, ChevronRight } from 'lucide-react';
 import { RECEIVER_MPESA_NUMBER } from '../../lib/mpesa';
 
 const faqEntries = [
@@ -17,7 +17,7 @@ export default function SupportPanel({ onClose }: SupportPanelProps) {
     <div className="bg-panel border border-blue-400/30 rounded-2xl p-6 sm:p-7 mb-6 animate-rise">
       <div className="flex items-center justify-between mb-5">
         <h2 className="font-display font-bold text-lg text-cream flex items-center gap-2">
-          <LifeBuoy size={18} className="text-[#3b82f6]" /> Customer Support
+          Customer Support
         </h2>
         <button onClick={onClose} aria-label="Close" className="text-cream-dim hover:text-cream"><X size={18} /></button>
       </div>

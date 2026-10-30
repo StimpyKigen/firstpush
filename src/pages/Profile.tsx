@@ -443,7 +443,7 @@ export default function Profile() {
                 </div>
 
                 <div className="flex items-center gap-2 shrink-0">
-                  <span className="tabular-nums font-bold text-xs text-[#8A6500] bg-[#EEAA04]/20 px-2.5 py-0.5 rounded-full">
+                  <span className="tabular-nums font-bold text-xs text-[#8A6500]">
                     {mshindiTokens} MT
                   </span>
                   <ChevronRight size={17} className="text-slate-400 group-hover:text-slate-600 transition-colors" />
@@ -488,12 +488,12 @@ export default function Profile() {
                       <div key={tx.id} className="flex items-center justify-between py-2.5">
                         <div className="flex items-center gap-3 min-w-0">
                           <span
-                            className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${
+                            className={`flex items-center justify-center shrink-0 ${
                               tx.type === 'topup'
-                                ? 'bg-emerald-50 text-emerald-700'
+                                ? 'text-emerald-700'
                                 : tx.type === 'withdraw'
-                                ? 'bg-amber-50 text-amber-700'
-                                : 'bg-slate-100 text-slate-600'
+                                ? 'text-amber-700'
+                                : 'text-slate-600'
                             }`}
                           >
                             {tx.type === 'topup' ? <ArrowDownLeft size={14} /> : <ArrowUpRight size={14} />}
@@ -546,7 +546,7 @@ export default function Profile() {
                   <p className="text-xs text-slate-500 font-normal truncate">Verified mobile credentials</p>
                 </div>
 
-                <span className="tabular-nums text-xs font-bold text-slate-700 bg-slate-100 px-2.5 py-1 rounded-md shrink-0">
+                <span className="tabular-nums text-xs font-bold text-slate-700 shrink-0">
                   {currentUser.phone}
                 </span>
               </div>
@@ -561,7 +561,7 @@ export default function Profile() {
                 </div>
 
                 <div className="flex items-center gap-1.5 shrink-0">
-                  <span className="text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full">
+                  <span className="text-[11px] font-bold text-emerald-700">
                     24/7 Care
                   </span>
                   <ChevronRight size={17} className="text-slate-400 group-hover:text-slate-600 transition-colors" />
