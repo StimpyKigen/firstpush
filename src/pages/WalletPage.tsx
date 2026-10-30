@@ -128,9 +128,6 @@ export default function WalletPage() {
         >
           <div className="flex items-center justify-between mb-2">
             <span className="text-xs text-slate-500 uppercase tracking-wide font-bold">M-Pesa Wallet Balance</span>
-            <span className="w-8 h-8 rounded-full bg-[#006C54]/10 flex items-center justify-center">
-              <WalletIcon size={16} className="text-[#006C54]" />
-            </span>
           </div>
           <p className="font-display font-bold text-4xl text-slate-900">Ksh {balance.toLocaleString()}</p>
           <p className="text-xs text-slate-500 mt-2">Spendable for instant room unlocks and premium features.</p>
@@ -148,9 +145,6 @@ export default function WalletPage() {
           <div className="flex items-center justify-between mb-2">
             <span className="text-xs text-slate-500 uppercase tracking-wide font-bold flex items-center gap-1">
               <Coins size={14} className="text-[#8A6500]" /> Mshindi Tokens
-            </span>
-            <span className="w-8 h-8 rounded-full bg-[#8A6500]/10 flex items-center justify-center">
-              <Coins size={16} className="text-[#8A6500]" />
             </span>
           </div>
           <p className="font-display font-bold text-4xl text-[#8A6500]">{mshindiTokens} <span className="text-lg text-slate-400 font-sans">MT</span></p>
@@ -283,28 +277,6 @@ export default function WalletPage() {
               </p>
             )}
           </div>
-
-          <div className="bg-panel border border-line rounded-2xl p-6 sm:p-8">
-            <h2 className="font-display font-bold text-lg text-cream mb-4">Cash Wallet Activity</h2>
-            <div className="flex flex-col divide-y divide-line">
-              {txs.map((tx) => (
-                <div key={tx.id} className="flex items-center justify-between gap-3 py-3">
-                  <div className="flex items-center gap-3 min-w-0">
-                    <div className={`w-9 h-9 rounded-full flex items-center justify-center shrink-0 ${tx.type === 'topup' ? 'bg-emerald-2/10 text-emerald-2' : 'bg-gold/10 text-gold'}`}>
-                      {tx.type === 'topup' ? <ArrowDownLeft size={16} /> : <ArrowUpRight size={16} />}
-                    </div>
-                    <div className="min-w-0">
-                      <p className="text-sm font-semibold text-cream truncate">{tx.label}</p>
-                      <p className="text-xs text-cream-dim">{tx.time}</p>
-                    </div>
-                  </div>
-                  <span className={`text-sm font-bold shrink-0 ${tx.amount > 0 ? 'text-emerald-2' : 'text-cream-dim'}`}>
-                    {tx.amount > 0 ? '+' : ''}{tx.amount}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </div>
         </>
       ) : (
         /* Mshindi Tokens Panel */
@@ -366,7 +338,7 @@ export default function WalletPage() {
               {tokenTransactions.map((tx) => (
                 <div key={tx.id} className="flex items-center justify-between gap-3 py-3">
                   <div className="flex items-center gap-3 min-w-0">
-                    <div className={`w-9 h-9 rounded-full flex items-center justify-center shrink-0 ${tx.amount > 0 ? 'bg-gold/15 text-gold' : 'bg-line text-cream-dim'}`}>
+                    <div className={`flex items-center justify-center shrink-0 ${tx.amount > 0 ? 'text-gold' : 'text-cream-dim'}`}>
                       <Coins size={16} />
                     </div>
                     <div className="min-w-0">

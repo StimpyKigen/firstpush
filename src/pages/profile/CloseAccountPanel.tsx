@@ -1,4 +1,4 @@
-import { ShieldAlert, X, AlertCircle, Loader2, Trash2 } from 'lucide-react';
+import { X, AlertCircle, Loader2, Trash2 } from 'lucide-react';
 import PinInput from '../../components/PinInput';
 import type { Account } from '../../lib/authStore';
 
@@ -29,7 +29,7 @@ export default function CloseAccountPanel({
     <div className="bg-panel border border-danger/30 rounded-2xl p-6 sm:p-7 mb-6 animate-rise">
       <div className="flex items-center justify-between mb-5">
         <h2 className="font-display font-bold text-lg text-cream flex items-center gap-2">
-          <ShieldAlert size={18} className="text-danger" /> Close Your Account
+          Close Your Account
         </h2>
         <button onClick={onClose} aria-label="Close" className="text-cream-dim hover:text-cream"><X size={18} /></button>
       </div>
