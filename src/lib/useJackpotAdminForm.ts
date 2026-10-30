@@ -1,7 +1,7 @@
 import { useState, useSyncExternalStore } from 'react';
 import { createAdminJackpotRoom, subscribeToJackpots, getJackpotsSnapshot } from './mockData';
 import { showToast } from './notificationStore';
-import { parseJackpotWebpageText } from './jackpotWebParser';
+import { parseJackpotWebpageText, parseJackpotFixtureText } from './jackpotWebParser';
 import type { Bookie } from './types';
 
 export const KENYAN_BETTING_SITES = [
@@ -109,55 +109,64 @@ export function useJackpotAdminForm() {
     try {
       let extracted: ExtractedMatch[] = [];
 
-      try {
-        const res = await fetch('/api/gemini/parse-jackpot-text', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'x-admin-key': 'mshindi_admin_audit_key_2026',
-          },
-          body: JSON.stringify({
-            rawText: webpageText,
-            bookie: selectedBookie,
-            legCount: numLegs,
-          }),
-        });
-
-        if (res.ok) {
-          const data = await res.json();
-          if (data.success && Array.isArray(data.matches) && data.matches.length > 0) {
-            extracted = data.matches.map((m: any, i: number) => ({
-              home: m.home || `Team ${i + 1}A`,
-              away: m.away || `Team ${i + 1}B`,
-              competition: m.competition || 'Football League',
-              kickoff: m.kickoff || formatDateTimeDisplay(startDateTime),
-              homePct: Number(m.homePct) || 45,
-              drawPct: Number(m.drawPct) || 30,
-            }));
-          }
-        }
-      } catch (networkErr) {
-        console.warn('Server parse request failed, proceeding to deterministic local parser', networkErr);
+      // 1. Run intelligent multi-strategy parser directly
+      const localReport = parseJackpotFixtureText(webpageText);
+      if (localReport.fixtures.length > 0) {
+        extracted = localReport.fixtures.map((f) => ({
+          home: f.homeTeam,
+          away: f.awayTeam,
+          competition: f.competition,
+          kickoff: f.kickoff,
+          homePct: f.homePct,
+          drawPct: f.drawPct,
+          awayPct: f.awayPct,
+        }));
       }
 
-      // If server parser returned fewer matches than target, run high-precision local regex parser
+      // 2. If local parser found fewer legs than needed, query server endpoint
       if (extracted.length < numLegs) {
-        const localMatches = parseJackpotWebpageText(webpageText, numLegs, formatDateTimeDisplay(startDateTime));
-        if (localMatches.length > extracted.length) {
-          extracted = localMatches.map((m) => ({
-            home: m.home,
-            away: m.away,
-            competition: m.competition,
-            kickoff: m.kickoff,
-            homePct: m.homePct,
-            drawPct: m.drawPct,
-          }));
+        try {
+          const res = await fetch('/api/gemini/parse-jackpot-text', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'x-admin-key': 'mshindi_admin_audit_key_2026',
+            },
+            body: JSON.stringify({
+              rawText: webpageText,
+              bookie: selectedBookie,
+              legCount: numLegs,
+            }),
+          });
+
+          if (res.ok) {
+            const data = await res.json();
+            if (data.success && Array.isArray(data.matches) && data.matches.length > extracted.length) {
+              extracted = data.matches.map((m: any, i: number) => ({
+                home: m.home || `Team ${i + 1}A`,
+                away: m.away || `Team ${i + 1}B`,
+                competition: m.competition || 'Football League',
+                kickoff: m.kickoff || formatDateTimeDisplay(startDateTime),
+                homePct: Number(m.homePct) || 45,
+                drawPct: Number(m.drawPct) || 30,
+                awayPct: Number(m.awayPct) || 25,
+              }));
+            }
+          }
+        } catch (networkErr) {
+          console.warn('Server parse request skipped or failed:', networkErr);
         }
       }
 
       if (extracted.length > 0) {
         setMatches(extracted);
-        setAiSuccessMessage(`✨ Web parser accurately arranged ${extracted.length} legs for ${selectedBookie}!`);
+        const formatInfo = localReport.diagnostics.detectedFormat !== 'Unknown'
+          ? ` (${localReport.diagnostics.detectedFormat})`
+          : '';
+        const reviewNotice = localReport.totalNeedsReview > 0
+          ? ` • ⚠️ ${localReport.totalNeedsReview} need review`
+          : '';
+        setAiSuccessMessage(`✨ Web parser accurately arranged ${extracted.length} legs for ${selectedBookie}${formatInfo}${reviewNotice}!`);
         showToast({
           title: 'Extraction Complete',
           message: `Categorized ${extracted.length} matches accurately from Leg 1 to Leg ${extracted.length}`,
