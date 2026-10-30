@@ -59,7 +59,7 @@ export const Login: React.FC = () => {
       </div>
 
       {/* Main Animated Card */}
-      <div className={`card ${isRegister ? 'register' : ''}`}>
+      <div className={`card login-card ${isRegister ? 'register' : ''}`}>
         {/* Full Card Mobile Football Pitch Background */}
         <div className="mobile-card-pitch-bg" aria-hidden="true">
           <img

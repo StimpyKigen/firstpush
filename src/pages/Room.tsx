@@ -176,7 +176,7 @@ export default function Room() {
 
       {/* Header */}
       <div
-        className="border rounded-2xl p-4 sm:p-8 mb-4 sm:mb-8 shadow-xs relative"
+        className="jackpot-room-card border rounded-2xl p-4 sm:p-8 mb-4 sm:mb-8 shadow-xs relative"
         style={{
           background: `linear-gradient(180deg, ${bookieTheme.fadedBg} 0%, #ffffff 65%)`,
           borderColor: bookieTheme.border,

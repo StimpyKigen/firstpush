@@ -17,8 +17,6 @@ export default function SlipReelFeed({ posts, onClose }: SlipReelFeedProps) {
   const [showSwipeHint, setShowSwipeHint] = useState(true);
 
   // ── Body scroll lock ────────────────────────────────────────────────────────
-  // Prevents the page under the overlay from rubber-banding on iOS or
-  // intercepting vertical momentum that belongs to the feed.
   useEffect(() => {
     const html = document.documentElement;
     const body = document.body;
@@ -28,7 +26,6 @@ export default function SlipReelFeed({ posts, onClose }: SlipReelFeedProps) {
 
     html.style.overflow = 'hidden';
     body.style.overflow = 'hidden';
-    // 'none' stops iOS rubber-band bounce on the page root while the feed is open
     body.style.overscrollBehavior = 'none';
 
     return () => {
@@ -84,26 +81,26 @@ export default function SlipReelFeed({ posts, onClose }: SlipReelFeedProps) {
   // ── Empty state ─────────────────────────────────────────────────────────────
   if (reelPosts.length === 0) {
     return (
-      <div className="fixed inset-0 z-50 bg-[#FFFFF0] flex flex-col items-center justify-center gap-4 p-8 text-slate-900">
+      <div className="fixed inset-0 z-50 bg-[#FFFFF0] dark:bg-[#202522] flex flex-col items-center justify-center gap-4 p-8 text-slate-900 dark:text-[#F4F5EF]">
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 p-2 rounded-full bg-white border border-slate-200 text-slate-600 hover:text-slate-900 transition-colors shadow-xs cursor-pointer"
+          className="absolute top-4 right-4 p-2 rounded-full bg-white dark:bg-[#2A312D] border border-slate-200 dark:border-[#414A43] text-slate-600 dark:text-[#B5BDB6] hover:text-slate-900 dark:hover:text-[#F4F5EF] transition-colors shadow-xs cursor-pointer"
           aria-label="Close Reels"
         >
           <X size={20} />
         </button>
-        <div className="w-16 h-16 rounded-2xl bg-emerald-50 text-[#006C54] flex items-center justify-center shadow-xs">
+        <div className="w-16 h-16 rounded-2xl bg-emerald-50 dark:bg-[#266E0C]/25 text-[#006C54] dark:text-[#66CF11] flex items-center justify-center shadow-xs">
           <Layers size={32} />
         </div>
         <div className="text-center">
-          <p className="font-display font-bold text-xl text-slate-900 mb-1">No SlipFeed Reels Yet</p>
-          <p className="text-xs text-slate-600 leading-relaxed max-w-xs">
+          <p className="font-display font-bold text-xl text-slate-900 dark:text-[#F4F5EF] mb-1">No SlipFeed Reels Yet</p>
+          <p className="text-xs text-slate-600 dark:text-[#B5BDB6] leading-relaxed max-w-xs">
             No Bet Builder slips have been published yet. Build and publish a multi-leg slip to see it featured here!
           </p>
         </div>
         <button
           onClick={onClose}
-          className="mt-2 px-6 py-2.5 bg-[#006C54] text-white font-bold rounded-full text-xs uppercase tracking-wide shadow-xs hover:bg-[#005441] transition-all cursor-pointer"
+          className="mt-2 px-6 py-2.5 bg-[#006C54] dark:bg-[#66CF11] text-white dark:text-[#0a1317] font-bold rounded-full text-xs uppercase tracking-wide shadow-xs hover:bg-[#005441] transition-all cursor-pointer"
         >
           Back to Builder
         </button>
@@ -116,10 +113,10 @@ export default function SlipReelFeed({ posts, onClose }: SlipReelFeedProps) {
   return (
     /*
      * BACKDROP
-     * Mobile  – bg-[#FFFFF0] fills the full visual viewport (fixed inset-0).
+     * Mobile  – bg-[#FFFFF0] / dark:bg-[#202522] fills the full visual viewport.
      * Desktop – dark translucent overlay with a centred phone-shaped panel.
      */
-    <div className="fixed inset-0 z-50 bg-[#FFFFF0] sm:bg-black/75 sm:backdrop-blur-sm sm:flex sm:items-center sm:justify-center">
+    <div className="fixed inset-0 z-50 bg-[#FFFFF0] dark:bg-[#202522] sm:bg-black/75 sm:backdrop-blur-sm sm:flex sm:items-center sm:justify-center">
 
       {/* Desktop: click backdrop to exit */}
       <div className="hidden sm:block absolute inset-0" onClick={onClose} />
@@ -131,17 +128,17 @@ export default function SlipReelFeed({ posts, onClose }: SlipReelFeedProps) {
        */}
       <div
         className={[
-          'relative w-full h-full overflow-hidden bg-[#FFFFF0]',
+          'relative w-full h-full overflow-hidden bg-[#FFFFF0] dark:bg-[#202522]',
           'sm:w-[390px] sm:h-[90dvh] sm:max-h-[820px]',
           'sm:rounded-[32px]',
-          'sm:border sm:border-slate-200',
+          'sm:border sm:border-slate-200 dark:sm:border-[#414A43]',
           'sm:shadow-[0_24px_80px_-8px_rgba(0,0,0,0.5),0_0_0_1px_rgba(0,0,0,0.05)]',
         ].join(' ')}
       >
-        <div className="absolute inset-0 bg-[#FFFFF0]" />
+        <div className="absolute inset-0 bg-[#FFFFF0] dark:bg-[#202522]" />
 
         {/*
-         * SCROLL CONTAINER — the single source of truth for gesture handling.
+         * SCROLL CONTAINER — gesture handling
          */}
         <div
           ref={scrollRef}
@@ -180,11 +177,11 @@ export default function SlipReelFeed({ posts, onClose }: SlipReelFeedProps) {
 
         {/* ── TOP BAR (SlipFeed Header) ──────────────────────────────── */}
         <div
-          className="absolute top-0 left-0 right-0 z-30 flex items-center justify-between gap-2 px-4 bg-[#FFFFF0] pb-2"
+          className="absolute top-0 left-0 right-0 z-30 flex items-center justify-between gap-2 px-4 bg-[#FFFFF0] dark:bg-[#202522] pb-2 border-b border-[#E6E6D2]/60 dark:border-[#414A43]/60"
           style={{ paddingTop: 'max(14px, env(safe-area-inset-top, 0px))' }}
         >
           <div className="flex items-center">
-            <h2 className="font-display font-bold text-xl text-slate-900 tracking-tight leading-none">
+            <h2 className="font-display font-bold text-xl text-slate-900 dark:text-[#F4F5EF] tracking-tight leading-none">
               SlipFeed
             </h2>
           </div>
@@ -198,8 +195,8 @@ export default function SlipReelFeed({ posts, onClose }: SlipReelFeedProps) {
                   aria-label={`Go to slip ${i + 1}`}
                   className={`rounded-full transition-all shrink-0 ${
                     i === activeIndex
-                      ? 'w-5 h-[5px] bg-[#006C54]'
-                      : 'w-[5px] h-[5px] bg-slate-300 hover:bg-slate-400'
+                      ? 'w-5 h-[5px] bg-[#006C54] dark:bg-[#66CF11]'
+                      : 'w-[5px] h-[5px] bg-slate-300 dark:bg-[#414A43] hover:bg-slate-400'
                   }`}
                 />
               ))}
@@ -210,7 +207,7 @@ export default function SlipReelFeed({ posts, onClose }: SlipReelFeedProps) {
             <button
               onClick={onClose}
               aria-label="Close SlipFeed"
-              className="w-8 h-8 rounded-full bg-white/90 hover:bg-white text-slate-800 border border-slate-200 shadow-2xs flex items-center justify-center transition-all active:scale-95 cursor-pointer"
+              className="w-8 h-8 rounded-full bg-white/90 dark:bg-[#2A312D] hover:bg-white dark:hover:bg-[#343C36] text-slate-800 dark:text-[#F4F5EF] border border-slate-200 dark:border-[#414A43] shadow-2xs flex items-center justify-center transition-all active:scale-95 cursor-pointer"
             >
               <X size={16} />
             </button>
@@ -223,7 +220,7 @@ export default function SlipReelFeed({ posts, onClose }: SlipReelFeedProps) {
             onClick={goPrev}
             disabled={activeIndex === 0}
             aria-label="Previous slip"
-            className="w-9 h-9 rounded-full bg-white/95 hover:bg-white text-slate-800 disabled:opacity-20 border border-slate-200 shadow-md flex items-center justify-center transition-all cursor-pointer active:scale-95"
+            className="w-9 h-9 rounded-full bg-white/95 dark:bg-[#2A312D] hover:bg-white dark:hover:bg-[#343C36] text-slate-800 dark:text-[#F4F5EF] disabled:opacity-20 border border-slate-200 dark:border-[#414A43] shadow-md flex items-center justify-center transition-all cursor-pointer active:scale-95"
           >
             <ChevronUp size={18} />
           </button>
@@ -231,12 +228,11 @@ export default function SlipReelFeed({ posts, onClose }: SlipReelFeedProps) {
             onClick={goNext}
             disabled={activeIndex === reelPosts.length - 1}
             aria-label="Next slip"
-            className="w-9 h-9 rounded-full bg-white/95 hover:bg-white text-slate-800 disabled:opacity-20 border border-slate-200 shadow-md flex items-center justify-center transition-all cursor-pointer active:scale-95"
+            className="w-9 h-9 rounded-full bg-white/95 dark:bg-[#2A312D] hover:bg-white dark:hover:bg-[#343C36] text-slate-800 dark:text-[#F4F5EF] disabled:opacity-20 border border-slate-200 dark:border-[#414A43] shadow-md flex items-center justify-center transition-all cursor-pointer active:scale-95"
           >
             <ChevronDown size={18} />
           </button>
         </div>
-
 
         {/* ── SWIPE HINT (mobile only) ─────────────────────────────────────── */}
         <AnimatePresence>
@@ -252,9 +248,9 @@ export default function SlipReelFeed({ posts, onClose }: SlipReelFeedProps) {
                 animate={{ y: [0, -7, 0] }}
                 transition={{ repeat: Infinity, duration: 1.1, ease: 'easeInOut' }}
               >
-                <ChevronUp size={20} className="text-cream/40" />
+                <ChevronUp size={20} className="text-cream/40 dark:text-white/40" />
               </motion.div>
-              <span className="text-[11px] text-cream/40 font-bold tracking-wide uppercase">
+              <span className="text-[11px] text-cream/40 dark:text-white/40 font-bold tracking-wide uppercase">
                 Swipe to explore
               </span>
             </motion.div>

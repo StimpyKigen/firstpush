@@ -953,89 +953,155 @@ html.dark .theme-protected .border-slate-200 {
 }
 
 /* ==========================================================================
-   Non-Protected Dark Mode Color Remapping (Outside .theme-protected)
+   Light-Mode Text Retention Exception
+   - Fixture Cards with banners (.fixture-card-banner)
+   - Jackpot room cards (.jackpot-room-card)
+   - Login cards (.login-card)
+   Apply to those only.
+   ========================================================================== */
+.fixture-card-banner,
+.fixture-card-banner *,
+.jackpot-room-card,
+.jackpot-room-card *,
+.login-card,
+.login-card * {
+  color-scheme: light;
+}
+
+html.dark :is(.fixture-card-banner, .jackpot-room-card, .login-card) :is(.text-slate-900, [class*="text-slate-900"]) {
+  color: #0f172a !important;
+}
+html.dark :is(.fixture-card-banner, .jackpot-room-card, .login-card) :is(.text-slate-800, [class*="text-slate-800"]) {
+  color: #1e293b !important;
+}
+html.dark :is(.fixture-card-banner, .jackpot-room-card, .login-card) :is(.text-slate-700, [class*="text-slate-700"]) {
+  color: #334155 !important;
+}
+html.dark :is(.fixture-card-banner, .jackpot-room-card, .login-card) :is(.text-slate-600, [class*="text-slate-600"]) {
+  color: #475569 !important;
+}
+html.dark :is(.fixture-card-banner, .jackpot-room-card, .login-card) :is(.text-slate-500, [class*="text-slate-500"]) {
+  color: #566576 !important;
+}
+html.dark :is(.fixture-card-banner, .jackpot-room-card, .login-card) :is(.text-slate-400) {
+  color: #66758a !important;
+}
+html.dark :is(.fixture-card-banner, .jackpot-room-card, .login-card) :is(.text-black) {
+  color: #000000 !important;
+}
+html.dark :is(.fixture-card-banner, .jackpot-room-card, .login-card) :is([class*="text-[#1c1e21]"]) {
+  color: #1c1e21 !important;
+}
+html.dark :is(.fixture-card-banner, .jackpot-room-card, .login-card) :is([class*="text-[#0a1317]"]) {
+  color: #0a1317 !important;
+}
+html.dark :is(.fixture-card-banner, .jackpot-room-card, .login-card) :is([class*="text-[#444950]"]) {
+  color: #444950 !important;
+}
+html.dark :is(.fixture-card-banner, .jackpot-room-card, .login-card) :is([class*="text-[#5d6c7b]"]) {
+  color: #5d6c7b !important;
+}
+html.dark .fixture-card-banner :is(.t-team, .t-score, .t-title) {
+  color: #1c1e21 !important;
+}
+html.dark .fixture-card-banner :is(.t-label, .t-meta, .t-market) {
+  color: #5d6c7b !important;
+}
+
+/* Login card form inputs retain light styling */
+html.dark .login-card input {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+  border-color: #e2e8f0 !important;
+}
+html.dark .login-card input::placeholder {
+  color: #94a3b8 !important;
+}
+
+/* ==========================================================================
+   Non-Protected Dark Mode Color Remapping (Outside .theme-protected, banner cards, jackpot cards, login cards)
    ========================================================================== */
 
 /* Primary Card Background: #2A312D */
-html.dark :not(.theme-protected, .theme-protected *):where(.bg-white) {
+html.dark :not(.theme-protected, .theme-protected *, .fixture-card-banner, .fixture-card-banner *, .jackpot-room-card, .jackpot-room-card *, .login-card, .login-card *):where(.bg-white) {
   background-color: #2A312D !important;
 }
-html.dark :not(.theme-protected, .theme-protected *):where([class*="bg-[#FFFFF0]"]):not([class*="min-h-screen"]):not([class*="app-shell"]) {
+html.dark :not(.theme-protected, .theme-protected *, .fixture-card-banner, .fixture-card-banner *, .jackpot-room-card, .jackpot-room-card *, .login-card, .login-card *):where([class*="bg-[#FFFFF0]"]):not([class*="min-h-screen"]):not([class*="app-shell"]) {
   background-color: #2A312D !important;
 }
 
 /* Secondary Card Background: #2F3732 */
-html.dark :not(.theme-protected, .theme-protected *):where(.bg-slate-50),
-html.dark :not(.theme-protected, .theme-protected *):where([class*="bg-[#F5F5E4]"]) {
+html.dark :not(.theme-protected, .theme-protected *, .fixture-card-banner, .fixture-card-banner *, .jackpot-room-card, .jackpot-room-card *, .login-card, .login-card *):where(.bg-slate-50),
+html.dark :not(.theme-protected, .theme-protected *, .fixture-card-banner, .fixture-card-banner *, .jackpot-room-card, .jackpot-room-card *, .login-card, .login-card *):where([class*="bg-[#F5F5E4]"]) {
   background-color: #2F3732 !important;
 }
 
 /* Elevated Surfaces: #343C36 */
-html.dark :not(.theme-protected, .theme-protected *):where(.bg-slate-100),
-html.dark :not(.theme-protected, .theme-protected *):where([class*="bg-[#ECECD8]"]),
-html.dark :not(.theme-protected, .theme-protected *):where(.hover\:bg-slate-50:hover),
-html.dark :not(.theme-protected, .theme-protected *):where(.espn-dropdown),
-html.dark :not(.theme-protected, .theme-protected *):where(.ios-dropdown) {
+html.dark :not(.theme-protected, .theme-protected *, .fixture-card-banner, .fixture-card-banner *, .jackpot-room-card, .jackpot-room-card *, .login-card, .login-card *):where(.bg-slate-100),
+html.dark :not(.theme-protected, .theme-protected *, .fixture-card-banner, .fixture-card-banner *, .jackpot-room-card, .jackpot-room-card *, .login-card, .login-card *):where([class*="bg-[#ECECD8]"]),
+html.dark :not(.theme-protected, .theme-protected *, .fixture-card-banner, .fixture-card-banner *, .jackpot-room-card, .jackpot-room-card *, .login-card, .login-card *):where(.hover\:bg-slate-50:hover),
+html.dark :not(.theme-protected, .theme-protected *, .fixture-card-banner, .fixture-card-banner *, .jackpot-room-card, .jackpot-room-card *, .login-card, .login-card *):where(.espn-dropdown),
+html.dark :not(.theme-protected, .theme-protected *, .fixture-card-banner, .fixture-card-banner *, .jackpot-room-card, .jackpot-room-card *, .login-card, .login-card *):where(.ios-dropdown) {
   background-color: #343C36 !important;
 }
 
 /* Subtle Dividers & Borders: #414A43 */
-html.dark :not(.theme-protected, .theme-protected *):where(.border-slate-100),
-html.dark :not(.theme-protected, .theme-protected *):where(.border-slate-200),
-html.dark :not(.theme-protected, .theme-protected *):where(.border-slate-300),
-html.dark :not(.theme-protected, .theme-protected *):where([class*="border-[#E6E6D2]"]),
-html.dark :not(.theme-protected, .theme-protected *):where([class*="border-[#DCDCC8]"]),
-html.dark :not(.theme-protected, .theme-protected *):where([class*="border-[#D4D4C0]"]) {
+html.dark :not(.theme-protected, .theme-protected *, .fixture-card-banner, .fixture-card-banner *, .jackpot-room-card, .jackpot-room-card *, .login-card, .login-card *):where(.border-slate-100),
+html.dark :not(.theme-protected, .theme-protected *, .fixture-card-banner, .fixture-card-banner *, .jackpot-room-card, .jackpot-room-card *, .login-card, .login-card *):where(.border-slate-200),
+html.dark :not(.theme-protected, .theme-protected *, .fixture-card-banner, .fixture-card-banner *, .jackpot-room-card, .jackpot-room-card *, .login-card, .login-card *):where(.border-slate-300),
+html.dark :not(.theme-protected, .theme-protected *, .fixture-card-banner, .fixture-card-banner *, .jackpot-room-card, .jackpot-room-card *, .login-card, .login-card *):where([class*="border-[#E6E6D2]"]),
+html.dark :not(.theme-protected, .theme-protected *, .fixture-card-banner, .fixture-card-banner *, .jackpot-room-card, .jackpot-room-card *, .login-card, .login-card *):where([class*="border-[#DCDCC8]"]),
+html.dark :not(.theme-protected, .theme-protected *, .fixture-card-banner, .fixture-card-banner *, .jackpot-room-card, .jackpot-room-card *, .login-card, .login-card *):where([class*="border-[#D4D4C0]"]) {
   border-color: #414A43 !important;
 }
 
 /* Primary Text: #F4F5EF */
-html.dark :not(.theme-protected, .theme-protected *):where(.text-slate-900),
-html.dark :not(.theme-protected, .theme-protected *):where(.text-slate-800),
-html.dark :not(.theme-protected, .theme-protected *):where([class*="text-[#1c1e21]"]),
-html.dark :not(.theme-protected, .theme-protected *):where([class*="text-[#0a1317]"]),
-html.dark :not(.theme-protected, .theme-protected *):where(.text-black) {
+html.dark :not(.theme-protected, .theme-protected *, .fixture-card-banner, .fixture-card-banner *, .jackpot-room-card, .jackpot-room-card *, .login-card, .login-card *):where(.text-slate-900),
+html.dark :not(.theme-protected, .theme-protected *, .fixture-card-banner, .fixture-card-banner *, .jackpot-room-card, .jackpot-room-card *, .login-card, .login-card *):where(.text-slate-800),
+html.dark :not(.theme-protected, .theme-protected *, .fixture-card-banner, .fixture-card-banner *, .jackpot-room-card, .jackpot-room-card *, .login-card, .login-card *):where([class*="text-[#1c1e21]"]),
+html.dark :not(.theme-protected, .theme-protected *, .fixture-card-banner, .fixture-card-banner *, .jackpot-room-card, .jackpot-room-card *, .login-card, .login-card *):where([class*="text-[#0a1317]"]),
+html.dark :not(.theme-protected, .theme-protected *, .fixture-card-banner, .fixture-card-banner *, .jackpot-room-card, .jackpot-room-card *, .login-card, .login-card *):where(.text-black) {
   color: #F4F5EF !important;
 }
 
 /* Secondary Text: #B5BDB6 */
-html.dark :not(.theme-protected, .theme-protected *):where(.text-slate-700),
-html.dark :not(.theme-protected, .theme-protected *):where(.text-slate-600),
-html.dark :not(.theme-protected, .theme-protected *):where([class*="text-[#444950]"]) {
+html.dark :not(.theme-protected, .theme-protected *, .fixture-card-banner, .fixture-card-banner *, .jackpot-room-card, .jackpot-room-card *, .login-card, .login-card *):where(.text-slate-700),
+html.dark :not(.theme-protected, .theme-protected *, .fixture-card-banner, .fixture-card-banner *, .jackpot-room-card, .jackpot-room-card *, .login-card, .login-card *):where(.text-slate-600),
+html.dark :not(.theme-protected, .theme-protected *, .fixture-card-banner, .fixture-card-banner *, .jackpot-room-card, .jackpot-room-card *, .login-card, .login-card *):where([class*="text-[#444950]"]) {
   color: #B5BDB6 !important;
 }
 
 /* Muted Text: #929D95 */
-html.dark :not(.theme-protected, .theme-protected *):where(.text-slate-500),
-html.dark :not(.theme-protected, .theme-protected *):where(.text-slate-400),
-html.dark :not(.theme-protected, .theme-protected *):where([class*="text-[#5d6c7b]"]),
-html.dark :not(.theme-protected, .theme-protected *):where([class*="text-[#8595a4]"]) {
+html.dark :not(.theme-protected, .theme-protected *, .fixture-card-banner, .fixture-card-banner *, .jackpot-room-card, .jackpot-room-card *, .login-card, .login-card *):where(.text-slate-500),
+html.dark :not(.theme-protected, .theme-protected *, .fixture-card-banner, .fixture-card-banner *, .jackpot-room-card, .jackpot-room-card *, .login-card, .login-card *):where(.text-slate-400),
+html.dark :not(.theme-protected, .theme-protected *, .fixture-card-banner, .fixture-card-banner *, .jackpot-room-card, .jackpot-room-card *, .login-card, .login-card *):where([class*="text-[#5d6c7b]"]),
+html.dark :not(.theme-protected, .theme-protected *, .fixture-card-banner, .fixture-card-banner *, .jackpot-room-card, .jackpot-room-card *, .login-card, .login-card *):where([class*="text-[#8595a4]"]) {
   color: #929D95 !important;
 }
 
 /* Accent Gold in Dark Mode: #FFC72C */
-html.dark :not(.theme-protected, .theme-protected *):where(.text-gold),
-html.dark :not(.theme-protected, .theme-protected *):where(.text-amber-400),
-html.dark :not(.theme-protected, .theme-protected *):where(.text-amber-300) {
+html.dark :not(.theme-protected, .theme-protected *, .fixture-card-banner, .fixture-card-banner *, .jackpot-room-card, .jackpot-room-card *, .login-card, .login-card *):where(.text-gold),
+html.dark :not(.theme-protected, .theme-protected *, .fixture-card-banner, .fixture-card-banner *, .jackpot-room-card, .jackpot-room-card *, .login-card, .login-card *):where(.text-amber-400),
+html.dark :not(.theme-protected, .theme-protected *, .fixture-card-banner, .fixture-card-banner *, .jackpot-room-card, .jackpot-room-card *, .login-card, .login-card *):where(.text-amber-300) {
   color: #FFC72C !important;
 }
 
 /* Primary Accent Green in Dark Mode: #66CF11 */
-html.dark :not(.theme-protected, .theme-protected *):where(.text-\[\#006C54\]),
-html.dark :not(.theme-protected, .theme-protected *):where(.text-emerald-600) {
+html.dark :not(.theme-protected, .theme-protected *, .fixture-card-banner, .fixture-card-banner *, .jackpot-room-card, .jackpot-room-card *, .login-card, .login-card *):where(.text-\[\#006C54\]),
+html.dark :not(.theme-protected, .theme-protected *, .fixture-card-banner, .fixture-card-banner *, .jackpot-room-card, .jackpot-room-card *, .login-card, .login-card *):where(.text-emerald-600) {
   color: #66CF11 !important;
 }
 
 /* Form Controls in Dark Mode */
-html.dark input:not([type="checkbox"]):not([type="radio"]),
-html.dark textarea,
-html.dark select {
+html.dark input:not([type="checkbox"]):not([type="radio"]):not(.login-card input),
+html.dark textarea:not(.login-card textarea),
+html.dark select:not(.login-card select) {
   background-color: #2A312D !important;
   border-color: #414A43 !important;
   color: #F4F5EF !important;
 }
-html.dark input::placeholder,
-html.dark textarea::placeholder {
+html.dark input:not(.login-card input)::placeholder,
+html.dark textarea:not(.login-card textarea)::placeholder {
   color: #929D95 !important;
 }
 

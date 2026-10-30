@@ -103,7 +103,7 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onSwitchToLogin: _on
   };
 
   return (
-    <div className="form register">
+    <div className="form register login-card">
       <form onSubmit={handleSubmit} className="form-content">
         <h1 className="form-title">Create Account</h1>
         <p className="form-subtitle">

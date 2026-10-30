@@ -63,7 +63,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSwitchToRegister: _onSwi
   };
 
   return (
-    <div className="form login">
+    <div className="form login login-card">
       <form onSubmit={handleSubmit} className="form-content">
         <h1 className="form-title">Welcome back</h1>
         <p className="form-subtitle">

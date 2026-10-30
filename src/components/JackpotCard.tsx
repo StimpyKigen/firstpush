@@ -33,7 +33,7 @@ export default function JackpotCard({ jackpot, index }: { jackpot: Jackpot; inde
           });
         }
       }}
-      className="animate-rise group relative flex flex-col border rounded-xl overflow-hidden hover:shadow-md transition-all active:scale-[0.985] touch-manipulation hover:-translate-y-1"
+      className="jackpot-room-card animate-rise group relative flex flex-col border rounded-xl overflow-hidden hover:shadow-md transition-all active:scale-[0.985] touch-manipulation hover:-translate-y-1"
       style={{
         animationDelay: `${index * 50}ms`,
         background: `linear-gradient(180deg, ${bookieTheme.fadedBg} 0%, #ffffff 50%)`,
