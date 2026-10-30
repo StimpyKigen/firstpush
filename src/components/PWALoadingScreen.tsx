@@ -23,19 +23,17 @@ export function isPwaStandalone(): boolean {
  * Once the animation completes (or upon user tap / safety timer), it smoothly fades out into the app.
  */
 export default function PWALoadingScreen() {
-  const [isPwa, setIsPwa] = useState(false);
+  const [isPwa] = useState(() => isPwaStandalone());
   const [isExiting, setIsExiting] = useState(false);
   const [isDone, setIsDone] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const exitTriggeredRef = useRef(false);
 
-  // 1. Detect PWA standalone mode
+  // 1. Mark splash active so other code (themeStore) doesn't override the green status bar
   useEffect(() => {
-    if (!isPwaStandalone()) {
-      return;
-    }
-    setIsPwa(true);
-  }, []);
+    if (!isPwa) return;
+    document.documentElement.setAttribute('data-splash', 'active');
+  }, [isPwa]);
 
   // 2. Lock body scroll while loading screen is active
   useEffect(() => {
@@ -83,15 +81,16 @@ export default function PWALoadingScreen() {
   // 6. Synchronize theme-color: green on loading screen, ivory in-app
   useEffect(() => {
     const metaTheme = document.querySelector('meta[name="theme-color"]');
+    const root = document.documentElement;
     if (isPwa && !isExiting && !isDone) {
       if (metaTheme) metaTheme.setAttribute('content', '#11492D');
+      root.style.backgroundColor = '#11492D';
     } else {
+      // App loaded: release the splash lock and return status bar to ivory/white
+      root.removeAttribute('data-splash');
+      root.style.backgroundColor = '';
       if (metaTheme) metaTheme.setAttribute('content', '#FFFFF0');
     }
-
-    return () => {
-      if (metaTheme) metaTheme.setAttribute('content', '#FFFFF0');
-    };
   }, [isPwa, isExiting, isDone]);
 
   if (!isPwa || isDone) {
@@ -100,10 +99,10 @@ export default function PWALoadingScreen() {
 
   return (
     <div
-      className={`fixed inset-0 z-[999999] w-screen h-screen overflow-hidden bg-[#11492D] flex items-center justify-center select-none transition-opacity duration-700 ease-out ${
+      className={`fixed inset-0 z-[999999] w-screen overflow-hidden bg-[#11492D] flex items-center justify-center select-none transition-opacity duration-700 ease-out ${
         isExiting ? 'opacity-0 pointer-events-none' : 'opacity-100'
       }`}
-      style={{ backgroundColor: '#11492D' }}
+      style={{ backgroundColor: '#11492D', height: '100dvh', minHeight: '100%' }}
       aria-label="MshindiRoom Application Loading"
       role="dialog"
       aria-modal="true"

@@ -30,10 +30,22 @@
     <meta name="twitter:image" content="https://mshindi.co.ke/pwa-512.png" />
 
     <!-- Mobile & PWA Configuration (iOS & Android) -->
-    <meta name="theme-color" content="#11492D" />
+    <meta name="theme-color" content="#FFFFF0" />
+    <script>
+      (function () {
+        try {
+          var pwa = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true || /[?&](pwa|splash|loading)=1/.test(location.search);
+          if (pwa) {
+            document.documentElement.setAttribute('data-splash', 'active');
+            document.querySelector('meta[name=theme-color]').setAttribute('content', '#11492D');
+            document.documentElement.style.backgroundColor = '#11492D';
+          }
+        } catch (e) {}
+      })();
+    </script>
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <meta name="apple-mobile-web-app-title" content="MshindiRoom" />
     <meta name="application-name" content="MshindiRoom" />
 
