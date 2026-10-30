@@ -45,8 +45,8 @@ export const ThemeToggleSwitch: React.FC<{ className?: string }> = ({ className 
   const { isDark, toggleTheme } = useTheme();
 
   return (
-    <div className={cn("inline-flex items-center justify-center shrink-0 w-6 h-4 lg:w-9 lg:h-5.5", className)}>
-      <div className="scale-50 lg:scale-75 origin-center shrink-0">
+    <div className={cn("inline-flex items-center justify-center shrink-0 w-8 h-5 lg:w-9 lg:h-5.5", className)}>
+      <div className="scale-[0.65] lg:scale-75 origin-center shrink-0">
         <Switch
           aria-label="Toggle dark mode"
           icon={

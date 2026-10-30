@@ -234,8 +234,8 @@ export default function Leaderboard() {
             }`}
           >
             <span>Jackpot Rooms</span>
-            <span className={`text-[11px] tabular-nums px-1.5 py-0.5 rounded-full font-bold ${
-              mainTab === 'rooms' ? 'bg-emerald-50 text-[#006C54]' : 'bg-slate-100 text-slate-500'
+            <span className={`text-[11px] tabular-nums font-bold ${
+              mainTab === 'rooms' ? 'text-[#006C54] dark:text-[#66CF11]' : 'text-slate-500 dark:text-[#B5BDB6]'
             }`}>
               {activeRooms.length}
             </span>
