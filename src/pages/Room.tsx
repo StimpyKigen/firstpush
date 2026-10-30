@@ -150,7 +150,7 @@ export default function Room() {
   void startEdit;
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
+    <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-10">
       <SeoHead
         title={`${jackpot.name} (${jackpot.bookie}) Consensus Room`}
         description={`Join ${jackpot.participants} punters analyzing ${jackpot.name} (${jackpot.gameweek}). View leg-by-leg consensus, crowd predictions & expert analysis on MshindiRoom.`}
@@ -170,49 +170,49 @@ export default function Room() {
           }
         }}
       />
-      <div className="mb-6">
+      <div className="mb-4 sm:mb-6">
         <BackNavButton fallbackUrl="/" label="All Jackpot Rooms" />
       </div>
 
       {/* Header */}
       <div
-        className="border rounded-2xl p-6 sm:p-8 mb-8 shadow-xs relative"
+        className="border rounded-2xl p-4 sm:p-8 mb-4 sm:mb-8 shadow-xs relative"
         style={{
           background: `linear-gradient(180deg, ${bookieTheme.fadedBg} 0%, #ffffff 65%)`,
           borderColor: bookieTheme.border,
         }}
       >
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
+          <div className="flex items-center gap-3 min-w-0">
             <img
               src={bookieTheme.logo}
               alt={jackpot.bookie}
-              className="w-12 h-12 object-contain rounded-lg shrink-0 select-none"
+              className="w-10 h-10 sm:w-12 sm:h-12 object-contain rounded-lg shrink-0 select-none"
               onError={(e) => {
                 e.currentTarget.style.display = 'none';
               }}
             />
-            <div>
-              <p className="text-xs text-slate-500 font-bold uppercase tracking-wide">{jackpot.gameweek}</p>
-              <h1 className="font-display font-bold text-2xl sm:text-4xl text-slate-900 uppercase tracking-tight">{jackpot.name}</h1>
+            <div className="min-w-0">
+              <p className="text-[11px] sm:text-xs text-slate-500 font-bold uppercase tracking-wide">{jackpot.gameweek}</p>
+              <h1 className="font-display font-bold text-xl sm:text-4xl text-slate-900 uppercase tracking-tight truncate">{jackpot.name}</h1>
             </div>
           </div>
-          <div className="flex flex-col items-start sm:items-end">
-            <p className="text-[11px] text-slate-400 uppercase tracking-wide font-bold">Bookie Jackpot</p>
-            <p className="font-display font-bold text-[#8A6500] text-3xl">{jackpot.prizePool}</p>
+          <div className="flex flex-col items-start sm:items-end shrink-0">
+            <p className="text-[10px] sm:text-[11px] text-slate-400 uppercase tracking-wide font-bold">Bookie Jackpot</p>
+            <p className="font-display font-bold text-[#8A6500] text-2xl sm:text-3xl">{jackpot.prizePool}</p>
           </div>
         </div>
 
         {jackpot.syncedAt && (
-          <span className="inline-flex w-fit items-center gap-1.5 text-xs font-bold text-slate-600 uppercase tracking-wide mt-4">
+          <span className="inline-flex w-fit items-center gap-1.5 text-xs font-bold text-slate-600 uppercase tracking-wide mt-3 sm:mt-4">
             <RadioTower size={13} className="text-[#006C54] shrink-0" /> Live synced from {jackpot.bookie}
           </span>
         )}
 
-        <div className="flex flex-wrap gap-x-6 gap-y-2 mt-5 pt-5 border-t border-slate-100 text-xs font-semibold text-slate-500">
-          <span className="flex items-center gap-1.5"><Users size={14} className="text-[#006C54]" /> {jackpot.participants.toLocaleString()} punters in room</span>
-          <span className="flex items-center gap-1.5"><Clock size={14} className="text-slate-400" /> {jackpot.status === 'settled' ? `Settled · ${jackpot.deadline}` : `Deadline ${jackpot.deadline}`}</span>
-          <span className="flex items-center gap-1.5"><Trophy size={14} className="text-[#8A6500]" /> Closest slip takes #1 Leaderboard Crown (earliest submission breaks ties)</span>
+        <div className="flex flex-wrap gap-x-4 sm:gap-x-6 gap-y-1.5 sm:gap-y-2 mt-4 sm:mt-5 pt-4 sm:pt-5 border-t border-slate-100 text-[11px] sm:text-xs font-semibold text-slate-500">
+          <span className="flex items-center gap-1.5"><Users size={14} className="text-[#006C54] shrink-0" /> {jackpot.participants.toLocaleString()} punters in room</span>
+          <span className="flex items-center gap-1.5"><Clock size={14} className="text-slate-400 shrink-0" /> {jackpot.status === 'settled' ? `Settled · ${jackpot.deadline}` : `Deadline ${jackpot.deadline}`}</span>
+          <span className="flex items-center gap-1.5"><Trophy size={14} className="text-[#8A6500] shrink-0" /> Closest slip takes #1 Leaderboard Crown (earliest submission breaks ties)</span>
         </div>
       </div>
 
@@ -224,8 +224,8 @@ export default function Room() {
 
       {/* Slip Progress Header Bar */}
       {isUnlocked && (
-        <div className="mb-8 bg-white border border-slate-200 rounded-2xl p-5 sm:p-6 shadow-xs relative overflow-hidden">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-3">
+        <div className="mb-5 sm:mb-8 bg-white border border-slate-200 rounded-2xl p-4 sm:p-6 shadow-xs relative overflow-hidden">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 mb-3">
             <div>
               <h2 className="font-display font-bold text-base sm:text-lg text-slate-900 uppercase tracking-tight flex items-center gap-2">
                 Room Betting Slip Progress
@@ -257,52 +257,57 @@ export default function Room() {
       )}
 
       {jackpot.status === 'settled' && jackpot.leaderboard && (
-        <div className="mb-8 bg-panel border border-emerald/40 rounded-2xl p-6 relative overflow-hidden">
-          <div className="absolute -right-8 -top-8 w-40 h-40 bg-gold/10 rounded-full blur-2xl" />
-          <h2 className="font-display font-bold text-xl text-cream flex items-center gap-2 mb-1">
-            <Trophy className="text-gold" size={20} /> Closest Gambler: Gameweek Winner
+        <div className="mb-5 sm:mb-8 bg-panel border border-emerald/40 rounded-2xl p-3.5 sm:p-6 relative overflow-hidden">
+          <div className="absolute -right-8 -top-8 w-40 h-40 bg-gold/10 rounded-full blur-2xl pointer-events-none" />
+          <h2 className="font-display font-bold text-lg sm:text-xl text-cream flex items-center gap-2 mb-1">
+            <Trophy className="text-gold shrink-0" size={18} /> Closest Gambler: Gameweek Winner
           </h2>
-          <p className="text-cream-dim text-sm mb-5">This gameweek has settled. Here's who came closest to the exact winning slip (equal scores tied by earliest slip submission time):</p>
+          <p className="text-cream-dim text-xs sm:text-sm mb-4">This gameweek has settled. Here's who came closest to the exact winning slip (equal scores tied by earliest slip submission time):</p>
           <div className="flex flex-col gap-2">
             {jackpot.leaderboard.map((entry) => (
               <div
                 key={entry.rank}
-                className={`flex items-center justify-between gap-3 p-3 rounded-xl border ${
+                className={`flex items-center justify-between gap-2 sm:gap-3 p-2.5 sm:p-3 rounded-xl border ${
                   entry.isClosest ? 'bg-gold/10 border-gold/40' : 'bg-ink-2 border-line'
                 }`}
               >
-                <div className="flex items-center gap-3">
-                  <span className={`font-display font-bold text-sm tabular-nums w-4 text-center shrink-0 ${entry.isClosest ? 'text-gold' : 'text-cream-dim'}`}>
+                <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
+                  <span className={`font-display font-bold text-xs sm:text-sm tabular-nums w-3.5 sm:w-4 text-center shrink-0 ${entry.isClosest ? 'text-gold' : 'text-cream-dim'}`}>
                     {entry.rank}
                   </span>
-                  <Avatar name={entry.username} seed={entry.colorSeed} size={34} />
-                  <div>
-                    <p className="text-sm font-semibold text-cream flex items-center gap-1.5">
-                      {entry.username} {entry.isClosest && <Trophy size={13} className="text-gold" />}
+                  <div className="shrink-0">
+                    <Avatar name={entry.username} seed={entry.colorSeed} size={30} />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-xs sm:text-sm font-semibold text-cream flex items-center gap-1 truncate">
+                      <span className="truncate">{entry.username}</span>
+                      {entry.isClosest && <Trophy size={12} className="text-gold shrink-0" />}
                     </p>
-                    <div className="flex items-center gap-2">
-                      <p className="text-xs text-cream-dim">{entry.correct}/{entry.totalMatches} correct legs</p>
-                      <StarRating rating={getPunterStats(entry.username).stars} size={11} showNumber={false} />
+                    <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
+                      <span className="text-[11px] sm:text-xs text-cream-dim whitespace-nowrap font-medium">
+                        {entry.correct}/{entry.totalMatches} correct legs
+                      </span>
+                      <StarRating rating={getPunterStats(entry.username).stars} size={10} showNumber={false} className="shrink-0" />
                     </div>
                   </div>
                 </div>
                 {entry.rank === 1 ? (
-                  <span className="inline-flex items-center gap-1.5 text-sm font-bold text-gold shrink-0">
-                    <Crown size={15} className="text-gold shrink-0" />
+                  <span className="inline-flex items-center gap-1 sm:gap-1.5 text-xs sm:text-sm font-bold text-gold shrink-0 whitespace-nowrap">
+                    <Crown size={14} className="text-gold shrink-0" />
                     <span>1 Crown</span>
                   </span>
                 ) : entry.rank === 2 ? (
-                  <span className="inline-flex items-center gap-1.5 text-sm font-bold text-slate-400 shrink-0">
-                    <Medal size={15} className="text-slate-400 shrink-0" />
+                  <span className="inline-flex items-center gap-1 sm:gap-1.5 text-xs sm:text-sm font-bold text-slate-400 shrink-0 whitespace-nowrap">
+                    <Medal size={14} className="text-slate-400 shrink-0" />
                     <span>2 Runner-up</span>
                   </span>
                 ) : entry.rank === 3 ? (
-                  <span className="inline-flex items-center gap-1.5 text-sm font-bold text-amber-700 shrink-0">
-                    <Medal size={15} className="text-amber-700 shrink-0" />
+                  <span className="inline-flex items-center gap-1 sm:gap-1.5 text-xs sm:text-sm font-bold text-amber-700 shrink-0 whitespace-nowrap">
+                    <Medal size={14} className="text-amber-700 shrink-0" />
                     <span>3 Podium</span>
                   </span>
                 ) : (
-                  <span className={`text-sm font-bold shrink-0 ${entry.prizeWon !== ' - ' ? 'text-emerald-2' : 'text-cream-dim'}`}>
+                  <span className={`text-xs sm:text-sm font-bold shrink-0 whitespace-nowrap ${entry.prizeWon !== ' - ' ? 'text-emerald-2' : 'text-cream-dim'}`}>
                     {entry.prizeWon}
                   </span>
                 )}
@@ -487,18 +492,18 @@ function RoomMatchCard({
           }
           onToggleOpen();
         }}
-        className={`w-full flex items-center justify-between gap-3 p-4 sm:p-5 text-left transition-colors ${
+        className={`w-full flex items-center justify-between gap-2.5 sm:gap-3 p-3.5 sm:p-5 text-left transition-colors ${
           myPickRecord ? 'bg-gold/5 hover:bg-gold/10' : 'hover:bg-panel-2/50'
         }`}
       >
-        <div className="flex items-center gap-3 min-w-0">
+        <div className="flex items-center gap-2.5 sm:gap-3 min-w-0 flex-1">
           <span className={`tabular-nums text-xs font-bold rounded-md px-2 py-1 shrink-0 ${
             myPickRecord ? 'bg-gold text-ink' : 'text-cream-dim bg-ink-2'
           }`}>
             {idx + 1}
           </span>
-          <div className="min-w-0">
-            <div className="font-semibold text-cream truncate flex items-center gap-2">
+          <div className="min-w-0 flex-1">
+            <div className="font-semibold text-cream text-xs sm:text-base truncate flex items-center gap-1.5 sm:gap-2">
               {match.homeLogo && <img src={match.homeLogo} alt="" loading="lazy" decoding="async" referrerPolicy="no-referrer" className="w-4 h-4 object-contain inline shrink-0" />}
               <span>{match.home}</span>
               <span className="text-cream-dim text-xs">vs</span>
