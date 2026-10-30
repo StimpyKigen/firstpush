@@ -133,8 +133,7 @@ export default function PayGate({ jackpot, onUnlocked }: { jackpot: Jackpot; onU
           Unlock the Punter Room
         </h2>
         <p className="text-cream-dim text-sm font-semibold mt-2 max-w-md mx-auto">
-          Pay a tiny fee to see how <span className="text-gold font-bold">{jackpot.participants.toLocaleString()}</span> punters
-          are leaning on every leg of the <span className="text-cream font-bold">{jackpot.name}</span>, read their reasoning,
+          Pay a tiny fee to see how punters are leaning on every leg of the <span className="text-cream font-bold">{jackpot.name}</span>, read their reasoning,
           and get in the running to be crowned closest to the winning slip.
         </p>
       </div>

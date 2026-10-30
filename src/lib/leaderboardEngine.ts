@@ -113,9 +113,9 @@ export function computeRoomPerformanceAndLeaderboard(
     }
 
     let statusTitle = g.submittedAt;
-    if (rank === 1) statusTitle = '👑 #1 Crown';
-    else if (rank === 2) statusTitle = '🥈 #2 Runner-up';
-    else if (rank === 3) statusTitle = '🥉 #3 Podium';
+    if (rank === 1) statusTitle = '1 Crown';
+    else if (rank === 2) statusTitle = '2 Runner-up';
+    else if (rank === 3) statusTitle = '3 Podium';
 
     return {
       rank,

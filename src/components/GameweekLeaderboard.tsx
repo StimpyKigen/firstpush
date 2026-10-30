@@ -224,8 +224,8 @@ export default function GameweekLeaderboard({ jackpot, totalUserPicksCount }: Ga
                               <StarRating rating={currentStars} size={8} showNumber={false} />
                             </div>
                             {isLeaderboardActive && entry.isClosest && (
-                              <span className="text-[11px] font-bold text-gold bg-gold/20 px-1 py-0.1 rounded shrink-0 hidden sm:inline" title="Closest to winning slip!">
-                                👑 1
+                              <span className="inline-flex items-center gap-1 text-[11px] font-bold text-gold bg-gold/20 px-1.5 py-0.5 rounded shrink-0 hidden sm:inline-flex" title="Closest to winning slip!">
+                                <Crown size={11} /> 1
                               </span>
                             )}
                           </div>

@@ -903,8 +903,8 @@ export default function Leaderboard() {
 
                                       {/* Accuracy % */}
                                       <td className="py-2 px-2 sm:px-3 text-center whitespace-nowrap">
-                                        <span className={`px-1.5 py-0.5 rounded text-[11px] font-bold ${
-                                          accuracyPct >= 70 ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-600'
+                                        <span className={`text-[11px] font-bold ${
+                                          accuracyPct >= 70 ? 'text-[#006C54]' : 'text-slate-600'
                                         }`}>
                                           {completedCount > 0 ? `${accuracyPct}%` : ' - '}
                                         </span>

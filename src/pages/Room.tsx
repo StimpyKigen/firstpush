@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useSyncExternalStore } from 'react';
 import { useParams, Navigate, useLocation } from 'react-router-dom';
-import { Users, Clock, Trophy, ChevronDown, CheckCircle2, XCircle, RadioTower, Sparkles } from 'lucide-react';
+import { Users, Clock, Trophy, ChevronDown, CheckCircle2, XCircle, RadioTower, Sparkles, Crown, Medal } from 'lucide-react';
 import SeoHead from '../components/SeoHead';
 import { scrollIntoViewIfNeeded } from '../lib/viewportScroll';
 import { getJackpot, subscribeToJackpots, getJackpotsSnapshot } from '../lib/mockData';
@@ -272,7 +272,7 @@ export default function Room() {
                 }`}
               >
                 <div className="flex items-center gap-3">
-                  <span className={`w-7 h-7 flex items-center justify-center rounded-full font-display font-bold text-xs ${entry.isClosest ? 'bg-gold text-ink' : 'bg-panel-2 text-cream-dim'}`}>
+                  <span className={`font-display font-bold text-sm tabular-nums w-4 text-center shrink-0 ${entry.isClosest ? 'text-gold' : 'text-cream-dim'}`}>
                     {entry.rank}
                   </span>
                   <Avatar name={entry.username} seed={entry.colorSeed} size={34} />
@@ -286,7 +286,26 @@ export default function Room() {
                     </div>
                   </div>
                 </div>
-                <span className={`text-sm font-bold ${entry.prizeWon !== ' - ' ? 'text-emerald-2' : 'text-cream-dim'}`}>{entry.prizeWon}</span>
+                {entry.rank === 1 ? (
+                  <span className="inline-flex items-center gap-1.5 text-sm font-bold text-gold shrink-0">
+                    <Crown size={15} className="text-gold shrink-0" />
+                    <span>1 Crown</span>
+                  </span>
+                ) : entry.rank === 2 ? (
+                  <span className="inline-flex items-center gap-1.5 text-sm font-bold text-slate-400 shrink-0">
+                    <Medal size={15} className="text-slate-400 shrink-0" />
+                    <span>2 Runner-up</span>
+                  </span>
+                ) : entry.rank === 3 ? (
+                  <span className="inline-flex items-center gap-1.5 text-sm font-bold text-amber-700 shrink-0">
+                    <Medal size={15} className="text-amber-700 shrink-0" />
+                    <span>3 Podium</span>
+                  </span>
+                ) : (
+                  <span className={`text-sm font-bold shrink-0 ${entry.prizeWon !== ' - ' ? 'text-emerald-2' : 'text-cream-dim'}`}>
+                    {entry.prizeWon}
+                  </span>
+                )}
               </div>
             ))}
           </div>
