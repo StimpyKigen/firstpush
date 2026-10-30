@@ -39,29 +39,31 @@ Switch.displayName = SwitchPrimitive.Root.displayName;
  * Connected Theme Switcher component for MshindiRoom.
  * Supports the customized switch layout with Sun/Moon icons,
  * toggles dark/light theme, and synchronizes with localStorage and documentElement.
+ * Sized 50% on mobile and 75% on desktop (25% reduction) for proportional aesthetics.
  */
 export const ThemeToggleSwitch: React.FC<{ className?: string }> = ({ className }) => {
   const { isDark, toggleTheme } = useTheme();
 
   return (
-    <div className={cn("inline-flex items-center", className)}>
-      <Switch
-        aria-label="Toggle dark mode"
-        icon={
-          isDark ? (
-            <MoonIcon className="h-3.5 w-3.5 text-[#202522] stroke-[2.2]" />
-          ) : (
-            <SunMediumIcon className="h-3.5 w-3.5 text-amber-500 stroke-[2.2]" />
-          )
-        }
-        checked={isDark}
-        onCheckedChange={toggleTheme}
-        className="h-7 w-12 data-[state=checked]:bg-[#66CF11] data-[state=unchecked]:bg-[#D4D4C0] border border-transparent shadow-inner"
-        thumbClassName="h-6 w-6 data-[state=checked]:translate-x-5 shadow-md flex items-center justify-center bg-white"
-      />
+    <div className={cn("inline-flex items-center justify-center shrink-0 w-6 h-4 lg:w-9 lg:h-5.5", className)}>
+      <div className="scale-50 lg:scale-75 origin-center shrink-0">
+        <Switch
+          aria-label="Toggle dark mode"
+          icon={
+            isDark ? (
+              <MoonIcon className="h-3.5 w-3.5 text-[#202522] stroke-[2.2]" />
+            ) : (
+              <SunMediumIcon className="h-3.5 w-3.5 text-amber-500 stroke-[2.2]" />
+            )
+          }
+          checked={isDark}
+          onCheckedChange={toggleTheme}
+          className="h-7 w-12 data-[state=checked]:bg-[#66CF11] data-[state=unchecked]:bg-[#D4D4C0] border border-transparent shadow-inner"
+          thumbClassName="h-6 w-6 data-[state=checked]:translate-x-5 shadow-md flex items-center justify-center bg-white"
+        />
+      </div>
     </div>
   );
 };
 
 export default ThemeToggleSwitch;
-

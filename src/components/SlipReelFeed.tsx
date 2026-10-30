@@ -128,14 +128,14 @@ export default function SlipReelFeed({ posts, onClose }: SlipReelFeedProps) {
        */}
       <div
         className={[
-          'relative w-full h-full overflow-hidden bg-[#FFFFF0] dark:bg-[#202522]',
+          'relative w-full h-full overflow-hidden bg-[#FFFFF0] dark:bg-[#202522] slip-feed-panel',
           'sm:w-[390px] sm:h-[90dvh] sm:max-h-[820px]',
           'sm:rounded-[32px]',
           'sm:border sm:border-slate-200 dark:sm:border-[#414A43]',
           'sm:shadow-[0_24px_80px_-8px_rgba(0,0,0,0.5),0_0_0_1px_rgba(0,0,0,0.05)]',
         ].join(' ')}
       >
-        <div className="absolute inset-0 bg-[#FFFFF0] dark:bg-[#202522]" />
+        <div className="absolute inset-0 bg-[#FFFFF0] dark:bg-[#202522] slip-feed-bg" />
 
         {/*
          * SCROLL CONTAINER — gesture handling
@@ -177,7 +177,7 @@ export default function SlipReelFeed({ posts, onClose }: SlipReelFeedProps) {
 
         {/* ── TOP BAR (SlipFeed Header) ──────────────────────────────── */}
         <div
-          className="absolute top-0 left-0 right-0 z-30 flex items-center justify-between gap-2 px-4 bg-[#FFFFF0] dark:bg-[#202522] pb-2 border-b border-[#E6E6D2]/60 dark:border-[#414A43]/60"
+          className="absolute top-0 left-0 right-0 z-30 flex items-center justify-between gap-2 px-4 bg-[#FFFFF0] dark:bg-[#202522] slip-feed-header pb-2 border-b border-[#E6E6D2]/60 dark:border-[#414A43]/60"
           style={{ paddingTop: 'max(14px, env(safe-area-inset-top, 0px))' }}
         >
           <div className="flex items-center">

@@ -149,11 +149,12 @@ export default function SlipReelCard({
 
   return (
     <div
-      className="relative w-full h-full overflow-hidden bg-[#FFFFF0] dark:bg-[#202522] select-none text-slate-900 dark:text-[#F4F5EF]"
+      className="relative w-full h-full overflow-hidden bg-[#FFFFF0] dark:bg-[#202522] select-none text-slate-900 dark:text-[#F4F5EF] slip-reel-card"
       aria-label={`Bet slip by ${post.postedBy}`}
     >
       {/* ── AMBIENT SUBTLE PATTERN ── */}
-      <div className="absolute inset-0 bg-gradient-to-b from-[#FFFFF0] via-[#FAF9EC] to-[#F5F5E4] dark:from-[#202522] dark:via-[#262C28] dark:to-[#2A312D] pointer-events-none" />
+      <div className="ambient-light-gradient absolute inset-0 bg-gradient-to-b from-[#FFFFF0] via-[#FAF9EC] to-[#F5F5E4] dark:hidden pointer-events-none" />
+      <div className="ambient-dark-gradient hidden dark:block absolute inset-0 bg-gradient-to-b from-[#202522] via-[#242A26] to-[#2A312D] pointer-events-none" />
 
       {/* ── MAIN CONTENT CONTAINER (FULL HEIGHT FLEX) ── */}
       <div
@@ -201,7 +202,7 @@ export default function SlipReelCard({
               {slip.bookieCode && (
                 <button
                   onClick={handleCopyCode}
-                  className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-slate-900 dark:bg-[#2A312D] text-white dark:text-[#F4F5EF] border border-transparent dark:border-[#414A43] text-[11px] tabular-nums font-bold shadow-xs active:scale-95 transition-all hover:bg-slate-800 dark:hover:bg-[#343C36] cursor-pointer"
+                  className="booking-code-btn inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-slate-900 dark:bg-[#2A312D] text-white dark:text-[#F4F5EF] border border-transparent dark:border-[#414A43] text-[11px] tabular-nums font-bold shadow-xs active:scale-95 transition-all hover:bg-slate-800 dark:hover:bg-[#343C36] cursor-pointer"
                 >
                   {copiedCode ? <Check size={11} className="text-emerald-400" /> : <Copy size={11} />}
                   <span>{slip.bookieCode}</span>
@@ -274,7 +275,7 @@ export default function SlipReelCard({
                       transition={{ delay: 0.03 + legIdx * 0.03, duration: 0.24, ease: 'easeOut' }}
                       className={`${
                         isDense ? 'px-2.5 py-1 sm:py-1.5' : 'p-2 sm:p-2.5'
-                      } bg-white/80 dark:bg-[#2A312D] border border-[#E6E6D2] dark:border-[#414A43] rounded-xl flex items-center justify-between gap-2.5 shadow-2xs hover:bg-white dark:hover:bg-[#343C36] transition-colors`}
+                      } slip-leg-card bg-white/80 dark:bg-[#2A312D] border border-[#E6E6D2] dark:border-[#414A43] rounded-xl flex items-center justify-between gap-2.5 shadow-2xs hover:bg-white dark:hover:bg-[#343C36] transition-colors`}
                     >
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center justify-between gap-2">
@@ -354,7 +355,8 @@ export default function SlipReelCard({
               {!isSelf && (
                 <button
                   onClick={handleFollowToggle}
-                  className={`px-3 py-1 text-[11px] font-bold rounded-lg border transition-all active:scale-95 cursor-pointer shrink-0 ${
+                  className={`slip-follow-btn px-3 py-1 text-[11px] font-bold rounded-lg border transition-all active:scale-95 cursor-pointer shrink-0 ${
+
                     following
                       ? 'border-slate-300 dark:border-[#F4F5EF] bg-white/90 dark:bg-[#F4F5EF] text-slate-700 dark:text-[#202522] hover:bg-white dark:hover:bg-[#F4F5EF]/90'
                       : 'border-slate-900 dark:border-[#F4F5EF] bg-slate-900 dark:bg-[#F4F5EF] text-white dark:text-[#202522] hover:bg-slate-800 dark:hover:bg-[#F4F5EF]/90'

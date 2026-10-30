@@ -50,7 +50,7 @@ export default function MobileBottomNav({ pathname, builderLegsCount, currentUse
         {hasActive && (
           <span
             aria-hidden="true"
-            className="pointer-events-none absolute top-0 h-[2.5px] w-8 rounded-full bg-[#006C54] dark:bg-[#66CF11] transition-all duration-300 ease-out z-10"
+            className="pointer-events-none absolute top-0 h-[2.5px] w-8 rounded-full bg-[#006C54] nav-active-indicator transition-all duration-300 ease-out z-10"
             style={{
               left: `calc((${activeIndex} + 0.5) * (100% / ${count}) - 16px)`,
             }}

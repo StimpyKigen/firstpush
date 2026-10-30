@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@custom-variant dark (&:where(.dark, .dark *));
 
 /* ==========================================================================
    MshindiRoom — Meta Design System
@@ -1087,8 +1088,8 @@ html.dark :not(.theme-protected, .theme-protected *, .fixture-card-banner, .fixt
 }
 
 /* Primary Accent Green in Dark Mode: #66CF11 */
-html.dark :not(.theme-protected, .theme-protected *, .fixture-card-banner, .fixture-card-banner *, .jackpot-room-card, .jackpot-room-card *, .login-card, .login-card *):where(.text-\[\#006C54\]),
-html.dark :not(.theme-protected, .theme-protected *, .fixture-card-banner, .fixture-card-banner *, .jackpot-room-card, .jackpot-room-card *, .login-card, .login-card *):where(.text-emerald-600) {
+html.dark :not(.theme-protected, .theme-protected *, .fixture-card-banner, .fixture-card-banner *, .jackpot-room-card, .jackpot-room-card *, .login-card, .login-card *, .mobile-bottom-nav, .mobile-bottom-nav *):where(.text-\[\#006C54\]),
+html.dark :not(.theme-protected, .theme-protected *, .fixture-card-banner, .fixture-card-banner *, .jackpot-room-card, .jackpot-room-card *, .login-card, .login-card *, .mobile-bottom-nav, .mobile-bottom-nav *):where(.text-emerald-600) {
   color: #66CF11 !important;
 }
 
@@ -1119,4 +1120,96 @@ html.dark .btn-secondary {
 }
 html.dark .btn-secondary:hover {
   background-color: rgba(244, 245, 239, 0.08) !important;
+}
+
+/* ==========================================================================
+   SlipFeed Reel Card & Modal Dark Mode System
+   ========================================================================== */
+html.dark .slip-reel-card,
+html.dark .slip-feed-panel,
+html.dark .slip-feed-bg,
+html.dark .slip-feed-header,
+html.dark .slip-feed-scroll {
+  background-color: #202522 !important;
+  color: #F4F5EF !important;
+}
+
+html.dark .slip-reel-card .ambient-light-gradient {
+  display: none !important;
+}
+
+html.dark .slip-reel-card .ambient-dark-gradient {
+  display: block !important;
+}
+
+html.dark .slip-reel-card .slip-leg-card {
+  background-color: #2A312D !important;
+  border-color: #414A43 !important;
+  color: #F4F5EF !important;
+}
+
+html.dark .slip-reel-card .slip-leg-card:hover {
+  background-color: #343C36 !important;
+}
+
+html.dark .slip-reel-card .slip-follow-btn {
+  background-color: #F4F5EF !important;
+  color: #202522 !important;
+  border-color: #F4F5EF !important;
+}
+
+html.dark .slip-reel-card .slip-follow-btn:hover {
+  background-color: rgba(244, 245, 239, 0.9) !important;
+}
+
+html.dark .slip-reel-card .booking-code-btn {
+  background-color: #2A312D !important;
+  color: #F4F5EF !important;
+  border-color: #414A43 !important;
+}
+
+/* ==========================================================================
+   Mobile Bottom Nav Highlight Invariant (Emerald #006C54 in both modes)
+   ========================================================================== */
+.mobile-bottom-nav .nav-active-indicator,
+html.dark .mobile-bottom-nav .nav-active-indicator,
+.mobile-bottom-nav [class*="bg-[#006C54]"],
+html.dark .mobile-bottom-nav [class*="bg-[#006C54]"] {
+  background-color: #006C54 !important;
+}
+
+.mobile-bottom-nav .nav-active-icon,
+html.dark .mobile-bottom-nav .nav-active-icon,
+.mobile-bottom-nav .nav-active-label,
+html.dark .mobile-bottom-nav .nav-active-label,
+.mobile-bottom-nav [class*="text-[#006C54]"],
+html.dark .mobile-bottom-nav [class*="text-[#006C54]"] {
+  color: #006C54 !important;
+}
+
+/* ==========================================================================
+   Light-Mode Preservation (Guarantees Reversion on Theme Toggle in PWA)
+   ========================================================================== */
+html:not(.dark) .fixture-card-standard,
+html.light .fixture-card-standard,
+html:not(.dark) [class*="bg-[#FFFFF0]"]:not(.theme-protected, .theme-protected *, .fixture-card-banner, .fixture-card-banner *),
+html.light [class*="bg-[#FFFFF0]"]:not(.theme-protected, .theme-protected *, .fixture-card-banner, .fixture-card-banner *) {
+  background-color: #FFFFF0 !important;
+}
+
+html:not(.dark) .fixture-card-standard,
+html.light .fixture-card-standard {
+  border-color: #DCDCC8 !important;
+}
+
+html:not(.dark) .slip-reel-card,
+html.light .slip-reel-card {
+  background-color: #FFFFF0 !important;
+}
+
+html:not(.dark) .slip-follow-btn,
+html.light .slip-follow-btn {
+  background-color: #0f172a !important;
+  color: #ffffff !important;
+  border-color: #0f172a !important;
 }
