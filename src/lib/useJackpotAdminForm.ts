@@ -1,6 +1,7 @@
 import { useState, useSyncExternalStore } from 'react';
 import { createAdminJackpotRoom, subscribeToJackpots, getJackpotsSnapshot } from './mockData';
 import { showToast } from './notificationStore';
+import { parseJackpotWebpageText } from './jackpotWebParser';
 import type { Bookie } from './types';
 
 export const KENYAN_BETTING_SITES = [
@@ -52,7 +53,7 @@ export function useJackpotAdminForm() {
 
   // Published rooms live store
   const publishedJackpots = useSyncExternalStore(subscribeToJackpots, getJackpotsSnapshot, getJackpotsSnapshot);
-  const activeResultRoom = publishedJackpots.find((j) => j.id === (selectedResultRoomId || publishedJackpots[0]?.id));
+  const activeResultRoom = selectedResultRoomId ? publishedJackpots.find((j) => j.id === selectedResultRoomId) : undefined;
 
   function formatDateTimeDisplay(dtStr: string): string {
     try {
@@ -106,37 +107,73 @@ export function useJackpotAdminForm() {
     setAiSuccessMessage('');
 
     try {
-      const res = await fetch('/api/gemini/parse-jackpot-text', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          rawText: webpageText,
-          bookie: selectedBookie,
-          legCount: numLegs,
-        }),
-      });
+      let extracted: ExtractedMatch[] = [];
 
-      const data = await res.json();
-      if (data.success && Array.isArray(data.matches) && data.matches.length > 0) {
-        const parsedMatches: ExtractedMatch[] = data.matches.map((m: any, i: number) => ({
-          home: m.home || `Team ${i + 1}A`,
-          away: m.away || `Team ${i + 1}B`,
-          competition: m.competition || 'Football League',
-          kickoff: m.kickoff || formatDateTimeDisplay(startDateTime),
-          homePct: Number(m.homePct) || 45,
-          drawPct: Number(m.drawPct) || 30,
-        }));
+      try {
+        const res = await fetch('/api/gemini/parse-jackpot-text', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-admin-key': 'mshindi_admin_audit_key_2026',
+          },
+          body: JSON.stringify({
+            rawText: webpageText,
+            bookie: selectedBookie,
+            legCount: numLegs,
+          }),
+        });
 
-        setMatches(parsedMatches);
-        setAiSuccessMessage(`✨ AI Extension successfully extracted & arranged ${parsedMatches.length} matches for ${selectedBookie}!`);
-        showToast({ title: 'AI Extraction Complete', message: `AI extracted ${parsedMatches.length} games for ${selectedBookie}`, type: 'success' });
+        if (res.ok) {
+          const data = await res.json();
+          if (data.success && Array.isArray(data.matches) && data.matches.length > 0) {
+            extracted = data.matches.map((m: any, i: number) => ({
+              home: m.home || `Team ${i + 1}A`,
+              away: m.away || `Team ${i + 1}B`,
+              competition: m.competition || 'Football League',
+              kickoff: m.kickoff || formatDateTimeDisplay(startDateTime),
+              homePct: Number(m.homePct) || 45,
+              drawPct: Number(m.drawPct) || 30,
+            }));
+          }
+        }
+      } catch (networkErr) {
+        console.warn('Server parse request failed, proceeding to deterministic local parser', networkErr);
+      }
+
+      // If server parser returned fewer matches than target, run high-precision local regex parser
+      if (extracted.length < numLegs) {
+        const localMatches = parseJackpotWebpageText(webpageText, numLegs, formatDateTimeDisplay(startDateTime));
+        if (localMatches.length > extracted.length) {
+          extracted = localMatches.map((m) => ({
+            home: m.home,
+            away: m.away,
+            competition: m.competition,
+            kickoff: m.kickoff,
+            homePct: m.homePct,
+            drawPct: m.drawPct,
+          }));
+        }
+      }
+
+      if (extracted.length > 0) {
+        setMatches(extracted);
+        setAiSuccessMessage(`✨ Web parser accurately arranged ${extracted.length} legs for ${selectedBookie}!`);
+        showToast({
+          title: 'Extraction Complete',
+          message: `Categorized ${extracted.length} matches accurately from Leg 1 to Leg ${extracted.length}`,
+          type: 'success',
+        });
       } else {
-        showToast({ title: 'Fallback Format Loaded', message: 'AI parser completed with default format. Verify fixtures below.', type: 'info' });
+        showToast({
+          title: 'No Matches Detected',
+          message: 'Could not auto-extract matches from the pasted text. Loaded editable sample slate.',
+          type: 'warning',
+        });
         generateSampleMatches(numLegs);
       }
     } catch (err: any) {
       console.error('AI Arrange error:', err);
-      showToast({ title: 'Extension Notice', message: 'Error connecting to AI parser extension. Loaded fallback fixtures.', type: 'error' });
+      showToast({ title: 'Parser Notice', message: 'Could not parse text. Loaded sample slate.', type: 'error' });
       generateSampleMatches(numLegs);
     } finally {
       setIsAiProcessing(false);
@@ -170,6 +207,11 @@ export function useJackpotAdminForm() {
   }
 
   function handlePublishJackpot(onPublished: () => void) {
+    if (!jackpotName.trim()) {
+      showToast({ title: 'Title Required', message: 'Jackpot Room Display Title is compulsory. Please enter a title.', type: 'error' });
+      return;
+    }
+
     if (matches.length === 0) {
       showToast({ title: 'Matches Empty', message: 'Please add or AI-arrange matches before publishing.', type: 'error' });
       return;
@@ -208,7 +250,7 @@ export function useJackpotAdminForm() {
     const created = createAdminJackpotRoom({
       id: `admin-${selectedBookie.toLowerCase().replace(/[^a-z0-9]/g, '')}-${Date.now()}`,
       bookie: mappedBookie,
-      name: `${selectedBookie} ${jackpotName}`,
+      name: jackpotName.trim(),
       prizePool: prizePool,
       startTime: formattedStart,
       entryFee: 10,

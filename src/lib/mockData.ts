@@ -1,4 +1,4 @@
-import type { Jackpot, MatchConsensus, Match, Outcome, LeaderboardEntry } from './types';
+import type { Jackpot, MatchConsensus, Match, Outcome, NonResultStatus, LeaderboardEntry } from './types';
 import { buildConsensus } from './consensusEngine';
 import { jackpotFeedSeed } from './jackpotFeed';
 import { fetchDailyHighlightFixtures, type HighlightFixture } from './footballApi';
@@ -291,19 +291,22 @@ export function updateJackpotMatchResult(
   matchId: string,
   result: Outcome | undefined,
   homeScore?: number | null,
-  awayScore?: number | null
+  awayScore?: number | null,
+  nonResultStatus?: NonResultStatus | null
 ): Jackpot | undefined {
   const jp = activeJackpots.find((j) => j.id === jackpotId);
   if (!jp) return undefined;
 
   const mIdx = jp.matches.findIndex((m) => m.id === matchId);
   if (mIdx >= 0) {
+    const isSpecialStatus = Boolean(nonResultStatus);
     jp.matches[mIdx] = {
       ...jp.matches[mIdx],
-      result,
+      result: isSpecialStatus ? undefined : result,
+      nonResultStatus: isSpecialStatus ? nonResultStatus : (result !== undefined ? null : jp.matches[mIdx].nonResultStatus),
       homeScore: homeScore !== undefined ? homeScore : jp.matches[mIdx].homeScore,
       awayScore: awayScore !== undefined ? awayScore : jp.matches[mIdx].awayScore,
-      status: result ? 'post' : 'pre',
+      status: (result || isSpecialStatus) ? 'post' : 'pre',
     };
   }
 

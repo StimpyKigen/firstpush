@@ -159,11 +159,11 @@ export default function CreateJackpotForm({
             }}
             className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-xs font-medium text-slate-900 focus:outline-none focus:border-[#006C54] focus:ring-1 focus:ring-[#006C54] transition-all"
           >
-            <option value={13}>13 Games (Midweek Jackpot)</option>
-            <option value={14}>14 Games (Pro Jackpot)</option>
-            <option value={15}>15 Games (Betika Midweek / Shabiki)</option>
-            <option value={16}>16 Games (Grand Pro)</option>
-            <option value={17}>17 Games (SportPesa Mega Jackpot)</option>
+            {[17, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7].map((num) => (
+              <option key={num} value={num}>
+                {num} Legs
+              </option>
+            ))}
           </select>
         </div>
 
@@ -197,14 +197,18 @@ export default function CreateJackpotForm({
 
       {/* Jackpot Title */}
       <div>
-        <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-          Jackpot Room Display Title
+        <label className="block text-xs font-semibold text-slate-700 mb-1.5 flex items-center justify-between">
+          <span>
+            Jackpot Room Display Title <span className="text-rose-500 font-bold">*</span>
+          </span>
+          <span className="text-[11px] text-slate-400 font-normal">Compulsory</span>
         </label>
         <input
           type="text"
+          required
           value={jackpotName}
           onChange={(e) => setJackpotName(e.target.value)}
-          placeholder="e.g. Mega Jackpot Pro"
+          placeholder="e.g. SportPesa Mega Jackpot Pro"
           className="w-full bg-white border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs font-medium text-slate-900 focus:outline-none focus:border-[#006C54] focus:ring-1 focus:ring-[#006C54] transition-all shadow-2xs"
         />
       </div>

@@ -23,6 +23,7 @@ import {
 import { fetchBet365OddsForMatch } from './src/lib/sportscoreOddsService';
 import { extractPdfTextServer } from './src/lib/serverPdfParser';
 import { getSavedHomepageFeed, saveHomepageFeed } from './src/lib/serverHomepageFeed';
+import { parseJackpotWebpageText } from './src/lib/jackpotWebParser';
 
 const ADMIN_TOKEN_SECRET =
   process.env.ADMIN_SECRET ||
@@ -617,13 +618,6 @@ Strict Rules for Ava:
   // Gemini AI Jackpot Webpage Parser API (Admin Extension)
   app.post('/api/gemini/parse-jackpot-text', async (req, res) => {
     try {
-      const apiKey = process.env.GEMINI_API_KEY;
-      if (!apiKey) {
-        return res.status(400).json({
-          error: 'GEMINI_API_KEY is missing. Please set it in secrets.'
-        });
-      }
-
       const adminToken = req.headers['x-admin-token'] as string;
       const adminKey = (req.headers['x-admin-key'] || req.query.adminKey) as string;
       const expectedKey = process.env.ADMIN_SECRET || 'mshindi_admin_audit_key_2026';
@@ -636,49 +630,66 @@ Strict Rules for Ava:
         return res.status(400).json({ error: 'Raw webpage text is required for parsing.' });
       }
 
-      const targetLegs = Number(legCount) || 15;
-      const ai = new GoogleGenAI({
-        apiKey,
-        httpOptions: {
-          headers: {
-            'User-Agent': 'aistudio-build',
-          },
-        },
-      });
+      const targetLegs = Number(legCount) || 17;
+      let matches: any[] = [];
 
-      const systemInstruction = `You are an expert sports betting jackpot fixture parser for Kenyan betting sites (SportPesa, Betika, MozzartBet, Odibets, Shabiki, BangBet, PariPesa, 22Bet, 1xBet, BetAfriq).
-Given raw text copied and pasted from a betting jackpot webpage, extract exactly ${targetLegs} football match fixtures sequentially in the jackpot order.
-For each fixture extract:
-- home: Home team name
-- away: Away team name
-- competition: League or country (e.g., 'English Premier League', 'Spanish LALIGA', 'Serie A', 'CAF Champions League', 'UEFA Champions League', etc.)
-- kickoff: Kickoff time formatted nicely (e.g. 'Sat 15 Aug · 17:00 EAT')
-- homePct: estimated win probability integer (20 to 75)
-- drawPct: estimated draw probability integer (20 to 40)
-- awayPct: estimated away win probability integer (20 to 75)
+      const apiKey = process.env.GEMINI_API_KEY;
+      if (apiKey) {
+        try {
+          const ai = new GoogleGenAI({
+            apiKey,
+            httpOptions: {
+              headers: {
+                'User-Agent': 'aistudio-build',
+              },
+            },
+          });
 
+          const systemInstruction = `You are an expert sports betting jackpot fixture parser for Kenyan sportsbooks (SportPesa, Betika, MozzartBet, Odibets, Shabiki, BangBet, PariPesa, 22Bet, 1xBet, BetAfriq).
+Given raw text copied and pasted from a betting jackpot webpage, accurately extract exactly ${targetLegs} football match fixtures sequentially in the exact jackpot order from Leg 1 to Leg ${targetLegs}.
+STRICT RULES:
+1. Ignore all non-match related text: site headers, footers, navigation links, login/register buttons, promotional banners, jackpot rules, bonus info, and marketing copy.
+2. For each fixture extract:
+   - home: Clean Home team name only (e.g. 'Arsenal')
+   - away: Clean Away team name only (e.g. 'Chelsea')
+   - competition: League or country competition (e.g. 'English Premier League', 'Spanish La Liga', 'Italian Serie A', 'German Bundesliga', etc.)
+   - kickoff: Kick-off date and time formatted nicely (e.g. 'Sat 24 Oct · 17:00 EAT')
+   - homePct: Estimated win percentage integer (20 to 75)
+   - drawPct: Estimated draw percentage integer (20 to 40)
+   - awayPct: Estimated away percentage integer (20 to 75)
+3. Ensure the arrangement strictly matches the first leg to the last leg.
 Return valid JSON with key 'matches' containing exactly ${targetLegs} items.`;
 
-      const prompt = `Bookmaker: ${bookie || 'Kenyan Sportsbook'}\nTarget number of games/legs: ${targetLegs}\n\nRaw Webpage Content:\n${rawText.slice(0, 8000)}`;
+          const prompt = `Bookmaker: ${bookie || 'Kenyan Sportsbook'}\nTarget number of games/legs: ${targetLegs}\n\nRaw Webpage Content:\n${rawText.slice(0, 12000)}`;
 
-      const response = await ai.models.generateContent({
-        model: 'gemini-3.6-flash',
-        contents: prompt,
-        config: {
-          systemInstruction,
-          temperature: 0.2,
-          responseMimeType: 'application/json',
-        },
-      });
+          const response = await ai.models.generateContent({
+            model: 'gemini-3.6-flash',
+            contents: prompt,
+            config: {
+              systemInstruction,
+              temperature: 0.1,
+              responseMimeType: 'application/json',
+            },
+          });
 
-      let parsed: any = { matches: [] };
-      try {
-        parsed = JSON.parse(response.text || '{}');
-      } catch {
-        console.warn('Failed to parse Gemini output as JSON directly, raw response text:', response.text);
+          let parsed: any = { matches: [] };
+          try {
+            parsed = JSON.parse(response.text || '{}');
+          } catch {
+            console.warn('Failed to parse Gemini output as JSON directly');
+          }
+          if (Array.isArray(parsed?.matches) && parsed.matches.length > 0) {
+            matches = parsed.matches;
+          }
+        } catch (aiErr) {
+          console.warn('Gemini AI parsing encountered error, falling back to deterministic parser:', aiErr);
+        }
       }
 
-      const matches = Array.isArray(parsed?.matches) ? parsed.matches : [];
+      // High-precision deterministic parser fallback if AI returned empty or is not available
+      if (matches.length === 0) {
+        matches = parseJackpotWebpageText(rawText, targetLegs);
+      }
 
       res.json({
         success: true,
@@ -687,7 +698,13 @@ Return valid JSON with key 'matches' containing exactly ${targetLegs} items.`;
         matches,
       });
     } catch (err: any) {
-      console.error('Gemini Jackpot Parser Error:', err);
+      console.error('Jackpot Parser Error:', err);
+      // Even on general error, attempt fallback
+      const { rawText, targetLegs } = req.body || {};
+      const fallbackMatches = rawText ? parseJackpotWebpageText(rawText, Number(targetLegs) || 17) : [];
+      if (fallbackMatches.length > 0) {
+        return res.json({ success: true, legCount: fallbackMatches.length, matches: fallbackMatches });
+      }
       res.status(500).json({ error: err?.message || 'Failed to parse jackpot webpage text' });
     }
   });

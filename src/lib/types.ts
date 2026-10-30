@@ -13,6 +13,8 @@ export type Outcome = '1' | 'X' | '2';
 
 export type RoomStatus = 'open' | 'locked' | 'settled';
 
+export type NonResultStatus = 'Canceled' | 'Postponed' | 'Abandoned' | 'TBD';
+
 export type Conviction = 'Banker' | 'Value Pick' | 'Long Shot';
 
 export interface Match {
@@ -24,6 +26,7 @@ export interface Match {
   competition: string;
   kickoff: string;
   result?: Outcome;
+  nonResultStatus?: NonResultStatus | null;
   status?: 'pre' | 'in' | 'post';
   displayClock?: string;
   homeScore?: number | null;

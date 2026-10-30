@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useSyncExternalStore } from 'react';
 import { useParams, Navigate, useLocation } from 'react-router-dom';
-import { Users, Clock, Trophy, ChevronDown, CheckCircle2, XCircle, RadioTower, Sparkles, Crown, Medal } from 'lucide-react';
+import { Users, Clock, Trophy, ChevronDown, CheckCircle2, XCircle, RadioTower, Sparkles, Crown, Medal, AlertTriangle } from 'lucide-react';
 import SeoHead from '../components/SeoHead';
 import { scrollIntoViewIfNeeded } from '../lib/viewportScroll';
 import { getJackpot, subscribeToJackpots, getJackpotsSnapshot } from '../lib/mockData';
@@ -544,11 +544,15 @@ function RoomMatchCard({
             )
           )}
 
-          {match.result && (
+          {match.nonResultStatus ? (
+            <span className="flex items-center gap-1 text-xs font-bold text-amber-500 bg-amber-500/10 border border-amber-500/30 px-2 py-1 rounded-md">
+              <AlertTriangle size={12} /> {match.nonResultStatus}
+            </span>
+          ) : match.result ? (
             <span className="flex items-center gap-1 text-xs font-bold text-emerald-2 bg-emerald-2/10 border border-emerald-2/30 px-2 py-1 rounded-md">
               <CheckCircle2 size={12} /> FT: {match.result}
             </span>
-          )}
+          ) : null}
 
           <ChevronDown size={18} className={`text-cream-dim transition-transform ${open ? 'rotate-180' : ''}`} />
         </div>
