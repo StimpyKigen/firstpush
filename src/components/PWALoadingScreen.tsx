@@ -1,72 +1,43 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import GridMotion from './GridMotion';
-import { CLUB_LOGOS, getShuffledClubLogos } from '../constants/clubLogos';
+import React, { useState, useEffect, useRef } from 'react';
 
 /**
- * Detects if the web app is running in standalone PWA mode
+ * Detects if the web app is running in standalone PWA mode or simulation preview
  */
 export function isPwaStandalone(): boolean {
   if (typeof window === 'undefined') return false;
   return (
     window.matchMedia('(display-mode: standalone)').matches ||
     (window.navigator as any).standalone === true ||
-    window.location.search.includes('pwa=1')
+    window.location.search.includes('pwa=1') ||
+    window.location.search.includes('splash=1') ||
+    window.location.search.includes('loading=1') ||
+    document.referrer.includes('android-app://')
   );
 }
 
 /**
  * Fullscreen PWA Loading Screen
  *
- * Appears strictly on PWA launch in fullscreen (no navigation bars).
- * Plays the login background animation (GridMotion with shuffled club logos and stadium pitch atmosphere)
- * with strictly pure motion animation (no text overlays) for exactly 6 seconds once all assets are preloaded,
- * then smoothly transitions into the app.
+ * Appears on PWA launch in true fullscreen (no navigation bars, pure black backdrop).
+ * Plays the official Mshindi silhouette and text fade video animation positioned dead-center.
+ * Once the animation completes (or upon user tap / safety timer), it smoothly fades out into the app.
  */
 export default function PWALoadingScreen() {
   const [isPwa, setIsPwa] = useState(false);
-  const [assetsLoaded, setAssetsLoaded] = useState(false);
   const [isExiting, setIsExiting] = useState(false);
   const [isDone, setIsDone] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const exitTriggeredRef = useRef(false);
 
-  // Shuffled logos for the background motion grid
-  const shuffledLogos = useMemo(() => getShuffledClubLogos(), []);
-
-  // 1. Detect PWA standalone mode and preload all assets
+  // 1. Detect PWA standalone mode
   useEffect(() => {
     if (!isPwaStandalone()) {
       return;
     }
     setIsPwa(true);
-
-    // Preload all club logo images
-    const assetsToPreload = [...CLUB_LOGOS];
-
-    let loadedCount = 0;
-    const totalAssets = assetsToPreload.length;
-
-    const handleAssetLoad = () => {
-      loadedCount++;
-      if (loadedCount >= totalAssets) {
-        setAssetsLoaded(true);
-      }
-    };
-
-    assetsToPreload.forEach((src) => {
-      const img = new Image();
-      img.src = src;
-      img.onload = handleAssetLoad;
-      img.onerror = handleAssetLoad;
-    });
-
-    // Safety timeout: proceed within 1200ms even if some remote asset is slow
-    const safetyTimer = setTimeout(() => {
-      setAssetsLoaded(true);
-    }, 1200);
-
-    return () => clearTimeout(safetyTimer);
   }, []);
 
-  // 2. Lock body scroll while splash screen is active
+  // 2. Lock body scroll while loading screen is active
   useEffect(() => {
     if (isPwa && !isDone) {
       const originalOverflow = document.body.style.overflow;
@@ -77,21 +48,39 @@ export default function PWALoadingScreen() {
     }
   }, [isPwa, isDone]);
 
-  // 3. Exactly 6-second timer once assets are confirmed loaded
+  // 3. Smooth exit transition
+  const handleComplete = () => {
+    if (exitTriggeredRef.current) return;
+    exitTriggeredRef.current = true;
+    setIsExiting(true);
+    setTimeout(() => {
+      setIsDone(true);
+    }, 700); // 700ms smooth fade transition
+  };
+
+  // 4. Safety fallback timer (animation duration is ~7.85s)
   useEffect(() => {
-    if (!isPwa || !assetsLoaded || isDone) return;
+    if (!isPwa || isDone) return;
 
-    const timer = setTimeout(() => {
-      setIsExiting(true);
-      setTimeout(() => {
-        setIsDone(true);
-      }, 700); // smooth fade transition before unmount
-    }, 6000);
+    const safetyTimer = setTimeout(() => {
+      handleComplete();
+    }, 8500);
 
-    return () => clearTimeout(timer);
-  }, [isPwa, assetsLoaded, isDone]);
+    return () => clearTimeout(safetyTimer);
+  }, [isPwa, isDone]);
 
-  // 4. Synchronize theme-color: black on loading screen, ivory in-app
+  // 5. Ensure video auto-plays reliably
+  useEffect(() => {
+    if (!isPwa || isDone) return;
+    const vid = videoRef.current;
+    if (vid) {
+      vid.play().catch(() => {
+        // Autoplay policy fallback
+      });
+    }
+  }, [isPwa, isDone]);
+
+  // 6. Synchronize theme-color: black on loading screen, ivory in-app
   useEffect(() => {
     const metaTheme = document.querySelector('meta[name="theme-color"]');
     if (isPwa && !isExiting && !isDone) {
@@ -111,34 +100,27 @@ export default function PWALoadingScreen() {
 
   return (
     <div
-      className={`fixed inset-0 z-[999999] w-screen h-screen overflow-hidden bg-black flex flex-col items-center justify-center select-none transition-opacity duration-700 ease-out ${
+      className={`fixed inset-0 z-[999999] w-screen h-screen overflow-hidden bg-black flex items-center justify-center select-none transition-opacity duration-700 ease-out ${
         isExiting ? 'opacity-0 pointer-events-none' : 'opacity-100'
       }`}
       aria-label="MshindiRoom Application Loading"
       role="dialog"
       aria-modal="true"
+      onClick={handleComplete}
     >
-      {/* Animated Motion Grid Background with Shuffled Club Logos in Full Vibrant Colors */}
-      <div className="absolute inset-0 w-full h-full overflow-hidden pointer-events-none">
-        {assetsLoaded && shuffledLogos.length > 0 && (
-          <GridMotion
-            items={shuffledLogos}
-            rows={5}
-            aspectRatio={1.0}
-            gap={12}
-            radius={14}
-            angle={-10}
-            tilt={0}
-            speed={20}
-            direction="alternate"
-            parallax={0}
-            spotlight={0}
-            dim={0}
-            fade={0}
-            grayscale={false}
-            tileColor="#12161f"
-          />
-        )}
+      {/* Centered Video Animation */}
+      <div className="relative w-full h-full flex items-center justify-center p-0 m-0">
+        <video
+          ref={videoRef}
+          src="/pwa-loading-animation.mp4"
+          autoPlay
+          muted
+          playsInline
+          preload="auto"
+          disablePictureInPicture
+          onEnded={handleComplete}
+          className="w-full h-full max-h-screen max-w-full object-contain pointer-events-none select-none"
+        />
       </div>
     </div>
   );
