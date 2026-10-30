@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ShieldCheck, X, Trophy, Lock, ShieldAlert, Newspaper, KeyRound, CalendarDays } from 'lucide-react';
+import { X, Trophy, Lock, ShieldAlert, Newspaper, KeyRound, CalendarDays } from 'lucide-react';
 import AdminModerationDashboard from './AdminModerationDashboard';
 import AdminHomepageFeed from './admin/AdminHomepageFeed';
 import AdminFixturesManager from './admin/AdminFixturesManager';
@@ -117,13 +117,12 @@ export default function JackpotAdminModal({ isOpen, onClose }: JackpotAdminModal
         {/* APPLE-INSPIRED CONSOLE HEADER */}
         <div className="flex items-center justify-between px-6 py-4.5 border-b border-[#E5E5EA] bg-white">
           <div className="flex items-center gap-3">
-            <ShieldCheck size={22} className="text-[#006C54] shrink-0" />
             <div>
               <div className="flex items-center gap-2">
                 <h2 className="font-semibold text-base sm:text-lg text-slate-900 tracking-tight">
                   Mshindi Admin Console
                 </h2>
-                <span className="bg-[#E8F5EE] text-[#006C54] text-[11px] uppercase font-bold px-2 py-0.5 rounded-full">
+                <span className="text-[#006C54] text-[11px] uppercase font-bold">
                   Super Admin
                 </span>
               </div>

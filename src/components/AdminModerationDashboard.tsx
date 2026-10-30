@@ -132,7 +132,7 @@ export default function AdminModerationDashboard() {
           <Flag size={14} />
           <span>User Reports</span>
           {reports.filter((r) => r.status === 'Pending').length > 0 && (
-            <span className="bg-rose-500 text-white text-[11px] font-bold px-1.5 py-0.2 rounded-full ml-1">
+            <span className="text-rose-600 text-[11px] font-bold ml-1">
               {reports.filter((r) => r.status === 'Pending').length} Pending
             </span>
           )}

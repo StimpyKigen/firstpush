@@ -1,5 +1,5 @@
-import { Radio, Trash2, Zap, CheckCircle2, RotateCcw } from 'lucide-react';
-import { clearAllJackpots, deleteAdminJackpot, updateJackpotMatchResult, autoSimulateNextLegResult } from '../../lib/mockData';
+import { Radio, Trash2, CheckCircle2, RotateCcw } from 'lucide-react';
+import { clearAllJackpots, deleteAdminJackpot, updateJackpotMatchResult } from '../../lib/mockData';
 import { showToast } from '../../lib/notificationStore';
 import type { Jackpot, Outcome } from '../../lib/types';
 import { getBookieTheme } from '../../lib/bookies';
@@ -71,11 +71,7 @@ export default function LiveRoomsResultsManager({
                       : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
                   }`}
                 >
-                  <div
-                    className="w-4 h-4 rounded flex items-center justify-center p-0.5 overflow-hidden shrink-0 bg-white"
-                  >
-                    <img src={t.logo} alt={jp.bookie} className="w-full h-full object-contain" />
-                  </div>
+                  <img src={t.logo} alt={jp.bookie} className="w-4 h-4 object-contain shrink-0" />
                   <span>{jp.name}</span>
                   <span
                     className={`text-[11px] px-1.5 py-0.2 rounded tabular-nums font-medium ${
@@ -104,7 +100,7 @@ export default function LiveRoomsResultsManager({
                     <h4 className="font-semibold text-slate-900 text-sm">
                       Leg Results & Live Leaderboard Controller
                     </h4>
-                    <span className="bg-[#E8F5EE] text-[#006C54] text-[11px] font-bold px-2 py-0.5 rounded-full">
+                    <span className="text-[#006C54] text-[11px] font-bold">
                       {activeResultRoom.name}
                     </span>
                   </div>
@@ -114,30 +110,6 @@ export default function LiveRoomsResultsManager({
                 </div>
 
                 <div className="flex items-center gap-2 shrink-0">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      const res = autoSimulateNextLegResult(activeResultRoom.id);
-                      if (res.matchName && res.result) {
-                        showToast({
-                          title: 'Leg Result Updated!',
-                          message: `${res.matchName} → ${res.result}. Leaderboard recalculated live!`,
-                          type: 'success',
-                        });
-                      } else {
-                        showToast({
-                          title: 'All Legs Completed',
-                          message: 'All matches in this room have already been concluded!',
-                          type: 'info',
-                        });
-                      }
-                    }}
-                    className="text-xs font-semibold text-white bg-[#006C54] hover:bg-[#005441] px-3.5 py-2 rounded-xl shadow-xs transition-colors flex items-center gap-1.5 cursor-pointer"
-                  >
-                    <Zap size={14} />
-                    <span>Auto-Simulate Next Leg</span>
-                  </button>
-
                   <button
                     type="button"
                     onClick={() => {
@@ -162,8 +134,8 @@ export default function LiveRoomsResultsManager({
                     >
                       <div className="min-w-0">
                         <div className="flex items-center gap-2 flex-wrap">
-                          <span className="text-[11px] tabular-nums font-bold text-slate-700 bg-slate-100 px-2 py-0.5 rounded">
-                            Leg #{idx + 1}
+                          <span className="text-[11px] tabular-nums font-bold text-slate-700">
+                            Leg {idx + 1}
                           </span>
                           <span className="text-xs font-semibold text-slate-900 truncate">
                             {match.home} <span className="text-slate-400 font-normal">vs</span> {match.away}

@@ -96,11 +96,7 @@ export default function CreateJackpotForm({
                     : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
                 }`}
               >
-                <div
-                  className="w-4 h-4 rounded flex items-center justify-center p-0.5 overflow-hidden shrink-0 bg-white"
-                >
-                  <img src={t.logo} alt={site} className="w-full h-full object-contain" />
-                </div>
+                <img src={t.logo} alt={site} className="w-4 h-4 object-contain shrink-0" />
                 <span>{site}</span>
               </button>
             );
@@ -119,15 +115,11 @@ export default function CreateJackpotForm({
             <span className="text-[11px] text-slate-400 tabular-nums">Logo Loaded</span>
           </label>
           <div className="flex items-center gap-2">
-            <div
-              className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 border border-slate-200 p-1 bg-white shadow-2xs overflow-hidden"
-            >
-              <img
-                src={currentTheme.logo}
-                alt={selectedBookie}
-                className="w-full h-full object-contain"
-              />
-            </div>
+            <img
+              src={currentTheme.logo}
+              alt={selectedBookie}
+              className="w-10 h-10 object-contain shrink-0"
+            />
             <select
               value={selectedBookie}
               onChange={(e) => {

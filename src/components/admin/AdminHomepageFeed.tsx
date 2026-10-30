@@ -542,10 +542,10 @@ export default function AdminHomepageFeed() {
             </p>
           </div>
           <div className="flex items-center gap-2">
-            <span className="text-[11px] font-semibold text-[#006C54] bg-[#006C54]/10 border border-[#006C54]/20 px-3 py-1 rounded-full flex items-center gap-1.5">
+            <span className="text-[11px] font-semibold text-[#006C54] flex items-center gap-1.5">
               <ShieldCheck size={13} /> Firebase Storage Active
             </span>
-            <span className="text-xs font-medium text-slate-600 bg-slate-100 px-3 py-1 rounded-full">
+            <span className="text-xs font-medium text-slate-600">
               {feed.carouselItems.filter((i) => i.published).length} Published · {feed.carouselItems.length} Total
             </span>
           </div>
@@ -1261,7 +1261,7 @@ export default function AdminHomepageFeed() {
               Add YouTube match highlights, weekly previews, or tactical breakdowns that appear beneath the carousel separated by a horizontal line.
             </p>
           </div>
-          <span className="text-xs font-medium text-slate-600 bg-slate-100 px-3 py-1 rounded-full self-start sm:self-auto">
+          <span className="text-xs font-medium text-slate-600 self-start sm:self-auto">
             {feed.videoItems.filter((v) => v.published).length} Published · {feed.videoItems.length} Total
           </span>
         </div>

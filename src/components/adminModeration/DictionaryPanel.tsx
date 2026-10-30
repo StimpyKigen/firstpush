@@ -204,7 +204,7 @@ export default function DictionaryPanel({
 
                     {/* Category */}
                     <td className="py-3 px-4">
-                      <span className="inline-flex items-center gap-1 bg-slate-100 px-2 py-0.5 rounded-md text-[11px] text-slate-700">
+                      <span className="inline-flex items-center gap-1 text-[11px] text-slate-700">
                         <Tag size={10} className="text-[#006C54]" /> {entry.category}
                       </span>
                     </td>
