@@ -80,11 +80,11 @@ export default function PWALoadingScreen() {
     }
   }, [isPwa, isDone]);
 
-  // 6. Synchronize theme-color: black on loading screen, ivory in-app
+  // 6. Synchronize theme-color: green on loading screen, ivory in-app
   useEffect(() => {
     const metaTheme = document.querySelector('meta[name="theme-color"]');
     if (isPwa && !isExiting && !isDone) {
-      if (metaTheme) metaTheme.setAttribute('content', '#000000');
+      if (metaTheme) metaTheme.setAttribute('content', '#11492D');
     } else {
       if (metaTheme) metaTheme.setAttribute('content', '#FFFFF0');
     }
@@ -100,16 +100,17 @@ export default function PWALoadingScreen() {
 
   return (
     <div
-      className={`fixed inset-0 z-[999999] w-screen h-screen overflow-hidden bg-black flex items-center justify-center select-none transition-opacity duration-700 ease-out ${
+      className={`fixed inset-0 z-[999999] w-screen h-screen overflow-hidden bg-[#11492D] flex items-center justify-center select-none transition-opacity duration-700 ease-out ${
         isExiting ? 'opacity-0 pointer-events-none' : 'opacity-100'
       }`}
+      style={{ backgroundColor: '#11492D' }}
       aria-label="MshindiRoom Application Loading"
       role="dialog"
       aria-modal="true"
       onClick={handleComplete}
     >
       {/* Centered Video Animation */}
-      <div className="relative w-full h-full flex items-center justify-center p-0 m-0">
+      <div className="relative w-full h-full flex items-center justify-center p-0 m-0 bg-[#11492D]" style={{ backgroundColor: '#11492D' }}>
         <video
           ref={videoRef}
           src="/pwa-loading-animation.mp4"
@@ -119,7 +120,8 @@ export default function PWALoadingScreen() {
           preload="auto"
           disablePictureInPicture
           onEnded={handleComplete}
-          className="w-full h-full max-h-screen max-w-full object-contain pointer-events-none select-none"
+          className="w-full h-full max-h-screen max-w-full object-contain pointer-events-none select-none bg-[#11492D]"
+          style={{ backgroundColor: '#11492D' }}
         />
       </div>
     </div>
