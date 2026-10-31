@@ -39,8 +39,47 @@ export default function AvaChatSupport() {
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [unreadBadge, setUnreadBadge] = useState(false);
+  const [isMobilePwa, setIsMobilePwa] = useState(false);
+  const [keyboardHeight, setKeyboardHeight] = useState(0);
+  const [availableHeight, setAvailableHeight] = useState<number | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  // Detect mobile PWA mode and virtual keyboard viewport shifts
+  useEffect(() => {
+    const checkPwa = () => {
+      const isStandalone =
+        window.matchMedia('(display-mode: standalone)').matches ||
+        (window.navigator as any).standalone === true ||
+        window.location.search.includes('pwa=1');
+      setIsMobilePwa(isStandalone && window.innerWidth < 640);
+    };
+
+    checkPwa();
+    window.addEventListener('resize', checkPwa);
+
+    const vv = window.visualViewport;
+    const handleViewport = () => {
+      if (vv) {
+        const kh = Math.max(0, window.innerHeight - vv.height);
+        setKeyboardHeight(kh);
+        setAvailableHeight(vv.height);
+      }
+    };
+
+    if (vv) {
+      vv.addEventListener('resize', handleViewport);
+      vv.addEventListener('scroll', handleViewport);
+    }
+
+    return () => {
+      window.removeEventListener('resize', checkPwa);
+      if (vv) {
+        vv.removeEventListener('resize', handleViewport);
+        vv.removeEventListener('scroll', handleViewport);
+      }
+    };
+  }, []);
 
   // Auto-scroll to bottom of messages
   const scrollToBottom = () => {
@@ -196,67 +235,82 @@ export default function AvaChatSupport() {
         </div>
       )}
 
-      {/* Floating Support Window Widget (iOS/ChatGPT Style, Adaptive to Mobile Virtual Keyboard) */}
+      {/* Floating Support Window Widget (iOS/ChatGPT Style, Adaptive to Mobile Virtual Keyboard & PWA) */}
       {isOpen && (
-        <div className="fixed z-50 bottom-[calc(0.5rem+env(safe-area-inset-bottom,0px))] sm:bottom-10 lg:bottom-16 right-2 left-2 sm:left-auto sm:right-6 w-auto sm:w-[380px] h-[min(480px,calc(100dvh-5.5rem))] sm:h-[520px] max-h-[calc(100dvh-1rem)] bg-[#FFFFF0] dark:bg-[#202522] border border-[#E6E6D2] dark:border-[#414A43] rounded-[24px] sm:rounded-[28px] shadow-2xl flex flex-col overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-200">
+        <div
+          className={`fixed z-50 right-2 left-2 sm:left-auto sm:right-6 w-auto sm:w-[380px] bg-[#FFFFF0] dark:bg-[#202522] border border-[#E6E6D2] dark:border-[#414A43] ${
+            isMobilePwa ? 'rounded-[20px]' : 'rounded-[24px] sm:rounded-[28px]'
+          } shadow-2xl flex flex-col overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-200`}
+          style={{
+            bottom: keyboardHeight > 0
+              ? `${keyboardHeight + 6}px`
+              : 'calc(0.5rem + env(safe-area-inset-bottom, 0px))',
+            maxHeight: availableHeight
+              ? `${Math.min(isMobilePwa ? 340 : 480, availableHeight - (keyboardHeight > 0 ? 12 : 16))}px`
+              : (isMobilePwa ? '340px' : 'min(480px, calc(100dvh - 5.5rem))'),
+            height: isMobilePwa
+              ? `${Math.min(340, (availableHeight || 600) - (keyboardHeight > 0 ? 12 : 60))}px`
+              : undefined,
+          }}
+        >
           {/* Top Subtle Pull Handle */}
-          <div className="pt-2 pb-0.5 flex justify-center shrink-0">
-            <span className="w-9 h-1 rounded-full bg-slate-300/80 dark:bg-[#414A43]" />
+          <div className={`${isMobilePwa ? 'pt-1.5 pb-0.5' : 'pt-2 pb-0.5'} flex justify-center shrink-0`}>
+            <span className={`${isMobilePwa ? 'w-7 h-1' : 'w-9 h-1'} rounded-full bg-slate-300/80 dark:bg-[#414A43]`} />
           </div>
 
           {/* Minimalist Header */}
-          <div className="px-3.5 py-2.5 bg-[#FFFFF0] dark:bg-[#202522] border-b border-[#E6E6D2]/70 dark:border-[#414A43]/70 flex items-center justify-between shrink-0">
-            <div className="flex items-center gap-2.5">
+          <div className={`${isMobilePwa ? 'px-3 py-1.5' : 'px-3.5 py-2.5'} bg-[#FFFFF0] dark:bg-[#202522] border-b border-[#E6E6D2]/70 dark:border-[#414A43]/70 flex items-center justify-between shrink-0`}>
+            <div className="flex items-center gap-2">
               {/* Borderless Avatar */}
               <div className="relative flex items-center justify-center shrink-0">
-                <AvaLogo className="w-7 h-7" />
-                <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-emerald-500 border-2 border-[#FFFFF0] dark:border-[#202522] rounded-full"></span>
+                <AvaLogo className={isMobilePwa ? 'w-5 h-5' : 'w-7 h-7'} />
+                <span className={`absolute -bottom-0.5 -right-0.5 ${isMobilePwa ? 'w-2 h-2' : 'w-2.5 h-2.5'} bg-emerald-500 border-2 border-[#FFFFF0] dark:border-[#202522] rounded-full`}></span>
               </div>
               <div>
-                <h3 className="font-display font-bold text-slate-900 dark:text-[#F4F5EF] text-sm leading-tight">Ava</h3>
-                <p className="text-[11px] text-emerald-600 dark:text-[#006C54] font-medium flex items-center gap-1">
+                <h3 className={`font-display font-bold text-slate-900 dark:text-[#F4F5EF] ${isMobilePwa ? 'text-xs' : 'text-sm'} leading-tight`}>Ava</h3>
+                <p className={`${isMobilePwa ? 'text-[10px]' : 'text-[11px]'} text-emerald-600 dark:text-[#006C54] font-medium flex items-center gap-1`}>
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 dark:bg-[#006C54]"></span>
                   Online • Mshindi Support
                 </p>
               </div>
             </div>
 
-            <div className="flex items-center gap-1 text-slate-500 dark:text-[#B5BDB6]">
+            <div className="flex items-center gap-0.5 text-slate-500 dark:text-[#B5BDB6]">
               <button
                 onClick={handleClearChat}
-                className="p-1.5 hover:opacity-75 text-slate-500 dark:text-[#B5BDB6] flex items-center justify-center transition-opacity cursor-pointer"
+                className={`${isMobilePwa ? 'p-1' : 'p-1.5'} hover:opacity-75 text-slate-500 dark:text-[#B5BDB6] flex items-center justify-center transition-opacity cursor-pointer`}
                 title="Clear Chat History"
               >
-                <RefreshCw size={14} />
+                <RefreshCw size={isMobilePwa ? 12 : 14} />
               </button>
               {/* Borderless 'X' close button, ivory in darkmode */}
               <button
                 onClick={() => setIsOpen(false)}
-                className="p-1.5 hover:opacity-75 text-slate-700 dark:text-[#F4F5EF] flex items-center justify-center transition-opacity cursor-pointer"
+                className={`${isMobilePwa ? 'p-1' : 'p-1.5'} hover:opacity-75 text-slate-700 dark:text-[#F4F5EF] flex items-center justify-center transition-opacity cursor-pointer`}
                 title="Close Chat"
                 aria-label="Close Chat"
               >
-                <X size={18} />
+                <X size={isMobilePwa ? 15 : 18} />
               </button>
             </div>
           </div>
 
           {/* Chat Messages Body */}
-          <div className="flex-1 min-h-0 p-3 sm:p-3.5 overflow-y-auto space-y-2.5 text-xs text-slate-700 dark:text-[#B5BDB6] scrollbar-thin">
+          <div className={`flex-1 min-h-0 ${isMobilePwa ? 'p-2 space-y-1.5 text-[11px]' : 'p-3 sm:p-3.5 space-y-2.5 text-xs'} overflow-y-auto text-slate-700 dark:text-[#B5BDB6] scrollbar-thin`}>
             {messages.map((msg) => (
               <div
                 key={msg.id}
-                className={`flex gap-2 sm:gap-2.5 ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}
+                className={`flex gap-1.5 sm:gap-2.5 ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}
               >
                 {/* Borderless Avatar beside Ava messages */}
                 {msg.sender === 'ava' && (
                   <div className="flex items-center justify-center shrink-0 mt-0.5">
-                    <AvaLogo className="w-5 h-5 sm:w-6 sm:h-6" />
+                    <AvaLogo className={isMobilePwa ? 'w-4 h-4' : 'w-5 h-5 sm:w-6 sm:h-6'} />
                   </div>
                 )}
 
                 <div
-                  className={`max-w-[85%] rounded-[20px] p-2.5 sm:p-3 text-xs leading-relaxed ${
+                  className={`${isMobilePwa ? 'max-w-[88%] rounded-[14px] p-2 text-[11px]' : 'max-w-[85%] rounded-[20px] p-2.5 sm:p-3 text-xs'} leading-relaxed ${
                     msg.sender === 'user'
                       ? 'bg-[#EEAA04] text-[#0a1317] font-medium rounded-br-sm shadow-xs'
                       : 'bg-white dark:bg-[#2A312D] border border-[#E6E6D2] dark:border-[#414A43] text-slate-800 dark:text-[#F4F5EF] rounded-tl-sm shadow-2xs'
@@ -264,7 +318,7 @@ export default function AvaChatSupport() {
                 >
                   <div>{renderFormattedText(msg.text)}</div>
                   <div
-                    className={`mt-1 text-[11px] tabular-nums ${
+                    className={`mt-0.5 ${isMobilePwa ? 'text-[9px]' : 'text-[11px]'} tabular-nums ${
                       msg.sender === 'user' ? 'text-[#0a1317]/70 text-right' : 'text-slate-400 dark:text-[#929D95] text-left'
                     }`}
                   >
@@ -276,12 +330,12 @@ export default function AvaChatSupport() {
 
             {/* Loading / Typing Indicator with proper positioning and borderless avatar */}
             {isLoading && (
-              <div className="flex gap-2 sm:gap-2.5 justify-start items-center pt-0.5 pb-1">
+              <div className="flex gap-1.5 sm:gap-2.5 justify-start items-center pt-0.5 pb-1">
                 <div className="flex items-center justify-center shrink-0">
-                  <AvaLogo className="w-5 h-5 sm:w-6 sm:h-6" />
+                  <AvaLogo className={isMobilePwa ? 'w-4 h-4' : 'w-5 h-5 sm:w-6 sm:h-6'} />
                 </div>
-                <div className="bg-white dark:bg-[#2A312D] border border-[#E6E6D2] dark:border-[#414A43] rounded-[18px] rounded-tl-sm px-3 py-1.5 flex items-center gap-1.5 shadow-2xs">
-                  <span className="text-[11px] font-medium text-[#EEAA04] dark:text-[#FFC72C]">Ava is typing</span>
+                <div className={`bg-white dark:bg-[#2A312D] border border-[#E6E6D2] dark:border-[#414A43] ${isMobilePwa ? 'rounded-[14px] px-2 py-1' : 'rounded-[18px] px-3 py-1.5'} rounded-tl-sm flex items-center gap-1.5 shadow-2xs`}>
+                  <span className={`${isMobilePwa ? 'text-[10px]' : 'text-[11px]'} font-medium text-[#EEAA04] dark:text-[#FFC72C]`}>Ava is typing</span>
                   <div className="flex items-center gap-1">
                     <span className="w-1.5 h-1.5 bg-[#EEAA04] dark:bg-[#FFC72C] rounded-full animate-bounce [animation-delay:-0.3s]"></span>
                     <span className="w-1.5 h-1.5 bg-[#EEAA04] dark:bg-[#FFC72C] rounded-full animate-bounce [animation-delay:-0.15s]"></span>
@@ -296,13 +350,13 @@ export default function AvaChatSupport() {
           </div>
 
           {/* Compact Input Footer Bar */}
-          <div className="px-3 py-2 bg-[#FFFFF0] dark:bg-[#202522] border-t border-[#E6E6D2]/60 dark:border-[#414A43]/60 shrink-0">
+          <div className={`${isMobilePwa ? 'px-2.5 py-1.5' : 'px-3 py-2'} bg-[#FFFFF0] dark:bg-[#202522] border-t border-[#E6E6D2]/60 dark:border-[#414A43]/60 shrink-0`}>
             <form
               onSubmit={(e) => {
                 e.preventDefault();
                 void handleSendMessage();
               }}
-              className="relative flex items-center gap-2 bg-[#FFFFF0] dark:bg-[#2A312D] border border-[#E6E6D2] dark:border-[#414A43] rounded-full pl-3.5 pr-2 py-1.5 shadow-xs focus-within:border-[#0a1317] dark:focus-within:border-[#006C54] focus-within:ring-1 focus-within:ring-[#0a1317]/10 dark:focus-within:ring-[#006C54]/20 transition-all"
+              className={`relative flex items-center gap-2 bg-[#FFFFF0] dark:bg-[#2A312D] border border-[#E6E6D2] dark:border-[#414A43] rounded-full ${isMobilePwa ? 'pl-3 pr-1.5 py-1' : 'pl-3.5 pr-2 py-1.5'} shadow-xs focus-within:border-[#0a1317] dark:focus-within:border-[#006C54] focus-within:ring-1 focus-within:ring-[#0a1317]/10 dark:focus-within:ring-[#006C54]/20 transition-all`}
             >
               <input
                 ref={inputRef}
@@ -312,7 +366,7 @@ export default function AvaChatSupport() {
                 onKeyDown={handleKeyDown}
                 placeholder="Ask anything..."
                 disabled={isLoading}
-                className="flex-1 bg-transparent text-slate-900 dark:text-[#F4F5EF] placeholder-slate-400 dark:placeholder-[#929D95] text-xs sm:text-[13px] focus:outline-none min-w-0 py-0.5"
+                className={`flex-1 bg-transparent text-slate-900 dark:text-[#F4F5EF] placeholder-slate-400 dark:placeholder-[#929D95] ${isMobilePwa ? 'text-xs' : 'text-xs sm:text-[13px]'} focus:outline-none min-w-0 py-0.5`}
               />
               <button
                 type="submit"
@@ -324,7 +378,7 @@ export default function AvaChatSupport() {
                 <img
                   src="/images/send-icon.png"
                   alt="Send"
-                  className="w-4.5 h-4.5 sm:w-5 sm:h-5 object-contain"
+                  className={`${isMobilePwa ? 'w-3.5 h-3.5' : 'w-4.5 h-4.5 sm:w-5 sm:h-5'} object-contain`}
                   width="20"
                   height="20"
                   loading="eager"
