@@ -150,7 +150,7 @@ export default function PayGate({ jackpot, onUnlocked }: { jackpot: Jackpot; onU
             <button
               onClick={payWithTokens}
               disabled={!canPayWithTokens}
-              className="w-full inline-flex items-center justify-center px-6 bg-gold hover:bg-gold-2 disabled:opacity-50 disabled:cursor-not-allowed text-black font-bold text-sm h-12 rounded-xl border border-transparent transition-all cursor-pointer"
+              className="w-full inline-flex items-center justify-center px-6 bg-gold hover:bg-gold-2 dark:bg-[#FFC72C] dark:hover:bg-[#e0ad1f] disabled:opacity-50 disabled:cursor-not-allowed text-black dark:text-[#202522] font-bold text-sm h-12 rounded-xl border border-transparent transition-all cursor-pointer"
             >
               <span className="whitespace-nowrap">Unlock with Mshindi Tokens</span>
             </button>
@@ -161,10 +161,10 @@ export default function PayGate({ jackpot, onUnlocked }: { jackpot: Jackpot; onU
                 if (!requireAuth()) return;
                 setStep('sent');
               }}
-              className="w-full inline-flex items-center justify-center px-6 bg-emerald-2 hover:bg-emerald text-ink font-bold text-sm h-12 rounded-xl border border-transparent transition-all cursor-pointer"
+              className="w-full inline-flex items-center justify-center px-6 bg-emerald-2 hover:bg-emerald text-[#FFFFF0] dark:text-[#FFFFF0] font-bold text-sm h-12 rounded-xl border border-transparent transition-all cursor-pointer"
             >
               <span className="flex items-center gap-2 whitespace-nowrap">
-                <Smartphone size={16} className="shrink-0" />
+                <Smartphone size={16} className="shrink-0 text-[#FFFFF0]" />
                 <span>Pay via M-Pesa</span>
               </span>
             </button>
@@ -173,7 +173,7 @@ export default function PayGate({ jackpot, onUnlocked }: { jackpot: Jackpot; onU
             <button
               onClick={payWithBalance}
               disabled={!canPayFromBalance}
-              className="w-full inline-flex items-center justify-center px-6 bg-[#FFFFFF] hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed text-cream font-bold text-sm h-12 rounded-xl border border-line transition-all cursor-pointer"
+              className="w-full inline-flex items-center justify-center px-6 bg-[#FFFFFF] hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed text-slate-900 dark:text-[#202522] font-bold text-sm h-12 rounded-xl border border-line transition-all cursor-pointer"
             >
               <span className="flex items-center gap-2 whitespace-nowrap">
                 <Wallet size={16} className="shrink-0" />
