@@ -214,8 +214,8 @@ export default function AvaChatSupport() {
               </div>
               <div>
                 <h3 className="font-display font-bold text-slate-900 dark:text-[#F4F5EF] text-sm leading-tight">Ava</h3>
-                <p className="text-[11px] text-emerald-600 dark:text-[#66CF11] font-medium flex items-center gap-1">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 dark:bg-[#66CF11]"></span>
+                <p className="text-[11px] text-emerald-600 dark:text-[#006C54] font-medium flex items-center gap-1">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 dark:bg-[#006C54]"></span>
                   Online • Mshindi Support
                 </p>
               </div>
@@ -302,7 +302,7 @@ export default function AvaChatSupport() {
                 e.preventDefault();
                 void handleSendMessage();
               }}
-              className="relative flex items-center gap-2 bg-[#FFFFF0] dark:bg-[#2A312D] border border-[#E6E6D2] dark:border-[#414A43] rounded-full pl-3.5 pr-2 py-1.5 shadow-xs focus-within:border-[#0a1317] dark:focus-within:border-[#66CF11] focus-within:ring-1 focus-within:ring-[#0a1317]/10 dark:focus-within:ring-[#66CF11]/20 transition-all"
+              className="relative flex items-center gap-2 bg-[#FFFFF0] dark:bg-[#2A312D] border border-[#E6E6D2] dark:border-[#414A43] rounded-full pl-3.5 pr-2 py-1.5 shadow-xs focus-within:border-[#0a1317] dark:focus-within:border-[#006C54] focus-within:ring-1 focus-within:ring-[#0a1317]/10 dark:focus-within:ring-[#006C54]/20 transition-all"
             >
               <input
                 ref={inputRef}

@@ -94,7 +94,7 @@ export default function DesktopNav({
                       setProfileOpen(false);
                       onOpenAdminModal();
                     }}
-                    className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-bold text-[#006C54] dark:text-[#66CF11] hover:bg-emerald-50 dark:hover:bg-[#2F3732] transition-colors"
+                    className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-bold text-[#006C54] hover:bg-emerald-50 dark:hover:bg-[#2F3732] transition-colors"
                   >
                     <ShieldCheck size={15} /> Jackpot Admin
                   </button>

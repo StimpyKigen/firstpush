@@ -797,7 +797,7 @@ table { border-color: var(--color-line); }
      - Primary text:              #F4F5EF
      - Secondary text:            #B5BDB6
      - Muted text:                #929D95
-     - Primary accent green:      #66CF11
+     - Primary accent green:      #006C54
      - Dark accent green:         #266E0C
      - Accent gold:               #FFC72C
      - Subtle dividers:           #414A43
@@ -824,12 +824,12 @@ html.dark {
   --text-secondary: #B5BDB6;
   --text-muted: #929D95;
   --text-disabled: #66758a;
-  --text-link: #66CF11;
+  --text-link: #006C54;
 
   --color-1: #FFC72C;
   --color-gold: #FFC72C;
-  --color-emerald: #66CF11;
-  --color-brand-primary: #66CF11;
+  --color-emerald: #006C54;
+  --color-brand-primary: #006C54;
 }
 
 html.dark body {
@@ -1087,10 +1087,10 @@ html.dark :not(.theme-protected, .theme-protected *, .fixture-card-banner, .fixt
   color: #FFC72C !important;
 }
 
-/* Primary Accent Green in Dark Mode: #66CF11 */
-html.dark :not(.theme-protected, .theme-protected *, .fixture-card-banner, .fixture-card-banner *, .jackpot-room-card, .jackpot-room-card *, .login-card, .login-card *, .mobile-bottom-nav, .mobile-bottom-nav *):where(.text-\[\#006C54\]),
-html.dark :not(.theme-protected, .theme-protected *, .fixture-card-banner, .fixture-card-banner *, .jackpot-room-card, .jackpot-room-card *, .login-card, .login-card *, .mobile-bottom-nav, .mobile-bottom-nav *):where(.text-emerald-600) {
-  color: #66CF11 !important;
+/* Emerald Accent Green Invariant: #006C54 across all modes */
+html.dark :not(.theme-protected, .theme-protected *, .fixture-card-banner, .fixture-card-banner *, .jackpot-room-card, .jackpot-room-card *, .login-card, .login-card *):where(.text-\[\#006C54\]),
+html.dark :not(.theme-protected, .theme-protected *, .fixture-card-banner, .fixture-card-banner *, .jackpot-room-card, .jackpot-room-card *, .login-card, .login-card *):where(.text-emerald-600) {
+  color: #006C54 !important;
 }
 
 /* Form Controls in Dark Mode */

@@ -75,7 +75,7 @@ export default function MobileBottomNav({ pathname, builderLegsCount, currentUse
                     size={20}
                     className={`transition-colors duration-200 ${
                       tab.isActive
-                        ? 'text-[#006C54] dark:text-[#66CF11] stroke-[2.35]'
+                        ? 'text-[#006C54] stroke-[2.35]'
                         : 'text-[#5d6c7b] dark:text-[#B5BDB6] group-hover:text-[#0a1317] dark:group-hover:text-[#F4F5EF]'
                     }`}
                   />
@@ -92,7 +92,7 @@ export default function MobileBottomNav({ pathname, builderLegsCount, currentUse
                 <span
                   className={`text-[11px] leading-tight tracking-tight mt-0.5 truncate max-w-full px-0.5 transition-colors duration-200 ${
                     tab.isActive
-                      ? 'font-bold text-[#006C54] dark:text-[#66CF11]'
+                      ? 'font-bold text-[#006C54]'
                       : 'font-medium text-[#5d6c7b] dark:text-[#B5BDB6] group-hover:text-[#0a1317] dark:group-hover:text-[#F4F5EF]'
                   }`}
                 >

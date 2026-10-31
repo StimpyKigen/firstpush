@@ -283,7 +283,7 @@ export default function FixtureSportCard({
       className={`group relative overflow-hidden border rounded-2xl p-4 sm:p-5 flex flex-col justify-between transition-all duration-200 ${
         banner
           ? `fixture-card-banner ${banner.cardBg || 'bg-gradient-to-b from-[#E3EFFE] via-[#F0F6FE] to-[#FFFFF0]'} ${banner.borderColor || 'border-[#7BA7F8]'} ${banner.borderHoverColor || 'hover:border-[#0A3B8C]'} ${banner.shadow || 'shadow-[0_2px_12px_rgba(10,59,140,0.09)] hover:shadow-[0_4px_18px_rgba(10,59,140,0.16)]'}`
-          : 'fixture-card-standard bg-[#FFFFF0] dark:bg-[#2A312D] border-[#DCDCC8] dark:border-[#414A43] hover:border-[#006C54]/50 dark:hover:border-[#66CF11]/50 shadow-[0_1px_4px_rgba(0,0,0,0.03)] hover:shadow-[0_4px_14px_rgba(0,108,84,0.08)]'
+          : 'fixture-card-standard bg-[#FFFFF0] dark:bg-[#2A312D] border-[#DCDCC8] dark:border-[#414A43] hover:border-[#006C54]/50 dark:hover:border-[#006C54]/50 shadow-[0_1px_4px_rgba(0,0,0,0.03)] hover:shadow-[0_4px_14px_rgba(0,108,84,0.08)]'
       }`}
     >
       {/* Dynamic Faded Competition Background Banner */}
@@ -486,7 +486,7 @@ export default function FixtureSportCard({
                   ? 'bg-[#006C54] text-white font-bold border-[#005441] shadow-xs'
                   : banner
                   ? `bg-white/15 hover:bg-white/35 text-slate-800 ${banner.oddsBorderColor || 'border-[#7BA7F8]/50 hover:border-[#0A3B8C]'} backdrop-blur-[1px]`
-                  : 'bg-transparent hover:bg-black/[0.04] dark:hover:bg-white/[0.06] text-slate-800 dark:text-[#F4F5EF] border-[#DCDCC8] dark:border-[#414A43] hover:border-[#006C54] dark:hover:border-[#66CF11]'
+                  : 'bg-transparent hover:bg-black/[0.04] dark:hover:bg-white/[0.06] text-slate-800 dark:text-[#F4F5EF] border-[#DCDCC8] dark:border-[#414A43] hover:border-[#006C54] dark:hover:border-[#006C54]'
               }`}
             >
               <span
@@ -521,7 +521,7 @@ export default function FixtureSportCard({
                   ? 'bg-[#006C54] text-white font-bold border-[#005441] shadow-xs'
                   : banner
                   ? `bg-white/15 hover:bg-white/35 text-slate-800 ${banner.oddsBorderColor || 'border-[#7BA7F8]/50 hover:border-[#0A3B8C]'} backdrop-blur-[1px]`
-                  : 'bg-transparent hover:bg-black/[0.04] dark:hover:bg-white/[0.06] text-slate-800 dark:text-[#F4F5EF] border-[#DCDCC8] dark:border-[#414A43] hover:border-[#006C54] dark:hover:border-[#66CF11]'
+                  : 'bg-transparent hover:bg-black/[0.04] dark:hover:bg-white/[0.06] text-slate-800 dark:text-[#F4F5EF] border-[#DCDCC8] dark:border-[#414A43] hover:border-[#006C54] dark:hover:border-[#006C54]'
               }`}
             >
               <span
@@ -556,7 +556,7 @@ export default function FixtureSportCard({
                   ? 'bg-[#006C54] text-white font-bold border-[#005441] shadow-xs'
                   : banner
                   ? `bg-white/15 hover:bg-white/35 text-slate-800 ${banner.oddsBorderColor || 'border-[#7BA7F8]/50 hover:border-[#0A3B8C]'} backdrop-blur-[1px]`
-                  : 'bg-transparent hover:bg-black/[0.04] dark:hover:bg-white/[0.06] text-slate-800 dark:text-[#F4F5EF] border-[#DCDCC8] dark:border-[#414A43] hover:border-[#006C54] dark:hover:border-[#66CF11]'
+                  : 'bg-transparent hover:bg-black/[0.04] dark:hover:bg-white/[0.06] text-slate-800 dark:text-[#F4F5EF] border-[#DCDCC8] dark:border-[#414A43] hover:border-[#006C54] dark:hover:border-[#006C54]'
               }`}
             >
               <span

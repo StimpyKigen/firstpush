@@ -89,7 +89,7 @@ export default function SlipReelFeed({ posts, onClose }: SlipReelFeedProps) {
         >
           <X size={20} />
         </button>
-        <div className="w-16 h-16 rounded-2xl bg-emerald-50 dark:bg-[#266E0C]/25 text-[#006C54] dark:text-[#66CF11] flex items-center justify-center shadow-xs">
+        <div className="w-16 h-16 rounded-2xl bg-emerald-50 dark:bg-[#266E0C]/25 text-[#006C54] dark:text-[#006C54] flex items-center justify-center shadow-xs">
           <Layers size={32} />
         </div>
         <div className="text-center">
@@ -100,7 +100,7 @@ export default function SlipReelFeed({ posts, onClose }: SlipReelFeedProps) {
         </div>
         <button
           onClick={onClose}
-          className="mt-2 px-6 py-2.5 bg-[#006C54] dark:bg-[#66CF11] text-white dark:text-[#0a1317] font-bold rounded-full text-xs uppercase tracking-wide shadow-xs hover:bg-[#005441] transition-all cursor-pointer"
+          className="mt-2 px-6 py-2.5 bg-[#006C54] dark:bg-[#006C54] text-white dark:text-[#0a1317] font-bold rounded-full text-xs uppercase tracking-wide shadow-xs hover:bg-[#005441] transition-all cursor-pointer"
         >
           Back to Builder
         </button>
@@ -195,7 +195,7 @@ export default function SlipReelFeed({ posts, onClose }: SlipReelFeedProps) {
                   aria-label={`Go to slip ${i + 1}`}
                   className={`rounded-full transition-all shrink-0 ${
                     i === activeIndex
-                      ? 'w-5 h-[5px] bg-[#006C54] dark:bg-[#66CF11]'
+                      ? 'w-5 h-[5px] bg-[#006C54] dark:bg-[#006C54]'
                       : 'w-[5px] h-[5px] bg-slate-300 dark:bg-[#414A43] hover:bg-slate-400'
                   }`}
                 />

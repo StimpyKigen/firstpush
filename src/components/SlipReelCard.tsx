@@ -179,12 +179,12 @@ export default function SlipReelCard({
 
             {/* Countdown / Live Indicator */}
             {countdown.isLive ? (
-              <div className="flex items-center gap-1.5 text-emerald-600 dark:text-[#66CF11]">
+              <div className="flex items-center gap-1.5 text-[#006C54]">
                 <span className="relative flex h-2 w-2">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
                   <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500 shadow-[0_0_8px_#10b981]" />
                 </span>
-                <span className="text-xs tabular-nums font-bold lowercase tracking-wide text-emerald-600 dark:text-[#66CF11] drop-shadow-[0_0_6px_rgba(16,185,129,0.6)]">
+                <span className="text-xs tabular-nums font-bold lowercase tracking-wide text-[#006C54] drop-shadow-[0_0_6px_rgba(16,185,129,0.6)]">
                   live
                 </span>
               </div>
@@ -215,7 +215,7 @@ export default function SlipReelCard({
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-white dark:bg-[#2A312D] border border-slate-300 dark:border-[#414A43] text-slate-800 dark:text-[#F4F5EF] text-[11px] font-bold hover:bg-slate-50 dark:hover:bg-[#343C36] active:scale-95 transition-all"
                 >
-                  <ExternalLink size={10} className="text-[#006C54] dark:text-[#66CF11]" />
+                  <ExternalLink size={10} className="text-[#006C54]" />
                   <span>Open</span>
                 </a>
               )}
@@ -279,7 +279,7 @@ export default function SlipReelCard({
                     >
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center justify-between gap-2">
-                          <span className="text-[10px] font-bold uppercase tracking-wider text-[#006C54] dark:text-[#66CF11] truncate leading-tight">
+                          <span className="text-[10px] font-bold uppercase tracking-wider text-[#006C54] truncate leading-tight">
                             {leg.competition}
                           </span>
                           <div className="flex items-center gap-1 text-[10px] text-slate-400 dark:text-[#929D95] tabular-nums shrink-0 leading-tight">
@@ -300,7 +300,7 @@ export default function SlipReelCard({
                           }`}
                         >
                           <span className="font-semibold text-slate-500 dark:text-[#B5BDB6]">{leg.market}:</span>
-                          <span className="text-[#006C54] dark:text-[#66CF11] font-bold truncate">{leg.pick}</span>
+                          <span className="text-[#006C54] font-bold truncate">{leg.pick}</span>
                         </div>
                       </div>
 
@@ -325,7 +325,7 @@ export default function SlipReelCard({
                   aria-label={`Go to slide ${dotIdx + 1}`}
                   className={`h-1.5 rounded-full transition-all cursor-pointer ${
                     dotIdx === activeChunkIndex
-                      ? 'w-4 bg-[#006C54] dark:bg-[#66CF11]'
+                      ? 'w-4 bg-[#006C54] dark:bg-[#006C54]'
                       : 'w-1.5 bg-slate-300 dark:bg-[#414A43] hover:bg-slate-400'
                   }`}
                 />

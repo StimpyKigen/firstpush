@@ -73,7 +73,7 @@ export function MobileMenuPanel({
                 onNavigate();
                 onOpenAdminModal();
               }}
-              className="flex items-center justify-center gap-2 px-3 py-2.5 rounded-full bg-emerald-50 dark:bg-[#266E0C]/20 text-[#006C54] dark:text-[#66CF11] border border-emerald-200 dark:border-[#266E0C] font-bold text-xs active:scale-98 transition-all"
+              className="flex items-center justify-center gap-2 px-3 py-2.5 rounded-full bg-emerald-50 dark:bg-[#266E0C]/20 text-[#006C54] border border-emerald-200 dark:border-[#266E0C] font-bold text-xs active:scale-98 transition-all"
             >
               <ShieldCheck size={15} /> Jackpot Admin Console
             </button>
@@ -101,7 +101,7 @@ export function MobileMenuPanel({
       {/* Wallet Balance Container */}
       <div className="flex items-center justify-between gap-3 mt-2 px-4 py-3 bg-[#F5F5E4] dark:bg-[#2A312D] border border-[#E6E6D2] dark:border-[#414A43] rounded-2xl">
         <span className="flex items-center gap-2.5 text-sm tabular-nums text-slate-900 dark:text-[#F4F5EF] min-w-0">
-          <Wallet size={16} className="text-[#006C54] dark:text-[#66CF11] shrink-0" />
+          <Wallet size={16} className="text-[#006C54] shrink-0" />
           <span className="truncate font-bold">Ksh {balance.toLocaleString()}</span>
         </span>
         <Link to="/wallet" onClick={onNavigate} className="bg-[#EEAA04] hover:bg-[#d99903] text-slate-950 font-bold text-xs px-3.5 py-1.5 rounded-full shrink-0 whitespace-nowrap active:scale-95 shadow-sm">

@@ -32,7 +32,7 @@ export default function Footer() {
               className="inline-flex items-center gap-2 bg-[#FFFFF0] dark:bg-[#2A312D] hover:bg-[#F5F5E4] dark:hover:bg-[#2F3732] border-2 border-[#0a1317] dark:border-[#414A43] text-[#0a1317] dark:text-[#F4F5EF] text-sm font-bold px-5 py-2 rounded-full active:scale-95 transition-colors cursor-pointer"
               title="Install MshindiRoom App on Mobile or Desktop"
             >
-              <Smartphone size={13} className="text-[#006C54] dark:text-[#66CF11]" />
+              <Smartphone size={13} className="text-[#006C54]" />
               <span>Install App</span>
             </button>
           </div>
