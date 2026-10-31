@@ -676,16 +676,20 @@ export default function Leaderboard() {
                   <div
                     key={jackpot.id}
                     id={`room-leaderboard-${jackpot.id}`}
-                    className={`border rounded-xl overflow-hidden transition-all hover:shadow-md ${
+                    className={`border rounded-xl overflow-hidden transition-all hover:shadow-md bg-white dark:bg-[#202522] ${
                       userPerf.participated ? 'border-[#006C54] ring-1 ring-[#006C54]/20' : 'hover:border-[#006C54]'
                     }`}
                     style={{
-                      background: `linear-gradient(180deg, ${cardTheme.fadedBg} 0%, #ffffff 40%)`,
                       borderColor: userPerf.participated ? '#006C54' : cardTheme.border,
                     }}
                   >
-                    {/* Minimalist Card Header */}
-                    <div className="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    {/* Minimalist Card Header (Strictly lightmode theme) */}
+                    <div
+                      className="theme-protected p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3"
+                      style={{
+                        background: `linear-gradient(180deg, ${cardTheme.fadedBg} 0%, #ffffff 100%)`,
+                      }}
+                    >
                       <div className="min-w-0 space-y-1 flex-1">
                         <div className="flex items-center justify-between gap-2">
                           <div className="flex items-center gap-2 flex-wrap text-xs">
@@ -759,15 +763,15 @@ export default function Leaderboard() {
 
                     {/* Minimalist User Performance Line (if participated) */}
                     {userPerf.participated && (
-                      <div className="bg-slate-50 border-t border-slate-200 px-4 py-2.5 flex items-center justify-between gap-2 text-xs">
+                      <div className="bg-slate-50 dark:bg-[#202522] border-t border-slate-200 dark:border-[#414A43] px-4 py-2.5 flex items-center justify-between gap-2 text-xs">
                         <div className="flex items-center gap-2 flex-wrap">
-                          <span className="text-[11px] font-bold uppercase text-slate-700 tracking-wide">
+                          <span className="text-[11px] font-bold uppercase text-slate-700 dark:text-[#D2D7D0] tracking-wide">
                             Your Rank:
                           </span>
-                          <span className="font-bold text-slate-900">
+                          <span className="font-bold text-slate-900 dark:text-[#F4F5EF]">
                             #{userPerf.userRank} of {leaderboard.length}
                           </span>
-                          <span className="text-slate-500 text-[11px] font-semibold">
+                          <span className="text-slate-500 dark:text-[#929D95] text-[11px] font-semibold">
                             ({userPerf.userCorrect}/{completedCount || totalMatches} hits • {userPerf.accuracy}%)
                           </span>
                         </div>
@@ -780,7 +784,7 @@ export default function Leaderboard() {
 
                     {/* Expandable Room Standings Table */}
                     {isExpanded && (
-                      <div className="p-3.5 sm:p-4 border-t border-slate-200 space-y-4 bg-slate-50/50">
+                      <div className="p-3.5 sm:p-4 border-t border-slate-200 dark:border-[#414A43] space-y-4 bg-slate-50/50 dark:bg-[#202522]">
                         {/* Compact Top 3 Banner */}
                         {leaderboard.length >= 3 && (
                           <div className="grid grid-cols-3 gap-2 max-w-lg mx-auto py-1">
@@ -798,22 +802,22 @@ export default function Leaderboard() {
                                   onClick={() => setSelectedUserForModal(e.username)}
                                   className={`p-2 rounded-xl border text-center cursor-pointer transition-all ${
                                     isFirst
-                                      ? 'bg-amber-50 border-amber-300 ring-1 ring-amber-400/30'
-                                      : 'bg-white border-slate-200 hover:border-slate-300'
+                                      ? 'bg-amber-50 dark:bg-[#2A312D] border-amber-300 dark:border-[#414A43] ring-1 ring-amber-400/30 dark:ring-0'
+                                      : 'bg-white dark:bg-[#2A312D] border-slate-200 dark:border-[#414A43] hover:border-slate-300 dark:hover:border-[#525E55]'
                                   }`}
                                 >
                                   <div className="flex items-center justify-center gap-1">
-                                    <RankIcon size={14} className={isFirst ? 'text-[#8A6500]' : 'text-slate-400'} />
-                                    <span className={`font-display font-bold text-xs ${isFirst ? 'text-[#8A6500]' : 'text-slate-700'}`}>
+                                    <RankIcon size={14} className={isFirst ? 'text-[#8A6500] dark:text-amber-400' : 'text-slate-400 dark:text-[#929D95]'} />
+                                    <span className={`font-display font-bold text-xs ${isFirst ? 'text-[#8A6500] dark:text-amber-400' : 'text-slate-700 dark:text-[#D2D7D0]'}`}>
                                       {e.rank}
                                     </span>
                                   </div>
 
-                                  <p className={`text-xs font-bold truncate mt-0.5 ${isCurrUser ? 'text-[#006C54]' : 'text-slate-900'}`}>
+                                  <p className={`text-xs font-bold truncate mt-0.5 ${isCurrUser ? 'text-[#006C54] dark:text-emerald-400' : 'text-slate-900 dark:text-[#F4F5EF]'}`}>
                                     {e.username} {isCurrUser && '(You)'}
                                   </p>
 
-                                  <p className="text-[11px] tabular-nums font-bold text-[#8A6500] mt-0.5">
+                                  <p className="text-[11px] tabular-nums font-bold text-[#8A6500] dark:text-amber-400 mt-0.5">
                                     {e.correct}/{completedCount || totalMatches} Hits
                                   </p>
                                 </div>
@@ -824,17 +828,17 @@ export default function Leaderboard() {
 
                         {/* High-Density Standings Table */}
                         <div className="space-y-1.5">
-                          <div className="flex items-center justify-between text-[11px] text-slate-500 px-1">
-                            <span className="font-bold text-slate-900 flex items-center gap-1">
-                              <Users size={12} className="text-[#006C54]" /> Room Standings ({leaderboard.length} Punters)
+                          <div className="flex items-center justify-between text-[11px] text-slate-500 dark:text-[#929D95] px-1">
+                            <span className="font-bold text-slate-900 dark:text-[#FFFFF0] flex items-center gap-1">
+                              <Users size={12} className="text-[#006C54] dark:text-emerald-400" /> Room Standings ({leaderboard.length} Punters)
                             </span>
-                            <span>{statusInfo.description}</span>
+                            <span className="dark:text-[#929D95]">{statusInfo.description}</span>
                           </div>
 
-                          <div className="rounded-xl border border-slate-200 bg-white overflow-hidden shadow-xs">
-                            <table className="w-full table-fixed text-left text-xs text-slate-600">
+                          <div className="rounded-xl border border-slate-200 dark:border-[#414A43] bg-white dark:bg-[#2A312D] overflow-hidden shadow-xs">
+                            <table className="w-full table-fixed text-left text-xs text-slate-600 dark:text-[#D2D7D0]">
                               <thead>
-                                <tr className="bg-slate-50 border-b border-slate-200 text-[11px] uppercase font-bold text-slate-500">
+                                <tr className="bg-slate-50 dark:bg-[#202522] border-b border-slate-200 dark:border-[#414A43] text-[11px] uppercase font-bold text-slate-500 dark:text-[#929D95]">
                                   <th className="py-2 px-2 sm:px-3 w-[18%] sm:w-[15%]">Rank</th>
                                   <th className="py-2 px-2 sm:px-3 w-[46%] sm:w-[50%]">Punter</th>
                                   <th className="py-2 px-2 sm:px-3 text-center w-[20%] sm:w-[18%]">
@@ -847,7 +851,7 @@ export default function Leaderboard() {
                                   </th>
                                 </tr>
                               </thead>
-                              <tbody className="divide-y divide-slate-100">
+                              <tbody className="divide-y divide-slate-100 dark:divide-[#414A43]">
                                 {leaderboard.map((entry) => {
                                   const isCurrUser = entry.username.toLowerCase() === currentUsername.toLowerCase();
                                   const stats = getPunterStats(entry.username);
@@ -861,28 +865,26 @@ export default function Leaderboard() {
                                       onClick={() => setSelectedUserForModal(entry.username)}
                                       className={`cursor-pointer transition-colors ${
                                         isCurrUser
-                                          ? 'bg-emerald-50/70 font-bold text-slate-900 hover:bg-emerald-50'
-                                          : entry.isClosest
-                                          ? 'bg-amber-50/50 font-medium hover:bg-amber-50'
-                                          : 'hover:bg-slate-50'
+                                          ? 'bg-emerald-50/70 dark:bg-emerald-950/40 font-bold text-slate-900 dark:text-[#F4F5EF] hover:bg-emerald-50 dark:hover:bg-emerald-950/60'
+                                          : 'hover:bg-slate-50 dark:hover:bg-[#202522]'
                                       }`}
                                     >
                                       {/* Rank */}
                                       <td className="py-2 px-2 sm:px-3 font-bold text-[11px] sm:text-xs whitespace-nowrap">
                                         {entry.rank === 1 ? (
-                                          <span className="text-[#8A6500] font-bold">1</span>
+                                          <span className="text-[#8A6500] dark:text-amber-400 font-bold">1</span>
                                         ) : (
-                                          <span className="tabular-nums text-slate-500">{entry.rank}</span>
+                                          <span className="tabular-nums text-slate-500 dark:text-[#929D95]">{entry.rank}</span>
                                         )}
                                       </td>
 
                                       {/* Punter Name & Avatar */}
-                                      <td className="py-2 px-2 sm:px-3 font-bold text-slate-900">
+                                      <td className="py-2 px-2 sm:px-3 font-bold text-slate-900 dark:text-[#F4F5EF]">
                                         <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
                                           <div className="shrink-0">
                                             <Avatar name={entry.username} seed={entry.colorSeed} size={18} />
                                           </div>
-                                          <span className="hover:text-[#006C54] transition-colors truncate text-[11px] sm:text-xs min-w-0">
+                                          <span className="hover:text-[#006C54] dark:hover:text-emerald-400 transition-colors truncate text-[11px] sm:text-xs min-w-0">
                                             {entry.username}
                                           </span>
                                           {isCurrUser && (
@@ -897,14 +899,14 @@ export default function Leaderboard() {
                                       </td>
 
                                       {/* Correct Hits */}
-                                      <td className="py-2 px-2 sm:px-3 text-center tabular-nums font-bold text-slate-900 text-[11px] sm:text-xs whitespace-nowrap">
-                                        <span className="text-[#006C54]">{entry.correct}</span>/<span className="text-slate-400">{completedCount || totalMatches}</span>
+                                      <td className="py-2 px-2 sm:px-3 text-center tabular-nums font-bold text-slate-900 dark:text-[#F4F5EF] text-[11px] sm:text-xs whitespace-nowrap">
+                                        <span className="text-[#006C54] dark:text-emerald-400">{entry.correct}</span>/<span className="text-slate-400 dark:text-[#929D95]">{completedCount || totalMatches}</span>
                                       </td>
 
                                       {/* Accuracy % */}
                                       <td className="py-2 px-2 sm:px-3 text-center whitespace-nowrap">
                                         <span className={`text-[11px] font-bold ${
-                                          accuracyPct >= 70 ? 'text-[#006C54]' : 'text-slate-600'
+                                          accuracyPct >= 70 ? 'text-[#006C54] dark:text-emerald-400' : 'text-slate-600 dark:text-[#D2D7D0]'
                                         }`}>
                                           {completedCount > 0 ? `${accuracyPct}%` : ' - '}
                                         </span>
