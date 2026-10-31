@@ -307,7 +307,7 @@ export default function MatchFiltersToolbar({
 
             {/* Dates Dropdown Menu */}
             {isDateDropdownOpen && (
-              <div className="absolute left-1/2 -translate-x-1/2 sm:left-0 sm:translate-x-0 mt-2 w-72 sm:w-80 bg-[#FFFFF0] border border-[#DCDCC8] rounded-2xl shadow-2xl py-2 z-50 max-h-[380px] overflow-y-auto text-xs divide-y divide-[#E6E6D2]">
+              <div className="absolute left-0 sm:left-0 translate-x-0 mt-2 w-[min(20rem,calc(100vw-1.5rem))] sm:w-80 bg-[#FFFFF0] border border-[#DCDCC8] rounded-2xl shadow-2xl py-2 z-50 max-h-[380px] overflow-y-auto text-xs divide-y divide-[#E6E6D2]">
                 {/* 1. FIRST OPTION: COMPLETED (Finished matches of today) */}
                 <div className="p-1">
                   <button
@@ -429,7 +429,7 @@ export default function MatchFiltersToolbar({
 
             {/* SportScore Country Directory Menu */}
             {isLeagueDropdownOpen && (
-              <div className="absolute left-1/2 -translate-x-1/2 sm:left-0 sm:translate-x-0 mt-2 w-72 sm:w-80 bg-[#FFFFF0] border border-[#DCDCC8] rounded-2xl shadow-2xl z-50 max-h-[380px] overflow-hidden flex flex-col text-xs">
+              <div className="absolute right-0 sm:left-0 sm:right-auto translate-x-0 mt-2 w-[min(20rem,calc(100vw-1.5rem))] sm:w-80 bg-[#FFFFF0] border border-[#DCDCC8] rounded-2xl shadow-2xl z-50 max-h-[380px] overflow-hidden flex flex-col text-xs">
                 {/* Scrollable Directory Rows (internal search bar omitted) */}
                 <div className="overflow-y-auto divide-y divide-[#E6E6D2]/60 p-1.5 flex-1">
                   {/* All Competitions Row */}

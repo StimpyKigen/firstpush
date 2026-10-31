@@ -47,7 +47,7 @@ export function MobileMenuPanel({
   onLogout,
 }: MobileMenuPanelProps) {
   return (
-    <div className="lg:hidden border-b border-[#E6E6D2]/80 dark:border-[#414A43] mobile-nav-glass px-4 py-4 flex flex-col gap-1.5 max-h-[calc(100dvh-4.5rem)] overflow-y-auto scroll-touch animate-rise shadow-xl">
+    <div className="lg:hidden border-b border-[#E6E6D2]/80 dark:border-[#414A43] mobile-nav-glass px-4 py-4 flex flex-col gap-1.5 max-h-[calc(100dvh-4.5rem-env(safe-area-inset-top,0px))] overflow-y-auto overscroll-contain scroll-touch animate-rise shadow-xl">
       {currentUser ? (
         <div className="flex flex-col gap-2">
           {/* View Profile Card */}

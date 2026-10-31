@@ -16,6 +16,7 @@ import { syncJackpotsFromApi } from './lib/mockData';
 import { startDailyHighlightSync } from './lib/footballApi';
 
 import { useCurrentUser } from './lib/authStore';
+import { useAutoScrollIntoView } from './lib/useAutoScrollIntoView';
 
 // Primary Home Route loaded immediately
 import Home from './pages/Home';
@@ -162,6 +163,7 @@ function ConditionalFooter() {
 }
 
 function App() {
+  useAutoScrollIntoView();
   // Ensure light theme is strictly enforced across all client sessions
   useEffect(() => {
     initTheme();

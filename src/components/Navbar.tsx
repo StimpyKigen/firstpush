@@ -36,16 +36,26 @@ export default function Navbar() {
   useBackToClose(open, () => setOpen(false));
   useBackToClose(profileOpen, () => setProfileOpen(false));
 
-  // Lock background scroll when mobile hamburger is open
+  // Lock background scroll without page jump when mobile hamburger is open
   useEffect(() => {
     if (open && !hideMobileMenu) {
+      const scrollY = window.scrollY || window.pageYOffset || document.documentElement.scrollTop || 0;
+      const originalBodyPosition = document.body.style.position;
+      const originalBodyTop = document.body.style.top;
+      const originalBodyWidth = document.body.style.width;
       const originalBodyOverflow = document.body.style.overflow;
-      const originalHtmlOverflow = document.documentElement.style.overflow;
+
+      document.body.style.position = 'fixed';
+      document.body.style.top = '-' + scrollY + 'px';
+      document.body.style.width = '100%';
       document.body.style.overflow = 'hidden';
-      document.documentElement.style.overflow = 'hidden';
+
       return () => {
+        document.body.style.position = originalBodyPosition;
+        document.body.style.top = originalBodyTop;
+        document.body.style.width = originalBodyWidth;
         document.body.style.overflow = originalBodyOverflow;
-        document.documentElement.style.overflow = originalHtmlOverflow;
+        window.scrollTo(0, scrollY);
       };
     }
   }, [open, hideMobileMenu]);
@@ -59,7 +69,7 @@ export default function Navbar() {
   return (
     <>
       <header
-        className="sticky top-0 z-50 border-b mobile-nav-glass lg:bg-[#FFFFF0] dark:lg:bg-[#202522] lg:border-[#E6E6D2] dark:lg:border-[#414A43] transition-colors"
+        className={`sticky top-0 z-50 border-b mobile-nav-glass lg:bg-[#FFFFF0] dark:lg:bg-[#202522] lg:border-[#E6E6D2] dark:lg:border-[#414A43] transition-colors ${open ? 'fixed inset-x-0' : ''}`}
         style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between gap-4 h-16">
@@ -118,7 +128,7 @@ export default function Navbar() {
       {/* Mobile menu backdrop: blocks scroll and interaction on everything behind the menu */}
       {!hideMobileMenu && open && (
         <div
-          className="fixed inset-0 top-16 z-40 bg-black/40 lg:hidden"
+          className="fixed inset-0 z-40 bg-black/40 lg:hidden touch-none"
           onClick={() => setOpen(false)}
           aria-hidden="true"
         />

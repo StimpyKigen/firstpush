@@ -317,7 +317,7 @@ export default function Profile() {
   );
 
   return (
-    <div className="min-h-screen bg-[#FDFBF7] text-slate-800 pb-20">
+    <div className="min-h-screen bg-[#FDFBF7] dark:bg-[#202522] text-slate-800 dark:text-[#F4F5EF] pb-20">
       <SeoHead
         title="My Profile & Settings"
         description="Manage your MshindiRoom profile, avatar settings, wallet & account preferences."
