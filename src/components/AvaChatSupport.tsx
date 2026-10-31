@@ -81,6 +81,36 @@ export default function AvaChatSupport() {
     };
   }, []);
 
+  // Lock background scroll when Ava is open on mobile PWA, restore exact scroll on exit
+  useEffect(() => {
+    if (!isOpen || !isMobilePwa) return;
+
+    const scrollY = window.scrollY || document.documentElement.scrollTop;
+    const originalPosition = document.body.style.position;
+    const originalTop = document.body.style.top;
+    const originalLeft = document.body.style.left;
+    const originalRight = document.body.style.right;
+    const originalWidth = document.body.style.width;
+    const originalOverflow = document.body.style.overflow;
+
+    document.body.style.position = 'fixed';
+    document.body.style.top = `-${scrollY}px`;
+    document.body.style.left = '0';
+    document.body.style.right = '0';
+    document.body.style.width = '100%';
+    document.body.style.overflow = 'hidden';
+
+    return () => {
+      document.body.style.position = originalPosition;
+      document.body.style.top = originalTop;
+      document.body.style.left = originalLeft;
+      document.body.style.right = originalRight;
+      document.body.style.width = originalWidth;
+      document.body.style.overflow = originalOverflow;
+      window.scrollTo(0, scrollY);
+    };
+  }, [isOpen, isMobilePwa]);
+
   // Auto-scroll to bottom of messages
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -233,6 +263,15 @@ export default function AvaChatSupport() {
             )}
           </button>
         </div>
+      )}
+
+      {/* Mobile PWA Backdrop: blur background and prevent scrolling behind card */}
+      {isOpen && isMobilePwa && (
+        <div
+          className="fixed inset-0 z-40 bg-black/40 backdrop-blur-sm animate-in fade-in duration-200"
+          onClick={() => setIsOpen(false)}
+          aria-hidden="true"
+        />
       )}
 
       {/* Floating Support Window Widget (iOS/ChatGPT Style, Adaptive to Mobile Virtual Keyboard & PWA) */}

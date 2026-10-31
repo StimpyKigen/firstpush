@@ -125,10 +125,10 @@ export default function CompactPickRow({ pick, isTopPick, onEdit }: CompactPickR
     <div
       className={`group relative flex flex-col gap-2.5 p-3.5 sm:p-4 rounded-xl border transition-all duration-150 ${
         isMine
-          ? 'bg-slate-50 border-[#006C54]/30 hover:border-[#006C54]/60 shadow-2xs'
+          ? 'bg-slate-50 dark:bg-[#2A312D] border-[#006C54]/30 dark:border-[#006C54]/50 hover:border-[#006C54]/60 shadow-2xs'
           : isTopPick
-          ? 'bg-[#EEAA04]/[0.06] border-[#EEAA04]/40 hover:border-[#EEAA04]/70 shadow-2xs'
-          : 'bg-white border-slate-200 hover:border-slate-300 hover:shadow-xs'
+          ? 'bg-[#EEAA04]/[0.06] dark:bg-[#2A312D] border-[#EEAA04]/40 dark:border-[#414A43] hover:border-[#EEAA04]/70 dark:hover:border-[#525E55] shadow-2xs'
+          : 'bg-white dark:bg-[#2A312D] border-slate-200 dark:border-[#414A43] hover:border-slate-300 dark:hover:border-[#525E55] hover:shadow-xs'
       }`}
     >
       {showProfileModal && (
@@ -153,7 +153,7 @@ export default function CompactPickRow({ pick, isTopPick, onEdit }: CompactPickR
             <div className="flex items-center gap-1.5 flex-wrap">
               <button
                 onClick={() => setShowProfileModal(true)}
-                className="text-xs sm:text-sm font-bold uppercase tracking-tight text-slate-900 hover:text-[#006C54] transition-colors truncate cursor-pointer"
+                className="text-xs sm:text-sm font-bold uppercase tracking-tight text-slate-900 dark:text-[#F4F5EF] hover:text-[#006C54] dark:hover:text-[#00A878] transition-colors truncate cursor-pointer"
               >
                 {pick.username}
               </button>
@@ -163,8 +163,8 @@ export default function CompactPickRow({ pick, isTopPick, onEdit }: CompactPickR
                 </span>
               )}
               {isTopPick && (
-                <span className="inline-flex items-center gap-1 text-[11px] font-bold text-[#8A6500]">
-                  <Crown size={11} className="text-[#8A6500] fill-[#8A6500]" /> #1 Top Pick
+                <span className="inline-flex items-center gap-1 text-[11px] font-bold text-[#8A6500] dark:text-[#FFC72C]">
+                  <Crown size={11} className="text-[#8A6500] dark:text-[#FFC72C] fill-[#8A6500] dark:fill-[#FFC72C]" /> #1 Top Pick
                 </span>
               )}
             </div>
@@ -183,12 +183,12 @@ export default function CompactPickRow({ pick, isTopPick, onEdit }: CompactPickR
       </div>
 
       {/* Message Bubble Reasoning */}
-      <div className="p-3 rounded-lg bg-slate-50 border border-slate-100 text-slate-800 text-xs sm:text-[13px] leading-relaxed break-words">
+      <div className="p-3 rounded-lg bg-slate-50 dark:bg-[#202522] border border-slate-100 dark:border-[#414A43] text-slate-800 dark:text-[#F4F5EF] text-xs sm:text-[13px] leading-relaxed break-words">
         {displayText}
         {isLong && !expanded && (
           <button
             onClick={() => setExpanded(true)}
-            className="text-[#006C54] font-bold text-xs ml-1.5 hover:underline cursor-pointer"
+            className="text-[#006C54] dark:text-[#00A878] font-bold text-xs ml-1.5 hover:underline cursor-pointer"
           >
             read more
           </button>
@@ -196,19 +196,34 @@ export default function CompactPickRow({ pick, isTopPick, onEdit }: CompactPickR
       </div>
 
       {/* Message Card Footer: Reactions & Actions */}
-      <div className="flex items-center justify-between gap-2 pt-1 border-t border-slate-100 text-xs">
-        <div className="flex items-center gap-2 min-w-0 flex-wrap">
-          <span className="text-[11px] tabular-nums text-slate-400 font-medium">{pick.timeAgo}</span>
+      <div className="flex items-center justify-between gap-2 pt-1 border-t border-slate-100 dark:border-[#414A43] text-xs">
+        <div className="flex items-center gap-1.5 min-w-0 flex-wrap">
+          <span className="text-[11px] tabular-nums text-slate-400 dark:text-[#929D95] font-medium">{pick.timeAgo}</span>
           {isMine && !canEdit && (
-            <span className="text-[11px] tabular-nums text-slate-400 font-bold">· Edited 2/2</span>
+            <span className="text-[11px] tabular-nums text-slate-400 dark:text-[#929D95] font-bold">· Edited 2/2</span>
+          )}
+          {!isMine && (
+            <>
+              <span className="text-slate-300 dark:text-[#525E55] text-[11px] select-none">·</span>
+              <button
+                type="button"
+                onClick={() => setShowReportModal(true)}
+                className="text-[11px] font-semibold text-slate-400 dark:text-[#929D95] hover:text-rose-600 dark:hover:text-rose-400 bg-transparent flex items-center gap-1 transition-colors cursor-pointer p-0 border-none"
+                title="Report this comment"
+              >
+                <Flag size={10} className="shrink-0" />
+                <span className="inline">Report</span>
+              </button>
+            </>
           )}
         </div>
 
         <div className="flex items-center gap-1.5 shrink-0">
           {isMine && canEdit && onEdit && (
             <button
+              type="button"
               onClick={() => setEditing(true)}
-              className="h-7 px-2 rounded-md text-xs font-bold text-slate-600 hover:text-slate-900 hover:bg-slate-100 flex items-center gap-1 transition-colors cursor-pointer"
+              className="h-7 px-2 rounded-md text-xs font-bold text-slate-600 dark:text-[#B5BDB6] hover:text-slate-900 dark:hover:text-[#F4F5EF] hover:bg-slate-100 dark:hover:bg-[#202522] flex items-center gap-1 transition-colors cursor-pointer"
               title="Edit your reasoning"
             >
               <Pencil size={11} />
@@ -216,28 +231,21 @@ export default function CompactPickRow({ pick, isTopPick, onEdit }: CompactPickR
             </button>
           )}
 
-          {!isMine && (
-            <button
-              onClick={() => setShowReportModal(true)}
-              className="h-7 px-2 rounded-md text-xs font-semibold text-slate-400 hover:text-rose-600 hover:bg-rose-50 flex items-center gap-1 transition-colors cursor-pointer"
-              title="Report this comment"
-            >
-              <Flag size={11} />
-              <span className="hidden xs:inline">Report</span>
-            </button>
-          )}
-
           <button
+            type="button"
             onClick={handleLike}
             className={`h-7 px-1.5 text-xs font-bold tabular-nums flex items-center gap-1.5 transition-all active:scale-95 cursor-pointer ${
               liked
-                ? 'text-slate-950'
-                : 'text-slate-600 hover:text-slate-900'
+                ? 'text-[#3B82F6]'
+                : 'text-slate-600 dark:text-[#B5BDB6] hover:text-slate-900 dark:hover:text-[#F4F5EF]'
             }`}
             title="Agree with this pick"
           >
-            <ThumbsUp size={12} className={liked ? 'fill-[#EEAA04] text-[#EEAA04]' : 'text-slate-400'} />
-            <span>{likes}</span>
+            <ThumbsUp
+              size={12}
+              className={liked ? 'text-[#3B82F6] fill-none' : 'text-slate-400 dark:text-[#929D95]'}
+            />
+            <span className={liked ? 'text-[#3B82F6]' : ''}>{likes}</span>
           </button>
         </div>
       </div>

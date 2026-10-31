@@ -172,10 +172,10 @@ export default function DiscussionPanel({
       </div>
 
       {/* Top-Anchored Comments Viewport */}
-      <div className="bg-slate-100/50 border border-slate-200 rounded-xl overflow-hidden shadow-2xs">
+      <div className="bg-slate-100/50 dark:bg-[#202522] border border-slate-200 dark:border-[#414A43] rounded-xl overflow-hidden shadow-2xs">
         <div
           ref={commentsViewportRef}
-          className="h-[460px] max-h-[60vh] w-full overflow-y-auto overscroll-contain p-3 sm:p-4"
+          className="h-[460px] max-h-[60vh] w-full overflow-y-auto overscroll-contain p-3 sm:p-4 dark:bg-[#202522]"
         >
           <div className="flex flex-col gap-3 py-1">
             {loading ? (
@@ -208,7 +208,7 @@ export default function DiscussionPanel({
           <button
             type="button"
             onClick={() => setShowAll(true)}
-            className="w-full flex items-center justify-center gap-1.5 py-3 text-xs font-bold uppercase tracking-wide text-slate-800 bg-white hover:bg-slate-50 transition-colors border-t border-slate-200 cursor-pointer"
+            className="w-full flex items-center justify-center gap-1.5 py-3 text-xs font-bold uppercase tracking-wide text-slate-800 dark:text-[#F4F5EF] bg-white dark:bg-[#2A312D] hover:bg-slate-50 dark:hover:bg-[#2F3732] transition-colors border-t border-slate-200 dark:border-[#414A43] cursor-pointer"
           >
             <ChevronDown size={14} className="text-[#006C54]" />
             <span>Show {sortedPicks.length - SHOW_INITIAL} More Community Analyses</span>
@@ -218,7 +218,7 @@ export default function DiscussionPanel({
           <button
             type="button"
             onClick={() => setShowAll(false)}
-            className="w-full flex items-center justify-center gap-1.5 py-3 text-xs font-bold uppercase tracking-wide text-slate-500 bg-white hover:bg-slate-50 transition-colors border-t border-slate-200 cursor-pointer"
+            className="w-full flex items-center justify-center gap-1.5 py-3 text-xs font-bold uppercase tracking-wide text-slate-500 dark:text-[#B5BDB6] bg-white dark:bg-[#2A312D] hover:bg-slate-50 dark:hover:bg-[#2F3732] transition-colors border-t border-slate-200 dark:border-[#414A43] cursor-pointer"
           >
             <span>Show Less</span>
           </button>
