@@ -1566,3 +1566,21 @@ html.light .slip-follow-btn {
   color: #ffffff !important;
   border-color: #0f172a !important;
 }
+/* Mobile PWA & Touch: Eliminate sticky touch/hover background highlights in Profile */
+@media (display-mode: standalone), (hover: none) and (pointer: coarse) {
+  .profile-page,
+  .profile-page * {
+    -webkit-tap-highlight-color: transparent !important;
+  }
+}
+
+@media (display-mode: standalone) and (max-width: 1023px) {
+  .profile-page .group:hover,
+  .profile-page .group:active,
+  .profile-page button:hover,
+  .profile-page button:active,
+  .profile-page a:hover,
+  .profile-page a:active {
+    background-color: transparent !important;
+  }
+}

@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useMemo } from 'react';
-import { MessageSquarePlus, Send, ChevronDown, Users } from 'lucide-react';
+import { MessageSquarePlus, ChevronDown, Users } from 'lucide-react';
 import type { GamblerPick, Outcome } from '../lib/types';
 import CompactPickRow from './CompactPickRow';
 import ModerationWarningBox from './ModerationWarningBox';
@@ -161,11 +161,14 @@ export default function DiscussionPanel({
               type="button"
               onClick={handleFormSubmit}
               disabled={!canSubmit || disabled}
-              className="h-10 px-5 rounded-md bg-[#006C54] hover:bg-[#005441] disabled:opacity-30 disabled:cursor-not-allowed text-white text-xs font-bold uppercase tracking-wide transition-all shadow-xs active:scale-95 inline-flex items-center justify-center gap-2 cursor-pointer shrink-0"
-              aria-label="Post pick"
+              className="p-1.5 bg-transparent border-0 focus:outline-none hover:scale-110 active:scale-95 transition-transform disabled:opacity-25 disabled:cursor-not-allowed cursor-pointer shrink-0"
+              title={submitted ? 'Update Pick Analysis' : 'Post Pick Analysis'}
+              aria-label={submitted ? 'Update Pick Analysis' : 'Post Pick Analysis'}
             >
-              <Send size={13} className="shrink-0" />
-              <span>{submitted ? 'Update Pick Analysis' : 'Post Pick Analysis'}</span>
+              <span
+                className="inline-block w-5 h-5 bg-[#006C54] hover:bg-[#005441] dark:bg-[#00A878] dark:hover:bg-[#00C48C] [mask-image:url(/images/send-icon.png)] [-webkit-mask-image:url(/images/send-icon.png)] [mask-size:contain] [-webkit-mask-size:contain] [mask-repeat:no-repeat] [-webkit-mask-repeat:no-repeat] [mask-position:center] [-webkit-mask-position:center] transition-colors"
+                aria-hidden="true"
+              />
             </button>
           </div>
         </div>

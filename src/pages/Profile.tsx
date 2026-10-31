@@ -317,7 +317,7 @@ export default function Profile() {
   );
 
   return (
-    <div className="min-h-screen bg-[#FDFBF7] dark:bg-[#202522] text-slate-800 dark:text-[#F4F5EF] pb-20">
+    <div className="profile-page min-h-screen bg-[#FDFBF7] dark:bg-[#202522] text-slate-800 dark:text-[#F4F5EF] pb-20">
       <SeoHead
         title="My Profile & Settings"
         description="Manage your MshindiRoom profile, avatar settings, wallet & account preferences."
@@ -435,7 +435,7 @@ export default function Profile() {
               {/* Mshindi Tokens (MT) Row */}
               <Link
                 to="/wallet"
-                className="w-full flex items-center justify-between p-4 hover:bg-slate-50/70 active:bg-slate-100/70 transition-colors text-left group"
+                className="w-full flex items-center justify-between p-4 lg:hover:bg-slate-50/70 lg:active:bg-slate-100/70 transition-colors text-left group"
               >
                 <div className="min-w-0">
                   <p className="text-sm font-bold text-slate-900 truncate">Mshindi Tokens</p>
@@ -453,7 +453,7 @@ export default function Profile() {
               {/* Expandable Recent Transactions Row */}
               <button
                 onClick={() => setShowTransactions(!showTransactions)}
-                className="w-full flex items-center justify-between p-4 hover:bg-slate-50/70 active:bg-slate-100/70 transition-colors text-left group cursor-pointer"
+                className="w-full flex items-center justify-between p-4 lg:hover:bg-slate-50/70 lg:active:bg-slate-100/70 transition-colors text-left group cursor-pointer"
               >
                 <div className="min-w-0">
                   <p className="text-sm font-bold text-slate-900 truncate">Recent Transactions</p>
@@ -522,7 +522,7 @@ export default function Profile() {
             <div className="bg-white rounded-2xl border border-[#E6E6D2] shadow-xs divide-y divide-[#F2F2E6] overflow-hidden">
               <button
                 onClick={() => setShowMyProfileModal(true)}
-                className="w-full flex items-center justify-between p-4 hover:bg-slate-50/70 active:bg-slate-100/70 transition-colors text-left group cursor-pointer"
+                className="w-full flex items-center justify-between p-4 lg:hover:bg-slate-50/70 lg:active:bg-slate-100/70 transition-colors text-left group cursor-pointer"
               >
                 <div className="min-w-0">
                   <p className="text-sm font-bold text-slate-900 truncate">Punter Performance</p>
@@ -553,7 +553,7 @@ export default function Profile() {
 
               <button
                 onClick={() => setPanel(panel === 'support' ? 'none' : 'support')}
-                className="w-full flex items-center justify-between p-4 hover:bg-slate-50/70 active:bg-slate-100/70 transition-colors text-left group cursor-pointer"
+                className="w-full flex items-center justify-between p-4 lg:hover:bg-slate-50/70 lg:active:bg-slate-100/70 transition-colors text-left group cursor-pointer"
               >
                 <div className="min-w-0">
                   <p className="text-sm font-bold text-slate-900 truncate">Support & WhatsApp</p>
@@ -570,7 +570,7 @@ export default function Profile() {
 
               <button
                 onClick={() => setPanel(panel === 'close' ? 'none' : 'close')}
-                className="w-full flex items-center justify-between p-4 hover:bg-rose-50/40 active:bg-rose-50 transition-colors text-left group cursor-pointer"
+                className="w-full flex items-center justify-between p-4 lg:hover:bg-rose-50/40 lg:active:bg-rose-50 transition-colors text-left group cursor-pointer"
               >
                 <div className="min-w-0">
                   <p className="text-sm font-bold text-rose-700 truncate">Close Account</p>
@@ -582,7 +582,7 @@ export default function Profile() {
 
               <button
                 onClick={handleLogout}
-                className="w-full flex items-center justify-between p-4 hover:bg-slate-50/70 active:bg-slate-100/70 transition-colors text-left group cursor-pointer"
+                className="w-full flex items-center justify-between p-4 lg:hover:bg-slate-50/70 lg:active:bg-slate-100/70 transition-colors text-left group cursor-pointer"
               >
                 <div className="min-w-0">
                   <p className="text-sm font-bold text-slate-900 truncate">Log Out</p>
@@ -620,7 +620,7 @@ export default function Profile() {
                     href="https://www.instagram.com/mshindiroom?igsh=MWhxZ3B0c2UweWswaw%3D%3D&utm_source=qr"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="w-8 h-8 rounded-full bg-white hover:bg-[#006C54] hover:text-white border border-slate-300 text-slate-700 active:scale-95 transition-all flex items-center justify-center shrink-0 shadow-xs"
+                    className="w-8 h-8 rounded-full bg-white lg:hover:bg-[#006C54] lg:hover:text-white border border-slate-300 text-slate-700 active:scale-95 transition-all flex items-center justify-center shrink-0 shadow-xs"
                     title="Instagram"
                     aria-label="Instagram"
                   >
@@ -631,7 +631,7 @@ export default function Profile() {
                     href="https://x.com/mshindiroom?s=21"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="w-8 h-8 rounded-full bg-white hover:bg-[#006C54] hover:text-white border border-slate-300 text-slate-700 active:scale-95 transition-all flex items-center justify-center shrink-0 shadow-xs"
+                    className="w-8 h-8 rounded-full bg-white lg:hover:bg-[#006C54] lg:hover:text-white border border-slate-300 text-slate-700 active:scale-95 transition-all flex items-center justify-center shrink-0 shadow-xs"
                     title="X (Twitter)"
                     aria-label="X"
                   >
@@ -644,7 +644,7 @@ export default function Profile() {
                     href="https://www.tiktok.com/@mshindiroom"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="w-8 h-8 rounded-full bg-white hover:bg-[#006C54] hover:text-white border border-slate-300 text-slate-700 active:scale-95 transition-all flex items-center justify-center shrink-0 shadow-xs"
+                    className="w-8 h-8 rounded-full bg-white lg:hover:bg-[#006C54] lg:hover:text-white border border-slate-300 text-slate-700 active:scale-95 transition-all flex items-center justify-center shrink-0 shadow-xs"
                     title="TikTok"
                     aria-label="TikTok"
                   >
@@ -657,7 +657,7 @@ export default function Profile() {
                     href="https://www.facebook.com/share/18zCYvkaYQ/?mibextid=wwXIfr"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="w-8 h-8 rounded-full bg-white hover:bg-[#006C54] hover:text-white border border-slate-300 text-slate-700 active:scale-95 transition-all flex items-center justify-center shrink-0 shadow-xs"
+                    className="w-8 h-8 rounded-full bg-white lg:hover:bg-[#006C54] lg:hover:text-white border border-slate-300 text-slate-700 active:scale-95 transition-all flex items-center justify-center shrink-0 shadow-xs"
                     title="Facebook"
                     aria-label="Facebook"
                   >
