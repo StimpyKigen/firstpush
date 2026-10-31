@@ -414,11 +414,25 @@ export default function AvaChatSupport() {
                 title="Send Message"
                 aria-label="Send Message"
               >
-                <span
-                  className={`inline-block ${
-                    isMobilePwa ? 'w-3.5 h-3.5' : 'w-4.5 h-4.5 sm:w-5 sm:h-5'
-                  } bg-slate-800 dark:bg-[#FFFFF0] [mask-image:url(/images/send-icon.png)] [-webkit-mask-image:url(/images/send-icon.png)] [mask-size:contain] [-webkit-mask-size:contain] [mask-repeat:no-repeat] [-webkit-mask-repeat:no-repeat] [mask-position:center] [-webkit-mask-position:center] transition-colors`}
-                  aria-hidden="true"
+                {/* Light mode: dark charcoal send icon */}
+                <img
+                  src="/images/send-icon.png"
+                  alt="Send"
+                  className={`${isMobilePwa ? 'w-3.5 h-3.5' : 'w-4.5 h-4.5 sm:w-5 sm:h-5'} object-contain dark:hidden`}
+                  width="20"
+                  height="20"
+                  loading="eager"
+                  decoding="async"
+                />
+                {/* Dark mode: ivory send icon with no background border */}
+                <img
+                  src="/images/send-icon-ivory.png"
+                  alt="Send"
+                  className={`${isMobilePwa ? 'w-3.5 h-3.5' : 'w-4.5 h-4.5 sm:w-5 sm:h-5'} object-contain hidden dark:block`}
+                  width="20"
+                  height="20"
+                  loading="eager"
+                  decoding="async"
                 />
               </button>
             </form>

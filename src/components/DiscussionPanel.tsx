@@ -165,9 +165,14 @@ export default function DiscussionPanel({
               title={submitted ? 'Update Pick Analysis' : 'Post Pick Analysis'}
               aria-label={submitted ? 'Update Pick Analysis' : 'Post Pick Analysis'}
             >
-              <span
-                className="inline-block w-5 h-5 bg-[#006C54] hover:bg-[#005441] dark:bg-[#00A878] dark:hover:bg-[#00C48C] [mask-image:url(/images/send-icon.png)] [-webkit-mask-image:url(/images/send-icon.png)] [mask-size:contain] [-webkit-mask-size:contain] [mask-repeat:no-repeat] [-webkit-mask-repeat:no-repeat] [mask-position:center] [-webkit-mask-position:center] transition-colors"
-                aria-hidden="true"
+              <img
+                src="/images/send-icon-green.png"
+                alt="Post Pick"
+                className="w-5 h-5 object-contain"
+                width="20"
+                height="20"
+                loading="eager"
+                decoding="async"
               />
             </button>
           </div>
