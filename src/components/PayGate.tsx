@@ -150,9 +150,12 @@ export default function PayGate({ jackpot, onUnlocked }: { jackpot: Jackpot; onU
             <button
               onClick={payWithTokens}
               disabled={!canPayWithTokens}
-              className="w-full inline-flex items-center justify-center px-6 bg-gold hover:bg-gold-2 dark:bg-[#FFC72C] dark:hover:bg-[#e0ad1f] disabled:opacity-50 disabled:cursor-not-allowed text-black dark:text-[#202522] font-bold text-sm h-12 rounded-xl border border-transparent transition-all cursor-pointer"
+              className="w-full inline-flex items-center justify-center px-6 bg-gold hover:bg-gold-2 dark:bg-[#FFC72C] dark:hover:bg-[#e0ad1f] disabled:opacity-50 disabled:cursor-not-allowed text-black dark:text-black text-black-force font-bold text-sm h-12 rounded-xl border border-transparent transition-all cursor-pointer"
+              style={{ color: '#000000' }}
             >
-              <span className="whitespace-nowrap">Unlock with Mshindi Tokens</span>
+              <span className="whitespace-nowrap text-black dark:text-black text-black-force" style={{ color: '#000000' }}>
+                Unlock with Mshindi Tokens
+              </span>
             </button>
 
             {/* Option 2: Pay M-Pesa */}
@@ -173,10 +176,11 @@ export default function PayGate({ jackpot, onUnlocked }: { jackpot: Jackpot; onU
             <button
               onClick={payWithBalance}
               disabled={!canPayFromBalance}
-              className="w-full inline-flex items-center justify-center px-6 bg-[#FFFFFF] hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed text-slate-900 dark:text-[#202522] font-bold text-sm h-12 rounded-xl border border-line transition-all cursor-pointer"
+              className="w-full inline-flex items-center justify-center px-6 bg-[#FFFFFF] hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed text-black dark:text-black text-black-force font-bold text-sm h-12 rounded-xl border border-line transition-all cursor-pointer"
+              style={{ color: '#000000' }}
             >
-              <span className="flex items-center gap-2 whitespace-nowrap">
-                <Wallet size={16} className="shrink-0" />
+              <span className="flex items-center gap-2 whitespace-nowrap text-black dark:text-black text-black-force" style={{ color: '#000000' }}>
+                <Wallet size={16} className="shrink-0 text-black dark:text-black text-black-force" style={{ color: '#000000' }} />
                 <span>Use Wallet Balance</span>
               </span>
             </button>

@@ -1401,8 +1401,13 @@ html.dark :not(.theme-protected, .theme-protected *, .fixture-card-banner, .fixt
 html.dark :not(.theme-protected, .theme-protected *, .fixture-card-banner, .fixture-card-banner *, .jackpot-room-card, .jackpot-room-card *, .login-card, .login-card *):where(.text-slate-800),
 html.dark :not(.theme-protected, .theme-protected *, .fixture-card-banner, .fixture-card-banner *, .jackpot-room-card, .jackpot-room-card *, .login-card, .login-card *):where([class*="text-[#1c1e21]"]),
 html.dark :not(.theme-protected, .theme-protected *, .fixture-card-banner, .fixture-card-banner *, .jackpot-room-card, .jackpot-room-card *, .login-card, .login-card *):where([class*="text-[#0a1317]"]),
-html.dark :not(.theme-protected, .theme-protected *, .fixture-card-banner, .fixture-card-banner *, .jackpot-room-card, .jackpot-room-card *, .login-card, .login-card *):where(.text-black) {
+html.dark :not(.theme-protected, .theme-protected *, .fixture-card-banner, .fixture-card-banner *, .jackpot-room-card, .jackpot-room-card *, .login-card, .login-card *, button, button *, .text-black-force, .text-black-force *):where(.text-black) {
   color: #F4F5EF !important;
+}
+
+html.dark .text-black-force,
+html.dark .text-black-force * {
+  color: #000000 !important;
 }
 
 /* Secondary Text: #B5BDB6 */
