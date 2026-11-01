@@ -168,7 +168,7 @@ export default function MatchFiltersToolbar({
         searchBtnActive: 'bg-[#EEAA04]/20 text-[#B88000]',
         searchBtnIdle: 'text-[#C48B03] hover:text-[#9A6B00] hover:bg-[#EEAA04]/15',
         searchBarBorder:
-          'border-[#EEAA04]/50 focus-within:border-[#EEAA04] focus-within:ring-2 focus-within:ring-[#EEAA04]/20',
+          'border-[#DCDCC8] focus-within:border-[#DCDCC8]',
         filterTag: 'bg-[#EEAA04]/15 border-[#EEAA04]/35 text-[#9A6B00]',
         sectorSelected: 'bg-[#EEAA04] text-slate-950 shadow-xs',
         sectorSelectedCount: 'text-slate-950',
@@ -193,7 +193,7 @@ export default function MatchFiltersToolbar({
         searchBtnActive: 'bg-[#006C54]/15 text-[#006C54]',
         searchBtnIdle: 'text-[#006C54] hover:text-[#005441] hover:bg-[#006C54]/10',
         searchBarBorder:
-          'border-[#006C54]/40 focus-within:border-[#006C54] focus-within:ring-2 focus-within:ring-[#006C54]/15',
+          'border-[#DCDCC8] focus-within:border-[#DCDCC8]',
         filterTag: 'bg-[#006C54]/10 border-[#006C54]/20 text-[#006C54]',
         sectorSelected: 'bg-[#006C54] text-white shadow-xs',
         sectorSelectedCount: 'text-white',
@@ -462,9 +462,10 @@ export default function MatchFiltersToolbar({
                     }`}
                   >
                     <span className="truncate pr-2">All Competitions</span>
-                    <div className="flex items-center gap-2 shrink-0">
+                    <div className="flex items-center gap-1.5 shrink-0">
+                      <span className="w-5" aria-hidden="true" />
                       <span
-                        className={`text-[11px] tabular-nums ${
+                        className={`text-[11px] tabular-nums min-w-[20px] text-right ${
                           leagueFilter === 'all'
                             ? `${theme.selectedRowCount} font-bold`
                             : 'text-slate-500'
@@ -472,7 +473,9 @@ export default function MatchFiltersToolbar({
                       >
                         {directoryData.totalMatches}
                       </span>
-                      {leagueFilter === 'all' && <Check size={13} className={theme.checkColor} />}
+                      <span className="w-3.5 flex items-center justify-center">
+                        {leagueFilter === 'all' && <Check size={13} className={theme.checkColor} />}
+                      </span>
                     </div>
                   </button>
 
@@ -512,17 +515,7 @@ export default function MatchFiltersToolbar({
                           </button>
 
                           <div className="flex items-center gap-1.5 shrink-0">
-                            <span
-                              className={`text-[11px] tabular-nums ${
-                                isAnySubSelected
-                                  ? `${theme.selectedRowCount} font-bold`
-                                  : 'text-slate-500'
-                              }`}
-                            >
-                              {row.count}
-                            </span>
-                            {isSelected && <Check size={13} className={theme.checkColor} />}
-                            {hasMultipleLeagues && (
+                            {hasMultipleLeagues ? (
                               <button
                                 type="button"
                                 onClick={(e) => {
@@ -533,7 +526,7 @@ export default function MatchFiltersToolbar({
                                       : [...prev, row.id]
                                   );
                                 }}
-                                className="p-1 text-slate-400 hover:text-slate-700 transition-transform cursor-pointer"
+                                className="p-1 text-slate-400 hover:text-slate-700 transition-transform cursor-pointer flex items-center justify-center w-5 h-5"
                                 title={isExpanded ? 'Collapse leagues' : 'Expand leagues'}
                               >
                                 <ChevronDown
@@ -543,7 +536,21 @@ export default function MatchFiltersToolbar({
                                   }`}
                                 />
                               </button>
+                            ) : (
+                              <span className="w-5" aria-hidden="true" />
                             )}
+                            <span
+                              className={`text-[11px] tabular-nums min-w-[20px] text-right ${
+                                isAnySubSelected
+                                  ? `${theme.selectedRowCount} font-bold`
+                                  : 'text-slate-500'
+                              }`}
+                            >
+                              {row.count}
+                            </span>
+                            <span className="w-3.5 flex items-center justify-center">
+                              {isSelected && <Check size={13} className={theme.checkColor} />}
+                            </span>
                           </div>
                         </div>
 
@@ -632,7 +639,7 @@ export default function MatchFiltersToolbar({
                 value={searchQuery}
                 onChange={(e) => onSearchQueryChange(e.target.value)}
                 placeholder="Search teams, competition or country..."
-                className="w-full bg-transparent pl-9 sm:pl-10 pr-16 py-2 text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none"
+                className="w-full bg-transparent pl-9 sm:pl-10 pr-16 py-2 text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-0"
               />
               <div className="absolute right-2 flex items-center gap-1">
                 {searchQuery && (
@@ -658,54 +665,22 @@ export default function MatchFiltersToolbar({
           </div>
         )}
 
-        {/* ACTIVE FILTER TAGS ROW */}
-        {(selectedDate !== 'all' || leagueFilter !== 'all' || searchQuery) && (
+        {/* ACTIVE FILTER TAGS ROW (Date & Competition tags omitted; selections are displayed on the dropdowns) */}
+        {searchQuery && (
           <div className="flex items-center justify-center flex-wrap gap-1.5 mt-3 text-xs">
-            {selectedDate !== 'all' && (
-              <span
-                className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full border font-semibold text-[11px] ${theme.filterTag}`}
+            <span
+              className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full border font-semibold text-[11px] ${theme.filterTag}`}
+            >
+              <span>Search: &quot;{searchQuery}&quot;</span>
+              <button
+                type="button"
+                onClick={() => onSearchQueryChange('')}
+                className="hover:text-red-600 transition-colors cursor-pointer"
+                aria-label="Clear search filter"
               >
-                <span>Date: {selectedDateLabel}</span>
-                <button
-                  type="button"
-                  onClick={() => onSelectDate('all')}
-                  className="hover:text-red-600 transition-colors cursor-pointer"
-                  aria-label="Clear date filter"
-                >
-                  <X size={12} />
-                </button>
-              </span>
-            )}
-            {leagueFilter !== 'all' && (
-              <span
-                className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full border font-semibold text-[11px] ${theme.filterTag}`}
-              >
-                <span>Competition: {selectedDirectoryLabel}</span>
-                <button
-                  type="button"
-                  onClick={() => handleSelectLeague('all')}
-                  className="hover:text-red-600 transition-colors cursor-pointer"
-                  aria-label="Clear competition filter"
-                >
-                  <X size={12} />
-                </button>
-              </span>
-            )}
-            {searchQuery && (
-              <span
-                className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full border font-semibold text-[11px] ${theme.filterTag}`}
-              >
-                <span>Search: &quot;{searchQuery}&quot;</span>
-                <button
-                  type="button"
-                  onClick={() => onSearchQueryChange('')}
-                  className="hover:text-red-600 transition-colors cursor-pointer"
-                  aria-label="Clear search filter"
-                >
-                  <X size={12} />
-                </button>
-              </span>
-            )}
+                <X size={12} />
+              </button>
+            </span>
             <button
               type="button"
               onClick={handleReset}
