@@ -47,6 +47,7 @@ export interface GamblerPick {
   timeAgo: string;
   colorSeed: number;
   createdAt?: number;
+  updatedAtTimestamp?: number;
 }
 
 export interface MatchConsensus {

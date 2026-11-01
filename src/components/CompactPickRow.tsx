@@ -21,6 +21,17 @@ interface CompactPickRowProps {
   isMatchLiveOrFinished?: boolean;
 }
 
+function formatLiveTimeAgo(timestamp: number, currentNow: number): string {
+  const diffSec = Math.max(0, Math.floor((currentNow - timestamp) / 1000));
+  if (diffSec < 60) return 'just now';
+  const diffMin = Math.floor(diffSec / 60);
+  if (diffMin < 60) return `${diffMin}m ago`;
+  const diffHour = Math.floor(diffMin / 60);
+  if (diffHour < 24) return `${diffHour}h ago`;
+  const diffDay = Math.floor(diffHour / 24);
+  return `${diffDay}d ago`;
+}
+
 export default function CompactPickRow({ pick, isTopPick, onEdit, onDelete, kickoffTime, isMatchLiveOrFinished }: CompactPickRowProps) {
   const currentUser = useCurrentUser();
   const toggleLike = usePickEdits((s) => s.toggleLike);
@@ -88,6 +99,11 @@ export default function CompactPickRow({ pick, isTopPick, onEdit, onDelete, kick
       }).catch(() => {});
     }
   }
+
+  const activeTimestamp = pick.updatedAtTimestamp || pick.createdAt;
+  const displayTimeAgo = activeTimestamp
+    ? formatLiveTimeAgo(activeTimestamp, now)
+    : pick.timeAgo;
 
   const reasoning = pick.reasoning;
   const isLong = reasoning.length > 120;
@@ -255,7 +271,7 @@ export default function CompactPickRow({ pick, isTopPick, onEdit, onDelete, kick
       {/* Message Card Footer: Reactions & Actions */}
       <div className="flex items-center justify-between gap-2 pt-1 border-t border-slate-100 dark:border-[#414A43] text-xs">
         <div className="flex items-center gap-1.5 min-w-0 flex-wrap">
-          <span className="text-[11px] tabular-nums text-slate-400 dark:text-[#929D95] font-medium">{pick.timeAgo}</span>
+          <span className="text-[11px] tabular-nums text-slate-400 dark:text-[#929D95] font-medium">{displayTimeAgo}</span>
           {isMine && !canEdit && (
             <span className="text-[11px] tabular-nums text-slate-400 dark:text-[#929D95] font-bold">· Edited 2/2</span>
           )}

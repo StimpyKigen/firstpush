@@ -477,6 +477,8 @@ function RoomMatchCard({
       likes: 0,
       timeAgo: myPickRecord.updatedAt,
       colorSeed: username.length * 7,
+      createdAt: myPickRecord.createdAt,
+      updatedAtTimestamp: myPickRecord.updatedAtTimestamp || myPickRecord.createdAt,
     });
   }
 

@@ -12,6 +12,7 @@ export interface UserPickRecord {
   editCount: number; // 0 = first submit, 1 = edited once, 2 = max edits reached
   updatedAt: string;
   createdAt?: number;
+  updatedAtTimestamp?: number;
 }
 
 interface UserPicksState {
@@ -58,7 +59,8 @@ export const useUserPicks = create<UserPicksState>()(
             conviction,
             editCount: existing.editCount + 1,
             updatedAt: 'Just now (edited)',
-            createdAt: existing.createdAt || Date.now(),
+            createdAt: Date.now(), // Restart counter upon edit
+            updatedAtTimestamp: Date.now(),
           };
           set((state) => ({
             userPicks: { ...state.userPicks, [key]: updated },
@@ -74,6 +76,7 @@ export const useUserPicks = create<UserPicksState>()(
             editCount: 0,
             updatedAt: 'Just now',
             createdAt: Date.now(),
+            updatedAtTimestamp: Date.now(),
           };
           set((state) => ({
             userPicks: { ...state.userPicks, [key]: newPick },
