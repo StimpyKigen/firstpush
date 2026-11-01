@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import {
   Dices, Layers, Trash2, Send,
   Sparkles, X, Trophy, ChevronDown, ChevronUp, Plus, Link2,
@@ -72,6 +73,21 @@ export default function BetBuilder({ onPublished }: BetBuilderProps) {
     toggleTag,
     clearBuilderLegs,
   } = useBetBuilder(onPublished);
+
+  // Deactivate background scroll when Publish pop-up is active
+  useEffect(() => {
+    if (showPublishModal) {
+      const originalBodyOverflow = document.body.style.overflow;
+      const originalHtmlOverflow = document.documentElement.style.overflow;
+      document.body.style.overflow = 'hidden';
+      document.documentElement.style.overflow = 'hidden';
+
+      return () => {
+        document.body.style.overflow = originalBodyOverflow;
+        document.documentElement.style.overflow = originalHtmlOverflow;
+      };
+    }
+  }, [showPublishModal]);
 
   return (
     <div className="space-y-5">
@@ -365,7 +381,7 @@ export default function BetBuilder({ onPublished }: BetBuilderProps) {
 
       {/* PUBLISH BUILT SLIP MODAL */}
       {showPublishModal && (
-        <Modal isOpen={true} onClose={() => setShowPublishModal(false)} overlayClassName="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+        <Modal isOpen={true} onClose={() => setShowPublishModal(false)} overlayClassName="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
           <motion.div
             initial={{ scale: 0.95, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
