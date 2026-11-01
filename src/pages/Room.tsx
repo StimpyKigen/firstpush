@@ -31,7 +31,7 @@ export default function Room() {
   const openAuthWall = useAuthWallStore((s) => s.openAuthWall);
   const username = currentUser?.username || 'Guest Punter';
 
-  const { savePick, getPick, getExtraLikes } = useUserPicks();
+  const { savePick, getPick, getExtraLikes, deletePick } = useUserPicks();
 
   const [unlockedLocal, setUnlockedLocal] = useState(false);
   const [openMatch, setOpenMatch] = useState<string | null>(null);
@@ -102,6 +102,14 @@ export default function Room() {
     setFormError(null);
     setEditingMatchId(matchId);
     setOpenMatch(matchId);
+  };
+
+  const handleDeletePick = (matchId: string) => {
+    deletePick(jackpot.id, matchId);
+    setReasoning('');
+    setFormError(null);
+    setToastMessage('Pick deleted');
+    setTimeout(() => setToastMessage(null), 3000);
   };
 
   const handlePostPick = (matchId: string) => {
@@ -391,6 +399,7 @@ export default function Room() {
                 setConviction={setConviction}
                 setEditingMatchId={setEditingMatchId}
                 handlePostPick={handlePostPick}
+                handleDeletePick={handleDeletePick}
                 savePick={savePick}
               />
             );
@@ -421,6 +430,7 @@ function RoomMatchCard({
   setConviction,
   setEditingMatchId,
   handlePostPick,
+  handleDeletePick,
   savePick,
 }: {
   match: any;
@@ -441,6 +451,7 @@ function RoomMatchCard({
   setConviction: (c: Conviction) => void;
   setEditingMatchId: (id: string | null) => void;
   handlePostPick: (matchId: string) => void;
+  handleDeletePick: (matchId: string) => void;
   savePick: any;
 }) {
   void getExtraLikes;
@@ -579,6 +590,9 @@ function RoomMatchCard({
             submitted={!!myPickRecord}
             label="Gamblers' Discussion"
             onEditPick={(_id, pick, r) => savePick(jackpot.id, match.id, pick, r, conviction)}
+            onDeletePick={() => handleDeletePick(match.id)}
+            kickoffTime={match.kickoff}
+            isMatchLiveOrFinished={jackpot.status !== 'open' || !!match.result}
           />
 
           {jackpot.status === 'settled' && match.result && (

@@ -27,7 +27,7 @@ export default function FreeMatchRoom() {
   const currentUser = useCurrentUser();
   const openAuthWall = useAuthWallStore((s) => s.openAuthWall);
   const username = currentUser?.username || 'Guest Punter';
-  const { savePick, getPick } = useUserPicks();
+  const { savePick, getPick, deletePick } = useUserPicks();
 
   // Tab indicator state: 'details' vs 'discussion'
   const [roomTab, setRoomTab] = useState<'details' | 'discussion'>('details');
@@ -50,6 +50,14 @@ export default function FreeMatchRoom() {
   const consensus = consensusMap[match.id];
 
   const outcomeColor = myPickRecord?.pick === '1' ? '#006C54' : myPickRecord?.pick === 'X' ? '#8A6500' : '#e41e3f';
+
+  const handleDeletePick = () => {
+    deletePick(roomId, match.id);
+    setReasoning('');
+    setErrorMsg(null);
+    setToastMsg('Pick deleted');
+    setTimeout(() => setToastMsg(null), 3000);
+  };
 
   const handlePostPick = () => {
     if (!currentUser) {
@@ -91,6 +99,7 @@ export default function FreeMatchRoom() {
       likes: 0,
       timeAgo: myPickRecord.updatedAt,
       colorSeed: username.length * 7,
+      createdAt: myPickRecord.createdAt,
     });
   }
 

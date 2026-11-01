@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { ThumbsUp, Pencil, Check, Crown, Flag } from 'lucide-react';
+import { useState, useRef, useEffect } from 'react';
+import { ThumbsUp, Pencil, Check, Crown, Flag, MoreVertical } from 'lucide-react';
 import type { GamblerPick, Outcome } from '../lib/types';
 import Avatar from './Avatar';
 import StarRating from './StarRating';
@@ -16,9 +16,12 @@ interface CompactPickRowProps {
   pick: GamblerPick;
   isTopPick?: boolean;
   onEdit?: (id: string, pick: Outcome, reasoning: string) => void;
+  onDelete?: (id: string) => void;
+  kickoffTime?: string;
+  isMatchLiveOrFinished?: boolean;
 }
 
-export default function CompactPickRow({ pick, isTopPick, onEdit }: CompactPickRowProps) {
+export default function CompactPickRow({ pick, isTopPick, onEdit, onDelete, kickoffTime, isMatchLiveOrFinished }: CompactPickRowProps) {
   const currentUser = useCurrentUser();
   const toggleLike = usePickEdits((s) => s.toggleLike);
   const canEdit = usePickEdits((s) => s.canEdit(pick.id));
@@ -30,8 +33,62 @@ export default function CompactPickRow({ pick, isTopPick, onEdit }: CompactPickR
   const [showReportModal, setShowReportModal] = useState(false);
   const [editPick, setEditPick] = useState<Outcome>(pick.pick);
   const [editReason, setEditReason] = useState(pick.reasoning);
+  const [now, setNow] = useState(Date.now());
+  const [showMenu, setShowMenu] = useState(false);
+  const [copiedShare, setCopiedShare] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const timer = setInterval(() => setNow(Date.now()), 5000);
+    return () => clearInterval(timer);
+  }, []);
+
+  // Close menu on outside click
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setShowMenu(false);
+      }
+    }
+    if (showMenu) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
+    }
+  }, [showMenu]);
 
   const isMine = currentUser?.username === pick.username;
+
+  // Edit window: 5 minutes from post creation
+  const postAgeMs = pick.createdAt ? now - pick.createdAt : Infinity;
+  const isWithinEditWindow = postAgeMs < 5 * 60 * 1000;
+
+  // Check if within 5 minutes of kickoff or match has begun
+  let isWithinFiveMinOfKickoff = !!isMatchLiveOrFinished;
+  if (!isWithinFiveMinOfKickoff && kickoffTime) {
+    const parsed = Date.parse(kickoffTime);
+    if (!isNaN(parsed)) {
+      const diffToKickoff = parsed - now;
+      if (diffToKickoff <= 5 * 60 * 1000) {
+        isWithinFiveMinOfKickoff = true;
+      }
+    }
+  }
+
+  const canDelete = isMine && !isWithinFiveMinOfKickoff;
+
+  function handleShare() {
+    const url = window.location.href;
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(url).then(() => {
+        setCopiedShare(true);
+        setTimeout(() => {
+          setCopiedShare(false);
+          setShowMenu(false);
+        }, 1500);
+      }).catch(() => {});
+    }
+  }
+
   const reasoning = pick.reasoning;
   const isLong = reasoning.length > 120;
   const displayText = expanded || !isLong ? reasoning : reasoning.slice(0, 120) + '...';
@@ -219,7 +276,8 @@ export default function CompactPickRow({ pick, isTopPick, onEdit }: CompactPickR
         </div>
 
         <div className="flex items-center gap-1.5 shrink-0">
-          {isMine && canEdit && onEdit && (
+          {/* Edit button: available within 5 mins from posting */}
+          {isMine && isWithinEditWindow && canEdit && onEdit && (
             <button
               type="button"
               onClick={() => setEditing(true)}
@@ -229,6 +287,48 @@ export default function CompactPickRow({ pick, isTopPick, onEdit }: CompactPickR
               <Pencil size={11} />
               <span>Edit</span>
             </button>
+          )}
+
+          {/* 3-Dot Options Menu: replaces Edit after 5 mins */}
+          {isMine && !isWithinEditWindow && (
+            <div ref={menuRef} className="relative">
+              <button
+                type="button"
+                onClick={() => setShowMenu(!showMenu)}
+                className="h-7 w-7 rounded-md text-slate-500 dark:text-[#B5BDB6] hover:text-slate-800 dark:hover:text-[#F4F5EF] hover:bg-slate-100 dark:hover:bg-[#202522] bg-transparent border-0 transition-colors cursor-pointer flex items-center justify-center"
+                title="Options"
+                aria-label="Options"
+              >
+                <MoreVertical size={16} />
+              </button>
+
+              {showMenu && (
+                <div className="absolute right-0 bottom-full mb-1 z-30 flex flex-col items-start py-1.5 px-3 bg-white dark:bg-[#202522] border border-slate-200 dark:border-[#414A43] rounded-xl shadow-lg min-w-[76px] animate-in fade-in duration-150">
+                  {/* Share option: charcoal in lightmode, ivory in darkmode, border-free */}
+                  <button
+                    type="button"
+                    onClick={handleShare}
+                    className="w-full text-left py-1 text-xs font-medium lowercase text-slate-800 dark:text-[#FFFFF0] hover:opacity-75 bg-transparent border-0 cursor-pointer"
+                  >
+                    {copiedShare ? 'copied' : 'share'}
+                  </button>
+
+                  {/* Delete option: red, border-free, disappears 5 min before kickoff */}
+                  {canDelete && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowMenu(false);
+                        onDelete?.(pick.id);
+                      }}
+                      className="w-full text-left py-1 text-xs font-medium lowercase text-rose-600 dark:text-rose-400 hover:text-rose-700 bg-transparent border-0 cursor-pointer"
+                    >
+                      delete
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
           )}
 
           <button

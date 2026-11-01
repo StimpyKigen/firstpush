@@ -46,6 +46,7 @@ export interface GamblerPick {
   likes: number;
   timeAgo: string;
   colorSeed: number;
+  createdAt?: number;
 }
 
 export interface MatchConsensus {

@@ -11,6 +11,7 @@ export interface UserPickRecord {
   conviction: Conviction;
   editCount: number; // 0 = first submit, 1 = edited once, 2 = max edits reached
   updatedAt: string;
+  createdAt?: number;
 }
 
 interface UserPicksState {
@@ -18,6 +19,7 @@ interface UserPicksState {
   likedPicks: Record<string, boolean>; // key: pickId
   extraLikes: Record<string, number>; // key: pickId
   savePick: (roomId: string, matchId: string, pick: Outcome, reasoning: string, conviction?: Conviction) => { ok: boolean; error?: string };
+  deletePick: (roomId: string, matchId: string) => void;
   getPick: (roomId: string, matchId: string) => UserPickRecord | undefined;
   toggleLikePick: (pickId: string) => void;
   getExtraLikes: (pickId: string) => number;
@@ -56,6 +58,7 @@ export const useUserPicks = create<UserPicksState>()(
             conviction,
             editCount: existing.editCount + 1,
             updatedAt: 'Just now (edited)',
+            createdAt: existing.createdAt || Date.now(),
           };
           set((state) => ({
             userPicks: { ...state.userPicks, [key]: updated },
@@ -70,12 +73,22 @@ export const useUserPicks = create<UserPicksState>()(
             conviction,
             editCount: 0,
             updatedAt: 'Just now',
+            createdAt: Date.now(),
           };
           set((state) => ({
             userPicks: { ...state.userPicks, [key]: newPick },
           }));
           return { ok: true };
         }
+      },
+
+      deletePick: (roomId, matchId) => {
+        const key = `${roomId}:${matchId}`;
+        set((state) => {
+          const nextPicks = { ...state.userPicks };
+          delete nextPicks[key];
+          return { userPicks: nextPicks };
+        });
       },
 
       toggleLikePick: (pickId) => {

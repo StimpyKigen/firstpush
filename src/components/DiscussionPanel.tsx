@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useMemo } from 'react';
-import { MessageSquarePlus, ChevronDown, Users } from 'lucide-react';
+import { MessageSquarePlus, ChevronDown, Users, Check } from 'lucide-react';
 import type { GamblerPick, Outcome } from '../lib/types';
 import CompactPickRow from './CompactPickRow';
 import ModerationWarningBox from './ModerationWarningBox';
@@ -20,6 +20,9 @@ interface DiscussionPanelProps {
   disabled?: boolean;
   label?: string;
   onEditPick?: (id: string, pick: Outcome, reasoning: string) => void;
+  onDeletePick?: () => void;
+  kickoffTime?: string;
+  isMatchLiveOrFinished?: boolean;
   loading?: boolean;
 }
 
@@ -37,6 +40,9 @@ export default function DiscussionPanel({
   disabled,
   label = 'Discussion',
   onEditPick,
+  onDeletePick,
+  kickoffTime,
+  isMatchLiveOrFinished,
   loading = false,
 }: DiscussionPanelProps) {
   const [showAll, setShowAll] = useState(false);
@@ -152,8 +158,8 @@ export default function DiscussionPanel({
               <button
                 key={o}
                 type="button"
-                onClick={() => onPickChange(o)}
-                disabled={disabled}
+                onClick={() => !submitted && onPickChange(o)}
+                disabled={disabled || submitted}
                 className={`h-10 sm:h-11 px-2 rounded-md text-xs sm:text-sm font-bold uppercase tracking-wide border transition-all active:scale-[0.98] cursor-pointer flex flex-col items-center justify-center leading-none ${
                   isSelected
                     ? o === '1'
@@ -203,19 +209,24 @@ export default function DiscussionPanel({
               )}
             </div>
 
-            <button
-              type="button"
-              onClick={handleFormSubmit}
-              disabled={!canSubmit || disabled || justPosted}
-              className="p-1.5 bg-transparent border-0 focus:outline-none hover:scale-110 active:scale-95 transition-transform disabled:opacity-25 disabled:cursor-not-allowed cursor-pointer shrink-0"
-              title={justPosted ? 'Posted' : submitted ? 'Update Pick Analysis' : 'Post Pick Analysis'}
-              aria-label={justPosted ? 'Posted' : submitted ? 'Update Pick Analysis' : 'Post Pick Analysis'}
-            >
-              {justPosted ? (
-                <span className="text-xs font-bold text-[#006C54] dark:text-[#00A878] lowercase select-none animate-in fade-in duration-150">
-                  posted
-                </span>
-              ) : (
+            {justPosted ? (
+              <span className="text-xs sm:text-sm font-bold text-[#006C54] dark:text-[#00A878] lowercase select-none py-1 animate-in fade-in duration-150">
+                posted
+              </span>
+            ) : submitted ? (
+              <div className="flex items-center gap-1.5 text-xs font-bold text-[#006C54] dark:text-[#00A878] select-none py-1">
+                <Check size={14} className="stroke-[2.5]" />
+                <span>Prediction locked in</span>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={handleFormSubmit}
+                disabled={!canSubmit || disabled}
+                className="p-1.5 bg-transparent border-0 focus:outline-none hover:scale-110 active:scale-95 transition-transform disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer shrink-0"
+                title="Post Pick Analysis"
+                aria-label="Post Pick Analysis"
+              >
                 <img
                   src="/images/send-icon-green.png"
                   alt="Post Pick"
@@ -225,8 +236,8 @@ export default function DiscussionPanel({
                   loading="eager"
                   decoding="async"
                 />
-              )}
-            </button>
+              </button>
+            )}
           </div>
         </div>
       </div>
@@ -256,6 +267,9 @@ export default function DiscussionPanel({
                     pick={p}
                     isTopPick={topPick?.id === p.id}
                     onEdit={onEditPick}
+                    onDelete={onDeletePick}
+                    kickoffTime={kickoffTime}
+                    isMatchLiveOrFinished={isMatchLiveOrFinished}
                   />
                 </div>
               ))
