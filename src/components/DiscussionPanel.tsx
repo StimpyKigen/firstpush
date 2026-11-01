@@ -6,6 +6,7 @@ import ModerationWarningBox from './ModerationWarningBox';
 import { sortPicksByVisibility, getTopPick } from '../lib/pickSorting';
 import { moderateText } from '../lib/contentModeration';
 import { PickRowSkeleton } from './skeleton';
+import { useCurrentUser } from '../lib/authStore';
 
 interface DiscussionPanelProps {
   picks: GamblerPick[];
@@ -39,6 +40,17 @@ export default function DiscussionPanel({
   loading = false,
 }: DiscussionPanelProps) {
   const [showAll, setShowAll] = useState(false);
+  const [justPosted, setJustPosted] = useState(false);
+  const [sessionNewPickUsername, setSessionNewPickUsername] = useState<string | null>(null);
+  const postedTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const currentUser = useCurrentUser();
+
+  // Clean up timer on unmount
+  useEffect(() => {
+    return () => {
+      if (postedTimerRef.current) clearTimeout(postedTimerRef.current);
+    };
+  }, []);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const commentsViewportRef = useRef<HTMLDivElement>(null);
 
@@ -52,9 +64,21 @@ export default function DiscussionPanel({
   // Moderate reasoning text dynamically
   const modResult = useMemo(() => moderateText(myReason), [myReason]);
 
-  // Sort picks by visibility (likes + star rating weight)
-  const sortedPicks = useMemo(() => sortPicksByVisibility(picks), [picks]);
-  const topPick = useMemo(() => getTopPick(sortedPicks), [sortedPicks]);
+  // Sort picks naturally by visibility (likes + star rating weight)
+  const naturallySortedPicks = useMemo(() => sortPicksByVisibility(picks), [picks]);
+  const topPick = useMemo(() => getTopPick(naturallySortedPicks), [naturallySortedPicks]);
+
+  // If the user posted in this session before refreshing, display their comment at the very top (above the most-liked one)
+  const sortedPicks = useMemo(() => {
+    if (!sessionNewPickUsername) return naturallySortedPicks;
+
+    const myIndex = naturallySortedPicks.findIndex((p) => p.username === sessionNewPickUsername);
+    if (myIndex === -1) return naturallySortedPicks;
+
+    const myPickItem = naturallySortedPicks[myIndex];
+    const otherPicks = naturallySortedPicks.filter((_, idx) => idx !== myIndex);
+    return [myPickItem, ...otherPicks];
+  }, [naturallySortedPicks, sessionNewPickUsername]);
 
   const visiblePicks = showAll ? sortedPicks : sortedPicks.slice(0, SHOW_INITIAL);
   const hasMore = sortedPicks.length > SHOW_INITIAL;
@@ -71,8 +95,30 @@ export default function DiscussionPanel({
   const canSubmit = myPick && myReason.trim().length > 0 && modResult.isAllowed;
 
   function handleFormSubmit() {
-    if (!modResult.isAllowed) return;
+    if (!canSubmit || disabled) return;
+
+    // Clear input box
+    onReasonChange('');
+
+    // Trigger parent submission
     onSubmit();
+
+    // Mark current user as having posted in this session (places comment at very top before refresh)
+    if (currentUser?.username) {
+      setSessionNewPickUsername(currentUser.username);
+    }
+
+    // Scroll comments viewport to top immediately so user sees their comment
+    if (commentsViewportRef.current) {
+      commentsViewportRef.current.scrollTop = 0;
+    }
+
+    // Show lowercase 'posted' text for 2 seconds
+    setJustPosted(true);
+    if (postedTimerRef.current) clearTimeout(postedTimerRef.current);
+    postedTimerRef.current = setTimeout(() => {
+      setJustPosted(false);
+    }, 2000);
   }
 
   return (
@@ -160,20 +206,26 @@ export default function DiscussionPanel({
             <button
               type="button"
               onClick={handleFormSubmit}
-              disabled={!canSubmit || disabled}
+              disabled={!canSubmit || disabled || justPosted}
               className="p-1.5 bg-transparent border-0 focus:outline-none hover:scale-110 active:scale-95 transition-transform disabled:opacity-25 disabled:cursor-not-allowed cursor-pointer shrink-0"
-              title={submitted ? 'Update Pick Analysis' : 'Post Pick Analysis'}
-              aria-label={submitted ? 'Update Pick Analysis' : 'Post Pick Analysis'}
+              title={justPosted ? 'Posted' : submitted ? 'Update Pick Analysis' : 'Post Pick Analysis'}
+              aria-label={justPosted ? 'Posted' : submitted ? 'Update Pick Analysis' : 'Post Pick Analysis'}
             >
-              <img
-                src="/images/send-icon-green.png"
-                alt="Post Pick"
-                className="w-5 h-5 object-contain"
-                width="20"
-                height="20"
-                loading="eager"
-                decoding="async"
-              />
+              {justPosted ? (
+                <span className="text-xs font-bold text-[#006C54] dark:text-[#00A878] lowercase select-none animate-in fade-in duration-150">
+                  posted
+                </span>
+              ) : (
+                <img
+                  src="/images/send-icon-green.png"
+                  alt="Post Pick"
+                  className="w-5 h-5 object-contain"
+                  width="20"
+                  height="20"
+                  loading="eager"
+                  decoding="async"
+                />
+              )}
             </button>
           </div>
         </div>

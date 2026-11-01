@@ -74,6 +74,7 @@ export default function FreeMatchRoom() {
 
     setIsEditing(false);
     setErrorMsg(null);
+    setReasoning('');
     setToastMsg(`Pick posted! (${2 - ((getPick(roomId, match.id)?.editCount || 0))} edits remaining)`);
     setTimeout(() => setToastMsg(null), 3000);
   };
