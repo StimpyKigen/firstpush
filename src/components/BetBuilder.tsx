@@ -287,9 +287,6 @@ export default function BetBuilder({ onPublished }: BetBuilderProps) {
                 </button>
 
                 <div className="flex items-center gap-2 ml-1">
-                  <div className="w-6 h-6 rounded-lg bg-gold/20 flex items-center justify-center text-gold font-bold text-xs">
-                    {cartLegs.length}
-                  </div>
                   <div>
                     <h4 className="font-display font-bold text-xs sm:text-sm text-cream leading-tight">
                       {cartLegs.length}-Fold Accumulator
@@ -352,23 +349,6 @@ export default function BetBuilder({ onPublished }: BetBuilderProps) {
                   @{totalOdds.toFixed(2)}x
                 </span>
               </div>
-
-              <div className="flex items-center justify-between gap-2">
-                <span className="text-cream-dim font-medium">Est. Stake (Ksh):</span>
-                <input
-                  type="number"
-                  value={simulatedStake}
-                  onChange={(e) => setSimulatedStake(Math.max(10, +e.target.value))}
-                  className="w-24 bg-ink border border-line rounded-lg px-2 py-1 text-right tabular-nums font-bold text-cream focus:outline-none focus:border-gold"
-                />
-              </div>
-
-              <div className="flex items-center justify-between pt-1 border-t border-line/60">
-                <span className="text-cream-dim font-bold">Estimated Payout:</span>
-                <span className="tabular-nums font-bold text-emerald-300 text-sm">
-                  {estimatedReturn.toLocaleString()} Ksh
-                </span>
-              </div>
             </div>
 
             {/* Publish Action Button */}
@@ -393,7 +373,6 @@ export default function BetBuilder({ onPublished }: BetBuilderProps) {
           >
             <div className="flex items-center justify-between pb-3 border-b border-line">
               <h3 className="font-display font-bold text-lg text-cream flex items-center gap-2">
-                <Sparkles size={18} className="text-gold" />
                 Publish Built Bet Slip
               </h3>
               <button
@@ -415,14 +394,13 @@ export default function BetBuilder({ onPublished }: BetBuilderProps) {
               </div>
               <div className="text-right">
                 <span className="tabular-nums font-bold text-gold text-lg">@{totalOdds.toFixed(2)}x</span>
-                <p className="text-[11px] text-cream-dim">Est Return: {estimatedReturn.toLocaleString()} Ksh</p>
               </div>
             </div>
 
             {/* Optional Analysis Note */}
             <div>
               <label className="text-xs font-bold text-cream block mb-1">
-                Analysis / Strategy Note (Optional)
+                Caption
               </label>
               <textarea
                 value={publishNote}
@@ -528,7 +506,7 @@ export default function BetBuilder({ onPublished }: BetBuilderProps) {
                 className="px-5 py-2.5 text-xs font-bold bg-gold hover:bg-gold-2 disabled:opacity-40 text-ink rounded-xl shadow flex items-center gap-1.5"
               >
                 <Send size={14} />
-                Publish to Community
+                Publish to SlipFeed
               </button>
             </div>
           </motion.div>
