@@ -92,7 +92,7 @@ export default function Room() {
         return;
       }
       setSelectedOutcome(existing.pick);
-      setReasoning(existing.reasoning);
+      setReasoning('');
       setConviction(existing.conviction || 'Banker');
     } else {
       setSelectedOutcome('1');
@@ -495,7 +495,7 @@ function RoomMatchCard({
             setEditingMatchId(null);
             if (myPickRecord) {
               setSelectedOutcome(myPickRecord.pick);
-              setReasoning(myPickRecord.reasoning);
+              setReasoning('');
               setConviction(myPickRecord.conviction);
             } else {
               setSelectedOutcome('1');

@@ -36,7 +36,7 @@ export default function FreeMatchRoom() {
   const myPickRecord = match ? getPick(roomId, match.id) : undefined;
 
   const [selectedOutcome, setSelectedOutcome] = useState<Outcome>(myPickRecord?.pick || '1');
-  const [reasoning, setReasoning] = useState(myPickRecord?.reasoning || '');
+  const [reasoning, setReasoning] = useState('');
   const [isEditing, setIsEditing] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [toastMsg, setToastMsg] = useState<string | null>(null);
@@ -311,6 +311,9 @@ export default function FreeMatchRoom() {
               submitted={!!myPickRecord}
               label="Fans' Discussion"
               onEditPick={(id, pick, r) => savePick(roomId, match.id, pick, r, 'Banker')}
+              onDeletePick={handleDeletePick}
+              kickoffTime={match.kickoffIso || match.kickoff}
+              isMatchLiveOrFinished={match.status === 'in' || match.status === 'post'}
             />
           </div>
         </div>

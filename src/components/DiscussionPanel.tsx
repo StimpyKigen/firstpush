@@ -20,7 +20,7 @@ interface DiscussionPanelProps {
   disabled?: boolean;
   label?: string;
   onEditPick?: (id: string, pick: Outcome, reasoning: string) => void;
-  onDeletePick?: () => void;
+  onDeletePick?: (id?: string) => void;
   kickoffTime?: string;
   isMatchLiveOrFinished?: boolean;
   loading?: boolean;
@@ -48,6 +48,7 @@ export default function DiscussionPanel({
   const [showAll, setShowAll] = useState(false);
   const [justPosted, setJustPosted] = useState(false);
   const [sessionNewPickUsername, setSessionNewPickUsername] = useState<string | null>(null);
+  const [deletedPickIds, setDeletedPickIds] = useState<string[]>([]);
   const postedTimerRef = useRef<NodeJS.Timeout | null>(null);
   const currentUser = useCurrentUser();
 
@@ -65,6 +66,7 @@ export default function DiscussionPanel({
     if (commentsViewportRef.current) {
       commentsViewportRef.current.scrollTop = 0;
     }
+    setDeletedPickIds([]);
   }, [matchId]);
 
   // Moderate reasoning text dynamically
@@ -86,8 +88,12 @@ export default function DiscussionPanel({
     return [myPickItem, ...otherPicks];
   }, [naturallySortedPicks, sessionNewPickUsername]);
 
-  const visiblePicks = showAll ? sortedPicks : sortedPicks.slice(0, SHOW_INITIAL);
-  const hasMore = sortedPicks.length > SHOW_INITIAL;
+  const filteredSortedPicks = useMemo(() => {
+    return sortedPicks.filter((p) => !deletedPickIds.includes(p.id));
+  }, [sortedPicks, deletedPickIds]);
+
+  const visiblePicks = showAll ? filteredSortedPicks : filteredSortedPicks.slice(0, SHOW_INITIAL);
+  const hasMore = filteredSortedPicks.length > SHOW_INITIAL;
 
   // Auto-resize textarea
   useEffect(() => {
@@ -183,11 +189,11 @@ export default function DiscussionPanel({
           </label>
           <textarea
             ref={textareaRef}
-            value={myReason}
+            value={submitted ? '' : myReason}
             onChange={(e) => onReasonChange(e.target.value)}
-            placeholder="Why this pick? Share key stats, injury news, form analysis..."
+            placeholder={submitted ? 'Prediction and reasoning locked in.' : 'Why this pick? Share key stats, injury news, form analysis...'}
             rows={2}
-            disabled={disabled}
+            disabled={disabled || submitted}
             className={`w-full bg-slate-50 border rounded-md px-3.5 py-2.5 text-xs text-slate-900 placeholder:text-slate-400 placeholder:text-xs placeholder:leading-relaxed focus:outline-none focus:bg-white transition-all resize-none leading-relaxed ${
               !modResult.isAllowed ? 'border-rose-500 bg-rose-50/50' : 'border-slate-300 focus:border-[#006C54]'
             }`}
@@ -267,7 +273,11 @@ export default function DiscussionPanel({
                     pick={p}
                     isTopPick={topPick?.id === p.id}
                     onEdit={onEditPick}
-                    onDelete={onDeletePick}
+                    onDelete={(id) => {
+                      setDeletedPickIds((prev) => [...prev, id]);
+                      setSessionNewPickUsername(null);
+                      onDeletePick?.(id);
+                    }}
                     kickoffTime={kickoffTime}
                     isMatchLiveOrFinished={isMatchLiveOrFinished}
                   />
