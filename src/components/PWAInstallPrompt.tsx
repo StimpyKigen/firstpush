@@ -106,9 +106,7 @@ export default function PWAInstallPrompt() {
           </button>
 
           <div className="flex items-start gap-3.5 pr-6">
-            <div className="w-12 h-12 rounded-xl bg-ink-2 border border-gold/40 p-1.5 flex items-center justify-center shrink-0 shadow-md">
-              <img src="/pwa-192.png" alt="MshindiRoom App Icon" className="w-full h-full object-contain rounded-lg" />
-            </div>
+            <img src="/pwa-192.png" alt="MshindiRoom App Icon" className="w-12 h-12 shrink-0 object-contain" />
 
             <div className="flex-1">
               <div className="flex items-center gap-1.5 text-gold font-bold text-xs tracking-wide uppercase">
@@ -117,7 +115,7 @@ export default function PWAInstallPrompt() {
               </div>
               <h4 className="font-bold text-cream text-sm mt-0.5">MshindiRoom</h4>
               <p className="text-xs text-cream-dim mt-1 leading-snug">
-                Fast 1-tap access, zero browser bars, & offline jackpot consensus.
+                Fast 1-tap access, zero browser bars.
               </p>
             </div>
           </div>
