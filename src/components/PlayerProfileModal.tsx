@@ -1,9 +1,8 @@
-import React from 'react';
-import { X, Award, Flame, Target, TrendingUp, ShieldCheck, Zap, HelpCircle, Activity } from 'lucide-react';
+import React, { useEffect } from 'react';
+import { X, Award, Flame, ShieldCheck } from 'lucide-react';
 import { getPlayerProfile } from '../lib/punterRatings';
 import { calculateStarsFromRp } from '../lib/ratingEngine';
 import Avatar from './Avatar';
-import StarRating from './StarRating';
 import Modal from './ui/Modal';
 
 interface PlayerProfileModalProps {
@@ -12,6 +11,19 @@ interface PlayerProfileModalProps {
 }
 
 export default function PlayerProfileModal({ username, onClose }: PlayerProfileModalProps) {
+  useEffect(() => {
+    if (username) {
+      const originalBodyOverflow = document.body.style.overflow;
+      const originalHtmlOverflow = document.documentElement.style.overflow;
+      document.body.style.overflow = 'hidden';
+      document.documentElement.style.overflow = 'hidden';
+      return () => {
+        document.body.style.overflow = originalBodyOverflow;
+        document.documentElement.style.overflow = originalHtmlOverflow;
+      };
+    }
+  }, [username]);
+
   if (!username) return null;
 
   const profile = getPlayerProfile(username);
@@ -39,26 +51,15 @@ export default function PlayerProfileModal({ username, onClose }: PlayerProfileM
         <div className="px-6 pb-6 pt-0 relative">
           
           {/* Avatar & Header Identity */}
-          <div className="flex flex-col sm:flex-row items-start sm:items-end justify-between gap-4 -mt-12 mb-6">
-            <div className="flex items-end gap-4">
-              <div className="p-1 rounded-2xl bg-panel border-2 border-gold shadow-xl">
-                <Avatar name={profile.username} seed={profile.avatarSeed} size={56} />
-              </div>
-              <div className="mb-1">
-                <h2 className="font-display font-bold text-2xl text-cream flex items-center gap-2">
-                  {profile.username}
-                </h2>
-                <p className="text-xs font-semibold text-gold tracking-wide uppercase">
-                  {profile.tierName}
-                </p>
-              </div>
-            </div>
-
-            <div className="bg-ink-2 border border-line rounded-xl px-4 py-2.5 flex items-center gap-3">
-              <div>
-                <span className="text-[11px] uppercase font-bold text-cream-dim block">Public Rating</span>
-                <StarRating rating={profile.stars} size={16} showNumber={true} />
-              </div>
+          <div className="flex items-end gap-4 -mt-12 mb-6">
+            <Avatar name={profile.username} seed={profile.avatarSeed} size={56} />
+            <div className="mb-1">
+              <h2 className="font-display font-bold text-2xl text-cream flex items-center gap-2">
+                {profile.username}
+              </h2>
+              <p className="text-xs font-semibold text-gold tracking-wide uppercase">
+                {profile.tierName}
+              </p>
             </div>
           </div>
 
@@ -80,37 +81,10 @@ export default function PlayerProfileModal({ username, onClose }: PlayerProfileM
                 style={{ width: `${Math.min(100, Math.max(5, rpMeta.progressPct))}%` }}
               />
             </div>
-            <div className="flex justify-between items-center text-[11px] text-cream-dim mt-1.5 tabular-nums">
-              <span>{rpMeta.progressPct}% Progress to Next Tier</span>
-              <span>Top 2% Elite Punter Ladder</span>
-            </div>
-          </div>
-
-          {/* Dual Skill Metrics: Hidden MMR & Consistency Score */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
-            <div className="p-3.5 rounded-xl bg-ink/80 border border-gold/20 flex items-center justify-between">
-              <div>
-                <span className="text-[11px] font-bold text-cream-dim uppercase tracking-wide block">Hidden MMR (Skill Rating)</span>
-                <span className="font-display font-bold text-xl text-cream tabular-nums">{profile.mmr} MMR</span>
-              </div>
-              <div className="w-10 h-10 rounded-xl bg-gold/10 border border-gold/30 text-gold flex items-center justify-center font-bold">
-                <Zap size={18} />
-              </div>
-            </div>
-
-            <div className="p-3.5 rounded-xl bg-ink/80 border border-emerald-500/20 flex items-center justify-between">
-              <div>
-                <span className="text-[11px] font-bold text-cream-dim uppercase tracking-wide block">Consistency Index</span>
-                <span className="font-display font-bold text-xl text-emerald-300 tabular-nums">{profile.consistencyRating}/100</span>
-              </div>
-              <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 flex items-center justify-center font-bold">
-                <Activity size={18} />
-              </div>
-            </div>
           </div>
 
           {/* Key Stats Grid */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 mb-6">
+          <div className="grid grid-cols-3 gap-2.5 mb-6">
             <div className="bg-ink-2/60 border border-line p-3 rounded-xl text-center">
               <span className="text-[11px] uppercase font-bold text-cream-dim block">Overall Accuracy</span>
               <span className="font-display font-bold text-lg text-cream tabular-nums">{profile.accuracyPct}%</span>
@@ -125,22 +99,17 @@ export default function PlayerProfileModal({ username, onClose }: PlayerProfileM
               <span className="text-[11px] uppercase font-bold text-cream-dim block">Top 3 Finishes</span>
               <span className="font-display font-bold text-lg text-gold tabular-nums">{profile.top3Finishes}</span>
             </div>
-
-            <div className="bg-ink-2/60 border border-line p-3 rounded-xl text-center">
-              <span className="text-[11px] uppercase font-bold text-cream-dim block">Perfect Slips</span>
-              <span className="font-display font-bold text-lg text-emerald-300 tabular-nums">{profile.perfectSlips}</span>
-            </div>
           </div>
 
           {/* Streaks & Rolling Performance */}
-          <div className="bg-ink-2/40 border border-line rounded-xl p-4 mb-6">
+          <div className="bg-ink-2/40 border border-line rounded-xl p-4">
             <div className="flex items-center justify-between mb-3">
               <h4 className="text-xs font-bold text-cream uppercase tracking-wide flex items-center gap-1.5">
                 <Flame size={15} className="text-amber-400" />
                 Streak & Rolling Accuracy Performance
               </h4>
-              <span className="text-[11px] font-bold text-amber-300 bg-amber-500/10 border border-amber-500/30 px-2.5 py-0.5 rounded-full">
-                Active Streak: {profile.currentStreak} 🔥 (Best: {profile.longestStreak})
+              <span className="text-[11px] font-bold text-amber-300">
+                Active Streak: {profile.currentStreak} (Best: {profile.longestStreak})
               </span>
             </div>
 
@@ -174,15 +143,6 @@ export default function PlayerProfileModal({ username, onClose }: PlayerProfileM
                   <div className="bg-blue-400 h-full rounded-full" style={{ width: `${profile.last50Accuracy}%` }} />
                 </div>
               </div>
-            </div>
-          </div>
-
-          {/* System Rules Brief */}
-          <div className="p-3.5 rounded-xl bg-ink/90 border border-line text-[11px] text-cream-dim leading-relaxed flex items-start gap-2">
-            <HelpCircle size={16} className="text-gold shrink-0 mt-0.5" />
-            <div>
-              <strong className="text-cream font-semibold">How Stars are Calculated:</strong> Stars represent sustained accuracy over time.
-              RP is awarded based on final rank (+50 max), pick accuracy (+10 max), near-miss mastery (up to +25 RP for 1 match off), odds difficulty scaling (up to 2.0x), and rolling consistency streaks. Missing a jackpot reduces streak progress by only 20% rather than resetting to zero.
             </div>
           </div>
 
