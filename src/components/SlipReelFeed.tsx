@@ -132,7 +132,7 @@ export default function SlipReelFeed({ posts, onClose }: SlipReelFeedProps) {
        */}
       <div
         className={[
-          'relative w-full h-full overflow-hidden bg-[#FFFFF0] dark:bg-[#202522] slip-feed-panel',
+          'relative w-full h-full overflow-hidden overflow-x-hidden bg-[#FFFFF0] dark:bg-[#202522] slip-feed-panel',
           'sm:w-[390px] sm:h-[90dvh] sm:max-h-[820px]',
           'sm:rounded-[32px]',
           'sm:border sm:border-slate-200 dark:sm:border-[#414A43]',
@@ -146,7 +146,7 @@ export default function SlipReelFeed({ posts, onClose }: SlipReelFeedProps) {
          */}
         <div
           ref={scrollRef}
-          className="slip-feed-scroll w-full h-full overflow-y-scroll"
+          className="slip-feed-scroll w-full h-full overflow-y-scroll overflow-x-hidden"
           style={{
             touchAction: 'pan-y pinch-zoom',
             overscrollBehaviorY: 'contain',
@@ -159,6 +159,7 @@ export default function SlipReelFeed({ posts, onClose }: SlipReelFeedProps) {
           {reelPosts.map((post, i) => (
             <div
               key={post.id}
+              className="w-full overflow-x-hidden"
               style={{
                 height: '100%',
                 scrollSnapAlign: 'start',

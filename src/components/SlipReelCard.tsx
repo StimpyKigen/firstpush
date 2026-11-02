@@ -99,11 +99,12 @@ export default function SlipReelCard({
 
   const scrollToChunk = (chunkIndex: number) => {
     if (!carouselRef.current) return;
-    const target = carouselRef.current.children[chunkIndex] as HTMLElement;
-    if (target) {
-      target.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'start' });
-      setActiveChunkIndex(chunkIndex);
-    }
+    const container = carouselRef.current;
+    container.scrollTo({
+      left: chunkIndex * container.clientWidth,
+      behavior: 'smooth',
+    });
+    setActiveChunkIndex(chunkIndex);
   };
 
   const handleScrollCarousel = () => {
@@ -187,7 +188,7 @@ export default function SlipReelCard({
     <div
       onDoubleClick={handleCardDoubleClick}
       onTouchEnd={handleCardTouchEnd}
-      className="relative w-full h-full overflow-hidden bg-[#FFFFF0] dark:bg-[#202522] select-none text-slate-900 dark:text-[#F4F5EF] slip-reel-card cursor-pointer"
+      className="relative w-full h-full overflow-hidden overflow-x-hidden bg-[#FFFFF0] dark:bg-[#202522] select-none text-slate-900 dark:text-[#F4F5EF] slip-reel-card cursor-pointer"
       aria-label={`Bet slip by ${post.postedBy}`}
     >
       {/* ── AMBIENT SUBTLE PATTERN ── */}
@@ -262,7 +263,7 @@ export default function SlipReelCard({
         </div>
 
         {/* ── MIDDLE FIXTURES AREA (Max 8 per slide, swipe carousel if > 8) ── */}
-        <div className="flex-1 min-h-0 relative flex flex-col justify-center my-auto py-1">
+        <div className="flex-1 min-h-0 relative flex flex-col justify-center my-auto py-1 w-full overflow-hidden">
           {/* Carousel Navigation Buttons for Desktop (Left / Right Chevrons) */}
           {fixtureChunks.length > 1 && (
             <>
@@ -270,7 +271,7 @@ export default function SlipReelCard({
                 onClick={() => scrollToChunk(activeChunkIndex - 1)}
                 disabled={activeChunkIndex === 0}
                 aria-label="Previous fixtures slide"
-                className="hidden sm:flex absolute -left-2 top-1/2 -translate-y-1/2 z-20 w-7 h-7 rounded-full bg-white/95 dark:bg-[#2A312D] border border-slate-200 dark:border-[#414A43] shadow-md text-slate-700 dark:text-[#F4F5EF] disabled:opacity-20 items-center justify-center transition-all cursor-pointer hover:bg-white dark:hover:bg-[#343C36] active:scale-90"
+                className="hidden sm:flex absolute left-0.5 top-1/2 -translate-y-1/2 z-20 w-7 h-7 rounded-full bg-white/95 dark:bg-[#2A312D] border border-slate-200 dark:border-[#414A43] shadow-md text-slate-700 dark:text-[#F4F5EF] disabled:opacity-20 items-center justify-center transition-all cursor-pointer active:scale-90"
               >
                 <ChevronLeft size={16} />
               </button>
@@ -278,7 +279,7 @@ export default function SlipReelCard({
                 onClick={() => scrollToChunk(activeChunkIndex + 1)}
                 disabled={activeChunkIndex === fixtureChunks.length - 1}
                 aria-label="Next fixtures slide"
-                className="hidden sm:flex absolute -right-2 top-1/2 -translate-y-1/2 z-20 w-7 h-7 rounded-full bg-white/95 dark:bg-[#2A312D] border border-slate-200 dark:border-[#414A43] shadow-md text-slate-700 dark:text-[#F4F5EF] disabled:opacity-20 items-center justify-center transition-all cursor-pointer hover:bg-white dark:hover:bg-[#343C36] active:scale-90"
+                className="hidden sm:flex absolute right-0.5 top-1/2 -translate-y-1/2 z-20 w-7 h-7 rounded-full bg-white/95 dark:bg-[#2A312D] border border-slate-200 dark:border-[#414A43] shadow-md text-slate-700 dark:text-[#F4F5EF] disabled:opacity-20 items-center justify-center transition-all cursor-pointer active:scale-90"
               >
                 <ChevronRight size={16} />
               </button>
@@ -301,9 +302,9 @@ export default function SlipReelCard({
               return (
                 <div
                   key={chunkIdx}
-                  className={`w-full min-w-full h-full flex flex-col justify-center ${
+                  className={`w-full min-w-full max-w-full h-full flex flex-col justify-center ${
                     isDense ? 'gap-1' : 'gap-1.5 sm:gap-2'
-                  } px-0.5 snap-center shrink-0`}
+                  } px-0.5 snap-center shrink-0 box-border`}
                 >
                   {chunk.map((leg, legIdx) => (
                     <motion.div
@@ -313,7 +314,7 @@ export default function SlipReelCard({
                       transition={{ delay: 0.03 + legIdx * 0.03, duration: 0.24, ease: 'easeOut' }}
                       className={`${
                         isDense ? 'px-2.5 py-1 sm:py-1.5' : 'p-2 sm:p-2.5'
-                      } slip-leg-card bg-white/80 dark:bg-[#2A312D] border border-[#E6E6D2] dark:border-[#414A43] rounded-xl flex items-center justify-between gap-2.5 shadow-2xs hover:bg-white dark:hover:bg-[#343C36] transition-colors`}
+                      } slip-leg-card bg-white/80 dark:bg-[#2A312D] border border-[#E6E6D2] dark:border-[#414A43] rounded-xl flex items-center justify-between gap-2.5 shadow-2xs transition-colors`}
                     >
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center justify-between gap-2">
