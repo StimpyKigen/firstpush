@@ -120,20 +120,58 @@ export default function SlipReelCard({
     }
   };
 
-  function handleLike() {
-    toggleLike(post.id);
-    if (!post.likedByMe) {
+  async function handleLike() {
+    if (!currentUser) {
+      showToast({
+        type: 'warning',
+        title: 'Sign in required',
+        message: 'Log in to like slips and save them to your account.',
+      });
+      return;
+    }
+    const wasLiked = post.likedByMe;
+    if (!wasLiked) {
       setLikePop(true);
       setTimeout(() => setLikePop(false), 500);
     }
+    const res = await toggleLike(post.id, {
+      phone: currentUser.phone,
+      username: currentUser.username,
+    });
+    if (!res.success && res.error) {
+      showToast({
+        type: 'error',
+        title: 'Like update failed',
+        message: res.error,
+      });
+    }
   }
 
-  function handleSave() {
-    toggleSave(post.id);
+  async function handleSave() {
+    if (!currentUser) {
+      showToast({
+        type: 'warning',
+        title: 'Sign in required',
+        message: 'Log in to bookmark slips to your profile.',
+      });
+      return;
+    }
+    const willSave = !post.savedByMe;
+    const res = await toggleSave(post.id, currentUser.phone);
+    if (!res.success && res.error) {
+      showToast({
+        type: 'error',
+        title: 'Bookmark update failed',
+        message: res.error,
+      });
+      return;
+    }
     showToast({
-      type: post.savedByMe ? 'info' : 'success',
-      title: post.savedByMe ? 'Slip Removed' : 'Slip Saved!',
-      message: post.savedByMe ? 'Removed from saved slips.' : 'Saved to your profile bookmarks.',
+      type: willSave ? 'success' : 'info',
+      title: willSave ? 'Slip Saved!' : 'Slip Removed',
+      message: willSave
+        ? 'Saved to your profile bookmarks.'
+        : 'Removed from saved slips.',
     });
   }
 

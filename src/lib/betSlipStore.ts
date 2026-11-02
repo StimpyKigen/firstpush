@@ -1,5 +1,12 @@
 import { create } from 'zustand';
 import type { ParsedSlip } from './betSlipParser';
+import {
+  persistPostLike,
+  persistPostSave,
+  fetchUserEngagementMap,
+  subscribeToCommunityPosts,
+  persistNewPostToFirestore,
+} from './engagementService';
 
 export interface BuiltSlipLeg {
   id: string;
@@ -30,6 +37,7 @@ export interface BuiltSlipData {
 export interface BetSlipPost {
   id: string;
   postedBy: string;
+  postedByPhone?: string;
   postedByAvatarSeed: number;
   url: string;
   bookmaker?: string;
@@ -42,6 +50,7 @@ export interface BetSlipPost {
   likedByMe?: boolean;
   savedByMe?: boolean;
   createdAt: string;
+  updatedAt?: string;
   parsed?: ParsedSlip | null;
   parseError?: string;
   builtSlip?: BuiltSlipData | null;
@@ -50,6 +59,8 @@ export interface BetSlipPost {
 
 interface BetSlipStoreState {
   posts: BetSlipPost[];
+  userLikedIds: Set<string>;
+  userSavedIds: Set<string>;
   builderLegs: BuiltSlipLeg[];
   toggleBuilderLeg: (leg: BuiltSlipLeg) => void;
   removeBuilderLeg: (legId: string) => void;
@@ -57,6 +68,7 @@ interface BetSlipStoreState {
   setBuilderLegs: (legs: BuiltSlipLeg[]) => void;
   addPost: (data: {
     postedBy: string;
+    postedByPhone?: string;
     postedByAvatarSeed: number;
     url: string;
     bookmaker?: string;
@@ -70,10 +82,18 @@ interface BetSlipStoreState {
     details: { bookieCode?: string; bookieLink?: string; bookmaker?: string }
   ) => void;
   setParsed: (postId: string, parsed: ParsedSlip | null, parseError?: string) => void;
-  toggleLike: (postId: string) => void;
-  toggleSave: (postId: string) => void;
+  toggleLike: (
+    postId: string,
+    user?: { phone: string; username: string }
+  ) => Promise<{ success: boolean; liked: boolean; error?: string }>;
+  toggleSave: (
+    postId: string,
+    userPhone?: string
+  ) => Promise<{ success: boolean; saved: boolean; error?: string }>;
   incrementShare: (postId: string) => void;
   addComment: (postId: string, user: string, text: string) => void;
+  initFeedSubscription: () => () => void;
+  syncUserEngagements: (userPhone: string) => Promise<void>;
 }
 
 const INITIAL_POSTS: BetSlipPost[] = [
@@ -182,8 +202,10 @@ const INITIAL_POSTS: BetSlipPost[] = [
   },
 ];
 
-export const useBetSlipStore = create<BetSlipStoreState>((set) => ({
+export const useBetSlipStore = create<BetSlipStoreState>((set, get) => ({
   posts: INITIAL_POSTS,
+  userLikedIds: new Set<string>(),
+  userSavedIds: new Set<string>(),
   builderLegs: [],
 
   toggleBuilderLeg: (leg) => {
@@ -223,11 +245,12 @@ export const useBetSlipStore = create<BetSlipStoreState>((set) => ({
     set({ builderLegs: legs });
   },
 
-  addPost: ({ postedBy, postedByAvatarSeed, url, bookmaker, isCode, note, tags, builtSlip }) => {
+  addPost: ({ postedBy, postedByPhone, postedByAvatarSeed, url, bookmaker, isCode, note, tags, builtSlip }) => {
     const id = `post-${Date.now().toString(36)}`;
     const newPost: BetSlipPost = {
       id,
       postedBy,
+      postedByPhone,
       postedByAvatarSeed,
       url,
       bookmaker,
@@ -242,6 +265,12 @@ export const useBetSlipStore = create<BetSlipStoreState>((set) => ({
       parsed: undefined,
     };
     set((state) => ({ posts: [newPost, ...state.posts] }));
+
+    // Non-blocking fire-and-forget sync to Cloud Firestore
+    persistNewPostToFirestore(newPost).catch((err) => {
+      console.warn('[BetSlipStore] Post cloud sync notice:', err);
+    });
+
     return id;
   },
 
@@ -280,33 +309,118 @@ export const useBetSlipStore = create<BetSlipStoreState>((set) => ({
     }));
   },
 
-  toggleLike: (postId) => {
-    set((state) => ({
-      posts: state.posts.map((p) => {
-        if (p.id !== postId) return p;
-        const likedByMe = !p.likedByMe;
-        return {
-          ...p,
-          likedByMe,
-          likes: likedByMe ? p.likes + 1 : p.likes - 1,
-        };
-      }),
-    }));
+  toggleLike: async (postId, user) => {
+    let nextLiked = false;
+    let originalLiked = false;
+    let originalLikes = 0;
+
+    // 1. Optimistic Local State Update
+    set((state) => {
+      const target = state.posts.find((p) => p.id === postId);
+      if (!target) return state;
+
+      originalLiked = Boolean(target.likedByMe);
+      originalLikes = target.likes;
+      nextLiked = !originalLiked;
+      const nextLikes = nextLiked ? originalLikes + 1 : Math.max(0, originalLikes - 1);
+
+      const nextLikedIds = new Set(state.userLikedIds);
+      if (nextLiked) {
+        nextLikedIds.add(postId);
+      } else {
+        nextLikedIds.delete(postId);
+      }
+
+      return {
+        userLikedIds: nextLikedIds,
+        posts: state.posts.map((p) =>
+          p.id === postId ? { ...p, likedByMe: nextLiked, likes: nextLikes } : p
+        ),
+      };
+    });
+
+    // 2. Cloud Firestore Atomic Persistence
+    if (user && user.phone) {
+      const res = await persistPostLike(postId, user, nextLiked);
+      if (!res.success) {
+        // Rollback optimistic update on failure
+        set((state) => {
+          const rollbackLikedIds = new Set(state.userLikedIds);
+          if (originalLiked) {
+            rollbackLikedIds.add(postId);
+          } else {
+            rollbackLikedIds.delete(postId);
+          }
+
+          return {
+            userLikedIds: rollbackLikedIds,
+            posts: state.posts.map((p) =>
+              p.id === postId ? { ...p, likedByMe: originalLiked, likes: originalLikes } : p
+            ),
+          };
+        });
+        return { success: false, liked: originalLiked, error: res.error };
+      }
+    }
+
+    return { success: true, liked: nextLiked };
   },
 
-  toggleSave: (postId) => {
-    set((state) => ({
-      posts: state.posts.map((p) => {
-        if (p.id !== postId) return p;
-        const savedByMe = !p.savedByMe;
-        const currentSaves = p.saves ?? 0;
-        return {
-          ...p,
-          savedByMe,
-          saves: savedByMe ? currentSaves + 1 : Math.max(0, currentSaves - 1),
-        };
-      }),
-    }));
+  toggleSave: async (postId, userPhone) => {
+    let nextSaved = false;
+    let originalSaved = false;
+    let originalSaves = 0;
+
+    // 1. Optimistic Local State Update
+    set((state) => {
+      const target = state.posts.find((p) => p.id === postId);
+      if (!target) return state;
+
+      originalSaved = Boolean(target.savedByMe);
+      originalSaves = target.saves ?? 0;
+      nextSaved = !originalSaved;
+      const nextSaves = nextSaved ? originalSaves + 1 : Math.max(0, originalSaves - 1);
+
+      const nextSavedIds = new Set(state.userSavedIds);
+      if (nextSaved) {
+        nextSavedIds.add(postId);
+      } else {
+        nextSavedIds.delete(postId);
+      }
+
+      return {
+        userSavedIds: nextSavedIds,
+        posts: state.posts.map((p) =>
+          p.id === postId ? { ...p, savedByMe: nextSaved, saves: nextSaves } : p
+        ),
+      };
+    });
+
+    // 2. Cloud Firestore Atomic Persistence
+    if (userPhone) {
+      const res = await persistPostSave(postId, userPhone, nextSaved);
+      if (!res.success) {
+        // Rollback optimistic update on failure
+        set((state) => {
+          const rollbackSavedIds = new Set(state.userSavedIds);
+          if (originalSaved) {
+            rollbackSavedIds.add(postId);
+          } else {
+            rollbackSavedIds.delete(postId);
+          }
+
+          return {
+            userSavedIds: rollbackSavedIds,
+            posts: state.posts.map((p) =>
+              p.id === postId ? { ...p, savedByMe: originalSaved, saves: originalSaves } : p
+            ),
+          };
+        });
+        return { success: false, saved: originalSaved, error: res.error };
+      }
+    }
+
+    return { success: true, saved: nextSaved };
   },
 
   incrementShare: (postId) => {
@@ -338,5 +452,37 @@ export const useBetSlipStore = create<BetSlipStoreState>((set) => ({
       }),
     }));
   },
-}));
 
+  initFeedSubscription: () => {
+    return subscribeToCommunityPosts(
+      (cloudPosts) => {
+        const { userLikedIds, userSavedIds } = get();
+        const reconciled = cloudPosts.map((p) => ({
+          ...p,
+          likedByMe: userLikedIds.has(p.id),
+          savedByMe: userSavedIds.has(p.id),
+        }));
+        set({ posts: reconciled });
+      },
+      INITIAL_POSTS
+    );
+  },
+
+  syncUserEngagements: async (userPhone) => {
+    if (!userPhone) return;
+    try {
+      const { likedPostIds, savedPostIds } = await fetchUserEngagementMap(userPhone);
+      set((state) => ({
+        userLikedIds: likedPostIds,
+        userSavedIds: savedPostIds,
+        posts: state.posts.map((p) => ({
+          ...p,
+          likedByMe: likedPostIds.has(p.id),
+          savedByMe: savedPostIds.has(p.id),
+        })),
+      }));
+    } catch (err) {
+      console.warn('[BetSlipStore] Engagement hydration notice:', err);
+    }
+  },
+}));

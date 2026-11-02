@@ -3,7 +3,7 @@ import { useNavigate, Navigate, Link } from 'react-router-dom';
 import {
   Wallet as WalletIcon, ArrowDownLeft, ArrowUpRight, ShieldAlert, LifeBuoy,
   UserPlus, Share2, Trophy as TrophyIcon, Coins, LogOut,
-  ChevronRight, Phone, Clock, ArrowLeft, Check, Sparkles, UserCheck,
+  ChevronRight, Phone, Clock, ArrowLeft, Check, Sparkles, UserCheck, Bookmark,
   Instagram, Facebook
 } from 'lucide-react';
 import SeoHead from '../components/SeoHead';
@@ -536,6 +536,23 @@ export default function Profile() {
                   <ChevronRight size={17} className="text-slate-400 group-hover:text-slate-600 transition-colors" />
                 </div>
               </button>
+
+              <Link
+                to="/slips?view=saved"
+                className="w-full flex items-center justify-between p-4 lg:hover:bg-slate-50/70 lg:active:bg-slate-100/70 transition-colors text-left group cursor-pointer"
+              >
+                <div className="min-w-0">
+                  <p className="text-sm font-bold text-slate-900 truncate">Saved Bet Slips</p>
+                  <p className="text-xs text-slate-500 font-normal truncate">
+                    Bookmarked community slips &amp; accumulator codes
+                  </p>
+                </div>
+
+                <div className="flex items-center gap-2 shrink-0">
+                  <Bookmark size={15} className="text-amber-500 fill-amber-500" />
+                  <ChevronRight size={17} className="text-slate-400 group-hover:text-slate-600 transition-colors" />
+                </div>
+              </Link>
             </div>
 
             {/* ── CARD GROUP 3: Security & Preferences ── */}

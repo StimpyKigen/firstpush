@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import {
-  ExternalLink, Heart, Copy, Check, ShieldCheck, Globe, Flag,
+  ExternalLink, Heart, Bookmark, Copy, Check, ShieldCheck, Globe, Flag,
   Plus, Edit3, X, Dices, Layers, CheckCircle2, XCircle, Clock
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
@@ -34,7 +34,37 @@ function timeAgo(iso: string) {
 export default function BetSlipCard({ post, index, onOpenProfile }: BetSlipCardProps) {
   const currentUser = useCurrentUser();
   const toggleLike = useBetSlipStore((s) => s.toggleLike);
+  const toggleSave = useBetSlipStore((s) => s.toggleSave);
   const updateBookieDetails = useBetSlipStore((s) => s.updateBookieDetails);
+
+  async function handleLike() {
+    if (!currentUser) {
+      showToast({ type: 'warning', title: 'Sign in required', message: 'Log in to like slips.' });
+      return;
+    }
+    const res = await toggleLike(post.id, { phone: currentUser.phone, username: currentUser.username });
+    if (!res.success && res.error) {
+      showToast({ type: 'error', title: 'Like failed', message: res.error });
+    }
+  }
+
+  async function handleSave() {
+    if (!currentUser) {
+      showToast({ type: 'warning', title: 'Sign in required', message: 'Log in to save slips to bookmarks.' });
+      return;
+    }
+    const willSave = !post.savedByMe;
+    const res = await toggleSave(post.id, currentUser.phone);
+    if (!res.success && res.error) {
+      showToast({ type: 'error', title: 'Save failed', message: res.error });
+      return;
+    }
+    showToast({
+      type: willSave ? 'success' : 'info',
+      title: willSave ? 'Slip Saved!' : 'Slip Removed',
+      message: willSave ? 'Saved to your profile bookmarks.' : 'Removed from saved slips.',
+    });
+  }
 
   const [copied, setCopied] = useState(false);
   const [copiedLegs, setCopiedLegs] = useState(false);
@@ -315,7 +345,7 @@ export default function BetSlipCard({ post, index, onOpenProfile }: BetSlipCardP
         <div className="flex items-center justify-between text-xs text-cream-dim pt-1 border-t border-line/40">
           <div className="flex items-center gap-2">
             <button
-              onClick={() => toggleLike(post.id)}
+              onClick={handleLike}
               className={`flex items-center gap-2 font-bold transition-all px-3 py-1.5 rounded-xl border ${
                 post.likedByMe
                   ? 'bg-rose-500/15 border-rose-500/30 text-rose-400'
@@ -324,6 +354,19 @@ export default function BetSlipCard({ post, index, onOpenProfile }: BetSlipCardP
             >
               <Heart size={15} className={post.likedByMe ? 'fill-rose-500 text-rose-500' : ''} />
               <span>{post.likes} {post.likes === 1 ? 'Like' : 'Likes'}</span>
+            </button>
+
+            <button
+              onClick={handleSave}
+              className={`flex items-center gap-1.5 font-bold transition-all px-2.5 py-1.5 rounded-xl border ${
+                post.savedByMe
+                  ? 'bg-amber-500/15 border-amber-500/30 text-amber-400'
+                  : 'bg-panel-2 border-line/60 hover:border-amber-500/30 text-cream-dim hover:text-cream'
+              }`}
+              title={post.savedByMe ? 'Remove from saved' : 'Save slip'}
+            >
+              <Bookmark size={14} className={post.savedByMe ? 'fill-amber-400 text-amber-400' : ''} />
+              <span>{post.saves ?? 0}</span>
             </button>
 
             <button

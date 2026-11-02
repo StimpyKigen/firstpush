@@ -2,6 +2,46 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
+    // ===============================================================
+    // Assumed Data Models
+    // ===============================================================
+    //
+    // Collection: posts/{postId}
+    // Document ID: Alphanumeric post ID (e.g., 'post-1', 'post-builder-1')
+    // Fields:
+    //   - postedByPhone: string (required, max 64) - Author phone or Auth UID [Immutable on update]
+    //   - postedBy: string (optional, max 100) - Author display name / username
+    //   - postedByAvatarSeed: number (optional) - Avatar seed index
+    //   - note: string (optional, max 2000) - Bet slip commentary / notes
+    //   - url: string (optional, max 1000) - Bet slip link or booking code
+    //   - bookmaker: string (optional, max 100) - Bookmaker name
+    //   - isCode: bool (optional) - True if booking code, false if link
+    //   - tags: list of strings (optional, max 20 items, max 50 chars each)
+    //   - likes: int (optional, >= 0) - Atomic like counter
+    //   - saves: int (optional, >= 0) - Atomic save/bookmark counter
+    //   - shares: int (optional, >= 0) - Atomic share counter
+    //   - builtSlip: map (optional) - Built bet slip accumulator payload
+    //   - parsed: map (optional) - Parsed slip data
+    //   - parseError: string (optional, max 500) - Error string if parse failed
+    //   - createdAt: string or timestamp (optional) [Immutable on update]
+    //   - updatedAt: string or timestamp (optional)
+    //
+    // Subcollection: posts/{postId}/likes/{userId}
+    // Document ID: Authenticated user's Phone number or UID
+    // Fields:
+    //   - userId: string (required, max 64) - Must match auth user and document ID
+    //   - postId: string (optional, max 128) - Parent post ID
+    //   - createdAt: string or timestamp (optional) - Timestamp when like was recorded
+    //
+    // Subcollection: users/{userId}/savedPosts/{postId}
+    // Document ID: Post ID of the saved bet slip
+    // Fields:
+    //   - postId: string (optional, max 128) - Reference to saved post
+    //   - savedAt: string or timestamp (optional) - Bookmark timestamp
+    //   - createdAt: string or timestamp (optional)
+    //
+    // ===============================================================
+
     // Helper functions
     function isSignedIn() {
       return request.auth != null;
@@ -28,6 +68,110 @@ service cloud.firestore {
 
     function isValidId(id) {
       return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    // Post Author verification
+    function isPostAuthor(phoneOrUid) {
+      return isSignedIn() && (
+        phoneOrUid == request.auth.token.phone_number ||
+        phoneOrUid == request.auth.uid ||
+        isOwner(phoneOrUid)
+      );
+    }
+
+    // Post creation domain validator
+    function isValidPostCreate(data) {
+      return ('postedByPhone' in data) &&
+        data.postedByPhone is string &&
+        data.postedByPhone.size() > 0 &&
+        data.postedByPhone.size() <= 64 &&
+        (!('postedBy' in data) || (data.postedBy is string && data.postedBy.size() <= 100)) &&
+        (!('postedByAvatarSeed' in data) || data.postedByAvatarSeed is number) &&
+        (!('note' in data) || (data.note is string && data.note.size() <= 2000)) &&
+        (!('url' in data) || (data.url is string && data.url.size() <= 1000)) &&
+        (!('bookmaker' in data) || (data.bookmaker is string && data.bookmaker.size() <= 100)) &&
+        (!('isCode' in data) || data.isCode is bool) &&
+        (!('tags' in data) || (data.tags is list && data.tags.size() <= 20)) &&
+        (!('likes' in data) || (data.likes is int && data.likes >= 0)) &&
+        (!('saves' in data) || (data.saves is int && data.saves >= 0)) &&
+        (!('shares' in data) || (data.shares is int && data.shares >= 0)) &&
+        (!('builtSlip' in data) || data.builtSlip is map) &&
+        (!('parsed' in data) || data.parsed is map) &&
+        (!('parseError' in data) || (data.parseError is string && data.parseError.size() <= 500));
+    }
+
+    // Post author update domain validator: prevents author reassignment and verifies schema
+    function isValidPostAuthorUpdate() {
+      return request.resource.data.postedByPhone == resource.data.postedByPhone &&
+        (!('createdAt' in resource.data) || !('createdAt' in request.resource.data) || request.resource.data.createdAt == resource.data.createdAt) &&
+        isValidPostCreate(request.resource.data);
+    }
+
+    // Post diff affected keys helper
+    function postAffectedKeys() {
+      return request.resource.data.diff(resource.data).affectedKeys();
+    }
+
+    // Post atomic counter update domain validator for community interactions (like / save / share):
+    // Allows ONLY 'likes', 'saves', 'shares', and 'updatedAt' to change.
+    // Odds, legs, author, commentary, and slip metadata are locked and immutable.
+    function isValidPostCounterUpdate() {
+      return postAffectedKeys().hasOnly(['likes', 'saves', 'shares', 'updatedAt']) &&
+        // Atomic 'likes' counter step (+1 or -1, >= 0)
+        (!postAffectedKeys().hasAny(['likes']) || (
+          request.resource.data.likes is int &&
+          request.resource.data.likes >= 0 &&
+          (
+            (!('likes' in resource.data) && request.resource.data.likes <= 1) ||
+            ('likes' in resource.data && (
+              request.resource.data.likes == resource.data.likes + 1 ||
+              request.resource.data.likes == resource.data.likes - 1
+            ))
+          )
+        )) &&
+        // Atomic 'saves' counter step (+1 or -1, >= 0)
+        (!postAffectedKeys().hasAny(['saves']) || (
+          request.resource.data.saves is int &&
+          request.resource.data.saves >= 0 &&
+          (
+            (!('saves' in resource.data) && request.resource.data.saves <= 1) ||
+            ('saves' in resource.data && (
+              request.resource.data.saves == resource.data.saves + 1 ||
+              request.resource.data.saves == resource.data.saves - 1
+            ))
+          )
+        )) &&
+        // Atomic 'shares' counter step (+1, >= 0)
+        (!postAffectedKeys().hasAny(['shares']) || (
+          request.resource.data.shares is int &&
+          request.resource.data.shares >= 0 &&
+          (
+            (!('shares' in resource.data) && request.resource.data.shares == 1) ||
+            ('shares' in resource.data && request.resource.data.shares == resource.data.shares + 1)
+          )
+        )) &&
+        // 'updatedAt' format validation
+        (!postAffectedKeys().hasAny(['updatedAt']) || (
+          request.resource.data.updatedAt is string ||
+          request.resource.data.updatedAt is timestamp
+        ));
+    }
+
+    // Like document schema validator
+    function isValidLikeDoc(data, userId) {
+      return ('userId' in data) &&
+        data.userId == userId &&
+        data.userId is string &&
+        data.userId.size() <= 64 &&
+        (!('postId' in data) || (data.postId is string && data.postId.size() <= 128)) &&
+        (!('createdAt' in data) || data.createdAt is string || data.createdAt is timestamp);
+    }
+
+    // Saved post document schema validator
+    function isValidSavedPostDoc(data) {
+      return (!('postId' in data) || (data.postId is string && data.postId.size() <= 128)) &&
+        (!('savedAt' in data) || data.savedAt is string || data.savedAt is timestamp) &&
+        (!('createdAt' in data) || data.createdAt is string || data.createdAt is timestamp);
     }
 
     // Default deny catch-all
@@ -83,6 +227,13 @@ service cloud.firestore {
       allow read: if isSignedIn();
       allow create, update: if isOwner(userId) || isAdmin();
       allow delete: if isAdmin();
+
+      // Saved posts private bookmarks subcollection
+      match /savedPosts/{postId} {
+        allow read: if isSignedIn() && (isOwner(userId) || isAdmin());
+        allow create, update: if isSignedIn() && (isOwner(userId) || isAdmin()) && isValidSavedPostDoc(request.resource.data);
+        allow delete: if isSignedIn() && (isOwner(userId) || isAdmin());
+      }
     }
 
     // PLAYER RATINGS: public read, write restricted to profile owner or admin
@@ -111,6 +262,47 @@ service cloud.firestore {
         resource.data.userId == request.auth.uid ||
         resource.data.userId == request.auth.token.phone_number
       )) || isAdmin();
+    }
+
+    // 5. COMMUNITY POSTS & BET SLIP REELS (public feed, likes, counters, bookmarks)
+    match /posts/{postId} {
+      // Public read so visitors and punters can view shared community slips
+      allow read: if true;
+
+      // Author or admin can create post with validated ownership and schema
+      allow create: if isSignedIn() && (
+        request.resource.data.postedByPhone == request.auth.token.phone_number ||
+        request.resource.data.postedByPhone == request.auth.uid ||
+        isOwner(request.resource.data.postedByPhone) ||
+        isAdmin()
+      ) && isValidPostCreate(request.resource.data);
+
+      // Updates:
+      // 1) Author or admin can update post content (author cannot reassign ownership)
+      // 2) Any authenticated user can atomically like, unlike, save, or share without modifying post content
+      allow update: if (
+        ((isAdmin() || (isSignedIn() && ('postedByPhone' in resource.data) && isPostAuthor(resource.data.postedByPhone))) && isValidPostAuthorUpdate()) ||
+        (isSignedIn() && isValidPostCounterUpdate())
+      );
+
+      // Only author or admin can delete post
+      allow delete: if isAdmin() || (
+        isSignedIn() &&
+        ('postedByPhone' in resource.data) &&
+        (
+          resource.data.postedByPhone == request.auth.token.phone_number ||
+          resource.data.postedByPhone == request.auth.uid ||
+          isOwner(resource.data.postedByPhone)
+        )
+      );
+
+      // Likes subcollection: deterministic document keyed by user ID (phone or UID)
+      match /likes/{userId} {
+        allow read: if true;
+        allow create: if isSignedIn() && isOwner(userId) && request.resource.data.userId == userId && isValidLikeDoc(request.resource.data, userId);
+        allow delete: if isSignedIn() && (isOwner(userId) || isAdmin());
+        allow update: if false;
+      }
     }
   }
 }

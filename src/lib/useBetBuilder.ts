@@ -391,6 +391,7 @@ export function useBetBuilder(onPublished?: () => void) {
 
     addPost({
       postedBy: currentUser.username,
+      postedByPhone: currentUser.phone,
       postedByAvatarSeed: currentUser.phone.length,
       url: primaryUrl,
       bookmaker: selectedBookmaker,

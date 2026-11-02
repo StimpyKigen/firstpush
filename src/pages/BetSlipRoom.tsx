@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import {
   X, Search, UserPlus, UserCheck, Dices
@@ -46,6 +46,30 @@ export default function BetSlipRoom() {
   const [searchParams, setSearchParams] = useSearchParams();
   const currentUser = useCurrentUser();
   const posts = useBetSlipStore((s) => s.posts);
+  const initFeedSubscription = useBetSlipStore((s) => s.initFeedSubscription);
+  const syncUserEngagements = useBetSlipStore((s) => s.syncUserEngagements);
+
+  // Subscribe to real-time community slips feed with auto-cleanup on unmount
+  useEffect(() => {
+    const unsubscribe = initFeedSubscription();
+    return () => {
+      unsubscribe();
+    };
+  }, [initFeedSubscription]);
+
+  // Sync current user likes & bookmarks from Firestore on login or session load
+  useEffect(() => {
+    if (currentUser?.phone) {
+      syncUserEngagements(currentUser.phone);
+    }
+  }, [currentUser?.phone, syncUserEngagements]);
+
+  // Deep-link to saved slips tab when view=saved query parameter is present
+  useEffect(() => {
+    if (searchParams.get('view') === 'saved') {
+      setActiveTab('slips');
+    }
+  }, [searchParams]);
 
   const isFollowing = useFollowStore((s) => s.isFollowing);
   const followUser = useFollowStore((s) => s.followUser);
@@ -173,6 +197,7 @@ export default function BetSlipRoom() {
       {activeTab === 'slips' && (
         <SlipReelFeed
           posts={posts}
+          initialFilter={searchParams.get('view') === 'saved' ? 'saved' : 'all'}
           onClose={() => setActiveTab('builder')}
         />
       )}

@@ -1,16 +1,19 @@
 import { useRef, useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { ChevronUp, ChevronDown, Layers, X } from 'lucide-react';
+import { ChevronUp, ChevronDown, Layers, X, Bookmark } from 'lucide-react';
 import SlipReelCard from './SlipReelCard';
 import type { BetSlipPost } from '../lib/betSlipStore';
 
 interface SlipReelFeedProps {
   posts: BetSlipPost[];
   onClose: () => void;
+  initialFilter?: 'all' | 'saved';
 }
 
-export default function SlipReelFeed({ posts, onClose }: SlipReelFeedProps) {
-  const reelPosts = posts.filter((p) => p.builtSlip);
+export default function SlipReelFeed({ posts, onClose, initialFilter = 'all' }: SlipReelFeedProps) {
+  const [filter, setFilter] = useState<'all' | 'saved'>(initialFilter);
+  const reelPosts = posts.filter((p) => p.builtSlip && (filter === 'all' || p.savedByMe));
+  const savedCount = posts.filter((p) => p.builtSlip && p.savedByMe).length;
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const [activeIndex, setActiveIndex] = useState(0);
@@ -94,21 +97,34 @@ export default function SlipReelFeed({ posts, onClose }: SlipReelFeedProps) {
         >
           <X size={20} />
         </button>
-        <div className="w-16 h-16 rounded-2xl bg-emerald-50 dark:bg-[#266E0C]/25 text-[#006C54] dark:text-[#006C54] flex items-center justify-center shadow-xs">
-          <Layers size={32} />
+        <div className="w-16 h-16 rounded-2xl bg-emerald-50 dark:bg-[#266E0C]/25 text-[#006C54] flex items-center justify-center shadow-xs">
+          {filter === 'saved' ? <Bookmark size={30} className="text-amber-500 fill-amber-500" /> : <Layers size={32} />}
         </div>
-        <div className="text-center">
-          <p className="font-display font-bold text-xl text-slate-900 dark:text-[#F4F5EF] mb-1">No SlipFeed Reels Yet</p>
-          <p className="text-xs text-slate-600 dark:text-[#B5BDB6] leading-relaxed max-w-xs">
-            No Bet Builder slips have been published yet. Build and publish a multi-leg slip to see it featured here!
+        <div className="text-center max-w-xs">
+          <p className="font-display font-bold text-xl text-slate-900 dark:text-[#F4F5EF] mb-1">
+            {filter === 'saved' ? 'No Saved Slips Yet' : 'No SlipFeed Reels Yet'}
+          </p>
+          <p className="text-xs text-slate-600 dark:text-[#B5BDB6] leading-relaxed">
+            {filter === 'saved'
+              ? 'Tap the bookmark icon on any community bet slip in the feed to save it here for fast reference.'
+              : 'No Bet Builder slips have been published yet. Build and publish a multi-leg slip to see it featured here!'}
           </p>
         </div>
-        <button
-          onClick={onClose}
-          className="mt-2 px-6 py-2.5 bg-[#006C54] dark:bg-[#006C54] text-white dark:text-[#0a1317] font-bold rounded-full text-xs uppercase tracking-wide shadow-xs hover:bg-[#005441] transition-all cursor-pointer"
-        >
-          Back to Builder
-        </button>
+        {filter === 'saved' ? (
+          <button
+            onClick={() => setFilter('all')}
+            className="mt-2 px-6 py-2.5 bg-[#006C54] text-white font-bold rounded-full text-xs uppercase tracking-wide shadow-xs hover:bg-[#005441] transition-all cursor-pointer"
+          >
+            Browse Community Slips
+          </button>
+        ) : (
+          <button
+            onClick={onClose}
+            className="mt-2 px-6 py-2.5 bg-[#006C54] text-white font-bold rounded-full text-xs uppercase tracking-wide shadow-xs hover:bg-[#005441] transition-all cursor-pointer"
+          >
+            Back to Builder
+          </button>
+        )}
       </div>
     );
   }
@@ -260,6 +276,28 @@ export default function SlipReelFeed({ posts, onClose }: SlipReelFeedProps) {
           )}
 
           <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1 bg-slate-200/60 dark:bg-[#2A312D] p-0.5 rounded-full border border-slate-300/60 dark:border-[#414A43] text-[11px] font-bold">
+              <button
+                onClick={() => { setFilter('all'); setActiveIndex(0); }}
+                className={`px-2.5 py-0.5 rounded-full transition-all cursor-pointer ${
+                  filter === 'all'
+                    ? 'bg-white dark:bg-[#006C54] text-slate-900 dark:text-white shadow-2xs'
+                    : 'text-slate-600 dark:text-[#B5BDB6]'
+                }`}
+              >
+                All
+              </button>
+              <button
+                onClick={() => { setFilter('saved'); setActiveIndex(0); }}
+                className={`px-2.5 py-0.5 rounded-full transition-all cursor-pointer flex items-center gap-1 ${
+                  filter === 'saved'
+                    ? 'bg-white dark:bg-[#006C54] text-slate-900 dark:text-white shadow-2xs'
+                    : 'text-slate-600 dark:text-[#B5BDB6]'
+                }`}
+              >
+                Saved{savedCount > 0 ? ` (${savedCount})` : ''}
+              </button>
+            </div>
             <button
               onClick={onClose}
               aria-label="Close SlipFeed"
