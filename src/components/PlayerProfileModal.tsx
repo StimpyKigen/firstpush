@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { X, Award, Flame, ShieldCheck } from 'lucide-react';
+import { X, Award, Flame } from 'lucide-react';
 import { getPlayerProfile } from '../lib/punterRatings';
 import { calculateStarsFromRp } from '../lib/ratingEngine';
 import Avatar from './Avatar';
@@ -42,10 +42,6 @@ export default function PlayerProfileModal({ username, onClose }: PlayerProfileM
           >
             <X size={18} />
           </button>
-          <div className="flex items-center gap-2 text-xs tabular-nums font-bold text-gold bg-ink/80 border border-gold/30 px-3 py-1 rounded-full">
-            <ShieldCheck size={14} className="text-emerald-400" />
-            Verified Punter Credentials
-          </div>
         </div>
 
         <div className="px-6 pb-6 pt-0 relative">
@@ -108,9 +104,6 @@ export default function PlayerProfileModal({ username, onClose }: PlayerProfileM
                 <Flame size={15} className="text-amber-400" />
                 Streak & Rolling Accuracy Performance
               </h4>
-              <span className="text-[11px] font-bold text-amber-300">
-                Active Streak: {profile.currentStreak} (Best: {profile.longestStreak})
-              </span>
             </div>
 
             <div className="space-y-3 text-xs">
