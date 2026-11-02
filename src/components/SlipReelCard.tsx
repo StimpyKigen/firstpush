@@ -51,6 +51,42 @@ export default function SlipReelCard({
   const [likePop, setLikePop] = useState(false);
   const [activeChunkIndex, setActiveChunkIndex] = useState(0);
   const carouselRef = useRef<HTMLDivElement>(null);
+  const lastTapRef = useRef<number>(0);
+  const lastDblClickRef = useRef<number>(0);
+
+  const handleCardDoubleClick = (e: React.MouseEvent) => {
+    const target = e.target as HTMLElement;
+    if (
+      target.closest('.slip-follow-btn') ||
+      target.closest('.booking-code-btn') ||
+      target.closest('a[href]')
+    ) {
+      return;
+    }
+    const now = Date.now();
+    if (now - lastDblClickRef.current < 400) return;
+    lastDblClickRef.current = now;
+    handleLike();
+  };
+
+  const handleCardTouchEnd = (e: React.TouchEvent) => {
+    const now = Date.now();
+    const timeSinceLast = now - lastTapRef.current;
+    if (timeSinceLast < 320 && timeSinceLast > 40) {
+      const target = e.target as HTMLElement;
+      if (
+        !target.closest('.slip-follow-btn') &&
+        !target.closest('.booking-code-btn') &&
+        !target.closest('a[href]')
+      ) {
+        lastDblClickRef.current = now;
+        handleLike();
+      }
+      lastTapRef.current = 0;
+    } else {
+      lastTapRef.current = now;
+    }
+  };
 
   // Group fixtures into chunks of max 8 per slide for the horizontal swipe carousel
   const fixtureChunks = useMemo(() => {
@@ -149,7 +185,9 @@ export default function SlipReelCard({
 
   return (
     <div
-      className="relative w-full h-full overflow-hidden bg-[#FFFFF0] dark:bg-[#202522] select-none text-slate-900 dark:text-[#F4F5EF] slip-reel-card"
+      onDoubleClick={handleCardDoubleClick}
+      onTouchEnd={handleCardTouchEnd}
+      className="relative w-full h-full overflow-hidden bg-[#FFFFF0] dark:bg-[#202522] select-none text-slate-900 dark:text-[#F4F5EF] slip-reel-card cursor-pointer"
       aria-label={`Bet slip by ${post.postedBy}`}
     >
       {/* ── AMBIENT SUBTLE PATTERN ── */}

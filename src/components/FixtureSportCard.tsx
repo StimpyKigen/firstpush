@@ -316,7 +316,7 @@ export default function FixtureSportCard({
         {/* Card Header: League Info & Kickoff/Score Badge */}
         <div className="flex items-center justify-between gap-2 mb-3 text-xs">
           <div className="min-w-0">
-            <span className="t-label truncate block font-semibold text-slate-800">
+            <span className={`t-label truncate block ${banner ? 'font-bold text-black' : 'font-semibold text-slate-800'}`}>
               {leagueDisplayTitle}
             </span>
           </div>
@@ -338,8 +338,8 @@ export default function FixtureSportCard({
               {scorePres.badgeText}
             </span>
           ) : (
-            <span className="t-meta flex items-center gap-1 shrink-0 text-slate-700 font-semibold select-none">
-              <Clock size={11} className="text-slate-400" />
+            <span className={`t-meta flex items-center gap-1 shrink-0 ${banner ? 'font-bold text-black' : 'font-semibold text-slate-700'} select-none`}>
+              <Clock size={11} className={banner ? 'text-black' : 'text-slate-400'} />
               {timeDisplay}
             </span>
           )}

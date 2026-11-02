@@ -14,7 +14,12 @@ export default function SlipReelFeed({ posts, onClose }: SlipReelFeedProps) {
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const [activeIndex, setActiveIndex] = useState(0);
+  const [prevIndex, setPrevIndex] = useState(0);
   const [showSwipeHint, setShowSwipeHint] = useState(true);
+
+  useEffect(() => {
+    setPrevIndex(activeIndex);
+  }, [activeIndex]);
 
   // ── Body scroll lock ────────────────────────────────────────────────────────
   useEffect(() => {
@@ -108,7 +113,6 @@ export default function SlipReelFeed({ posts, onClose }: SlipReelFeedProps) {
     );
   }
 
-  const showDots = reelPosts.length <= 10;
 
   return (
     /*
@@ -186,20 +190,71 @@ export default function SlipReelFeed({ posts, onClose }: SlipReelFeedProps) {
             </h2>
           </div>
 
-          {showDots && (
-            <div className="absolute left-1/2 -translate-x-1/2 flex items-center gap-1 justify-center pointer-events-auto">
-              {reelPosts.map((_, i) => (
-                <button
-                  key={i}
-                  onClick={() => scrollTo(i)}
-                  aria-label={`Go to slip ${i + 1}`}
-                  className={`rounded-full transition-all shrink-0 ${
-                    i === activeIndex
-                      ? 'w-5 h-[5px] bg-[#006C54] dark:bg-[#006C54]'
-                      : 'w-[5px] h-[5px] bg-slate-300 dark:bg-[#414A43] hover:bg-slate-400'
-                  }`}
-                />
-              ))}
+          {reelPosts.length > 1 && (
+            <div className="absolute left-1/2 -translate-x-1/2 flex items-center justify-center pointer-events-auto">
+              <motion.div
+                key={activeIndex}
+                initial={{ x: activeIndex > prevIndex ? 5 : activeIndex < prevIndex ? -5 : 0 }}
+                animate={{ x: 0 }}
+                transition={{ duration: 0.22, ease: 'easeOut' }}
+                className="flex items-center gap-1.5"
+              >
+                {(() => {
+                  const total = reelPosts.length;
+                  if (total === 2) {
+                    return [0, 1].map((idx) => (
+                      <button
+                        key={idx}
+                        onClick={() => scrollTo(idx)}
+                        aria-label={`Go to slip ${idx + 1}`}
+                        className={`rounded-full transition-all shrink-0 ${
+                          idx === activeIndex
+                            ? 'w-5 h-[5px] bg-[#006C54] dark:bg-[#006C54]'
+                            : 'w-[5px] h-[5px] bg-slate-300 dark:bg-[#414A43] hover:bg-slate-400'
+                        }`}
+                      />
+                    ));
+                  }
+
+                  // Exactly 3 pills max when total >= 3
+                  // When at index 0: left is active
+                  // When at index total - 1: right is active
+                  // In all middle positions: middle pill is the main active indicator
+                  let slots: { targetIdx: number; isActive: boolean }[];
+                  if (activeIndex === 0) {
+                    slots = [
+                      { targetIdx: 0, isActive: true },
+                      { targetIdx: 1, isActive: false },
+                      { targetIdx: 2, isActive: false },
+                    ];
+                  } else if (activeIndex === total - 1) {
+                    slots = [
+                      { targetIdx: total - 3, isActive: false },
+                      { targetIdx: total - 2, isActive: false },
+                      { targetIdx: total - 1, isActive: true },
+                    ];
+                  } else {
+                    slots = [
+                      { targetIdx: activeIndex - 1, isActive: false },
+                      { targetIdx: activeIndex, isActive: true },
+                      { targetIdx: activeIndex + 1, isActive: false },
+                    ];
+                  }
+
+                  return slots.map((slot, sIdx) => (
+                    <button
+                      key={sIdx}
+                      onClick={() => scrollTo(slot.targetIdx)}
+                      aria-label={`Go to slip ${slot.targetIdx + 1}`}
+                      className={`rounded-full transition-all duration-200 shrink-0 ${
+                        slot.isActive
+                          ? 'w-5 h-[5px] bg-[#006C54] dark:bg-[#006C54]'
+                          : 'w-[5px] h-[5px] bg-slate-300 dark:bg-[#414A43] hover:bg-slate-400'
+                      }`}
+                    />
+                  ));
+                })()}
+              </motion.div>
             </div>
           )}
 

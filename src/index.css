@@ -1346,7 +1346,17 @@ html.dark .fixture-card-banner :is(.t-team, .t-score, .t-title) {
   color: #1c1e21 !important;
 }
 
-html.dark .fixture-card-banner :is(.t-label, .t-meta, .t-market) {
+html.dark .fixture-card-banner :is(.t-label, .t-meta) {
+  color: #000000 !important;
+  font-weight: 700 !important;
+}
+
+html.dark .fixture-card-banner :is(.t-label, .t-meta) svg {
+  color: #000000 !important;
+  stroke: #000000 !important;
+}
+
+html.dark .fixture-card-banner .t-market {
   color: #5d6c7b !important;
 }
 
