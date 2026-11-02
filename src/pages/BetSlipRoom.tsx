@@ -3,7 +3,7 @@ import { Link, useSearchParams } from 'react-router-dom';
 import {
   X, Search, UserPlus, UserCheck, Dices
 } from 'lucide-react';
-import { motion, AnimatePresence } from 'motion/react';
+import { AnimatePresence } from 'motion/react';
 import SeoHead from '../components/SeoHead';
 import { useCurrentUser } from '../lib/authStore';
 import { useBetSlipStore } from '../lib/betSlipStore';
@@ -91,9 +91,6 @@ export default function BetSlipRoom() {
         <h1 className="font-display font-bold text-3xl sm:text-5xl text-slate-900 tracking-tight uppercase">
           Bet Builder &amp; Slips
         </h1>
-        <p className="text-sm text-slate-600 mt-2 leading-relaxed max-w-2xl font-normal">
-          Build multi-leg bet slips with choosable markets (1X2, Over/Under, Double Chance, BTTS, Handicap), attach official bookie codes/links, and follow top community punters.
-        </p>
       </div>
 
       {/* Main Mode Tabs (Floating Segmented Control Indicator) */}
@@ -109,19 +106,12 @@ export default function BetSlipRoom() {
             role="tab"
             aria-selected={activeTab === 'builder'}
             onClick={() => setActiveTab('builder')}
-            className={`relative z-10 w-full flex items-center justify-center py-2 sm:py-2.5 px-1 min-[380px]:px-2.5 sm:px-4 rounded-full text-[11px] min-[360px]:text-[12px] min-[400px]:text-[13px] sm:text-sm font-bold tracking-tight transition-colors duration-150 cursor-pointer active:scale-[0.98] ${
+            className={`relative z-10 w-full flex items-center justify-center py-2 sm:py-2.5 px-1 min-[380px]:px-2.5 sm:px-4 rounded-full text-[11px] min-[360px]:text-[12px] min-[400px]:text-[13px] sm:text-sm tracking-tight transition-colors duration-150 cursor-pointer active:scale-[0.98] ${
               activeTab === 'builder'
-                ? 'text-white'
-                : 'text-slate-800 hover:text-slate-950'
+                ? 'text-[#00875A] font-bold'
+                : 'text-slate-600 hover:text-slate-900 font-semibold'
             }`}
           >
-            {activeTab === 'builder' && (
-              <motion.div
-                layoutId="activeSlipTabIndicator"
-                className="absolute inset-0 bg-[#00875A] rounded-full shadow-[0_1px_3px_rgba(0,108,84,0.3)]"
-                transition={{ type: 'spring', stiffness: 500, damping: 36 }}
-              />
-            )}
             <span className="relative z-10 flex items-center justify-center gap-1 min-[380px]:gap-2 whitespace-nowrap truncate">
               <Dices className="w-3.5 h-3.5 min-[380px]:w-4 min-[380px]:h-4 shrink-0 stroke-[2.2]" />
               <span className="truncate">Bet Builder</span>
@@ -137,19 +127,12 @@ export default function BetSlipRoom() {
             role="tab"
             aria-selected={activeTab === 'slips'}
             onClick={() => setActiveTab('slips')}
-            className={`relative z-10 w-full flex items-center justify-center py-2 sm:py-2.5 px-1 min-[380px]:px-2.5 sm:px-4 rounded-full text-[11px] min-[360px]:text-[12px] min-[400px]:text-[13px] sm:text-sm font-bold tracking-tight transition-colors duration-150 cursor-pointer active:scale-[0.98] ${
+            className={`relative z-10 w-full flex items-center justify-center py-2 sm:py-2.5 px-1 min-[380px]:px-2.5 sm:px-4 rounded-full text-[11px] min-[360px]:text-[12px] min-[400px]:text-[13px] sm:text-sm tracking-tight transition-colors duration-150 cursor-pointer active:scale-[0.98] ${
               activeTab === 'slips'
-                ? 'text-white'
-                : 'text-slate-800 hover:text-slate-950'
+                ? 'text-[#00875A] font-bold'
+                : 'text-slate-600 hover:text-slate-900 font-semibold'
             }`}
           >
-            {activeTab === 'slips' && (
-              <motion.div
-                layoutId="activeSlipTabIndicator"
-                className="absolute inset-0 bg-[#00875A] rounded-full shadow-[0_1px_3px_rgba(0,108,84,0.3)]"
-                transition={{ type: 'spring', stiffness: 500, damping: 36 }}
-              />
-            )}
             <span className="relative z-10 flex items-center justify-center gap-1 min-[380px]:gap-2 whitespace-nowrap truncate">
               <ClapperPlayIcon className="w-3.5 h-3.5 min-[380px]:w-4 min-[380px]:h-4 shrink-0" size={16} />
               <span className="truncate">SlipFeed</span>
@@ -165,19 +148,12 @@ export default function BetSlipRoom() {
             role="tab"
             aria-selected={activeTab === 'punters'}
             onClick={() => setActiveTab('punters')}
-            className={`relative z-10 w-full flex items-center justify-center py-2 sm:py-2.5 px-1 min-[380px]:px-2.5 sm:px-4 rounded-full text-[11px] min-[360px]:text-[12px] min-[400px]:text-[13px] sm:text-sm font-bold tracking-tight transition-colors duration-150 cursor-pointer active:scale-[0.98] ${
+            className={`relative z-10 w-full flex items-center justify-center py-2 sm:py-2.5 px-1 min-[380px]:px-2.5 sm:px-4 rounded-full text-[11px] min-[360px]:text-[12px] min-[400px]:text-[13px] sm:text-sm tracking-tight transition-colors duration-150 cursor-pointer active:scale-[0.98] ${
               activeTab === 'punters'
-                ? 'text-white'
-                : 'text-slate-800 hover:text-slate-950'
+                ? 'text-[#00875A] font-bold'
+                : 'text-slate-600 hover:text-slate-900 font-semibold'
             }`}
           >
-            {activeTab === 'punters' && (
-              <motion.div
-                layoutId="activeSlipTabIndicator"
-                className="absolute inset-0 bg-[#00875A] rounded-full shadow-[0_1px_3px_rgba(0,108,84,0.3)]"
-                transition={{ type: 'spring', stiffness: 500, damping: 36 }}
-              />
-            )}
             <span className="relative z-10 flex items-center justify-center gap-1 min-[380px]:gap-2 whitespace-nowrap truncate">
               <Search className="w-3.5 h-3.5 min-[380px]:w-4 min-[380px]:h-4 shrink-0 stroke-[2.2]" />
               <span className="truncate">Find Punters</span>

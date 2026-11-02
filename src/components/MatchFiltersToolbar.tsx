@@ -623,15 +623,13 @@ export default function MatchFiltersToolbar({
           </div>
         </div>
 
-        {/* EXPANDABLE SEARCH BAR (Apple-Style) */}
+        {/* EXPANDABLE SEARCH BAR */}
         {(isSearchOpen || searchQuery) && (
           <div className="w-full max-w-md mx-auto mt-3 animate-in fade-in slide-in-from-top-1 duration-200">
-            <div
-              className={`relative flex items-center bg-[#FFFFF0] border rounded-full shadow-md transition-all ${theme.searchBarBorder}`}
-            >
+            <div className="relative flex items-center w-full">
               <Search
                 size={15}
-                className={`absolute left-3.5 ${theme.iconColor} pointer-events-none`}
+                className={`absolute left-3.5 ${theme.iconColor} pointer-events-none z-10`}
               />
               <input
                 ref={searchInputRef}
@@ -639,9 +637,9 @@ export default function MatchFiltersToolbar({
                 value={searchQuery}
                 onChange={(e) => onSearchQueryChange(e.target.value)}
                 placeholder="Search teams, competition or country..."
-                className="w-full bg-transparent pl-9 sm:pl-10 pr-16 py-2 text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-0"
+                className={`w-full bg-[#FFFFF0] border rounded-xl pl-9 sm:pl-10 pr-16 py-2 text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none shadow-xs transition-colors ${theme.searchBarBorder}`}
               />
-              <div className="absolute right-2 flex items-center gap-1">
+              <div className="absolute right-2 flex items-center gap-1 z-10">
                 {searchQuery && (
                   <button
                     type="button"
