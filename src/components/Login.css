@@ -890,6 +890,18 @@ html:has(.login-page-container) {
     color: rgba(255, 255, 255, 0.9) !important;
   }
 
+  html.dark .password-toggle {
+    color: #94a3b8 !important;
+  }
+
+  html.dark .password-toggle:hover {
+    color: #64748b !important;
+  }
+
+  html.dark .input-icon-wrapper {
+    color: #94a3b8 !important;
+  }
+
   .input-group {
     margin-bottom: 9px !important;
   }

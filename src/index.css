@@ -1371,6 +1371,19 @@ html.dark .login-card input::placeholder {
   color: #94a3b8 !important;
 }
 
+html.dark .login-card .password-toggle {
+  color: #94a3b8 !important;
+}
+
+html.dark .login-card .password-toggle:hover,
+html.dark .login-card .password-toggle:focus {
+  color: #64748b !important;
+}
+
+html.dark .login-card .input-icon-wrapper {
+  color: #94a3b8 !important;
+}
+
 /* ==========================================================================
    Non-Protected Dark Mode Color Remapping (Outside .theme-protected, banner cards, jackpot cards, login cards)
    ========================================================================== */
