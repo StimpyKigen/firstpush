@@ -1001,7 +1001,8 @@ export async function fetchSportScoreFixturesByCompetition(compSlug: string, dat
  */
 export async function fetchSportScoreFixturesByDate(date: string): Promise<MarketFixture[]> {
   const allNormalized: MarketFixture[] = [];
-  const limit = 100;
+  
+  const limit = 200;
   let offset = 0;
   let hasMore = true;
   const nowIso = new Date().toISOString();

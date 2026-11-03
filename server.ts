@@ -425,7 +425,9 @@ async function startServer() {
   app.post('/api/sports/weekly-sync', async (req: Request, res: Response) => {
     try {
       const force = Boolean(req.body?.force);
-      const log = await executeWeeklyIngestion({ force });
+      const startFromToday = req.body?.startFromToday !== undefined ? Boolean(req.body?.startFromToday) : true;
+      const targetDomesticCount = req.body?.targetDomesticCount ? Number(req.body?.targetDomesticCount) : 28;
+      const log = await executeWeeklyIngestion({ force, startFromToday, targetDomesticCount });
       res.json({ success: true, log });
     } catch (err: any) {
       res.status(500).json({ success: false, error: err?.message || 'Failed to execute weekly ingestion' });

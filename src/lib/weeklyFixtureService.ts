@@ -1,11 +1,16 @@
 /**
  * Automated Weekly Football Fixture Fetching & Scheduling System
  *
- * Automatically fetches all football fixtures from SportScore for a complete
+ * Automatically fetches football fixtures from SportScore for a complete
  * Monday-to-Monday week in East African Time (Africa/Nairobi, UTC+3).
  *
- * Schedules automatic recurring ingestion every Monday at exactly 00:00 EAT.
- * Enforces live-score protection, idempotent upserts, and zero UI disruption.
+ * Features:
+ * - High-volume continental competitions (Europa, Conference, UCL) fetched via dedicated calls
+ * - Big 5 European leagues directly fetched to bypass the upstream 200-match daily cap
+ * - Curated ~27-28 domestic matches/day distributed across kickoff time slots
+ * - High-number fixtures added directly on top without duplication
+ * - Schedules automatic recurring ingestion every Monday at exactly 00:00 EAT
+ * - Enforces live-score protection, idempotent upserts, and zero UI disruption.
  */
 
 import fs from 'fs';
@@ -15,6 +20,8 @@ import {
   ingestFixtures,
   isSimulatedReality,
   queryMarketFixtures,
+  fetchSportScoreFixturesByCompetition,
+  fetchSportScoreFixturesByDate,
   type MarketFixture,
 } from './sportsFeedService';
 import { isCompetitionEligible } from './competitionRegistry';
@@ -140,21 +147,26 @@ export function createEatDate(
 
 /**
  * Calculate the weekly period in East African Time.
- * Start: Monday 12:00 AM EAT
+ * Start: Monday 12:00 AM EAT (or today 12:00 AM EAT if startFromToday is true)
  * End: Following Monday 12:00 AM EAT (exclusive)
  *
- * Spans portions of exactly eight UTC calendar dates.
+ * Spans portions of UTC calendar dates.
  */
-export function calculateWeeklyEatWindow(refDate: Date = new Date()): WeeklyEatWindow {
+export function calculateWeeklyEatWindow(refDate: Date = new Date(), startFromToday = false): WeeklyEatWindow {
   const eatNow = getEatDateParts(refDate);
   const dayOfWeekIndex = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].indexOf(eatNow.weekday);
   const daysFromMonday = (dayOfWeekIndex + 6) % 7; // Mon=0, Tue=1, ..., Sun=6
 
   const refEatMidnight = createEatDate(eatNow.year, eatNow.month, eatNow.day, 0, 0, 0);
-  const mondayEat = new Date(refEatMidnight.getTime() - daysFromMonday * 86_400_000);
-  const nextMondayEat = new Date(mondayEat.getTime() + 7 * 86_400_000);
+  const mondayEat = startFromToday
+    ? refEatMidnight
+    : new Date(refEatMidnight.getTime() - daysFromMonday * 86_400_000);
 
-  // Collect the 8 UTC calendar dates spanning this EAT weekly period
+  // Next Monday at 00:00:00 EAT
+  const fullWeekMonday = new Date(refEatMidnight.getTime() - daysFromMonday * 86_400_000);
+  const nextMondayEat = new Date(fullWeekMonday.getTime() + 7 * 86_400_000);
+
+  // Collect the UTC calendar dates spanning this EAT weekly period
   const utcDates: string[] = [];
   let curUtc = new Date(Date.UTC(mondayEat.getUTCFullYear(), mondayEat.getUTCMonth(), mondayEat.getUTCDate()));
   const endUtcDate = new Date(Date.UTC(nextMondayEat.getUTCFullYear(), nextMondayEat.getUTCMonth(), nextMondayEat.getUTCDate()));
@@ -190,96 +202,133 @@ export function calculateWeeklyEatWindow(refDate: Date = new Date()): WeeklyEatW
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 /**
- * Fetch fixtures for a single UTC date from SportScore with retry and pagination
+ * High-volume continental competitions.
+ * Fetched via dedicated endpoint calls and merged in full on top of daily fixtures.
  */
-export async function fetchSportScoreDailyPage(
+export const HIGH_VOLUME_CONTINENTAL_SLUGS = [
+  'uefa-champions-league',
+  'uefa-europa-league',
+  'uefa-europa-conference-league',
+];
+
+/**
+ * Big 5 European Domestic Leagues (1st Division).
+ * Guaranteed to be fetched directly so the daily 200 cap never truncates them.
+ */
+export const MAJOR_DOMESTIC_SLUGS = [
+  'english-premier-league',
+  'spanish-la-liga',
+  'bundesliga',
+  'italian-serie-a',
+  'french-ligue-1',
+];
+
+/**
+ * Secondary Priority Whitelisted Competitions.
+ * Key 2nd divisions and popular domestic leagues for daily variety.
+ */
+export const SECONDARY_PRIORITY_SLUGS = [
+  'english-football-league-championship',
+  'spanish-segunda-division',
+  'german-bundesliga-2',
+  'italian-serie-b',
+  'french-ligue-2',
+  'portuguese-primera-liga',
+  'netherlands-eredivisie',
+  'belgian-pro-league',
+  'turkish-super-league',
+  'scottish-premiership',
+  'brazilian-serie-a',
+  'saudi-professional-league',
+];
+
+/**
+ * Concurrency-controlled batch fetching of competition fixtures for a given date
+ */
+async function fetchCompetitionsBatch(
+  slugs: string[],
   date: string,
-  limit = 200,
-  maxRetries = 3
-): Promise<{ matches: any[]; totalReportedCount?: number; error?: string }> {
-  let offset = 0;
-  let hasMore = true;
-  const allMatches: any[] = [];
-  let reportedCount: number | undefined;
-  const seenFirstSignatures = new Set<string>();
-
-  while (hasMore) {
-    let attempt = 0;
-    let pageSuccess = false;
-    let lastError = '';
-
-    while (attempt < maxRetries && !pageSuccess) {
-      attempt++;
-      try {
-        const url = `https://sportscore.com/api/v1/fixtures/?sport=football&date=${encodeURIComponent(date)}&limit=${limit}&offset=${offset}`;
-        const controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
-        const timeoutId = controller ? setTimeout(() => controller.abort(), 12_000) : null;
-
-        const res = await fetch(url, {
-          headers: {
-            Accept: 'application/json, text/plain, */*',
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko)',
-          },
-          signal: controller ? controller.signal : undefined,
-        });
-
-        if (timeoutId) clearTimeout(timeoutId);
-
-        if (res.ok) {
-          const json = await res.json();
-          const rawMatches: any[] = Array.isArray(json.matches) ? json.matches : [];
-          if (json.count !== undefined) {
-            reportedCount = json.count;
-          }
-
-          if (rawMatches.length === 0) {
-            hasMore = false;
-            pageSuccess = true;
-            break;
-          }
-
-          // Loop guard if provider ignores offset and repeats the first match
-          const firstSig = rawMatches[0]?.url || `${rawMatches[0]?.home}-${rawMatches[0]?.away}-${rawMatches[0]?.time}`;
-          if (firstSig && seenFirstSignatures.has(firstSig)) {
-            hasMore = false;
-            pageSuccess = true;
-            break;
-          }
-          seenFirstSignatures.add(firstSig);
-
-          allMatches.push(...rawMatches);
-          offset += rawMatches.length;
-
-          if (reportedCount !== undefined && offset >= reportedCount) {
-            hasMore = false;
-          }
-          if (rawMatches.length < limit) {
-            hasMore = false;
-          }
-
-          pageSuccess = true;
-        } else {
-          lastError = `HTTP ${res.status} from SportScore for date ${date} (offset ${offset})`;
-          // Exponential backoff before retry
-          await delay(1000 * Math.pow(2, attempt - 1));
-        }
-      } catch (err: any) {
-        lastError = `Network/timeout error for date ${date}: ${err?.message || err}`;
-        await delay(1000 * Math.pow(2, attempt - 1));
+  concurrency = 6
+): Promise<MarketFixture[]> {
+  const all: MarketFixture[] = [];
+  for (let i = 0; i < slugs.length; i += concurrency) {
+    const batch = slugs.slice(i, i + concurrency);
+    const results = await Promise.allSettled(
+      batch.map((slug) => fetchSportScoreFixturesByCompetition(slug, date))
+    );
+    for (const res of results) {
+      if (res.status === 'fulfilled' && Array.isArray(res.value) && res.value.length > 0) {
+        all.push(...res.value);
       }
     }
+  }
+  return all;
+}
 
-    if (!pageSuccess) {
-      return { matches: allMatches, totalReportedCount: reportedCount, error: lastError };
-    }
-
-    // Rate-limit delay between pages for the same date
-    if (hasMore) {
-      await delay(200);
-    }
+/**
+ * Selects ~27-28 domestic/highlight league fixtures distributed across kickoff time slots,
+ * and adds high-volume continental fixtures (Europa, Conference, UCL) directly on top without duplication.
+ */
+export function curateDailyFixtures(
+  continentalFixtures: MarketFixture[],
+  majorDomesticFixtures: MarketFixture[],
+  secondaryFixtures: MarketFixture[],
+  broadDailyFixtures: MarketFixture[],
+  targetDomesticCount = 28
+): MarketFixture[] {
+  const continentalMap = new Map<string, MarketFixture>();
+  for (const f of continentalFixtures) {
+    const key = f.id || `${f.home.toLowerCase()}__${f.away.toLowerCase()}__${(f.kickoffIso || '').slice(0, 10)}`;
+    continentalMap.set(key, f);
   }
 
-  return { matches: allMatches, totalReportedCount: reportedCount };
+  const domesticMap = new Map<string, MarketFixture>();
+  for (const f of majorDomesticFixtures) {
+    const key = f.id || `${f.home.toLowerCase()}__${f.away.toLowerCase()}__${(f.kickoffIso || '').slice(0, 10)}`;
+    if (!continentalMap.has(key)) domesticMap.set(key, f);
+  }
+  for (const f of secondaryFixtures) {
+    const key = f.id || `${f.home.toLowerCase()}__${f.away.toLowerCase()}__${(f.kickoffIso || '').slice(0, 10)}`;
+    if (!continentalMap.has(key) && !domesticMap.has(key)) domesticMap.set(key, f);
+  }
+  for (const f of broadDailyFixtures) {
+    const key = f.id || `${f.home.toLowerCase()}__${f.away.toLowerCase()}__${(f.kickoffIso || '').slice(0, 10)}`;
+    if (!continentalMap.has(key) && !domesticMap.has(key)) domesticMap.set(key, f);
+  }
+
+  const majorKeys = new Set(
+    majorDomesticFixtures.map((f) => f.id || `${f.home.toLowerCase()}__${f.away.toLowerCase()}__${(f.kickoffIso || '').slice(0, 10)}`)
+  );
+  const domesticList = Array.from(domesticMap.values());
+
+  let selectedDomestic: MarketFixture[] = [];
+  if (domesticList.length <= targetDomesticCount) {
+    selectedDomestic = domesticList;
+  } else {
+    // Preserve 100% of Big 5 European major fixtures
+    const mandatoryMajors = domesticList.filter((f) => majorKeys.has(f.id));
+    const otherDomestic = domesticList.filter((f) => !majorKeys.has(f.id));
+
+    // Sort other domestic by kickoff time to distribute evenly across the day
+    otherDomestic.sort((a, b) => {
+      const tA = a.kickoffIso ? new Date(a.kickoffIso).getTime() : 0;
+      const tB = b.kickoffIso ? new Date(b.kickoffIso).getTime() : 0;
+      return tA - tB;
+    });
+
+    const slotsRemaining = Math.max(0, targetDomesticCount - mandatoryMajors.length);
+    const step = otherDomestic.length > slotsRemaining ? otherDomestic.length / slotsRemaining : 1;
+    const additional: MarketFixture[] = [];
+    for (let i = 0; i < slotsRemaining && otherDomestic.length > 0; i++) {
+      const idx = Math.min(Math.floor(i * step), otherDomestic.length - 1);
+      additional.push(otherDomestic[idx]);
+    }
+
+    selectedDomestic = [...mandatoryMajors, ...additional];
+  }
+
+  // High-volume continental fixtures (Europa, Conference, UCL) added directly on top without duplication
+  return [...selectedDomestic, ...Array.from(continentalMap.values())];
 }
 
 /**
@@ -288,6 +337,8 @@ export async function fetchSportScoreDailyPage(
 export async function executeWeeklyIngestion(options?: {
   refDate?: Date;
   force?: boolean;
+  startFromToday?: boolean;
+  targetDomesticCount?: number;
 }): Promise<WeeklyIngestionLog> {
   if (isWeeklyIngestionRunning) {
     throw new Error('Weekly fixture ingestion is already in progress.');
@@ -295,7 +346,9 @@ export async function executeWeeklyIngestion(options?: {
 
   isWeeklyIngestionRunning = true;
   const startTime = Date.now();
-  const windowInfo = calculateWeeklyEatWindow(options?.refDate || new Date());
+  const startFromToday = options?.startFromToday ?? false;
+  const targetDomesticCount = options?.targetDomesticCount ?? 28;
+  const windowInfo = calculateWeeklyEatWindow(options?.refDate || new Date(), startFromToday);
   const nowIso = new Date().toISOString();
 
   const datesRequested = windowInfo.utcDates;
@@ -327,73 +380,64 @@ export async function executeWeeklyIngestion(options?: {
 
   saveLatestLog(log);
   console.log(`[WeeklyIngestion] Starting weekly ingestion for period: ${windowInfo.eatStartFormatted} -> ${windowInfo.eatEndFormatted}`);
-  console.log(`[WeeklyIngestion] Spanning 8 UTC dates: ${datesRequested.join(', ')}`);
+  console.log(`[WeeklyIngestion] Spanning UTC dates: ${datesRequested.join(', ')}`);
 
   const allEligibleFixtures: MarketFixture[] = [];
   const seenMatchKeys = new Set<string>();
 
   try {
     for (const utcDate of datesRequested) {
-      console.log(`[WeeklyIngestion] Fetching SportScore daily fixtures for UTC date: ${utcDate}...`);
-      const { matches, error } = await fetchSportScoreDailyPage(utcDate, 200, 3);
+      console.log(`[WeeklyIngestion] Processing SportScore fixtures for UTC date: ${utcDate}...`);
+      try {
+        // 1. Dedicated fetch for high-volume continental cups (Europa, Conference, UCL)
+        const continentalMatches = await fetchCompetitionsBatch(HIGH_VOLUME_CONTINENTAL_SLUGS, utcDate, 3);
 
-      if (error && matches.length === 0) {
-        datesFailed.push(utcDate);
-        errorLogs.push(`Date ${utcDate} failed: ${error}`);
-        console.warn(`[WeeklyIngestion] ${error}`);
-      } else {
+        // 2. Dedicated fetch for Big 5 major European domestic leagues
+        const majorDomesticMatches = await fetchCompetitionsBatch(MAJOR_DOMESTIC_SLUGS, utcDate, 5);
+
+        // 3. Dedicated fetch for secondary priority leagues
+        const secondaryMatches = await fetchCompetitionsBatch(SECONDARY_PRIORITY_SLUGS, utcDate, 6);
+
+        // 4. Broad daily feed for remaining eligible top flights and domestic cups
+        const dailyBroadMatches = await fetchSportScoreFixturesByDate(utcDate);
+
+        // 5. Curate day's fixtures: ~27-28 domestic matches across kickoff time slots,
+        // and add high-volume continental matches directly on top without duplication
+        const curatedDayMatches = curateDailyFixtures(
+          continentalMatches,
+          majorDomesticMatches,
+          secondaryMatches,
+          dailyBroadMatches,
+          targetDomesticCount
+        );
+
         datesSucceeded.push(utcDate);
-        if (error) {
-          errorLogs.push(`Date ${utcDate} completed partially with warning: ${error}`);
+        log.totalFixturesRetrieved += (continentalMatches.length + majorDomesticMatches.length + secondaryMatches.length + dailyBroadMatches.length);
+
+        for (const f of curatedDayMatches) {
+          const isoTime = f.kickoffIso || nowIso;
+          const matchTimeMs = new Date(isoTime).getTime();
+
+          // Interval check against intended weekly window
+          if (Number.isNaN(matchTimeMs) || matchTimeMs < windowInfo.startMs || matchTimeMs >= windowInfo.endMs) {
+            continue;
+          }
+
+          const dedupeKey = f.id || `${f.home.toLowerCase()}__${f.away.toLowerCase()}__${(f.kickoffIso || '').slice(0, 10)}`;
+          if (seenMatchKeys.has(dedupeKey)) {
+            log.duplicatesPrevented++;
+            continue;
+          }
+          seenMatchKeys.add(dedupeKey);
+          allEligibleFixtures.push(f);
         }
+      } catch (dateErr: any) {
+        datesFailed.push(utcDate);
+        errorLogs.push(`Date ${utcDate} error: ${dateErr?.message || dateErr}`);
+        console.warn(`[WeeklyIngestion] Error on date ${utcDate}:`, dateErr);
       }
 
-      log.totalFixturesRetrieved += matches.length;
-
-      // Filter and normalize matches within the exact intended EAT weekly window
-      for (const m of matches) {
-        if (!m.home || !m.away) continue;
-        if (isSimulatedReality({ competition: m.competition, country: m.country, home: m.home, away: m.away })) {
-          continue;
-        }
-
-        const isoTime = m.time || m.start_at || nowIso;
-        const matchDate = new Date(isoTime);
-        const matchTimeMs = matchDate.getTime();
-
-        // STRICT TIMEZONE INTERVAL CHECK:
-        // Must fall within Monday 00:00:00 EAT and following Monday 00:00:00 EAT (exclusive)
-        if (Number.isNaN(matchTimeMs) || matchTimeMs < windowInfo.startMs || matchTimeMs >= windowInfo.endMs) {
-          continue;
-        }
-
-        const normalized = normalizeSportScoreMatch(m, nowIso);
-
-        // Filter against MshindiRoom's Centralized Competition Priority Registry (4 Tiers)
-        const isEligible = isCompetitionEligible({
-          id: normalized.competitionId,
-          providerId: normalized.providerId,
-          slug: normalized.leagueCode,
-          competition: normalized.competition,
-          country: normalized.country,
-        });
-
-        if (!isEligible) {
-          continue;
-        }
-
-        // Deduplication signature within this weekly run
-        const dedupeKey = `${normalized.home.toLowerCase()}__${normalized.away.toLowerCase()}__${(normalized.kickoffIso || '').slice(0, 10)}`;
-        if (seenMatchKeys.has(dedupeKey)) {
-          log.duplicatesPrevented++;
-          continue;
-        }
-        seenMatchKeys.add(dedupeKey);
-
-        allEligibleFixtures.push(normalized);
-      }
-
-      // Friendly spacing between daily API requests
+      // Respectful spacing between date batches
       await delay(250);
     }
 
@@ -415,7 +459,7 @@ export async function executeWeeklyIngestion(options?: {
     }
 
     // Safely upsert fixtures with monotonic status progression and live score protection
-    const ingestedCount = ingestFixtures(allEligibleFixtures, false);
+    ingestFixtures(allEligibleFixtures, false);
 
     log.newFixturesInserted = newCount;
     log.existingFixturesUpdated = updatedCount;
@@ -497,33 +541,31 @@ export function getMsUntilNextMondayEAT(refDate: Date = new Date()): {
 }
 
 /**
- * Start the backend weekly scheduler.
- * Executes automatically every Monday at 00:00 Africa/Nairobi time.
+ * Initialize the weekly Monday scheduler.
+ * Runs once on application start and schedules execution for next Monday 12:00 AM EAT.
  */
 export function initWeeklyFixtureScheduler(): void {
   if (scheduledTimerRef) {
     clearTimeout(scheduledTimerRef);
+    scheduledTimerRef = null;
   }
 
-  const scheduleNextRun = () => {
-    const { ms, targetDateFormatted } = getMsUntilNextMondayEAT();
-    nextScheduledRunTime = targetDateFormatted;
-    console.log(`[WeeklyScheduler] Next automated run scheduled for: ${targetDateFormatted} (in ${(ms / 3_600_000).toFixed(2)} hours)`);
+  const { ms, targetDateFormatted } = getMsUntilNextMondayEAT();
+  nextScheduledRunTime = targetDateFormatted;
 
-    // In Node.js, setTimeout delay is capped at 2^31 - 1 (~24.8 days), 7 days is ~604.8m ms, which safely fits in signed 32-bit integer!
-    scheduledTimerRef = setTimeout(async () => {
-      console.log(`[WeeklyScheduler] Triggering scheduled Monday 00:00 EAT fixture ingestion...`);
-      try {
-        await executeWeeklyIngestion();
-      } catch (err) {
-        console.error('[WeeklyScheduler] Ingestion error on scheduled run:', err);
-      } finally {
-        scheduleNextRun();
-      }
-    }, ms);
-  };
+  console.log(`[WeeklyScheduler] Initialized. Next automated weekly run scheduled for: ${targetDateFormatted} (in ${(ms / 3600000).toFixed(2)} hours)`);
 
-  scheduleNextRun();
+  scheduledTimerRef = setTimeout(async () => {
+    console.log(`[WeeklyScheduler] Triggering scheduled Monday 12:00 AM EAT weekly fixture ingestion...`);
+    try {
+      await executeWeeklyIngestion({ force: true });
+    } catch (err) {
+      console.error('[WeeklyScheduler] Error during scheduled weekly ingestion:', err);
+    } finally {
+      // Re-schedule for the next Monday
+      initWeeklyFixtureScheduler();
+    }
+  }, ms);
 
   // On cold start / server reboot: check if the current weekly period has been ingested
   setTimeout(async () => {
@@ -547,22 +589,22 @@ export function initWeeklyFixtureScheduler(): void {
 }
 
 /**
- * Diagnostics & Status summary for API endpoint
+ * Returns current scheduler status and last execution telemetry
  */
 export function getWeeklySchedulerStatus() {
   const windowInfo = calculateWeeklyEatWindow();
   const nextInfo = getMsUntilNextMondayEAT();
 
   return {
+    schedulerActive: Boolean(scheduledTimerRef),
+    nextScheduledRunTime: nextScheduledRunTime || nextInfo.targetDateFormatted,
+    hoursUntilNextRun: +(nextInfo.ms / 3600000).toFixed(2),
     isIngestionRunning: isWeeklyIngestionRunning,
     currentWeeklyPeriod: {
       start: windowInfo.eatStartFormatted,
       end: windowInfo.eatEndFormatted,
       spannedUtcDates: windowInfo.utcDates,
     },
-    nextScheduledRun: nextScheduledRunTime || nextInfo.targetDateFormatted,
-    hoursUntilNextRun: +(nextInfo.ms / 3_600_000).toFixed(2),
-    latestLog: latestIngestionLog,
+    latestIngestionLog,
   };
 }
-
