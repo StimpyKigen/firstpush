@@ -29,6 +29,13 @@ import {
 import { enrichFixturesWithBet365Odds } from './sportscoreOddsService';
 import { getHighlightsCutoffWindowEAT } from './competitionPriority';
 import type { MatchIncidentItem } from './freeMatches';
+import { isSnapshotStoreConfigured, loadFixtureSnapshot } from './fixtureSnapshotStore';
+
+// Firestore snapshot hydration state (serverless-safe shared fixture source)
+const SNAPSHOT_REFRESH_MS = 60_000;
+const SNAPSHOT_MAX_AGE_MS = 48 * 3600 * 1000;
+let lastSnapshotLoadMs = 0;
+let lastSnapshotUpdatedMs = 0;
 
 export interface DiscoveredLeague {
   league: string;
@@ -1329,7 +1336,25 @@ export async function getDailyMarketHighlights(force = false): Promise<MarketFix
   const hasBet365Odds = Array.from(fixturesStore.values()).some((f) => f.bookmaker === 'Bet365');
   const isStale = !lastSyncTimestamp || (Date.now() - new Date(lastSyncTimestamp).getTime() > 10 * 60 * 1000);
 
-  if (force || !hasUpcomingOrLive || !hasBet365Odds || isStale) {
+  // Serverless instances share no memory/disk: hydrate from the Firestore snapshot written by the
+  // weekly cron instead of rebuilding ~600 SportScore requests inside a 10s function.
+  let snapshotServed = false;
+  if (isSnapshotStoreConfigured()) {
+    const snapshotAgeMs = Date.now() - lastSnapshotLoadMs;
+    if (force || fixturesStore.size === 0 || snapshotAgeMs > SNAPSHOT_REFRESH_MS) {
+      lastSnapshotLoadMs = Date.now();
+      const { fixtures: snapFixtures, updatedAt: snapUpdatedAt } = await loadFixtureSnapshot();
+      if (snapUpdatedAt) lastSnapshotUpdatedMs = new Date(snapUpdatedAt).getTime();
+      if (snapFixtures.length > 0) {
+        ingestFixtures(snapFixtures, false);
+      }
+    }
+    // Trust the snapshot only while it is fresh (cron healthy); otherwise fall back to live sync.
+    snapshotServed = Date.now() - lastSnapshotUpdatedMs < SNAPSHOT_MAX_AGE_MS &&
+      Array.from(fixturesStore.values()).some((f) => f.status === 'pre' || f.status === 'in');
+  }
+
+  if (!snapshotServed && (force || !hasUpcomingOrLive || !hasBet365Odds || isStale)) {
     try {
       await executeRollingSyncCycle();
     } catch (err) {

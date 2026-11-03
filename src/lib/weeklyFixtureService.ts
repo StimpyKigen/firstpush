@@ -26,6 +26,7 @@ import {
 } from './sportsFeedService';
 import { isCompetitionEligible } from './competitionRegistry';
 import { enrichFixturesWithBet365Odds } from './sportscoreOddsService';
+import { isSnapshotStoreConfigured, saveFixtureSnapshot } from './fixtureSnapshotStore';
 
 export interface WeeklyEatWindow {
   eatStartIso: string;
@@ -474,6 +475,22 @@ export async function executeWeeklyIngestion(options?: {
     }
 
     log.durationMs = Date.now() - startTime;
+    // Persist to the shared Firestore snapshot so every serverless instance serves the same fixtures
+    if (isSnapshotStoreConfigured()) {
+      try {
+        const keepFrom = new Intl.DateTimeFormat('en-CA', {
+          timeZone: 'Africa/Nairobi',
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit',
+        }).format(new Date(Date.now() - 86_400_000));
+        const saved = await saveFixtureSnapshot(queryMarketFixtures({ scope: 'all' }), keepFrom);
+        console.log(`[WeeklyIngestion] Persisted ${saved} fixtures to Firestore snapshot.`);
+      } catch (snapErr: any) {
+        log.errorLogs.push(`Snapshot persistence failed: ${snapErr?.message || snapErr}`);
+        console.warn('[WeeklyIngestion] Snapshot persistence notice:', snapErr);
+      }
+    }
     if (datesFailed.length === 0) {
       log.status = 'completed';
       log.lastSuccessfulExecution = new Date().toISOString();
