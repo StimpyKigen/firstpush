@@ -13,7 +13,7 @@
  * When it is missing, all functions are safe no-ops and callers fall back to live sync.
  */
 
-import type { MarketFixture } from './sportsFeedService';
+import type { MarketFixture } from './sportsFeedService.js';
 
 const COLLECTION = 'fixtureSnapshots';
 const META_DOC = '_meta';
@@ -141,3 +141,4 @@ export async function loadFixtureSnapshot(): Promise<{ fixtures: MarketFixture[]
     return { fixtures: [], updatedAt: null };
   }
 }
+

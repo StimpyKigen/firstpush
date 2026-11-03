@@ -46,7 +46,7 @@ export const UNLOCK_TIER_CONFIG: Record<UnlockTier, { label: string; color: stri
   premium: { label: 'VIP Exclusive', color: '#ef4444', badgeBg: 'bg-rose-500/10 border-rose-500/30 text-rose-400' },
 };
 
-import { GLYPHS_AVATARS } from './dicebearGlyphsData';
+import { GLYPHS_AVATARS } from './dicebearGlyphsData.js';
 
 /**
  * AVATAR_CATALOG now strictly contains DiceBear Glyphs exclusively.

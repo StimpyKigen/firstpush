@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import os from 'os';
-import type { HomepageFeedData } from './homepageFeedStore';
+import type { HomepageFeedData } from './homepageFeedStore.js';
 
 // Authoritative repository data file (persists across builds and deployments)
 const PRIMARY_DATA_FILE = path.join(process.cwd(), 'data', 'homepage_feed.json');

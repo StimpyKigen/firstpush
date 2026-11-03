@@ -14,7 +14,7 @@
  * 7. Priority Tier 4: Senior top-flight domestic league coverage for other countries (excluding youth/amateur/reserves).
  */
 
-import { type ContinentId, type CompetitionType } from './canonicalCompetitions';
+import { type ContinentId, type CompetitionType } from './canonicalCompetitions.js';
 
 export type PriorityTier =
   | 'tier_1_major_european'

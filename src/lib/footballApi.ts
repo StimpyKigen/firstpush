@@ -1,5 +1,5 @@
-import { type MatchPeriod, type MatchStatus, parseDetailedMatchStatus } from './matchStatus';
-import { enrichFixturesWithBet365Odds } from './sportscoreOddsService';
+import { type MatchPeriod, type MatchStatus, parseDetailedMatchStatus } from './matchStatus.js';
+import { enrichFixturesWithBet365Odds } from './sportscoreOddsService.js';
 
 export interface HighlightFixture {
   id: string;
@@ -89,9 +89,9 @@ export function buildBlurb(home: string, away: string, competition: string, stat
   return `${home} face ${away} in an exciting ${competition} match-up attracting heavy debate from the community.`;
 }
 
-import { BUNDLED_SPORTS_CATALOGUE } from '../data/bundledSportsCatalogue';
-import { resolveCanonicalCompetition, isCompetitionEligible } from './canonicalCompetitions';
-import { isHighlightsEligible } from './competitionPriority';
+import { BUNDLED_SPORTS_CATALOGUE } from '../data/bundledSportsCatalogue.js';
+import { resolveCanonicalCompetition, isCompetitionEligible } from './canonicalCompetitions.js';
+import { isHighlightsEligible } from './competitionPriority.js';
 
 function mapBundledToHighlights(): HighlightFixture[] {
   // Pre-loaded fixtures removed per user mandate

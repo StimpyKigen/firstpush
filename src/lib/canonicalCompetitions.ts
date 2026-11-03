@@ -23,7 +23,7 @@ import {
   getCompetitionById,
   isCompetitionEligible,
   type RegistryCompetition,
-} from './competitionRegistry';
+} from './competitionRegistry.js';
 
 export type ContinentId =
   | 'all'
@@ -2899,4 +2899,4 @@ export {
   TIER_2_UEFA_INTERNATIONAL,
   TIER_3_SELECTED_DOMESTIC,
   TIER_4_OTHER_TOP_FLIGHT,
-} from './competitionRegistry';
+} from './competitionRegistry.js';

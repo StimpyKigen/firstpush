@@ -1,7 +1,7 @@
-import type { MatchConsensus } from './types';
-import { type MatchPeriod, type MatchStatus, isStatusTransitionValid } from './matchStatus';
-import { buildConsensus } from './consensusEngine';
-import { fetchDailyHighlightFixtures, type HighlightFixture } from './footballApi';
+import type { MatchConsensus } from './types.js';
+import { type MatchPeriod, type MatchStatus, isStatusTransitionValid } from './matchStatus.js';
+import { buildConsensus } from './consensusEngine.js';
+import { fetchDailyHighlightFixtures, type HighlightFixture } from './footballApi.js';
 
 const listeners = new Set<() => void>();
 

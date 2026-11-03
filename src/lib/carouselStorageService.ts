@@ -15,8 +15,8 @@ import {
   deleteObject,
   UploadTaskSnapshot,
 } from 'firebase/storage';
-import { storage, auth } from '../firebase';
-import { isAdminPhone } from './authStore';
+import { storage, auth } from '../firebase.js';
+import { isAdminPhone } from './authStore.js';
 
 export const MAX_WEBP_FILE_SIZE_BYTES = 5 * 1024 * 1024; // 5 MB
 

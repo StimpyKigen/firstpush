@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { getRandomGlyphAvatar } from './avatarCatalog';
+import { getRandomGlyphAvatar } from './avatarCatalog.js';
 
 export interface Account {
   phone: string; // canonical form: 2547XXXXXXXX / 2541XXXXXXXX

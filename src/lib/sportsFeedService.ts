@@ -9,15 +9,15 @@
 import fs from 'fs';
 import path from 'path';
 import os from 'os';
-import { BUNDLED_SPORTS_CATALOGUE } from '../data/bundledSportsCatalogue';
+import { BUNDLED_SPORTS_CATALOGUE } from '../data/bundledSportsCatalogue.js';
 import {
   normalizeMatchStatus,
   parseDetailedMatchStatus,
   isStatusTransitionValid,
   type MatchStatus,
   type MatchPeriod,
-} from './matchStatus';
-import { resolveCanonicalCompetition } from './canonicalCompetitions';
+} from './matchStatus.js';
+import { resolveCanonicalCompetition } from './canonicalCompetitions.js';
 import {
   isCompetitionEligible,
   getCompetitionByProvider,
@@ -25,11 +25,11 @@ import {
   getPriorityProviderSlugs,
   getEligibleProviderSlugs,
   logSelectedCompetitionsSummary,
-} from './competitionRegistry';
-import { enrichFixturesWithBet365Odds } from './sportscoreOddsService';
-import { getHighlightsCutoffWindowEAT } from './competitionPriority';
-import type { MatchIncidentItem } from './freeMatches';
-import { isSnapshotStoreConfigured, loadFixtureSnapshot } from './fixtureSnapshotStore';
+} from './competitionRegistry.js';
+import { enrichFixturesWithBet365Odds } from './sportscoreOddsService.js';
+import { getHighlightsCutoffWindowEAT } from './competitionPriority.js';
+import type { MatchIncidentItem } from './freeMatches.js';
+import { isSnapshotStoreConfigured, loadFixtureSnapshot } from './fixtureSnapshotStore.js';
 
 // Firestore snapshot hydration state (serverless-safe shared fixture source)
 const SNAPSHOT_REFRESH_MS = 60_000;

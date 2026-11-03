@@ -1,4 +1,4 @@
-import type { GamblerPick, MatchConsensus } from './types';
+import type { GamblerPick, MatchConsensus } from './types.js';
 
 const usernames = [
   'MjengoMoneyMan', 'BetKingKisumu', 'BundaMathematician', 'PunterWaEastlando',

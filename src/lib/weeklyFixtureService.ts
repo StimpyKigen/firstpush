@@ -23,10 +23,10 @@ import {
   fetchSportScoreFixturesByCompetition,
   fetchSportScoreFixturesByDate,
   type MarketFixture,
-} from './sportsFeedService';
-import { isCompetitionEligible } from './competitionRegistry';
-import { enrichFixturesWithBet365Odds } from './sportscoreOddsService';
-import { isSnapshotStoreConfigured, saveFixtureSnapshot } from './fixtureSnapshotStore';
+} from './sportsFeedService.js';
+import { isCompetitionEligible } from './competitionRegistry.js';
+import { enrichFixturesWithBet365Odds } from './sportscoreOddsService.js';
+import { isSnapshotStoreConfigured, saveFixtureSnapshot } from './fixtureSnapshotStore.js';
 
 export interface WeeklyEatWindow {
   eatStartIso: string;

@@ -17,7 +17,7 @@
  * Tier 9 (150-200 pts): Other National Divisions, reserve leagues, regional youth, and unranked competitions.
  */
 
-import { normalizeMatchStatus } from './matchStatus';
+import { normalizeMatchStatus } from './matchStatus.js';
 
 export interface CompetitionTier {
   id: string;
@@ -188,7 +188,7 @@ export const COMPETITION_HIERARCHY: CompetitionTier[] = [
   },
 ];
 
-import { resolveCanonicalCompetition, CANONICAL_COMPETITIONS } from './canonicalCompetitions';
+import { resolveCanonicalCompetition, CANONICAL_COMPETITIONS } from './canonicalCompetitions.js';
 
 /**
  * Get deterministic base prestige score for any competition name or canonical ID

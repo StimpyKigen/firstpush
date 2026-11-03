@@ -1,5 +1,5 @@
-import { executeWeeklyIngestion } from '../../src/lib/weeklyFixtureService';
-import { isSnapshotStoreConfigured } from '../../src/lib/fixtureSnapshotStore';
+import { executeWeeklyIngestion } from '../../src/lib/weeklyFixtureService.js';
+import { isSnapshotStoreConfigured } from '../../src/lib/fixtureSnapshotStore.js';
 
 /**
  * Vercel Cron target. Fetches the week's fixtures from SportScore (competition-targeted,

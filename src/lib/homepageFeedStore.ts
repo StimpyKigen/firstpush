@@ -9,8 +9,8 @@
  */
 
 import { doc, setDoc, onSnapshot } from 'firebase/firestore';
-import { db } from '../firebase';
-import { deleteCarouselPhotoStorage } from './carouselStorageService';
+import { db } from '../firebase.js';
+import { deleteCarouselPhotoStorage } from './carouselStorageService.js';
 
 export interface HomepageCarouselItem {
   id: string;
