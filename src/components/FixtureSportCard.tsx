@@ -456,8 +456,7 @@ export default function FixtureSportCard({
             <span className="truncate">{consensus.totalVotes.toLocaleString()} punters analyzing</span>
           </span>
           {match.bookmaker === 'Bet365' && (
-            <span className="shrink-0 inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-semibold bg-[#006C54]/10 text-[#006C54] border border-[#006C54]/20 tracking-tight" title="Authentic Bet365 Odds">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#006C54]" />
+            <span className="shrink-0 text-[10px] font-semibold text-[#006C54] tracking-tight" title="Authentic Bet365 Odds">
               Bet365 Odds
             </span>
           )}

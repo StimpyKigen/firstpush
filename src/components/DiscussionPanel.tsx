@@ -104,12 +104,14 @@ export default function DiscussionPanel({
   const visiblePicks = showAll ? filteredSortedPicks : filteredSortedPicks.slice(0, SHOW_INITIAL);
   const hasMore = filteredSortedPicks.length > SHOW_INITIAL;
 
-  // Auto-resize textarea
+  // Auto-resize textarea and keep overflow hidden when small to eliminate native scrollbar pill
   useEffect(() => {
     const el = textareaRef.current;
     if (el) {
       el.style.height = 'auto';
-      el.style.height = `${Math.min(el.scrollHeight, 120)}px`;
+      const newHeight = Math.min(el.scrollHeight, 120);
+      el.style.height = `${newHeight}px`;
+      el.style.overflowY = el.scrollHeight > 120 ? 'auto' : 'hidden';
     }
   }, [myReason]);
 
@@ -203,9 +205,13 @@ export default function DiscussionPanel({
             placeholder={submitted ? 'Prediction and reasoning locked in.' : 'Why this pick? Share key stats, injury news, form analysis...'}
             rows={2}
             disabled={disabled || submitted}
-            className={`w-full bg-slate-50 border rounded-md px-3.5 py-2.5 text-xs text-slate-900 placeholder:text-slate-400 placeholder:text-xs placeholder:leading-relaxed focus:outline-none focus:bg-white transition-all resize-none leading-relaxed ${
+            className={`w-full bg-slate-50 border rounded-md px-3.5 py-2.5 text-xs text-slate-900 placeholder:text-slate-400 placeholder:text-xs placeholder:leading-relaxed focus:outline-none focus:bg-white transition-all resize-none leading-relaxed no-scrollbar ${
               !modResult.isAllowed ? 'border-rose-500 bg-rose-50/50' : 'border-slate-300 focus:border-[#006C54]'
             }`}
+            style={{
+              scrollbarWidth: 'none',
+              msOverflowStyle: 'none',
+            }}
           />
 
           {/* Moderation Warning Box with Prohibited Red Highlights */}

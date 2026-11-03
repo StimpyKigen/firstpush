@@ -44,18 +44,19 @@ export function applyTheme(theme: Theme) {
   currentTheme = theme;
   if (typeof document !== 'undefined') {
     const root = document.documentElement;
+    const isAndroid = typeof navigator !== 'undefined' && /android/i.test(navigator.userAgent);
     if (theme === 'dark') {
       root.classList.add('dark');
       root.classList.remove('light');
-      // If splash is not active, set status bar to main dark background
-      if (root.dataset.splash !== 'active') {
+      // If splash is not active (or on Android), set status bar to main dark background
+      if (root.dataset.splash !== 'active' || isAndroid) {
         document.querySelector('meta[name="theme-color"]')?.setAttribute('content', '#202522');
       }
     } else {
       root.classList.remove('dark');
       root.classList.add('light');
-      // If splash is not active, set status bar to ivory
-      if (root.dataset.splash !== 'active') {
+      // If splash is not active (or on Android), set status bar to ivory
+      if (root.dataset.splash !== 'active' || isAndroid) {
         document.querySelector('meta[name="theme-color"]')?.setAttribute('content', '#FFFFF0');
       }
     }

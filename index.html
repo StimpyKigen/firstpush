@@ -43,11 +43,23 @@
             document.documentElement.classList.add('light');
             document.documentElement.classList.remove('dark');
           }
+          var isAndroid = /android/i.test(navigator.userAgent);
+          if (isAndroid) {
+            document.documentElement.classList.add('is-android');
+          }
           var pwa = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true || /[?&](pwa|splash|loading)=1/.test(location.search);
           if (pwa) {
-            document.documentElement.setAttribute('data-splash', 'active');
-            document.querySelector('meta[name=theme-color]').setAttribute('content', '#11492D');
-            document.documentElement.style.backgroundColor = '#11492D';
+            if (isAndroid) {
+              // Android PWA: maintain unified charcoal nav strip in dark mode (#202522)
+              var androidColor = isDark ? '#202522' : '#FFFFF0';
+              document.querySelector('meta[name=theme-color]').setAttribute('content', androidColor);
+              document.documentElement.style.backgroundColor = androidColor;
+            } else {
+              // iOS and desktop PWA: preserve existing splash animation backdrop
+              document.documentElement.setAttribute('data-splash', 'active');
+              document.querySelector('meta[name=theme-color]').setAttribute('content', '#11492D');
+              document.documentElement.style.backgroundColor = '#11492D';
+            }
           } else if (isDark) {
             var meta = document.querySelector('meta[name=theme-color]');
             if (meta) meta.setAttribute('content', '#202522');

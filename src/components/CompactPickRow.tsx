@@ -173,9 +173,13 @@ export default function CompactPickRow({ pick, isTopPick, onEdit, onDelete, kick
           value={editReason}
           onChange={(e) => setEditReason(e.target.value)}
           rows={2}
-          className={`w-full bg-white border rounded-md px-3 py-2 text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none resize-none transition-all ${
+          className={`w-full bg-white border rounded-md px-3 py-2 text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none resize-none transition-all no-scrollbar ${
             !editMod.isAllowed ? 'border-rose-500 bg-rose-50/50' : 'border-slate-300 focus:border-[#006C54]'
           }`}
+          style={{
+            scrollbarWidth: 'none',
+            msOverflowStyle: 'none',
+          }}
         />
         <ModerationWarningBox result={editMod} text={editReason} />
         <div className="flex items-center justify-end gap-2 pt-1">

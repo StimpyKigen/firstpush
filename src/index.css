@@ -921,12 +921,28 @@ table {
 }
 
 .no-scrollbar {
-  scrollbar-width: none;
-  -ms-overflow-style: none;
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
 }
 
-.no-scrollbar::-webkit-scrollbar {
-  display: none;
+.no-scrollbar::-webkit-scrollbar,
+textarea.no-scrollbar::-webkit-scrollbar,
+textarea::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+
+textarea.no-scrollbar::-webkit-scrollbar-thumb,
+textarea::-webkit-scrollbar-thumb {
+  display: none !important;
+  background: transparent !important;
+}
+
+textarea.no-scrollbar::-webkit-scrollbar-track,
+textarea::-webkit-scrollbar-track {
+  display: none !important;
+  background: transparent !important;
 }
 
 @keyframes rise-in {
@@ -1159,9 +1175,21 @@ html.dark {
   --color-brand-primary: #006C54;
 }
 
+html.dark {
+  background-color: #202522 !important;
+}
+
 html.dark body {
   background-color: #202522 !important;
   color: #F4F5EF !important;
+}
+
+/* Android PWA: unify bottom strip and surfaces seamlessly in charcoal */
+html.is-android.dark,
+html.is-android.dark body,
+html.is-android.dark .app-shell,
+html.is-android.dark .mobile-bottom-nav {
+  background-color: #202522 !important;
 }
 
 html.dark .app-shell {

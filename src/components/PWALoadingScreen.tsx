@@ -78,10 +78,24 @@ export default function PWALoadingScreen() {
     }
   }, [isPwa, isDone]);
 
-  // 6. Synchronize theme-color: green on loading screen, ivory in-app
+  // 6. Synchronize theme-color: green on loading screen, ivory in-app (except Android PWA which unifies in charcoal)
   useEffect(() => {
     const metaTheme = document.querySelector('meta[name="theme-color"]');
     const root = document.documentElement;
+    const isAndroid = typeof navigator !== 'undefined' && /android/i.test(navigator.userAgent);
+    const isDark = root.classList.contains('dark');
+
+    if (isAndroid) {
+      // Android PWA: maintain unified charcoal status & navigation bar in dark mode
+      const androidColor = isDark ? '#202522' : '#FFFFF0';
+      if (metaTheme) metaTheme.setAttribute('content', androidColor);
+      root.style.backgroundColor = androidColor;
+      if (isExiting || isDone) {
+        root.removeAttribute('data-splash');
+      }
+      return;
+    }
+
     if (isPwa && !isExiting && !isDone) {
       if (metaTheme) metaTheme.setAttribute('content', '#11492D');
       root.style.backgroundColor = '#11492D';
@@ -89,7 +103,6 @@ export default function PWALoadingScreen() {
       // App loaded: release the splash lock and return status bar to ivory/white
       root.removeAttribute('data-splash');
       root.style.backgroundColor = '';
-      const isDark = root.classList.contains('dark');
       if (metaTheme) metaTheme.setAttribute('content', isDark ? '#202522' : '#FFFFF0');
     }
   }, [isPwa, isExiting, isDone]);
