@@ -86,7 +86,7 @@ export const COMPETITION_BANNERS: Record<string, CompetitionBannerConfig> = {
   la_liga: {
     id: 'la_liga',
     name: 'Spanish La Liga',
-    bannerUrl: '/banners/la-liga.png',
+    bannerUrl: '/banners/la-liga.jpg',
     overlayOpacity: 0.32,
     objectPosition: 'object-[center_46%]',
     gradientOverlay: 'from-transparent via-[#FFF1F2]/20 to-[#FFFFF0]/35',
