@@ -396,7 +396,14 @@ export const useBetSlipStore = create<BetSlipStoreState>((set, get) => ({
       return {
         userSavedIds: nextSavedIds,
         posts: state.posts.map((p) =>
-          p.id === postId ? { ...p, savedByMe: nextSaved, saves: nextSaves } : p
+          p.id === postId
+            ? {
+                ...p,
+                savedByMe: nextSaved,
+                saves: nextSaves,
+                savedAtTimestamp: nextSaved ? new Date().toISOString() : undefined,
+              }
+            : p
         ),
       };
     });

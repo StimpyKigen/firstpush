@@ -90,11 +90,7 @@ export default function MatchFiltersToolbar({
       if (leagueDropdownRef.current && !leagueDropdownRef.current.contains(target)) {
         setIsLeagueDropdownOpen(false);
       }
-      if (searchContainerRef.current && !searchContainerRef.current.contains(target)) {
-        if (!searchQuery) {
-          setIsSearchOpen(false);
-        }
-      }
+      // Search bar closes explicitly via Done button or Search icon button
     }
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);

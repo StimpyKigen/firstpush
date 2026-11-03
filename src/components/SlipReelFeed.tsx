@@ -1,4 +1,4 @@
-import { useRef, useState, useEffect, useCallback } from 'react';
+import { useRef, useState, useEffect, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { ChevronUp, ChevronDown, Layers, X, Bookmark } from 'lucide-react';
 import SlipReelCard from './SlipReelCard';
@@ -13,8 +13,26 @@ interface SlipReelFeedProps {
 
 export default function SlipReelFeed({ posts, onClose, initialFilter = 'all', isLoading = false }: SlipReelFeedProps) {
   const [filter, setFilter] = useState<'all' | 'saved'>(initialFilter);
-  const reelPosts = posts.filter((p) => p.builtSlip && (filter === 'all' || p.savedByMe));
-  const savedCount = posts.filter((p) => p.builtSlip && p.savedByMe).length;
+
+  const reelPosts = useMemo(() => {
+    const list = posts.filter((p) => p.builtSlip && (filter === 'all' || p.savedByMe));
+    if (filter === 'saved') {
+      return [...list].sort((a, b) => {
+        const timeA = a.savedAtTimestamp ? new Date(a.savedAtTimestamp).getTime() : 0;
+        const timeB = b.savedAtTimestamp ? new Date(b.savedAtTimestamp).getTime() : 0;
+        if (timeA !== timeB) return timeB - timeA;
+        const createdA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+        const createdB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+        return createdB - createdA;
+      });
+    }
+    return list;
+  }, [posts, filter]);
+
+  const savedCount = useMemo(
+    () => posts.filter((p) => p.builtSlip && p.savedByMe).length,
+    [posts]
+  );
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const [activeIndex, setActiveIndex] = useState(0);

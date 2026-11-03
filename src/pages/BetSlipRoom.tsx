@@ -170,7 +170,19 @@ export default function BetSlipRoom({ initialTab, initialFilter }: BetSlipRoomPr
             type="button"
             role="tab"
             aria-selected={activeTab === 'slips'}
-            onClick={() => setActiveTab('slips')}
+            onClick={() => {
+              if (searchParams.get('view') === 'saved') {
+                setSearchParams(
+                  (prev) => {
+                    const next = new URLSearchParams(prev);
+                    next.delete('view');
+                    return next;
+                  },
+                  { replace: true }
+                );
+              }
+              setActiveTab('slips');
+            }}
             className={`relative z-10 w-full flex items-center justify-center py-2 sm:py-2.5 px-1 min-[380px]:px-2.5 sm:px-4 rounded-full text-[11px] min-[360px]:text-[12px] min-[400px]:text-[13px] sm:text-sm tracking-tight transition-colors duration-150 cursor-pointer active:scale-[0.98] ${
               activeTab === 'slips'
                 ? 'text-[#00875A] font-bold'
@@ -219,7 +231,19 @@ export default function BetSlipRoom({ initialTab, initialFilter }: BetSlipRoomPr
           posts={posts}
           initialFilter={isSavedMode ? 'saved' : 'all'}
           isLoading={isSavedReelsLoading}
-          onClose={() => setActiveTab('builder')}
+          onClose={() => {
+            if (searchParams.get('view') === 'saved') {
+              setSearchParams(
+                (prev) => {
+                  const next = new URLSearchParams(prev);
+                  next.delete('view');
+                  return next;
+                },
+                { replace: true }
+              );
+            }
+            setActiveTab('builder');
+          }}
         />
       )}
 

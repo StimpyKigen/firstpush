@@ -435,7 +435,7 @@ export default function Profile() {
               {/* Mshindi Tokens (MT) Row */}
               <Link
                 to="/wallet"
-                className="w-full flex items-center justify-between p-4 lg:hover:bg-slate-50/70 lg:active:bg-slate-100/70 transition-colors text-left group"
+                className="w-full flex items-center justify-between p-4 text-left group"
               >
                 <div className="min-w-0">
                   <p className="text-sm font-bold text-slate-900 truncate">Mshindi Tokens</p>
@@ -453,7 +453,7 @@ export default function Profile() {
               {/* Expandable Recent Transactions Row */}
               <button
                 onClick={() => setShowTransactions(!showTransactions)}
-                className="w-full flex items-center justify-between p-4 lg:hover:bg-slate-50/70 lg:active:bg-slate-100/70 transition-colors text-left group cursor-pointer"
+                className="w-full flex items-center justify-between p-4 text-left group cursor-pointer"
               >
                 <div className="min-w-0">
                   <p className="text-sm font-bold text-slate-900 truncate">Recent Transactions</p>
@@ -522,7 +522,7 @@ export default function Profile() {
             <div className="bg-white rounded-2xl border border-[#E6E6D2] shadow-xs divide-y divide-[#F2F2E6] overflow-hidden">
               <button
                 onClick={() => setShowMyProfileModal(true)}
-                className="w-full flex items-center justify-between p-4 lg:hover:bg-slate-50/70 lg:active:bg-slate-100/70 transition-colors text-left group cursor-pointer"
+                className="w-full flex items-center justify-between p-4 text-left group cursor-pointer"
               >
                 <div className="min-w-0">
                   <p className="text-sm font-bold text-slate-900 truncate">Punter Performance</p>
@@ -539,7 +539,7 @@ export default function Profile() {
 
               <Link
                 to="/saved-reels"
-                className="w-full flex items-center justify-between p-4 lg:hover:bg-slate-50/70 lg:active:bg-slate-100/70 transition-colors text-left group cursor-pointer"
+                className="w-full flex items-center justify-between p-4 text-left group cursor-pointer"
               >
                 <div className="min-w-0">
                   <p className="text-sm font-bold text-slate-900 truncate">Saved Reels</p>
@@ -570,7 +570,7 @@ export default function Profile() {
 
               <button
                 onClick={() => setPanel(panel === 'support' ? 'none' : 'support')}
-                className="w-full flex items-center justify-between p-4 lg:hover:bg-slate-50/70 lg:active:bg-slate-100/70 transition-colors text-left group cursor-pointer"
+                className="w-full flex items-center justify-between p-4 text-left group cursor-pointer"
               >
                 <div className="min-w-0">
                   <p className="text-sm font-bold text-slate-900 truncate">Support & WhatsApp</p>
@@ -587,7 +587,7 @@ export default function Profile() {
 
               <button
                 onClick={() => setPanel(panel === 'close' ? 'none' : 'close')}
-                className="w-full flex items-center justify-between p-4 lg:hover:bg-rose-50/40 lg:active:bg-rose-50 transition-colors text-left group cursor-pointer"
+                className="w-full flex items-center justify-between p-4 text-left group cursor-pointer"
               >
                 <div className="min-w-0">
                   <p className="text-sm font-bold text-rose-700 truncate">Close Account</p>
@@ -599,7 +599,7 @@ export default function Profile() {
 
               <button
                 onClick={handleLogout}
-                className="w-full flex items-center justify-between p-4 lg:hover:bg-slate-50/70 lg:active:bg-slate-100/70 transition-colors text-left group cursor-pointer"
+                className="w-full flex items-center justify-between p-4 text-left group cursor-pointer"
               >
                 <div className="min-w-0">
                   <p className="text-sm font-bold text-slate-900 truncate">Log Out</p>
