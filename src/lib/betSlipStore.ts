@@ -6,6 +6,7 @@ import {
   fetchUserEngagementMap,
   subscribeToCommunityPosts,
   persistNewPostToFirestore,
+  resolveSavedReels,
 } from './engagementService';
 
 export interface BuiltSlipLeg {
@@ -49,6 +50,7 @@ export interface BetSlipPost {
   saves?: number;
   likedByMe?: boolean;
   savedByMe?: boolean;
+  savedAtTimestamp?: string;
   createdAt: string;
   updatedAt?: string;
   parsed?: ParsedSlip | null;
@@ -94,6 +96,8 @@ interface BetSlipStoreState {
   addComment: (postId: string, user: string, text: string) => void;
   initFeedSubscription: () => () => void;
   syncUserEngagements: (userPhone: string) => Promise<void>;
+  loadSavedReels: (userPhone: string) => Promise<BetSlipPost[]>;
+  isSavedReelsLoading: boolean;
 }
 
 const INITIAL_POSTS: BetSlipPost[] = [
@@ -207,6 +211,7 @@ export const useBetSlipStore = create<BetSlipStoreState>((set, get) => ({
   userLikedIds: new Set<string>(),
   userSavedIds: new Set<string>(),
   builderLegs: [],
+  isSavedReelsLoading: false,
 
   toggleBuilderLeg: (leg) => {
     set((state) => {
@@ -456,8 +461,13 @@ export const useBetSlipStore = create<BetSlipStoreState>((set, get) => ({
   initFeedSubscription: () => {
     return subscribeToCommunityPosts(
       (cloudPosts) => {
-        const { userLikedIds, userSavedIds } = get();
-        const reconciled = cloudPosts.map((p) => ({
+        const { userLikedIds, userSavedIds, posts: existingPosts } = get();
+        // Preserve any previously resolved saved reels that may not be in the recent feed window
+        const savedNotInFeed = existingPosts.filter(
+          (ep) => userSavedIds.has(ep.id) && !cloudPosts.some((cp) => cp.id === ep.id)
+        );
+
+        const reconciled = [...cloudPosts, ...savedNotInFeed].map((p) => ({
           ...p,
           likedByMe: userLikedIds.has(p.id),
           savedByMe: userSavedIds.has(p.id),
@@ -471,18 +481,65 @@ export const useBetSlipStore = create<BetSlipStoreState>((set, get) => ({
   syncUserEngagements: async (userPhone) => {
     if (!userPhone) return;
     try {
-      const { likedPostIds, savedPostIds } = await fetchUserEngagementMap(userPhone);
-      set((state) => ({
+      const [{ likedPostIds, savedPostIds }, resolvedSavedReels] = await Promise.all([
+        fetchUserEngagementMap(userPhone),
+        resolveSavedReels(userPhone, get().posts),
+      ]);
+
+      const currentPosts = get().posts;
+      const postMap = new Map<string, BetSlipPost>();
+      currentPosts.forEach((p) => postMap.set(p.id, p));
+
+      // Merge resolved saved reels into store
+      resolvedSavedReels.forEach((sp) => {
+        postMap.set(sp.id, {
+          ...sp,
+          savedByMe: true,
+          likedByMe: likedPostIds.has(sp.id),
+        });
+      });
+
+      const mergedPosts = Array.from(postMap.values()).map((p) => ({
+        ...p,
+        likedByMe: likedPostIds.has(p.id),
+        savedByMe: savedPostIds.has(p.id),
+      }));
+
+      set({
         userLikedIds: likedPostIds,
         userSavedIds: savedPostIds,
-        posts: state.posts.map((p) => ({
-          ...p,
-          likedByMe: likedPostIds.has(p.id),
-          savedByMe: savedPostIds.has(p.id),
-        })),
-      }));
+        posts: mergedPosts,
+      });
     } catch (err) {
       console.warn('[BetSlipStore] Engagement hydration notice:', err);
+    }
+  },
+
+  loadSavedReels: async (userPhone) => {
+    if (!userPhone) return [];
+    set({ isSavedReelsLoading: true });
+    try {
+      const resolved = await resolveSavedReels(userPhone, get().posts);
+      set((state) => {
+        const postMap = new Map<string, BetSlipPost>(state.posts.map((p) => [p.id, p]));
+        resolved.forEach((sp) => {
+          postMap.set(sp.id, { ...sp, savedByMe: true });
+        });
+
+        const nextSavedIds = new Set(state.userSavedIds);
+        resolved.forEach((sp) => nextSavedIds.add(sp.id));
+
+        return {
+          posts: Array.from(postMap.values()),
+          userSavedIds: nextSavedIds,
+          isSavedReelsLoading: false,
+        };
+      });
+      return resolved;
+    } catch (err) {
+      console.warn('[BetSlipStore] Error loading saved reels:', err);
+      set({ isSavedReelsLoading: false });
+      return [];
     }
   },
 }));

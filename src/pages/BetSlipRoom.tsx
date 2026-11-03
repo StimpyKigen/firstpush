@@ -42,12 +42,31 @@ function ClapperPlayIcon({ className, size = 16 }: { className?: string; size?: 
 
 
 
-export default function BetSlipRoom() {
+interface BetSlipRoomProps {
+  initialTab?: 'builder' | 'slips' | 'punters';
+  initialFilter?: 'all' | 'saved';
+}
+
+export default function BetSlipRoom({ initialTab, initialFilter }: BetSlipRoomProps = {}) {
   const [searchParams, setSearchParams] = useSearchParams();
   const currentUser = useCurrentUser();
   const posts = useBetSlipStore((s) => s.posts);
   const initFeedSubscription = useBetSlipStore((s) => s.initFeedSubscription);
   const syncUserEngagements = useBetSlipStore((s) => s.syncUserEngagements);
+  const loadSavedReels = useBetSlipStore((s) => s.loadSavedReels);
+  const isSavedReelsLoading = useBetSlipStore((s) => s.isSavedReelsLoading);
+
+  const isSavedMode = initialFilter === 'saved' || searchParams.get('view') === 'saved';
+
+  // User search & navigation states
+  const [punterSearchQuery, setPunterSearchQuery] = useState('');
+  const [selectedProfileUser, setSelectedProfileUser] = useState<string | null>(null);
+  const [showInviteModal, setShowInviteModal] = useState(false);
+  const [activeTab, setActiveTab] = useState<'builder' | 'slips' | 'punters'>(() => {
+    if (initialTab) return initialTab;
+    if (isSavedMode) return 'slips';
+    return 'builder';
+  });
 
   // Subscribe to real-time community slips feed with auto-cleanup on unmount
   useEffect(() => {
@@ -64,6 +83,13 @@ export default function BetSlipRoom() {
     }
   }, [currentUser?.phone, syncUserEngagements]);
 
+  // Proactively resolve authoritative saved reels when in saved mode or viewing slips
+  useEffect(() => {
+    if (currentUser?.phone && (isSavedMode || activeTab === 'slips')) {
+      loadSavedReels(currentUser.phone);
+    }
+  }, [currentUser?.phone, isSavedMode, activeTab, loadSavedReels]);
+
   // Deep-link to saved slips tab when view=saved query parameter is present
   useEffect(() => {
     if (searchParams.get('view') === 'saved') {
@@ -75,12 +101,6 @@ export default function BetSlipRoom() {
   const followUser = useFollowStore((s) => s.followUser);
   const unfollowUser = useFollowStore((s) => s.unfollowUser);
   const getFollowersCount = useFollowStore((s) => s.getFollowersCount);
-
-  // User search & navigation states
-  const [punterSearchQuery, setPunterSearchQuery] = useState('');
-  const [selectedProfileUser, setSelectedProfileUser] = useState<string | null>(null);
-  const [showInviteModal, setShowInviteModal] = useState(false);
-  const [activeTab, setActiveTab] = useState<'builder' | 'slips' | 'punters'>('builder');
 
   const matchingPunters = searchPunters(punterSearchQuery);
 
@@ -197,7 +217,8 @@ export default function BetSlipRoom() {
       {activeTab === 'slips' && (
         <SlipReelFeed
           posts={posts}
-          initialFilter={searchParams.get('view') === 'saved' ? 'saved' : 'all'}
+          initialFilter={isSavedMode ? 'saved' : 'all'}
+          isLoading={isSavedReelsLoading}
           onClose={() => setActiveTab('builder')}
         />
       )}

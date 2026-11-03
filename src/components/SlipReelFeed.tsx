@@ -8,9 +8,10 @@ interface SlipReelFeedProps {
   posts: BetSlipPost[];
   onClose: () => void;
   initialFilter?: 'all' | 'saved';
+  isLoading?: boolean;
 }
 
-export default function SlipReelFeed({ posts, onClose, initialFilter = 'all' }: SlipReelFeedProps) {
+export default function SlipReelFeed({ posts, onClose, initialFilter = 'all', isLoading = false }: SlipReelFeedProps) {
   const [filter, setFilter] = useState<'all' | 'saved'>(initialFilter);
   const reelPosts = posts.filter((p) => p.builtSlip && (filter === 'all' || p.savedByMe));
   const savedCount = posts.filter((p) => p.builtSlip && p.savedByMe).length;
@@ -84,6 +85,25 @@ export default function SlipReelFeed({ posts, onClose, initialFilter = 'all' }: 
   }
   function goPrev() {
     if (activeIndex > 0) scrollTo(activeIndex - 1);
+  }
+
+  // ── Loading state ───────────────────────────────────────────────────────────
+  if (isLoading && reelPosts.length === 0) {
+    return (
+      <div className="fixed inset-0 z-50 bg-[#FFFFF0] dark:bg-[#202522] flex flex-col items-center justify-center gap-4 p-8 text-slate-900 dark:text-[#F4F5EF]">
+        <button
+          onClick={onClose}
+          className="absolute top-4 right-4 p-2 rounded-full bg-white dark:bg-[#2A312D] border border-slate-200 dark:border-[#414A43] text-slate-600 dark:text-[#B5BDB6] hover:text-slate-900 dark:hover:text-[#F4F5EF] transition-colors shadow-xs cursor-pointer"
+          aria-label="Close Reels"
+        >
+          <X size={20} />
+        </button>
+        <div className="w-10 h-10 border-3 border-emerald-600/30 border-t-[#006C54] rounded-full animate-spin" />
+        <p className="font-display font-bold text-sm text-slate-700 dark:text-slate-300">
+          {filter === 'saved' ? 'Loading Saved Reels...' : 'Loading SlipFeed...'}
+        </p>
+      </div>
+    );
   }
 
   // ── Empty state ─────────────────────────────────────────────────────────────

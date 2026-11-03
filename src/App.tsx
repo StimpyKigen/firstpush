@@ -71,7 +71,7 @@ function RouteLoadingFallback({ pathname }: { pathname: string }) {
   if (pathname === '/wallet') {
     return <WalletSkeleton />;
   }
-  if (pathname === '/slips') {
+  if (pathname === '/slips' || pathname === '/saved-reels') {
     return (
       <div className="max-w-4xl lg:max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
         <div className="mb-8">
@@ -113,6 +113,7 @@ function AnimatedRoutes() {
             <Route path="/login" element={<Auth />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="/slips" element={<BetSlipRoom />} />
+            <Route path="/saved-reels" element={<BetSlipRoom initialTab="slips" initialFilter="saved" />} />
             <Route path="/privacy" element={<PrivacyPolicy />} />
             <Route path="/terms" element={<TermsOfService />} />
             <Route path="/p2p" element={<Navigate to="/" replace />} />

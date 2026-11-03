@@ -538,11 +538,11 @@ export default function Profile() {
               </button>
 
               <Link
-                to="/slips?view=saved"
+                to="/saved-reels"
                 className="w-full flex items-center justify-between p-4 lg:hover:bg-slate-50/70 lg:active:bg-slate-100/70 transition-colors text-left group cursor-pointer"
               >
                 <div className="min-w-0">
-                  <p className="text-sm font-bold text-slate-900 truncate">Saved Bet Slips</p>
+                  <p className="text-sm font-bold text-slate-900 truncate">Saved Reels</p>
                   <p className="text-xs text-slate-500 font-normal truncate">
                     Bookmarked community slips &amp; accumulator codes
                   </p>

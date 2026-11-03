@@ -7,6 +7,8 @@ import PlayerProfileModal from './PlayerProfileModal';
 import ReportModal from './ReportModal';
 import { getStarRating } from '../lib/punterRatings';
 import { useCurrentUser } from '../lib/authStore';
+import { useCommentEngagementStore } from '../lib/commentEngagementStore';
+import { showToast } from '../lib/notificationStore';
 import { usePickEdits } from '../lib/pickEditStore';
 import { moderateText } from '../lib/contentModeration';
 import ModerationWarningBox from './ModerationWarningBox';
@@ -34,10 +36,10 @@ function formatLiveTimeAgo(timestamp: number, currentNow: number): string {
 
 export default function CompactPickRow({ pick, isTopPick, onEdit, onDelete, kickoffTime, isMatchLiveOrFinished }: CompactPickRowProps) {
   const currentUser = useCurrentUser();
-  const toggleLike = usePickEdits((s) => s.toggleLike);
   const canEdit = usePickEdits((s) => s.canEdit(pick.id));
-  const [likes, setLikes] = useState(pick.likes);
-  const [liked, setLiked] = useState(false);
+  const isLiked = useCommentEngagementStore((s) => s.isCommentLiked(pick.id));
+  const currentLikes = useCommentEngagementStore((s) => s.getCommentLikes(pick.id, pick.likes));
+  const toggleCommentLike = useCommentEngagementStore((s) => s.toggleCommentLike);
   const [expanded, setExpanded] = useState(false);
   const [editing, setEditing] = useState(false);
   const [showProfileModal, setShowProfileModal] = useState(false);
@@ -109,11 +111,26 @@ export default function CompactPickRow({ pick, isTopPick, onEdit, onDelete, kick
   const isLong = reasoning.length > 120;
   const displayText = expanded || !isLong ? reasoning : reasoning.slice(0, 120) + '...';
 
-  function handleLike() {
-    if (!currentUser) return;
-    setLiked(!liked);
-    setLikes((l) => (liked ? l - 1 : l + 1));
-    toggleLike(pick.id, currentUser.username);
+  async function handleLike() {
+    if (!currentUser) {
+      showToast({
+        type: 'warning',
+        title: 'Sign in required',
+        message: 'Log in to like comments.',
+      });
+      return;
+    }
+    const res = await toggleCommentLike(pick.id, {
+      phone: currentUser.phone,
+      username: currentUser.username,
+    });
+    if (!res.success && res.error) {
+      showToast({
+        type: 'error',
+        title: 'Like failed',
+        message: res.error,
+      });
+    }
   }
 
   function handleSaveEdit() {
@@ -351,7 +368,7 @@ export default function CompactPickRow({ pick, isTopPick, onEdit, onDelete, kick
             type="button"
             onClick={handleLike}
             className={`h-7 px-1.5 text-xs font-bold tabular-nums flex items-center gap-1.5 transition-all active:scale-95 cursor-pointer ${
-              liked
+              isLiked
                 ? 'text-[#3B82F6]'
                 : 'text-slate-600 dark:text-[#B5BDB6] hover:text-slate-900 dark:hover:text-[#F4F5EF]'
             }`}
@@ -359,9 +376,9 @@ export default function CompactPickRow({ pick, isTopPick, onEdit, onDelete, kick
           >
             <ThumbsUp
               size={12}
-              className={liked ? 'text-[#3B82F6] fill-none' : 'text-slate-400 dark:text-[#929D95]'}
+              className={isLiked ? 'text-[#3B82F6] fill-none' : 'text-slate-400 dark:text-[#929D95]'}
             />
-            <span className={liked ? 'text-[#3B82F6]' : ''}>{likes}</span>
+            <span className={isLiked ? 'text-[#3B82F6]' : ''}>{currentLikes}</span>
           </button>
         </div>
       </div>

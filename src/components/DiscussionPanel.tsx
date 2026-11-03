@@ -7,6 +7,7 @@ import { sortPicksByVisibility, getTopPick } from '../lib/pickSorting';
 import { moderateText } from '../lib/contentModeration';
 import { PickRowSkeleton } from './skeleton';
 import { useCurrentUser } from '../lib/authStore';
+import { useCommentEngagementStore } from '../lib/commentEngagementStore';
 
 interface DiscussionPanelProps {
   picks: GamblerPick[];
@@ -51,6 +52,14 @@ export default function DiscussionPanel({
   const [deletedPickIds, setDeletedPickIds] = useState<string[]>([]);
   const postedTimerRef = useRef<NodeJS.Timeout | null>(null);
   const currentUser = useCurrentUser();
+  const hydrateUserCommentLikes = useCommentEngagementStore((s) => s.hydrateUserCommentLikes);
+
+  // Hydrate user's comment likes from Cloud Firestore with zero flash
+  useEffect(() => {
+    if (currentUser?.phone) {
+      hydrateUserCommentLikes(currentUser.phone);
+    }
+  }, [currentUser?.phone, hydrateUserCommentLikes]);
 
   // Clean up timer on unmount
   useEffect(() => {
