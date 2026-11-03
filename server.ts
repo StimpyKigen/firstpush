@@ -24,6 +24,11 @@ import { fetchBet365OddsForMatch } from './src/lib/sportscoreOddsService';
 import { extractPdfTextServer } from './src/lib/serverPdfParser';
 import { getSavedHomepageFeed, saveHomepageFeed } from './src/lib/serverHomepageFeed';
 import { parseJackpotWebpageText } from './src/lib/jackpotWebParser';
+import {
+  initWeeklyFixtureScheduler,
+  getWeeklySchedulerStatus,
+  executeWeeklyIngestion,
+} from './src/lib/weeklyFixtureService';
 
 const ADMIN_TOKEN_SECRET =
   process.env.ADMIN_SECRET ||
@@ -404,6 +409,26 @@ async function startServer() {
       res.json({ success: true, result, diagnostics: getSyncDiagnostics() });
     } catch (err: any) {
       res.status(500).json({ success: false, error: 'Failed to execute live synchronization.' });
+    }
+  });
+
+  // Automated Weekly SportScore Fixture Ingestion APIs
+  app.get('/api/sports/weekly-sync/status', (req: Request, res: Response) => {
+    try {
+      const status = getWeeklySchedulerStatus();
+      res.json({ success: true, ...status });
+    } catch (err: any) {
+      res.status(500).json({ success: false, error: err?.message || 'Failed to retrieve weekly sync status' });
+    }
+  });
+
+  app.post('/api/sports/weekly-sync', async (req: Request, res: Response) => {
+    try {
+      const force = Boolean(req.body?.force);
+      const log = await executeWeeklyIngestion({ force });
+      res.json({ success: true, log });
+    } catch (err: any) {
+      res.status(500).json({ success: false, error: err?.message || 'Failed to execute weekly ingestion' });
     }
   });
 
@@ -838,6 +863,9 @@ Sitemap: https://mshindi.co.ke/sitemap.xml
   }
 
   // Continuous automated SportScore scraping disabled per user mandate
+
+  // Automated weekly SportScore fixture scheduler (Every Monday 00:00:00 Africa/Nairobi)
+  initWeeklyFixtureScheduler();
 
   app.listen(PORT, '0.0.0.0', () => {
     console.log(`Mshindi Projo Server running on http://0.0.0.0:${PORT}`);
