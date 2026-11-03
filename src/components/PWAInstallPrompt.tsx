@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Download, X, Share, PlusSquare, Smartphone, CheckCircle2, Sparkles, ShieldCheck } from 'lucide-react';
+import { Download, X, Share, PlusSquare, Smartphone, CheckCircle2, ShieldCheck } from 'lucide-react';
 import Modal from './ui/Modal';
 
 interface BeforeInstallPromptEvent extends Event {
@@ -109,8 +109,8 @@ export default function PWAInstallPrompt() {
             <img src="/pwa-192.png" alt="MshindiRoom App Icon" className="w-12 h-12 shrink-0 object-contain" />
 
             <div className="flex-1">
-              <div className="flex items-center gap-1.5 text-gold font-bold text-xs tracking-wide uppercase">
-                <Sparkles size={13} />
+              <div className="text-gold font-bold text-xs tracking-wide uppercase">
+                
                 <span>Install Mobile App</span>
               </div>
               <h4 className="font-bold text-cream text-sm mt-0.5">MshindiRoom</h4>

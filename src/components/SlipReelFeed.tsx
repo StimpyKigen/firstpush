@@ -117,8 +117,8 @@ export default function SlipReelFeed({ posts, onClose, initialFilter = 'all', is
         >
           <X size={20} />
         </button>
-        <div className="w-16 h-16 rounded-2xl bg-emerald-50 dark:bg-[#266E0C]/25 text-[#006C54] flex items-center justify-center shadow-xs">
-          {filter === 'saved' ? <Bookmark size={30} className="text-amber-500 fill-amber-500" /> : <Layers size={32} />}
+        <div className="flex items-center justify-center text-[#006C54]">
+          {filter === 'saved' ? <Bookmark size={36} className="text-amber-500 fill-amber-500" /> : <Layers size={36} />}
         </div>
         <div className="text-center max-w-xs">
           <p className="font-display font-bold text-xl text-slate-900 dark:text-[#F4F5EF] mb-1">
