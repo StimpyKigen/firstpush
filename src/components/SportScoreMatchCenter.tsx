@@ -242,7 +242,7 @@ export default function SportScoreMatchCenter({ match }: SportScoreMatchCenterPr
                 Loading chronological match events...
               </div>
             ) : detail?.incidents && detail.incidents.length > 0 ? (
-              <div className="space-y-2 max-h-72 overflow-y-auto pr-1">
+              <div className="space-y-2 max-h-72 overflow-y-auto pr-1 no-scrollbar overscroll-contain scroll-isolated">
                 {detail.incidents.map((inc, i) => {
                   const isGoal = inc.is_goal || inc.type.toLowerCase().includes('goal');
                   const isCard = inc.is_card || inc.type.toLowerCase().includes('card');

@@ -129,7 +129,7 @@ export default function LiveRoomsResultsManager({
 
               {/* Leg Match Result Pickers (Visible only when expanded) */}
               {isExpanded && (
-                <div className="max-h-80 overflow-y-auto space-y-2 pr-1 animate-fade-in">
+                <div className="max-h-80 overflow-y-auto space-y-2 pr-1 animate-fade-in no-scrollbar overscroll-contain scroll-isolated">
                   {activeResultRoom.matches.map((match, idx) => {
                     return (
                       <div

@@ -27,7 +27,7 @@ export const MessageScrollerViewport = React.forwardRef<
 >(({ className = '', ...props }, ref) => (
   <MessageScrollerPrimitive.Viewport
     ref={ref}
-    className={`size-full min-h-0 min-w-0 overflow-y-auto overscroll-contain scroll-smooth ${className}`}
+    className={`size-full min-h-0 min-w-0 overflow-y-auto overscroll-contain no-scrollbar scroll-isolated scroll-smooth ${className}`}
     {...props}
   />
 ));

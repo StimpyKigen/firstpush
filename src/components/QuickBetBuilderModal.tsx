@@ -151,7 +151,7 @@ export default function QuickBetBuilderModal({
           </div>
 
           {/* Markets Body - Scrollable */}
-          <div className="p-4 space-y-4 overflow-y-auto scroll-touch flex-1 bg-white">
+          <div className="p-4 space-y-4 overflow-y-auto flex-1 bg-white no-scrollbar overscroll-contain scroll-isolated">
             {/* Match Result (1X2) */}
             <div>
               <label className="text-xs font-bold uppercase tracking-wide text-slate-800 block mb-2">

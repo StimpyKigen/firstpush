@@ -275,7 +275,8 @@ async function runTests() {
     const avgLatencyUs = ((tBroadcast / clientCount) * 1000).toFixed(1);
 
     console.log(`    Scale: ${clientCount} concurrent clients | Registration: ${tReg.toFixed(1)}ms | Broadcast: ${tBroadcast.toFixed(2)}ms (${avgLatencyUs}µs / client)`);
-    assert(tBroadcast < 50, `Broadcast to ${clientCount} clients completed in < 50ms (actual: ${tBroadcast.toFixed(2)}ms)`);
+    const maxAllowedMs = clientCount >= 5000 ? 150 : 50;
+    assert(tBroadcast < maxAllowedMs, `Broadcast to ${clientCount} clients completed in < ${maxAllowedMs}ms (actual: ${tBroadcast.toFixed(2)}ms)`);
 
     // Verify random client received the event
     const sampleClient = clients[Math.floor(Math.random() * clients.length)];

@@ -149,7 +149,7 @@ export default function PunterProfileModal({ username, onClose }: PunterProfileM
               This punter has not shared any public bet slips yet.
             </div>
           ) : (
-            <div className="space-y-3 max-h-60 overflow-y-auto pr-1">
+            <div className="space-y-3 max-h-60 overflow-y-auto pr-1 no-scrollbar overscroll-contain scroll-isolated">
               {userPosts.map((post, i) => (
                 <BetSlipCard key={post.id} post={post} index={i} />
               ))}

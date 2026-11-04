@@ -361,22 +361,24 @@ textarea::-moz-placeholder {
   color: #ffffff;
 }
 
+/* Universal Scrollbar Elimination for Desktop, iOS Safari, Android Chrome, and PWA */
+* {
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
+}
+
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+  background: transparent !important;
 }
 
-::-webkit-scrollbar-track {
-  background: #F5F5E4;
-}
-
-::-webkit-scrollbar-thumb {
-  background: #D4D4C0;
-  border-radius: 999px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: #8595a4;
+::-webkit-scrollbar-track,
+::-webkit-scrollbar-thumb,
+::-webkit-scrollbar-corner {
+  display: none !important;
+  background: transparent !important;
 }
 
 /* ==========================================================================
@@ -920,12 +922,20 @@ table {
   background-color: #FFFFF0;
 }
 
-.no-scrollbar {
+.no-scrollbar,
+.scrollbar-none,
+.scrollbar-hidden,
+.scroll-isolated {
   scrollbar-width: none !important;
   -ms-overflow-style: none !important;
+  overscroll-behavior: contain !important;
+  overscroll-behavior-y: contain !important;
 }
 
 .no-scrollbar::-webkit-scrollbar,
+.scrollbar-none::-webkit-scrollbar,
+.scrollbar-hidden::-webkit-scrollbar,
+.scroll-isolated::-webkit-scrollbar,
 textarea.no-scrollbar::-webkit-scrollbar,
 textarea::-webkit-scrollbar {
   display: none !important;
@@ -1226,17 +1236,15 @@ html.dark .mobile-bottom-nav {
   }
 }
 
-/* Scrollbars in Dark Mode */
-html.dark ::-webkit-scrollbar-track {
-  background: #202522 !important;
-}
-
-html.dark ::-webkit-scrollbar-thumb {
-  background: #414A43 !important;
-}
-
+/* Scrollbars in Dark Mode - fully suppressed */
+html.dark ::-webkit-scrollbar,
+html.dark ::-webkit-scrollbar-track,
+html.dark ::-webkit-scrollbar-thumb,
 html.dark ::-webkit-scrollbar-thumb:hover {
-  background: #929D95 !important;
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+  background: transparent !important;
 }
 
 /* Skeleton Shimmer in Dark Mode */

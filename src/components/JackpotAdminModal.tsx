@@ -142,7 +142,7 @@ export default function JackpotAdminModal({ isOpen, onClose }: JackpotAdminModal
 
           {/* APPLE-STYLE SEGMENTED NAVIGATION BAR */}
           {isAdminUnlocked && (
-            <div className="px-6 pb-3 overflow-x-auto">
+            <div className="px-6 pb-3 overflow-x-auto no-scrollbar">
               <div className="inline-flex items-center bg-[#F5F5F7] border border-[#E5E5EA] rounded-xl p-1 gap-1 shadow-2xs">
                 <button
                   type="button"
@@ -201,7 +201,7 @@ export default function JackpotAdminModal({ isOpen, onClose }: JackpotAdminModal
         </div>
 
         {/* BODY CONTENT AREA */}
-        <div className="flex-1 overflow-y-auto">
+        <div className="flex-1 overflow-y-auto no-scrollbar overscroll-contain scroll-isolated">
           {!isAdminUnlocked ? (
             <div className="p-8 sm:p-12 max-w-md mx-auto text-center flex flex-col items-center gap-4">
               <div className="text-[#006C54]">

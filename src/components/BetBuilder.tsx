@@ -339,7 +339,7 @@ export default function BetBuilder({ onPublished }: BetBuilderProps) {
             </div>
 
             {/* Selected Legs Preview List (Collapsible / Scrollable) */}
-            <div className="max-h-36 overflow-y-auto space-y-1.5 pr-1 text-xs scroll-touch">
+            <div className="max-h-36 overflow-y-auto space-y-1.5 pr-1 text-xs no-scrollbar overscroll-contain scroll-isolated">
               {cartLegs.map((leg) => (
                 <div
                   key={leg.id}

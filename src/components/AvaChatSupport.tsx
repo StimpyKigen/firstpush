@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
+import { isolateScroll } from '../lib/scrollIsolation';
 import { useLocation } from 'react-router-dom';
 import { X, RefreshCw } from 'lucide-react';
 
@@ -335,7 +336,8 @@ export default function AvaChatSupport() {
           </div>
 
           {/* Chat Messages Body */}
-          <div className={`flex-1 min-h-0 ${isMobilePwa ? 'p-2 space-y-1.5 text-[11px]' : 'p-3 sm:p-3.5 space-y-2.5 text-xs'} overflow-y-auto text-slate-700 dark:text-[#B5BDB6] scrollbar-thin`}>
+          <div className={`flex-1 min-h-0 ${isMobilePwa ? 'p-2 space-y-1.5 text-[11px]' : 'p-3 sm:p-3.5 space-y-2.5 text-xs'} overflow-y-auto text-slate-700 dark:text-[#B5BDB6] no-scrollbar overscroll-contain scroll-isolated`}
+            ref={(el) => { if (el) isolateScroll(el); }}>
             {messages.map((msg) => (
               <div
                 key={msg.id}

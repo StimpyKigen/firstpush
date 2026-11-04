@@ -71,7 +71,7 @@ export default function CreateJackpotForm({
         <label className="block text-[11px] font-semibold text-slate-600 uppercase tracking-wide">
           Select Betting Provider
         </label>
-        <div className="flex items-center gap-2 overflow-x-auto pb-1">
+        <div className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar">
           {KENYAN_BETTING_SITES.slice(0, 8).map((site) => {
             const isSelected = selectedBookie === site;
             const t = getBookieTheme(site);
@@ -292,7 +292,7 @@ export default function CreateJackpotForm({
             No matches loaded yet. Paste webpage text and click "AI Arrange & Set Matches" above.
           </div>
         ) : (
-          <div className="space-y-2 max-h-72 overflow-y-auto pr-1">
+          <div className="space-y-2 max-h-72 overflow-y-auto pr-1 no-scrollbar overscroll-contain scroll-isolated">
             {matches.map((m, idx) => (
               <div
                 key={idx}

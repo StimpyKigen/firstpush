@@ -718,7 +718,7 @@ export default function AdminFixturesManager() {
               </button>
             </div>
 
-            <div className="overflow-x-auto max-h-[380px] overflow-y-auto divide-y divide-slate-100 text-xs">
+            <div className="overflow-x-auto max-h-[380px] overflow-y-auto divide-y divide-slate-100 text-xs no-scrollbar overscroll-contain scroll-isolated">
               <table className="w-full text-left border-collapse">
                 <thead className="bg-[#F5F5F7] text-slate-600 font-semibold text-[11px] uppercase tracking-wide sticky top-0 z-10">
                   <tr>
