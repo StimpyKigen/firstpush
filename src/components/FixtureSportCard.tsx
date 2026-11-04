@@ -453,7 +453,7 @@ export default function FixtureSportCard({
         <div className="flex items-center justify-between t-meta text-slate-700 mt-2.5">
           <span className="flex items-center gap-1.5 min-w-0">
             <Users size={12} className="text-[#006C54] shrink-0" />
-            <span className="truncate">{consensus.totalVotes.toLocaleString()} punters analyzing</span>
+            <span className="truncate font-medium">{consensus.totalVotes.toLocaleString()} punters analyzing</span>
           </span>
           {match.bookmaker === 'Bet365' && (
             <span className="shrink-0 text-[10px] font-semibold text-[#006C54] tracking-tight" title="Authentic Bet365 Odds">
@@ -576,7 +576,7 @@ export default function FixtureSportCard({
         <div className="mt-2.5">
           <div className="flex items-center justify-between t-meta text-slate-600 mb-1">
             <span className="flex items-center gap-1">
-              <Flame size={11} className="text-[#006C54]" /> Consensus: <strong className="text-slate-900">{majLabel}</strong>
+              <Flame size={11} className="text-[#006C54]" /> Consensus: <strong className="text-slate-900 font-semibold">{majLabel}</strong>
             </span>
             <span className="t-num font-semibold text-slate-800">{majority}%</span>
           </div>

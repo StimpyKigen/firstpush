@@ -366,3 +366,4 @@ class RealtimeClient {
 
 // Global frontend singleton client
 export const realtimeClient = new RealtimeClient();
+

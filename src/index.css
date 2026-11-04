@@ -1376,7 +1376,6 @@ html.dark .fixture-card-banner :is(.t-team, .t-score, .t-title) {
 
 html.dark .fixture-card-banner :is(.t-label, .t-meta) {
   color: #000000 !important;
-  font-weight: 700 !important;
 }
 
 html.dark .fixture-card-banner :is(.t-label, .t-meta) svg {

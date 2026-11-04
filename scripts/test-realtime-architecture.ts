@@ -27,7 +27,7 @@ interface MockResponse extends EventEmitter {
   end: () => void;
 }
 
-function createMockClient(): { req: any; res: MockResponse } {
+function createMockClient(): { req: any; res: any } {
   const req: any = new EventEmitter();
   req.headers = { 'user-agent': 'MshindiTestRunner/1.0', 'x-forwarded-for': '127.0.0.1' };
   req.ip = '127.0.0.1';
