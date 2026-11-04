@@ -74,6 +74,19 @@ export default function BetBuilder({ onPublished }: BetBuilderProps) {
     clearBuilderLegs,
   } = useBetBuilder(onPublished);
 
+  // Scroll to focused fixture when opened from direct link
+  useEffect(() => {
+    if (expandedFixtureId) {
+      const timer = setTimeout(() => {
+        const el = document.getElementById(`builder-fixture-${expandedFixtureId}`);
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }, 250);
+      return () => clearTimeout(timer);
+    }
+  }, [expandedFixtureId]);
+
   // Deactivate background scroll when Publish pop-up is active
   useEffect(() => {
     if (showPublishModal) {
@@ -555,6 +568,7 @@ function BuilderFixtureItem({
 
   return (
     <div
+      id={`builder-fixture-${fixture.id}`}
       className={`bg-panel border rounded-2xl transition-all shadow-sm overflow-hidden ${
         legsInThisMatch.length > 0 ? 'border-gold/60 bg-gold/5' : 'border-line hover:border-gold/30'
       }`}

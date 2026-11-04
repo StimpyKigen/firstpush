@@ -1,4 +1,5 @@
 import { useState, useMemo, useRef, useEffect, useSyncExternalStore } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Calendar, SearchX,
   RotateCcw, Radio, CheckCircle2, RefreshCw
@@ -19,7 +20,6 @@ import { useBetSlipStore } from '../lib/betSlipStore';
 import { useCurrentUser } from '../lib/authStore';
 import { useAuthWallStore } from '../lib/authWallStore';
 import { showToast } from '../lib/notificationStore';
-import QuickBetBuilderModal, { type MatchForBuilder } from '../components/QuickBetBuilderModal';
 import { MatchListSkeleton } from '../components/skeleton';
 import {
   SPORTSCORE_COUNTRY_DIRECTORY_CONFIG,
@@ -38,10 +38,10 @@ import {
 } from '../lib/competitionPriority';
 
 export default function FreeMatches() {
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<FilterScopeTab>('highlights');
   const [selectedDate, setSelectedDate] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedMatchForBuilder, setSelectedMatchForBuilder] = useState<MatchForBuilder | null>(null);
 
   // League directory filter
   const [leagueFilter, setLeagueFilter] = useState<string>(() => {
@@ -598,7 +598,7 @@ export default function FreeMatches() {
                     }
                     builderLegs={builderLegs}
                     onToggleLeg={(market, pick, odds, e) => handleToggleLeg(m, market, pick, odds, e)}
-                    onOpenBetBuilder={(matchData) => setSelectedMatchForBuilder(matchData)}
+                    onOpenBetBuilder={(m) => navigate(`/slips?tab=builder&match=${encodeURIComponent(m.id || m)}`)}
                   />
                 ))}
               </div>
@@ -624,20 +624,13 @@ export default function FreeMatches() {
               }
               builderLegs={builderLegs}
               onToggleLeg={(market, pick, odds, e) => handleToggleLeg(m, market, pick, odds, e)}
-              onOpenBetBuilder={(matchData) => setSelectedMatchForBuilder(matchData)}
+              onOpenBetBuilder={(m) => navigate(`/slips?tab=builder&match=${encodeURIComponent(m.id || m)}`)}
             />
           ))}
         </div>
       )}
 
-      {/* Quick Bet Builder Modal */}
-      {selectedMatchForBuilder && (
-        <QuickBetBuilderModal
-          match={selectedMatchForBuilder}
-          isOpen={Boolean(selectedMatchForBuilder)}
-          onClose={() => setSelectedMatchForBuilder(null)}
-        />
-      )}
+
     </div>
   );
 }

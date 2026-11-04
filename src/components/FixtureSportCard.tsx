@@ -462,113 +462,41 @@ export default function FixtureSportCard({
           )}
         </div>
 
-        {/* 1X2 Market Odds Grid (Treated like rest of card so banner shows through) */}
+        {/* 1X2 Market Odds Grid (Display Only - Non-interactive) */}
         <div className="mt-2.5">
-          <div className="grid grid-cols-3 gap-1.5 text-center">
-            <button
-              type="button"
-              onClick={(e) => {
-                if (!currentUser) {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  openAuthWall({
-                    actionType: 'builder_pick',
-                    title: 'Sign In to Make Selections',
-                    message: 'Sign up or log in to select market odds and add selections to your Bet Builder slip.',
-                  });
-                  return;
-                }
-                onToggleLeg('Match Result (1X2)', `${match.home} Win (1)`, hOdds, e);
-              }}
-              className={`rounded-xl py-1.5 px-1 border transition-all duration-150 active:scale-[0.98] min-h-[40px] flex flex-col items-center justify-center gap-0.5 cursor-pointer ${
-                isHomeSelected
-                  ? 'bg-[#006C54] text-white font-bold border-[#005441] shadow-xs'
-                  : banner
-                  ? `bg-white/15 hover:bg-white/35 text-slate-800 ${banner.oddsBorderColor || 'border-[#7BA7F8]/50 hover:border-[#0A3B8C]'} backdrop-blur-[1px]`
-                  : 'bg-transparent hover:bg-black/[0.04] dark:hover:bg-white/[0.06] text-slate-800 dark:text-[#F4F5EF] border-[#DCDCC8] dark:border-[#414A43] hover:border-[#006C54] dark:hover:border-[#006C54]'
+          <div className="grid grid-cols-3 gap-1.5 text-center select-none pointer-events-none">
+            <div
+              className={`rounded-xl py-1.5 px-1 border min-h-[40px] flex flex-col items-center justify-center gap-0.5 select-none ${
+                banner
+                  ? `bg-white/15 text-slate-800 ${banner.oddsBorderColor || 'border-[#7BA7F8]/50'} backdrop-blur-[1px]`
+                  : 'bg-transparent text-slate-800 dark:text-[#F4F5EF] border-[#DCDCC8] dark:border-[#414A43]'
               }`}
             >
-              <span
-                className={`t-market ${
-                  isHomeSelected ? 'text-white/80' : 'text-slate-500'
-                }`}
-              >
-                1
-              </span>
-              <span className={`t-odds ${isHomeSelected ? 'text-white' : 'text-slate-900'}`}>
-                {hOdds.toFixed(2)}
-              </span>
-            </button>
+              <span className="t-market text-slate-500">1</span>
+              <span className="t-odds text-slate-900">{hOdds.toFixed(2)}</span>
+            </div>
 
-            <button
-              type="button"
-              onClick={(e) => {
-                if (!currentUser) {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  openAuthWall({
-                    actionType: 'builder_pick',
-                    title: 'Sign In to Make Selections',
-                    message: 'Sign up or log in to select market odds and add selections to your Bet Builder slip.',
-                  });
-                  return;
-                }
-                onToggleLeg('Match Result (1X2)', 'Draw (X)', dOdds, e);
-              }}
-              className={`rounded-xl py-1.5 px-1 border transition-all duration-150 active:scale-[0.98] min-h-[40px] flex flex-col items-center justify-center gap-0.5 cursor-pointer ${
-                isDrawSelected
-                  ? 'bg-[#006C54] text-white font-bold border-[#005441] shadow-xs'
-                  : banner
-                  ? `bg-white/15 hover:bg-white/35 text-slate-800 ${banner.oddsBorderColor || 'border-[#7BA7F8]/50 hover:border-[#0A3B8C]'} backdrop-blur-[1px]`
-                  : 'bg-transparent hover:bg-black/[0.04] dark:hover:bg-white/[0.06] text-slate-800 dark:text-[#F4F5EF] border-[#DCDCC8] dark:border-[#414A43] hover:border-[#006C54] dark:hover:border-[#006C54]'
+            <div
+              className={`rounded-xl py-1.5 px-1 border min-h-[40px] flex flex-col items-center justify-center gap-0.5 select-none ${
+                banner
+                  ? `bg-white/15 text-slate-800 ${banner.oddsBorderColor || 'border-[#7BA7F8]/50'} backdrop-blur-[1px]`
+                  : 'bg-transparent text-slate-800 dark:text-[#F4F5EF] border-[#DCDCC8] dark:border-[#414A43]'
               }`}
             >
-              <span
-                className={`t-market ${
-                  isDrawSelected ? 'text-white/80' : 'text-slate-500'
-                }`}
-              >
-                X
-              </span>
-              <span className={`t-odds ${isDrawSelected ? 'text-white' : 'text-slate-900'}`}>
-                {dOdds.toFixed(2)}
-              </span>
-            </button>
+              <span className="t-market text-slate-500">X</span>
+              <span className="t-odds text-slate-900">{dOdds.toFixed(2)}</span>
+            </div>
 
-            <button
-              type="button"
-              onClick={(e) => {
-                if (!currentUser) {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  openAuthWall({
-                    actionType: 'builder_pick',
-                    title: 'Sign In to Make Selections',
-                    message: 'Sign up or log in to select market odds and add selections to your Bet Builder slip.',
-                  });
-                  return;
-                }
-                onToggleLeg('Match Result (1X2)', `${match.away} Win (2)`, aOdds, e);
-              }}
-              className={`rounded-xl py-1.5 px-1 border transition-all duration-150 active:scale-[0.98] min-h-[40px] flex flex-col items-center justify-center gap-0.5 cursor-pointer ${
-                isAwaySelected
-                  ? 'bg-[#006C54] text-white font-bold border-[#005441] shadow-xs'
-                  : banner
-                  ? `bg-white/15 hover:bg-white/35 text-slate-800 ${banner.oddsBorderColor || 'border-[#7BA7F8]/50 hover:border-[#0A3B8C]'} backdrop-blur-[1px]`
-                  : 'bg-transparent hover:bg-black/[0.04] dark:hover:bg-white/[0.06] text-slate-800 dark:text-[#F4F5EF] border-[#DCDCC8] dark:border-[#414A43] hover:border-[#006C54] dark:hover:border-[#006C54]'
+            <div
+              className={`rounded-xl py-1.5 px-1 border min-h-[40px] flex flex-col items-center justify-center gap-0.5 select-none ${
+                banner
+                  ? `bg-white/15 text-slate-800 ${banner.oddsBorderColor || 'border-[#7BA7F8]/50'} backdrop-blur-[1px]`
+                  : 'bg-transparent text-slate-800 dark:text-[#F4F5EF] border-[#DCDCC8] dark:border-[#414A43]'
               }`}
             >
-              <span
-                className={`t-market ${
-                  isAwaySelected ? 'text-white/80' : 'text-slate-500'
-                }`}
-              >
-                2
-              </span>
-              <span className={`t-odds ${isAwaySelected ? 'text-white' : 'text-slate-900'}`}>
-                {aOdds.toFixed(2)}
-              </span>
-            </button>
+              <span className="t-market text-slate-500">2</span>
+              <span className="t-odds text-slate-900">{aOdds.toFixed(2)}</span>
+            </div>
           </div>
         </div>
 
@@ -623,26 +551,10 @@ export default function FixtureSportCard({
 
         <button
           type="button"
-          onClick={() => {
-            if (!currentUser) {
-              openAuthWall({
-                actionType: 'builder',
-                title: 'Sign In to Use Bet Builder',
-                message: 'Sign up or log in to select market odds, build custom accumulators, and share verified bet slips.',
-              });
-              return;
-            }
-            onOpenBetBuilder({
-              id: match.id,
-              home: match.home,
-              away: match.away,
-              competition: match.competition,
-              kickoff: match.kickoff,
-              homeOdds: hOdds,
-              drawOdds: dOdds,
-              awayOdds: aOdds,
-              bookmaker: match.bookmaker,
-            });
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            onOpenBetBuilder(match);
           }}
           className="inline-flex items-center gap-1 text-xs font-semibold text-slate-700 hover:text-[#006C54] transition-colors cursor-pointer py-1 px-1.5"
         >

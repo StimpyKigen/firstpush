@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Flag, X, ShieldAlert, CheckCircle2, AlertTriangle } from 'lucide-react';
 import { useReportsStore } from '../lib/reportsStore';
@@ -36,6 +36,20 @@ export default function ReportModal({
   const [description, setDescription] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  // Disable background scroll when Report Modal is active
+  useEffect(() => {
+    if (isOpen) {
+      const originalBodyOverflow = document.body.style.overflow;
+      const originalHtmlOverflow = document.documentElement.style.overflow;
+      document.body.style.overflow = "hidden";
+      document.documentElement.style.overflow = "hidden";
+
+      return () => {
+        document.body.style.overflow = originalBodyOverflow;
+        document.documentElement.style.overflow = originalHtmlOverflow;
+      };
+    }
+  }, [isOpen]);
 
   const handleModalClose = () => {
     setDescription('');
@@ -102,14 +116,9 @@ export default function ReportModal({
         >
           {/* Modal Header */}
           <div className="flex items-center justify-between p-4 sm:p-5 border-b border-line bg-panel-2">
-            <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-full bg-rose-500/20 border border-rose-500/40 flex items-center justify-center text-rose-400">
-                <Flag size={16} />
-              </div>
-              <div>
-                <h3 className="font-bold text-base text-cream">Report Post</h3>
-                <p className="text-xs text-cream-dim">Help us maintain community safety & trust</p>
-              </div>
+            <div>
+              <h3 className="font-bold text-base text-cream">Report Post</h3>
+              <p className="text-xs text-cream-dim">Help us maintain community safety & trust</p>
             </div>
             <button
               onClick={handleModalClose}
@@ -183,7 +192,7 @@ export default function ReportModal({
               </div>
 
               {/* Notice */}
-              <div className="flex items-start gap-2 bg-amber-500/10 border border-amber-500/20 rounded-xl p-2.5 text-[11px] text-amber-300/90">
+              <div className="flex items-start gap-2 text-[11px] text-amber-300/90 py-1">
                 <AlertTriangle size={14} className="shrink-0 text-amber-400 mt-0.5" />
                 <span>
                   Reports are confidentially sent to Mshindi safety moderators. False or malicious reports violate terms of service.

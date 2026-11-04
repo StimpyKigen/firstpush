@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect, useSyncExternalStore } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { getCombinedBuilderFixtures, type BuilderFixture } from './builderFixtures';
 import { subscribeToFreeMatches, getFreeMatchesSnapshot, refreshFreeMatches } from './freeMatches';
 import { useBetSlipStore } from './betSlipStore';
@@ -45,7 +46,17 @@ export function useBetBuilder(onPublished?: () => void) {
     }
   });
   const [selectedSubLeague, setSelectedSubLeague] = useState<string>('all');
-  const [expandedFixtureId, setExpandedFixtureId] = useState<string | null>(null);
+  const [searchParams] = useSearchParams();
+  const [expandedFixtureId, setExpandedFixtureId] = useState<string | null>(() => {
+    return searchParams.get('match') || null;
+  });
+
+  useEffect(() => {
+    const targetMatch = searchParams.get('match');
+    if (targetMatch) {
+      setExpandedFixtureId(targetMatch);
+    }
+  }, [searchParams]);
 
   const [simulatedStake, setSimulatedStake] = useState<number>(500);
   const [isSlipExpanded, setIsSlipExpanded] = useState<boolean>(false);

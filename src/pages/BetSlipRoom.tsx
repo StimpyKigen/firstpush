@@ -65,6 +65,9 @@ export default function BetSlipRoom({ initialTab, initialFilter }: BetSlipRoomPr
   const [activeTab, setActiveTab] = useState<'builder' | 'slips' | 'punters'>(() => {
     if (initialTab) return initialTab;
     if (isSavedMode) return 'slips';
+    if (searchParams.get('tab') === 'builder' || searchParams.get('match')) return 'builder';
+    if (searchParams.get('tab') === 'slips') return 'slips';
+    if (searchParams.get('tab') === 'punters') return 'punters';
     return 'builder';
   });
 
@@ -94,6 +97,8 @@ export default function BetSlipRoom({ initialTab, initialFilter }: BetSlipRoomPr
   useEffect(() => {
     if (searchParams.get('view') === 'saved') {
       setActiveTab('slips');
+    } else if (searchParams.get('tab') === 'builder' || searchParams.get('match')) {
+      setActiveTab('builder');
     }
   }, [searchParams]);
 
