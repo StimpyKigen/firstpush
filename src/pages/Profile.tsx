@@ -19,12 +19,11 @@ import InviteModal from '../components/InviteModal';
 import PunterProfileModal from '../components/PunterProfileModal';
 import { getPunterStats } from '../lib/punterRatings';
 import DepositPanel from './profile/DepositPanel';
-import WithdrawPanel from './profile/WithdrawPanel';
 import SupportPanel from './profile/SupportPanel';
 import CloseAccountPanel from './profile/CloseAccountPanel';
 import { useSmartBack } from '../components/BackNavButton';
 
-type Panel = 'none' | 'deposit' | 'withdraw' | 'close' | 'support';
+type Panel = 'none' | 'deposit' | 'close' | 'support';
 
 export default function Profile() {
   const navigate = useNavigate();
@@ -38,7 +37,6 @@ export default function Profile() {
   const transactions = useWallet((s) => s.transactions);
   const isCodeUsed = useWallet((s) => s.isCodeUsed);
   const topUpWithCode = useWallet((s) => s.topUpWithCode);
-  const withdraw = useWallet((s) => s.withdraw);
   const resetWallet = useWallet((s) => s.resetWallet);
 
   const getFollowersCount = useFollowStore((s) => s.getFollowersCount);
@@ -80,12 +78,6 @@ export default function Profile() {
   const [depositError, setDepositError] = useState('');
   const [depositDone, setDepositDone] = useState(false);
 
-  // Withdraw state
-  const [withdrawAmount, setWithdrawAmountRaw] = useState(50);
-  const [withdrawPhone, setWithdrawPhoneRaw] = useState('');
-  const [withdrawError, setWithdrawError] = useState('');
-  const [withdrawProcessing, setWithdrawProcessing] = useState(false);
-  const [withdrawDone, setWithdrawDone] = useState(false);
 
   // Close account state
   const [closePin, setClosePinRaw] = useState('');
@@ -104,15 +96,6 @@ export default function Profile() {
     setDepositError('');
   }
 
-  function setWithdrawAmount(v: number) {
-    setWithdrawAmountRaw(v);
-    setWithdrawError('');
-  }
-
-  function setWithdrawPhone(v: string) {
-    setWithdrawPhoneRaw(v);
-    setWithdrawError('');
-  }
 
   function setCloseConfirmText(v: string) {
     setCloseConfirmTextRaw(v);
@@ -185,25 +168,6 @@ export default function Profile() {
       setDepositStage('send');
       setTimeout(() => { setDepositDone(false); setPanel('none'); }, 1800);
     }
-  }
-
-  function submitWithdraw() {
-    setWithdrawError('');
-    if (withdrawPhone.replace(/\D/g, '').length < 9) {
-      setWithdrawError('Enter the M-Pesa number to receive your withdrawal.');
-      return;
-    }
-    setWithdrawProcessing(true);
-    setTimeout(() => {
-      const res = withdraw(withdrawAmount);
-      setWithdrawProcessing(false);
-      if (!res.ok) {
-        setWithdrawError(res.error ?? 'Withdrawal failed.');
-        return;
-      }
-      setWithdrawDone(true);
-      setTimeout(() => { setWithdrawDone(false); setPanel('none'); }, 1800);
-    }, 1500);
   }
 
   function submitCloseAccount() {
@@ -359,22 +323,6 @@ export default function Profile() {
               </div>
             )}
 
-            {panel === 'withdraw' && (
-              <div className="animate-rise">
-                <WithdrawPanel
-                  balance={balance}
-                  withdrawAmount={withdrawAmount}
-                  setWithdrawAmount={setWithdrawAmount}
-                  withdrawPhone={withdrawPhone}
-                  setWithdrawPhone={setWithdrawPhone}
-                  withdrawError={withdrawError}
-                  withdrawProcessing={withdrawProcessing}
-                  withdrawDone={withdrawDone}
-                  onSubmit={submitWithdraw}
-                  onClose={() => setPanel('none')}
-                />
-              </div>
-            )}
 
             {panel === 'support' && (
               <div className="animate-rise">
@@ -401,7 +349,7 @@ export default function Profile() {
             )}
 
             {/* ── CARD GROUP 1: Unified Wallet, Cashout & Mshindi Tokens ── */}
-            <div className="bg-white rounded-2xl border border-[#E6E6D2] shadow-xs divide-y divide-[#F2F2E6] overflow-hidden">
+            <div className="bg-white rounded-2xl border border-[#E6E6D2] shadow-xs overflow-hidden">
               {/* Wallet Balance with inline Deposit & Withdraw to M-Pesa actions */}
               <div className="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3.5">
                 <div className="flex items-center gap-3 min-w-0">
@@ -421,13 +369,6 @@ export default function Profile() {
                   >
                     <ArrowDownLeft size={14} />
                     Deposit
-                  </button>
-                  <button
-                    onClick={() => setPanel(panel === 'withdraw' ? 'none' : 'withdraw')}
-                    className="px-3.5 py-1.5 rounded-xl bg-[#F5F5E4] hover:bg-[#E6E6D2] text-slate-800 text-xs font-bold transition-all border border-[#E6E6D2] active:scale-95 flex items-center gap-1.5 cursor-pointer"
-                  >
-                    <ArrowUpRight size={14} />
-                    Withdraw
                   </button>
                 </div>
               </div>
@@ -519,7 +460,7 @@ export default function Profile() {
             )}
 
             {/* ── CARD GROUP 2: Punter Performance ── */}
-            <div className="bg-white rounded-2xl border border-[#E6E6D2] shadow-xs divide-y divide-[#F2F2E6] overflow-hidden">
+            <div className="bg-white rounded-2xl border border-[#E6E6D2] shadow-xs overflow-hidden">
               <button
                 onClick={() => setShowMyProfileModal(true)}
                 className="w-full flex items-center justify-between p-4 text-left group cursor-pointer"
@@ -556,7 +497,7 @@ export default function Profile() {
             </div>
 
             {/* ── CARD GROUP 3: Security & Preferences ── */}
-            <div className="bg-white rounded-2xl border border-[#E6E6D2] shadow-xs divide-y divide-[#F2F2E6] overflow-hidden">
+            <div className="bg-white rounded-2xl border border-[#E6E6D2] shadow-xs overflow-hidden">
               <div className="flex items-center justify-between p-4 text-left">
                 <div className="min-w-0">
                   <p className="text-sm font-bold text-slate-900 truncate">Account Phone</p>

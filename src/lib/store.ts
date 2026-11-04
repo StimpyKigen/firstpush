@@ -36,7 +36,6 @@ interface WalletState {
   earnTokensForSpend: (spendKsh: number, roomName?: string) => number;
   creditReferralTokens: (referrerName: string, newUserName?: string) => void;
   topUpWithCode: (code: string, amount: number) => void;
-  withdraw: (amount: number) => { ok: boolean; error?: string };
   resetWallet: () => void;
   /** Hold funds in escrow for a P2P bet stake. Returns false if insufficient balance. */
   holdEscrow: (amount: number, label: string) => boolean;
@@ -158,19 +157,6 @@ export const useWallet = create<WalletState>()(
             ...state.transactions,
           ],
         })),
-      withdraw: (amount) => {
-        const { balance } = get();
-        if (amount <= 0) return { ok: false, error: 'Enter a valid amount.' };
-        if (amount > balance) return { ok: false, error: 'Withdrawal amount exceeds your available balance.' };
-        set((state) => ({
-          balance: state.balance - amount,
-          transactions: [
-            { id: `tx-${Date.now()}`, type: 'withdraw', label: 'Withdrawal to M-Pesa', amount: -amount, time: 'just now' },
-            ...state.transactions,
-          ],
-        }));
-        return { ok: true };
-      },
       resetWallet: () =>
         set({ unlockedRooms: [], balance: 0, redeemedCodes: [], transactions: [] }),
 

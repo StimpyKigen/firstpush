@@ -3,9 +3,8 @@ import { X, MessageCircle, Mail, Phone as PhoneIcon, ChevronRight } from 'lucide
 import { RECEIVER_MPESA_NUMBER } from '../../lib/mpesa';
 
 const faqEntries = [
-  { q: 'How long does a withdrawal take?', a: 'Withdrawals are processed instantly in this demo and reflected on your balance right away. In production, M-Pesa B2C payouts typically land within a few minutes.' },
   { q: 'I sent money but my code was rejected', a: 'Double check you copied the exact confirmation code from your M-Pesa SMS (10-12 characters, letters and numbers). Codes can only be redeemed once.' },
-  { q: 'Can I recover a closed account?', a: 'Closing your account is permanent and immediately frees up your username and phone number for a new registration. Make sure to withdraw your balance first.' },
+  { q: 'Can I recover a closed account?', a: 'Closing your account is permanent and immediately frees up your username and phone number for a new registration. Make sure you have utilized your balance first.' },
 ];
 
 interface SupportPanelProps {

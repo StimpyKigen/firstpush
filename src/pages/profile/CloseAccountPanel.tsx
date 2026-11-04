@@ -39,7 +39,7 @@ export default function CloseAccountPanel({
         <p className="text-xs text-cream-dim leading-relaxed">
           This is permanent. Your username <span className="text-cream font-semibold">{currentUser.username}</span> and phone
           number will be freed up immediately, your wallet balance will be forfeited, and you'll lose access to all
-          unlocked rooms. Withdraw your balance first if you don't want to lose it.
+          unlocked rooms. Make sure you have utilized your balance first if you don't want to lose it.
         </p>
       </div>
 
