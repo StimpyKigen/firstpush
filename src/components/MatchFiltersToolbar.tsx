@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { Calendar, Search, X, Check, ChevronDown, CheckCircle2 } from 'lucide-react';
+import { Calendar, Search, X, Check, ChevronDown, CheckCircle2, ChevronRight } from 'lucide-react';
 import type { SportScoreDirectoryRow } from '../lib/leagueDirectory';
 
 export type FilterScopeTab = 'highlights' | 'live' | 'upcoming';
@@ -292,33 +292,44 @@ export default function MatchFiltersToolbar({
         <div className="flex items-center justify-center gap-1.5 sm:gap-2.5 flex-wrap sm:flex-nowrap px-1">
           {/* Control 1: Dates Dropdown */}
           <div className="relative" ref={dateDropdownRef}>
-            <button
-              type="button"
-              onClick={toggleDateDropdown}
-              className={`h-8 sm:h-8.5 px-3 sm:px-3.5 rounded-full bg-[#FFFFF0] border text-xs sm:text-[13px] font-semibold flex items-center gap-1.5 sm:gap-2 transition-all shadow-[0_1px_3px_rgba(0,0,0,0.03)] ${theme.pillHoverShadow} cursor-pointer select-none ${
-                isDateDropdownOpen || selectedDate !== 'all' ? theme.pillActive : theme.pillIdle
-              }`}
-              aria-expanded={isDateDropdownOpen}
-              aria-label="Filter by match date"
+            {/* Split Button: Dates */}
+            <div
+              className={`inline-flex items-center rounded-xl overflow-hidden border transition-all shadow-[0_1px_3px_rgba(0,0,0,0.03)] ${theme.pillHoverShadow} divide-x ${
+                isDateDropdownOpen || selectedDate !== 'all'
+                  ? `${theme.pillActive} divide-[#006C54]/30 dark:divide-[#00A878]/30`
+                  : `${theme.pillIdle} divide-[#DCDCC8] dark:divide-[#414A43]`
+              } bg-[#FFFFF0] dark:bg-[#202522]`}
             >
-              <Calendar size={13.5} className={`${theme.iconColor} shrink-0`} />
-              <span>{selectedDate === 'all' ? 'Dates' : selectedDateLabel}</span>
-              {selectedDate !== 'all' && (
-                <span className={`w-1.5 h-1.5 rounded-full ${theme.dotColor} shrink-0`} />
-              )}
-              <ChevronDown
-                size={13}
-                className={`text-slate-500 transition-transform duration-200 shrink-0 ${
-                  isDateDropdownOpen ? theme.chevronOpen : ''
-                }`}
-              />
-            </button>
+              <button
+                type="button"
+                onClick={toggleDateDropdown}
+                className="h-8 sm:h-8.5 pl-3 pr-2.5 flex items-center gap-1.5 text-xs sm:text-[13px] font-semibold transition-colors hover:bg-black/[0.03] dark:hover:bg-white/[0.04] cursor-pointer select-none text-slate-800 dark:text-[#F4F5EF]"
+                aria-label="Filter by match date"
+              >
+                <Calendar size={13.5} className={`${theme.iconColor} shrink-0`} />
+                <span className="truncate">{selectedDate === 'all' ? 'Dates' : selectedDateLabel}</span>
+              </button>
+              <button
+                type="button"
+                onClick={toggleDateDropdown}
+                aria-expanded={isDateDropdownOpen}
+                aria-label="Toggle dates dropdown"
+                className="h-8 sm:h-8.5 px-2 flex items-center justify-center transition-colors hover:bg-black/[0.03] dark:hover:bg-white/[0.04] cursor-pointer select-none text-slate-500 dark:text-slate-400"
+              >
+                <ChevronDown
+                  size={13}
+                  className={`transition-transform duration-200 shrink-0 ${
+                    isDateDropdownOpen ? theme.chevronOpen : ''
+                  }`}
+                />
+              </button>
+            </div>
 
             {/* Dates Dropdown Menu */}
             {isDateDropdownOpen && (
               <div
                 ref={clampDropdownPosition}
-                className="absolute left-0 sm:left-0 translate-x-0 mt-2 w-[min(20rem,calc(100vw-1.5rem))] sm:w-80 bg-[#FFFFF0] border border-[#DCDCC8] rounded-2xl shadow-2xl py-2 z-50 max-h-[380px] overflow-y-auto text-xs divide-y divide-[#E6E6D2] no-scrollbar overscroll-contain"
+                className="absolute left-0 sm:left-0 translate-x-0 mt-2 w-[min(20rem,calc(100vw-1.5rem))] sm:w-80 bg-[#FFFFF0] dark:bg-[#202522] border border-[#DCDCC8] dark:border-[#414A43] rounded-2xl shadow-2xl py-2 z-50 max-h-[380px] overflow-y-auto text-xs no-scrollbar overscroll-contain"
               >
                 {/* 1. FIRST OPTION: COMPLETED (Finished matches of today) */}
                 <div className="p-1">
@@ -337,15 +348,15 @@ export default function MatchFiltersToolbar({
                     <span className="flex items-center gap-2">
                       <CheckCircle2 size={13} className={theme.iconColor} /> Completed
                     </span>
-                    <div className="flex items-center gap-1.5">
+                    <div className="flex items-center gap-1.5 shrink-0">
                       <span
                         className={`text-[11px] tabular-nums font-bold ${
-                          selectedDate === 'completed' ? theme.selectedRowCount : 'text-slate-500'
+                          selectedDate === 'completed' ? theme.selectedRowCount : 'text-slate-500 dark:text-[#B5BDB6]'
                         }`}
                       >
                         {completedTodayCount}
                       </span>
-                      {selectedDate === 'completed' && <Check size={14} className={theme.checkColor} />}
+                      <ChevronRight size={13} className="text-slate-400 group-hover:text-slate-600 dark:text-slate-500 shrink-0" />
                     </div>
                   </button>
                 </div>
@@ -367,15 +378,15 @@ export default function MatchFiltersToolbar({
                     <span className="flex items-center gap-2">
                       <Calendar size={13} className={theme.iconColor} /> All Dates
                     </span>
-                    <div className="flex items-center gap-1.5">
+                    <div className="flex items-center gap-1.5 shrink-0">
                       <span
                         className={`text-[11px] tabular-nums font-bold ${
-                          selectedDate === 'all' ? theme.selectedRowCount : 'text-slate-500'
+                          selectedDate === 'all' ? theme.selectedRowCount : 'text-slate-500 dark:text-[#B5BDB6]'
                         }`}
                       >
                         {allDatesCount}
                       </span>
-                      {selectedDate === 'all' && <Check size={14} className={theme.checkColor} />}
+                      <ChevronRight size={13} className="text-slate-400 group-hover:text-slate-600 dark:text-slate-500 shrink-0" />
                     </div>
                   </button>
                 </div>
@@ -401,12 +412,12 @@ export default function MatchFiltersToolbar({
                         <div className="flex items-center gap-1.5 shrink-0">
                           <span
                             className={`text-[11px] tabular-nums font-bold ${
-                              isSelected ? theme.selectedRowCount : 'text-slate-500'
+                              isSelected ? theme.selectedRowCount : 'text-slate-500 dark:text-[#B5BDB6]'
                             }`}
                           >
                             {d.count}
                           </span>
-                          {isSelected && <Check size={13} className={theme.checkColor} />}
+                          <ChevronRight size={13} className="text-slate-400 group-hover:text-slate-600 dark:text-slate-500 shrink-0" />
                         </div>
                       </button>
                     );
@@ -418,35 +429,46 @@ export default function MatchFiltersToolbar({
 
           {/* Control 2: SportScore Country Directory Dropdown ('All Competitions' — NO internal search bar) */}
           <div className="relative" ref={leagueDropdownRef}>
-            <button
-              type="button"
-              onClick={toggleLeagueDropdown}
-              className={`h-8 sm:h-8.5 px-3 sm:px-3.5 rounded-full bg-[#FFFFF0] border text-xs sm:text-[13px] font-semibold flex items-center gap-1.5 sm:gap-2 transition-all shadow-[0_1px_3px_rgba(0,0,0,0.03)] ${theme.pillHoverShadow} cursor-pointer select-none max-w-[200px] sm:max-w-[250px] ${
-                isLeagueDropdownOpen || leagueFilter !== 'all' ? theme.pillActive : theme.pillIdle
-              }`}
-              aria-expanded={isLeagueDropdownOpen}
-              aria-label="Filter by country or competition"
+            {/* Split Button: All Competitions */}
+            <div
+              className={`inline-flex items-center rounded-xl overflow-hidden border transition-all shadow-[0_1px_3px_rgba(0,0,0,0.03)] ${theme.pillHoverShadow} divide-x max-w-[200px] sm:max-w-[250px] ${
+                isLeagueDropdownOpen || leagueFilter !== 'all'
+                  ? `${theme.pillActive} divide-[#006C54]/30 dark:divide-[#00A878]/30`
+                  : `${theme.pillIdle} divide-[#DCDCC8] dark:divide-[#414A43]`
+              } bg-[#FFFFF0] dark:bg-[#202522]`}
             >
-              <span className="truncate">{selectedDirectoryLabel}</span>
-              {leagueFilter !== 'all' && (
-                <span className={`w-1.5 h-1.5 rounded-full ${theme.dotColor} shrink-0`} />
-              )}
-              <ChevronDown
-                size={13}
-                className={`text-slate-500 transition-transform duration-200 shrink-0 ${
-                  isLeagueDropdownOpen ? theme.chevronOpen : ''
-                }`}
-              />
-            </button>
+              <button
+                type="button"
+                onClick={toggleLeagueDropdown}
+                className="h-8 sm:h-8.5 pl-3 pr-2.5 flex items-center gap-1.5 text-xs sm:text-[13px] font-semibold transition-colors hover:bg-black/[0.03] dark:hover:bg-white/[0.04] cursor-pointer select-none min-w-0 flex-1 text-slate-800 dark:text-[#F4F5EF]"
+                aria-label="Filter by country or competition"
+              >
+                <span className="truncate">{selectedDirectoryLabel}</span>
+              </button>
+              <button
+                type="button"
+                onClick={toggleLeagueDropdown}
+                aria-expanded={isLeagueDropdownOpen}
+                aria-label="Toggle competition dropdown"
+                className="h-8 sm:h-8.5 px-2 flex items-center justify-center transition-colors hover:bg-black/[0.03] dark:hover:bg-white/[0.04] cursor-pointer select-none shrink-0 text-slate-500 dark:text-slate-400"
+              >
+                <ChevronDown
+                  size={13}
+                  className={`transition-transform duration-200 shrink-0 ${
+                    isLeagueDropdownOpen ? theme.chevronOpen : ''
+                  }`}
+                />
+              </button>
+            </div>
 
             {/* SportScore Country Directory Menu */}
             {isLeagueDropdownOpen && (
               <div
                 ref={clampDropdownPosition}
-                className="absolute left-1/2 -translate-x-1/2 sm:left-0 sm:translate-x-0 mt-2 w-[min(20rem,calc(100vw-1.5rem))] sm:w-80 bg-[#FFFFF0] border border-[#DCDCC8] rounded-2xl shadow-2xl z-50 max-h-[380px] overflow-hidden flex flex-col text-xs"
+                className="absolute left-1/2 -translate-x-1/2 sm:left-0 sm:translate-x-0 mt-2 w-[min(20rem,calc(100vw-1.5rem))] sm:w-80 bg-[#FFFFF0] dark:bg-[#202522] border border-[#DCDCC8] dark:border-[#414A43] rounded-2xl shadow-2xl z-50 max-h-[380px] overflow-hidden flex flex-col text-xs"
               >
                 {/* Scrollable Directory Rows (internal search bar omitted) */}
-                <div className="overflow-y-auto divide-y divide-[#E6E6D2]/60 p-1.5 flex-1 no-scrollbar overscroll-contain">
+                <div className="overflow-y-auto p-1.5 flex-1 no-scrollbar overscroll-contain">
                   {/* All Competitions Row */}
                   <button
                     type="button"
@@ -459,19 +481,16 @@ export default function MatchFiltersToolbar({
                   >
                     <span className="truncate pr-2">All Competitions</span>
                     <div className="flex items-center gap-1.5 shrink-0">
-                      <span className="w-5" aria-hidden="true" />
                       <span
                         className={`text-[11px] tabular-nums min-w-[20px] text-right ${
                           leagueFilter === 'all'
                             ? `${theme.selectedRowCount} font-bold`
-                            : 'text-slate-500'
+                            : 'text-slate-500 dark:text-[#B5BDB6]'
                         }`}
                       >
                         {directoryData.totalMatches}
                       </span>
-                      <span className="w-3.5 flex items-center justify-center">
-                        {leagueFilter === 'all' && <Check size={13} className={theme.checkColor} />}
-                      </span>
+                      <ChevronRight size={13} className="text-slate-400 group-hover:text-slate-600 dark:text-slate-500 shrink-0" />
                     </div>
                   </button>
 
@@ -539,14 +558,12 @@ export default function MatchFiltersToolbar({
                               className={`text-[11px] tabular-nums min-w-[20px] text-right ${
                                 isAnySubSelected
                                   ? `${theme.selectedRowCount} font-bold`
-                                  : 'text-slate-500'
+                                  : 'text-slate-500 dark:text-[#B5BDB6]'
                               }`}
                             >
                               {row.count}
                             </span>
-                            <span className="w-3.5 flex items-center justify-center">
-                              {isSelected && <Check size={13} className={theme.checkColor} />}
-                            </span>
+                            <ChevronRight size={13} className="text-slate-400 group-hover:text-slate-600 dark:text-slate-500 shrink-0" />
                           </div>
                         </div>
 
@@ -575,14 +592,12 @@ export default function MatchFiltersToolbar({
                                       className={`tabular-nums text-[11px] ${
                                         isSubSelected
                                           ? `${theme.subRowSelectedCount} font-bold`
-                                          : 'text-slate-500'
+                                          : 'text-slate-500 dark:text-[#B5BDB6]'
                                       }`}
                                     >
                                       {lg.count}
                                     </span>
-                                    {isSubSelected && (
-                                      <Check size={12} className={theme.subRowCheck} />
-                                    )}
+                                    <ChevronRight size={12} className="text-slate-400 group-hover:text-slate-600 dark:text-slate-500 shrink-0" />
                                   </div>
                                 </button>
                               );
