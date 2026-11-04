@@ -147,6 +147,38 @@ export const COMPETITION_BANNERS: Record<string, CompetitionBannerConfig> = {
     dividerColor: 'border-[#7DD3FC]',
     shadow: 'shadow-[0_2px_12px_rgba(2,132,199,0.08)] hover:shadow-[0_4px_18px_rgba(2,132,199,0.16)]',
   },
+  fa_cup: {
+    id: 'fa_cup',
+    name: 'English FA Cup',
+    bannerUrl: '/banners/fa-cup.jpg',
+    overlayOpacity: 0.32,
+    objectPosition: 'object-[center_50%]',
+    gradientOverlay: 'from-transparent via-[#FFF1F2]/20 to-[#FFFFF0]/35',
+    cardBg: 'bg-gradient-to-b from-[#FFF1F2] via-[#FFF5F5] to-[#FFFFF0]',
+    baseTint: 'bg-gradient-to-b from-[#DC2626]/10 via-[#DC2626]/3 to-transparent',
+    borderColor: 'border-[#F87171]/70',
+    borderHoverColor: 'hover:border-[#DC2626]',
+    oddsBorderColor: 'border-[#F87171]/50 hover:border-[#DC2626]',
+    consensusTrackBg: 'bg-[#FEE2E2]',
+    dividerColor: 'border-[#FECACA]',
+    shadow: 'shadow-[0_2px_12px_rgba(220,38,38,0.08)] hover:shadow-[0_4px_18px_rgba(220,38,38,0.16)]',
+  },
+  efl_cup: {
+    id: 'efl_cup',
+    name: 'English EFL Cup',
+    bannerUrl: '/banners/efl-cup.jpg',
+    overlayOpacity: 0.32,
+    objectPosition: 'object-[center_50%]',
+    gradientOverlay: 'from-transparent via-[#ECFDF5]/20 to-[#FFFFF0]/35',
+    cardBg: 'bg-gradient-to-b from-[#E6F4EA] via-[#F2FAF4] to-[#FFFFF0]',
+    baseTint: 'bg-gradient-to-b from-[#059669]/12 via-[#059669]/4 to-transparent',
+    borderColor: 'border-[#34D399]/70',
+    borderHoverColor: 'hover:border-[#059669]',
+    oddsBorderColor: 'border-[#34D399]/50 hover:border-[#059669]',
+    consensusTrackBg: 'bg-[#D1FAE5]',
+    dividerColor: 'border-[#A7F3D0]',
+    shadow: 'shadow-[0_2px_12px_rgba(5,150,105,0.09)] hover:shadow-[0_4px_18px_rgba(5,150,105,0.16)]',
+  },
 };
 
 /**
@@ -172,6 +204,8 @@ function bannerKey(value: string | undefined): string {
 /** Country spellings that identify each domestic banner league's home country. */
 const BANNER_COUNTRY_NAMES: Record<string, string[]> = {
   premier_league: ['england', 'english', 'united kingdom', 'uk', 'great britain', 'gb eng'],
+  fa_cup: ['england', 'english', 'united kingdom', 'uk', 'great britain', 'gb eng'],
+  efl_cup: ['england', 'english', 'united kingdom', 'uk', 'great britain', 'gb eng'],
   la_liga: ['spain', 'spanish', 'espana'],
   ligue_1: ['france', 'french'],
   bundesliga: ['germany', 'german', 'deutschland'],
@@ -181,6 +215,28 @@ const BANNER_COUNTRY_NAMES: Record<string, string[]> = {
 /** Exact league titles (normalised) that qualify for a domestic banner when the country matches. */
 const BANNER_LEAGUE_NAMES: Record<string, string[]> = {
   premier_league: ['premier league', 'english premier league', 'epl', 'barclays premier league'],
+  fa_cup: [
+    'fa cup',
+    'the fa cup',
+    'english fa cup',
+    'england fa cup',
+    'emirates fa cup',
+    'the emirates fa cup',
+    'the english fa cup',
+    'football association challenge cup',
+  ],
+  efl_cup: [
+    'efl cup',
+    'the efl cup',
+    'carabao cup',
+    'the carabao cup',
+    'english efl cup',
+    'england efl cup',
+    'league cup',
+    'the league cup',
+    'english league cup',
+    'football league cup',
+  ],
   la_liga: ['la liga', 'laliga', 'spanish la liga', 'primera division', 'la liga ea sports', 'laliga ea sports'],
   ligue_1: ['ligue 1', 'french ligue 1', 'france ligue 1', 'ligue 1 uber eats', 'league 1'],
   bundesliga: ['bundesliga', 'german bundesliga', '1 bundesliga'],
@@ -190,6 +246,24 @@ const BANNER_LEAGUE_NAMES: Record<string, string[]> = {
 /** Titles that already carry the country adjective, so they are safe without a country field. */
 const BANNER_SELF_QUALIFIED: Record<string, string[]> = {
   premier_league: ['english premier league', 'epl', 'barclays premier league'],
+  fa_cup: [
+    'english fa cup',
+    'england fa cup',
+    'emirates fa cup',
+    'the emirates fa cup',
+    'the english fa cup',
+    'fa cup',
+    'the fa cup',
+  ],
+  efl_cup: [
+    'english efl cup',
+    'england efl cup',
+    'efl cup',
+    'the efl cup',
+    'carabao cup',
+    'the carabao cup',
+    'english league cup',
+  ],
   la_liga: ['spanish la liga', 'la liga ea sports', 'laliga ea sports'],
   ligue_1: ['french ligue 1', 'france ligue 1'],
   bundesliga: ['german bundesliga'],
@@ -206,6 +280,11 @@ const BANNER_BY_ID: Record<string, keyof typeof COMPETITION_BANNERS> = {
   fra_ligue_1: 'ligue_1',
   ger_bundesliga: 'bundesliga',
   ita_serie_a: 'serie_a',
+  eng_fa_cup: 'fa_cup',
+  fa_cup: 'fa_cup',
+  eng_efl_cup: 'efl_cup',
+  efl_cup: 'efl_cup',
+  eng_league_cup: 'efl_cup',
 };
 
 /** Countries / scopes that mean "no specific domestic country" (continental or unknown). */
@@ -241,18 +320,24 @@ export function getCompetitionBanner(
   if (!competition) return null;
   const comp = competition.toLowerCase().trim();
   const compKey = bannerKey(competition);
+  const baseCompKey = compKey
+    .replace(/\b(qualification|qualifying|round\s*\d+|preliminary|playoffs?|finals?)\b/g, '')
+    .trim();
 
-  // 2. Domestic leagues: league title AND country must both match.
+  // 2. Domestic leagues & cups: league title AND country must both match.
   for (const bannerName of Object.keys(BANNER_LEAGUE_NAMES) as Array<keyof typeof BANNER_LEAGUE_NAMES>) {
-    if (!BANNER_LEAGUE_NAMES[bannerName].includes(compKey)) continue;
+    const leagueVariants = BANNER_LEAGUE_NAMES[bannerName];
+    const isMatch = leagueVariants.includes(compKey) || (Boolean(baseCompKey) && leagueVariants.includes(baseCompKey));
+    if (!isMatch) continue;
     if (hasDomesticCountry) {
       if (BANNER_COUNTRY_NAMES[bannerName].includes(countryKey)) {
         return COMPETITION_BANNERS[bannerName as keyof typeof COMPETITION_BANNERS];
       }
       return null; // same league name, different country: no banner
     }
-    // No country information: only accept titles that already name the country.
-    if (BANNER_SELF_QUALIFIED[bannerName].includes(compKey)) {
+    // No country information: only accept titles that already name the country or self-qualify.
+    const selfVariants = BANNER_SELF_QUALIFIED[bannerName];
+    if (selfVariants.includes(compKey) || (Boolean(baseCompKey) && selfVariants.includes(baseCompKey))) {
       return COMPETITION_BANNERS[bannerName as keyof typeof COMPETITION_BANNERS];
     }
     return null;
