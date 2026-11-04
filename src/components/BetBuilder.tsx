@@ -189,7 +189,7 @@ export default function BetBuilder({ onPublished }: BetBuilderProps) {
                 <Trophy size={32} className="text-cream-dim/30" />
                 <p className="text-sm font-bold text-cream">No matching fixtures found</p>
                 <p className="text-xs text-cream-dim">
-                  No matches found for &quot;<strong className="text-cream">{searchQuery || selectedDirectoryLabel}</strong>&quot; under {activeTab} view.
+                  No matches found for &quot;<strong className="text-cream">{searchQuery || selectedDirectoryLabel}</strong>&quot;{leagueFilter === 'all' && selectedDate === 'all' ? ` under ${activeTab} view.` : '.'}
                 </p>
               </>
             )}

@@ -98,6 +98,12 @@ export function useBetBuilder(onPublished?: () => void) {
     if (tab === 'live' || selectedDate === 'completed') {
       setSelectedDate('all');
     }
+    if (leagueFilter !== 'all') {
+      handleLeagueFilterChange('all');
+    }
+    if (selectedDate !== 'all' && selectedDate !== 'completed') {
+      setSelectedDate('all');
+    }
   };
 
   const resetFilters = () => {
@@ -185,45 +191,6 @@ export function useBetBuilder(onPublished?: () => void) {
       });
   }, [fixtures, todayDateStr, tomorrowDateStr]);
 
-  // Filter fixtures by selected Tab & Date
-  const scopedFixtures = useMemo(() => {
-    return fixtures.filter((f) => {
-      const text = `${f.competition || ''} ${f.leagueCode || ''} ${f.country || ''} ${f.homeTeam || ''} ${f.awayTeam || ''} ${f.id || ''}`.toLowerCase();
-      if (text.includes('simulated reality') || /\b(srl)\b/i.test(text)) {
-        return false;
-      }
-
-      const dStr = f.kickoffIso ? getDeviceLocalDateString(f.kickoffIso) : '';
-
-      if (selectedDate === 'completed') {
-        if (!isCompletedMatch(f)) return false;
-        return dStr === todayDateStr;
-      }
-
-      if (isCompletedMatch(f)) {
-        return false;
-      }
-
-      if (selectedDate !== 'all') {
-        if (dStr !== selectedDate) return false;
-      }
-
-      if (activeTab === 'live') {
-        return isLiveMatch(f, deviceNow);
-      }
-
-      if (isLiveMatch(f, deviceNow)) {
-        return false;
-      }
-
-      if (activeTab === 'highlights') {
-        return isHighlightsEligible(f, deviceNow);
-      }
-
-      return isUpcomingEligible(f, deviceNow);
-    });
-  }, [fixtures, activeTab, selectedDate, deviceNow, todayDateStr]);
-
   const directoryData = useMemo(() => {
     return buildSportScoreCountryDirectory(fixtures);
   }, [fixtures]);
@@ -249,10 +216,24 @@ export function useBetBuilder(onPublished?: () => void) {
     return found ? found.label : selectedDate;
   }, [selectedDate, todayDateStr, tomorrowDateStr, availableDates]);
 
+  // Determine if a dropdown selection is actively filtering fixtures
+  const isDropdownActive = leagueFilter !== 'all' || selectedDate !== 'all';
+
+  // Filter fixtures: Dropdown selections (Competitions or Dates) take precedence and are NOT
+  // governed/constrained by the top tab (Highlights vs Upcoming).
   const filteredFixtures = useMemo(() => {
     const query = searchQuery.trim().toLowerCase();
-    return scopedFixtures
+
+    return fixtures
       .filter((f) => {
+        const text = `${f.competition || ''} ${f.leagueCode || ''} ${f.country || ''} ${f.homeTeam || ''} ${f.awayTeam || ''} ${f.id || ''}`.toLowerCase();
+        if (text.includes('simulated reality') || /\b(srl)\b/i.test(text)) {
+          return false;
+        }
+
+        const dStr = f.kickoffIso ? getDeviceLocalDateString(f.kickoffIso) : '';
+
+        // 1. Text Search Filter
         if (query) {
           const matchesQuery =
             f.homeTeam.toLowerCase().includes(query) ||
@@ -263,16 +244,61 @@ export function useBetBuilder(onPublished?: () => void) {
           if (!matchesQuery) return false;
         }
 
+        // 2. Dates dropdown: explicit 'completed' finished matches of today
+        if (selectedDate === 'completed') {
+          if (!isCompletedMatch(f)) return false;
+          if (dStr !== todayDateStr) return false;
+
+          // Respect competition selection when looking at completed matches
+          if (leagueFilter !== 'all') {
+            const dirId = resolveSportScoreDirectoryId(f);
+            if (dirId !== leagueFilter) return false;
+            if (selectedSubLeague && selectedSubLeague !== 'all' && f.competition !== selectedSubLeague) {
+              return false;
+            }
+          }
+          return true;
+        }
+
+        // Standard: completed fixtures never appear in upcoming/live lists
+        if (isCompletedMatch(f)) {
+          return false;
+        }
+
+        // 3. Dates dropdown: filter by calendar date
+        if (selectedDate !== 'all') {
+          if (dStr !== selectedDate) return false;
+        }
+
+        // 4. Competitions dropdown: filter by country/league directory
         if (leagueFilter !== 'all') {
           const dirId = resolveSportScoreDirectoryId(f);
           if (dirId !== leagueFilter) return false;
-
-          if (selectedSubLeague && selectedSubLeague !== 'all') {
-            if (f.competition !== selectedSubLeague) return false;
+          if (selectedSubLeague && selectedSubLeague !== 'all' && f.competition !== selectedSubLeague) {
+            return false;
           }
         }
 
-        return true;
+        // 5. Top Tab Filter: ONLY governs when NEITHER dropdown is active.
+        // If a dropdown is selected, show all matching fixtures regardless of Highlights/Upcoming tab!
+        if (isDropdownActive) {
+          return true;
+        }
+
+        // Default top selection behavior when no dropdown is active:
+        if (activeTab === 'live') {
+          return isLiveMatch(f, deviceNow);
+        }
+
+        if (isLiveMatch(f, deviceNow)) {
+          return false;
+        }
+
+        if (activeTab === 'highlights') {
+          return isHighlightsEligible(f, deviceNow);
+        }
+
+        return isUpcomingEligible(f, deviceNow);
       })
       .sort((a, b) => {
         if (selectedDate === 'completed') {
@@ -280,12 +306,12 @@ export function useBetBuilder(onPublished?: () => void) {
           const timeB = b.kickoffIso ? new Date(b.kickoffIso).getTime() : 0;
           return timeB - timeA;
         }
-        if (activeTab === 'upcoming') {
-          return sortUpcomingComparator(a, b);
+        if (!isDropdownActive && (activeTab === 'highlights' || activeTab === 'live')) {
+          return sortHighlightsComparator(a, b);
         }
-        return sortHighlightsComparator(a, b);
+        return sortUpcomingComparator(a, b);
       });
-  }, [scopedFixtures, searchQuery, leagueFilter, selectedSubLeague, selectedDate, activeTab]);
+  }, [fixtures, activeTab, selectedDate, leagueFilter, selectedSubLeague, searchQuery, isDropdownActive, deviceNow, todayDateStr]);
 
   const sectoredLeagueGroups = useMemo(() => {
     const groups: { league: string; fixtures: BuilderFixture[] }[] = [];

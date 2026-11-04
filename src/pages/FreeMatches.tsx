@@ -235,53 +235,6 @@ export default function FreeMatches() {
       });
   }, [matches, todayDateStr, tomorrowDateStr]);
 
-  // Filter matches by selected Tab & Date
-  const scopedMatches = useMemo(() => {
-    return matches.filter((m) => {
-      // Strictly exclude any Simulated Reality / SRL fixtures
-      const text = `${m.competition || ''} ${m.leagueCode || ''} ${m.country || ''} ${m.home || ''} ${m.away || ''} ${m.id || ''}`.toLowerCase();
-      if (text.includes('simulated reality') || /\b(srl)\b/i.test(text)) {
-        return false;
-      }
-
-      const dStr = m.kickoffIso ? getDeviceLocalDateString(m.kickoffIso) : '';
-
-      // 1. Explicit 'Completed' filter from Dates dropdown (finished matches of today)
-      if (selectedDate === 'completed') {
-        if (!isCompletedMatch(m)) return false;
-        return dStr === todayDateStr;
-      }
-
-      // STRICT RULE: Completed fixtures must NEVER appear in Highlights, Upcoming, or Live!
-      // They must appear exclusively under the existing Completed dropdown option.
-      if (isCompletedMatch(m)) {
-        return false;
-      }
-
-      // 2. Standard Date filter (from Dates dropdown)
-      if (selectedDate !== 'all') {
-        if (dStr !== selectedDate) return false;
-      }
-
-      // 3. Active Tab: Live vs Highlights vs Upcoming
-      if (activeTab === 'live') {
-        return isLiveMatch(m, deviceNow);
-      }
-
-      // Live fixtures must appear EXCLUSIVELY in the Live tab and NEVER in Highlights or Upcoming
-      if (isLiveMatch(m, deviceNow)) {
-        return false;
-      }
-
-      if (activeTab === 'highlights') {
-        return isHighlightsEligible(m, deviceNow);
-      }
-
-      // Default: Upcoming tab - strictly enforce real-time upcoming cutoff
-      return isUpcomingEligible(m, deviceNow);
-    });
-  }, [matches, activeTab, selectedDate, deviceNow, todayDateStr]);
-
   // Build SportScore Country Directory with dynamic fixture counts across all available matches (independent of active tab)
   const directoryData = useMemo(() => {
     return buildSportScoreCountryDirectory(matches);
@@ -300,48 +253,107 @@ export default function FreeMatches() {
     return countryLabel;
   }, [leagueFilter, directoryData.rows, selectedSubLeague]);
 
-  // Search and league filtering
-  const query = searchQuery.trim().toLowerCase();
-  const filteredMatches = scopedMatches
-    .filter((m) => {
-      // 1. Text Search Filter
-      if (query) {
-        const matchesQuery =
-          m.home.toLowerCase().includes(query) ||
-          m.away.toLowerCase().includes(query) ||
-          m.competition.toLowerCase().includes(query) ||
-          (m.country && m.country.toLowerCase().includes(query)) ||
-          (m.blurb && m.blurb.toLowerCase().includes(query));
-        if (!matchesQuery) return false;
-      }
+  // Determine if a dropdown selection is actively filtering matches
+  const isDropdownActive = leagueFilter !== 'all' || selectedDate !== 'all';
 
-      // 2. SportScore Country Directory Filter
-      if (leagueFilter !== 'all') {
-        const dirId = resolveSportScoreDirectoryId(m);
-        if (dirId !== leagueFilter) return false;
+  // Filter matches: Dropdown selections (Competitions or Dates) take precedence and are NOT
+  // governed/constrained by the top tab (Highlights vs Upcoming).
+  const filteredMatches = useMemo(() => {
+    const query = searchQuery.trim().toLowerCase();
 
-        // Sub-league filter
-        if (selectedSubLeague && selectedSubLeague !== 'all') {
-          if (m.competition !== selectedSubLeague) return false;
+    return matches
+      .filter((m) => {
+        // Strictly exclude any Simulated Reality / SRL fixtures
+        const text = `${m.competition || ''} ${m.leagueCode || ''} ${m.country || ''} ${m.home || ''} ${m.away || ''} ${m.id || ''}`.toLowerCase();
+        if (text.includes('simulated reality') || /\b(srl)\b/i.test(text)) {
+          return false;
         }
-      }
 
-      return true;
-    })
-    .sort((a, b) => {
-      // Completed: latest kickoff first (most recent finished matches at top)
-      if (selectedDate === 'completed') {
-        const timeA = a.kickoffIso ? new Date(a.kickoffIso).getTime() : 0;
-        const timeB = b.kickoffIso ? new Date(b.kickoffIso).getTime() : 0;
-        return timeB - timeA;
-      }
-      // Upcoming: strictly chronological by kickoff time (earliest kickoff first)
-      if (activeTab === 'upcoming') {
+        const dStr = m.kickoffIso ? getDeviceLocalDateString(m.kickoffIso) : '';
+
+        // 1. Text Search Filter
+        if (query) {
+          const matchesQuery =
+            m.home.toLowerCase().includes(query) ||
+            m.away.toLowerCase().includes(query) ||
+            m.competition.toLowerCase().includes(query) ||
+            (m.country && m.country.toLowerCase().includes(query)) ||
+            (m.blurb && m.blurb.toLowerCase().includes(query));
+          if (!matchesQuery) return false;
+        }
+
+        // 2. Dates dropdown: explicit 'completed' finished matches of today
+        if (selectedDate === 'completed') {
+          if (!isCompletedMatch(m)) return false;
+          if (dStr !== todayDateStr) return false;
+
+          // Respect competition selection when looking at completed matches
+          if (leagueFilter !== 'all') {
+            const dirId = resolveSportScoreDirectoryId(m);
+            if (dirId !== leagueFilter) return false;
+            if (selectedSubLeague && selectedSubLeague !== 'all' && m.competition !== selectedSubLeague) {
+              return false;
+            }
+          }
+          return true;
+        }
+
+        // Standard: completed fixtures never appear in upcoming/live lists
+        if (isCompletedMatch(m)) {
+          return false;
+        }
+
+        // 3. Dates dropdown: filter by calendar date
+        if (selectedDate !== 'all') {
+          if (dStr !== selectedDate) return false;
+        }
+
+        // 4. Competitions dropdown: filter by country/league directory
+        if (leagueFilter !== 'all') {
+          const dirId = resolveSportScoreDirectoryId(m);
+          if (dirId !== leagueFilter) return false;
+          if (selectedSubLeague && selectedSubLeague !== 'all' && m.competition !== selectedSubLeague) {
+            return false;
+          }
+        }
+
+        // 5. Top Tab Filter: ONLY governs when NEITHER dropdown is active.
+        // If a dropdown is selected, show all matching fixtures regardless of Highlights/Upcoming tab!
+        if (isDropdownActive) {
+          return true;
+        }
+
+        // Default top selection behavior when no dropdown is active:
+        if (activeTab === 'live') {
+          return isLiveMatch(m, deviceNow);
+        }
+
+        if (isLiveMatch(m, deviceNow)) {
+          return false;
+        }
+
+        if (activeTab === 'highlights') {
+          return isHighlightsEligible(m, deviceNow);
+        }
+
+        // 'upcoming' tab
+        return isUpcomingEligible(m, deviceNow);
+      })
+      .sort((a, b) => {
+        // Completed: latest kickoff first
+        if (selectedDate === 'completed') {
+          const timeA = a.kickoffIso ? new Date(a.kickoffIso).getTime() : 0;
+          const timeB = b.kickoffIso ? new Date(b.kickoffIso).getTime() : 0;
+          return timeB - timeA;
+        }
+        // Highlights & Live when no dropdown is active: rank by prestige hierarchy
+        if (!isDropdownActive && (activeTab === 'highlights' || activeTab === 'live')) {
+          return sortHighlightsComparator(a, b);
+        }
+        // Upcoming or Dropdown active: chronological earliest kickoff first
         return sortUpcomingComparator(a, b);
-      }
-      // Highlights & Live: rank by competition prestige hierarchy
-      return sortHighlightsComparator(a, b);
-    });
+      });
+  }, [matches, activeTab, selectedDate, leagueFilter, selectedSubLeague, searchQuery, isDropdownActive, deviceNow, todayDateStr]);
 
   // On-demand Bet365 odds enrichment: Only fetch odds for matches that are actually displayed
   const enrichingRef = useRef<Set<string>>(new Set());
@@ -406,6 +418,12 @@ export default function FreeMatches() {
   const handleTabClick = (tab: FilterScopeTab) => {
     setActiveTab(tab);
     if (tab === 'live' || selectedDate === 'completed') {
+      setSelectedDate('all');
+    }
+    if (leagueFilter !== 'all') {
+      handleLeagueFilterChange('all');
+    }
+    if (selectedDate !== 'all' && selectedDate !== 'completed') {
       setSelectedDate('all');
     }
   };
@@ -539,17 +557,6 @@ export default function FreeMatches() {
             </>
           )}
           <div className="flex flex-col sm:flex-row items-center gap-2 mt-3">
-            {leagueFilter !== 'all' && (
-              <button
-                onClick={() => {
-                  setActiveTab('upcoming');
-                  setSelectedDate('all');
-                }}
-                className="inline-flex items-center gap-2 bg-[#F5F5E4] hover:bg-[#E6E6D2] text-[#006C54] font-bold text-xs uppercase tracking-wide px-4 h-10 rounded-md shadow-2xs transition-colors cursor-pointer"
-              >
-                View All {selectedDirectoryLabel} Across All Dates
-              </button>
-            )}
             <button
               onClick={resetFilters}
               className="inline-flex items-center gap-2 bg-[#006C54] hover:bg-[#005441] text-white font-bold text-xs uppercase tracking-wide px-5 h-10 rounded-md shadow-xs transition-colors active:scale-95 cursor-pointer"
