@@ -29,7 +29,8 @@ import {
 import { enrichFixturesWithBet365Odds } from './sportscoreOddsService.js';
 import { getHighlightsCutoffWindowEAT } from './competitionPriority.js';
 import type { MatchIncidentItem } from './freeMatches.js';
-import { isSnapshotStoreConfigured, loadFixtureSnapshot } from './fixtureSnapshotStore.js';
+import { isSnapshotStoreConfigured, loadFixtureSnapshot, saveFixtureSnapshot } from './fixtureSnapshotStore.js';
+import { findMatchingExistingFixture, mergeMarketFixtureRecords, extractSportScoreProviderId } from './fixtureIdentity.js';
 
 // Firestore snapshot hydration state (serverless-safe shared fixture source)
 const SNAPSHOT_REFRESH_MS = 60_000;

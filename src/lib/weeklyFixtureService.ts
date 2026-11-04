@@ -478,14 +478,20 @@ export async function executeWeeklyIngestion(options?: {
     // Persist to the shared Firestore snapshot so every serverless instance serves the same fixtures
     if (isSnapshotStoreConfigured()) {
       try {
+        // 7-day retention window: preserve historical completed fixtures according to retention rules
         const keepFrom = new Intl.DateTimeFormat('en-CA', {
           timeZone: 'Africa/Nairobi',
           year: 'numeric',
           month: '2-digit',
           day: '2-digit',
-        }).format(new Date(Date.now() - 86_400_000));
-        const saved = await saveFixtureSnapshot(queryMarketFixtures({ scope: 'all' }), keepFrom);
-        console.log(`[WeeklyIngestion] Persisted ${saved} fixtures to Firestore snapshot.`);
+        }).format(new Date(Date.now() - 7 * 86_400_000));
+        // Safe reconciliation: only perform pruning if 100% of date partitions succeeded
+        const saved = await saveFixtureSnapshot(queryMarketFixtures({ scope: 'all' }), {
+          keepFromDate: keepFrom,
+          isCompleteReconciliation: datesFailed.length === 0,
+          source: 'weekly_cron',
+        });
+        console.log(`[WeeklyIngestion] Persisted ${saved} fixtures to Firestore snapshot (safe reconciliation: ${datesFailed.length === 0}).`);
       } catch (snapErr: any) {
         log.errorLogs.push(`Snapshot persistence failed: ${snapErr?.message || snapErr}`);
         console.warn('[WeeklyIngestion] Snapshot persistence notice:', snapErr);

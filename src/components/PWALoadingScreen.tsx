@@ -111,19 +111,23 @@ export default function PWALoadingScreen() {
     return null;
   }
 
+  const isAndroid = typeof navigator !== 'undefined' && /android/i.test(navigator.userAgent);
+  const isDark = typeof document !== 'undefined' && document.documentElement.classList.contains('dark');
+  const splashBackdropColor = isAndroid ? (isDark ? '#202522' : '#FFFFF0') : '#11492D';
+
   return (
     <div
-      className={`fixed inset-0 z-[999999] w-screen overflow-hidden bg-[#11492D] flex items-center justify-center select-none transition-opacity duration-700 ease-out ${
+      className={`fixed inset-0 z-[999999] w-screen overflow-hidden  flex items-center justify-center select-none transition-opacity duration-700 ease-out ${
         isExiting ? 'opacity-0 pointer-events-none' : 'opacity-100'
       }`}
-      style={{ backgroundColor: '#11492D', height: '100dvh', minHeight: '100%' }}
+      style={{ backgroundColor: splashBackdropColor, height: '100dvh', minHeight: '100%' }}
       aria-label="MshindiRoom Application Loading"
       role="dialog"
       aria-modal="true"
       onClick={handleComplete}
     >
       {/* Centered Video Animation */}
-      <div className="relative w-full h-full flex items-center justify-center p-0 m-0 bg-[#11492D]" style={{ backgroundColor: '#11492D' }}>
+      <div className="relative w-full h-full flex items-center justify-center p-0 m-0 " style={{ backgroundColor: splashBackdropColor }}>
         <video
           ref={videoRef}
           src="/pwa-loading-animation.mp4"
@@ -133,8 +137,8 @@ export default function PWALoadingScreen() {
           preload="auto"
           disablePictureInPicture
           onEnded={handleComplete}
-          className="w-full h-full max-h-screen max-w-full object-contain pointer-events-none select-none bg-[#11492D]"
-          style={{ backgroundColor: '#11492D' }}
+          className="w-full h-full max-h-screen max-w-full object-contain pointer-events-none select-none "
+          style={{ backgroundColor: splashBackdropColor }}
         />
       </div>
     </div>

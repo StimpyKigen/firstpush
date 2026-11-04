@@ -1,35 +1,47 @@
 /**
- * Shared Fixture Snapshot Store (Firestore, server-side only)
+ * Shared Fixture Snapshot Store (Firestore with Local Disk Fallback)
  *
- * Serverless instances (Vercel) do not share memory or disk, so fixtures ingested by the
- * weekly cron must be persisted somewhere every instance can read. This module stores the
- * curated fixtures in Firestore as one document per EAT match day:
- *
- *   fixtureSnapshots/{YYYY-MM-DD}  -> { date, fixtures: MarketFixture[], updatedAt }
+ * Persists fixtures in Firestore as one document per EAT match day:
+ *   fixtureSnapshots/{YYYY-MM-DD}  -> { date, fixtures: MarketFixture[], updatedAt, count }
  *   fixtureSnapshots/_meta         -> { updatedAt, count, dates }
  *
- * Per-day documents keep every document far below Firestore's 1 MiB limit.
- * Requires env FIREBASE_SERVICE_ACCOUNT (service-account JSON, raw or base64).
- * When it is missing, all functions are safe no-ops and callers fall back to live sync.
+ * Implements:
+ * - Incremental upserts: updates existing records in place, appends new records, and preserves all unaffected records.
+ * - Cross-day rescheduling: cleanly moves fixtures across days if kickoff date changes without duplicating.
+ * - Live-score and terminal-status protection.
+ * - Safe reconciliation: non-destructive updates that never prune fixtures unless full reconciliation is explicitly completed.
+ * - Serverless-safe per-day chunking far below Firestore's 1 MiB document limit.
+ * - Resilient fallback to persistent local cache when Firestore credentials are unavailable.
  */
 
+import fs from 'fs';
+import path from 'path';
+import os from 'os';
 import type { MarketFixture } from './sportsFeedService.js';
+import {
+  formatEatDay,
+  findMatchingExistingFixture,
+  mergeMarketFixtureRecords,
+} from './fixtureIdentity.js';
 
 const COLLECTION = 'fixtureSnapshots';
 const META_DOC = '_meta';
 
 let cachedDb: any | null | undefined;
 
-function eatDate(iso?: string): string {
-  if (!iso) return '';
-  const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return '';
-  return new Intl.DateTimeFormat('en-CA', {
-    timeZone: 'Africa/Nairobi',
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-  }).format(d);
+export interface SaveSnapshotOptions {
+  keepFromDate?: string;
+  isCompleteReconciliation?: boolean;
+  reconciliationScopeDates?: string[];
+  source?: 'weekly_cron' | 'rolling_sync' | 'manual';
+}
+
+export interface SnapshotSaveStats {
+  totalPersisted: number;
+  newCount: number;
+  updatedCount: number;
+  unchangedCount: number;
+  datesWritten: string[];
 }
 
 function parseServiceAccount(): Record<string, any> | null {
@@ -74,71 +86,365 @@ export function isSnapshotStoreConfigured(): boolean {
   return Boolean(process.env.FIREBASE_SERVICE_ACCOUNT);
 }
 
+function getLocalCachePath(): string {
+  const isVercel = Boolean(process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME);
+  const dir = isVercel ? path.join(os.tmpdir(), '.mshindi-cache') : path.join(process.cwd(), '.cache');
+  if (!fs.existsSync(dir)) {
+    try {
+      fs.mkdirSync(dir, { recursive: true });
+    } catch {}
+  }
+  return path.join(dir, 'sports_fixtures_snapshot.json');
+}
+
+function loadLocalDiskSnapshot(): { byDay: Record<string, MarketFixture[]>; updatedAt: string | null } {
+  try {
+    const filePath = getLocalCachePath();
+    if (fs.existsSync(filePath)) {
+      const raw = fs.readFileSync(filePath, 'utf-8');
+      const parsed = JSON.parse(raw);
+      if (parsed && typeof parsed === 'object') {
+        return {
+          byDay: parsed.byDay || {},
+          updatedAt: parsed.updatedAt || null,
+        };
+      }
+    }
+  } catch {}
+  return { byDay: {}, updatedAt: null };
+}
+
+function saveLocalDiskSnapshot(byDay: Record<string, MarketFixture[]>, updatedAt: string): void {
+  try {
+    const filePath = getLocalCachePath();
+    const data = {
+      updatedAt,
+      byDay,
+    };
+    fs.writeFileSync(filePath, JSON.stringify(data, null, 2), 'utf-8');
+  } catch (err) {
+    console.warn('[FixtureSnapshot] Local cache write notice:', err);
+  }
+}
+
 /**
- * Persist fixtures grouped by EAT match day. Days older than `keepFromDate` are pruned.
- * Returns the number of fixtures written.
+ * Incrementally saves fixtures into persistent storage.
+ * 
+ * Guarantees:
+ * 1. Existing fixtures for the target days are read first and merged incrementally.
+ * 2. New fixtures are added without deleting previously stored fixtures.
+ * 3. Existing fixtures are updated in place with live-score and status protection.
+ * 4. Cross-day kickoff shifts safely move records without leaving ghost duplicates.
+ * 5. Stale day pruning ONLY occurs if options.isCompleteReconciliation is true.
+ * 6. Returns total number of persisted fixtures across all affected days.
  */
-export async function saveFixtureSnapshot(fixtures: MarketFixture[], keepFromDate?: string): Promise<number> {
+export async function saveFixtureSnapshot(
+  fixtures: MarketFixture[],
+  optionsOrKeepFromDate?: SaveSnapshotOptions | string
+): Promise<number> {
+  const options: SaveSnapshotOptions =
+    typeof optionsOrKeepFromDate === 'string'
+      ? { keepFromDate: optionsOrKeepFromDate }
+      : optionsOrKeepFromDate || {};
+
+  const stats = await saveFixtureSnapshotWithStats(fixtures, options);
+  return stats.totalPersisted;
+}
+
+/**
+ * Enhanced incremental save returning detailed synchronization telemetry.
+ */
+export async function saveFixtureSnapshotWithStats(
+  fixtures: MarketFixture[],
+  options?: SaveSnapshotOptions
+): Promise<SnapshotSaveStats> {
   const db = await getDb();
-  if (!db) return 0;
+  const keepFromDate = options?.keepFromDate;
+  const isCompleteReconciliation = Boolean(options?.isCompleteReconciliation);
 
-  const byDay = new Map<string, MarketFixture[]>();
+  // Group incoming fixtures by EAT match day
+  const incomingByDay = new Map<string, MarketFixture[]>();
   for (const f of fixtures) {
-    const day = eatDate(f.kickoffIso);
+    const day = formatEatDay(f.kickoffIso);
     if (!day) continue;
-    if (keepFromDate && day < keepFromDate) continue;
-    if (!byDay.has(day)) byDay.set(day, []);
-    byDay.get(day)!.push(f);
+    if (keepFromDate && day < keepFromDate && !isCompleteReconciliation) continue;
+    if (!incomingByDay.has(day)) incomingByDay.set(day, []);
+    incomingByDay.get(day)!.push(f);
   }
 
-  const updatedAt = new Date().toISOString();
-  const col = db.collection(COLLECTION);
-  const batch = db.batch();
-  let total = 0;
+  const nowIso = new Date().toISOString();
+  let newCount = 0;
+  let updatedCount = 0;
+  let unchangedCount = 0;
+  const datesWrittenSet = new Set<string>();
 
-  for (const [day, list] of byDay) {
-    // JSON round trip strips `undefined` values, which Firestore rejects.
-    batch.set(col.doc(day), { date: day, updatedAt, count: list.length, fixtures: JSON.parse(JSON.stringify(list)) });
-    total += list.length;
+  // =========================================================================
+  // Strategy A: Cloud Firestore Storage (when service account is configured)
+  // =========================================================================
+  if (db) {
+    const col = db.collection(COLLECTION);
+    const batch = db.batch();
+
+    // 1. Load all existing day documents to handle cross-day rescheduling seamlessly
+    const existingDayMap = new Map<string, MarketFixture[]>();
+    try {
+      const snap = await col.get();
+      snap.forEach((doc: any) => {
+        if (doc.id !== META_DOC) {
+          const list = doc.data()?.fixtures;
+          if (Array.isArray(list)) {
+            existingDayMap.set(doc.id, list);
+          }
+        }
+      });
+    } catch (readErr) {
+      console.warn('[FixtureSnapshot] Error pre-fetching existing day documents:', readErr);
+    }
+
+    // Index all existing fixtures by day and item for fast cross-day lookups
+    const allExistingFlat: { day: string; fixture: MarketFixture }[] = [];
+    for (const [day, list] of existingDayMap) {
+      for (const item of list) {
+        allExistingFlat.push({ day, fixture: item });
+      }
+    }
+
+    // Days modified during this sync
+    const modifiedDays = new Set<string>();
+
+    for (const [day, incomingList] of incomingByDay) {
+      datesWrittenSet.add(day);
+      modifiedDays.add(day);
+
+      const currentDayList = existingDayMap.get(day) || [];
+      const currentDayMap = new Map<string, MarketFixture>();
+      for (const item of currentDayList) {
+        currentDayMap.set(item.id, item);
+      }
+
+      for (const incoming of incomingList) {
+        // Look within same day first
+        let existing = findMatchingExistingFixture(incoming, currentDayMap.values());
+        let previousDay: string | null = null;
+
+        // If not found in same day, check if it was rescheduled from another day
+        if (!existing) {
+          for (const flat of allExistingFlat) {
+            if (flat.day !== day) {
+              const matched = findMatchingExistingFixture(incoming, [flat.fixture]);
+              if (matched) {
+                existing = matched;
+                previousDay = flat.day;
+                break;
+              }
+            }
+          }
+        }
+
+        if (!existing) {
+          // Genuinely new fixture
+          currentDayMap.set(incoming.id, incoming);
+          newCount++;
+        } else {
+          // If rescheduled from another day, remove from old day list
+          if (previousDay && previousDay !== day) {
+            const oldDayList = existingDayMap.get(previousDay) || [];
+            const filteredOldDay = oldDayList.filter((item) => item.id !== existing!.id);
+            existingDayMap.set(previousDay, filteredOldDay);
+            modifiedDays.add(previousDay);
+          }
+
+          // Merge and update in current day
+          const { merged, hasChanged } = mergeMarketFixtureRecords(existing, incoming);
+          currentDayMap.set(existing.id, merged);
+          if (hasChanged) {
+            updatedCount++;
+          } else {
+            unchangedCount++;
+          }
+        }
+      }
+
+      existingDayMap.set(day, Array.from(currentDayMap.values()));
+    }
+
+    // 2. Batch write all modified day documents
+    for (const day of modifiedDays) {
+      const list = existingDayMap.get(day) || [];
+      const cleanList = JSON.parse(JSON.stringify(list));
+      batch.set(col.doc(day), {
+        date: day,
+        updatedAt: nowIso,
+        count: cleanList.length,
+        fixtures: cleanList,
+      });
+    }
+
+    // 3. Safe reconciliation: only prune historical documents if explicitly complete
+    if (isCompleteReconciliation && keepFromDate) {
+      try {
+        const existingDocs = await col.listDocuments();
+        for (const ref of existingDocs) {
+          if (ref.id !== META_DOC && ref.id < keepFromDate) {
+            batch.delete(ref);
+            existingDayMap.delete(ref.id);
+          }
+        }
+      } catch (pruneErr) {
+        console.warn('[FixtureSnapshot] Pruning notice:', pruneErr);
+      }
+    }
+
+    // 4. Update _meta document with all available dates
+    const allDates = Array.from(existingDayMap.keys()).sort();
+    batch.set(col.doc(META_DOC), {
+      updatedAt: nowIso,
+      dates: allDates,
+      lastSyncSource: options?.source || 'unknown',
+    });
+
+    await batch.commit();
+
+    let totalPersisted = 0;
+    for (const list of existingDayMap.values()) {
+      totalPersisted += list.length;
+    }
+
+    return {
+      totalPersisted,
+      newCount,
+      updatedCount,
+      unchangedCount,
+      datesWritten: Array.from(datesWrittenSet),
+    };
   }
 
-  batch.set(col.doc(META_DOC), { updatedAt, count: total, dates: Array.from(byDay.keys()).sort() });
+  // =========================================================================
+  // Strategy B: Local Disk Fallback (offline / local dev / test suite)
+  // =========================================================================
+  const localSnapshot = loadLocalDiskSnapshot();
+  const byDay = localSnapshot.byDay;
 
-  // Prune stale day documents
-  if (keepFromDate) {
-    const existing = await col.listDocuments();
-    for (const ref of existing) {
-      if (ref.id !== META_DOC && ref.id < keepFromDate) batch.delete(ref);
+  // Flatten all existing fixtures for cross-day rescheduling lookup
+  const allExistingFlat: { day: string; fixture: MarketFixture }[] = [];
+  for (const [day, list] of Object.entries(byDay)) {
+    if (Array.isArray(list)) {
+      for (const item of list) {
+        allExistingFlat.push({ day, fixture: item });
+      }
     }
   }
 
-  await batch.commit();
-  return total;
+  for (const [day, incomingList] of incomingByDay) {
+    datesWrittenSet.add(day);
+    const existingList = byDay[day] || [];
+    const dayMap = new Map<string, MarketFixture>();
+
+    for (const item of existingList) {
+      dayMap.set(item.id, item);
+    }
+
+    for (const incoming of incomingList) {
+      // 1. Look within same day
+      let existing = findMatchingExistingFixture(incoming, dayMap.values());
+      let previousDay: string | null = null;
+
+      // 2. Look across other days (rescheduled match check)
+      if (!existing) {
+        for (const flat of allExistingFlat) {
+          if (flat.day !== day) {
+            const matched = findMatchingExistingFixture(incoming, [flat.fixture]);
+            if (matched) {
+              existing = matched;
+              previousDay = flat.day;
+              break;
+            }
+          }
+        }
+      }
+
+      if (!existing) {
+        dayMap.set(incoming.id, incoming);
+        newCount++;
+      } else {
+        // If match rescheduled to another day, remove from old day list
+        if (previousDay && previousDay !== day) {
+          const oldList = byDay[previousDay] || [];
+          byDay[previousDay] = oldList.filter((item) => item.id !== existing!.id);
+        }
+
+        const { merged, hasChanged } = mergeMarketFixtureRecords(existing, incoming);
+        dayMap.set(existing.id, merged);
+        if (hasChanged) {
+          updatedCount++;
+        } else {
+          unchangedCount++;
+        }
+      }
+    }
+
+    byDay[day] = Array.from(dayMap.values());
+  }
+
+  // Safe reconciliation for local disk
+  if (isCompleteReconciliation && keepFromDate) {
+    for (const dayKey of Object.keys(byDay)) {
+      if (dayKey < keepFromDate) {
+        delete byDay[dayKey];
+      }
+    }
+  }
+
+  saveLocalDiskSnapshot(byDay, nowIso);
+
+  let totalPersisted = 0;
+  for (const list of Object.values(byDay)) {
+    if (Array.isArray(list)) totalPersisted += list.length;
+  }
+
+  return {
+    totalPersisted,
+    newCount,
+    updatedCount,
+    unchangedCount,
+    datesWritten: Array.from(datesWrittenSet),
+  };
 }
 
 /**
- * Load every stored fixture (all day documents). Returns [] when unconfigured or empty.
+ * Loads every stored fixture across all match days from Firestore (or local fallback).
+ * Returns empty array when unconfigured or empty.
  */
 export async function loadFixtureSnapshot(): Promise<{ fixtures: MarketFixture[]; updatedAt: string | null }> {
   const db = await getDb();
-  if (!db) return { fixtures: [], updatedAt: null };
 
-  try {
-    const snap = await db.collection(COLLECTION).get();
-    const fixtures: MarketFixture[] = [];
-    let updatedAt: string | null = null;
-    snap.forEach((doc: any) => {
-      const data = doc.data();
-      if (doc.id === META_DOC) {
-        updatedAt = data.updatedAt || null;
-        return;
-      }
-      if (Array.isArray(data.fixtures)) fixtures.push(...data.fixtures);
-    });
-    return { fixtures, updatedAt };
-  } catch (err) {
-    console.warn('[FixtureSnapshot] Failed to load snapshot:', err);
-    return { fixtures: [], updatedAt: null };
+  // Firestore path
+  if (db) {
+    try {
+      const snap = await db.collection(COLLECTION).get();
+      const fixtures: MarketFixture[] = [];
+      let updatedAt: string | null = null;
+      snap.forEach((doc: any) => {
+        const data = doc.data();
+        if (doc.id === META_DOC) {
+          updatedAt = data.updatedAt || null;
+          return;
+        }
+        if (Array.isArray(data.fixtures)) {
+          fixtures.push(...data.fixtures);
+        }
+      });
+      return { fixtures, updatedAt };
+    } catch (err) {
+      console.warn('[FixtureSnapshot] Failed to load Firestore snapshot:', err);
+    }
   }
-}
 
+  // Local disk fallback path
+  const local = loadLocalDiskSnapshot();
+  const flat: MarketFixture[] = [];
+  for (const list of Object.values(local.byDay)) {
+    if (Array.isArray(list)) flat.push(...list);
+  }
+  return { fixtures: flat, updatedAt: local.updatedAt };
+}

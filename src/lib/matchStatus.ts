@@ -196,6 +196,11 @@ export function isStatusTransitionValid(
   if (existingStatus === 'post' && (incomingStatus === 'in' || incomingStatus === 'pre')) {
     return false;
   }
+
+  // Active live in-play states cannot be reverted back to scheduled by a schedule refresh
+  if (existingStatus === 'in' && incomingStatus === 'pre') {
+    return false;
+  }
   if (existingStatus === 'cancelled' && (incomingStatus === 'in' || incomingStatus === 'pre')) {
     return false;
   }

@@ -2,6 +2,7 @@ import type { MatchConsensus } from './types.js';
 import { type MatchPeriod, type MatchStatus, isStatusTransitionValid } from './matchStatus.js';
 import { buildConsensus } from './consensusEngine.js';
 import { fetchDailyHighlightFixtures, type HighlightFixture } from './footballApi.js';
+import { findMatchingExistingFixture, extractSportScoreProviderId, formatEatDay } from './fixtureIdentity.js';
 
 const listeners = new Set<() => void>();
 

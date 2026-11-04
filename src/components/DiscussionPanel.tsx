@@ -109,9 +109,9 @@ export default function DiscussionPanel({
     const el = textareaRef.current;
     if (el) {
       el.style.height = 'auto';
-      const newHeight = Math.min(el.scrollHeight, 120);
+      const newHeight = Math.max(54, el.scrollHeight);
       el.style.height = `${newHeight}px`;
-      el.style.overflowY = el.scrollHeight > 120 ? 'auto' : 'hidden';
+      el.style.overflowY = 'hidden';
     }
   }, [myReason]);
 
@@ -211,6 +211,7 @@ export default function DiscussionPanel({
             style={{
               scrollbarWidth: 'none',
               msOverflowStyle: 'none',
+              overflowY: 'hidden',
             }}
           />
 

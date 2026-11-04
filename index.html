@@ -30,7 +30,9 @@
     <meta name="twitter:image" content="https://mshindi.co.ke/pwa-512.png" />
 
     <!-- Mobile & PWA Configuration (iOS & Android) -->
-    <meta name="theme-color" content="#FFFFF0" />
+    <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#202522" />
+    <meta name="theme-color" media="(prefers-color-scheme: light)" content="#FFFFF0" />
+    <meta name="theme-color" content="#202522" />
     <script>
       (function () {
         try {
@@ -52,7 +54,7 @@
             if (isAndroid) {
               // Android PWA: maintain unified charcoal nav strip in dark mode (#202522)
               var androidColor = isDark ? '#202522' : '#FFFFF0';
-              document.querySelector('meta[name=theme-color]').setAttribute('content', androidColor);
+              document.querySelectorAll('meta[name=theme-color]').forEach(function(el) { el.setAttribute('content', androidColor); });
               document.documentElement.style.backgroundColor = androidColor;
             } else {
               // iOS and desktop PWA: preserve existing splash animation backdrop

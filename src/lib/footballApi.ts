@@ -1,5 +1,6 @@
 import { type MatchPeriod, type MatchStatus, parseDetailedMatchStatus } from './matchStatus.js';
 import { enrichFixturesWithBet365Odds } from './sportscoreOddsService.js';
+import { findMatchingExistingFixture } from './fixtureIdentity.js';
 
 export interface HighlightFixture {
   id: string;
@@ -343,6 +344,46 @@ export async function fetchDirectSportScoreFixtures(): Promise<HighlightFixture[
     console.warn('Direct SportScore API fallback notice:', err);
     return [];
   }
+}
+
+function mergeHighlightFixtureLists(
+  existingList: HighlightFixture[],
+  incomingList: HighlightFixture[]
+): HighlightFixture[] {
+  const map = new Map<string, HighlightFixture>();
+  for (const item of existingList) {
+    if (item && item.id) map.set(item.id, item);
+  }
+  for (const inc of incomingList) {
+    if (!inc || !inc.id) continue;
+    const existing = findMatchingExistingFixture(inc, map.values());
+    if (!existing) {
+      map.set(inc.id, inc);
+    } else {
+      const isTerminal = existing.status === 'post';
+      const status = isTerminal && inc.status !== 'post' ? 'post' : (inc.status || existing.status);
+      const homeScore = inc.status === 'pre' && (existing.status === 'in' || existing.status === 'post')
+        ? existing.homeScore
+        : (inc.homeScore !== undefined && inc.homeScore !== null ? inc.homeScore : existing.homeScore);
+      const awayScore = inc.status === 'pre' && (existing.status === 'in' || existing.status === 'post')
+        ? existing.awayScore
+        : (inc.awayScore !== undefined && inc.awayScore !== null ? inc.awayScore : existing.awayScore);
+
+      map.set(existing.id, {
+        ...existing,
+        ...inc,
+        id: existing.id,
+        status,
+        homeScore,
+        awayScore,
+        bookmaker: inc.bookmaker === 'Bet365' ? 'Bet365' : (existing.bookmaker || inc.bookmaker),
+        homeOdds: existing.bookmaker === 'Bet365' && inc.bookmaker !== 'Bet365' ? existing.homeOdds : inc.homeOdds,
+        drawOdds: existing.bookmaker === 'Bet365' && inc.bookmaker !== 'Bet365' ? existing.drawOdds : inc.drawOdds,
+        awayOdds: existing.bookmaker === 'Bet365' && inc.bookmaker !== 'Bet365' ? existing.awayOdds : inc.awayOdds,
+      });
+    }
+  }
+  return Array.from(map.values());
 }
 
 export async function fetchDailyHighlightFixtures(force = false): Promise<HighlightFixture[]> {
