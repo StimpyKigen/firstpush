@@ -26,6 +26,7 @@ import {
 import {
   subscribeToHomepageFeed,
   getHomepageFeedSnapshot,
+  refreshHomepageFeed,
   addCarouselItem,
   updateCarouselItem,
   replaceCarouselItemPhoto,
@@ -76,6 +77,10 @@ export default function AdminHomepageFeed() {
     getHomepageFeedSnapshot,
     getHomepageFeedSnapshot
   );
+
+  React.useEffect(() => {
+    refreshHomepageFeed().catch(() => {});
+  }, []);
 
   // -------------------------------------------------------------
   // CAROUSEL CREATION STATE (Direct WebP Upload or Photo URL to Firestore)

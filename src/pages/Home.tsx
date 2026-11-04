@@ -5,6 +5,7 @@ import SeoHead from '../components/SeoHead';
 import {
   subscribeToHomepageFeed,
   getHomepageFeedSnapshot,
+  refreshHomepageFeed,
   type HomepageVideoItem,
 } from '../lib/homepageFeedStore';
 import {
@@ -76,6 +77,11 @@ export default function Home() {
         !v.youtubeUrl?.includes('kJQP7kiw5Fk')
     );
   }, [feed.videoItems]);
+
+  // Proactively sync homepage feed on mount across all visitors, devices, and versions
+  useEffect(() => {
+    refreshHomepageFeed().catch(() => {});
+  }, []);
 
   // Subscribe to live Free Matches store for popular top fixtures
   const allFreeMatches = useSyncExternalStore(

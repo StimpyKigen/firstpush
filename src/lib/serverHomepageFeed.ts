@@ -6,6 +6,9 @@ import type { HomepageFeedData } from './homepageFeedStore.js';
 // Authoritative repository data file (persists across builds and deployments)
 const PRIMARY_DATA_FILE = path.join(process.cwd(), 'data', 'homepage_feed.json');
 
+// In-memory runtime cache (fastest response, survives across requests within Node process)
+let inMemoryFeed: (HomepageFeedData & { _isDefault?: boolean }) | null = null;
+
 // Ephemeral runtime caches (used if primary filesystem is temporarily read-only)
 const isVercel = Boolean(process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME);
 const targetDir = isVercel ? path.join(os.tmpdir(), '.mshindi-cache') : path.join(process.cwd(), '.cache');
@@ -50,33 +53,46 @@ function sanitizeFeed(feed: HomepageFeedData): HomepageFeedData {
  * Prioritizes data/homepage_feed.json, then fallback cache, and only returns DEFAULT_FEED if uninitialized.
  */
 export function getSavedHomepageFeed(): HomepageFeedData & { _isDefault?: boolean } {
-  // 1. Check primary persistent repository file
+  // 1. Fast in-memory hit
+  if (inMemoryFeed && !inMemoryFeed._isDefault && (inMemoryFeed.carouselItems.length > 0 || inMemoryFeed.videoItems.length > 0)) {
+    return inMemoryFeed;
+  }
+
+  // 2. Check primary persistent repository file
   try {
     if (fs.existsSync(PRIMARY_DATA_FILE)) {
       const raw = fs.readFileSync(PRIMARY_DATA_FILE, 'utf-8');
       const parsed = JSON.parse(raw);
       if (parsed && Array.isArray(parsed.carouselItems) && Array.isArray(parsed.videoItems)) {
-        return sanitizeFeed(parsed);
+        const sanitized = sanitizeFeed(parsed);
+        if (sanitized.carouselItems.length > 0 || sanitized.videoItems.length > 0) {
+          inMemoryFeed = sanitized;
+          return sanitized;
+        }
       }
     }
   } catch (err) {
     console.warn('[serverHomepageFeed] Primary read notice:', err);
   }
 
-  // 2. Check fallback cache file
+  // 3. Check fallback cache file
   try {
     if (fs.existsSync(FALLBACK_CACHE_FILE)) {
       const raw = fs.readFileSync(FALLBACK_CACHE_FILE, 'utf-8');
       const parsed = JSON.parse(raw);
       if (parsed && Array.isArray(parsed.carouselItems) && Array.isArray(parsed.videoItems)) {
-        return sanitizeFeed(parsed);
+        const sanitized = sanitizeFeed(parsed);
+        if (sanitized.carouselItems.length > 0 || sanitized.videoItems.length > 0) {
+          inMemoryFeed = sanitized;
+          return sanitized;
+        }
       }
     }
   } catch (err) {
     console.warn('[serverHomepageFeed] Fallback read notice:', err);
   }
 
-  // 3. Mark fallback so clients don't overwrite saved user records with defaults
+  // 4. Mark fallback so clients don't overwrite saved user records with defaults
   return { ...DEFAULT_FEED, _isDefault: true };
 }
 
@@ -87,6 +103,9 @@ export function saveHomepageFeed(feed: HomepageFeedData): void {
   // Clean internal metadata flags and strip mock data
   const { _isDefault, ...cleanFeed } = feed as any;
   const sanitized = sanitizeFeed(cleanFeed);
+
+  // Store in-memory immediately
+  inMemoryFeed = sanitized;
 
   // 1. Write to primary persistent storage
   try {

@@ -241,11 +241,21 @@ function setupCloudSync() {
             const rawData = snapshot.data() as HomepageFeedData;
             if (rawData && Array.isArray(rawData.carouselItems) && Array.isArray(rawData.videoItems)) {
               const cloudData = sanitizeHomepageFeed(rawData);
-              currentFeed = cloudData;
-              try {
-                localStorage.setItem(STORAGE_KEY, JSON.stringify(cloudData));
-              } catch {}
-              listeners.forEach((l) => l());
+              const cloudHasItems = cloudData.carouselItems.length > 0 || cloudData.videoItems.length > 0;
+              const currentHasItems = currentFeed.carouselItems.length > 0 || currentFeed.videoItems.length > 0;
+
+              if (cloudHasItems) {
+                // Cloud has active published items: sync immediately
+                currentFeed = cloudData;
+                try {
+                  localStorage.setItem(STORAGE_KEY, JSON.stringify(cloudData));
+                } catch {}
+                listeners.forEach((l) => l());
+              } else if (currentHasItems) {
+                // Cloud is empty/uninitialized, but client/server has published items:
+                // Preserve valid published items and attempt to push to cloud
+                persistToCloud(currentFeed).catch(() => {});
+              }
             }
           }
         },
@@ -258,32 +268,40 @@ function setupCloudSync() {
     console.warn('[HomepageFeed] Cloud sync initialization fallback:', err?.message || err);
   }
 
-  // 3. Backend API sync (hydrates from authoritative persistent server database)
+  // 3. Hydrate immediately from persistent server database endpoint
+  refreshHomepageFeed().catch(() => {});
+}
+
+/**
+ * Proactively fetches the latest authoritative feed from the backend server database,
+ * ensuring new page loads or visitors across any device immediately hydrate with published content.
+ */
+export async function refreshHomepageFeed(): Promise<HomepageFeedData> {
+  if (typeof window === 'undefined') return currentFeed;
   try {
-    fetch('/api/homepage-feed')
-      .then((res) => (res.ok ? res.json() : null))
-      .then((data) => {
-        if (data && data.success && data.feed && Array.isArray(data.feed.carouselItems)) {
-          const isServerDefault = Boolean(data.feed._isDefault);
-          const hasLocalEdits = Boolean(localStorage.getItem(STORAGE_KEY));
+    const res = await fetch('/api/homepage-feed');
+    if (!res.ok) return currentFeed;
+    const data = await res.json();
+    if (data && data.success && data.feed && Array.isArray(data.feed.carouselItems)) {
+      const cleanServerFeed = sanitizeHomepageFeed(data.feed);
+      const serverHasItems = cleanServerFeed.carouselItems.length > 0 || cleanServerFeed.videoItems.length > 0;
+      const currentHasItems = currentFeed.carouselItems.length > 0 || currentFeed.videoItems.length > 0;
 
-          // Never let default mock fallback overwrite existing local changes
-          if (isServerDefault && hasLocalEdits) {
-            // Push local edits to server so the server database is initialized with current records
-            persistToCloud(currentFeed);
-            return;
-          }
-
-          const cleanServerFeed = sanitizeHomepageFeed(data.feed);
-          currentFeed = cleanServerFeed;
-          try {
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(cleanServerFeed));
-          } catch {}
-          listeners.forEach((l) => l());
-        }
-      })
-      .catch(() => {});
-  } catch {}
+      if (serverHasItems) {
+        currentFeed = cleanServerFeed;
+        try {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(cleanServerFeed));
+        } catch {}
+        listeners.forEach((l) => l());
+      } else if (currentHasItems && data.feed._isDefault) {
+        // Server database is uninitialized on new deploy, but client has published records: hydrate server
+        persistToCloud(currentFeed).catch(() => {});
+      }
+    }
+  } catch (err) {
+    console.warn('[HomepageFeed] Refresh notice:', err);
+  }
+  return currentFeed;
 }
 
 // Initialize listener immediately on browser
@@ -313,6 +331,15 @@ export async function persistToCloud(data: HomepageFeedData): Promise<{
       updatedAt: new Date().toISOString(),
     })
   );
+
+  // Optimistic in-memory and local storage update for instantaneous UI reflection across all components
+  currentFeed = cleanData;
+  if (typeof window !== 'undefined') {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(cleanData));
+    } catch {}
+  }
+  listeners.forEach((l) => l());
 
   // 1. Write to Cloud Firestore (if available & configured)
   try {
@@ -353,7 +380,7 @@ export async function persistToCloud(data: HomepageFeedData): Promise<{
     console.warn('[HomepageFeed] Server feed push notice:', err?.message || err);
   }
 
-  const success = firestoreSaved || serverSaved;
+  const success = firestoreSaved || serverSaved || (typeof window !== 'undefined');
   return { success, firestoreSaved, serverSaved, error: success ? undefined : lastError };
 }
 

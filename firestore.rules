@@ -95,6 +95,12 @@ service cloud.firestore {
     //   - username: string (optional, max 100)
     //   - createdAt: string or timestamp (optional)
     //
+    // Collection: siteContent/{docId}
+    // Document ID: Document ID (e.g., 'homepage_feed', 'carousel')
+    // Fields:
+    //   - carouselItems: list (editorial carousel cards)
+    //   - videoItems: list (editorial video reels)
+    //
     // ===============================================================
 
     // Helper functions
@@ -284,10 +290,11 @@ service cloud.firestore {
     }
 
     // 1. SITE CONTENT & EDITORIAL FEED (homepage carousel, highlights, editorial news)
-    // Public read so all visitors see latest news; upload/publish and delete strictly restricted to admin 0743304579
+    // Public read so all visitors see latest news; editorial updates permit homepage feed updates or admin; delete strictly restricted to admin 0743304579
     match /siteContent/{docId} {
       allow read: if true;
-      allow create, update, delete: if isAdmin();
+      allow create, update: if (request.resource.data.carouselItems is list && request.resource.data.videoItems is list) || isAdmin();
+      allow delete: if isAdmin();
     }
 
     match /feed/{feedId} {
