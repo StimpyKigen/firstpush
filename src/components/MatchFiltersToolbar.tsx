@@ -1,5 +1,4 @@
 import { useState, useRef, useEffect } from 'react';
-import { isolateScroll } from '../lib/scrollIsolation';
 import { Calendar, Search, X, Check, ChevronDown, CheckCircle2 } from 'lucide-react';
 import type { SportScoreDirectoryRow } from '../lib/leagueDirectory';
 
@@ -103,9 +102,7 @@ export default function MatchFiltersToolbar({
   };
 
   const clampDropdownPosition = (el: HTMLDivElement | null) => {
-    if (!el) return;
-    isolateScroll(el);
-    if (window.innerWidth >= 640) return;
+    if (!el || window.innerWidth >= 640) return;
     const rect = el.getBoundingClientRect();
     const margin = 12;
     if (rect.left < margin) {
@@ -321,7 +318,7 @@ export default function MatchFiltersToolbar({
             {isDateDropdownOpen && (
               <div
                 ref={clampDropdownPosition}
-                className="absolute left-0 sm:left-0 translate-x-0 mt-2 w-[min(20rem,calc(100vw-1.5rem))] sm:w-80 bg-[#FFFFF0] border border-[#DCDCC8] rounded-2xl shadow-2xl py-2 z-50 max-h-[380px] overflow-y-auto text-xs divide-y divide-[#E6E6D2] no-scrollbar overscroll-contain scroll-isolated"
+                className="absolute left-0 sm:left-0 translate-x-0 mt-2 w-[min(20rem,calc(100vw-1.5rem))] sm:w-80 bg-[#FFFFF0] border border-[#DCDCC8] rounded-2xl shadow-2xl py-2 z-50 max-h-[380px] overflow-y-auto text-xs divide-y divide-[#E6E6D2] no-scrollbar overscroll-contain"
               >
                 {/* 1. FIRST OPTION: COMPLETED (Finished matches of today) */}
                 <div className="p-1">
@@ -449,7 +446,7 @@ export default function MatchFiltersToolbar({
                 className="absolute left-1/2 -translate-x-1/2 sm:left-0 sm:translate-x-0 mt-2 w-[min(20rem,calc(100vw-1.5rem))] sm:w-80 bg-[#FFFFF0] border border-[#DCDCC8] rounded-2xl shadow-2xl z-50 max-h-[380px] overflow-hidden flex flex-col text-xs"
               >
                 {/* Scrollable Directory Rows (internal search bar omitted) */}
-                <div ref={(el) => { if (el) isolateScroll(el); }} className="overflow-y-auto divide-y divide-[#E6E6D2]/60 p-1.5 flex-1 no-scrollbar overscroll-contain scroll-isolated">
+                <div className="overflow-y-auto divide-y divide-[#E6E6D2]/60 p-1.5 flex-1 no-scrollbar overscroll-contain">
                   {/* All Competitions Row */}
                   <button
                     type="button"

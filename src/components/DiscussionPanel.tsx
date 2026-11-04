@@ -8,7 +8,6 @@ import { moderateText } from '../lib/contentModeration';
 import { PickRowSkeleton } from './skeleton';
 import { useCurrentUser } from '../lib/authStore';
 import { useCommentEngagementStore } from '../lib/commentEngagementStore';
-import { isolateScroll } from '../lib/scrollIsolation';
 
 interface DiscussionPanelProps {
   picks: GamblerPick[];
@@ -78,13 +77,6 @@ export default function DiscussionPanel({
     }
     setDeletedPickIds([]);
   }, [matchId]);
-
-  // Trap scroll within comments so reaching boundaries never scrolls the outer page
-  useEffect(() => {
-    const el = commentsViewportRef.current;
-    if (!el) return;
-    return isolateScroll(el);
-  }, []);
 
   // Moderate reasoning text dynamically
   const modResult = useMemo(() => moderateText(myReason), [myReason]);
@@ -276,7 +268,7 @@ export default function DiscussionPanel({
       <div className="bg-slate-100/50 dark:bg-[#202522] border border-slate-200 dark:border-[#414A43] rounded-xl overflow-hidden shadow-2xs">
         <div
           ref={commentsViewportRef}
-          className="h-[460px] max-h-[60vh] w-full overflow-y-auto overscroll-contain no-scrollbar scroll-isolated p-3 sm:p-4 dark:bg-[#202522]"
+          className="h-[460px] max-h-[60vh] w-full overflow-y-auto overscroll-contain no-scrollbar p-3 sm:p-4 dark:bg-[#202522]"
         >
           <div className="flex flex-col gap-3 py-1">
             {loading ? (
