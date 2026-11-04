@@ -821,11 +821,12 @@ export function ingestFixtures(fixtures: MarketFixture[], isAuthoritative = fals
             finalClock,
             finalPeriod,
             f.latestGoalscorer || existing.latestGoalscorer,
-            f.providerId || existing.providerId
+            f.providerId || existing.providerId,
+            finalStatus
           );
         }
         const statusChanged = finalStatus !== existing.status || finalPeriod !== existing.period || finalClock !== existing.displayClock;
-        if (statusChanged && !scoreChanged) {
+        if (statusChanged) {
           realtimeBroadcaster.broadcastStatusChange(
             targetId,
             finalStatus,
@@ -899,10 +900,30 @@ export function normalizeSportScoreMatch(m: any, nowIso: string, isLiveForce = f
     : m.status;
   const detailed = parseDetailedMatchStatus(rawStatus, m.status_text);
 
-  const status = detailed.status;
-  const period = detailed.period;
-  const displayClock = detailed.displayClock;
-  const periodSequence = detailed.periodSequence;
+  let status = detailed.status;
+  let period = detailed.period;
+  let displayClock = detailed.displayClock;
+  let periodSequence = detailed.periodSequence;
+
+  // Authoritative Sportscore live_minute & 2D tracker state overrides
+  if (m.live_minute !== undefined && m.live_minute !== null && m.live_minute !== '') {
+    const rawMin = String(m.live_minute).trim();
+    displayClock = rawMin.endsWith("'") ? rawMin : `${rawMin}'`;
+    status = 'in';
+    const num = parseInt(rawMin, 10);
+    period = num >= 46 ? 'second_half' : 'first_half';
+    periodSequence = num >= 46 ? 30 : 10;
+  } else if (String(m.status_text || '').toLowerCase() === 'ht' || String(m.status_text || '').toLowerCase() === 'half time' || String(m.status || '').toLowerCase() === 'halftime') {
+    displayClock = 'HT';
+    status = 'in';
+    period = 'halftime';
+    periodSequence = 20;
+  } else if (String(m.status_text || '').toLowerCase() === 'ft' || String(m.status_text || '').toLowerCase() === 'finished' || String(m.status || '').toLowerCase() === 'finished') {
+    displayClock = 'FT';
+    status = 'post';
+    period = 'full_time';
+    periodSequence = 60;
+  }
 
   // Scores: STRICT INVARIANT:
   // For 'pre' (scheduled) or postponed/cancelled, scores MUST be null!
@@ -1247,8 +1268,145 @@ export async function syncLiveScoresOnly(): Promise<{ updated: number; liveCount
     const liveFixtures = await fetchSportScoreLiveFixtures();
     let updated = 0;
     if (liveFixtures.length > 0) {
+      // Query 2D pitch tracker / match detail for each live fixture to mirror exact live_minute, HT score, and incidents
+      await Promise.allSettled(
+        liveFixtures.map(async (lf) => {
+          try {
+            const matchSlug = lf.providerId || `${slugify(lf.home)}-vs-${slugify(lf.away)}`;
+            const res = await fetch(`https://sportscore.com/api/widget/match/?sport=football&slug=${encodeURIComponent(matchSlug)}`, {
+              headers: {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
+                Accept: 'application/json',
+              },
+            });
+            if (res.ok) {
+              const json = await res.json();
+              if (json && json.match) {
+                const dm = json.match;
+                if (dm.live_minute !== undefined && dm.live_minute !== null && dm.live_minute !== '') {
+                  const raw = String(dm.live_minute).trim();
+                  lf.displayClock = raw.endsWith("'") ? raw : `${raw}'`;
+                }
+                if (dm.home_ht_score !== undefined && dm.home_ht_score !== null && dm.home_ht_score !== '') {
+                  lf.homeHtScore = Number(dm.home_ht_score);
+                  lf.awayHtScore = Number(dm.away_ht_score);
+                }
+                if (dm.status_text) {
+                  lf.statusText = dm.status_text;
+                  const st = dm.status_text.toLowerCase();
+                  if (st === 'ht' || st === 'half time') {
+                    lf.displayClock = 'HT';
+                    lf.period = 'halftime';
+                  } else if (st === 'ft' || st === 'finished') {
+                    lf.displayClock = 'FT';
+                    lf.status = 'post';
+                    lf.period = 'full_time';
+                  }
+                }
+                if (Array.isArray(dm.incidents) && dm.incidents.length > 0) {
+                  lf.incidents = dm.incidents;
+                }
+              }
+            }
+          } catch {}
+        })
+      );
       updated = ingestFixtures(liveFixtures);
     }
+
+    // Reconcile matches in fixturesStore that were previously live ('in')
+    // When a match ends, SportScore removes it from status=live. We immediately check its final status.
+    const liveKeys = new Set<string>();
+    liveFixtures.forEach((f) => {
+      liveKeys.add(f.id);
+      if (f.providerId) liveKeys.add(f.providerId);
+      if (f.matchUrl) liveKeys.add(f.matchUrl);
+      liveKeys.add(`${slugify(f.home)}-vs-${slugify(f.away)}`);
+    });
+
+    const nowMs = Date.now();
+    const storedList = Array.from(fixturesStore.values());
+
+    for (const sf of storedList) {
+      if (sf.status === 'in') {
+        const mSlug = `${slugify(sf.home)}-vs-${slugify(sf.away)}`;
+        const isStillLive =
+          liveKeys.has(sf.id) ||
+          (sf.providerId && liveKeys.has(sf.providerId)) ||
+          (sf.matchUrl && liveKeys.has(sf.matchUrl)) ||
+          liveKeys.has(mSlug);
+
+        if (!isStillLive) {
+          // Query SportScore widget detail to confirm finished status and final score
+          let isFinished = false;
+          let finalHScore = sf.homeScore ?? 0;
+          let finalAScore = sf.awayScore ?? 0;
+          let finalHtHScore = sf.homeHtScore;
+          let finalHtAScore = sf.awayHtScore;
+
+          try {
+            const checkSlug = sf.providerId || mSlug;
+            const dRes = await fetch(`https://sportscore.com/api/widget/match/?sport=football&slug=${encodeURIComponent(checkSlug)}`, {
+              headers: {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
+                Accept: 'application/json',
+              },
+            });
+            if (dRes.ok) {
+              const dJson = await dRes.json();
+              if (dJson && dJson.match) {
+                const dm = dJson.match;
+                const dStatus = String(dm.status || '').toLowerCase();
+                const dStatusText = String(dm.status_text || '').toLowerCase();
+                if (dStatus === 'finished' || dStatus === 'post' || dStatus === 'ft' || dStatusText === 'finished' || dStatusText === 'ft' || dStatusText.includes('ended')) {
+                  isFinished = true;
+                }
+                if (dm.home_score !== null && dm.home_score !== undefined && dm.home_score !== '') finalHScore = Number(dm.home_score);
+                if (dm.away_score !== null && dm.away_score !== undefined && dm.away_score !== '') finalAScore = Number(dm.away_score);
+                if (dm.home_ht_score !== null && dm.home_ht_score !== undefined && dm.home_ht_score !== '') finalHtHScore = Number(dm.home_ht_score);
+                if (dm.away_ht_score !== null && dm.away_ht_score !== undefined && dm.away_ht_score !== '') finalHtAScore = Number(dm.away_ht_score);
+              }
+            }
+          } catch {}
+
+          const kMs = sf.kickoffIso ? new Date(sf.kickoffIso).getTime() : 0;
+          const elapsedMin = kMs > 0 ? (nowMs - kMs) / 60000 : 120;
+
+          // If Sportscore detail confirmed finished, or kickoff was over 105 minutes ago and not in live feed
+          if (isFinished || elapsedMin >= 105) {
+            sf.status = 'post';
+            sf.period = 'full_time';
+            sf.displayClock = 'FT';
+            sf.homeScore = finalHScore;
+            sf.awayScore = finalAScore;
+            sf.homeHtScore = finalHtHScore;
+            sf.awayHtScore = finalHtAScore;
+            const result = finalHScore > finalAScore ? '1' : finalHScore < finalAScore ? '2' : 'X';
+            sf.lastSyncTime = new Date().toISOString();
+            fixturesStore.set(sf.id, sf);
+            updated++;
+
+            // Immediate SSE broadcast to all connected frontends
+            realtimeBroadcaster.broadcastStatusChange(sf.id, 'post', 'full_time', 'FT', result, sf.providerId);
+            realtimeBroadcaster.broadcastScoreUpdate(
+              sf.id,
+              finalHScore,
+              finalAScore,
+              'FT',
+              'full_time',
+              sf.latestGoalscorer,
+              sf.providerId,
+              'post'
+            );
+          }
+        }
+      }
+    }
+
+    if (updated > 0) {
+      saveDiskCache();
+    }
+
     lastLiveSyncTimestamp = new Date().toISOString();
     liveSyncCyclesCounter++;
     const currentLiveCount = Array.from(fixturesStore.values()).filter((f) => f.status === 'in').length;
@@ -1562,8 +1720,15 @@ export function startLiveTelemetryCoordinator(pollIntervalMs = 15000): void {
       // If zero active connections, skip polling completely
       if (metrics.activeConnections === 0) return;
 
-      const hasLiveMatches = Array.from(fixturesStore.values()).some((f) => f.status === "in");
-      if (hasLiveMatches) {
+      const nowMs = Date.now();
+      const hasLiveOrUpcomingMatches = Array.from(fixturesStore.values()).some((f) => {
+        if (f.status === "in") return true;
+        if (f.status === "post" || f.status === "cancelled" || f.status === "abandoned") return false;
+        const kMs = f.kickoffIso ? new Date(f.kickoffIso).getTime() : 0;
+        return kMs > 0 && kMs <= nowMs + 5 * 60 * 1000 && kMs >= nowMs - 150 * 60 * 1000;
+      });
+
+      if (hasLiveOrUpcomingMatches) {
         await syncLiveScoresOnly();
       }
     } catch (err) {

@@ -141,7 +141,9 @@ export async function fetchSportScoreMatchDetail(
     if (res.ok) {
       const json = await res.json();
       if (json && json.match) {
-        detailCache.set(matchSlug, { data: json.match, expiresAt: now + 60_000 });
+        const isLive = json.match.status === 'live' || json.match.status === 'in' || String(json.match.status_text || '').toLowerCase().includes('half');
+        const ttl = isLive ? 8_000 : json.match.status === 'finished' ? 300_000 : 60_000;
+        detailCache.set(matchSlug, { data: json.match, expiresAt: now + ttl });
         return json.match;
       }
     }
@@ -158,7 +160,9 @@ export async function fetchSportScoreMatchDetail(
     if (directRes.ok) {
       const json = await directRes.json();
       if (json && json.match) {
-        detailCache.set(matchSlug, { data: json.match, expiresAt: now + 60_000 });
+        const isLive = json.match.status === 'live' || json.match.status === 'in' || String(json.match.status_text || '').toLowerCase().includes('half');
+        const ttl = isLive ? 8_000 : json.match.status === 'finished' ? 300_000 : 60_000;
+        detailCache.set(matchSlug, { data: json.match, expiresAt: now + ttl });
         return json.match;
       }
     }

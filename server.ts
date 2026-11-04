@@ -391,6 +391,7 @@ async function startServer() {
   // Real-Time Server-Sent Events (SSE) Stream Endpoints
   app.get('/api/sports/stream', (req: Request, res: Response) => {
     realtimeBroadcaster.registerClient(req, res);
+    void syncLiveScoresOnly();
   });
 
   app.get('/api/sports/stream/status', (req: Request, res: Response) => {
@@ -467,7 +468,12 @@ async function startServer() {
       }
 
       const data = await upstreamRes.json();
-      res.setHeader('Cache-Control', 's-maxage=60, stale-while-revalidate=300');
+      const isLive = data.match?.status === 'live' || data.match?.status === 'in' || String(data.match?.status_text || '').toLowerCase().includes('half');
+      if (isLive) {
+        res.setHeader('Cache-Control', 'no-cache, no-store, max-age=0, must-revalidate');
+      } else {
+        res.setHeader('Cache-Control', 's-maxage=60, stale-while-revalidate=300');
+      }
       return res.json(data);
     } catch (err: any) {
       return res.status(500).json({ error: 'Failed to fetch match details.' });

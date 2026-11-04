@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import {
   Clock, Activity, Shirt, ListOrdered, Radio, ExternalLink, AlertCircle
 } from 'lucide-react';
-import type { FreeMatch } from '../lib/freeMatches';
+import { type FreeMatch, updateMatchAuthoritativeDetail } from '../lib/freeMatches';
 import {
   fetchSportScoreMatchDetail,
   fetchSportScoreStandings,
@@ -29,18 +29,33 @@ export default function SportScoreMatchCenter({ match }: SportScoreMatchCenterPr
     let mounted = true;
     const slug = buildMatchSlug(match.home, match.away);
 
-    setIsLoadingDetail(true);
-    fetchSportScoreMatchDetail(slug).then((d) => {
-      if (mounted) {
+    const loadDetail = async () => {
+      const d = await fetchSportScoreMatchDetail(slug);
+      if (mounted && d) {
         setDetail(d);
         setIsLoadingDetail(false);
+        updateMatchAuthoritativeDetail(match.id, d);
+      } else if (mounted) {
+        setIsLoadingDetail(false);
       }
-    });
+    };
+
+    void loadDetail();
+
+    // If match is live, periodically sync with 2D Sportscore tracker every 10 seconds
+    let intervalId: NodeJS.Timeout | null = null;
+    const isLiveMatch = match.status === 'in' || detail?.status === 'live' || detail?.status === 'in';
+    if (isLiveMatch) {
+      intervalId = setInterval(() => {
+        if (mounted) void loadDetail();
+      }, 10_000);
+    }
 
     return () => {
       mounted = false;
+      if (intervalId) clearInterval(intervalId);
     };
-  }, [match.home, match.away]);
+  }, [match.home, match.away, match.id, match.status]);
 
   const handleTabClick = (tab: TabType) => {
     setActiveTab(tab);

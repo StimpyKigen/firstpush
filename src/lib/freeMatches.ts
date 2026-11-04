@@ -130,6 +130,7 @@ if (typeof window !== "undefined") {
           awayScore: payload.awayScore !== undefined ? payload.awayScore : m.awayScore,
           displayClock: payload.displayClock || m.displayClock,
           period: payload.period || m.period,
+          status: payload.status || m.status,
           latestGoalscorer: payload.latestGoalscorer || m.latestGoalscorer,
         };
       }
@@ -232,6 +233,88 @@ if (typeof window !== "undefined") {
   realtimeClient.on("sync_required", () => {
     void refreshFreeMatches(true);
   });
+}
+
+export interface AuthoritativeMatchDetail {
+  home_score?: number | string | null;
+  away_score?: number | string | null;
+  home_ht_score?: number | string | null;
+  away_ht_score?: number | string | null;
+  status?: string;
+  status_text?: string;
+  live_minute?: number | string | null;
+  tracker?: { id?: string; profile?: string; sport?: string };
+  incidents?: any[];
+}
+
+/**
+ * Direct mirror from SportScore 2D pitch tracker / match detail.
+ * Acts as the immediate source of truth for scores, minute counter, HT, and FT updates.
+ */
+export function updateMatchAuthoritativeDetail(matchId: string, detail: AuthoritativeMatchDetail): void {
+  let changed = false;
+  liveMatches = liveMatches.map((m) => {
+    const isTarget = m.id === matchId || (m.providerId && detail.tracker?.id && (m.providerId.includes(detail.tracker.id) || detail.tracker.id.includes(m.providerId)));
+    if (!isTarget) return m;
+
+    const s = String(detail.status || '').toLowerCase().trim();
+    const txt = String(detail.status_text || '').toLowerCase().trim();
+
+    const isFinished = s === 'finished' || s === 'post' || s === 'ft' || txt === 'finished' || txt === 'ft' || txt.includes('ended');
+    const isHt = s === 'halftime' || s === 'ht' || txt === 'ht' || txt === 'half time' || txt === 'halftime';
+    const isLive = s === 'live' || s === 'in' || isHt;
+
+    let clock = m.displayClock;
+    if (isFinished) {
+      clock = 'FT';
+    } else if (isHt) {
+      clock = 'HT';
+    } else if (detail.live_minute !== undefined && detail.live_minute !== null && detail.live_minute !== '') {
+      const raw = String(detail.live_minute).trim();
+      clock = raw.endsWith("'") ? raw : `${raw}'`;
+    }
+
+    let status = m.status;
+    if (isFinished) status = 'post';
+    else if (isLive) status = 'in';
+
+    let period = m.period;
+    if (isFinished) period = 'full_time';
+    else if (isHt) period = 'halftime';
+    else if (txt.includes('1st') || (clock && clock.match(/^\d+/) && parseInt(clock, 10) <= 45)) period = 'first_half';
+    else if (txt.includes('2nd') || (clock && clock.match(/^\d+/) && parseInt(clock, 10) >= 46)) period = 'second_half';
+
+    const homeScore = detail.home_score !== undefined && detail.home_score !== null && detail.home_score !== ''
+      ? Number(detail.home_score)
+      : m.homeScore;
+    const awayScore = detail.away_score !== undefined && detail.away_score !== null && detail.away_score !== ''
+      ? Number(detail.away_score)
+      : m.awayScore;
+
+    const homeHtScore = detail.home_ht_score !== undefined && detail.home_ht_score !== null && detail.home_ht_score !== ''
+      ? Number(detail.home_ht_score)
+      : m.homeHtScore;
+    const awayHtScore = detail.away_ht_score !== undefined && detail.away_ht_score !== null && detail.away_ht_score !== ''
+      ? Number(detail.away_ht_score)
+      : m.awayHtScore;
+
+    changed = true;
+    return {
+      ...m,
+      status,
+      period,
+      displayClock: clock,
+      homeScore,
+      awayScore,
+      homeHtScore,
+      awayHtScore,
+    };
+  });
+
+  if (changed) {
+    freeMatches.splice(0, freeMatches.length, ...liveMatches);
+    emitFreeMatchesChange();
+  }
 }
 
 function toFreeMatch(item: HighlightFixture): FreeMatch {

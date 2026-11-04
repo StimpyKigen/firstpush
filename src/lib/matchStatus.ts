@@ -141,20 +141,31 @@ export function parseDetailedMatchStatus(rawStatus?: string | null, statusText?:
     return { status: 'in', period: 'halftime', displayClock: 'HT', periodSequence: 20, isTerminal: false, rawStatus: s, statusText: txt };
   }
 
+  // Check if statusText or rawStatus is an authoritative minute like "86", "86'", "90+", "45+2"
+  const minText = txt || s;
+  const minMatch = minText.match(/^(\d+(?:\+\d*)?)\s*['`]?$/);
+  if (minMatch) {
+    const rawVal = minMatch[1];
+    const num = parseInt(rawVal, 10);
+    const clock = rawVal.endsWith("'") ? rawVal : `${rawVal}'`;
+    const period: MatchPeriod = num >= 46 ? 'second_half' : 'first_half';
+    const periodSequence = num >= 46 ? 30 : 10;
+    return { status: 'in', period, displayClock: clock, periodSequence, isTerminal: false, rawStatus: s, statusText: txt };
+  }
+
   // 5. Second Half
   if (s === '2nd_half' || s === 'second_half' || s === '2h' || txt.includes('2nd half')) {
-    const clock = /^\d+['`]/.test(txt) ? txt : '2nd Half';
+    const clock = /^\d+/.test(txt) ? txt : '2nd Half';
     return { status: 'in', period: 'second_half', displayClock: clock, periodSequence: 30, isTerminal: false, rawStatus: s, statusText: txt };
   }
 
   // 6. First Half / Generic Live
   if (s === '1st_half' || s === 'first_half' || s === '1h' || txt.includes('1st half')) {
-    const clock = /^\d+['`]/.test(txt) ? txt : '1st Half';
+    const clock = /^\d+/.test(txt) ? txt : '1st Half';
     return { status: 'in', period: 'first_half', displayClock: clock, periodSequence: 10, isTerminal: false, rawStatus: s, statusText: txt };
   }
-  if (s === 'live' || s === 'in' || s === 'inprogress' || txt.includes('live') || /^\d+['`]/.test(txt)) {
-    // If status text is specifically a minute like 67'
-    const clock = /^\d+['`]/.test(txt) ? txt : 'LIVE';
+  if (s === 'live' || s === 'in' || s === 'inprogress' || txt.includes('live')) {
+    const clock = /^\d+/.test(txt) ? txt : 'LIVE';
     return { status: 'in', period: 'second_half', displayClock: clock, periodSequence: 25, isTerminal: false, rawStatus: s, statusText: txt };
   }
 
@@ -284,37 +295,50 @@ export function formatLiveMatchClock(
   if (period === 'penalties' || clock.toLowerCase().includes('pen')) {
     return 'PEN';
   }
+  if (period === 'full_time' || clock.toLowerCase() === 'ft' || clock.toLowerCase() === 'finished' || clock.toLowerCase() === 'ended') {
+    return 'FT';
+  }
 
-  // If clock is already a minute string like "24'", "45+2'", "78'", "90+4'"
-  const minMatch = clock.match(/^(\d+(?:\+\d+)?)\s*['`]?$/);
+  // If clock is already an authoritative minute string like "24", "24'", "45+2", "45+2'", "78'", "90+", "90+'", "90+4'"
+  const minMatch = clock.match(/^(\d+(?:\+\d*)?)\s*['`]?$/);
   if (minMatch) {
     return `${minMatch[1]}'`;
   }
 
   // If clock has embedded numbers like "67 min" or "67m"
-  const embeddedMin = clock.match(/(\d+(?:\+\d+)?)\s*(?:min|m|')/i);
+  const embeddedMin = clock.match(/(\d+(?:\+\d*)?)\s*(?:min|m|')/i);
   if (embeddedMin) {
     return `${embeddedMin[1]}'`;
   }
 
-  // If clock is "1st Half" or "2nd Half" or generic "LIVE", calculate elapsed minutes from kickoff
+  // Fallback ONLY when clock is generic (e.g. "1st Half", "2nd Half", "LIVE")
+  // 2D Pitch Tracker / SportScore is the authoritative source of truth.
+  // Never count indefinitely past 45' for 1st half or past 90' for 2nd half.
   if (kickoffIso) {
     const kMs = new Date(kickoffIso).getTime();
     if (!isNaN(kMs)) {
       const elapsedMin = Math.floor((Date.now() - kMs) / 60000);
       if (period === 'first_half' || clock.toLowerCase().includes('1st')) {
-        const m = Math.max(1, elapsedMin);
-        return m > 45 ? `45+${m - 45}'` : `${m}'`;
+        if (elapsedMin <= 0) return "1'";
+        if (elapsedMin <= 45) return `${elapsedMin}'`;
+        return "45+'";
       }
       if (period === 'second_half' || clock.toLowerCase().includes('2nd')) {
         const adjustedMin = Math.max(46, elapsedMin - 15);
-        return adjustedMin > 90 ? `90+${adjustedMin - 90}'` : `${adjustedMin}'`;
+        if (adjustedMin <= 90) return `${adjustedMin}'`;
+        return "90+'";
       }
-      if (elapsedMin > 0 && elapsedMin < 130) {
+      if (elapsedMin > 0) {
         if (elapsedMin <= 45) return `${elapsedMin}'`;
         if (elapsedMin <= 60) return 'HT';
-        const secondHalfMin = Math.min(90, Math.max(46, elapsedMin - 15));
-        return secondHalfMin > 90 ? `90+${secondHalfMin - 90}'` : `${secondHalfMin}'`;
+        if (elapsedMin <= 105) {
+          const secondHalfMin = Math.min(90, Math.max(46, elapsedMin - 15));
+          return `${secondHalfMin}'`;
+        }
+        if (elapsedMin <= 115) {
+          return "90+'";
+        }
+        return 'FT';
       }
     }
   }
@@ -441,6 +465,38 @@ export function getMatchScorePresentation(
       badgeText = displayClock || 'ET';
     } else {
       badgeText = formatLiveMatchClock(displayClock, period, kickoffIso);
+    }
+
+    if (badgeText === 'FT') {
+      return {
+        shouldShowScore: true,
+        scoreDisplay: `${hScore} - ${aScore}`,
+        homeScoreDisplay: String(hScore),
+        awayScoreDisplay: String(aScore),
+        badgeText: 'FT',
+        badgeVariant: 'finished',
+        isLive: false,
+        isFinished: true,
+        isScheduled: false,
+        isPostponedOrCancelled: false,
+        period: 'full_time',
+      };
+    }
+
+    if (badgeText === 'HT') {
+      return {
+        shouldShowScore: true,
+        scoreDisplay: `${hScore} - ${aScore}`,
+        homeScoreDisplay: String(hScore),
+        awayScoreDisplay: String(aScore),
+        badgeText: 'HT',
+        badgeVariant: 'halftime',
+        isLive: true,
+        isFinished: false,
+        isScheduled: false,
+        isPostponedOrCancelled: false,
+        period: 'halftime',
+      };
     }
 
     return {

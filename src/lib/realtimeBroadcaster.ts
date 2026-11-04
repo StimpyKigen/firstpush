@@ -43,6 +43,7 @@ export interface ScoreUpdatePayload {
   awayScore: number | null;
   displayClock?: string;
   period?: MatchPeriod;
+  status?: MatchStatus;
   latestGoalscorer?: string;
 }
 
@@ -339,7 +340,8 @@ class RealtimeBroadcaster {
     displayClock?: string,
     period?: MatchPeriod,
     latestGoalscorer?: string,
-    providerId?: string
+    providerId?: string,
+    status?: MatchStatus
   ): RealtimeDeltaEvent {
     return this.broadcastDelta({
       type: 'SCORE_UPDATE',
@@ -349,6 +351,7 @@ class RealtimeBroadcaster {
       awayScore,
       displayClock,
       period,
+      status,
       latestGoalscorer,
     });
   }
