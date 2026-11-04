@@ -12,37 +12,38 @@ const targetDir = isVercel ? path.join(os.tmpdir(), '.mshindi-cache') : path.joi
 const FALLBACK_CACHE_FILE = path.join(targetDir, 'homepage_feed.json');
 
 const DEFAULT_FEED: HomepageFeedData = {
-  carouselItems: [
-    {
-      id: 'carousel-featured-reference',
-      imageUrl: 'https://mp3tourl.com/images/1793039738103-776c77ad-d580-4fc7-b2ec-44663adcbfd2.jpg',
-      heading: 'Top Stories & Matchday Perspectives',
-      caption: 'Community consensus rallies behind top weekend fixtures and tactical matchday showdowns across Europe.',
-      published: true,
-      createdAt: '2026-10-26T22:00:00.000Z',
-    },
-  ],
-  videoItems: [
-    {
-      id: 'video-1',
-      youtubeUrl: 'https://www.youtube.com/watch?v=aqz-KE-bpKQ',
-      embedUrl: 'https://www.youtube.com/embed/aqz-KE-bpKQ',
-      title: 'Premier League Matchweek Highlights & Tactical Breakdown',
-      published: true,
-      createdAt: '2026-10-22T00:00:00.000Z',
-      type: 'youtube',
-    },
-    {
-      id: 'video-2',
-      youtubeUrl: 'https://www.youtube.com/watch?v=kJQP7kiw5Fk',
-      embedUrl: 'https://www.youtube.com/embed/kJQP7kiw5Fk',
-      title: 'Top 10 Weekend Goals & Decisive Match-Winning Moments',
-      published: true,
-      createdAt: '2026-10-22T00:00:00.000Z',
-      type: 'youtube',
-    },
-  ],
+  carouselItems: [],
+  videoItems: [],
 };
+
+const LEGACY_MOCK_IDS = new Set([
+  'carousel-featured-reference',
+  'slide-1',
+  'slide-2',
+  'slide-3',
+  'video-1',
+  'video-2',
+]);
+
+/**
+ * Permanently filter out any legacy mock data items so they can never reappear on new deploys
+ */
+function sanitizeFeed(feed: HomepageFeedData): HomepageFeedData {
+  return {
+    ...feed,
+    carouselItems: (feed.carouselItems || []).filter(
+      (item) => item && item.id && !LEGACY_MOCK_IDS.has(item.id) && !item.imageUrl?.includes('mp3tourl.com')
+    ),
+    videoItems: (feed.videoItems || []).filter(
+      (item) =>
+        item &&
+        item.id &&
+        !LEGACY_MOCK_IDS.has(item.id) &&
+        !item.youtubeUrl?.includes('aqz-KE-bpKQ') &&
+        !item.youtubeUrl?.includes('kJQP7kiw5Fk')
+    ),
+  };
+}
 
 /**
  * Reads the authoritative homepage feed from persistent storage.
@@ -55,7 +56,7 @@ export function getSavedHomepageFeed(): HomepageFeedData & { _isDefault?: boolea
       const raw = fs.readFileSync(PRIMARY_DATA_FILE, 'utf-8');
       const parsed = JSON.parse(raw);
       if (parsed && Array.isArray(parsed.carouselItems) && Array.isArray(parsed.videoItems)) {
-        return parsed;
+        return sanitizeFeed(parsed);
       }
     }
   } catch (err) {
@@ -68,7 +69,7 @@ export function getSavedHomepageFeed(): HomepageFeedData & { _isDefault?: boolea
       const raw = fs.readFileSync(FALLBACK_CACHE_FILE, 'utf-8');
       const parsed = JSON.parse(raw);
       if (parsed && Array.isArray(parsed.carouselItems) && Array.isArray(parsed.videoItems)) {
-        return parsed;
+        return sanitizeFeed(parsed);
       }
     }
   } catch (err) {
@@ -83,8 +84,9 @@ export function getSavedHomepageFeed(): HomepageFeedData & { _isDefault?: boolea
  * Persists updated homepage feed to both primary repository storage and runtime fallback cache.
  */
 export function saveHomepageFeed(feed: HomepageFeedData): void {
-  // Clean internal metadata flags
+  // Clean internal metadata flags and strip mock data
   const { _isDefault, ...cleanFeed } = feed as any;
+  const sanitized = sanitizeFeed(cleanFeed);
 
   // 1. Write to primary persistent storage
   try {
@@ -92,7 +94,7 @@ export function saveHomepageFeed(feed: HomepageFeedData): void {
     if (!fs.existsSync(primaryDir)) {
       fs.mkdirSync(primaryDir, { recursive: true });
     }
-    fs.writeFileSync(PRIMARY_DATA_FILE, JSON.stringify(cleanFeed, null, 2), 'utf-8');
+    fs.writeFileSync(PRIMARY_DATA_FILE, JSON.stringify(sanitized, null, 2), 'utf-8');
   } catch (err) {
     console.warn('[serverHomepageFeed] Primary write notice (might be read-only deployment):', err);
   }
@@ -102,7 +104,7 @@ export function saveHomepageFeed(feed: HomepageFeedData): void {
     if (!fs.existsSync(targetDir)) {
       fs.mkdirSync(targetDir, { recursive: true });
     }
-    fs.writeFileSync(FALLBACK_CACHE_FILE, JSON.stringify(cleanFeed, null, 2), 'utf-8');
+    fs.writeFileSync(FALLBACK_CACHE_FILE, JSON.stringify(sanitized, null, 2), 'utf-8');
   } catch (err) {
     console.warn('[serverHomepageFeed] Fallback write notice:', err);
   }

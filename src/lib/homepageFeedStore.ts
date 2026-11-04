@@ -45,7 +45,7 @@ export interface HomepageFeedData {
   videoItems: HomepageVideoItem[];
 }
 
-const STORAGE_KEY = 'mshindi_homepage_feed_v1';
+const STORAGE_KEY = 'mshindi_homepage_feed_v2';
 const FIRESTORE_COLLECTION = 'siteContent';
 const FIRESTORE_DOC = 'homepageFeed';
 
@@ -150,50 +150,52 @@ export function normalizeCustomEmbedUrl(input: string): string | null {
 }
 
 const DEFAULT_FEED: HomepageFeedData = {
-  carouselItems: [
-    {
-      id: 'carousel-featured-reference',
-      imageUrl: 'https://mp3tourl.com/images/1793039738103-776c77ad-d580-4fc7-b2ec-44663adcbfd2.jpg',
-      heading: 'Top Stories & Matchday Perspectives',
-      caption: 'Community consensus rallies behind top weekend fixtures and tactical matchday showdowns across Europe.',
-      published: true,
-      createdAt: '2026-10-26T22:00:00.000Z',
-    },
-  ],
-  videoItems: [
-    {
-      id: 'video-1',
-      youtubeUrl: 'https://www.youtube.com/watch?v=aqz-KE-bpKQ',
-      embedUrl: 'https://www.youtube.com/embed/aqz-KE-bpKQ',
-      title: 'Premier League Matchweek Highlights & Tactical Breakdown',
-      published: true,
-      createdAt: '2026-10-22T00:00:00.000Z',
-      type: 'youtube',
-    },
-    {
-      id: 'video-2',
-      youtubeUrl: 'https://www.youtube.com/watch?v=kJQP7kiw5Fk',
-      embedUrl: 'https://www.youtube.com/embed/kJQP7kiw5Fk',
-      title: 'Top 10 Weekend Goals & Decisive Match-Winning Moments',
-      published: true,
-      createdAt: '2026-10-22T00:00:00.000Z',
-      type: 'youtube',
-    },
-  ],
+  carouselItems: [],
+  videoItems: [],
 };
+
+const LEGACY_MOCK_IDS = new Set([
+  'carousel-featured-reference',
+  'slide-1',
+  'slide-2',
+  'slide-3',
+  'video-1',
+  'video-2',
+]);
+
+/**
+ * Filter out any legacy mock items so they can never be reused or displayed
+ */
+export function sanitizeHomepageFeed(feed: HomepageFeedData): HomepageFeedData {
+  return {
+    ...feed,
+    carouselItems: (feed.carouselItems || []).filter(
+      (item) => item && item.id && !LEGACY_MOCK_IDS.has(item.id) && !item.imageUrl?.includes('mp3tourl.com')
+    ),
+    videoItems: (feed.videoItems || []).filter(
+      (item) =>
+        item &&
+        item.id &&
+        !LEGACY_MOCK_IDS.has(item.id) &&
+        !item.youtubeUrl?.includes('aqz-KE-bpKQ') &&
+        !item.youtubeUrl?.includes('kJQP7kiw5Fk')
+    ),
+  };
+}
 
 function loadStoredFeed(): HomepageFeedData {
   if (typeof window === 'undefined') return DEFAULT_FEED;
   try {
+    // Purge old v1 key if present
+    try {
+      localStorage.removeItem('mshindi_homepage_feed_v1');
+    } catch {}
+
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return DEFAULT_FEED;
     const parsed = JSON.parse(raw);
     if (parsed && Array.isArray(parsed.carouselItems) && Array.isArray(parsed.videoItems)) {
-      // Strictly filter out any legacy or deleted mock slides from stale local storage
-      parsed.carouselItems = parsed.carouselItems.filter((item: HomepageCarouselItem) => {
-        return !['slide-1', 'slide-2', 'slide-3'].includes(item.id);
-      });
-      return parsed;
+      return sanitizeHomepageFeed(parsed);
     }
     return DEFAULT_FEED;
   } catch {
@@ -236,8 +238,9 @@ function setupCloudSync() {
         feedRef,
         (snapshot) => {
           if (snapshot.exists()) {
-            const cloudData = snapshot.data() as HomepageFeedData;
-            if (cloudData && Array.isArray(cloudData.carouselItems) && Array.isArray(cloudData.videoItems)) {
+            const rawData = snapshot.data() as HomepageFeedData;
+            if (rawData && Array.isArray(rawData.carouselItems) && Array.isArray(rawData.videoItems)) {
+              const cloudData = sanitizeHomepageFeed(rawData);
               currentFeed = cloudData;
               try {
                 localStorage.setItem(STORAGE_KEY, JSON.stringify(cloudData));
@@ -271,9 +274,10 @@ function setupCloudSync() {
             return;
           }
 
-          currentFeed = data.feed;
+          const cleanServerFeed = sanitizeHomepageFeed(data.feed);
+          currentFeed = cleanServerFeed;
           try {
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(data.feed));
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(cleanServerFeed));
           } catch {}
           listeners.forEach((l) => l());
         }
@@ -301,10 +305,11 @@ export async function persistToCloud(data: HomepageFeedData): Promise<{
   let serverSaved = false;
   let lastError: string | undefined;
 
-  // Deep sanitize payload: removes all undefined keys and enforces valid JSON
+  // Deep sanitize payload: removes all undefined keys, purges legacy mock records, and enforces valid JSON
+  const sanitized = sanitizeHomepageFeed(data);
   const cleanData: HomepageFeedData = JSON.parse(
     JSON.stringify({
-      ...data,
+      ...sanitized,
       updatedAt: new Date().toISOString(),
     })
   );

@@ -54,7 +54,11 @@ export default function Home() {
   const publishedPhotos = useMemo(() => {
     return feed.carouselItems
       .filter(
-        (i) => i.published && Boolean(i.imageUrl && i.imageUrl.trim()) && !['slide-1', 'slide-2', 'slide-3'].includes(i.id)
+        (i) =>
+          i.published &&
+          Boolean(i.imageUrl && i.imageUrl.trim()) &&
+          !['carousel-featured-reference', 'slide-1', 'slide-2', 'slide-3'].includes(i.id) &&
+          !i.imageUrl.includes('mp3tourl.com')
       )
       .sort((a, b) => {
         const orderA = typeof a.order === 'number' ? a.order : 9999;
@@ -63,7 +67,15 @@ export default function Home() {
         return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
       });
   }, [feed.carouselItems]);
-  const publishedVideos = feed.videoItems.filter((v) => v.published);
+  const publishedVideos = useMemo(() => {
+    return feed.videoItems.filter(
+      (v) =>
+        v.published &&
+        !['video-1', 'video-2'].includes(v.id) &&
+        !v.youtubeUrl?.includes('aqz-KE-bpKQ') &&
+        !v.youtubeUrl?.includes('kJQP7kiw5Fk')
+    );
+  }, [feed.videoItems]);
 
   // Subscribe to live Free Matches store for popular top fixtures
   const allFreeMatches = useSyncExternalStore(
