@@ -19,7 +19,9 @@ import {
   getSavedAdminFixtures,
   getSavedAdminBatches,
   deleteAdminBatch,
+  startLiveTelemetryCoordinator,
 } from './src/lib/sportsFeedService';
+import { realtimeBroadcaster } from './src/lib/realtimeBroadcaster';
 import { fetchBet365OddsForMatch } from './src/lib/sportscoreOddsService';
 import { extractPdfTextServer } from './src/lib/serverPdfParser';
 import { getSavedHomepageFeed, saveHomepageFeed } from './src/lib/serverHomepageFeed';
@@ -385,6 +387,15 @@ async function startServer() {
     }
   });
 
+
+  // Real-Time Server-Sent Events (SSE) Stream Endpoints
+  app.get('/api/sports/stream', (req: Request, res: Response) => {
+    realtimeBroadcaster.registerClient(req, res);
+  });
+
+  app.get('/api/sports/stream/status', (req: Request, res: Response) => {
+    res.json({ success: true, metrics: realtimeBroadcaster.getMetrics() });
+  });
   app.get('/api/sports/status', (req: Request, res: Response) => {
     try {
       const diagnostics = getSyncDiagnostics();
@@ -868,6 +879,9 @@ Sitemap: https://mshindi.co.ke/sitemap.xml
 
   // Automated weekly SportScore fixture scheduler (Every Monday 00:00:00 Africa/Nairobi)
   initWeeklyFixtureScheduler();
+
+  // Central live telemetry coordinator: polls SportScore live endpoint only when clients are connected
+  startLiveTelemetryCoordinator(15_000);
 
   app.listen(PORT, '0.0.0.0', () => {
     console.log(`Mshindi Projo Server running on http://0.0.0.0:${PORT}`);

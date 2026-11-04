@@ -1,6 +1,7 @@
 import { type MatchPeriod, type MatchStatus, parseDetailedMatchStatus } from './matchStatus.js';
 import { enrichFixturesWithBet365Odds } from './sportscoreOddsService.js';
 import { findMatchingExistingFixture } from './fixtureIdentity.js';
+import { realtimeClient } from './realtimeClient.js';
 
 export interface HighlightFixture {
   id: string;
@@ -539,11 +540,21 @@ export function startDailyHighlightSync(onRefresh: () => Promise<unknown> | unkn
 
   const scheduleNext = () => {
     if (timerHandle) clearTimeout(timerHandle);
-    // If active live matches are occurring, poll rapidly every 12 seconds
+    // When real-time SSE push is connected, suspend rapid HTTP polling and back off to relaxed 120s safety check
+    if (realtimeClient.isConnected()) {
+      timerHandle = setTimeout(runCheck, 120_000);
+      return;
+    }
+    // Fallback: If push stream is disconnected or reconnecting, use rapid polling
     const hasLive = cachedFixtures.some((f) => f.status === 'in');
     const delayMs = hasLive ? 12_000 : 45_000;
     timerHandle = setTimeout(runCheck, delayMs);
   };
+
+  // Re-adjust polling schedule when real-time push connection state changes
+  realtimeClient.onStateChange(() => {
+    scheduleNext();
+  });
 
   // Immediate initial check
   void runCheck();

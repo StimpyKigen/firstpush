@@ -3,6 +3,7 @@ import { type MatchPeriod, type MatchStatus, isStatusTransitionValid } from './m
 import { buildConsensus } from './consensusEngine.js';
 import { fetchDailyHighlightFixtures, type HighlightFixture } from './footballApi.js';
 import { findMatchingExistingFixture, extractSportScoreProviderId, formatEatDay } from './fixtureIdentity.js';
+import { realtimeClient } from './realtimeClient.js';
 
 const listeners = new Set<() => void>();
 
@@ -114,6 +115,123 @@ function emitFreeMatchesChange() {
   freeMatchesSnapshot = [...liveMatches];
   freeMatchConsensusSnapshot = { ...liveConsensus };
   listeners.forEach((listener) => listener());
+}
+
+// Wire real-time delta pushes from SSE stream directly to reactive client store
+if (typeof window !== "undefined") {
+  realtimeClient.on("score_update", (payload) => {
+    let changed = false;
+    liveMatches = liveMatches.map((m) => {
+      if (m.id === payload.fixtureId || (payload.providerId && m.providerId === payload.providerId)) {
+        changed = true;
+        return {
+          ...m,
+          homeScore: payload.homeScore !== undefined ? payload.homeScore : m.homeScore,
+          awayScore: payload.awayScore !== undefined ? payload.awayScore : m.awayScore,
+          displayClock: payload.displayClock || m.displayClock,
+          period: payload.period || m.period,
+          latestGoalscorer: payload.latestGoalscorer || m.latestGoalscorer,
+        };
+      }
+      return m;
+    });
+    if (changed) {
+      freeMatches.splice(0, freeMatches.length, ...liveMatches);
+      emitFreeMatchesChange();
+    }
+  });
+
+  realtimeClient.on("incident", (payload) => {
+    let changed = false;
+    liveMatches = liveMatches.map((m) => {
+      if (m.id === payload.fixtureId || (payload.providerId && m.providerId === payload.providerId)) {
+        changed = true;
+        const incidents = m.incidents ? [...m.incidents] : [];
+        const incId = payload.incident.id || (payload.incident.minute + "_" + payload.incident.type + "_" + (payload.incident.player || ""));
+        if (!incidents.some((i) => (i.id || (i.minute + "_" + i.type + "_" + (i.player || ""))) === incId)) {
+          incidents.push(payload.incident);
+        }
+        return {
+          ...m,
+          incidents,
+        };
+      }
+      return m;
+    });
+    if (changed) {
+      freeMatches.splice(0, freeMatches.length, ...liveMatches);
+      emitFreeMatchesChange();
+    }
+    try {
+      window.dispatchEvent(
+        new CustomEvent("match_incident_" + payload.fixtureId, {
+          detail: payload.incident,
+        })
+      );
+    } catch {}
+  });
+
+  realtimeClient.on("status_change", (payload) => {
+    let changed = false;
+    liveMatches = liveMatches.map((m) => {
+      if (m.id === payload.fixtureId || (payload.providerId && m.providerId === payload.providerId)) {
+        changed = true;
+        return {
+          ...m,
+          status: payload.status,
+          period: payload.period || m.period,
+          displayClock: payload.displayClock || m.displayClock,
+          result: payload.result || m.result,
+        };
+      }
+      return m;
+    });
+    if (changed) {
+      freeMatches.splice(0, freeMatches.length, ...liveMatches);
+      emitFreeMatchesChange();
+    }
+  });
+
+  realtimeClient.on("odds_update", (payload) => {
+    let changed = false;
+    liveMatches = liveMatches.map((m) => {
+      if (m.id === payload.fixtureId || (payload.providerId && m.providerId === payload.providerId)) {
+        changed = true;
+        return {
+          ...m,
+          bookmaker: payload.bookmaker || m.bookmaker,
+          homeOdds: payload.homeOdds !== undefined ? payload.homeOdds : m.homeOdds,
+          drawOdds: payload.drawOdds !== undefined ? payload.drawOdds : m.drawOdds,
+          awayOdds: payload.awayOdds !== undefined ? payload.awayOdds : m.awayOdds,
+        };
+      }
+      return m;
+    });
+    if (changed) {
+      freeMatches.splice(0, freeMatches.length, ...liveMatches);
+      emitFreeMatchesChange();
+    }
+  });
+
+  realtimeClient.on("fixture_upsert", (payload) => {
+    if (payload.fixture) {
+      const inc = toFreeMatch(payload.fixture as any);
+      const existingIdx = liveMatches.findIndex(
+        (m) => m.id === inc.id || (inc.providerId && m.providerId === inc.providerId)
+      );
+      if (existingIdx !== -1) {
+        liveMatches[existingIdx] = { ...liveMatches[existingIdx], ...inc };
+      } else {
+        liveMatches.unshift(inc);
+      }
+      freeMatches.splice(0, freeMatches.length, ...liveMatches);
+      emitFreeMatchesChange();
+    }
+  });
+
+  realtimeClient.on("sync_required", () => {
+    void refreshFreeMatches(true);
+  });
 }
 
 function toFreeMatch(item: HighlightFixture): FreeMatch {

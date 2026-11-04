@@ -14,6 +14,7 @@ import AuthWallModal from './components/AuthWallModal';
 import { refreshFreeMatches } from './lib/freeMatches';
 import { syncJackpotsFromApi } from './lib/mockData';
 import { startDailyHighlightSync } from './lib/footballApi';
+import { realtimeClient } from './lib/realtimeClient';
 
 import { useCurrentUser } from './lib/authStore';
 import { useAutoScrollIntoView } from './lib/useAutoScrollIntoView';
@@ -170,8 +171,11 @@ function App() {
     initTheme();
   }, []);
 
-  // Initial data sync and background updates (runs strictly once)
+  // Initial data sync, real-time push connection, and background updates
   useEffect(() => {
+    // Establish real-time SSE push connection for instant match deltas
+    realtimeClient.start();
+
     const syncAll = async () => {
       await refreshFreeMatches();
       await syncJackpotsFromApi();
@@ -180,6 +184,10 @@ function App() {
     startDailyHighlightSync(() => {
       void syncAll();
     });
+
+    return () => {
+      realtimeClient.stop();
+    };
   }, []);
 
   return (

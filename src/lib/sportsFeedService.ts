@@ -31,6 +31,7 @@ import { getHighlightsCutoffWindowEAT } from './competitionPriority.js';
 import type { MatchIncidentItem } from './freeMatches.js';
 import { isSnapshotStoreConfigured, loadFixtureSnapshot, saveFixtureSnapshot } from './fixtureSnapshotStore.js';
 import { findMatchingExistingFixture, mergeMarketFixtureRecords, extractSportScoreProviderId } from './fixtureIdentity.js';
+import { realtimeBroadcaster } from './realtimeBroadcaster.js';
 
 // Firestore snapshot hydration state (serverless-safe shared fixture source)
 const SNAPSHOT_REFRESH_MS = 60_000;
@@ -695,12 +696,21 @@ export function ingestFixtures(fixtures: MarketFixture[], isAuthoritative = fals
     }
 
     if (!existing) {
-      fixturesStore.set(f.id, {
+      const newFixture: MarketFixture = {
         ...f,
         lastSyncTime: f.syncedAt || nowIso,
         recordUpdateTime: nowIso,
-      });
+      };
+      fixturesStore.set(f.id, newFixture);
       updatedCount++;
+      try {
+        realtimeBroadcaster.broadcastDelta({
+          type: "FIXTURE_UPSERT",
+          fixtureId: f.id,
+          providerId: f.providerId,
+          fixture: newFixture,
+        });
+      } catch {}
     } else {
       // If new fixture has an authoritative SportScore ID, prefer it
       const targetId = f.id.startsWith('mkt-ss-') ? f.id : existingId;
@@ -773,7 +783,7 @@ export function ingestFixtures(fixtures: MarketFixture[], isAuthoritative = fals
       const mergedOver25Pct = isExistingBet365 && !isIncomingBet365 ? existing.over25Pct : (f.over25Pct ?? existing.over25Pct);
       const mergedMatchUrl = f.matchUrl || existing.matchUrl;
 
-      fixturesStore.set(targetId, {
+      const mergedRecord: MarketFixture = {
         ...existing,
         ...f,
         id: targetId,
@@ -797,8 +807,56 @@ export function ingestFixtures(fixtures: MarketFixture[], isAuthoritative = fals
         syncedAt: f.syncedAt || nowIso,
         lastSyncTime: nowIso,
         recordUpdateTime: nowIso,
-      });
+      };
+      fixturesStore.set(targetId, mergedRecord);
       updatedCount++;
+
+      try {
+        const scoreChanged = finalHomeScore !== existing.homeScore || finalAwayScore !== existing.awayScore;
+        if (scoreChanged) {
+          realtimeBroadcaster.broadcastScoreUpdate(
+            targetId,
+            finalHomeScore,
+            finalAwayScore,
+            finalClock,
+            finalPeriod,
+            f.latestGoalscorer || existing.latestGoalscorer,
+            f.providerId || existing.providerId
+          );
+        }
+        const statusChanged = finalStatus !== existing.status || finalPeriod !== existing.period || finalClock !== existing.displayClock;
+        if (statusChanged && !scoreChanged) {
+          realtimeBroadcaster.broadcastStatusChange(
+            targetId,
+            finalStatus,
+            finalPeriod,
+            finalClock,
+            finalStatus === "post" ? ((finalHomeScore ?? 0) > (finalAwayScore ?? 0) ? "1" : (finalHomeScore ?? 0) < (finalAwayScore ?? 0) ? "2" : "X") : undefined,
+            f.providerId || existing.providerId
+          );
+        }
+        const oddsChanged = mergedHomeOdds !== existing.homeOdds || mergedDrawOdds !== existing.drawOdds || mergedAwayOdds !== existing.awayOdds || mergedBookmaker !== existing.bookmaker;
+        if (oddsChanged) {
+          realtimeBroadcaster.broadcastOddsUpdate(
+            targetId,
+            mergedBookmaker,
+            mergedHomeOdds,
+            mergedDrawOdds,
+            mergedAwayOdds,
+            f.providerId || existing.providerId
+          );
+        }
+        if (Array.isArray(f.incidents) && f.incidents.length > 0) {
+          const existingIncidents = existing.incidents || [];
+          const existingKeys = new Set(existingIncidents.map((i) => i.id || (i.minute + "_" + i.type + "_" + i.player)));
+          for (const inc of f.incidents) {
+            const incKey = inc.id || (inc.minute + "_" + inc.type + "_" + inc.player);
+            if (!existingKeys.has(incKey)) {
+              realtimeBroadcaster.broadcastIncident(targetId, inc, f.providerId || existing.providerId);
+            }
+          }
+        }
+      } catch {}
     }
   });
 
@@ -1487,4 +1545,33 @@ let liveSchedulerTimer: NodeJS.Timeout | null = null;
  */
 export function startContinuousSportsScheduler(_intervalMinutes = 5, _liveIntervalSeconds = 20): void {
   // Automated background crawler and scheduler disabled per user mandate
+}
+
+let liveTelemetryInterval: NodeJS.Timeout | null = null;
+
+/**
+ * Starts central server-side live telemetry coordinator.
+ * Only polls upstream SportScore when at least 1 client is actively connected and matches are live.
+ */
+export function startLiveTelemetryCoordinator(pollIntervalMs = 15000): void {
+  if (liveTelemetryInterval) return;
+
+  liveTelemetryInterval = setInterval(async () => {
+    try {
+      const metrics = realtimeBroadcaster.getMetrics();
+      // If zero active connections, skip polling completely
+      if (metrics.activeConnections === 0) return;
+
+      const hasLiveMatches = Array.from(fixturesStore.values()).some((f) => f.status === "in");
+      if (hasLiveMatches) {
+        await syncLiveScoresOnly();
+      }
+    } catch (err) {
+      // telemetry poll error handled quietly
+    }
+  }, pollIntervalMs);
+
+  if (liveTelemetryInterval.unref) {
+    liveTelemetryInterval.unref();
+  }
 }
