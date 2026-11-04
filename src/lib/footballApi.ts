@@ -377,9 +377,14 @@ function mergeHighlightFixtureLists(
         homeScore,
         awayScore,
         bookmaker: inc.bookmaker === 'Bet365' ? 'Bet365' : (existing.bookmaker || inc.bookmaker),
-        homeOdds: existing.bookmaker === 'Bet365' && inc.bookmaker !== 'Bet365' ? existing.homeOdds : inc.homeOdds,
-        drawOdds: existing.bookmaker === 'Bet365' && inc.bookmaker !== 'Bet365' ? existing.drawOdds : inc.drawOdds,
-        awayOdds: existing.bookmaker === 'Bet365' && inc.bookmaker !== 'Bet365' ? existing.awayOdds : inc.awayOdds,
+        homeOdds: existing.bookmaker === 'Bet365' && inc.bookmaker !== 'Bet365' ? existing.homeOdds : (inc.homeOdds || existing.homeOdds),
+        drawOdds: existing.bookmaker === 'Bet365' && inc.bookmaker !== 'Bet365' ? existing.drawOdds : (inc.drawOdds || existing.drawOdds),
+        awayOdds: existing.bookmaker === 'Bet365' && inc.bookmaker !== 'Bet365' ? existing.awayOdds : (inc.awayOdds || existing.awayOdds),
+        homePct: existing.bookmaker === 'Bet365' && inc.bookmaker !== 'Bet365' ? existing.homePct : (inc.homePct || existing.homePct),
+        drawPct: existing.bookmaker === 'Bet365' && inc.bookmaker !== 'Bet365' ? existing.drawPct : (inc.drawPct || existing.drawPct),
+        awayPct: existing.bookmaker === 'Bet365' && inc.bookmaker !== 'Bet365' ? existing.awayPct : (inc.awayPct || existing.awayPct),
+        over25Pct: existing.bookmaker === 'Bet365' && inc.bookmaker !== 'Bet365' ? existing.over25Pct : (inc.over25Pct ?? existing.over25Pct),
+        matchUrl: inc.matchUrl || existing.matchUrl,
       });
     }
   }
@@ -474,11 +479,11 @@ export async function fetchDailyHighlightFixtures(force = false): Promise<Highli
               await enrichFixturesWithBet365Odds(unenriched, 15, 5);
             } catch {}
           }
-          cachedFixtures = mapped;
+          cachedFixtures = mergeHighlightFixtureLists(cachedFixtures, mapped);
           lastFetchedTime = Date.now();
           try {
             if (typeof localStorage !== 'undefined') {
-              localStorage.setItem('mshindi_football_cache_v3', JSON.stringify(mapped));
+              localStorage.setItem('mshindi_football_cache_v3', JSON.stringify(cachedFixtures));
             }
           } catch {
             // ignore storage error
@@ -495,11 +500,11 @@ export async function fetchDailyHighlightFixtures(force = false): Promise<Highli
   try {
     const direct = await fetchDirectSportScoreFixtures();
     if (direct.length > 0) {
-      cachedFixtures = direct;
+      cachedFixtures = mergeHighlightFixtureLists(cachedFixtures, direct);
       lastFetchedTime = Date.now();
       try {
         if (typeof localStorage !== 'undefined') {
-          localStorage.setItem('mshindi_football_cache_v3', JSON.stringify(direct));
+          localStorage.setItem('mshindi_football_cache_v3', JSON.stringify(cachedFixtures));
         }
       } catch {}
       return cachedFixtures;

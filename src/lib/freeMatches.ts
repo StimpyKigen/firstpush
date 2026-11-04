@@ -212,7 +212,12 @@ export async function refreshFreeMatches(force = false) {
     const convertedHighlights = highlightFixtures.map((fixture) => toFreeMatch(fixture));
 
     // 2. Load locally cached SportScore fixtures
-    const storedFixtures = loadStoredMatches();
+    const persistedFixtures = loadStoredMatches();
+    const baseMap = new Map<string, FreeMatch>();
+    for (const m of persistedFixtures) baseMap.set(makeFreeMatchDedupeKey(m), m);
+    // In-memory pool is freshest (live scores, Bet365 odds) and wins over the persisted copy
+    for (const m of liveMatches) baseMap.set(makeFreeMatchDedupeKey(m), m);
+    const storedFixtures = Array.from(baseMap.values());
 
     // 3. Merge sources with deduplication & monotonic state validation
     const mergeFreeMatchRecords = (existing: FreeMatch, incoming: FreeMatch): FreeMatch => {
@@ -301,9 +306,10 @@ export async function refreshFreeMatches(force = false) {
       for (const m of storedFixtures) {
         const key = makeFreeMatchDedupeKey(m);
         if (!mergedMap.has(key)) {
-          const isAdmin = m.id?.startsWith('admin_') || m.providerId?.startsWith('admin_');
-          const isLive = m.status === 'in';
-          if (isAdmin || isLive) {
+          const kickoffMs = Date.parse(m.kickoffIso || '');
+          const isExpired =
+            m.status === 'post' && Number.isFinite(kickoffMs) && Date.now() - kickoffMs > 7 * 86_400_000;
+          if (!isExpired) {
             mergedMap.set(key, m);
           }
         }
