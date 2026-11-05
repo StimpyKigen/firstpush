@@ -18,9 +18,19 @@ export default async function handler(req: any, res: any) {
     const result = verifyAdminPinCredentials(body.phone, body.pin);
     if (!result.valid) {
       const status = result.error?.includes('Unauthorized') ? 403 : 401;
-      return res.status(status).json(result);
+      return res.status(status).json({
+        success: false,
+        valid: false,
+        error: result.error,
+      });
     }
-    return res.status(200).json(result);
+    return res.status(200).json({
+      success: true,
+      valid: true,
+      token: result.adminToken,
+      adminToken: result.adminToken,
+      message: 'Super-admin authenticated successfully.',
+    });
   } catch (err: any) {
     return res.status(500).json({ valid: false, error: err?.message || 'Verification error' });
   }

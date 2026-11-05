@@ -75,21 +75,24 @@ export function verifyAdminToken(token?: string | null): boolean {
 export function verifyAdminPinCredentials(
   phone?: string | null,
   pin?: string | null
-): { valid: boolean; adminToken?: string; error?: string } {
+): { success: boolean; valid: boolean; token?: string; adminToken?: string; error?: string } {
   const normalizedPhone = normalizeAdminPhone(phone);
   const cleanPin = String(pin || '').trim();
 
   if (normalizedPhone !== ADMIN_PHONE_NORMALIZED) {
-    return { valid: false, error: 'Unauthorized phone number' };
+    return { success: false, valid: false, error: 'Unauthorized phone number' };
   }
 
   if (cleanPin !== ADMIN_PIN_SECRET) {
-    return { valid: false, error: 'Invalid administrator PIN' };
+    return { success: false, valid: false, error: 'Invalid administrator PIN' };
   }
 
+  const token = generateAdminToken(normalizedPhone);
   return {
+    success: true,
     valid: true,
-    adminToken: generateAdminToken(normalizedPhone),
+    token,
+    adminToken: token,
   };
 }
 
