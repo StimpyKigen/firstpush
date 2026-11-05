@@ -1,12 +1,15 @@
-import { type MatchPeriod, type MatchStatus, parseDetailedMatchStatus } from './matchStatus.js';
+import { type MatchPeriod, type MatchStatus, parseDetailedMatchStatus, isStatusTransitionValid } from './matchStatus.js';
 import { enrichFixturesWithBet365Odds } from './sportscoreOddsService.js';
-import { findMatchingExistingFixture } from './fixtureIdentity.js';
+import { findMatchingExistingFixture, extractSportScoreMatchSlug, extractSportScoreProviderId } from './fixtureIdentity.js';
 import { realtimeClient } from './realtimeClient.js';
+import { resolveCanonicalCompetition, isCompetitionEligible } from './canonicalCompetitions.js';
+import { isHighlightsEligible } from './competitionPriority.js';
 
 export interface HighlightFixture {
   id: string;
   providerId?: string;
   matchId?: string;
+  matchSlug?: string;
   matchUrl?: string;
   home: string;
   away: string;
@@ -33,6 +36,7 @@ export interface HighlightFixture {
   period?: MatchPeriod;
   periodSequence?: number;
   displayClock?: string;
+  minute?: string;
   homeScore?: number | null;
   awayScore?: number | null;
   homeHtScore?: number | null;
@@ -42,6 +46,9 @@ export interface HighlightFixture {
   over15Pct?: number;
   over25Pct?: number;
   over35Pct?: number;
+  incidents?: any[];
+  latestGoalscorer?: any;
+  updateVersion?: number;
 }
 
 export function parseAmericanToDecimalOdds(moneylineStr?: string | number): number | null {
@@ -49,7 +56,6 @@ export function parseAmericanToDecimalOdds(moneylineStr?: string | number): numb
   const str = String(moneylineStr).trim();
   if (!str) return null;
 
-  // Handle direct decimal string inputs like "1.85", "2.40"
   const floatVal = parseFloat(str);
   if (!Number.isNaN(floatVal) && floatVal > 1.01 && floatVal < 100 && !str.startsWith('+') && !str.startsWith('-')) {
     return +floatVal.toFixed(2);
@@ -59,10 +65,8 @@ export function parseAmericanToDecimalOdds(moneylineStr?: string | number): numb
   if (Number.isNaN(num) || num === 0) return null;
 
   if (num < 0) {
-    // Negative moneyline e.g. -150 -> 1 + (100 / 150) = 1.67
     return +(1 + 100 / Math.abs(num)).toFixed(2);
   } else {
-    // Positive moneyline e.g. +250 -> 1 + (250 / 100) = 3.50
     return +(1 + num / 100).toFixed(2);
   }
 }
@@ -91,30 +95,42 @@ export function buildBlurb(home: string, away: string, competition: string, stat
   return `${home} face ${away} in an exciting ${competition} match-up attracting heavy debate from the community.`;
 }
 
-import { BUNDLED_SPORTS_CATALOGUE } from '../data/bundledSportsCatalogue.js';
-import { resolveCanonicalCompetition, isCompetitionEligible } from './canonicalCompetitions.js';
-import { isHighlightsEligible } from './competitionPriority.js';
-
-function mapBundledToHighlights(): HighlightFixture[] {
-  // Pre-loaded fixtures removed per user mandate
-  return [];
-}
-
 let cachedFixtures: HighlightFixture[] = [];
+// IMPORTANT: Keep lastFetchedTime = 0 on initial module load so the first call to fetchDailyHighlightFixtures()
+// always fetches fresh live/finished state from the backend rather than serving a stale localStorage snapshot.
 let lastFetchedTime = 0;
 
-// Hydrate live SportScore fixtures from localStorage cache if available
+// Hydrate initial state from localStorage for instant render while fresh network sync runs
 try {
   const stored = typeof localStorage !== 'undefined' ? localStorage.getItem('mshindi_football_cache_v3') : null;
   if (stored) {
     const parsed = JSON.parse(stored);
     if (Array.isArray(parsed) && parsed.length > 0) {
       cachedFixtures = parsed;
-      lastFetchedTime = Date.now();
     }
   }
 } catch {
   // ignore storage error
+}
+
+export function persistHighlightCacheToStorage(list: HighlightFixture[] = cachedFixtures): void {
+  try {
+    if (typeof localStorage !== 'undefined' && Array.isArray(list) && list.length > 0) {
+      localStorage.setItem('mshindi_football_cache_v3', JSON.stringify(list));
+    }
+  } catch {
+    // ignore storage quota errors
+  }
+}
+
+/**
+ * Synchronizes `cachedFixtures` and `localStorage` whenever real-time SSE deltas or
+ * authoritative match-detail updates are applied in `freeMatches.ts`.
+ */
+export function syncCachedFixturesFromRealtime(updatedFixtures: any[]): void {
+  if (!Array.isArray(updatedFixtures) || updatedFixtures.length === 0) return;
+  cachedFixtures = mergeHighlightFixtureLists(cachedFixtures, updatedFixtures as HighlightFixture[]);
+  persistHighlightCacheToStorage(cachedFixtures);
 }
 
 export function getEffectiveMatchDayEAT(dateObj: Date = new Date()): string {
@@ -131,11 +147,10 @@ export function getEffectiveMatchDayEAT(dateObj: Date = new Date()): string {
   parts.forEach((pt) => { p[pt.type] = pt.value; });
 
   let year = parseInt(p.year, 10);
-  let month = parseInt(p.month, 10) - 1; // 0-indexed
+  let month = parseInt(p.month, 10) - 1;
   let day = parseInt(p.day, 10);
-  let hour = parseInt(p.hour, 10);
+  const hour = parseInt(p.hour, 10);
 
-  // Before 3:00 AM EAT, current/fixture date belongs to previous day's match slate
   if (hour < 3) {
     const prev = new Date(Date.UTC(year, month, day - 1));
     year = prev.getUTCFullYear();
@@ -173,68 +188,180 @@ export function getEffectiveMatchDayFormattedEAT(dateObj: Date = new Date()): st
 }
 
 /**
- * Direct client-side SportScore API fetch fallback.
- * Queries SportScore directly if the backend server proxy is unavailable or cold.
+ * Legacy export retained for backward compatibility; routes through the authoritative backend `/api/sports/live` endpoint
+ * so the browser never makes competing direct requests to SportScore.
  */
 export async function fetchDirectSportScoreFixtures(): Promise<HighlightFixture[]> {
-  try {
-    const today = getLocalDateStringEAT(new Date());
-    const tomorrow = getLocalDateStringEAT(new Date(Date.now() + 86400000));
+  return reconcileLiveFixturesFromBackend();
+}
 
-    const prioritySlugs = [
-      'english-premier-league',
-      'spanish-la-liga',
-      'bundesliga',
-      'italian-serie-a',
-      'french-ligue-1',
-      'uefa-champions-league',
-      'uefa-europa-league',
-      'uefa-europa-conference-league',
-      'brazilian-serie-a',
-      'united-states-major-league-soccer',
-      'mexico-liga-mx',
-      'saudi-professional-league',
-      'portuguese-primera-liga',
-      'netherlands-eredivisie',
-      'belgian-pro-league',
-      'turkish-super-league',
-      'scottish-premiership',
-    ];
+export function mergeHighlightFixtureLists(
+  existingList: HighlightFixture[],
+  incomingList: HighlightFixture[]
+): HighlightFixture[] {
+  const map = new Map<string, HighlightFixture>();
+  for (const item of existingList) {
+    if (item && item.id) map.set(item.id, item);
+  }
 
-    const urls = [
-      `https://sportscore.com/api/v1/fixtures/?sport=football&status=live`,
-      ...prioritySlugs.map((slug) => `https://sportscore.com/api/v1/fixtures/?sport=football&competition=${slug}&date=${today}`),
-      ...prioritySlugs.slice(0, 8).map((slug) => `https://sportscore.com/api/v1/fixtures/?sport=football&competition=${slug}&date=${tomorrow}`),
-      `https://sportscore.com/api/v1/fixtures/?sport=football&date=${today}&limit=100`,
-      `https://sportscore.com/api/v1/fixtures/?sport=football&date=${tomorrow}&limit=100`,
-    ];
+  for (const inc of incomingList) {
+    if (!inc || !inc.id) continue;
+    const existing = map.get(inc.id) || findMatchingExistingFixture(inc, map.values());
+    if (!existing) {
+      map.set(inc.id, inc);
+    } else {
+      const exStatus: MatchStatus = existing.status || 'pre';
+      const exPeriod: MatchPeriod = existing.period || (exStatus === 'post' ? 'full_time' : exStatus === 'in' ? 'first_half' : 'scheduled');
+      const incStatus: MatchStatus = inc.status || 'pre';
+      const incPeriod: MatchPeriod = inc.period || (incStatus === 'post' ? 'full_time' : incStatus === 'in' ? 'second_half' : 'scheduled');
 
-    const responses = await Promise.allSettled(
-      urls.map((u) =>
-        fetch(u, {
-          headers: {
-            Accept: 'application/json, text/plain, */*',
-          },
-          signal: typeof AbortSignal !== 'undefined' ? AbortSignal.timeout(10000) : undefined,
-        })
-      )
-    );
+      const isPermitted = isStatusTransitionValid(exStatus, exPeriod, incStatus, incPeriod);
+      const status: MatchStatus = isPermitted ? incStatus : exStatus;
+      const period: MatchPeriod = isPermitted ? incPeriod : exPeriod;
 
-    const rawMatches: any[] = [];
-    for (const res of responses) {
-      if (res.status === 'fulfilled' && res.value.ok) {
-        try {
-          const json = await res.value.json();
-          if (Array.isArray(json.matches)) {
-            rawMatches.push(...json.matches);
-          }
-        } catch {}
+      let displayClock = existing.displayClock || existing.minute || '';
+      if (status === 'post') {
+        displayClock = period === 'after_penalties' ? 'AP' : period === 'after_extra_time' ? 'AET' : 'FT';
+      } else if (isPermitted) {
+        const incClock = inc.displayClock || inc.minute || '';
+        const isExNumericMin = /^\d+(?:\+\d*)?'$/.test(displayClock);
+        const isIncGeneric = ['1st half', '2nd half', 'live'].includes(incClock.toLowerCase());
+        // Never keep 'HT' when advancing to second_half!
+        if (isExNumericMin && isIncGeneric && exPeriod === period) {
+          // keep numeric minute within same half
+        } else {
+          displayClock = incClock || (period === 'halftime' ? 'HT' : period === 'second_half' ? '2nd Half' : 'LIVE');
+        }
       }
+
+      let homeScore = existing.homeScore;
+      let awayScore = existing.awayScore;
+      if (incStatus === 'in' || incStatus === 'post') {
+        if (inc.homeScore !== undefined && inc.homeScore !== null && !Number.isNaN(Number(inc.homeScore))) {
+          if (isPermitted || exStatus === incStatus) homeScore = Number(inc.homeScore);
+        }
+        if (inc.awayScore !== undefined && inc.awayScore !== null && !Number.isNaN(Number(inc.awayScore))) {
+          if (isPermitted || exStatus === incStatus) awayScore = Number(inc.awayScore);
+        }
+      } else if (incStatus === 'pre' && exStatus === 'pre') {
+        homeScore = null;
+        awayScore = null;
+      }
+
+      const result: '1' | 'X' | '2' | undefined =
+        status === 'post' && homeScore !== null && homeScore !== undefined && awayScore !== null && awayScore !== undefined
+          ? homeScore > awayScore
+            ? '1'
+            : homeScore < awayScore
+            ? '2'
+            : 'X'
+          : existing.result;
+
+      map.set(existing.id, {
+        ...existing,
+        ...inc,
+        id: existing.id,
+        providerId: inc.providerId || existing.providerId,
+        matchId: inc.matchId || existing.matchId || extractSportScoreProviderId(inc) || undefined,
+        matchSlug: inc.matchSlug || existing.matchSlug || extractSportScoreMatchSlug(inc) || undefined,
+        matchUrl: inc.matchUrl || existing.matchUrl,
+        status,
+        period,
+        displayClock,
+        minute: displayClock,
+        homeScore,
+        awayScore,
+        homeHtScore: inc.homeHtScore ?? existing.homeHtScore,
+        awayHtScore: inc.awayHtScore ?? existing.awayHtScore,
+        result,
+        incidents: (inc.incidents && inc.incidents.length > 0) ? inc.incidents : existing.incidents,
+        latestGoalscorer: inc.latestGoalscorer || existing.latestGoalscorer,
+        bookmaker: inc.bookmaker === 'Bet365' ? 'Bet365' : (existing.bookmaker || inc.bookmaker),
+        homeOdds: existing.bookmaker === 'Bet365' && inc.bookmaker !== 'Bet365' ? existing.homeOdds : (inc.homeOdds || existing.homeOdds),
+        drawOdds: existing.bookmaker === 'Bet365' && inc.bookmaker !== 'Bet365' ? existing.drawOdds : (inc.drawOdds || existing.drawOdds),
+        awayOdds: existing.bookmaker === 'Bet365' && inc.bookmaker !== 'Bet365' ? existing.awayOdds : (inc.awayOdds || existing.awayOdds),
+        homePct: existing.bookmaker === 'Bet365' && inc.bookmaker !== 'Bet365' ? existing.homePct : (inc.homePct || existing.homePct),
+        drawPct: existing.bookmaker === 'Bet365' && inc.bookmaker !== 'Bet365' ? existing.drawPct : (inc.drawPct || existing.drawPct),
+        awayPct: existing.bookmaker === 'Bet365' && inc.bookmaker !== 'Bet365' ? existing.awayPct : (inc.awayPct || existing.awayPct),
+        over25Pct: existing.bookmaker === 'Bet365' && inc.bookmaker !== 'Bet365' ? existing.over25Pct : (inc.over25Pct ?? existing.over25Pct),
+      });
     }
+  }
+  return Array.from(map.values());
+}
 
-    if (rawMatches.length === 0) return [];
+function mapRawApiFixtureToHighlight(m: any, syncTimeLabel: string): HighlightFixture {
+  const canon = resolveCanonicalCompetition({
+    competition: m.competition,
+    country: m.country,
+    leagueCode: m.leagueCode,
+    providerId: m.providerId || m.id,
+  });
+  const compName = m.competitionId && m.competition ? m.competition : canon.name;
+  const tier = inferTier(compName, m.home, m.away);
+  const blurb = buildBlurb(m.home, m.away, compName, m.status);
+  const fid = m.id?.startsWith('mkt-') ? m.id : `mkt-${m.id || `${m.home}-${m.away}`.toLowerCase().replace(/[^a-z0-9]/g, '-')}`;
+  const status: MatchStatus = m.status || 'pre';
+  const displayClock = status === 'post' ? 'FT' : (m.displayClock || m.minute || (status === 'in' ? 'LIVE' : ''));
 
-    const nowIso = new Date().toISOString();
+  return {
+    id: fid,
+    providerId: m.providerId || fid,
+    matchId: m.matchId || extractSportScoreProviderId(m) || undefined,
+    matchSlug: m.matchSlug || extractSportScoreMatchSlug(m) || undefined,
+    matchUrl: m.matchUrl || m.url || undefined,
+    home: m.home,
+    away: m.away,
+    homeLogo: m.homeLogo || m.home_logo,
+    awayLogo: m.awayLogo || m.away_logo,
+    competition: compName,
+    competitionId: m.competitionId || canon.id,
+    leagueCode: m.leagueCode,
+    country: m.country || canon.country,
+    kickoff: m.kickoff,
+    kickoffIso: m.kickoffIso,
+    tier,
+    blurb,
+    homePct: m.homePct,
+    drawPct: m.drawPct,
+    awayPct: m.awayPct,
+    homeOdds: m.homeOdds,
+    drawOdds: m.drawOdds,
+    awayOdds: m.awayOdds,
+    bookmaker: m.bookmaker || 'Market Consensus',
+    syncedAt: `Live Consensus · ${syncTimeLabel}`,
+    lastSyncTime: m.lastSyncTime || m.syncedAt,
+    status,
+    period: m.period,
+    periodSequence: m.periodSequence,
+    displayClock,
+    minute: displayClock,
+    homeScore: m.homeScore !== undefined ? m.homeScore : null,
+    awayScore: m.awayScore !== undefined ? m.awayScore : null,
+    homeHtScore: m.homeHtScore !== undefined ? m.homeHtScore : null,
+    awayHtScore: m.awayHtScore !== undefined ? m.awayHtScore : null,
+    bttsYesPct: m.bttsYesPct,
+    over15Pct: m.over15Pct,
+    over25Pct: m.over25Pct,
+    over35Pct: m.over35Pct,
+    incidents: m.incidents,
+    latestGoalscorer: m.latestGoalscorer,
+    updateVersion: m.updateVersion,
+  };
+}
+
+/**
+ * Reconciles active live fixtures and today's recently finished fixtures from `/api/sports/live`.
+ */
+export async function reconcileLiveFixturesFromBackend(): Promise<HighlightFixture[]> {
+  try {
+    const baseUrl = typeof window !== 'undefined' ? '' : (process.env.API_BASE_URL || 'http://localhost:3000');
+    const res = await fetch(`${baseUrl}/api/sports/live`, {
+      headers: { Accept: 'application/json' },
+      cache: 'no-store',
+    });
+    if (!res.ok) return cachedFixtures;
+    const data = await res.json();
     const syncTimeLabel = new Intl.DateTimeFormat('en', {
       timeZone: 'Africa/Nairobi',
       month: 'short',
@@ -244,160 +371,27 @@ export async function fetchDirectSportScoreFixtures(): Promise<HighlightFixture[
       hour12: false,
     }).format(new Date()) + ' EAT';
 
-    const mapped: HighlightFixture[] = [];
-    const seen = new Set<string>();
+    const rawCombined = [
+      ...(Array.isArray(data?.fixtures) ? data.fixtures : []),
+      ...(Array.isArray(data?.recentlyFinished) ? data.recentlyFinished : []),
+    ];
 
-    for (const m of rawMatches) {
-      const home = String(m.home || '').trim();
-      const away = String(m.away || '').trim();
-      if (!home || !away) continue;
-
-      const rawComp = String(m.competition || 'International Football').trim();
-      const rawCountry = String(m.country || 'International').trim();
-
-      const canon = resolveCanonicalCompetition({
-        competition: rawComp,
-        country: rawCountry,
-        providerId: m.url || `${home}-${away}`,
-      });
-
-      const isEligible = isCompetitionEligible({
-        id: canon.id,
-        providerId: m.url || `${home}-${away}`,
-        slug: canon.providerSlug || m.league,
-        competition: canon.name || rawComp,
-        country: canon.country || rawCountry,
-      });
-      if (!isEligible) continue;
-
-      const compName = canon.name || rawComp;
-      const isoTime = m.time || m.start_at || nowIso;
-      const kickoffDate = new Date(isoTime);
-      const kickoffEAT = !Number.isNaN(kickoffDate.getTime())
-        ? new Intl.DateTimeFormat('en', {
-            timeZone: 'Africa/Nairobi',
-            day: 'numeric',
-            month: 'short',
-            hour: 'numeric',
-            minute: '2-digit',
-            hour12: false,
-          }).format(kickoffDate) + ' EAT'
-        : 'TBD';
-
-      const key = `${home.toLowerCase()}__${away.toLowerCase()}__${isoTime.slice(0, 10)}`;
-      if (seen.has(key)) continue;
-      seen.add(key);
-
-      const detailed = parseDetailedMatchStatus(m.status, m.status_text);
-      const tier = inferTier(compName, home, away);
-      const blurb = buildBlurb(home, away, compName, detailed.status);
-
-      const hash = Math.abs((home + away).split('').reduce((acc, c) => (acc * 31 + c.charCodeAt(0)) | 0, 0));
-      const homePct = 35 + (hash % 25);
-      const drawPct = 25 + ((hash >> 2) % 15);
-      const awayPct = Math.max(15, 100 - homePct - drawPct);
-
-      const fid = `mkt-ss-${hash.toString(36)}-${(home + '-' + away).toLowerCase().replace(/[^a-z0-9]/g, '-')}`;
-
-      mapped.push({
-        id: fid,
-        providerId: fid,
-        matchUrl: m.url || undefined,
-        home,
-        away,
-        competition: compName,
-        competitionId: canon.id,
-        country: canon.countryName || canon.country,
-        kickoff: kickoffEAT,
-        kickoffIso: isoTime,
-        tier,
-        blurb,
-        homePct,
-        drawPct,
-        awayPct,
-        homeOdds: +(100 / (homePct * 1.05)).toFixed(2),
-        drawOdds: +(100 / (drawPct * 1.05)).toFixed(2),
-        awayOdds: +(100 / (awayPct * 1.05)).toFixed(2),
-        bookmaker: 'SportScore Consensus',
-        syncedAt: `SportScore Live · ${syncTimeLabel}`,
-        lastSyncTime: nowIso,
-        status: detailed.status,
-        period: detailed.period,
-        periodSequence: detailed.periodSequence,
-        displayClock: detailed.displayClock || (detailed.status === 'in' ? 'LIVE' : detailed.status === 'post' ? 'FT' : ''),
-        homeScore: m.home_score !== undefined ? m.home_score : null,
-        awayScore: m.away_score !== undefined ? m.away_score : null,
-        bttsYesPct: 52 + (hash % 16),
-        over15Pct: 75 + (hash % 15),
-        over25Pct: 48 + (hash % 18),
-        over35Pct: 28 + (hash % 14),
-      });
+    if (rawCombined.length > 0) {
+      const mapped = rawCombined.map((m: any) => mapRawApiFixtureToHighlight(m, syncTimeLabel));
+      cachedFixtures = mergeHighlightFixtureLists(cachedFixtures, mapped);
+      persistHighlightCacheToStorage(cachedFixtures);
     }
-
-    if (mapped.length > 0) {
-      try {
-        await enrichFixturesWithBet365Odds(mapped, 25, 5);
-      } catch {}
-    }
-
-    return mapped;
-  } catch (err) {
-    console.warn('Direct SportScore API fallback notice:', err);
-    return [];
+    return cachedFixtures;
+  } catch {
+    return cachedFixtures;
   }
-}
-
-function mergeHighlightFixtureLists(
-  existingList: HighlightFixture[],
-  incomingList: HighlightFixture[]
-): HighlightFixture[] {
-  const map = new Map<string, HighlightFixture>();
-  for (const item of existingList) {
-    if (item && item.id) map.set(item.id, item);
-  }
-  for (const inc of incomingList) {
-    if (!inc || !inc.id) continue;
-    const existing = findMatchingExistingFixture(inc, map.values());
-    if (!existing) {
-      map.set(inc.id, inc);
-    } else {
-      const isTerminal = existing.status === 'post';
-      const status = isTerminal && inc.status !== 'post' ? 'post' : (inc.status || existing.status);
-      const homeScore = inc.status === 'pre' && (existing.status === 'in' || existing.status === 'post')
-        ? existing.homeScore
-        : (inc.homeScore !== undefined && inc.homeScore !== null ? inc.homeScore : existing.homeScore);
-      const awayScore = inc.status === 'pre' && (existing.status === 'in' || existing.status === 'post')
-        ? existing.awayScore
-        : (inc.awayScore !== undefined && inc.awayScore !== null ? inc.awayScore : existing.awayScore);
-
-      map.set(existing.id, {
-        ...existing,
-        ...inc,
-        id: existing.id,
-        status,
-        homeScore,
-        awayScore,
-        bookmaker: inc.bookmaker === 'Bet365' ? 'Bet365' : (existing.bookmaker || inc.bookmaker),
-        homeOdds: existing.bookmaker === 'Bet365' && inc.bookmaker !== 'Bet365' ? existing.homeOdds : (inc.homeOdds || existing.homeOdds),
-        drawOdds: existing.bookmaker === 'Bet365' && inc.bookmaker !== 'Bet365' ? existing.drawOdds : (inc.drawOdds || existing.drawOdds),
-        awayOdds: existing.bookmaker === 'Bet365' && inc.bookmaker !== 'Bet365' ? existing.awayOdds : (inc.awayOdds || existing.awayOdds),
-        homePct: existing.bookmaker === 'Bet365' && inc.bookmaker !== 'Bet365' ? existing.homePct : (inc.homePct || existing.homePct),
-        drawPct: existing.bookmaker === 'Bet365' && inc.bookmaker !== 'Bet365' ? existing.drawPct : (inc.drawPct || existing.drawPct),
-        awayPct: existing.bookmaker === 'Bet365' && inc.bookmaker !== 'Bet365' ? existing.awayPct : (inc.awayPct || existing.awayPct),
-        over25Pct: existing.bookmaker === 'Bet365' && inc.bookmaker !== 'Bet365' ? existing.over25Pct : (inc.over25Pct ?? existing.over25Pct),
-        matchUrl: inc.matchUrl || existing.matchUrl,
-      });
-    }
-  }
-  return Array.from(map.values());
 }
 
 export async function fetchDailyHighlightFixtures(force = false): Promise<HighlightFixture[]> {
   const hasLiveMatches = cachedFixtures.some((f) => f.status === 'in');
-  const cacheTtlMs = hasLiveMatches ? 8_000 : 30_000;
+  const cacheTtlMs = hasLiveMatches ? 6_000 : 25_000;
 
-  // Return cached if not forced and fetched within active TTL
-  if (!force && cachedFixtures.length > 0 && Date.now() - lastFetchedTime < cacheTtlMs) {
+  if (!force && lastFetchedTime > 0 && cachedFixtures.length > 0 && Date.now() - lastFetchedTime < cacheTtlMs) {
     return cachedFixtures;
   }
 
@@ -413,63 +407,19 @@ export async function fetchDailyHighlightFixtures(force = false): Promise<Highli
   try {
     const controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
     const timeoutId = controller ? setTimeout(() => controller.abort(), 25000) : null;
-    // 25s timeout allows cold starts on Render/Vercel to complete without premature abort
     const baseUrl = typeof window !== 'undefined' ? '' : (process.env.API_BASE_URL || 'http://localhost:3000');
-    const res = await fetch(`${baseUrl}/api/sports/daily-fixtures`, controller ? { signal: controller.signal } : {});
+    const res = await fetch(`${baseUrl}/api/sports/daily-fixtures`, {
+      ...(controller ? { signal: controller.signal } : {}),
+      cache: 'no-store',
+    });
     if (timeoutId) clearTimeout(timeoutId);
 
     if (res.ok) {
       const data = await res.json();
       if (data && data.success && Array.isArray(data.fixtures) && data.fixtures.length > 0) {
-        const mapped: HighlightFixture[] = data.fixtures.map((m: any) => {
-          const canon = resolveCanonicalCompetition({
-            competition: m.competition,
-            country: m.country,
-            leagueCode: m.leagueCode,
-            providerId: m.providerId || m.id,
-          });
-          const compName = m.competitionId && m.competition ? m.competition : canon.name;
-          const tier = inferTier(compName, m.home, m.away);
-          const blurb = buildBlurb(m.home, m.away, compName, m.status);
-          const fid = m.id?.startsWith('mkt-') ? m.id : `mkt-${m.id || `${m.home}-${m.away}`.toLowerCase().replace(/[^a-z0-9]/g, '-')}`;
-          return {
-            id: fid,
-            providerId: m.providerId || fid,
-            matchId: m.matchId,
-            matchUrl: m.matchUrl || m.url || undefined,
-            home: m.home,
-            away: m.away,
-            competition: compName,
-            competitionId: m.competitionId || canon.id,
-            leagueCode: m.leagueCode,
-            country: m.country || canon.country,
-            kickoff: m.kickoff,
-            kickoffIso: m.kickoffIso,
-            tier,
-            blurb,
-            homePct: m.homePct,
-            drawPct: m.drawPct,
-            awayPct: m.awayPct,
-            homeOdds: m.homeOdds,
-            drawOdds: m.drawOdds,
-            awayOdds: m.awayOdds,
-            bookmaker: m.bookmaker || 'Market Consensus',
-            syncedAt: `Live Consensus · ${syncTimeLabel}`,
-            lastSyncTime: m.lastSyncTime || m.syncedAt,
-            status: m.status || 'pre',
-            period: m.period,
-            periodSequence: m.periodSequence,
-            displayClock: m.displayClock || (m.status === 'in' ? 'LIVE' : m.status === 'post' ? 'FT' : ''),
-            homeScore: m.homeScore !== undefined ? m.homeScore : null,
-            awayScore: m.awayScore !== undefined ? m.awayScore : null,
-            homeHtScore: m.homeHtScore !== undefined ? m.homeHtScore : null,
-            awayHtScore: m.awayHtScore !== undefined ? m.awayHtScore : null,
-            bttsYesPct: m.bttsYesPct,
-            over15Pct: m.over15Pct,
-            over25Pct: m.over25Pct,
-            over35Pct: m.over35Pct,
-          };
-        });
+        const mapped: HighlightFixture[] = data.fixtures.map((m: any) =>
+          mapRawApiFixtureToHighlight(m, syncTimeLabel)
+        );
 
         if (mapped.length > 0) {
           const unenriched = mapped
@@ -482,36 +432,13 @@ export async function fetchDailyHighlightFixtures(force = false): Promise<Highli
           }
           cachedFixtures = mergeHighlightFixtureLists(cachedFixtures, mapped);
           lastFetchedTime = Date.now();
-          try {
-            if (typeof localStorage !== 'undefined') {
-              localStorage.setItem('mshindi_football_cache_v3', JSON.stringify(cachedFixtures));
-            }
-          } catch {
-            // ignore storage error
-          }
+          persistHighlightCacheToStorage(cachedFixtures);
           return cachedFixtures;
         }
       }
     }
   } catch (err) {
-    console.warn('Market Consensus feed sync notice, attempting direct SportScore fallback:', err);
-  }
-
-  // Fallback: If backend returned no fixtures or failed, query SportScore directly
-  try {
-    const direct = await fetchDirectSportScoreFixtures();
-    if (direct.length > 0) {
-      cachedFixtures = mergeHighlightFixtureLists(cachedFixtures, direct);
-      lastFetchedTime = Date.now();
-      try {
-        if (typeof localStorage !== 'undefined') {
-          localStorage.setItem('mshindi_football_cache_v3', JSON.stringify(cachedFixtures));
-        }
-      } catch {}
-      return cachedFixtures;
-    }
-  } catch (err) {
-    console.warn('Direct SportScore API fallback error:', err);
+    console.warn('Market Consensus feed sync notice:', err);
   }
 
   return cachedFixtures;
@@ -527,6 +454,7 @@ export function startDailyHighlightSync(onRefresh: () => Promise<unknown> | unkn
 
   const runCheck = async () => {
     if (typeof document !== 'undefined' && document.visibilityState === 'hidden') {
+      scheduleNext();
       return;
     }
     try {
@@ -540,18 +468,20 @@ export function startDailyHighlightSync(onRefresh: () => Promise<unknown> | unkn
 
   const scheduleNext = () => {
     if (timerHandle) clearTimeout(timerHandle);
-    // When real-time SSE push is connected, suspend rapid HTTP polling and back off to relaxed 120s safety check
-    if (realtimeClient.isConnected()) {
-      timerHandle = setTimeout(runCheck, 120_000);
+    const hasLive = cachedFixtures.some((f) => f.status === 'in');
+    const timeSinceLastSseData = Date.now() - realtimeClient.getLastDataEventTime();
+
+    // When SSE is connected and actively receiving data, use a 25s reconciliation cadence for live matches (60s otherwise)
+    if (realtimeClient.isConnected() && timeSinceLastSseData < 25_000) {
+      timerHandle = setTimeout(runCheck, hasLive ? 25_000 : 60_000);
       return;
     }
-    // Fallback: If push stream is disconnected or reconnecting, use rapid polling
-    const hasLive = cachedFixtures.some((f) => f.status === 'in');
-    const delayMs = hasLive ? 12_000 : 45_000;
+
+    // Fallback or staleness check: if live matches exist or SSE has had no data event in 25s, reconcile every 12s
+    const delayMs = hasLive ? 12_000 : 35_000;
     timerHandle = setTimeout(runCheck, delayMs);
   };
 
-  // Re-adjust polling schedule when real-time push connection state changes
   realtimeClient.onStateChange(() => {
     scheduleNext();
   });
@@ -559,7 +489,6 @@ export function startDailyHighlightSync(onRefresh: () => Promise<unknown> | unkn
   // Immediate initial check
   void runCheck();
 
-  // Instant recovery when user switches back to tab
   if (typeof document !== 'undefined') {
     document.addEventListener('visibilitychange', () => {
       if (document.visibilityState === 'visible') {
@@ -568,14 +497,13 @@ export function startDailyHighlightSync(onRefresh: () => Promise<unknown> | unkn
     });
   }
 
-  // Instant recovery on network reconnection
   if (typeof window !== 'undefined') {
     window.addEventListener('online', () => {
       void runCheck();
     });
 
     window.addEventListener('focus', () => {
-      if (Date.now() - lastFetchedTime > 12_000) {
+      if (Date.now() - lastFetchedTime > 10_000) {
         void runCheck();
       }
     });

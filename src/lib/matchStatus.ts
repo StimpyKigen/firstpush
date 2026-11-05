@@ -21,6 +21,7 @@ export type MatchPeriod =
   | 'halftime'
   | 'second_half'
   | 'extra_time'
+  | 'extra_time_halftime'
   | 'penalties'
   | 'full_time'
   | 'after_extra_time'
@@ -72,6 +73,7 @@ export function getPeriodSequence(period: MatchPeriod): number {
     case 'halftime': return 20;
     case 'second_half': return 30;
     case 'extra_time': return 40;
+    case 'extra_time_halftime': return 45;
     case 'penalties': return 50;
     case 'full_time': return 60;
     case 'after_extra_time': return 61;
@@ -87,89 +89,150 @@ export function getPeriodSequence(period: MatchPeriod): number {
 }
 
 /**
- * Parse raw provider status and status text into a comprehensive detailed status object
+ * Normalizes a raw minute value (e.g. 67, "67", "67'", "90+", "45+2'") into a clean display string like "67'", "90+'", "45+2'".
  */
-export function parseDetailedMatchStatus(rawStatus?: string | null, statusText?: string | null): DetailedStatusResult {
+export function normalizeMinuteDisplay(rawMin?: string | number | null): string | null {
+  if (rawMin === null || rawMin === undefined) return null;
+  const str = String(rawMin).trim();
+  if (!str) return null;
+  const m = str.match(/^(\d+(?:\+\d*)?)\s*(?:min|m|['`])?$/i);
+  if (m) {
+    return `${m[1]}'`;
+  }
+  return null;
+}
+
+/**
+ * Parse raw provider status, status text, and optional live_minute into a comprehensive detailed status object.
+ */
+export function parseDetailedMatchStatus(
+  rawStatus?: string | null,
+  statusText?: string | null,
+  liveMinute?: string | number | null
+): DetailedStatusResult {
   const s = String(rawStatus || '').toLowerCase().trim();
   const txt = String(statusText || '').toLowerCase().trim();
+  const normLiveMin = normalizeMinuteDisplay(liveMinute);
 
   // 1. Postponed / Cancelled / Abandoned / Suspended / Interrupted / Delayed
   if (s === 'postponed' || txt.includes('postponed') || s === 'postp') {
     return { status: 'postponed', period: 'postponed', displayClock: 'POSTPONED', periodSequence: 90, isTerminal: false, rawStatus: s, statusText: txt };
   }
-  if (s === 'cancelled' || txt.includes('cancelled') || s === 'canc' || txt.includes('canceled')) {
+  if (s === 'cancelled' || s === 'canceled' || txt.includes('cancelled') || txt.includes('canceled') || s === 'canc') {
     return { status: 'cancelled', period: 'cancelled', displayClock: 'CANCELLED', periodSequence: 95, isTerminal: true, rawStatus: s, statusText: txt };
   }
   if (s === 'abandoned' || txt.includes('abandoned') || s === 'abnd') {
     return { status: 'abandoned', period: 'abandoned', displayClock: 'ABANDONED', periodSequence: 96, isTerminal: true, rawStatus: s, statusText: txt };
   }
-  if (s === 'suspended' || txt.includes('suspended') || s === 'interrupted' || s === 'susp') {
+  if (s === 'suspended' || txt.includes('suspended') || s === 'interrupted' || txt.includes('interrupted') || s === 'susp') {
     return { status: 'suspended', period: 'suspended', displayClock: 'SUSPENDED', periodSequence: 85, isTerminal: false, rawStatus: s, statusText: txt };
   }
   if (s === 'delayed' || txt.includes('delayed')) {
     return { status: 'postponed', period: 'delayed', displayClock: 'DELAYED', periodSequence: 80, isTerminal: false, rawStatus: s, statusText: txt };
   }
-  if (s === 'awarded' || s === 'walkover' || txt.includes('walkover') || txt.includes('awarded')) {
+  if (s === 'awarded' || s === 'walkover' || txt.includes('walkover') || txt.includes('awarded') || s === 'awr') {
     return { status: 'post', period: 'awarded', displayClock: 'AWR', periodSequence: 63, isTerminal: true, rawStatus: s, statusText: txt };
   }
 
   // 2. Finished / Full-Time / Terminal Post-Match
-  if (s === 'after_penalties' || s === 'ap' || txt.includes('after penalties') || txt === 'ap') {
+  if (
+    s === 'after_penalties' || s === 'ap' ||
+    txt.includes('after penalties') || txt.includes('after pen') || txt === 'ap'
+  ) {
     return { status: 'post', period: 'after_penalties', displayClock: 'AP', periodSequence: 62, isTerminal: true, rawStatus: s, statusText: txt };
   }
-  if (s === 'after_extra_time' || s === 'aet' || txt.includes('after extra time') || txt === 'aet') {
+  if (
+    s === 'after_extra_time' || s === 'aet' ||
+    txt.includes('after extra time') || txt.includes('after et') || txt === 'aet'
+  ) {
     return { status: 'post', period: 'after_extra_time', displayClock: 'AET', periodSequence: 61, isTerminal: true, rawStatus: s, statusText: txt };
   }
   if (
-    s === 'finished' || s === 'ft' || s === 'post' || s === 'ended' ||
-    txt === 'ft' || txt.includes('finished') || txt.includes('ended')
+    s === 'finished' || s === 'ft' || s === 'post' || s === 'ended' || s === 'full_time' || s === 'full-time' ||
+    txt === 'ft' || txt === 'full-time' || txt === 'full time' || txt === 'fulltime' ||
+    txt.includes('finished') || txt.includes('ended')
   ) {
     return { status: 'post', period: 'full_time', displayClock: 'FT', periodSequence: 60, isTerminal: true, rawStatus: s, statusText: txt };
   }
 
-  // 3. Extra Time & Penalties (Active Live Periods)
-  if (s === 'penalties' || s === 'penalty_shootout' || s === 'p' || s === 'pen' || txt.includes('penalty') || txt === 'pen' || txt.includes('shootout')) {
+  // 3. Scheduled / Upcoming (check explicitly if rawStatus says upcoming/pre AND statusText does not indicate live/finished)
+  if (
+    (s === 'upcoming' || s === 'notstarted' || s === 'not_started' || s === 'scheduled' || s === 'pre') &&
+    !txt.includes('1st half') && !txt.includes('2nd half') && !txt.includes('half-time') &&
+    !txt.includes('half time') && !txt.includes('halftime') && !txt.includes('extra time') &&
+    !txt.includes('penalty') && txt !== 'ht' && txt !== 'live' && !normLiveMin
+  ) {
+    return { status: 'pre', period: 'scheduled', displayClock: '', periodSequence: 0, isTerminal: false, rawStatus: s, statusText: txt };
+  }
+
+  // 4. Extra Time & Penalties (Active Live Periods)
+  if (
+    s === 'penalties' || s === 'penalty_shootout' || s === 'p' || s === 'pen' ||
+    txt.includes('penalty') || txt.includes('penalties') || txt === 'pen' || txt.includes('shootout')
+  ) {
     return { status: 'in', period: 'penalties', displayClock: 'PEN', periodSequence: 50, isTerminal: false, rawStatus: s, statusText: txt };
   }
-  if (s === 'extra_time' || s === 'et' || s === '1st_et' || s === '2nd_et' || txt.includes('extra time') || txt.startsWith('et')) {
-    const clock = txt.includes('et') || txt.includes('extra') ? (statusText?.toUpperCase() || 'ET') : 'ET';
+  if (
+    s === 'extra_time_halftime' || s === 'et_ht' ||
+    txt === 'et ht' || txt.includes('extra time half') || txt.includes('et half')
+  ) {
+    return { status: 'in', period: 'extra_time_halftime', displayClock: 'ET HT', periodSequence: 45, isTerminal: false, rawStatus: s, statusText: txt };
+  }
+  if (
+    s === 'extra_time' || s === 'et' || s === '1st_et' || s === '2nd_et' ||
+    txt.includes('extra time') || txt.startsWith('et') || txt.includes('overtime')
+  ) {
+    const clock = normLiveMin || (txt.includes('et') || txt.includes('extra') ? (statusText?.toUpperCase() || 'ET') : 'ET');
     return { status: 'in', period: 'extra_time', displayClock: clock, periodSequence: 40, isTerminal: false, rawStatus: s, statusText: txt };
   }
 
-  // 4. Halftime
-  if (s === 'halftime' || s === 'half_time' || s === 'ht' || txt === 'ht' || txt === 'half time' || txt === 'halftime') {
+  // 5. Halftime (handles "Half-time", "Half time", "Halftime", "HT", "Break")
+  if (
+    s === 'halftime' || s === 'half_time' || s === 'half-time' || s === 'ht' ||
+    txt === 'ht' || txt === 'half time' || txt === 'half-time' || txt === 'halftime' || txt === 'break' ||
+    txt.includes('half-time') || txt.includes('half time') || txt.includes('halftime')
+  ) {
     return { status: 'in', period: 'halftime', displayClock: 'HT', periodSequence: 20, isTerminal: false, rawStatus: s, statusText: txt };
   }
 
-  // Check if statusText or rawStatus is an authoritative minute like "86", "86'", "90+", "45+2"
-  const minText = txt || s;
-  const minMatch = minText.match(/^(\d+(?:\+\d*)?)\s*['`]?$/);
-  if (minMatch) {
-    const rawVal = minMatch[1];
-    const num = parseInt(rawVal, 10);
-    const clock = rawVal.endsWith("'") ? rawVal : `${rawVal}'`;
-    const period: MatchPeriod = num >= 46 ? 'second_half' : 'first_half';
-    const periodSequence = num >= 46 ? 30 : 10;
-    return { status: 'in', period, displayClock: clock, periodSequence, isTerminal: false, rawStatus: s, statusText: txt };
-  }
-
-  // 5. Second Half
-  if (s === '2nd_half' || s === 'second_half' || s === '2h' || txt.includes('2nd half')) {
-    const clock = /^\d+/.test(txt) ? txt : '2nd Half';
+  // 6. Second Half
+  if (s === '2nd_half' || s === 'second_half' || s === '2h' || txt.includes('2nd half') || txt.includes('second half')) {
+    const embeddedMin = normalizeMinuteDisplay(txt.replace(/2nd\s*half\s*/i, '').trim());
+    const clock = normLiveMin || embeddedMin || '2nd Half';
     return { status: 'in', period: 'second_half', displayClock: clock, periodSequence: 30, isTerminal: false, rawStatus: s, statusText: txt };
   }
 
-  // 6. First Half / Generic Live
-  if (s === '1st_half' || s === 'first_half' || s === '1h' || txt.includes('1st half')) {
-    const clock = /^\d+/.test(txt) ? txt : '1st Half';
+  // 7. First Half
+  if (s === '1st_half' || s === 'first_half' || s === '1h' || txt.includes('1st half') || txt.includes('first half')) {
+    const embeddedMin = normalizeMinuteDisplay(txt.replace(/1st\s*half\s*/i, '').trim());
+    const clock = normLiveMin || embeddedMin || '1st Half';
     return { status: 'in', period: 'first_half', displayClock: clock, periodSequence: 10, isTerminal: false, rawStatus: s, statusText: txt };
   }
-  if (s === 'live' || s === 'in' || s === 'inprogress' || txt.includes('live')) {
-    const clock = /^\d+/.test(txt) ? txt : 'LIVE';
-    return { status: 'in', period: 'second_half', displayClock: clock, periodSequence: 25, isTerminal: false, rawStatus: s, statusText: txt };
+
+  // 8. Check if liveMinute, statusText, or rawStatus is an authoritative minute like "86", "86'", "90+", "45+2"
+  const candidateMin = normLiveMin || normalizeMinuteDisplay(txt) || normalizeMinuteDisplay(s);
+  if (candidateMin) {
+    const rawVal = candidateMin.replace(/'$/, '');
+    const baseNum = parseInt(rawVal.split('+')[0], 10);
+    let period: MatchPeriod = 'first_half';
+    let periodSequence = 10;
+    if (baseNum > 90) {
+      period = 'extra_time';
+      periodSequence = 40;
+    } else if (baseNum >= 46) {
+      period = 'second_half';
+      periodSequence = 30;
+    }
+    return { status: 'in', period, displayClock: candidateMin, periodSequence, isTerminal: false, rawStatus: s, statusText: txt };
   }
 
-  // 7. Scheduled / Upcoming
+  // 9. Generic Live
+  if (s === 'live' || s === 'in' || s === 'inprogress' || s === 'in_progress' || txt.includes('live')) {
+    const clock = normLiveMin || (/^\d+/.test(txt) ? txt : 'LIVE');
+    return { status: 'in', period: 'first_half', displayClock: clock, periodSequence: 10, isTerminal: false, rawStatus: s, statusText: txt };
+  }
+
+  // 10. Scheduled / Upcoming fallback
   if (
     s === 'upcoming' || s === 'notstarted' || s === 'not_started' || s === 'scheduled' || s === 'pre' ||
     txt.includes('not started') || txt.includes('upcoming') || txt.includes('fixture')
@@ -192,7 +255,7 @@ export function normalizeMatchStatus(rawStatus?: string | null, statusText?: str
  * Validate whether a new incoming status is allowed to overwrite an existing stored status.
  * CRITICAL INVARIANT:
  * - Terminal states ('post', 'cancelled', 'abandoned') can NEVER be downgraded to 'in', 'ht', or 'pre' by an out-of-order response.
- * - Active match periods ('2nd_half', 'extra_time') can NEVER be downgraded back to 'halftime' or '1st_half'.
+ * - Active match periods ('second_half', 'extra_time', 'penalties') can NEVER be downgraded back to 'halftime' or 'first_half'.
  */
 export function isStatusTransitionValid(
   existingStatus: MatchStatus,
@@ -244,7 +307,7 @@ export function isStatusTransitionValid(
  * Determine if a match is considered live/in-play.
  * A match is genuinely live ONLY if:
  * 1. Normalized status is explicitly 'in' (1H, HT, 2H, ET, PEN)
- * 2. OR period is an active in-play period ('first_half', 'halftime', 'second_half', 'extra_time', 'penalties')
+ * 2. OR period is an active in-play period ('first_half', 'halftime', 'second_half', 'extra_time', 'extra_time_halftime', 'penalties')
  * NEVER guess live status from elapsed clock when provider status is scheduled or terminal.
  */
 export function isLiveMatch(
@@ -252,12 +315,16 @@ export function isLiveMatch(
   _nowMs: number = Date.now()
 ): boolean {
   if (!fixture) return false;
+  if (fixture.status === 'post' || fixture.status === 'pre' || fixture.status === 'postponed' || fixture.status === 'cancelled' || fixture.status === 'abandoned' || fixture.status === 'suspended') {
+    return false;
+  }
+  if (fixture.status === 'in') return true;
   const norm = normalizeMatchStatus(fixture.status, fixture.displayClock || fixture.statusText);
   if (norm === 'in') return true;
   if (norm === 'pre' || norm === 'post' || norm === 'postponed' || norm === 'cancelled' || norm === 'abandoned' || norm === 'suspended') {
     return false;
   }
-  if (fixture.period && ['first_half', 'halftime', 'second_half', 'extra_time', 'penalties'].includes(fixture.period)) {
+  if (fixture.period && ['first_half', 'halftime', 'second_half', 'extra_time', 'extra_time_halftime', 'penalties'].includes(fixture.period)) {
     return true;
   }
   return false;
@@ -270,6 +337,8 @@ export function isCompletedMatch(
   fixture: { status?: any; statusText?: any; displayClock?: any; period?: any } | null | undefined
 ): boolean {
   if (!fixture) return false;
+  if (fixture.status === 'post') return true;
+  if (fixture.status === 'in' || fixture.status === 'pre') return false;
   const norm = normalizeMatchStatus(fixture.status, fixture.displayClock || fixture.statusText);
   if (norm === 'post') return true;
   if (fixture.period && ['full_time', 'after_extra_time', 'after_penalties', 'awarded'].includes(fixture.period)) {
@@ -280,7 +349,7 @@ export function isCompletedMatch(
 
 /**
  * Format live in-play clock to display the actual match minutes (e.g. 24', 45+2', 78')
- * instead of '1st Half' or '2nd Half'. Returns 'HT' for halftime and 'FT' for fulltime.
+ * instead of '1st Half' or '2nd Half'. Stops cleanly at 'HT' for halftime and 'FT'/'AET'/'AP' for finished.
  */
 export function formatLiveMatchClock(
   displayClock?: string | null,
@@ -288,15 +357,35 @@ export function formatLiveMatchClock(
   kickoffIso?: string | null
 ): string {
   const clock = String(displayClock || '').trim();
+  const lower = clock.toLowerCase();
 
-  if (period === 'halftime' || clock.toLowerCase() === 'ht' || clock.toLowerCase() === 'halftime' || clock.toLowerCase() === 'half time') {
+  // Stop clock on non-running states
+  if (period === 'postponed' || lower === 'postponed') return 'POSTPONED';
+  if (period === 'suspended' || lower === 'suspended') return 'SUSPENDED';
+  if (period === 'abandoned' || lower === 'abandoned') return 'ABANDONED';
+  if (period === 'cancelled' || lower === 'cancelled' || lower === 'canceled') return 'CANCELLED';
+  if (period === 'delayed' || lower === 'delayed') return 'DELAYED';
+
+  if (period === 'after_penalties' || lower === 'ap' || lower.includes('after pen')) return 'AP';
+  if (period === 'after_extra_time' || lower === 'aet' || lower.includes('after extra')) return 'AET';
+  if (
+    period === 'full_time' ||
+    lower === 'ft' || lower === 'full-time' || lower === 'full time' || lower === 'finished' || lower === 'ended'
+  ) {
+    return 'FT';
+  }
+
+  if (period === 'extra_time_halftime' || lower === 'et ht' || lower.includes('extra time half')) {
+    return 'ET HT';
+  }
+  if (
+    period === 'halftime' ||
+    lower === 'ht' || lower === 'halftime' || lower === 'half-time' || lower === 'half time' || lower === 'break'
+  ) {
     return 'HT';
   }
-  if (period === 'penalties' || clock.toLowerCase().includes('pen')) {
+  if (period === 'penalties' || lower === 'pen' || lower.includes('penalt') || lower.includes('shootout')) {
     return 'PEN';
-  }
-  if (period === 'full_time' || clock.toLowerCase() === 'ft' || clock.toLowerCase() === 'finished' || clock.toLowerCase() === 'ended') {
-    return 'FT';
   }
 
   // If clock is already an authoritative minute string like "24", "24'", "45+2", "45+2'", "78'", "90+", "90+'", "90+4'"
@@ -305,52 +394,51 @@ export function formatLiveMatchClock(
     return `${minMatch[1]}'`;
   }
 
-  // If clock has embedded numbers like "67 min" or "67m"
-  const embeddedMin = clock.match(/(\d+(?:\+\d*)?)\s*(?:min|m|')/i);
+  // If clock has embedded numbers like "67 min" or "67m" or "2nd half 67'"
+  const embeddedMin = clock.match(/(?:^|\s)(\d+(?:\+\d*)?)\s*(?:min|m|')/i);
   if (embeddedMin) {
     return `${embeddedMin[1]}'`;
   }
 
-  // Fallback ONLY when clock is generic (e.g. "1st Half", "2nd Half", "LIVE")
-  // 2D Pitch Tracker / SportScore is the authoritative source of truth.
-  // Never count indefinitely past 45' for 1st half or past 90' for 2nd half.
+  if (period === 'extra_time' || lower.startsWith('et') || lower.includes('extra time')) {
+    return 'ET';
+  }
+
+  // Fallback ONLY when provider has confirmed the match is live ('first_half' or 'second_half')
+  // and only gave a generic period label ("1st half" / "2nd half") while widget detail is loading.
+  // Never count past 45+' for 1st half or past 90+' for 2nd half, and never fabricate FT.
   if (kickoffIso) {
     const kMs = new Date(kickoffIso).getTime();
     if (!isNaN(kMs)) {
       const elapsedMin = Math.floor((Date.now() - kMs) / 60000);
-      if (period === 'first_half' || clock.toLowerCase().includes('1st')) {
+      if (period === 'first_half' || lower.includes('1st')) {
         if (elapsedMin <= 0) return "1'";
         if (elapsedMin <= 45) return `${elapsedMin}'`;
         return "45+'";
       }
-      if (period === 'second_half' || clock.toLowerCase().includes('2nd')) {
-        const adjustedMin = Math.max(46, elapsedMin - 15);
+      if (period === 'second_half' || lower.includes('2nd')) {
+        const adjustedMin = Math.max(46, elapsedMin - 17);
         if (adjustedMin <= 90) return `${adjustedMin}'`;
         return "90+'";
       }
       if (elapsedMin > 0) {
         if (elapsedMin <= 45) return `${elapsedMin}'`;
-        if (elapsedMin <= 60) return 'HT';
-        if (elapsedMin <= 105) {
-          const secondHalfMin = Math.min(90, Math.max(46, elapsedMin - 15));
-          return `${secondHalfMin}'`;
-        }
-        if (elapsedMin <= 115) {
-          return "90+'";
-        }
-        return 'FT';
+        if (elapsedMin <= 62) return "45+'";
+        const secondHalfMin = Math.min(90, Math.max(46, elapsedMin - 17));
+        if (elapsedMin <= 107) return `${secondHalfMin}'`;
+        return "90+'";
       }
     }
   }
 
-  if (period === 'first_half' || clock.toLowerCase().includes('1st')) {
+  if (period === 'first_half' || lower.includes('1st')) {
     return "1'";
   }
-  if (period === 'second_half' || clock.toLowerCase().includes('2nd')) {
+  if (period === 'second_half' || lower.includes('2nd')) {
     return "46'";
   }
 
-  return clock && !['1st half', '2nd half', 'live'].includes(clock.toLowerCase()) ? clock : "1'";
+  return clock && !['1st half', '2nd half', 'live'].includes(lower) ? clock : 'LIVE';
 }
 
 /**
@@ -366,7 +454,18 @@ export function getMatchScorePresentation(
   _nowMs?: number
 ): ScorePresentation {
   const detailed = parseDetailedMatchStatus(rawStatus, statusText);
-  const { status, period, displayClock } = detailed;
+  // IMPORTANT: If rawStatus is explicitly 'post' (finished), never allow a stale statusText (like 'HT')
+  // to downgrade the presentation back to live/halftime.
+  const normRaw = String(rawStatus || '').toLowerCase().trim();
+  const isExplicitlyFinished = normRaw === 'post' || normRaw === 'ft' || normRaw === 'finished' || normRaw === 'ended' || normRaw === 'aet' || normRaw === 'ap';
+
+  const status: MatchStatus = isExplicitlyFinished ? 'post' : detailed.status;
+  const period: MatchPeriod = isExplicitlyFinished && !['full_time', 'after_extra_time', 'after_penalties', 'awarded'].includes(detailed.period)
+    ? 'full_time'
+    : detailed.period;
+  const displayClock = isExplicitlyFinished && detailed.displayClock === 'HT'
+    ? 'FT'
+    : detailed.displayClock;
 
   // 1. Postponed / Suspended / Cancelled / Abandoned
   if (status === 'postponed') {
@@ -449,7 +548,7 @@ export function getMatchScorePresentation(
 
   // 3. Live in progress (1st half, HT, 2nd half, extra time, penalties)
   if (status === 'in') {
-    const isHt = period === 'halftime' || (displayClock && displayClock.toLowerCase() === 'ht');
+    const isHt = period === 'halftime' || period === 'extra_time_halftime' || (displayClock && displayClock.toLowerCase() === 'ht');
     const isExtraTime = period === 'extra_time';
     const isPenalties = period === 'penalties';
 
@@ -457,45 +556,31 @@ export function getMatchScorePresentation(
     const aScore = awayScore !== null && awayScore !== undefined ? Number(awayScore) : 0;
 
     let badgeText = "1'";
-    if (isHt) {
+    if (period === 'extra_time_halftime') {
+      badgeText = 'ET HT';
+    } else if (isHt) {
       badgeText = 'HT';
     } else if (isPenalties) {
       badgeText = 'PEN';
     } else if (isExtraTime) {
-      badgeText = displayClock || 'ET';
+      badgeText = formatLiveMatchClock(displayClock, period, kickoffIso);
     } else {
       badgeText = formatLiveMatchClock(displayClock, period, kickoffIso);
     }
 
-    if (badgeText === 'FT') {
+    if (badgeText === 'HT' || badgeText === 'ET HT') {
       return {
         shouldShowScore: true,
         scoreDisplay: `${hScore} - ${aScore}`,
         homeScoreDisplay: String(hScore),
         awayScoreDisplay: String(aScore),
-        badgeText: 'FT',
-        badgeVariant: 'finished',
-        isLive: false,
-        isFinished: true,
-        isScheduled: false,
-        isPostponedOrCancelled: false,
-        period: 'full_time',
-      };
-    }
-
-    if (badgeText === 'HT') {
-      return {
-        shouldShowScore: true,
-        scoreDisplay: `${hScore} - ${aScore}`,
-        homeScoreDisplay: String(hScore),
-        awayScoreDisplay: String(aScore),
-        badgeText: 'HT',
+        badgeText,
         badgeVariant: 'halftime',
         isLive: true,
         isFinished: false,
         isScheduled: false,
         isPostponedOrCancelled: false,
-        period: 'halftime',
+        period: period === 'extra_time_halftime' ? 'extra_time_halftime' : 'halftime',
       };
     }
 
@@ -505,7 +590,7 @@ export function getMatchScorePresentation(
       homeScoreDisplay: String(hScore),
       awayScoreDisplay: String(aScore),
       badgeText,
-      badgeVariant: isHt ? 'halftime' : 'live',
+      badgeVariant: 'live',
       isLive: true,
       isFinished: false,
       isScheduled: false,

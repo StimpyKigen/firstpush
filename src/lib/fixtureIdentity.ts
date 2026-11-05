@@ -9,7 +9,7 @@
  * 5. Preservation of authentic Bet365 odds, logos, and match incidents.
  */
 
-import { type MatchPeriod, type MatchStatus, isStatusTransitionValid } from './matchStatus.js';
+import { type MatchPeriod, type MatchStatus, isStatusTransitionValid, parseDetailedMatchStatus } from './matchStatus.js';
 import type { MarketFixture } from './sportsFeedService.js';
 
 /**
@@ -43,6 +43,77 @@ export function formatEatDay(isoOrDate?: string | Date | null): string {
 }
 
 /**
+ * Extracts the clean SportScore match slug (e.g. "sao-paulo-vs-sport-club-corinthians-paulista")
+ * required by https://sportscore.com/api/widget/match/?sport=football&slug=<matchSlug>.
+ * Strips any trailing alphanumeric match hash ID so the widget endpoint never 404s.
+ */
+function stripTrailingSportScoreHash(slug: string): string {
+  const trimmed = slug.trim().replace(/^mkt-ss-/i, '');
+  // A SportScore match hash ID is 12-20 alphanumeric chars containing BOTH letters and digits,
+  // appended after the '<home>-vs-<away>' slug.
+  const match = trimmed.match(/^(.+-vs-.+)-(?=[a-z0-9]*\d)(?=[a-z0-9]*[a-z])[a-z0-9]{12,20}$/i);
+  return match ? match[1] : trimmed;
+}
+
+export function extractSportScoreMatchSlug(item: {
+  id?: string;
+  providerId?: string;
+  matchId?: string;
+  matchSlug?: string;
+  matchUrl?: string;
+  url?: string;
+  home?: string;
+  away?: string;
+}): string | null {
+  if (!item) return null;
+
+  // 1. Canonical SportScore match URL: /football/match/<matchSlug>/<hashId>/
+  const url = item.matchUrl || item.url;
+  if (url && typeof url === 'string') {
+    const parts = url.split('/').filter(Boolean);
+    // parts = ['football', 'match', '<matchSlug>', '<hashId>']
+    if (parts.length >= 3 && parts[0] === 'football' && parts[1] === 'match') {
+      return parts[2];
+    }
+    const vsPart = parts.find((p) => p.includes('-vs-'));
+    if (vsPart) {
+      return stripTrailingSportScoreHash(vsPart);
+    }
+  }
+
+  // 2. Explicit matchSlug
+  if (item.matchSlug && typeof item.matchSlug === 'string' && item.matchSlug.trim()) {
+    return stripTrailingSportScoreHash(item.matchSlug);
+  }
+
+  // 3. ProviderId or ID that contains -vs- (strip trailing hash if compound)
+  for (const raw of [item.providerId, item.id]) {
+    if (raw && typeof raw === 'string' && raw.includes('-vs-')) {
+      const cleaned = stripTrailingSportScoreHash(raw);
+      if (cleaned.includes('-vs-')) {
+        return cleaned;
+      }
+    }
+  }
+
+  // 4. Fallback from home and away team names
+  if (item.home && item.away) {
+    const slugify = (s: string) =>
+      s
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '');
+    const h = slugify(item.home);
+    const a = slugify(item.away);
+    if (h && a) return `${h}-vs-${a}`;
+  }
+
+  return null;
+}
+
+/**
  * Extracts the stable alphanumeric SportScore provider ID from any match representation.
  * Handles matchUrl trailing slug (/football/match/.../<providerId>/), providerId, matchId, or id.
  */
@@ -65,9 +136,12 @@ export function extractSportScoreProviderId(item: {
   const url = item.matchUrl || item.url;
   if (url && typeof url === 'string') {
     const parts = url.split('/').filter(Boolean);
+    if (parts.length >= 4 && parts[0] === 'football' && parts[1] === 'match') {
+      return parts[3];
+    }
     if (parts.length >= 3) {
       const last = parts[parts.length - 1];
-      if (/^[a-z0-9_-]{4,}$/i.test(last)) {
+      if (/^[a-z0-9_-]{4,}$/i.test(last) && !last.includes('-vs-')) {
         return last;
       }
     }
@@ -77,17 +151,21 @@ export function extractSportScoreProviderId(item: {
   if (item.providerId && typeof item.providerId === 'string' && item.providerId.trim()) {
     const pid = item.providerId.trim();
     // If it is compound like "arsenal-vs-chelsea-3glrw7hnx23jqdy", extract trailing hash
-    const match = pid.match(/([a-z0-9]{5,})$/i);
-    if (match) return match[1];
+    const trailingMatch = pid.match(/-([a-z0-9]{10,20})$/i);
+    if (trailingMatch) return trailingMatch[1];
+    const leadingMatch = pid.match(/^([a-z0-9]{10,20})-/i);
+    if (leadingMatch) return leadingMatch[1];
     return pid;
   }
 
-  // 4. Internal fixture ID: "mkt-ss-<slug>-<id>" or "mkt-ss-<id>"
+  // 4. Internal fixture ID: "mkt-ss-<slug>-<id>" or "mkt-ss-<id>-<slug>"
   if (item.id && typeof item.id === 'string') {
     if (item.id.startsWith('mkt-ss-')) {
       const sub = item.id.slice(7);
-      const match = sub.match(/([a-z0-9]{5,})$/i);
-      if (match) return match[1];
+      const trailingMatch = sub.match(/-([a-z0-9]{10,20})$/i);
+      if (trailingMatch) return trailingMatch[1];
+      const leadingMatch = sub.match(/^([a-z0-9]{10,20})-/i);
+      if (leadingMatch) return leadingMatch[1];
       return sub;
     }
   }
@@ -132,7 +210,7 @@ export function getFixtureStableKey(item: {
  * Uses a rigorous 5-tier identity cascade:
  *  1. Exact ID equality
  *  2. SportScore unique provider ID equality
- *  3. Match URL equality
+ *  3. Match URL or Match Slug equality
  *  4. ID substring match (reconciling legacy compound IDs with provider IDs)
  *  5. Normalized team names + match date equality in EAT timezone
  */
@@ -141,6 +219,7 @@ export function areFixturesIdentical(
     id?: string;
     providerId?: string;
     matchId?: string;
+    matchSlug?: string;
     matchUrl?: string;
     home?: string;
     away?: string;
@@ -150,6 +229,7 @@ export function areFixturesIdentical(
     id?: string;
     providerId?: string;
     matchId?: string;
+    matchSlug?: string;
     matchUrl?: string;
     home?: string;
     away?: string;
@@ -172,8 +252,10 @@ export function areFixturesIdentical(
   if (aUrl && bUrl && aUrl === bUrl) return true;
 
   // Tier 4: Reconcile legacy compound IDs with provider IDs
-  if (aSsId && b.id && b.id.includes(aSsId)) return true;
-  if (bSsId && a.id && a.id.includes(bSsId)) return true;
+  if (aSsId && aSsId.length >= 8 && b.id && b.id.includes(aSsId)) return true;
+  if (bSsId && bSsId.length >= 8 && a.id && a.id.includes(bSsId)) return true;
+  if (aSsId && aSsId.length >= 8 && b.providerId && b.providerId.includes(aSsId)) return true;
+  if (bSsId && bSsId.length >= 8 && a.providerId && a.providerId.includes(bSsId)) return true;
 
   // Tier 5: Normalized teams + EAT match date
   if (a.home && a.away && b.home && b.away) {
@@ -188,7 +270,6 @@ export function areFixturesIdentical(
       if (aDay && bDay && aDay === bDay) {
         return true;
       }
-      // If one is missing date, consider it a match if teams are highly distinct
       if (!aDay || !bDay) {
         return true;
       }
@@ -205,6 +286,7 @@ export function findMatchingExistingFixture<T extends {
   id?: string;
   providerId?: string;
   matchId?: string;
+  matchSlug?: string;
   matchUrl?: string;
   home?: string;
   away?: string;
@@ -224,6 +306,7 @@ export function findMatchingExistingFixture<T extends {
  * - Preserves existing fixture ID and creation metadata.
  * - Protects live-match scores from being wiped out by scheduled 0-0/null responses.
  * - Terminal statuses ('post', 'cancelled', 'abandoned') can NEVER regress to scheduled ('pre') or live ('in').
+ * - Never locks displayClock on 'HT' when a match advances to 'second_half' or 'post' ('FT').
  * - Preserves authentic Bet365 odds and bookmaker when incoming has generic odds.
  * - Preserves team logos, match URLs, competition names, and incidents if omitted from incoming.
  * - Accurately reports whether any genuine field changed.
@@ -232,13 +315,19 @@ export function mergeMarketFixtureRecords(
   existing: MarketFixture,
   incoming: MarketFixture,
   options?: { isAuthoritativeCorrection?: boolean }
-): { merged: MarketFixture; hasChanged: boolean } {
+): { merged: MarketFixture; hasChanged: boolean; rejectedStaleTransition?: boolean } {
   const allowCorrection = Boolean(options?.isAuthoritativeCorrection || incoming.isAuthoritativeCorrection);
 
-  const existingStatus = existing.status || 'pre';
-  const existingPeriod = existing.period || 'scheduled';
-  const incomingStatus = incoming.status || 'pre';
-  const incomingPeriod = incoming.period || 'scheduled';
+  const existingDetailed = parseDetailedMatchStatus(existing.status, existing.displayClock || existing.minute);
+  const incomingDetailed = parseDetailedMatchStatus(incoming.status, incoming.displayClock || incoming.minute);
+
+  const existingStatus = existing.status || existingDetailed.status;
+  const existingPeriod = existing.period || existingDetailed.period;
+  const incomingStatus = incoming.status || incomingDetailed.status;
+  const incomingPeriod =
+    incoming.period && incoming.period !== existing.period
+      ? incoming.period
+      : incomingDetailed.period || incoming.period;
 
   // Check monotonic state validity
   const isTransitionPermitted = isStatusTransitionValid(
@@ -251,24 +340,54 @@ export function mergeMarketFixtureRecords(
 
   let finalStatus: MatchStatus = existingStatus;
   let finalPeriod: MatchPeriod = existingPeriod;
-  let finalClock = existing.displayClock;
+  let finalClock = existing.displayClock || existing.minute || '';
+  let finalMinute = existing.minute || existing.displayClock || '';
   let finalPeriodSeq = existing.periodSequence ?? 0;
 
   if (isTransitionPermitted) {
     finalStatus = incomingStatus;
-    finalPeriod = incoming.period || (incomingStatus === 'post' ? 'full_time' : incomingStatus === 'in' ? 'second_half' : 'scheduled');
-    finalClock = incoming.displayClock || existing.displayClock;
-    finalPeriodSeq = incoming.periodSequence ?? (incomingStatus === 'post' ? 60 : incomingStatus === 'in' ? 25 : 0);
+    finalPeriod = incomingPeriod || (incomingStatus === 'post' ? 'full_time' : incomingStatus === 'in' ? 'second_half' : 'scheduled');
+    finalPeriodSeq = incoming.periodSequence ?? incomingDetailed.periodSequence ?? (incomingStatus === 'post' ? 60 : incomingStatus === 'in' ? 25 : 0);
+
+    if (finalStatus === 'post') {
+      const terminalBadge =
+        finalPeriod === 'after_penalties' ? 'AP' :
+        finalPeriod === 'after_extra_time' ? 'AET' :
+        finalPeriod === 'awarded' ? 'AWR' : 'FT';
+      finalClock = terminalBadge;
+      finalMinute = terminalBadge;
+    } else if (finalStatus === 'in') {
+      const existingClock = existing.displayClock || existing.minute || '';
+      const incomingClock = incoming.displayClock || incoming.minute || '';
+
+      // Only preserve an existing numeric minute (e.g. "67'") over a generic period label ("2nd Half")
+      // when BOTH belong to the exact same period. NEVER preserve 'HT' when advancing to 'second_half'!
+      const isExistingNumericMin = /^\d+(?:\+\d*)?'$/.test(existingClock);
+      const isIncomingGenericLabel = ['1st half', '2nd half', 'live'].includes(incomingClock.toLowerCase());
+
+      if (isExistingNumericMin && isIncomingGenericLabel && existingPeriod === finalPeriod) {
+        finalClock = existingClock;
+        finalMinute = existingClock;
+      } else {
+        finalClock = incomingClock || (finalPeriod === 'halftime' ? 'HT' : finalPeriod === 'second_half' ? '2nd Half' : '1st Half');
+        finalMinute = incoming.minute || finalClock;
+      }
+    } else {
+      finalClock = incoming.displayClock || '';
+      finalMinute = incoming.minute || '';
+    }
   } else if (existingStatus === 'post') {
-    // Invariant: Terminal full-time matches remain full-time
+    // Invariant: Terminal full-time matches remain full-time and never revert to HT or live
     finalStatus = 'post';
     finalPeriod = existingPeriod === 'scheduled' ? 'full_time' : existingPeriod;
-    finalClock = existing.displayClock || 'FT';
+    finalClock = existing.displayClock && existing.displayClock !== 'HT' ? existing.displayClock : 'FT';
+    finalMinute = finalClock;
   } else if (existingStatus === 'in' && incomingStatus === 'pre') {
     // Invariant: In-play match cannot be regressed to scheduled by stale schedule refresh
     finalStatus = 'in';
     finalPeriod = existingPeriod;
     finalClock = existing.displayClock || 'LIVE';
+    finalMinute = existing.minute || finalClock;
   }
 
   // Score reconciliation
@@ -278,25 +397,25 @@ export function mergeMarketFixtureRecords(
   let finalAwayHtScore = existing.awayHtScore;
 
   if (incomingStatus === 'in' || incomingStatus === 'post') {
-    if (incoming.homeScore !== null && incoming.homeScore !== undefined) {
+    if (incoming.homeScore !== null && incoming.homeScore !== undefined && !Number.isNaN(Number(incoming.homeScore))) {
       if (isTransitionPermitted || allowCorrection) {
-        finalHomeScore = incoming.homeScore;
-      } else if (existingStatus === 'post') {
-        finalHomeScore = Math.max(existing.homeScore ?? 0, incoming.homeScore);
+        finalHomeScore = Number(incoming.homeScore);
+      } else if (existingStatus === 'post' && incomingStatus === 'post') {
+        finalHomeScore = Number(incoming.homeScore);
       }
     }
-    if (incoming.awayScore !== null && incoming.awayScore !== undefined) {
+    if (incoming.awayScore !== null && incoming.awayScore !== undefined && !Number.isNaN(Number(incoming.awayScore))) {
       if (isTransitionPermitted || allowCorrection) {
-        finalAwayScore = incoming.awayScore;
-      } else if (existingStatus === 'post') {
-        finalAwayScore = Math.max(existing.awayScore ?? 0, incoming.awayScore);
+        finalAwayScore = Number(incoming.awayScore);
+      } else if (existingStatus === 'post' && incomingStatus === 'post') {
+        finalAwayScore = Number(incoming.awayScore);
       }
     }
-    if (incoming.homeHtScore !== null && incoming.homeHtScore !== undefined) {
-      finalHomeHtScore = incoming.homeHtScore;
+    if (incoming.homeHtScore !== null && incoming.homeHtScore !== undefined && !Number.isNaN(Number(incoming.homeHtScore))) {
+      finalHomeHtScore = Number(incoming.homeHtScore);
     }
-    if (incoming.awayHtScore !== null && incoming.awayHtScore !== undefined) {
-      finalAwayHtScore = incoming.awayHtScore;
+    if (incoming.awayHtScore !== null && incoming.awayHtScore !== undefined && !Number.isNaN(Number(incoming.awayHtScore))) {
+      finalAwayHtScore = Number(incoming.awayHtScore);
     }
   } else if (incomingStatus === 'pre') {
     // CRITICAL LIVE SCORE PROTECTION:
@@ -310,7 +429,6 @@ export function mergeMarketFixtureRecords(
   }
 
   // Odds & Bookmaker preservation:
-  // If either has authentic Bet365 odds, preserve them
   const isIncomingBet365 = incoming.bookmaker === 'Bet365';
   const isExistingBet365 = existing.bookmaker === 'Bet365';
   const preferBet365 = isIncomingBet365 || isExistingBet365;
@@ -326,6 +444,27 @@ export function mergeMarketFixtureRecords(
 
   // Metadata preservation
   const finalMatchUrl = incoming.matchUrl || existing.matchUrl;
+  const finalMatchSlug =
+    incoming.matchSlug ||
+    existing.matchSlug ||
+    extractSportScoreMatchSlug({
+      matchUrl: finalMatchUrl,
+      providerId: incoming.providerId || existing.providerId,
+      id: existing.id,
+      home: existing.home || incoming.home,
+      away: existing.away || incoming.away,
+    }) ||
+    undefined;
+  const finalMatchId =
+    incoming.matchId ||
+    existing.matchId ||
+    extractSportScoreProviderId({
+      matchUrl: finalMatchUrl,
+      providerId: incoming.providerId || existing.providerId,
+      id: existing.id,
+    }) ||
+    undefined;
+
   const finalHomeLogo = incoming.homeLogo || existing.homeLogo;
   const finalAwayLogo = incoming.awayLogo || existing.awayLogo;
   const finalCompetition = incoming.competition || existing.competition;
@@ -342,7 +481,8 @@ export function mergeMarketFixtureRecords(
     ...incoming,
     id: existing.id, // STABLE IDENTITY: Preserve existing database record ID
     providerId: incoming.providerId || existing.providerId,
-    matchId: incoming.matchId || existing.matchId,
+    matchId: finalMatchId,
+    matchSlug: finalMatchSlug,
     matchUrl: finalMatchUrl,
     home: existing.home || incoming.home,
     away: existing.away || incoming.away,
@@ -358,6 +498,7 @@ export function mergeMarketFixtureRecords(
     period: finalPeriod,
     periodSequence: finalPeriodSeq,
     displayClock: finalClock,
+    minute: finalMinute,
     homeScore: finalHomeScore,
     awayScore: finalAwayScore,
     homeHtScore: finalHomeHtScore,
@@ -380,10 +521,13 @@ export function mergeMarketFixtureRecords(
     existing.status !== merged.status ||
     existing.period !== merged.period ||
     existing.displayClock !== merged.displayClock ||
+    existing.minute !== merged.minute ||
     existing.homeScore !== merged.homeScore ||
     existing.awayScore !== merged.awayScore ||
     existing.homeHtScore !== merged.homeHtScore ||
     existing.awayHtScore !== merged.awayHtScore ||
+    (incoming.incidents?.length || 0) > (existing.incidents?.length || 0) ||
+    existing.latestGoalscorer?.minute !== merged.latestGoalscorer?.minute ||
     existing.kickoffIso !== merged.kickoffIso ||
     existing.homeOdds !== merged.homeOdds ||
     existing.drawOdds !== merged.drawOdds ||
@@ -391,5 +535,13 @@ export function mergeMarketFixtureRecords(
     existing.bookmaker !== merged.bookmaker ||
     existing.competition !== merged.competition;
 
-  return { merged, hasChanged };
+  if (hasChanged) {
+    merged.updateVersion = (existing.updateVersion || 1) + 1;
+    merged.recordUpdateTime = Date.now();
+  } else {
+    merged.updateVersion = existing.updateVersion || 1;
+    merged.recordUpdateTime = existing.recordUpdateTime || Date.now();
+  }
+
+  return { merged, hasChanged, rejectedStaleTransition: !isTransitionPermitted };
 }

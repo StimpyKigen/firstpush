@@ -30,14 +30,22 @@ import { enrichFixturesWithBet365Odds } from './sportscoreOddsService.js';
 import { getHighlightsCutoffWindowEAT } from './competitionPriority.js';
 import type { MatchIncidentItem } from './freeMatches.js';
 import { isSnapshotStoreConfigured, loadFixtureSnapshot, saveFixtureSnapshot } from './fixtureSnapshotStore.js';
-import { findMatchingExistingFixture, mergeMarketFixtureRecords, extractSportScoreProviderId } from './fixtureIdentity.js';
-import { realtimeBroadcaster } from './realtimeBroadcaster.js';
+import {
+  findMatchingExistingFixture,
+  mergeMarketFixtureRecords,
+  extractSportScoreProviderId,
+  extractSportScoreMatchSlug,
+  areFixturesIdentical,
+} from './fixtureIdentity.js';
+import { realtimeBroadcaster, type BroadcasterMetrics } from './realtimeBroadcaster.js';
 
 // Firestore snapshot hydration state (serverless-safe shared fixture source)
 const SNAPSHOT_REFRESH_MS = 60_000;
 const SNAPSHOT_MAX_AGE_MS = 48 * 3600 * 1000;
 let lastSnapshotLoadMs = 0;
 let lastSnapshotUpdatedMs = 0;
+let lastLiveSnapshotPersistMs = 0;
+let lastTodayDateReconcileMs = 0;
 
 export interface DiscoveredLeague {
   league: string;
@@ -51,6 +59,7 @@ export interface MarketFixture {
   id: string;
   providerId: string;
   matchId?: string;
+  matchSlug?: string;
   matchUrl?: string;
   home: string;
   away: string;
@@ -68,6 +77,7 @@ export interface MarketFixture {
   rawStatus?: string;
   statusText?: string;
   displayClock?: string;
+  minute?: string;
   homeScore?: number | null;
   awayScore?: number | null;
   homeHtScore?: number | null;
@@ -87,10 +97,11 @@ export interface MarketFixture {
   bookmaker: string;
   syncedAt: string;
   lastSyncTime?: string;
-  recordUpdateTime?: string;
+  recordUpdateTime?: number | string;
+  updateVersion?: number;
   isAuthoritativeCorrection?: boolean;
   incidents?: MatchIncidentItem[];
-  latestGoalscorer?: string;
+  latestGoalscorer?: { player: string; minute: string; team: 'home' | 'away' } | any;
 }
 
 export interface MarketResult {
@@ -109,6 +120,10 @@ export interface MarketResult {
 export interface SyncDiagnostics {
   lastSyncTime: string | null;
   lastLiveSyncTime: string | null;
+  lastSuccessfulProviderFetchAt: string | null;
+  lastValidLiveUpdateAt: string | null;
+  lastSseEventDispatchedAt: string | null;
+  lastSseDeliverySentAt: string | null;
   totalFixtures: number;
   liveFixturesCount: number;
   upcomingFixturesCount: number;
@@ -120,6 +135,22 @@ export interface SyncDiagnostics {
   liveSyncCyclesCount: number;
   dailyRequestBudget: number;
   rateLimitSafe: boolean;
+  providerRequestStats: {
+    totalRequests: number;
+    successCount: number;
+    failureCount: number;
+    rateLimitCount: number;
+    avgResponseTimeMs: number;
+  };
+  liveSyncStats: {
+    fixturesUpdatedCount: number;
+    scoreChangesDetected: number;
+    statusChangesDetected: number;
+    incidentsDetected: number;
+    duplicateEventsIgnored: number;
+    staleUpdatesRejected: number;
+  };
+  sseMetrics: BroadcasterMetrics;
 }
 
 export interface AdminPdfBatch {
@@ -136,11 +167,31 @@ const adminPdfBatches: AdminPdfBatch[] = [];
 let discoveredLeagues: DiscoveredLeague[] = [];
 let lastSyncTimestamp: string | null = null;
 let lastLiveSyncTimestamp: string | null = null;
+let lastSuccessfulProviderFetchAt: string | null = null;
+let lastValidLiveUpdateAt: string | null = null;
 let lastSyncError: string | null = null;
 let syncCycleCounter = 0;
 let liveSyncCyclesCounter = 0;
 let isLiveSyncing = false;
 let isRollingSyncing = false;
+
+// Telemetry counters for Section 13 diagnostics
+const providerStats = {
+  totalRequests: 0,
+  successCount: 0,
+  failureCount: 0,
+  rateLimitCount: 0,
+  totalResponseTimeMs: 0,
+};
+
+const livePipelineStats = {
+  fixturesUpdatedCount: 0,
+  scoreChangesDetected: 0,
+  statusChangesDetected: 0,
+  incidentsDetected: 0,
+  duplicateEventsIgnored: 0,
+  staleUpdatesRejected: 0,
+};
 
 const BASE_URL = 'https://footballcharts-backend.onrender.com/api/v1';
 
@@ -218,8 +269,6 @@ export function getLocalDateStringEAT(dateInput: Date | string | number = new Da
 
 /**
  * Returns an 8-day rolling date window (YYYY-MM-DD) in East Africa Time (EAT, UTC+3).
- * Spans a full week period (e.g. Sunday to next Sunday).
- * Automatically updates to the next round of week fixtures on 12:00 AM Monday.
  */
 export function getWeeklyTargetDatesEAT(nowInput: Date | number = Date.now()): string[] {
   const nowMs = typeof nowInput === 'number' ? nowInput : nowInput.getTime();
@@ -236,7 +285,6 @@ export function getWeeklyTargetDatesEAT(nowInput: Date | number = Date.now()): s
 
 /**
  * Strict filter to reject any "Simulated Reality", "Simulated Reality League", or "SRL" matches.
- * Simulated Reality does not exist anywhere in Mshindi's architecture.
  */
 export function isSimulatedReality(f: {
   competition?: string;
@@ -252,16 +300,74 @@ export function isSimulatedReality(f: {
 }
 
 /**
+ * Normalizes raw SportScore incidents into MshindiRoom MatchIncidentItem[] and extracts latestGoalscorer.
+ */
+export function normalizeSportScoreIncidents(rawIncidents?: any[]): {
+  incidents: MatchIncidentItem[];
+  latestGoalscorer?: { player: string; minute: string; team: 'home' | 'away' };
+} {
+  if (!Array.isArray(rawIncidents) || rawIncidents.length === 0) {
+    return { incidents: [] };
+  }
+
+  const normalized: MatchIncidentItem[] = [];
+  let latestGoalscorer: { player: string; minute: string; team: 'home' | 'away' } | undefined;
+
+  for (let idx = 0; idx < rawIncidents.length; idx++) {
+    const inc = rawIncidents[idx];
+    if (!inc || typeof inc !== 'object') continue;
+
+    const rawMin = inc.time ?? inc.minute ?? '';
+    const minStr = String(rawMin).trim().endsWith("'") ? String(rawMin).trim() : `${rawMin}'`;
+    const team: 'home' | 'away' = inc.side === 'away' || inc.team === 'away' ? 'away' : 'home';
+    const typeLower = String(inc.type || '').toLowerCase();
+
+    let incType: MatchIncidentItem['type'] = 'other';
+    if (inc.is_goal || typeLower.includes('goal') || typeLower.includes('penalty') && !typeLower.includes('miss')) {
+      incType = typeLower.includes('own') ? 'own_goal' : typeLower.includes('pen') ? 'penalty_goal' : 'goal';
+    } else if (inc.is_card || typeLower.includes('card')) {
+      incType = typeLower.includes('red') ? 'red_card' : 'yellow_card';
+    } else if (inc.is_sub || typeLower.includes('sub')) {
+      incType = 'substitution';
+    }
+
+    const playerName = String(inc.player || inc.player_in || 'Player').trim();
+    const itemId = inc.id || `${minStr}_${incType}_${team}_${playerName}_${idx}`;
+
+    normalized.push({
+      id: itemId,
+      type: incType,
+      minute: minStr,
+      team,
+      player: playerName,
+      assist: inc.assist || inc.player_out || undefined,
+      scoreAfter:
+        inc.home_score !== undefined && inc.away_score !== undefined
+          ? `${inc.home_score} - ${inc.away_score}`
+          : inc.scoreAfter,
+    });
+
+    if (incType === 'goal' || incType === 'own_goal' || incType === 'penalty_goal') {
+      latestGoalscorer = {
+        player: playerName || 'Goal',
+        minute: minStr,
+        team,
+      };
+    }
+  }
+
+  return { incidents: normalized, latestGoalscorer };
+}
+
+/**
  * Load initial state from bundled catalogue and persistent disk cache
  */
 function loadDiskCache(): void {
-  // 1. Initialize discovered leagues for directory metadata
   if (discoveredLeagues.length === 0 && Array.isArray(BUNDLED_SPORTS_CATALOGUE.leagues)) {
     discoveredLeagues = ([...BUNDLED_SPORTS_CATALOGUE.leagues] as unknown as DiscoveredLeague[])
       .filter((l) => !isSimulatedReality({ competition: l.name, leagueCode: l.league, country: l.country }));
   }
 
-  // 2. Hydrate fixtures strictly from persistent runtime disk cache (admin uploaded fixtures only)
   try {
     const isVercel = Boolean(process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME);
     const targetDir = isVercel ? path.join(os.tmpdir(), '.mshindi-cache') : CACHE_DIR;
@@ -291,7 +397,6 @@ function loadDiskCache(): void {
       if (Array.isArray(parsedFixtures) && parsedFixtures.length > 0) {
         parsedFixtures.forEach((f: MarketFixture) => {
           if (f && f.id) {
-            // Guard against test mock fixtures
             if (f.id.startsWith('future_') || f.providerId === 'ars_che_001') return;
             if (!f.competitionId) {
               const canon = resolveCanonicalCompetition({
@@ -301,6 +406,12 @@ function loadDiskCache(): void {
                 providerId: f.providerId || f.id,
               });
               f.competitionId = canon.id;
+            }
+            if (!f.matchSlug) {
+              f.matchSlug = extractSportScoreMatchSlug(f) || undefined;
+            }
+            if (!f.matchId) {
+              f.matchId = extractSportScoreProviderId(f) || undefined;
             }
             fixturesStore.set(f.id, f);
           }
@@ -317,11 +428,10 @@ function loadDiskCache(): void {
         adminPdfBatches.push(...parsedBatches);
       }
     }
-  } catch (err) {
+  } catch {
     // Disk cache read is optional
   }
 
-  // 3. Fallback: Leave store clean so rolling sync queries fresh SportScore fixtures
   if (fixturesStore.size === 0) {
     lastSyncTimestamp = null;
   }
@@ -346,21 +456,15 @@ function saveDiskCache(): void {
     if (discoveredLeagues.length > 0) {
       try {
         fs.writeFileSync(path.join(targetDir, 'sports_leagues.json'), JSON.stringify(discoveredLeagues, null, 2), 'utf-8');
-      } catch {
-        // Ignore write failures in read-only environments
-      }
+      } catch {}
     }
 
     const flat = Array.from(fixturesStore.values());
     try {
       fs.writeFileSync(path.join(targetDir, 'sports_fixtures.json'), JSON.stringify(flat, null, 2), 'utf-8');
       fs.writeFileSync(path.join(targetDir, 'sports_batches.json'), JSON.stringify(adminPdfBatches, null, 2), 'utf-8');
-    } catch {
-      // Ignore write failures in read-only environments
-    }
-  } catch {
-    // Non-fatal
-  }
+    } catch {}
+  } catch {}
 }
 
 export function makeMarketFixtureDedupeKey(f: { matchId?: string; home: string; away: string; kickoffIso?: string; kickoff?: string }): string {
@@ -374,7 +478,7 @@ export function makeMarketFixtureDedupeKey(f: { matchId?: string; home: string; 
   if (f.kickoffIso) {
     const isoM = f.kickoffIso.match(/^\d{4}-(\d{2})-(\d{2})/);
     if (isoM) {
-      dateKey = `${isoM[2]}_${isoM[1]}`; // DD_MM
+      dateKey = `${isoM[2]}_${isoM[1]}`;
     }
   }
   if (!dateKey && f.kickoff) {
@@ -392,7 +496,6 @@ export function makeMarketFixtureDedupeKey(f: { matchId?: string; home: string; 
 
 /**
  * Ingest administrative fixtures uploaded via Admin PDF parser.
- * Appends fixtures to site slate without duplicates. If duplicate is found, keeps one.
  */
 export function ingestAdminFixtures(
   fixtures: MarketFixture[],
@@ -410,7 +513,6 @@ export function ingestAdminFixtures(
     const existingId = existingMap.get(key);
 
     if (existingId) {
-      // Update odds/consensus for existing match; do NOT create duplicate card
       fixturesStore.set(existingId, {
         ...fixturesStore.get(existingId)!,
         ...f,
@@ -443,9 +545,6 @@ export function ingestAdminFixtures(
   };
 }
 
-/**
- * Clear all current fixtures and published PDF batches from in-memory store and disk cache
- */
 export function clearAllFixtures(): void {
   fixturesStore.clear();
   adminPdfBatches.length = 0;
@@ -453,23 +552,14 @@ export function clearAllFixtures(): void {
   saveDiskCache();
 }
 
-/**
- * Retrieve all currently loaded admin fixtures
- */
 export function getSavedAdminFixtures(): MarketFixture[] {
   return Array.from(fixturesStore.values());
 }
 
-/**
- * Retrieve list of all published PDF batches
- */
 export function getSavedAdminBatches(): AdminPdfBatch[] {
   return [...adminPdfBatches];
 }
 
-/**
- * Delete a specific published PDF batch
- */
 export function deleteAdminBatch(batchId: string): void {
   const idx = adminPdfBatches.findIndex((b) => b.id === batchId);
   if (idx !== -1) {
@@ -524,19 +614,6 @@ export async function discoverAllLeagues(forceRefresh = false): Promise<Discover
 }
 
 /**
- * Parse match status into normalized status, period, and clock
- */
-function parseMatchStatus(rawStatus?: string, statusText?: string): { status: MatchStatus; period: MatchPeriod; displayClock: string; periodSequence: number } {
-  const detailed = parseDetailedMatchStatus(rawStatus, statusText);
-  return {
-    status: detailed.status,
-    period: detailed.period,
-    displayClock: detailed.displayClock,
-    periodSequence: detailed.periodSequence,
-  };
-}
-
-/**
  * Fetch and normalize fixtures for a specific league
  */
 export async function fetchLeagueFixtures(leagueCode: string): Promise<MarketFixture[]> {
@@ -545,7 +622,7 @@ export async function fetchLeagueFixtures(leagueCode: string): Promise<MarketFix
       headers: {
         Authorization: `Bearer ${getApiKey()}`,
       },
-      signal: AbortSignal.timeout(35000), // Extended timeout to 35s to prevent Render cold-start aborts
+      signal: AbortSignal.timeout(35000),
     });
 
     if (!res.ok) {
@@ -566,7 +643,6 @@ export async function fetchLeagueFixtures(leagueCode: string): Promise<MarketFix
       const awayPct = Math.round(aProb * 100);
       const drawPct = Math.max(5, 100 - homePct - awayPct);
 
-      // Bookmaker odds derived via 7% standard overround
       const homeOdds = +Math.max(1.05, 1.07 / Math.max(0.01, hProb)).toFixed(2);
       const drawOdds = +Math.max(1.05, 1.07 / Math.max(0.01, dProb)).toFixed(2);
       const awayOdds = +Math.max(1.05, 1.07 / Math.max(0.01, aProb)).toFixed(2);
@@ -623,6 +699,7 @@ export async function fetchLeagueFixtures(leagueCode: string): Promise<MarketFix
         rawStatus: m.status,
         statusText: m.status_text,
         displayClock,
+        minute: displayClock,
         homeScore,
         awayScore,
         homePct,
@@ -640,7 +717,8 @@ export async function fetchLeagueFixtures(leagueCode: string): Promise<MarketFix
         bookmaker: 'Market Consensus',
         syncedAt: nowIso,
         lastSyncTime: nowIso,
-        recordUpdateTime: nowIso,
+        recordUpdateTime: Date.now(),
+        updateVersion: 1,
       };
     });
 
@@ -655,16 +733,16 @@ export async function fetchLeagueFixtures(leagueCode: string): Promise<MarketFix
  * Ingest and upsert fixtures safely into the persistent store.
  * ENFORCES:
  * 1. Monotonic state progression (terminal matches cannot revert to HT or live from older responses).
- * 2. Idempotent deduplication via canonical ID or normalized team+date key.
- * 3. Atomic state updates.
+ * 2. Idempotent deduplication via 5-tier identity matching in fixtureIdentity.ts.
+ * 3. Atomic state updates & SSE delta broadcasting.
  * 4. Legitimate provider corrections (e.g. VAR disallowed goal).
  */
 export function ingestFixtures(fixtures: MarketFixture[], isAuthoritative = false): number {
   let updatedCount = 0;
   const nowIso = new Date().toISOString();
 
-  fixtures.forEach((f) => {
-    if (!f || !f.id || isSimulatedReality(f)) return;
+  for (const f of fixtures) {
+    if (!f || !f.id || isSimulatedReality(f)) continue;
 
     if (!f.competitionId) {
       const canon = resolveCanonicalCompetition({
@@ -677,189 +755,156 @@ export function ingestFixtures(fixtures: MarketFixture[], isAuthoritative = fals
       f.competition = canon.name;
     }
 
-    // Check direct ID or composite match key (home + away + match date)
-    const normName = (s: string) => s.toLowerCase().replace(/\b(fc|cf|sc|afc|cd|rc|sv|sk|fk|ud|ac)\b/g, '').replace(/[^a-z0-9]/g, '');
-    const fKey = `${normName(f.home)}__vs__${normName(f.away)}__${(f.kickoffIso || '').slice(0, 10)}`;
-
-    let existingId = f.id;
-    let existing = fixturesStore.get(f.id);
-
-    if (!existing) {
-      for (const [id, item] of fixturesStore.entries()) {
-        const itemKey = `${normName(item.home)}__vs__${normName(item.away)}__${(item.kickoffIso || '').slice(0, 10)}`;
-        if (itemKey === fKey) {
-          existingId = id;
-          existing = item;
-          break;
-        }
-      }
+    if (!f.matchSlug) {
+      f.matchSlug = extractSportScoreMatchSlug(f) || undefined;
     }
+    if (!f.matchId) {
+      f.matchId = extractSportScoreProviderId(f) || undefined;
+    }
+
+    // Find existing fixture using 5-tier identity cascade
+    const existing = fixturesStore.get(f.id) || findMatchingExistingFixture(f, fixturesStore.values());
 
     if (!existing) {
       const newFixture: MarketFixture = {
         ...f,
+        minute: f.displayClock || f.minute || '',
         lastSyncTime: f.syncedAt || nowIso,
-        recordUpdateTime: nowIso,
+        recordUpdateTime: Date.now(),
+        updateVersion: 1,
       };
       fixturesStore.set(f.id, newFixture);
       updatedCount++;
+      livePipelineStats.fixturesUpdatedCount++;
       try {
         realtimeBroadcaster.broadcastDelta({
-          type: "FIXTURE_UPSERT",
+          type: 'FIXTURE_UPSERT',
           fixtureId: f.id,
           providerId: f.providerId,
+          matchSlug: f.matchSlug,
           fixture: newFixture,
         });
       } catch {}
     } else {
-      // If new fixture has an authoritative SportScore ID, prefer it
-      const targetId = f.id.startsWith('mkt-ss-') ? f.id : existingId;
-      if (targetId !== existingId) {
-        fixturesStore.delete(existingId);
+      const targetId = existing.id;
+      const { merged, hasChanged, rejectedStaleTransition } = mergeMarketFixtureRecords(existing, f, {
+        isAuthoritativeCorrection: isAuthoritative || Boolean(f.isAuthoritativeCorrection),
+      });
+
+      if (rejectedStaleTransition) {
+        livePipelineStats.staleUpdatesRejected++;
       }
 
-      // Check monotonic state validity
-      const allowCorrection = isAuthoritative || Boolean(f.isAuthoritativeCorrection);
-      const isTransitionPermitted = isStatusTransitionValid(
-        existing.status,
-        existing.period || 'scheduled',
-        f.status,
-        f.period || 'scheduled',
-        allowCorrection
-      );
-
-      let finalStatus = existing.status;
-      let finalPeriod = existing.period || 'scheduled';
-      let finalClock = existing.displayClock;
-      let finalPeriodSeq = existing.periodSequence ?? 0;
-
-      if (isTransitionPermitted) {
-        finalStatus = f.status;
-        finalPeriod = f.period || (f.status === 'post' ? 'full_time' : f.status === 'in' ? 'second_half' : 'scheduled');
-        finalClock = f.displayClock || existing.displayClock;
-        finalPeriodSeq = f.periodSequence ?? (f.status === 'post' ? 60 : f.status === 'in' ? 25 : 0);
+      if (!hasChanged) {
+        livePipelineStats.duplicateEventsIgnored++;
+        continue;
       }
 
-      // Score reconciliation:
-      let finalHomeScore = existing.homeScore;
-      let finalAwayScore = existing.awayScore;
-
-      if (f.status === 'in' || f.status === 'post') {
-        if (f.homeScore !== null && f.homeScore !== undefined) {
-          if (isTransitionPermitted || allowCorrection) {
-            finalHomeScore = f.homeScore;
-          } else if (existing.status === 'post') {
-            // Existing is terminal, so do not let an older smaller score overwrite unless authoritative
-            finalHomeScore = Math.max(existing.homeScore ?? 0, f.homeScore);
-          }
-        }
-        if (f.awayScore !== null && f.awayScore !== undefined) {
-          if (isTransitionPermitted || allowCorrection) {
-            finalAwayScore = f.awayScore;
-          } else if (existing.status === 'post') {
-            finalAwayScore = Math.max(existing.awayScore ?? 0, f.awayScore);
-          }
-        }
-      } else if (f.status === 'pre') {
-        // Scheduled response never overwrites active or finished scores
-        if (existing.status === 'pre') {
-          finalHomeScore = null;
-          finalAwayScore = null;
-        }
-      }
-
-      // Preserve authentic Bet365 odds and bookmaker if incoming is from generic sync
-      const isIncomingBet365 = f.bookmaker === 'Bet365';
-      const isExistingBet365 = existing.bookmaker === 'Bet365';
-      const preferBet365 = isIncomingBet365 || isExistingBet365;
-
-      const mergedBookmaker = preferBet365 ? 'Bet365' : (f.bookmaker || existing.bookmaker || 'Market Consensus');
-      const mergedHomeOdds = isExistingBet365 && !isIncomingBet365 ? existing.homeOdds : (f.homeOdds || existing.homeOdds);
-      const mergedDrawOdds = isExistingBet365 && !isIncomingBet365 ? existing.drawOdds : (f.drawOdds || existing.drawOdds);
-      const mergedAwayOdds = isExistingBet365 && !isIncomingBet365 ? existing.awayOdds : (f.awayOdds || existing.awayOdds);
-      const mergedHomePct = isExistingBet365 && !isIncomingBet365 ? existing.homePct : (f.homePct || existing.homePct);
-      const mergedDrawPct = isExistingBet365 && !isIncomingBet365 ? existing.drawPct : (f.drawPct || existing.drawPct);
-      const mergedAwayPct = isExistingBet365 && !isIncomingBet365 ? existing.awayPct : (f.awayPct || existing.awayPct);
-      const mergedOver25Pct = isExistingBet365 && !isIncomingBet365 ? existing.over25Pct : (f.over25Pct ?? existing.over25Pct);
-      const mergedMatchUrl = f.matchUrl || existing.matchUrl;
-
-      const mergedRecord: MarketFixture = {
-        ...existing,
-        ...f,
-        id: targetId,
-        matchUrl: mergedMatchUrl,
-        bookmaker: mergedBookmaker,
-        status: finalStatus,
-        period: finalPeriod,
-        displayClock: finalClock,
-        periodSequence: finalPeriodSeq,
-        homeScore: finalHomeScore,
-        awayScore: finalAwayScore,
-        homeHtScore: f.homeHtScore ?? existing.homeHtScore,
-        awayHtScore: f.awayHtScore ?? existing.awayHtScore,
-        homeOdds: mergedHomeOdds,
-        drawOdds: mergedDrawOdds,
-        awayOdds: mergedAwayOdds,
-        homePct: mergedHomePct,
-        drawPct: mergedDrawPct,
-        awayPct: mergedAwayPct,
-        over25Pct: mergedOver25Pct,
-        syncedAt: f.syncedAt || nowIso,
-        lastSyncTime: nowIso,
-        recordUpdateTime: nowIso,
-      };
-      fixturesStore.set(targetId, mergedRecord);
+      fixturesStore.set(targetId, merged);
       updatedCount++;
+      livePipelineStats.fixturesUpdatedCount++;
+      lastValidLiveUpdateAt = nowIso;
 
       try {
-        const scoreChanged = finalHomeScore !== existing.homeScore || finalAwayScore !== existing.awayScore;
+        const scoreChanged =
+          merged.homeScore !== existing.homeScore ||
+          merged.awayScore !== existing.awayScore ||
+          merged.homeHtScore !== existing.homeHtScore ||
+          merged.awayHtScore !== existing.awayHtScore;
+
         if (scoreChanged) {
+          livePipelineStats.scoreChangesDetected++;
           realtimeBroadcaster.broadcastScoreUpdate(
             targetId,
-            finalHomeScore,
-            finalAwayScore,
-            finalClock,
-            finalPeriod,
-            f.latestGoalscorer || existing.latestGoalscorer,
-            f.providerId || existing.providerId,
-            finalStatus
+            merged.homeScore,
+            merged.awayScore,
+            merged.displayClock,
+            merged.period,
+            merged.latestGoalscorer,
+            merged.providerId,
+            merged.status,
+            merged.homeHtScore,
+            merged.awayHtScore,
+            merged.matchSlug,
+            merged.home,
+            merged.away,
+            merged.kickoffIso,
+            merged.updateVersion
           );
         }
-        const statusChanged = finalStatus !== existing.status || finalPeriod !== existing.period || finalClock !== existing.displayClock;
+
+        const statusChanged =
+          merged.status !== existing.status ||
+          merged.period !== existing.period ||
+          merged.displayClock !== existing.displayClock;
+
         if (statusChanged) {
+          livePipelineStats.statusChangesDetected++;
+          const result: '1' | 'X' | '2' | undefined =
+            merged.status === 'post'
+              ? (merged.homeScore ?? 0) > (merged.awayScore ?? 0)
+                ? '1'
+                : (merged.homeScore ?? 0) < (merged.awayScore ?? 0)
+                ? '2'
+                : 'X'
+              : undefined;
+
           realtimeBroadcaster.broadcastStatusChange(
             targetId,
-            finalStatus,
-            finalPeriod,
-            finalClock,
-            finalStatus === "post" ? ((finalHomeScore ?? 0) > (finalAwayScore ?? 0) ? "1" : (finalHomeScore ?? 0) < (finalAwayScore ?? 0) ? "2" : "X") : undefined,
-            f.providerId || existing.providerId
+            merged.status,
+            merged.period,
+            merged.displayClock,
+            result,
+            merged.providerId,
+            merged.homeScore,
+            merged.awayScore,
+            merged.matchSlug,
+            merged.home,
+            merged.away,
+            merged.kickoffIso,
+            merged.updateVersion
           );
         }
-        const oddsChanged = mergedHomeOdds !== existing.homeOdds || mergedDrawOdds !== existing.drawOdds || mergedAwayOdds !== existing.awayOdds || mergedBookmaker !== existing.bookmaker;
+
+        const oddsChanged =
+          merged.homeOdds !== existing.homeOdds ||
+          merged.drawOdds !== existing.drawOdds ||
+          merged.awayOdds !== existing.awayOdds ||
+          merged.bookmaker !== existing.bookmaker;
+
         if (oddsChanged) {
           realtimeBroadcaster.broadcastOddsUpdate(
             targetId,
-            mergedBookmaker,
-            mergedHomeOdds,
-            mergedDrawOdds,
-            mergedAwayOdds,
-            f.providerId || existing.providerId
+            merged.bookmaker,
+            merged.homeOdds,
+            merged.drawOdds,
+            merged.awayOdds,
+            merged.providerId
           );
         }
+
         if (Array.isArray(f.incidents) && f.incidents.length > 0) {
           const existingIncidents = existing.incidents || [];
-          const existingKeys = new Set(existingIncidents.map((i) => i.id || (i.minute + "_" + i.type + "_" + i.player)));
+          const existingKeys = new Set(
+            existingIncidents.map((i) => i.id || `${i.minute}_${i.type}_${i.player}`)
+          );
           for (const inc of f.incidents) {
-            const incKey = inc.id || (inc.minute + "_" + inc.type + "_" + inc.player);
+            const incKey = inc.id || `${inc.minute}_${inc.type}_${inc.player}`;
             if (!existingKeys.has(incKey)) {
-              realtimeBroadcaster.broadcastIncident(targetId, inc, f.providerId || existing.providerId);
+              livePipelineStats.incidentsDetected++;
+              realtimeBroadcaster.broadcastIncident(
+                targetId,
+                inc,
+                merged.providerId,
+                merged.latestGoalscorer,
+                merged.matchSlug
+              );
             }
           }
         }
       } catch {}
     }
-  });
+  }
 
   if (updatedCount > 0) {
     lastSyncTimestamp = nowIso;
@@ -873,57 +918,52 @@ function slugify(text: string): string {
   return text.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
 }
 
-export function normalizeSportScoreMatch(m: any, nowIso: string, isLiveForce = false, isAuthoritativeCorrection = false): MarketFixture {
-  const home = String(m.home || 'Home Team').trim();
-  const away = String(m.away || 'Away Team').trim();
+export function normalizeSportScoreMatch(
+  m: any,
+  nowIso: string,
+  isLiveForce = false,
+  isAuthoritativeCorrection = false
+): MarketFixture {
+  const home = String(m.home || m.home_team || 'Home Team').trim();
+  const away = String(m.away || m.away_team || 'Away Team').trim();
   const rawComp = String(m.competition || 'International Football').trim();
 
+  let matchSlug = '';
+  let matchId = m.id ? String(m.id) : '';
   let slug = '';
+
   if (m.url) {
     const parts = m.url.split('/').filter(Boolean);
     // e.g. ["football", "match", "paris-saint-germain-vs-fc-barcelona", "3glrw7hnx23jqdy"]
     if (parts.length >= 4) {
+      matchSlug = parts[2];
+      matchId = parts[3];
       slug = `${parts[2]}-${parts[3]}`;
     } else if (parts.length >= 3) {
+      matchSlug = parts[2];
       slug = parts[2];
     } else if (parts.length >= 1) {
       slug = parts[parts.length - 1];
+      matchSlug = slug;
     }
   }
-  if (!slug) slug = `${slugify(home)}-vs-${slugify(away)}`;
+  if (!matchSlug) {
+    matchSlug = `${slugify(home)}-vs-${slugify(away)}`;
+  }
+  if (!slug) {
+    slug = matchId ? `${matchSlug}-${matchId}` : matchSlug;
+  }
 
-  const isoTime = m.time || m.start_at || nowIso || new Date().toISOString();
+  const isoTime = m.time || m.start_at || m.kickoff || nowIso || new Date().toISOString();
   const kickoffEAT = formatEATTime(isoTime);
 
-  const rawStatus = isLiveForce
-    ? (String(m.status || '').toLowerCase().includes('half') || String(m.status_text || '').toLowerCase().includes('ht') ? 'halftime' : 'live')
-    : m.status;
-  const detailed = parseDetailedMatchStatus(rawStatus, m.status_text);
+  const effectiveRawStatus = m.status || (isLiveForce ? 'live' : 'upcoming');
+  const detailed = parseDetailedMatchStatus(effectiveRawStatus, m.status_text, m.live_minute ?? m.minute);
 
-  let status = detailed.status;
-  let period = detailed.period;
-  let displayClock = detailed.displayClock;
-  let periodSequence = detailed.periodSequence;
-
-  // Authoritative Sportscore live_minute & 2D tracker state overrides
-  if (m.live_minute !== undefined && m.live_minute !== null && m.live_minute !== '') {
-    const rawMin = String(m.live_minute).trim();
-    displayClock = rawMin.endsWith("'") ? rawMin : `${rawMin}'`;
-    status = 'in';
-    const num = parseInt(rawMin, 10);
-    period = num >= 46 ? 'second_half' : 'first_half';
-    periodSequence = num >= 46 ? 30 : 10;
-  } else if (String(m.status_text || '').toLowerCase() === 'ht' || String(m.status_text || '').toLowerCase() === 'half time' || String(m.status || '').toLowerCase() === 'halftime') {
-    displayClock = 'HT';
-    status = 'in';
-    period = 'halftime';
-    periodSequence = 20;
-  } else if (String(m.status_text || '').toLowerCase() === 'ft' || String(m.status_text || '').toLowerCase() === 'finished' || String(m.status || '').toLowerCase() === 'finished') {
-    displayClock = 'FT';
-    status = 'post';
-    period = 'full_time';
-    periodSequence = 60;
-  }
+  const status = detailed.status;
+  const period = detailed.period;
+  const displayClock = detailed.displayClock;
+  const periodSequence = detailed.periodSequence;
 
   // Scores: STRICT INVARIANT:
   // For 'pre' (scheduled) or postponed/cancelled, scores MUST be null!
@@ -940,8 +980,16 @@ export function normalizeSportScoreMatch(m: any, nowIso: string, isLiveForce = f
     }
   }
 
-  const homeHtScore = m.home_ht_score !== undefined && m.home_ht_score !== null && m.home_ht_score !== '' ? Number(m.home_ht_score) : null;
-  const awayHtScore = m.away_ht_score !== undefined && m.away_ht_score !== null && m.away_ht_score !== '' ? Number(m.away_ht_score) : null;
+  const homeHtScore =
+    m.home_ht_score !== undefined && m.home_ht_score !== null && m.home_ht_score !== ''
+      ? Number(m.home_ht_score)
+      : null;
+  const awayHtScore =
+    m.away_ht_score !== undefined && m.away_ht_score !== null && m.away_ht_score !== ''
+      ? Number(m.away_ht_score)
+      : null;
+
+  const { incidents, latestGoalscorer } = normalizeSportScoreIncidents(m.incidents);
 
   const hash = Math.abs((home.length * 19 + away.length * 37) % 100);
   const hProb = Math.min(0.65, Math.max(0.30, 0.36 + (hash % 28) / 100));
@@ -977,6 +1025,8 @@ export function normalizeSportScoreMatch(m: any, nowIso: string, isLiveForce = f
   return {
     id: `mkt-ss-${slug}`,
     providerId: slug,
+    matchId: matchId || undefined,
+    matchSlug,
     matchUrl: m.url || undefined,
     home,
     away,
@@ -994,6 +1044,7 @@ export function normalizeSportScoreMatch(m: any, nowIso: string, isLiveForce = f
     rawStatus: m.status,
     statusText: m.status_text,
     displayClock,
+    minute: displayClock,
     homeScore,
     awayScore,
     homeHtScore,
@@ -1007,9 +1058,12 @@ export function normalizeSportScoreMatch(m: any, nowIso: string, isLiveForce = f
     bttsYesPct: 52 + (hash % 16),
     over25Pct: 48 + (hash % 18),
     bookmaker: 'Market Consensus',
+    incidents: incidents.length > 0 ? incidents : undefined,
+    latestGoalscorer,
     syncedAt: nowIso,
     lastSyncTime: nowIso,
-    recordUpdateTime: nowIso,
+    recordUpdateTime: Date.now(),
+    updateVersion: 1,
     isAuthoritativeCorrection,
   };
 }
@@ -1022,20 +1076,36 @@ const SPORTSCORE_HEADERS = {
 async function fetchSportScoreWithRetry(url: string, maxRetries = 2, timeoutMs = 8000): Promise<Response> {
   let attempt = 0;
   while (attempt <= maxRetries) {
+    const startMs = Date.now();
+    providerStats.totalRequests++;
     try {
       const res = await fetch(url, {
         headers: SPORTSCORE_HEADERS,
         signal: AbortSignal.timeout(timeoutMs),
       });
-      // Rate limit backoff (429) or transient server errors (500, 502, 503, 504)
+      providerStats.totalResponseTimeMs += Date.now() - startMs;
+
+      if (res.status === 429) {
+        providerStats.rateLimitCount++;
+      }
+
       if ((res.status === 429 || res.status >= 500) && attempt < maxRetries) {
         const delay = res.status === 429 ? 1500 * (attempt + 1) : 1000 * (attempt + 1);
         await new Promise((r) => setTimeout(r, delay));
         attempt++;
         continue;
       }
+
+      if (res.ok) {
+        providerStats.successCount++;
+        lastSuccessfulProviderFetchAt = new Date().toISOString();
+      } else {
+        providerStats.failureCount++;
+      }
       return res;
     } catch (err: any) {
+      providerStats.totalResponseTimeMs += Date.now() - startMs;
+      providerStats.failureCount++;
       if (attempt >= maxRetries) {
         lastSyncError = `Failed to fetch ${url} after ${maxRetries} retries: ${err?.message || err}`;
         throw err;
@@ -1045,6 +1115,104 @@ async function fetchSportScoreWithRetry(url: string, maxRetries = 2, timeoutMs =
     }
   }
   throw new Error(`Failed to fetch ${url} after ${maxRetries} retries`);
+}
+
+/**
+ * Authoritative SportScore Match Detail Fetcher & Normalizer.
+ * Used by both `syncLiveScoresOnly` and `/api/sports/match-detail` proxy routes.
+ * Unwraps `data.match`, maps `home`->`home_team` and `away`->`away_team` for compatibility,
+ * and updates the authoritative `fixturesStore` + SSE subscribers when changes are detected!
+ */
+export async function fetchAuthoritativeSportScoreMatchDetail(
+  slugOrItem: string | { matchSlug?: string; matchUrl?: string; providerId?: string; id?: string; home?: string; away?: string },
+  options?: { ingestIntoStore?: boolean }
+): Promise<any | null> {
+  const candidateSlug =
+    typeof slugOrItem === 'string'
+      ? extractSportScoreMatchSlug({ matchSlug: slugOrItem, providerId: slugOrItem, id: slugOrItem }) || slugOrItem
+      : extractSportScoreMatchSlug(slugOrItem);
+
+  if (!candidateSlug) return null;
+
+  try {
+    const url = `https://sportscore.com/api/widget/match/?sport=football&slug=${encodeURIComponent(candidateSlug)}`;
+    const res = await fetchSportScoreWithRetry(url, 1, 6000);
+    if (!res.ok) return null;
+
+    const rawJson = await res.json();
+    const dm = rawJson?.match || rawJson;
+    if (!dm || typeof dm !== 'object' || (!dm.home && !dm.away && !dm.home_team && !dm.away_team)) {
+      return null;
+    }
+
+    const homeTeam = String(dm.home || dm.home_team || '').trim();
+    const awayTeam = String(dm.away || dm.away_team || '').trim();
+    const detailed = parseDetailedMatchStatus(dm.status, dm.status_text, dm.live_minute);
+
+    // Optionally ingest into fixturesStore so any match-detail fetch also updates the global live store & SSE
+    if (options?.ingestIntoStore !== false) {
+      const existing = findMatchingExistingFixture(
+        {
+          id: String(dm.id || candidateSlug),
+          matchSlug: candidateSlug,
+          matchUrl: dm.url,
+          home: homeTeam,
+          away: awayTeam,
+          kickoffIso: dm.time ? new Date(Number(dm.time) * 1000).toISOString() : undefined,
+        } as any,
+        fixturesStore.values()
+      );
+
+      // Only ingest if the match is already in our curated store or belongs to an eligible competition
+      const nowIso = new Date().toISOString();
+      const normFixture = normalizeSportScoreMatch(
+        {
+          ...dm,
+          home: homeTeam,
+          away: awayTeam,
+          url: dm.url || existing?.matchUrl,
+          time: dm.time || existing?.kickoffIso,
+          competition: dm.competition || existing?.competition,
+        },
+        nowIso,
+        detailed.status === 'in',
+        true
+      );
+
+      if (existing || isCompetitionEligible({
+        id: normFixture.competitionId,
+        providerId: normFixture.providerId,
+        slug: normFixture.leagueCode,
+        competition: normFixture.competition,
+        country: normFixture.country,
+      })) {
+        ingestFixtures([normFixture], true);
+      }
+    }
+
+    // Return normalized detail compatible with both raw `match` consumers and `SportScoreMatchDetail`
+    const normalizedDetail = {
+      ...dm,
+      home: homeTeam,
+      away: awayTeam,
+      home_team: homeTeam,
+      away_team: awayTeam,
+      home_score: dm.home_score !== null && dm.home_score !== undefined && dm.home_score !== '' ? Number(dm.home_score) : null,
+      away_score: dm.away_score !== null && dm.away_score !== undefined && dm.away_score !== '' ? Number(dm.away_score) : null,
+      home_ht_score: dm.home_ht_score !== null && dm.home_ht_score !== undefined && dm.home_ht_score !== '' ? Number(dm.home_ht_score) : null,
+      away_ht_score: dm.away_ht_score !== null && dm.away_ht_score !== undefined && dm.away_ht_score !== '' ? Number(dm.away_ht_score) : null,
+      kickoff: dm.time || dm.kickoff,
+      normalized_status: detailed.status,
+      normalized_period: detailed.period,
+      display_clock: detailed.displayClock,
+      updated: rawJson?.updated || new Date().toISOString(),
+      match: dm,
+    };
+
+    return normalizedDetail;
+  } catch {
+    return null;
+  }
 }
 
 /**
@@ -1083,12 +1251,9 @@ export async function fetchSportScoreFixturesByCompetition(compSlug: string, dat
 
 /**
  * Fetch SportScore fixtures for a specific calendar date (YYYY-MM-DD).
- * Handles API pagination (limit/offset), rate limits with backoff,
- * filters against the Centralized Competition Priority Registry, and normalizes matches.
  */
 export async function fetchSportScoreFixturesByDate(date: string): Promise<MarketFixture[]> {
   const allNormalized: MarketFixture[] = [];
-  
   const limit = 200;
   let offset = 0;
   let hasMore = true;
@@ -1115,7 +1280,6 @@ export async function fetchSportScoreFixturesByDate(date: string): Promise<Marke
         break;
       }
 
-      // Check if upstream provider ignores offset and returned the same first match
       const firstSig = rawMatches[0]?.url || `${rawMatches[0]?.home}-${rawMatches[0]?.away}-${rawMatches[0]?.time}`;
       if (firstSig && seenFirstUrls.has(firstSig)) {
         hasMore = false;
@@ -1128,8 +1292,6 @@ export async function fetchSportScoreFixturesByDate(date: string): Promise<Marke
           continue;
         }
 
-        // Apply Centralized Competition Priority Registry:
-        // Filter out any match that is NOT eligible under our strict 4 tiers
         const normalized = normalizeSportScoreMatch(m, nowIso);
         const isEligible = isCompetitionEligible({
           id: normalized.competitionId,
@@ -1164,7 +1326,8 @@ export async function fetchSportScoreFixturesByDate(date: string): Promise<Marke
 }
 
 /**
- * Fetch genuinely active live fixtures from SportScore, admitting only registered eligible competitions
+ * Fetch genuinely active live fixtures from SportScore, admitting eligible competitions
+ * plus any fixture already tracked in our store.
  */
 export async function fetchSportScoreLiveFixtures(): Promise<MarketFixture[]> {
   try {
@@ -1183,13 +1346,15 @@ export async function fetchSportScoreLiveFixtures(): Promise<MarketFixture[]> {
         continue;
       }
       const normalized = normalizeSportScoreMatch(m, nowIso, true);
-      const isEligible = isCompetitionEligible({
-        id: normalized.competitionId,
-        providerId: normalized.providerId,
-        slug: normalized.leagueCode,
-        competition: normalized.competition,
-        country: normalized.country,
-      });
+      const isEligible =
+        isCompetitionEligible({
+          id: normalized.competitionId,
+          providerId: normalized.providerId,
+          slug: normalized.leagueCode,
+          competition: normalized.competition,
+          country: normalized.country,
+        }) || Boolean(findMatchingExistingFixture(normalized, fixturesStore.values()));
+
       if (isEligible) {
         liveFixtures.push(normalized);
       }
@@ -1214,7 +1379,6 @@ export async function syncSportScoreCatalog(dates?: string[]): Promise<number> {
   }
 
   const targetDates = dates && dates.length > 0 ? dates : getWeeklyTargetDatesEAT();
-
   let totalIngested = 0;
 
   // 1. Ingest active live fixtures first for real-time accuracy
@@ -1224,12 +1388,10 @@ export async function syncSportScoreCatalog(dates?: string[]): Promise<number> {
   }
 
   // 2. Fetch targeted priority competitions for each target date
-  // (Tier 1 European Majors 1st & 2nd division, Tier 2 UEFA/Internationals, Tier 3 Top 10 domestic)
   const prioritySlugs = getPriorityProviderSlugs();
   const CONCURRENCY_LIMIT = 8;
 
   for (const d of targetDates) {
-    // A. Targeted priority competition fetching in concurrency-limited batches
     for (let i = 0; i < prioritySlugs.length; i += CONCURRENCY_LIMIT) {
       const batch = prioritySlugs.slice(i, i + CONCURRENCY_LIMIT);
       const results = await Promise.allSettled(
@@ -1242,22 +1404,24 @@ export async function syncSportScoreCatalog(dates?: string[]): Promise<number> {
       }
     }
 
-    // B. Broad calendar date query for general coverage (Tier 4 other top flights)
     const fixtures = await fetchSportScoreFixturesByDate(d);
     if (fixtures.length > 0) {
       totalIngested += ingestFixtures(fixtures);
     }
   }
 
-  // NOTE: Speculative odds enrichment removed per mandate.
-  // Odds are strictly fetched on-demand ONLY for fixtures that will actually be displayed.
-
   return totalIngested;
 }
 
 /**
- * Dedicated live scores ingestion loop.
- * Updates scores and match periods for in-play matches without overwriting terminal states.
+ * Dedicated live scores & match state reconciliation loop.
+ * 1. Fetches `/api/v1/fixtures/?sport=football&status=live`.
+ * 2. Enriches each live fixture via `/api/widget/match/?sport=football&slug=<matchSlug>`
+ *    (unwrapping `json.match`) to capture exact `live_minute`, fresher `home_score`/`away_score`,
+ *    `home_ht_score`/`away_ht_score`, `incidents`, and immediate `finished` transitions.
+ * 3. Reconciles any fixture in `fixturesStore` that was previously `'in'` or kicked off within
+ *    the last 4 hours (still `'pre'` or `'in'`) and is not in `status=live`, ensuring no match
+ *    ever stays stuck on `'HT'`, `'0-0'`, or `'Upcoming'`.
  */
 export async function syncLiveScoresOnly(): Promise<{ updated: number; liveCount: number }> {
   if (isLiveSyncing) {
@@ -1267,144 +1431,165 @@ export async function syncLiveScoresOnly(): Promise<{ updated: number; liveCount
   try {
     const liveFixtures = await fetchSportScoreLiveFixtures();
     let updated = 0;
+
     if (liveFixtures.length > 0) {
-      // Query 2D pitch tracker / match detail for each live fixture to mirror exact live_minute, HT score, and incidents
-      await Promise.allSettled(
-        liveFixtures.map(async (lf) => {
-          try {
-            const matchSlug = lf.providerId || `${slugify(lf.home)}-vs-${slugify(lf.away)}`;
-            const res = await fetch(`https://sportscore.com/api/widget/match/?sport=football&slug=${encodeURIComponent(matchSlug)}`, {
-              headers: {
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
-                Accept: 'application/json',
-              },
-            });
-            if (res.ok) {
+      // Enrich each live fixture with SportScore widget match detail (concurrency-capped)
+      const BATCH_SIZE = 8;
+      for (let i = 0; i < liveFixtures.length; i += BATCH_SIZE) {
+        const batch = liveFixtures.slice(i, i + BATCH_SIZE);
+        await Promise.allSettled(
+          batch.map(async (lf) => {
+            try {
+              const cleanSlug = extractSportScoreMatchSlug(lf);
+              if (!cleanSlug) return;
+              const res = await fetchSportScoreWithRetry(
+                `https://sportscore.com/api/widget/match/?sport=football&slug=${encodeURIComponent(cleanSlug)}`,
+                1,
+                5000
+              );
+              if (!res.ok) return;
               const json = await res.json();
-              if (json && json.match) {
-                const dm = json.match;
-                if (dm.live_minute !== undefined && dm.live_minute !== null && dm.live_minute !== '') {
-                  const raw = String(dm.live_minute).trim();
-                  lf.displayClock = raw.endsWith("'") ? raw : `${raw}'`;
-                }
-                if (dm.home_ht_score !== undefined && dm.home_ht_score !== null && dm.home_ht_score !== '') {
-                  lf.homeHtScore = Number(dm.home_ht_score);
-                  lf.awayHtScore = Number(dm.away_ht_score);
-                }
-                if (dm.status_text) {
-                  lf.statusText = dm.status_text;
-                  const st = dm.status_text.toLowerCase();
-                  if (st === 'ht' || st === 'half time') {
-                    lf.displayClock = 'HT';
-                    lf.period = 'halftime';
-                  } else if (st === 'ft' || st === 'finished') {
-                    lf.displayClock = 'FT';
-                    lf.status = 'post';
-                    lf.period = 'full_time';
-                  }
-                }
-                if (Array.isArray(dm.incidents) && dm.incidents.length > 0) {
-                  lf.incidents = dm.incidents;
+              const dm = json?.match || json;
+              if (!dm || typeof dm !== 'object') return;
+
+              // Re-evaluate detailed status using widget's status, status_text, and live_minute
+              const detailed = parseDetailedMatchStatus(
+                dm.status || lf.rawStatus,
+                dm.status_text || lf.statusText,
+                dm.live_minute
+              );
+              lf.status = detailed.status;
+              lf.period = detailed.period;
+              lf.periodSequence = detailed.periodSequence;
+              lf.displayClock = detailed.displayClock;
+              lf.minute = detailed.displayClock;
+              if (dm.status) lf.rawStatus = dm.status;
+              if (dm.status_text) lf.statusText = dm.status_text;
+
+              // Apply fresher widget scores if present
+              if (dm.home_score !== null && dm.home_score !== undefined && dm.home_score !== '') {
+                lf.homeScore = Number(dm.home_score);
+              }
+              if (dm.away_score !== null && dm.away_score !== undefined && dm.away_score !== '') {
+                lf.awayScore = Number(dm.away_score);
+              }
+              if (dm.home_ht_score !== null && dm.home_ht_score !== undefined && dm.home_ht_score !== '') {
+                lf.homeHtScore = Number(dm.home_ht_score);
+              }
+              if (dm.away_ht_score !== null && dm.away_ht_score !== undefined && dm.away_ht_score !== '') {
+                lf.awayHtScore = Number(dm.away_ht_score);
+              }
+
+              if (Array.isArray(dm.incidents) && dm.incidents.length > 0) {
+                const { incidents, latestGoalscorer } = normalizeSportScoreIncidents(dm.incidents);
+                lf.incidents = incidents;
+                if (latestGoalscorer) {
+                  lf.latestGoalscorer = latestGoalscorer;
                 }
               }
-            }
-          } catch {}
-        })
-      );
-      updated = ingestFixtures(liveFixtures);
+            } catch {}
+          })
+        );
+      }
+
+      updated += ingestFixtures(liveFixtures, true);
     }
 
-    // Reconcile matches in fixturesStore that were previously live ('in')
-    // When a match ends, SportScore removes it from status=live. We immediately check its final status.
-    const liveKeys = new Set<string>();
-    liveFixtures.forEach((f) => {
-      liveKeys.add(f.id);
-      if (f.providerId) liveKeys.add(f.providerId);
-      if (f.matchUrl) liveKeys.add(f.matchUrl);
-      liveKeys.add(`${slugify(f.home)}-vs-${slugify(f.away)}`);
-    });
-
+    // Reconcile matches in fixturesStore that:
+    // (A) were marked 'in' (live / HT) and are no longer in `liveFixtures`, OR
+    // (B) were marked 'pre' (scheduled) whose kickoff time passed within the last 4 hours
     const nowMs = Date.now();
-    const storedList = Array.from(fixturesStore.values());
+    const candidatesToReconcile: MarketFixture[] = [];
 
-    for (const sf of storedList) {
+    for (const sf of fixturesStore.values()) {
+      const isStillInLiveFeed = liveFixtures.some((lf) => areFixturesIdentical(sf, lf));
+      if (isStillInLiveFeed) continue;
+
       if (sf.status === 'in') {
-        const mSlug = `${slugify(sf.home)}-vs-${slugify(sf.away)}`;
-        const isStillLive =
-          liveKeys.has(sf.id) ||
-          (sf.providerId && liveKeys.has(sf.providerId)) ||
-          (sf.matchUrl && liveKeys.has(sf.matchUrl)) ||
-          liveKeys.has(mSlug);
-
-        if (!isStillLive) {
-          // Query SportScore widget detail to confirm finished status and final score
-          let isFinished = false;
-          let finalHScore = sf.homeScore ?? 0;
-          let finalAScore = sf.awayScore ?? 0;
-          let finalHtHScore = sf.homeHtScore;
-          let finalHtAScore = sf.awayHtScore;
-
-          try {
-            const checkSlug = sf.providerId || mSlug;
-            const dRes = await fetch(`https://sportscore.com/api/widget/match/?sport=football&slug=${encodeURIComponent(checkSlug)}`, {
-              headers: {
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
-                Accept: 'application/json',
-              },
-            });
-            if (dRes.ok) {
-              const dJson = await dRes.json();
-              if (dJson && dJson.match) {
-                const dm = dJson.match;
-                const dStatus = String(dm.status || '').toLowerCase();
-                const dStatusText = String(dm.status_text || '').toLowerCase();
-                if (dStatus === 'finished' || dStatus === 'post' || dStatus === 'ft' || dStatusText === 'finished' || dStatusText === 'ft' || dStatusText.includes('ended')) {
-                  isFinished = true;
-                }
-                if (dm.home_score !== null && dm.home_score !== undefined && dm.home_score !== '') finalHScore = Number(dm.home_score);
-                if (dm.away_score !== null && dm.away_score !== undefined && dm.away_score !== '') finalAScore = Number(dm.away_score);
-                if (dm.home_ht_score !== null && dm.home_ht_score !== undefined && dm.home_ht_score !== '') finalHtHScore = Number(dm.home_ht_score);
-                if (dm.away_ht_score !== null && dm.away_ht_score !== undefined && dm.away_ht_score !== '') finalHtAScore = Number(dm.away_ht_score);
-              }
-            }
-          } catch {}
-
-          const kMs = sf.kickoffIso ? new Date(sf.kickoffIso).getTime() : 0;
-          const elapsedMin = kMs > 0 ? (nowMs - kMs) / 60000 : 120;
-
-          // If Sportscore detail confirmed finished, or kickoff was over 105 minutes ago and not in live feed
-          if (isFinished || elapsedMin >= 105) {
-            sf.status = 'post';
-            sf.period = 'full_time';
-            sf.displayClock = 'FT';
-            sf.homeScore = finalHScore;
-            sf.awayScore = finalAScore;
-            sf.homeHtScore = finalHtHScore;
-            sf.awayHtScore = finalHtAScore;
-            const result = finalHScore > finalAScore ? '1' : finalHScore < finalAScore ? '2' : 'X';
-            sf.lastSyncTime = new Date().toISOString();
-            fixturesStore.set(sf.id, sf);
-            updated++;
-
-            // Immediate SSE broadcast to all connected frontends
-            realtimeBroadcaster.broadcastStatusChange(sf.id, 'post', 'full_time', 'FT', result, sf.providerId);
-            realtimeBroadcaster.broadcastScoreUpdate(
-              sf.id,
-              finalHScore,
-              finalAScore,
-              'FT',
-              'full_time',
-              sf.latestGoalscorer,
-              sf.providerId,
-              'post'
-            );
-          }
+        candidatesToReconcile.push(sf);
+      } else if (sf.status === 'pre' && sf.kickoffIso) {
+        const kMs = new Date(sf.kickoffIso).getTime();
+        const elapsedMin = (nowMs - kMs) / 60000;
+        // Kickoff was between 2 minutes ago and 240 minutes ago
+        if (elapsedMin >= 2 && elapsedMin <= 240) {
+          candidatesToReconcile.push(sf);
         }
       }
     }
 
+    // If there are past-kickoff 'pre' or orphaned 'in' matches, first reconcile against today's date feed (throttled to every 45s)
+    if (candidatesToReconcile.length > 0 && nowMs - lastTodayDateReconcileMs > 45_000) {
+      lastTodayDateReconcileMs = nowMs;
+      try {
+        const todayUtc = new Date().toISOString().slice(0, 10);
+        const todayMatches = await fetchSportScoreFixturesByDate(todayUtc);
+        if (todayMatches.length > 0) {
+          updated += ingestFixtures(todayMatches, true);
+        }
+      } catch {}
+    }
+
+    // Now check widget match detail for any candidate still stuck in 'in' (e.g. 'HT') or past-kickoff 'pre'
+    const remainingCandidates = candidatesToReconcile.filter((c) => {
+      const current = fixturesStore.get(c.id);
+      if (!current) return false;
+      if (current.status === 'in') return true;
+      if (current.status === 'pre' && current.kickoffIso) {
+        const elapsedMin = (nowMs - new Date(current.kickoffIso).getTime()) / 60000;
+        return elapsedMin >= 5 && elapsedMin <= 240;
+      }
+      return false;
+    }).slice(0, 12);
+
+    if (remainingCandidates.length > 0) {
+      await Promise.allSettled(
+        remainingCandidates.map(async (sf) => {
+          const current = fixturesStore.get(sf.id);
+          if (!current) return;
+
+          const detail = await fetchAuthoritativeSportScoreMatchDetail(current, { ingestIntoStore: true });
+          if (detail) {
+            if (detail.normalized_status !== current.status || detail.home_score !== current.homeScore || detail.away_score !== current.awayScore) {
+              updated++;
+            }
+            return;
+          }
+
+          // Fallback safety ONLY if widget endpoint could not be reached AND match has been in 'in' for >= 115 mins since kickoff
+          if (current.status === 'in' && current.kickoffIso) {
+            const kMs = new Date(current.kickoffIso).getTime();
+            const elapsedMin = kMs > 0 ? (nowMs - kMs) / 60000 : 0;
+            if (elapsedMin >= 115) {
+              const fallbackFinished: MarketFixture = {
+                ...current,
+                status: 'post',
+                period: 'full_time',
+                periodSequence: 60,
+                displayClock: 'FT',
+                minute: 'FT',
+                homeScore: current.homeScore ?? 0,
+                awayScore: current.awayScore ?? 0,
+                syncedAt: new Date().toISOString(),
+                isAuthoritativeCorrection: true,
+              };
+              updated += ingestFixtures([fallbackFinished], true);
+            }
+          }
+        })
+      );
+    }
+
     if (updated > 0) {
       saveDiskCache();
+      // Also persist updated live/finished fixtures back to snapshot store (throttled to every 30s)
+      // so snapshot reloads every 60s never overwrite live or finished matches with old pre/HT data.
+      if (isSnapshotStoreConfigured() && Date.now() - lastLiveSnapshotPersistMs > 30_000) {
+        lastLiveSnapshotPersistMs = Date.now();
+        saveFixtureSnapshot(Array.from(fixturesStore.values()), {
+          isCompleteReconciliation: false,
+          source: 'rolling_sync',
+        }).catch(() => {});
+      }
     }
 
     lastLiveSyncTimestamp = new Date().toISOString();
@@ -1415,9 +1600,6 @@ export async function syncLiveScoresOnly(): Promise<{ updated: number; liveCount
     isLiveSyncing = false;
   }
 }
-
-// Round-robin index for secondary league synchronization
-let secondaryLeagueIndex = 0;
 
 /**
  * Execute a rolling sync cycle across live matches and today/tomorrow slates
@@ -1459,22 +1641,22 @@ export function queryMarketFixtures(options: {
   // Filter by Scope
   if (scope === 'live') {
     list = list.filter((f) => {
-      // STRICT INVARIANT: Only genuinely live matches (status === 'in' or active period).
-      // Never promote scheduled matches to live based on elapsed clock!
+      if (f.status === 'post' || f.status === 'pre' || f.status === 'postponed' || f.status === 'cancelled' || f.status === 'abandoned' || f.status === 'suspended') {
+        return false;
+      }
       if (f.status === 'in') return true;
-      if (f.period && ['first_half', 'halftime', 'second_half', 'extra_time', 'penalties'].includes(f.period)) {
-        return f.status !== 'post';
+      if (f.period && ['first_half', 'halftime', 'second_half', 'extra_time', 'extra_time_halftime', 'penalties'].includes(f.period)) {
+        return true;
       }
       return false;
     });
   } else if (scope === 'finished' || scope === 'results' || scope === 'completed') {
     list = list.filter((f) => f.status === 'post' || (f.period && ['full_time', 'after_extra_time', 'after_penalties', 'awarded'].includes(f.period)));
   } else if (scope === 'highlights') {
-    // Highlights MUST NEVER include completed or live matches, and strictly only shows games to be played that day up to 6am EAT the next day
     const { startMs: hlStartMs, nextDay6amMs: hlCutoffMs } = getHighlightsCutoffWindowEAT(new Date());
     list = list.filter((f) => {
       if (f.status === 'post' || f.status === 'in') return false;
-      if (f.period && ['full_time', 'after_extra_time', 'after_penalties', 'awarded', 'first_half', 'halftime', 'second_half', 'extra_time', 'penalties'].includes(f.period)) return false;
+      if (f.period && ['full_time', 'after_extra_time', 'after_penalties', 'awarded', 'first_half', 'halftime', 'second_half', 'extra_time', 'extra_time_halftime', 'penalties'].includes(f.period)) return false;
       const kMs = f.kickoffIso ? new Date(f.kickoffIso).getTime() : 0;
       return kMs >= hlStartMs && kMs <= hlCutoffMs;
     });
@@ -1492,15 +1674,13 @@ export function queryMarketFixtures(options: {
     const nowMs = Date.now();
     list = list.filter((f) => {
       if (f.status !== 'pre') return false;
-      if (f.period && ['full_time', 'after_extra_time', 'after_penalties', 'awarded', 'postponed', 'cancelled', 'abandoned', 'first_half', 'halftime', 'second_half', 'extra_time', 'penalties'].includes(f.period)) return false;
+      if (f.period && ['full_time', 'after_extra_time', 'after_penalties', 'awarded', 'postponed', 'cancelled', 'abandoned', 'first_half', 'halftime', 'second_half', 'extra_time', 'extra_time_halftime', 'penalties'].includes(f.period)) return false;
       const kMs = f.kickoffIso ? new Date(f.kickoffIso).getTime() : 0;
       return kMs >= nowMs;
     });
-  } else {
-    // 'all' delivers full catalogue to client; client's real-time device clock handles local timezone date grouping and upcoming cutoff
   }
 
-  // Filter by League (supports canonical ID, leagueCode, or exact competition name)
+  // Filter by League
   if (league && league !== 'all') {
     const lLower = league.toLowerCase();
     list = list.filter((f) =>
@@ -1533,7 +1713,8 @@ export function queryMarketFixtures(options: {
 
 /**
  * Returns complete rolling catalogue for client hydration.
- * If store lacks upcoming/live matches, or if force is true, triggers rolling sync from SportScore.
+ * Always reconciles live & recently finished matches when lastLiveSyncTimestamp > 12s ago,
+ * even when base fixtures are hydrated from the weekly Firestore/disk snapshot!
  */
 export async function getDailyMarketHighlights(force = false): Promise<MarketFixture[]> {
   if (fixturesStore.size === 0) {
@@ -1553,8 +1734,6 @@ export async function getDailyMarketHighlights(force = false): Promise<MarketFix
   const hasBet365Odds = Array.from(fixturesStore.values()).some((f) => f.bookmaker === 'Bet365');
   const isStale = !lastSyncTimestamp || (Date.now() - new Date(lastSyncTimestamp).getTime() > 10 * 60 * 1000);
 
-  // Serverless instances share no memory/disk: hydrate from the Firestore snapshot written by the
-  // weekly cron instead of rebuilding ~600 SportScore requests inside a 10s function.
   let snapshotServed = false;
   if (isSnapshotStoreConfigured()) {
     const snapshotAgeMs = Date.now() - lastSnapshotLoadMs;
@@ -1566,8 +1745,8 @@ export async function getDailyMarketHighlights(force = false): Promise<MarketFix
         ingestFixtures(snapFixtures, false);
       }
     }
-    // Trust the snapshot only while it is fresh (cron healthy); otherwise fall back to live sync.
-    snapshotServed = Date.now() - lastSnapshotUpdatedMs < SNAPSHOT_MAX_AGE_MS &&
+    snapshotServed =
+      Date.now() - lastSnapshotUpdatedMs < SNAPSHOT_MAX_AGE_MS &&
       Array.from(fixturesStore.values()).some((f) => f.status === 'pre' || f.status === 'in');
   }
 
@@ -1576,6 +1755,17 @@ export async function getDailyMarketHighlights(force = false): Promise<MarketFix
       await executeRollingSyncCycle();
     } catch (err) {
       console.warn('SportScore rolling sync notice in getDailyMarketHighlights:', err);
+    }
+  } else {
+    // CRITICAL FIX: Even when snapshotServed is true, always keep live & recently-finished matches
+    // synchronized with SportScore if lastLiveSyncTimestamp is older than 12 seconds!
+    const liveAgeMs = lastLiveSyncTimestamp ? Date.now() - new Date(lastLiveSyncTimestamp).getTime() : Infinity;
+    if (force || liveAgeMs > 12_000) {
+      try {
+        await syncLiveScoresOnly();
+      } catch (err) {
+        console.warn('Live score sync notice in getDailyMarketHighlights:', err);
+      }
     }
   }
 
@@ -1665,7 +1855,7 @@ export async function getMarketResults(leagueCode: string = 'premier', season?: 
 }
 
 /**
- * Return safe diagnostic telemetry for administrative inspection
+ * Return comprehensive diagnostic telemetry for monitoring & administrative inspection
  */
 export function getSyncDiagnostics(): SyncDiagnostics {
   const all = Array.from(fixturesStore.values());
@@ -1675,10 +1865,19 @@ export function getSyncDiagnostics(): SyncDiagnostics {
   const upcomingCount = all.filter((f) => f.status === 'pre' && getLocalDateStringEAT(f.kickoffIso) >= todayStr).length;
   const finishedCount = all.filter((f) => f.status === 'post').length;
   const uniqueLeagues = new Set(all.map((f) => f.leagueCode));
+  const sseMetrics = realtimeBroadcaster.getMetrics();
+  const avgResponseTimeMs =
+    providerStats.totalRequests > 0
+      ? Math.round(providerStats.totalResponseTimeMs / providerStats.totalRequests)
+      : 0;
 
   return {
     lastSyncTime: lastSyncTimestamp,
     lastLiveSyncTime: lastLiveSyncTimestamp,
+    lastSuccessfulProviderFetchAt,
+    lastValidLiveUpdateAt,
+    lastSseEventDispatchedAt: sseMetrics.lastEventDispatchedAt,
+    lastSseDeliverySentAt: sseMetrics.lastDeliverySentAt,
     totalFixtures: all.length,
     liveFixturesCount: liveCount,
     upcomingFixturesCount: upcomingCount,
@@ -1689,18 +1888,21 @@ export function getSyncDiagnostics(): SyncDiagnostics {
     syncCyclesCount: syncCycleCounter,
     liveSyncCyclesCount: liveSyncCyclesCounter,
     dailyRequestBudget: 3840,
-    rateLimitSafe: true,
+    rateLimitSafe: providerStats.rateLimitCount === 0,
+    providerRequestStats: {
+      totalRequests: providerStats.totalRequests,
+      successCount: providerStats.successCount,
+      failureCount: providerStats.failureCount,
+      rateLimitCount: providerStats.rateLimitCount,
+      avgResponseTimeMs,
+    },
+    liveSyncStats: {
+      ...livePipelineStats,
+    },
+    sseMetrics,
   };
 }
 
-// Background scheduler handles
-let schedulerTimer: NodeJS.Timeout | null = null;
-let liveSchedulerTimer: NodeJS.Timeout | null = null;
-
-/**
- * Start the background continuous synchronization loop (runs in server.ts)
- * Automated polling scheduler disabled per user mandate.
- */
 export function startContinuousSportsScheduler(_intervalMinutes = 5, _liveIntervalSeconds = 20): void {
   // Automated background crawler and scheduler disabled per user mandate
 }
@@ -1709,29 +1911,18 @@ let liveTelemetryInterval: NodeJS.Timeout | null = null;
 
 /**
  * Starts central server-side live telemetry coordinator.
- * Only polls upstream SportScore when at least 1 client is actively connected and matches are live.
+ * Polls upstream SportScore every `pollIntervalMs` when at least 1 SSE client is connected.
  */
-export function startLiveTelemetryCoordinator(pollIntervalMs = 15000): void {
+export function startLiveTelemetryCoordinator(pollIntervalMs = 10_000): void {
   if (liveTelemetryInterval) return;
 
   liveTelemetryInterval = setInterval(async () => {
     try {
       const metrics = realtimeBroadcaster.getMetrics();
-      // If zero active connections, skip polling completely
       if (metrics.activeConnections === 0) return;
 
-      const nowMs = Date.now();
-      const hasLiveOrUpcomingMatches = Array.from(fixturesStore.values()).some((f) => {
-        if (f.status === "in") return true;
-        if (f.status === "post" || f.status === "cancelled" || f.status === "abandoned") return false;
-        const kMs = f.kickoffIso ? new Date(f.kickoffIso).getTime() : 0;
-        return kMs > 0 && kMs <= nowMs + 5 * 60 * 1000 && kMs >= nowMs - 150 * 60 * 1000;
-      });
-
-      if (hasLiveOrUpcomingMatches) {
-        await syncLiveScoresOnly();
-      }
-    } catch (err) {
+      await syncLiveScoresOnly();
+    } catch {
       // telemetry poll error handled quietly
     }
   }, pollIntervalMs);
@@ -1740,3 +1931,25 @@ export function startLiveTelemetryCoordinator(pollIntervalMs = 15000): void {
     liveTelemetryInterval.unref();
   }
 }
+
+// Configure realtimeBroadcaster snapshot & client-connect hooks so SSE clients immediately receive
+// authoritative live + today's recently completed fixtures on connection.
+realtimeBroadcaster.setSnapshotProvider(() => {
+  const todayStr = getLocalDateStringEAT(new Date());
+  return Array.from(fixturesStore.values()).filter((f) => {
+    if (f.status === 'in') return true;
+    if (f.status === 'post' && getLocalDateStringEAT(f.kickoffIso) === todayStr) return true;
+    if ((f.status === 'postponed' || f.status === 'suspended' || f.status === 'cancelled' || f.status === 'abandoned') && getLocalDateStringEAT(f.kickoffIso) === todayStr) {
+      return true;
+    }
+    return false;
+  });
+});
+
+realtimeBroadcaster.setOnClientConnect(async () => {
+  startLiveTelemetryCoordinator(10_000);
+  const liveAgeMs = lastLiveSyncTimestamp ? Date.now() - new Date(lastLiveSyncTimestamp).getTime() : Infinity;
+  if (liveAgeMs > 8_000) {
+    await syncLiveScoresOnly();
+  }
+});

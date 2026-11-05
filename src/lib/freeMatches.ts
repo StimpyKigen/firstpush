@@ -1,8 +1,21 @@
 import type { MatchConsensus } from './types.js';
-import { type MatchPeriod, type MatchStatus, isStatusTransitionValid } from './matchStatus.js';
+import {
+  type MatchPeriod,
+  type MatchStatus,
+  isStatusTransitionValid,
+  parseDetailedMatchStatus,
+} from './matchStatus.js';
 import { buildConsensus } from './consensusEngine.js';
-import { fetchDailyHighlightFixtures, type HighlightFixture } from './footballApi.js';
-import { findMatchingExistingFixture, extractSportScoreProviderId, formatEatDay } from './fixtureIdentity.js';
+import {
+  fetchDailyHighlightFixtures,
+  syncCachedFixturesFromRealtime,
+  type HighlightFixture,
+} from './footballApi.js';
+import {
+  areFixturesIdentical,
+  extractSportScoreProviderId,
+  extractSportScoreMatchSlug,
+} from './fixtureIdentity.js';
 import { realtimeClient } from './realtimeClient.js';
 
 const listeners = new Set<() => void>();
@@ -13,6 +26,7 @@ export interface FreeMatch {
   id: string;
   providerId?: string;
   matchId?: string;
+  matchSlug?: string;
   matchUrl?: string;
   home: string;
   away: string;
@@ -32,6 +46,7 @@ export interface FreeMatch {
   period?: MatchPeriod;
   periodSequence?: number;
   displayClock?: string;
+  minute?: string;
   homeScore?: number | null;
   awayScore?: number | null;
   homeHtScore?: number | null;
@@ -49,7 +64,8 @@ export interface FreeMatch {
   drawPct?: number;
   awayPct?: number;
   incidents?: MatchIncidentItem[];
-  latestGoalscorer?: string;
+  latestGoalscorer?: { player: string; minute: string; team: 'home' | 'away' } | any;
+  updateVersion?: number;
 }
 
 export interface MatchIncidentItem {
@@ -59,9 +75,12 @@ export interface MatchIncidentItem {
   type: string;
   cardType?: 'yellow' | 'red';
   side?: 'home' | 'away';
+  team?: 'home' | 'away';
   teamSide?: 'home' | 'away';
   player?: string;
   name?: string;
+  assist?: string;
+  scoreAfter?: string;
   is_goal?: boolean;
   is_card?: boolean;
   home_score?: number;
@@ -82,6 +101,16 @@ function loadStoredMatches(): FreeMatch[] {
     }
   } catch {}
   return [];
+}
+
+function persistLiveMatchesToStorage(): void {
+  if (typeof window === 'undefined') return;
+  try {
+    if (liveMatches.length > 0) {
+      localStorage.setItem('mshindi_football_cache_v3', JSON.stringify(liveMatches));
+      syncCachedFixturesFromRealtime(liveMatches);
+    }
+  } catch {}
 }
 
 let liveMatches: FreeMatch[] = loadStoredMatches();
@@ -111,131 +140,242 @@ export function subscribeToFreeMatches(listener: () => void) {
   return () => listeners.delete(listener);
 }
 
-function emitFreeMatchesChange() {
+function emitFreeMatchesChange(persist = false) {
   freeMatchesSnapshot = [...liveMatches];
   freeMatchConsensusSnapshot = { ...liveConsensus };
+  if (persist) {
+    persistLiveMatchesToStorage();
+  }
   listeners.forEach((listener) => listener());
 }
 
+/**
+ * Helper to match an incoming SSE payload to a stored FreeMatch using full 5-tier identity matching.
+ */
+function matchesSseTarget(m: FreeMatch, payload: any, d: any): boolean {
+  if (!m) return false;
+  if (payload.fixtureId && m.id === payload.fixtureId) return true;
+  if (payload.providerId && m.providerId === payload.providerId) return true;
+  if (payload.matchSlug && m.matchSlug === payload.matchSlug) return true;
+  return areFixturesIdentical(m, {
+    id: payload.fixtureId || d?.id,
+    providerId: payload.providerId || d?.providerId,
+    matchSlug: payload.matchSlug || d?.matchSlug,
+    matchUrl: d?.matchUrl || d?.url,
+    home: d?.home,
+    away: d?.away,
+    kickoffIso: d?.kickoffIso,
+  });
+}
+
 // Wire real-time delta pushes from SSE stream directly to reactive client store
-if (typeof window !== "undefined") {
-  realtimeClient.on("score_update", (payload) => {
+if (typeof window !== 'undefined') {
+  realtimeClient.on('live_snapshot', (payload) => {
+    const d = payload.data || payload;
+    const snapList: any[] = Array.isArray(d?.fixtures) ? d.fixtures : [];
+    if (snapList.length === 0) return;
+
+    let changed = false;
+    for (const rawSnap of snapList) {
+      const inc = toFreeMatch(rawSnap);
+      const idx = liveMatches.findIndex((m) => areFixturesIdentical(m, inc));
+      if (idx !== -1) {
+        const merged = mergeFreeMatchPair(liveMatches[idx], inc);
+        if (
+          merged.status !== liveMatches[idx].status ||
+          merged.period !== liveMatches[idx].period ||
+          merged.displayClock !== liveMatches[idx].displayClock ||
+          merged.homeScore !== liveMatches[idx].homeScore ||
+          merged.awayScore !== liveMatches[idx].awayScore
+        ) {
+          liveMatches[idx] = merged;
+          changed = true;
+        }
+      } else {
+        liveMatches.unshift(inc);
+        changed = true;
+      }
+    }
+
+    if (changed) {
+      freeMatches.splice(0, freeMatches.length, ...liveMatches);
+      emitFreeMatchesChange(true);
+    }
+  });
+
+  realtimeClient.on('score_update', (payload) => {
+    const d = payload.data || payload;
     let changed = false;
     liveMatches = liveMatches.map((m) => {
-      if (m.id === payload.fixtureId || (payload.providerId && m.providerId === payload.providerId)) {
+      if (matchesSseTarget(m, payload, d)) {
+        const incStatus: MatchStatus = (d.status as MatchStatus) || m.status || 'in';
+        const incPeriod: MatchPeriod = (d.period as MatchPeriod) || m.period || 'second_half';
+        const isPermitted = isStatusTransitionValid(
+          m.status || 'pre',
+          m.period || 'scheduled',
+          incStatus,
+          incPeriod
+        );
+        const nextStatus = isPermitted ? incStatus : (m.status || incStatus);
+        const nextPeriod = isPermitted ? incPeriod : (m.period || incPeriod);
+        const nextClock =
+          nextStatus === 'post'
+            ? 'FT'
+            : d.displayClock || (nextPeriod === 'halftime' ? 'HT' : m.displayClock);
+
+        const nextHomeScore = d.homeScore !== undefined && d.homeScore !== null ? Number(d.homeScore) : m.homeScore;
+        const nextAwayScore = d.awayScore !== undefined && d.awayScore !== null ? Number(d.awayScore) : m.awayScore;
+        const nextHomeHt = d.homeHtScore !== undefined && d.homeHtScore !== null ? Number(d.homeHtScore) : m.homeHtScore;
+        const nextAwayHt = d.awayHtScore !== undefined && d.awayHtScore !== null ? Number(d.awayHtScore) : m.awayHtScore;
+
         changed = true;
         return {
           ...m,
-          homeScore: payload.homeScore !== undefined ? payload.homeScore : m.homeScore,
-          awayScore: payload.awayScore !== undefined ? payload.awayScore : m.awayScore,
-          displayClock: payload.displayClock || m.displayClock,
-          period: payload.period || m.period,
-          status: payload.status || m.status,
-          latestGoalscorer: payload.latestGoalscorer || m.latestGoalscorer,
+          homeScore: nextHomeScore,
+          awayScore: nextAwayScore,
+          homeHtScore: nextHomeHt,
+          awayHtScore: nextAwayHt,
+          displayClock: nextClock,
+          minute: nextClock,
+          period: nextPeriod,
+          status: nextStatus,
+          latestGoalscorer: d.latestGoalscorer || m.latestGoalscorer,
+          updateVersion: d.updateVersion || ((m.updateVersion || 1) + 1),
         };
       }
       return m;
     });
     if (changed) {
       freeMatches.splice(0, freeMatches.length, ...liveMatches);
-      emitFreeMatchesChange();
+      emitFreeMatchesChange(true);
     }
   });
 
-  realtimeClient.on("incident", (payload) => {
+  realtimeClient.on('incident', (payload) => {
+    const d = payload.data || payload;
+    const inc = d.incident || d;
+    if (!inc || typeof inc !== 'object') return;
+
     let changed = false;
     liveMatches = liveMatches.map((m) => {
-      if (m.id === payload.fixtureId || (payload.providerId && m.providerId === payload.providerId)) {
+      if (matchesSseTarget(m, payload, d)) {
         changed = true;
         const incidents = m.incidents ? [...m.incidents] : [];
-        const incId = payload.incident.id || (payload.incident.minute + "_" + payload.incident.type + "_" + (payload.incident.player || ""));
-        if (!incidents.some((i) => (i.id || (i.minute + "_" + i.type + "_" + (i.player || ""))) === incId)) {
-          incidents.push(payload.incident);
+        const incId = inc.id || `${inc.minute || inc.time}_${inc.type}_${inc.player || ''}`;
+        if (!incidents.some((i) => (i.id || `${i.minute || i.time}_${i.type}_${i.player || ''}`) === incId)) {
+          incidents.push(inc);
         }
         return {
           ...m,
           incidents,
+          latestGoalscorer: d.latestGoalscorer || m.latestGoalscorer,
         };
       }
       return m;
     });
     if (changed) {
       freeMatches.splice(0, freeMatches.length, ...liveMatches);
-      emitFreeMatchesChange();
+      emitFreeMatchesChange(true);
     }
     try {
       window.dispatchEvent(
-        new CustomEvent("match_incident_" + payload.fixtureId, {
-          detail: payload.incident,
+        new CustomEvent('match_incident_' + payload.fixtureId, {
+          detail: inc,
         })
       );
     } catch {}
   });
 
-  realtimeClient.on("status_change", (payload) => {
+  realtimeClient.on('status_change', (payload) => {
+    const d = payload.data || payload;
+    if (!d.status) return;
+
     let changed = false;
     liveMatches = liveMatches.map((m) => {
-      if (m.id === payload.fixtureId || (payload.providerId && m.providerId === payload.providerId)) {
+      if (matchesSseTarget(m, payload, d)) {
+        const incStatus = d.status as MatchStatus;
+        const incPeriod = (d.period as MatchPeriod) || (incStatus === 'post' ? 'full_time' : m.period || 'second_half');
+        const isPermitted = isStatusTransitionValid(
+          m.status || 'pre',
+          m.period || 'scheduled',
+          incStatus,
+          incPeriod
+        );
+        if (!isPermitted) return m;
+
+        const nextClock =
+          incStatus === 'post'
+            ? (incPeriod === 'after_penalties' ? 'AP' : incPeriod === 'after_extra_time' ? 'AET' : 'FT')
+            : (d.displayClock || (incPeriod === 'halftime' ? 'HT' : incPeriod === 'second_half' ? '2nd Half' : m.displayClock));
+
+        const nextHomeScore = d.homeScore !== undefined && d.homeScore !== null ? Number(d.homeScore) : m.homeScore;
+        const nextAwayScore = d.awayScore !== undefined && d.awayScore !== null ? Number(d.awayScore) : m.awayScore;
+
         changed = true;
         return {
           ...m,
-          status: payload.status,
-          period: payload.period || m.period,
-          displayClock: payload.displayClock || m.displayClock,
-          result: payload.result || m.result,
+          status: incStatus,
+          period: incPeriod,
+          displayClock: nextClock,
+          minute: nextClock,
+          homeScore: nextHomeScore,
+          awayScore: nextAwayScore,
+          result: d.result || m.result,
+          updateVersion: d.updateVersion || ((m.updateVersion || 1) + 1),
         };
       }
       return m;
     });
     if (changed) {
       freeMatches.splice(0, freeMatches.length, ...liveMatches);
-      emitFreeMatchesChange();
+      emitFreeMatchesChange(true);
     }
   });
 
-  realtimeClient.on("odds_update", (payload) => {
+  realtimeClient.on('odds_update', (payload) => {
+    const d = payload.data || payload;
     let changed = false;
     liveMatches = liveMatches.map((m) => {
-      if (m.id === payload.fixtureId || (payload.providerId && m.providerId === payload.providerId)) {
+      if (matchesSseTarget(m, payload, d)) {
         changed = true;
         return {
           ...m,
-          bookmaker: payload.bookmaker || m.bookmaker,
-          homeOdds: payload.homeOdds !== undefined ? payload.homeOdds : m.homeOdds,
-          drawOdds: payload.drawOdds !== undefined ? payload.drawOdds : m.drawOdds,
-          awayOdds: payload.awayOdds !== undefined ? payload.awayOdds : m.awayOdds,
+          bookmaker: d.bookmaker || m.bookmaker,
+          homeOdds: d.homeOdds !== undefined ? d.homeOdds : m.homeOdds,
+          drawOdds: d.drawOdds !== undefined ? d.drawOdds : m.drawOdds,
+          awayOdds: d.awayOdds !== undefined ? d.awayOdds : m.awayOdds,
         };
       }
       return m;
     });
     if (changed) {
       freeMatches.splice(0, freeMatches.length, ...liveMatches);
-      emitFreeMatchesChange();
+      emitFreeMatchesChange(true);
     }
   });
 
-  realtimeClient.on("fixture_upsert", (payload) => {
-    if (payload.fixture) {
-      const inc = toFreeMatch(payload.fixture as any);
-      const existingIdx = liveMatches.findIndex(
-        (m) => m.id === inc.id || (inc.providerId && m.providerId === inc.providerId)
-      );
+  realtimeClient.on('fixture_upsert', (payload) => {
+    const d = payload.data || payload;
+    const rawFixture = d.fixture || (payload as any).fixture;
+    if (rawFixture) {
+      const inc = toFreeMatch(rawFixture as any);
+      const existingIdx = liveMatches.findIndex((m) => areFixturesIdentical(m, inc));
       if (existingIdx !== -1) {
-        liveMatches[existingIdx] = { ...liveMatches[existingIdx], ...inc };
+        liveMatches[existingIdx] = mergeFreeMatchPair(liveMatches[existingIdx], inc);
       } else {
         liveMatches.unshift(inc);
       }
       freeMatches.splice(0, freeMatches.length, ...liveMatches);
-      emitFreeMatchesChange();
+      emitFreeMatchesChange(true);
     }
-  });
-
-  realtimeClient.on("sync_required", () => {
-    void refreshFreeMatches(true);
   });
 }
 
 export interface AuthoritativeMatchDetail {
+  home?: string;
+  away?: string;
+  home_team?: string;
+  away_team?: string;
   home_score?: number | string | null;
   away_score?: number | string | null;
   home_ht_score?: number | string | null;
@@ -243,6 +383,7 @@ export interface AuthoritativeMatchDetail {
   status?: string;
   status_text?: string;
   live_minute?: number | string | null;
+  url?: string;
   tracker?: { id?: string; profile?: string; sport?: string };
   incidents?: any[];
 }
@@ -251,59 +392,66 @@ export interface AuthoritativeMatchDetail {
  * Direct mirror from SportScore 2D pitch tracker / match detail.
  * Acts as the immediate source of truth for scores, minute counter, HT, and FT updates.
  */
-export function updateMatchAuthoritativeDetail(matchId: string, detail: AuthoritativeMatchDetail): void {
+export function updateMatchAuthoritativeDetail(matchId: string, detailInput: AuthoritativeMatchDetail): void {
+  if (!detailInput || typeof detailInput !== 'object') return;
+  const detail: AuthoritativeMatchDetail = (detailInput as any).match || detailInput;
+
   let changed = false;
   liveMatches = liveMatches.map((m) => {
-    const isTarget = m.id === matchId || (m.providerId && detail.tracker?.id && (m.providerId.includes(detail.tracker.id) || detail.tracker.id.includes(m.providerId)));
+    const isTarget =
+      m.id === matchId ||
+      areFixturesIdentical(m, {
+        id: matchId,
+        matchId: detail.tracker?.id,
+        matchUrl: detail.url,
+        home: detail.home || detail.home_team,
+        away: detail.away || detail.away_team,
+      });
+
     if (!isTarget) return m;
 
-    const s = String(detail.status || '').toLowerCase().trim();
-    const txt = String(detail.status_text || '').toLowerCase().trim();
+    const detailed = parseDetailedMatchStatus(detail.status, detail.status_text, detail.live_minute);
+    const isPermitted = isStatusTransitionValid(
+      m.status || 'pre',
+      m.period || 'scheduled',
+      detailed.status,
+      detailed.period,
+      true
+    );
 
-    const isFinished = s === 'finished' || s === 'post' || s === 'ft' || txt === 'finished' || txt === 'ft' || txt.includes('ended');
-    const isHt = s === 'halftime' || s === 'ht' || txt === 'ht' || txt === 'half time' || txt === 'halftime';
-    const isLive = s === 'live' || s === 'in' || isHt;
+    const status = isPermitted ? detailed.status : (m.status || detailed.status);
+    const period = isPermitted ? detailed.period : (m.period || detailed.period);
+    const clock =
+      status === 'post'
+        ? (period === 'after_penalties' ? 'AP' : period === 'after_extra_time' ? 'AET' : 'FT')
+        : detailed.displayClock || m.displayClock;
 
-    let clock = m.displayClock;
-    if (isFinished) {
-      clock = 'FT';
-    } else if (isHt) {
-      clock = 'HT';
-    } else if (detail.live_minute !== undefined && detail.live_minute !== null && detail.live_minute !== '') {
-      const raw = String(detail.live_minute).trim();
-      clock = raw.endsWith("'") ? raw : `${raw}'`;
-    }
+    const homeScore =
+      detail.home_score !== undefined && detail.home_score !== null && detail.home_score !== ''
+        ? Number(detail.home_score)
+        : m.homeScore;
+    const awayScore =
+      detail.away_score !== undefined && detail.away_score !== null && detail.away_score !== ''
+        ? Number(detail.away_score)
+        : m.awayScore;
 
-    let status = m.status;
-    if (isFinished) status = 'post';
-    else if (isLive) status = 'in';
-
-    let period = m.period;
-    if (isFinished) period = 'full_time';
-    else if (isHt) period = 'halftime';
-    else if (txt.includes('1st') || (clock && clock.match(/^\d+/) && parseInt(clock, 10) <= 45)) period = 'first_half';
-    else if (txt.includes('2nd') || (clock && clock.match(/^\d+/) && parseInt(clock, 10) >= 46)) period = 'second_half';
-
-    const homeScore = detail.home_score !== undefined && detail.home_score !== null && detail.home_score !== ''
-      ? Number(detail.home_score)
-      : m.homeScore;
-    const awayScore = detail.away_score !== undefined && detail.away_score !== null && detail.away_score !== ''
-      ? Number(detail.away_score)
-      : m.awayScore;
-
-    const homeHtScore = detail.home_ht_score !== undefined && detail.home_ht_score !== null && detail.home_ht_score !== ''
-      ? Number(detail.home_ht_score)
-      : m.homeHtScore;
-    const awayHtScore = detail.away_ht_score !== undefined && detail.away_ht_score !== null && detail.away_ht_score !== ''
-      ? Number(detail.away_ht_score)
-      : m.awayHtScore;
+    const homeHtScore =
+      detail.home_ht_score !== undefined && detail.home_ht_score !== null && detail.home_ht_score !== ''
+        ? Number(detail.home_ht_score)
+        : m.homeHtScore;
+    const awayHtScore =
+      detail.away_ht_score !== undefined && detail.away_ht_score !== null && detail.away_ht_score !== ''
+        ? Number(detail.away_ht_score)
+        : m.awayHtScore;
 
     changed = true;
     return {
       ...m,
       status,
       period,
+      periodSequence: detailed.periodSequence,
       displayClock: clock,
+      minute: clock,
       homeScore,
       awayScore,
       homeHtScore,
@@ -313,34 +461,42 @@ export function updateMatchAuthoritativeDetail(matchId: string, detail: Authorit
 
   if (changed) {
     freeMatches.splice(0, freeMatches.length, ...liveMatches);
-    emitFreeMatchesChange();
+    emitFreeMatchesChange(true);
   }
 }
 
-function toFreeMatch(item: HighlightFixture): FreeMatch {
+function toFreeMatch(item: HighlightFixture | any): FreeMatch {
+  const status: MatchStatus = item.status || 'pre';
+  const displayClock =
+    status === 'post'
+      ? (item.period === 'after_penalties' ? 'AP' : item.period === 'after_extra_time' ? 'AET' : 'FT')
+      : (item.displayClock || item.minute || (status === 'in' ? 'LIVE' : ''));
+
   return {
     id: item.id,
     providerId: item.providerId || item.id,
-    matchId: item.matchId,
-    matchUrl: item.matchUrl,
+    matchId: item.matchId || extractSportScoreProviderId(item) || undefined,
+    matchSlug: item.matchSlug || extractSportScoreMatchSlug(item) || undefined,
+    matchUrl: item.matchUrl || item.url,
     home: item.home,
     away: item.away,
-    homeLogo: item.homeLogo,
-    awayLogo: item.awayLogo,
+    homeLogo: item.homeLogo || item.home_logo,
+    awayLogo: item.awayLogo || item.away_logo,
     competition: item.competition,
     competitionId: item.competitionId,
     leagueCode: item.leagueCode,
     country: item.country,
     kickoff: item.kickoff,
     kickoffIso: item.kickoffIso,
-    tier: item.tier,
-    blurb: item.blurb,
-    syncedAt: item.syncedAt,
+    tier: item.tier || 'blockbuster',
+    blurb: item.blurb || `${item.home} vs ${item.away} in ${item.competition}`,
+    syncedAt: item.syncedAt || new Date().toISOString(),
     lastSyncTime: item.lastSyncTime,
-    status: item.status,
+    status,
     period: item.period,
     periodSequence: item.periodSequence,
-    displayClock: item.displayClock,
+    displayClock,
+    minute: displayClock,
     homeScore: item.homeScore,
     awayScore: item.awayScore,
     homeHtScore: item.homeHtScore,
@@ -357,8 +513,9 @@ function toFreeMatch(item: HighlightFixture): FreeMatch {
     homePct: item.homePct,
     drawPct: item.drawPct,
     awayPct: item.awayPct,
-    incidents: (item as any).incidents,
-    latestGoalscorer: (item as any).latestGoalscorer,
+    incidents: item.incidents,
+    latestGoalscorer: item.latestGoalscorer,
+    updateVersion: item.updateVersion,
   };
 }
 
@@ -373,9 +530,19 @@ export function getHasFreeMatchesSynced(): boolean {
   return hasSyncedFreeMatchesOnce;
 }
 
-export function makeFreeMatchDedupeKey(m: { matchId?: string; home: string; away: string; kickoffIso?: string; kickoff?: string }): string {
-  if (m.matchId) {
-    return `mid_${m.matchId}`;
+export function makeFreeMatchDedupeKey(m: {
+  id?: string;
+  providerId?: string;
+  matchId?: string;
+  matchUrl?: string;
+  home: string;
+  away: string;
+  kickoffIso?: string;
+  kickoff?: string;
+}): string {
+  const ssId = extractSportScoreProviderId(m);
+  if (ssId) {
+    return `mid_${ssId}`;
   }
   const h = (m.home || '').toLowerCase().replace(/[^a-z0-9]/g, '');
   const a = (m.away || '').toLowerCase().replace(/[^a-z0-9]/g, '');
@@ -384,7 +551,7 @@ export function makeFreeMatchDedupeKey(m: { matchId?: string; home: string; away
   if (m.kickoffIso) {
     const isoM = m.kickoffIso.match(/^\d{4}-(\d{2})-(\d{2})/);
     if (isoM) {
-      dateKey = `${isoM[2]}_${isoM[1]}`; // DD_MM
+      dateKey = `${isoM[2]}_${isoM[1]}`;
     }
   }
   if (!dateKey && m.kickoff) {
@@ -400,95 +567,117 @@ export function makeFreeMatchDedupeKey(m: { matchId?: string; home: string; away
   return `${h}___${a}___${dateKey}`;
 }
 
+function mergeFreeMatchPair(existing: FreeMatch, incoming: FreeMatch): FreeMatch {
+  const existingStatus = existing.status || 'pre';
+  const existingPeriod = existing.period || (existingStatus === 'post' ? 'full_time' : existingStatus === 'in' ? 'first_half' : 'scheduled');
+  const incomingStatus = incoming.status || 'pre';
+  const incomingPeriod = incoming.period || (incomingStatus === 'post' ? 'full_time' : incomingStatus === 'in' ? 'second_half' : 'scheduled');
+
+  const isPermitted = isStatusTransitionValid(
+    existingStatus,
+    existingPeriod,
+    incomingStatus,
+    incomingPeriod
+  );
+
+  let finalStatus: MatchStatus = isPermitted ? incomingStatus : existingStatus;
+  let finalPeriod: MatchPeriod = isPermitted ? incomingPeriod : existingPeriod;
+
+  if (existingStatus === 'post' && incomingStatus !== 'post') {
+    finalStatus = 'post';
+    finalPeriod = existingPeriod === 'scheduled' ? 'full_time' : existingPeriod;
+  }
+
+  let finalClock = existing.displayClock || existing.minute || '';
+  if (finalStatus === 'post') {
+    finalClock = finalPeriod === 'after_penalties' ? 'AP' : finalPeriod === 'after_extra_time' ? 'AET' : 'FT';
+  } else if (isPermitted) {
+    const incClock = incoming.displayClock || incoming.minute || '';
+    const isExNumericMin = /^\d+(?:\+\d*)?'$/.test(finalClock);
+    const isIncGeneric = ['1st half', '2nd half', 'live'].includes(incClock.toLowerCase());
+    // Never keep 'HT' when match advances to 'second_half'!
+    if (isExNumericMin && isIncGeneric && existingPeriod === finalPeriod) {
+      // keep numeric minute within same half
+    } else {
+      finalClock = incClock || (finalPeriod === 'halftime' ? 'HT' : finalPeriod === 'second_half' ? '2nd Half' : 'LIVE');
+    }
+  }
+
+  let finalHomeScore = existing.homeScore;
+  let finalAwayScore = existing.awayScore;
+  if (incomingStatus === 'in' || incomingStatus === 'post') {
+    if (incoming.homeScore !== null && incoming.homeScore !== undefined && !Number.isNaN(Number(incoming.homeScore))) {
+      if (isPermitted || existingStatus === incomingStatus) finalHomeScore = Number(incoming.homeScore);
+    }
+    if (incoming.awayScore !== null && incoming.awayScore !== undefined && !Number.isNaN(Number(incoming.awayScore))) {
+      if (isPermitted || existingStatus === incomingStatus) finalAwayScore = Number(incoming.awayScore);
+    }
+  } else if (incomingStatus === 'pre' && existingStatus === 'pre') {
+    finalHomeScore = null;
+    finalAwayScore = null;
+  }
+
+  const isIncomingBet365 = incoming.bookmaker === 'Bet365';
+  const isExistingBet365 = existing.bookmaker === 'Bet365';
+  const preferBet365 = isIncomingBet365 || isExistingBet365;
+
+  const finalBookmaker = preferBet365 ? 'Bet365' : (incoming.bookmaker || existing.bookmaker);
+  const finalHomeOdds = isExistingBet365 && !isIncomingBet365 ? existing.homeOdds : (incoming.homeOdds || existing.homeOdds);
+  const finalDrawOdds = isExistingBet365 && !isIncomingBet365 ? existing.drawOdds : (incoming.drawOdds || existing.drawOdds);
+  const finalAwayOdds = isExistingBet365 && !isIncomingBet365 ? existing.awayOdds : (incoming.awayOdds || existing.awayOdds);
+  const finalHomePct = isExistingBet365 && !isIncomingBet365 ? existing.homePct : (incoming.homePct || existing.homePct);
+  const finalDrawPct = isExistingBet365 && !isIncomingBet365 ? existing.drawPct : (incoming.drawPct || existing.drawPct);
+  const finalAwayPct = isExistingBet365 && !isIncomingBet365 ? existing.awayPct : (incoming.awayPct || existing.awayPct);
+  const finalOver25Pct = isExistingBet365 && !isIncomingBet365 ? existing.over25Pct : (incoming.over25Pct ?? existing.over25Pct);
+  const finalMatchUrl = incoming.matchUrl || existing.matchUrl;
+
+  return {
+    ...existing,
+    ...incoming,
+    id: existing.id,
+    matchUrl: finalMatchUrl,
+    matchSlug: incoming.matchSlug || existing.matchSlug,
+    matchId: incoming.matchId || existing.matchId,
+    bookmaker: finalBookmaker,
+    homeOdds: finalHomeOdds,
+    drawOdds: finalDrawOdds,
+    awayOdds: finalAwayOdds,
+    homePct: finalHomePct,
+    drawPct: finalDrawPct,
+    awayPct: finalAwayPct,
+    over25Pct: finalOver25Pct,
+    status: finalStatus,
+    period: finalPeriod,
+    displayClock: finalClock,
+    minute: finalClock,
+    homeScore: finalHomeScore,
+    awayScore: finalAwayScore,
+    homeHtScore: incoming.homeHtScore ?? existing.homeHtScore,
+    awayHtScore: incoming.awayHtScore ?? existing.awayHtScore,
+    incidents: (incoming.incidents && incoming.incidents.length > 0) ? incoming.incidents : existing.incidents,
+    latestGoalscorer: incoming.latestGoalscorer || existing.latestGoalscorer,
+  };
+}
+
 export async function refreshFreeMatches(force = false) {
-  // Only show full loading state during initial page hydration if no matches are cached
   if (!hasSyncedFreeMatchesOnce && liveMatches.length === 0) {
     isSyncingFreeMatches = true;
     emitFreeMatchesChange();
   }
 
   try {
-    // 1. Fetch daily highlights directly from SportScore API pipeline
     const highlightFixtures = await fetchDailyHighlightFixtures(force);
     const convertedHighlights = highlightFixtures.map((fixture) => toFreeMatch(fixture));
 
-    // 2. Load locally cached SportScore fixtures
     const persistedFixtures = loadStoredMatches();
     const baseMap = new Map<string, FreeMatch>();
     for (const m of persistedFixtures) baseMap.set(makeFreeMatchDedupeKey(m), m);
-    // In-memory pool is freshest (live scores, Bet365 odds) and wins over the persisted copy
     for (const m of liveMatches) baseMap.set(makeFreeMatchDedupeKey(m), m);
     const storedFixtures = Array.from(baseMap.values());
-
-    // 3. Merge sources with deduplication & monotonic state validation
-    const mergeFreeMatchRecords = (existing: FreeMatch, incoming: FreeMatch): FreeMatch => {
-      const existingStatus = existing.status || 'pre';
-      const existingPeriod = existing.period || 'scheduled';
-      const incomingStatus = incoming.status || 'pre';
-      const incomingPeriod = incoming.period || 'scheduled';
-
-      const isPermitted = isStatusTransitionValid(
-        existingStatus,
-        existingPeriod,
-        incomingStatus,
-        incomingPeriod
-      );
-
-      let finalStatus = isPermitted ? incomingStatus : existingStatus;
-      let finalPeriod = isPermitted ? incomingPeriod : existingPeriod;
-      let finalClock = isPermitted ? (incoming.displayClock || existing.displayClock) : existing.displayClock;
-
-      // Terminal status invariant: completed matches ('post') must never be downgraded
-      if (existingStatus === 'post' && incomingStatus !== 'post') {
-        finalStatus = 'post';
-        finalPeriod = existingPeriod === 'scheduled' ? 'full_time' : existingPeriod;
-      }
-
-      let finalHomeScore = incoming.homeScore !== null && incoming.homeScore !== undefined ? incoming.homeScore : existing.homeScore;
-      let finalAwayScore = incoming.awayScore !== null && incoming.awayScore !== undefined ? incoming.awayScore : existing.awayScore;
-      if (finalStatus === 'post' && (finalHomeScore === null || finalHomeScore === undefined)) {
-        finalHomeScore = existing.homeScore;
-        finalAwayScore = existing.awayScore;
-      }
-
-      const isIncomingBet365 = incoming.bookmaker === 'Bet365';
-      const isExistingBet365 = existing.bookmaker === 'Bet365';
-      const preferBet365 = isIncomingBet365 || isExistingBet365;
-
-      const finalBookmaker = preferBet365 ? 'Bet365' : (incoming.bookmaker || existing.bookmaker);
-      const finalHomeOdds = isExistingBet365 && !isIncomingBet365 ? existing.homeOdds : (incoming.homeOdds || existing.homeOdds);
-      const finalDrawOdds = isExistingBet365 && !isIncomingBet365 ? existing.drawOdds : (incoming.drawOdds || existing.drawOdds);
-      const finalAwayOdds = isExistingBet365 && !isIncomingBet365 ? existing.awayOdds : (incoming.awayOdds || existing.awayOdds);
-      const finalHomePct = isExistingBet365 && !isIncomingBet365 ? existing.homePct : (incoming.homePct || existing.homePct);
-      const finalDrawPct = isExistingBet365 && !isIncomingBet365 ? existing.drawPct : (incoming.drawPct || existing.drawPct);
-      const finalAwayPct = isExistingBet365 && !isIncomingBet365 ? existing.awayPct : (incoming.awayPct || existing.awayPct);
-      const finalOver25Pct = isExistingBet365 && !isIncomingBet365 ? existing.over25Pct : (incoming.over25Pct ?? existing.over25Pct);
-      const finalMatchUrl = incoming.matchUrl || existing.matchUrl;
-
-      return {
-        ...existing,
-        ...incoming,
-        matchUrl: finalMatchUrl,
-        bookmaker: finalBookmaker,
-        homeOdds: finalHomeOdds,
-        drawOdds: finalDrawOdds,
-        awayOdds: finalAwayOdds,
-        homePct: finalHomePct,
-        drawPct: finalDrawPct,
-        awayPct: finalAwayPct,
-        over25Pct: finalOver25Pct,
-        status: finalStatus,
-        period: finalPeriod,
-        displayClock: finalClock,
-        homeScore: finalHomeScore,
-        awayScore: finalAwayScore,
-      };
-    };
 
     const mergedMap = new Map<string, FreeMatch>();
 
     if (convertedHighlights.length > 0) {
-      // Create lookup map of stored fixtures for fast merging
       const storedMap = new Map<string, FreeMatch>();
       for (const m of storedFixtures) {
         if (!m.id?.startsWith('future_') && m.providerId !== 'ars_che_001') {
@@ -496,14 +685,12 @@ export async function refreshFreeMatches(force = false) {
         }
       }
 
-      // Authoritative fresh highlights from server are the primary foundation
       for (const m of convertedHighlights) {
         const key = makeFreeMatchDedupeKey(m);
         const existing = storedMap.get(key);
-        mergedMap.set(key, existing ? mergeFreeMatchRecords(existing, m) : m);
+        mergedMap.set(key, existing ? mergeFreeMatchPair(existing, m) : m);
       }
 
-      // Preserve active admin PDF uploads and genuine live in-play matches from stored fixtures
       for (const m of storedFixtures) {
         const key = makeFreeMatchDedupeKey(m);
         if (!mergedMap.has(key)) {
@@ -516,7 +703,6 @@ export async function refreshFreeMatches(force = false) {
         }
       }
     } else {
-      // Fallback: if server returned no highlights, preserve valid stored fixtures
       for (const m of storedFixtures) {
         if (!m.id?.startsWith('future_') && m.providerId !== 'ars_che_001') {
           mergedMap.set(makeFreeMatchDedupeKey(m), m);
@@ -535,9 +721,7 @@ export async function refreshFreeMatches(force = false) {
         ]),
       ) as Record<string, MatchConsensus>;
 
-      try {
-        localStorage.setItem('mshindi_football_cache_v3', JSON.stringify(liveMatches));
-      } catch {}
+      persistLiveMatchesToStorage();
     } else if (liveMatches.length === 0) {
       liveMatches = [];
       liveConsensus = {};
@@ -597,7 +781,6 @@ export function appendUploadedFreeMatches(
   for (const inc of incoming) {
     const key = makeFreeMatchDedupeKey(inc);
     if (existingMap.has(key)) {
-      // Duplicate fixture found on new PDF: keep existing, do not show duplicates
       const prev = existingMap.get(key)!;
       existingMap.set(key, {
         ...prev,
@@ -646,7 +829,7 @@ export function setUploadedFreeMatches(fixtures: FreeMatch[]) {
   Object.keys(freeMatchConsensus).forEach((key) => delete freeMatchConsensus[key]);
   Object.assign(freeMatchConsensus, liveConsensus);
   hasSyncedFreeMatchesOnce = true;
-  emitFreeMatchesChange();
+  emitFreeMatchesChange(true);
 
   try {
     localStorage.setItem('mshindi_uploaded_fixtures', JSON.stringify(fixtures));
@@ -694,10 +877,7 @@ export function updateFreeMatchOdds(enriched: FreeMatch[]) {
 
   if (hasChanges) {
     freeMatches.splice(0, freeMatches.length, ...liveMatches);
-    emitFreeMatchesChange();
-    try {
-      localStorage.setItem('mshindi_football_cache_v3', JSON.stringify(liveMatches));
-    } catch {}
+    emitFreeMatchesChange(true);
   }
 }
 

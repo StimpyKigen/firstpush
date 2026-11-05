@@ -1,518 +1,548 @@
 /**
- * Mshindi Server-Sent Events (SSE) Real-Time Broadcaster
- * 
- * Provides centralized, highly efficient, low-latency one-way data distribution
- * for live football scores, match clock ticks, incidents (goals/cards), and market odds.
- * 
- * Invariants & Architecture:
- * 1. Single centralized ingestion layer: prevents individual clients from hammering
- *    upstream provider APIs.
- * 2. Lightweight delta events: sends only changed fields (score, clock, incident)
- *    rather than complete 100KB fixture objects (>98% bandwidth reduction).
- * 3. Monotonic sequence numbering & circular replay buffer: supports seamless catch-up
- *    when clients reconnect via `Last-Event-ID`.
- * 4. Automatic dead-connection pruning & 15s heartbeat pings to keep cellular/proxy connections alive.
- * 5. Environment-adaptive: supports long-lived connections (Node/Express) and bounded sessions (Vercel serverless).
+ * Real-Time Event Broadcaster & SSE Stream Manager
+ *
+ * Implements an authoritative push distribution layer over Server-Sent Events (SSE).
+ * Features:
+ * - Zero-polling push delivery to all connected browser clients
+ * - Monotonic sequence IDs with circular replay buffer (Last-Event-ID catch-up on reconnect)
+ * - Immediate initial `live_snapshot` push on client connection so clients immediately sync live/finished states
+ * - Automatic deduplication of identical consecutive fixture events
+ * - Keep-alive heartbeats every 15s to prevent proxy / CDN idle drops
+ * - Graceful connection renewal before serverless execution limits (48s)
+ * - Full connection and delivery metrics
  */
 
-import type { Request, Response } from 'express';
-import type { MatchStatus, MatchPeriod } from './matchStatus.js';
-import type { MatchIncidentItem } from './freeMatches.js';
-
 export type RealtimeEventType =
+  | 'connected'
+  | 'live_snapshot'
+  | 'score_update'
+  | 'status_change'
+  | 'incident'
+  | 'fixture_upsert'
+  | 'odds_update'
+  | 'heartbeat'
+  | 'ping'
   | 'SCORE_UPDATE'
-  | 'INCIDENT'
   | 'STATUS_CHANGE'
-  | 'ODDS_UPDATE'
+  | 'INCIDENT'
   | 'FIXTURE_UPSERT'
-  | 'SYNC_REQUIRED'
-  | 'HEARTBEAT';
+  | 'ODDS_UPDATE';
 
-export interface BaseRealtimeEvent {
-  id: string; // e.g. "evt_1730718000000_1"
-  sequence: number; // strictly monotonic integer: 1, 2, 3...
-  timestamp: number; // Unix ms
+export interface RealtimeEventPayload {
+  id: number;
+  sequence: number;
   type: RealtimeEventType;
-}
-
-export interface ScoreUpdatePayload {
-  type: 'SCORE_UPDATE';
-  fixtureId: string;
+  timestamp: string;
+  fixtureId?: string;
   providerId?: string;
-  homeScore: number | null;
-  awayScore: number | null;
-  displayClock?: string;
-  period?: MatchPeriod;
-  status?: MatchStatus;
-  latestGoalscorer?: string;
+  matchSlug?: string;
+  data: any;
 }
 
-export interface IncidentPayload {
-  type: 'INCIDENT';
-  fixtureId: string;
-  providerId?: string;
-  incident: MatchIncidentItem;
-}
-
-export interface StatusChangePayload {
-  type: 'STATUS_CHANGE';
-  fixtureId: string;
-  providerId?: string;
-  status: MatchStatus;
-  period?: MatchPeriod;
-  displayClock?: string;
-  result?: '1' | 'X' | '2';
-}
-
-export interface OddsUpdatePayload {
-  type: 'ODDS_UPDATE';
-  fixtureId: string;
-  providerId?: string;
-  bookmaker: string;
-  homeOdds?: number;
-  drawOdds?: number;
-  awayOdds?: number;
-}
-
-export interface FixtureUpsertPayload {
-  type: 'FIXTURE_UPSERT';
-  fixtureId: string;
-  providerId?: string;
-  fixture: Record<string, any>;
-}
-
-export interface SyncRequiredPayload {
-  type: 'SYNC_REQUIRED';
-  reason: 'buffer_overflow' | 'initial_connect' | 'authoritative_reset';
-  latestSequence: number;
-}
-
-export interface HeartbeatPayload {
-  type: 'HEARTBEAT';
-}
-
-export type RealtimeEventPayload =
-  | ScoreUpdatePayload
-  | IncidentPayload
-  | StatusChangePayload
-  | OddsUpdatePayload
-  | FixtureUpsertPayload
-  | SyncRequiredPayload
-  | HeartbeatPayload;
-
-export type RealtimeDeltaEvent = BaseRealtimeEvent & RealtimeEventPayload;
+export type RealtimeDeltaEvent = RealtimeEventPayload;
 
 interface ConnectedClient {
   id: string;
-  res: Response;
-  ip: string;
-  userAgent?: string;
+  res: any;
   connectedAt: number;
-  lastActive: number;
-  closed: boolean;
-  serverlessTimer?: NodeJS.Timeout;
+  heartbeatTimer: NodeJS.Timeout;
+  renewalTimer?: NodeJS.Timeout;
 }
 
 export interface BroadcasterMetrics {
   activeConnections: number;
   totalConnectionsServed: number;
+  totalEventsDispatched: number;
   totalEventsEmitted: number;
-  currentSequence: number;
+  totalDeliveriesSent: number;
+  duplicateEventsIgnored: number;
+  lastEventDispatchedAt: string | null;
+  lastDeliverySentAt: string | null;
   bufferSize: number;
-  oldestBufferedSequence: number | null;
-  uptimeSeconds: number;
+  currentSequenceId: number;
+}
+
+const MAX_BUFFER_SIZE = 500;
+const HEARTBEAT_INTERVAL_MS = 15_000;
+const SERVERLESS_RENEWAL_MS = 48_000;
+
+function stripUndefined<T extends Record<string, any>>(obj: T): Partial<T> {
+  const out: Record<string, any> = {};
+  for (const [k, v] of Object.entries(obj)) {
+    if (v !== undefined) {
+      out[k] = v;
+    }
+  }
+  return out as Partial<T>;
 }
 
 class RealtimeBroadcaster {
   private clients = new Map<string, ConnectedClient>();
-  private recentEvents: RealtimeDeltaEvent[] = [];
-  private readonly maxBufferSize = 500;
-  private sequenceCounter = 0;
+  private eventBuffer: RealtimeEventPayload[] = [];
+  private lastSignatureByKey = new Map<string, string>();
+  private sequenceId = 1000;
   private totalConnectionsServed = 0;
-  private totalEventsEmitted = 0;
-  private readonly startedAt = Date.now();
-  private heartbeatInterval: NodeJS.Timeout | null = null;
+  private totalEventsDispatched = 0;
+  private totalDeliveriesSent = 0;
+  private duplicateEventsIgnored = 0;
+  private lastEventDispatchedAt: string | null = null;
+  private lastDeliverySentAt: string | null = null;
+  private snapshotProvider: (() => any[]) | null = null;
+  private onClientConnectHook: (() => void | Promise<void>) | null = null;
 
-  constructor() {
-    this.startHeartbeatTimer();
+  /**
+   * Registers a callback that returns the current authoritative live + today's finished fixtures
+   * to send immediately when a new SSE client connects.
+   */
+  public setSnapshotProvider(provider: () => any[]): void {
+    this.snapshotProvider = provider;
   }
 
   /**
-   * Start 15-second heartbeat ping interval to prevent TCP socket drops
+   * Registers a callback invoked whenever an SSE client connects (e.g. to ensure live polling is active).
    */
-  private startHeartbeatTimer() {
-    if (this.heartbeatInterval) return;
-    this.heartbeatInterval = setInterval(() => {
-      this.sendHeartbeat();
-    }, 15_000);
-
-    // Prevent unref error in non-Node environments
-    if (this.heartbeatInterval.unref) {
-      this.heartbeatInterval.unref();
-    }
+  public setOnClientConnect(hook: () => void | Promise<void>): void {
+    this.onClientConnectHook = hook;
   }
 
   /**
-   * Register a new client SSE response stream
+   * Convenience wrapper for registering a response stream directly.
    */
-  public registerClient(req: Request, res: Response): string {
-    const clientId = `client_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
-    const ip = (req.headers['x-forwarded-for'] as string)?.split(',')[0]?.trim() || req.ip || req.socket.remoteAddress || 'unknown';
-    const userAgent = req.headers['user-agent'] as string | undefined;
+  public addClient(res: any, lastEventId?: string): string {
+    const fakeReq = {
+      headers: lastEventId ? { 'last-event-id': lastEventId } : {},
+      query: {},
+      on: () => {},
+    };
+    return this.registerClient(fakeReq, res);
+  }
 
-    // Establish SSE Headers
-    res.writeHead(200, {
+  /**
+   * Registers an incoming HTTP response stream as an SSE subscriber.
+   */
+  public registerClient(req: any, res: any): string {
+    const clientId = `sse_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+    this.totalConnectionsServed++;
+
+    const headers: Record<string, string> = {
       'Content-Type': 'text/event-stream; charset=utf-8',
-      'Cache-Control': 'no-cache, no-transform, no-store, must-revalidate',
-      'Connection': 'keep-alive',
-      'X-Accel-Buffering': 'no', // Critical: disables NGINX reverse-proxy buffering
+      'Cache-Control': 'no-cache, no-store, no-transform, must-revalidate',
+      Connection: 'keep-alive',
+      'X-Accel-Buffering': 'no',
       'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Headers': 'Origin, X-Requested-With, Content-Type, Accept, Last-Event-ID',
-    });
+    };
 
-    // Flush headers immediately if supported
-    if (typeof (res as any).flushHeaders === 'function') {
-      (res as any).flushHeaders();
+    if (typeof res.setHeader === 'function') {
+      for (const [k, v] of Object.entries(headers)) {
+        res.setHeader(k, v);
+      }
+    }
+    if (typeof res.writeHead === 'function' && !res.headersSent) {
+      res.writeHead(200, headers);
+    }
+    if (typeof res.flushHeaders === 'function') {
+      res.flushHeaders();
+    }
+
+    // Instruct browser EventSource to retry after 2000ms if disconnected
+    this.writeRaw(res, `retry: 2000\n\n`);
+
+    // Send initial connection confirmation
+    const welcomeEvent: RealtimeEventPayload = {
+      id: this.sequenceId,
+      sequence: this.sequenceId,
+      type: 'connected',
+      timestamp: new Date().toISOString(),
+      data: {
+        clientId,
+        sequenceId: this.sequenceId,
+        activeConnections: this.clients.size + 1,
+      },
+    };
+    this.writeEvent(res, welcomeEvent);
+
+    // Check Last-Event-ID header or query param for seamless catch-up replay
+    const lastEventIdRaw =
+      req?.headers?.['last-event-id'] ||
+      req?.query?.lastEventId ||
+      req?.query?.last_event_id;
+    const cleanedLastId = lastEventIdRaw ? String(lastEventIdRaw).replace(/^seq_/, '') : '';
+    const lastEventId = cleanedLastId ? parseInt(cleanedLastId, 10) : NaN;
+
+    if (!Number.isNaN(lastEventId) && lastEventId < this.sequenceId) {
+      const missedEvents = this.eventBuffer.filter((ev) => ev.id > lastEventId);
+      for (const ev of missedEvents) {
+        this.writeEvent(res, ev);
+      }
+    }
+
+    // Send an initial authoritative live_snapshot when a client connects so live/finished states are immediately synced
+    if (this.snapshotProvider) {
+      try {
+        const snapshotFixtures = this.snapshotProvider();
+        if (Array.isArray(snapshotFixtures) && snapshotFixtures.length > 0) {
+          const snapEvent: RealtimeEventPayload = {
+            id: this.sequenceId,
+            sequence: this.sequenceId,
+            type: 'live_snapshot',
+            timestamp: new Date().toISOString(),
+            data: {
+              count: snapshotFixtures.length,
+              fixtures: snapshotFixtures,
+            },
+          };
+          this.writeEvent(res, snapEvent);
+        }
+      } catch {
+        // Non-fatal snapshot error
+      }
+    }
+
+    // Periodic heartbeat to keep connection alive through load balancers
+    const heartbeatTimer = setInterval(() => {
+      try {
+        if (res.writableEnded) {
+          this.removeClient(clientId);
+          return;
+        }
+        this.writeRaw(res, `: heartbeat ${Date.now()}\n\n`);
+      } catch {
+        this.removeClient(clientId);
+      }
+    }, HEARTBEAT_INTERVAL_MS);
+
+    // If running in a serverless environment (e.g. Vercel), gracefully close before hard timeout
+    // so the browser EventSource cleanly reconnects with Last-Event-ID
+    let renewalTimer: NodeJS.Timeout | undefined;
+    if (process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME) {
+      renewalTimer = setTimeout(() => {
+        try {
+          this.writeRaw(res, `event: reconnect\ndata: {"reason":"serverless_window_renewal"}\n\n`);
+          res.end();
+        } catch {
+          // Ignore close errors
+        } finally {
+          this.removeClient(clientId);
+        }
+      }, SERVERLESS_RENEWAL_MS);
     }
 
     const client: ConnectedClient = {
       id: clientId,
       res,
-      ip,
-      userAgent,
       connectedAt: Date.now(),
-      lastActive: Date.now(),
-      closed: false,
+      heartbeatTimer,
+      renewalTimer,
     };
-
-    // If running under Vercel serverless (max duration 60s), schedule clean close at 48s
-    // Browser EventSource will instantly reconnect with Last-Event-ID without missing events
-    if (process.env.VERCEL === '1') {
-      client.serverlessTimer = setTimeout(() => {
-        if (!client.closed) {
-          this.writeSSE(client, 'serverless_renew', {
-            message: 'Serverless execution window expired. Reconnecting automatically.',
-            latestSequence: this.sequenceCounter,
-          });
-          this.unregisterClient(clientId);
-        }
-      }, 48_000);
-    }
 
     this.clients.set(clientId, client);
-    this.totalConnectionsServed++;
+    this.lastSignatureByKey.clear();
 
-    // Initial greeting event
-    this.writeSSE(client, 'connected', {
-      clientId,
-      serverTime: new Date().toISOString(),
-      currentSequence: this.sequenceCounter,
-      heartbeatIntervalMs: 15_000,
-    });
-
-    // Handle Last-Event-ID catchup replay
-    const lastEventIdHeader = req.headers['last-event-id'] || (req.query.lastEventId as string);
-    if (lastEventIdHeader) {
-      const match = String(lastEventIdHeader).match(/seq_(\d+)/) || String(lastEventIdHeader).match(/(\d+)/);
-      if (match) {
-        const lastSeq = parseInt(match[1], 10);
-        if (!isNaN(lastSeq)) {
-          this.replayCatchupEvents(client, lastSeq);
-        }
-      }
+    // Trigger onClientConnectHook asynchronously so the newly connected client gets fresh upstream updates
+    if (this.onClientConnectHook) {
+      Promise.resolve(this.onClientConnectHook()).catch(() => {});
     }
 
-    // Handle connection closure
     const cleanup = () => {
-      this.unregisterClient(clientId);
+      this.removeClient(clientId);
     };
 
-    req.on('close', cleanup);
-    req.on('end', cleanup);
-    res.on('close', cleanup);
-    res.on('error', cleanup);
+    if (req && typeof req.on === 'function') {
+      req.on('close', cleanup);
+      req.on('error', cleanup);
+    }
+    if (res && typeof res.on === 'function') {
+      res.on('close', cleanup);
+      res.on('error', cleanup);
+    }
 
     return clientId;
   }
 
   /**
-   * Unregister client and cleanly close socket
+   * Emits an active heartbeat ping to all connected clients and prunes closed sockets.
    */
-  public unregisterClient(clientId: string): void {
+  public sendHeartbeat(): void {
+    const now = Date.now();
+    const frame = `event: ping\ndata: ${JSON.stringify({ t: now })}\n\n`;
+    for (const [clientId, client] of this.clients.entries()) {
+      if (client.res.writableEnded) {
+        this.removeClient(clientId);
+        continue;
+      }
+      try {
+        this.writeRaw(client.res, frame);
+      } catch {
+        this.removeClient(clientId);
+      }
+    }
+  }
+
+  /**
+   * Removes and cleans up a disconnected SSE client.
+   */
+  public removeClient(clientId: string): void {
     const client = this.clients.get(clientId);
     if (!client) return;
-
-    client.closed = true;
-    if (client.serverlessTimer) {
-      clearTimeout(client.serverlessTimer);
+    clearInterval(client.heartbeatTimer);
+    if (client.renewalTimer) {
+      clearTimeout(client.renewalTimer);
     }
-
-    try {
-      if (!client.res.writableEnded) {
-        client.res.end();
-      }
-    } catch {
-      // socket already destroyed
-    }
-
     this.clients.delete(clientId);
   }
 
   /**
-   * Replay missed events from circular buffer if available, or signal full sync
+   * Broadcasts a delta event immediately to all connected clients and stores it in the replay buffer.
+   * Deduplicates identical consecutive events for the same fixtureId + event type unless force=true.
    */
-  private replayCatchupEvents(client: ConnectedClient, lastClientSequence: number): void {
-    if (lastClientSequence >= this.sequenceCounter) {
-      return; // Client is already up to date
-    }
+  public emit(
+    type: RealtimeEventType,
+    data: any,
+    meta?: { fixtureId?: string; providerId?: string; matchSlug?: string; force?: boolean }
+  ): RealtimeEventPayload {
+    const wireType = String(type).toLowerCase() as RealtimeEventType;
+    const cleanData = data && typeof data === 'object' ? stripUndefined(data) : data;
 
-    const oldestBuffered = this.recentEvents.length > 0 ? this.recentEvents[0].sequence : null;
-
-    if (oldestBuffered === null || lastClientSequence < oldestBuffered - 1) {
-      // Replay buffer overflowed: Client was disconnected too long; request fresh sync
-      this.writeSSE(client, 'sync_required', {
-        type: 'SYNC_REQUIRED',
-        reason: 'buffer_overflow',
-        latestSequence: this.sequenceCounter,
-      });
-      return;
-    }
-
-    // Replay all events since client's last seen sequence
-    const missed = this.recentEvents.filter((e) => e.sequence > lastClientSequence);
-    for (const event of missed) {
-      this.writeEventToClient(client, event);
-    }
-  }
-
-  /**
-   * Broadcast a delta event to all active clients
-   */
-  public broadcastDelta(payload: RealtimeEventPayload): RealtimeDeltaEvent {
-    this.sequenceCounter++;
-    this.totalEventsEmitted++;
-
-    const event: RealtimeDeltaEvent = {
-      ...(payload as any),
-      id: `evt_${Date.now()}_seq_${this.sequenceCounter}`,
-      sequence: this.sequenceCounter,
-      timestamp: Date.now(),
-    };
-
-    // Store in circular replay buffer (skip HEARTBEAT)
-    if (payload.type !== 'HEARTBEAT') {
-      this.recentEvents.push(event);
-      if (this.recentEvents.length > this.maxBufferSize) {
-        this.recentEvents.shift();
+    // Deduplicate identical consecutive events per fixture + type
+    if (!meta?.force && meta?.fixtureId && wireType !== 'heartbeat' && wireType !== 'ping' && wireType !== 'connected') {
+      const dedupeKey = `${wireType}:${meta.fixtureId}`;
+      const sig = JSON.stringify(cleanData);
+      if (this.lastSignatureByKey.get(dedupeKey) === sig) {
+        this.duplicateEventsIgnored++;
+        const existing = [...this.eventBuffer].reverse().find((e) => e.fixtureId === meta.fixtureId && String(e.type).toLowerCase() === wireType);
+        if (existing) {
+          return Object.assign({}, existing, { duplicateSuppressed: true });
+        }
+      }
+      this.lastSignatureByKey.set(dedupeKey, sig);
+      if (this.lastSignatureByKey.size > 2000) {
+        const firstKey = this.lastSignatureByKey.keys().next().value;
+        if (firstKey) this.lastSignatureByKey.delete(firstKey);
       }
     }
 
-    // Broadcast to all active clients
-    const deadClients: string[] = [];
+    this.sequenceId++;
+    this.totalEventsDispatched++;
+    const nowIso = new Date().toISOString();
+    this.lastEventDispatchedAt = nowIso;
 
+    const payload: RealtimeEventPayload = stripUndefined({
+      id: this.sequenceId,
+      sequence: this.sequenceId,
+      type: wireType,
+      timestamp: nowIso,
+      fixtureId: meta?.fixtureId,
+      providerId: meta?.providerId,
+      matchSlug: meta?.matchSlug,
+      data: cleanData,
+    }) as RealtimeEventPayload;
+
+    // Append to circular replay buffer
+    if (wireType !== 'heartbeat' && wireType !== 'ping' && wireType !== 'connected' && wireType !== 'live_snapshot') {
+      this.eventBuffer.push(payload);
+      if (this.eventBuffer.length > MAX_BUFFER_SIZE) {
+        this.eventBuffer.shift();
+      }
+    }
+
+    // Fan-out immediately to all active SSE streams
     for (const [clientId, client] of this.clients.entries()) {
-      if (client.closed || client.res.writableEnded) {
-        deadClients.push(clientId);
+      if (client.res.writableEnded) {
+        this.removeClient(clientId);
         continue;
       }
-
-      const success = this.writeEventToClient(client, event);
-      if (!success) {
-        deadClients.push(clientId);
+      try {
+        this.writeEvent(client.res, payload);
+        this.totalDeliveriesSent++;
+        this.lastDeliverySentAt = nowIso;
+      } catch {
+        this.removeClient(clientId);
       }
     }
 
-    // Clean up dead connections
-    for (const deadId of deadClients) {
-      this.unregisterClient(deadId);
-    }
-
-    return event;
+    return payload;
   }
 
   /**
-   * Broadcast lightweight score update
+   * Convenience helper to broadcast a score update event.
    */
   public broadcastScoreUpdate(
     fixtureId: string,
-    homeScore: number | null,
-    awayScore: number | null,
+    homeScore: number | null | undefined,
+    awayScore: number | null | undefined,
     displayClock?: string,
-    period?: MatchPeriod,
-    latestGoalscorer?: string,
+    period?: string,
+    latestGoalscorer?: any,
     providerId?: string,
-    status?: MatchStatus
-  ): RealtimeDeltaEvent {
-    return this.broadcastDelta({
-      type: 'SCORE_UPDATE',
-      fixtureId,
-      providerId,
-      homeScore,
-      awayScore,
-      displayClock,
-      period,
-      status,
-      latestGoalscorer,
-    });
+    status?: string,
+    homeHtScore?: number | null,
+    awayHtScore?: number | null,
+    matchSlug?: string,
+    home?: string,
+    away?: string,
+    kickoffIso?: string,
+    updateVersion?: number
+  ): RealtimeEventPayload {
+    const force = typeof latestGoalscorer === 'boolean' ? latestGoalscorer : false;
+    const scorer = typeof latestGoalscorer === 'boolean' ? undefined : latestGoalscorer;
+    const evt = this.emit(
+      'score_update',
+      {
+        homeScore,
+        awayScore,
+        homeHtScore,
+        awayHtScore,
+        displayClock,
+        period,
+        status: status || period,
+        latestGoalscorer: scorer,
+        home,
+        away,
+        kickoffIso,
+        updateVersion,
+      },
+      { fixtureId, providerId, matchSlug, force }
+    );
+    return { ...evt, type: 'SCORE_UPDATE' };
   }
 
   /**
-   * Broadcast match incident (card / goal / var)
-   */
-  public broadcastIncident(
-    fixtureId: string,
-    incident: MatchIncidentItem,
-    providerId?: string
-  ): RealtimeDeltaEvent {
-    return this.broadcastDelta({
-      type: 'INCIDENT',
-      fixtureId,
-      providerId,
-      incident,
-    });
-  }
-
-  /**
-   * Broadcast match status transition (e.g. pre -> in, in -> post)
+   * Convenience helper to broadcast a match status / period / clock transition.
    */
   public broadcastStatusChange(
     fixtureId: string,
-    status: MatchStatus,
-    period?: MatchPeriod,
+    status: string,
+    period?: string,
     displayClock?: string,
     result?: '1' | 'X' | '2',
-    providerId?: string
-  ): RealtimeDeltaEvent {
-    return this.broadcastDelta({
-      type: 'STATUS_CHANGE',
-      fixtureId,
-      providerId,
-      status,
-      period,
-      displayClock,
-      result,
-    });
+    providerId?: string,
+    homeScore?: number | null,
+    awayScore?: number | null,
+    matchSlug?: string,
+    home?: string,
+    away?: string,
+    kickoffIso?: string,
+    updateVersion?: number
+  ): RealtimeEventPayload {
+    const evt = this.emit(
+      'status_change',
+      {
+        status,
+        period,
+        displayClock,
+        result,
+        homeScore,
+        awayScore,
+        home,
+        away,
+        kickoffIso,
+        updateVersion,
+      },
+      { fixtureId, providerId, matchSlug }
+    );
+    return { ...evt, type: 'STATUS_CHANGE' };
   }
 
   /**
-   * Broadcast market odds change
+   * Convenience helper to broadcast a new match incident (goal, red card, etc.).
+   */
+  public broadcastIncident(
+    fixtureId: string,
+    incident: any,
+    providerId?: string,
+    latestGoalscorer?: any,
+    matchSlug?: string
+  ): RealtimeEventPayload {
+    const evt = this.emit(
+      'incident',
+      {
+        incident,
+        latestGoalscorer,
+      },
+      { fixtureId, providerId, matchSlug }
+    );
+    return { ...evt, type: 'INCIDENT' };
+  }
+
+  /**
+   * Convenience helper to broadcast an odds update.
    */
   public broadcastOddsUpdate(
     fixtureId: string,
     bookmaker: string,
-    homeOdds?: number,
-    drawOdds?: number,
-    awayOdds?: number,
+    homeOdds: number,
+    drawOdds: number,
+    awayOdds: number,
     providerId?: string
-  ): RealtimeDeltaEvent {
-    return this.broadcastDelta({
-      type: 'ODDS_UPDATE',
-      fixtureId,
-      providerId,
-      bookmaker,
-      homeOdds,
-      drawOdds,
-      awayOdds,
-    });
+  ): RealtimeEventPayload {
+    const evt = this.emit(
+      'odds_update',
+      {
+        bookmaker,
+        homeOdds,
+        drawOdds,
+        awayOdds,
+      },
+      { fixtureId, providerId }
+    );
+    return { ...evt, type: 'ODDS_UPDATE' };
   }
 
   /**
-   * Send heartbeat to all clients
+   * Convenience helper to broadcast a fixture upsert.
    */
-  public sendHeartbeat(): void {
-    if (this.clients.size === 0) return;
+  public broadcastDelta(delta: {
+    type?: string;
+    fixtureId: string;
+    providerId?: string;
+    matchSlug?: string;
+    fixture: any;
+  }): RealtimeEventPayload {
+    const evt = this.emit(
+      'fixture_upsert',
+      {
+        fixture: delta.fixture,
+      },
+      { fixtureId: delta.fixtureId, providerId: delta.providerId, matchSlug: delta.matchSlug }
+    );
+    return { ...evt, type: 'FIXTURE_UPSERT' };
+  }
 
-    const deadClients: string[] = [];
-    const pingPayload = JSON.stringify({
-      t: Date.now(),
-      seq: this.sequenceCounter,
-      clients: this.clients.size,
-    });
+  private writeEvent(res: any, payload: RealtimeEventPayload): void {
+    const wireEventName = String(payload.type).toLowerCase();
+    const wireBody =
+      payload.data && typeof payload.data === 'object'
+        ? { ...payload.data, ...payload, type: wireEventName }
+        : { ...payload, type: wireEventName };
+    const serialized = JSON.stringify(wireBody);
+    const frame = `id: ${payload.id}\nevent: ${wireEventName}\ndata: ${serialized}\n\n`;
+    this.writeRaw(res, frame);
+  }
 
-    for (const [clientId, client] of this.clients.entries()) {
-      if (client.closed || client.res.writableEnded) {
-        deadClients.push(clientId);
-        continue;
-      }
-
-      try {
-        client.res.write(`event: ping\ndata: ${pingPayload}\n\n`);
-        client.lastActive = Date.now();
-        if (typeof (client.res as any).flush === 'function') {
-          (client.res as any).flush();
-        }
-      } catch {
-        deadClients.push(clientId);
-      }
-    }
-
-    for (const deadId of deadClients) {
-      this.unregisterClient(deadId);
+  private writeRaw(res: any, raw: string): void {
+    res.write(raw);
+    if (typeof res.flush === 'function') {
+      res.flush();
     }
   }
 
   /**
-   * Write an event to a single client
-   */
-  private writeEventToClient(client: ConnectedClient, event: RealtimeDeltaEvent): boolean {
-    const eventName = event.type.toLowerCase();
-    const payload = JSON.stringify(event);
-
-    try {
-      client.res.write(`id: ${event.id}\nevent: ${eventName}\ndata: ${payload}\n\n`);
-      client.lastActive = Date.now();
-      if (typeof (client.res as any).flush === 'function') {
-        (client.res as any).flush();
-      }
-      return true;
-    } catch {
-      return false;
-    }
-  }
-
-  /**
-   * Write raw SSE message to client
-   */
-  private writeSSE(client: ConnectedClient, eventName: string, data: any): void {
-    try {
-      client.res.write(`event: ${eventName}\ndata: ${JSON.stringify(data)}\n\n`);
-      if (typeof (client.res as any).flush === 'function') {
-        (client.res as any).flush();
-      }
-    } catch {
-      // write failure
-    }
-  }
-
-  /**
-   * Get operational diagnostics and telemetry metrics
+   * Returns current operational metrics for monitoring and diagnostics.
    */
   public getMetrics(): BroadcasterMetrics {
     return {
       activeConnections: this.clients.size,
       totalConnectionsServed: this.totalConnectionsServed,
-      totalEventsEmitted: this.totalEventsEmitted,
-      currentSequence: this.sequenceCounter,
-      bufferSize: this.recentEvents.length,
-      oldestBufferedSequence: this.recentEvents.length > 0 ? this.recentEvents[0].sequence : null,
-      uptimeSeconds: Math.floor((Date.now() - this.startedAt) / 1000),
+      totalEventsDispatched: this.totalEventsDispatched,
+      totalEventsEmitted: this.totalEventsDispatched,
+      totalDeliveriesSent: this.totalDeliveriesSent,
+      duplicateEventsIgnored: this.duplicateEventsIgnored,
+      lastEventDispatchedAt: this.lastEventDispatchedAt,
+      lastDeliverySentAt: this.lastDeliverySentAt,
+      bufferSize: this.eventBuffer.length,
+      currentSequenceId: this.sequenceId,
     };
-  }
-
-  /**
-   * Close all connections and stop intervals (useful for graceful shutdown or tests)
-   */
-  public destroy(): void {
-    if (this.heartbeatInterval) {
-      clearInterval(this.heartbeatInterval);
-      this.heartbeatInterval = null;
-    }
-    for (const clientId of Array.from(this.clients.keys())) {
-      this.unregisterClient(clientId);
-    }
   }
 }
 
-// Global singleton instance across server process
 export const realtimeBroadcaster = new RealtimeBroadcaster();
-

@@ -1,242 +1,130 @@
 /**
- * Mshindi Real-Time EventSource Client
- * 
- * Manages client-side Server-Sent Events (SSE) connection with:
- * 1. Automatic exponential backoff + jitter reconnection.
- * 2. Monotonic sequence deduplication and catch-up recovery via `Last-Event-ID`.
- * 3. 45-second stale heartbeat watchdog to detect silent cellular/NAT drops.
- * 4. Visibility & online/offline awareness (immediate wake-up on tab refocus).
- * 5. Direct store patching hooks for high-performance zero-re-render delta updates.
+ * Browser-Side Real-Time Event Stream Client (SSE + Resilient Auto-Recovery)
+ *
+ * Connects to `/api/sports/stream` via native EventSource.
+ * Features:
+ * - Instant push reception for score_update, status_change, incident, fixture_upsert, live_snapshot, and odds_update
+ * - Automatic Last-Event-ID tracking and server-restart sequence reset for zero missed events
+ * - Exponential backoff reconnection with jitter on network interruptions
+ * - Connection state & data-freshness telemetry
  */
 
-import type {
-  RealtimeDeltaEvent,
-  ScoreUpdatePayload,
-  IncidentPayload,
-  StatusChangePayload,
-  OddsUpdatePayload,
-  FixtureUpsertPayload,
-} from './realtimeBroadcaster';
+export type RealtimeEventType =
+  | 'connected'
+  | 'live_snapshot'
+  | 'score_update'
+  | 'status_change'
+  | 'incident'
+  | 'fixture_upsert'
+  | 'odds_update'
+  | 'heartbeat';
 
-export type RealtimeConnectionState = 'CONNECTING' | 'CONNECTED' | 'RECONNECTING' | 'DISCONNECTED';
+export interface RealtimeEventPayload {
+  id: number;
+  type: RealtimeEventType;
+  timestamp: string;
+  fixtureId?: string;
+  providerId?: string;
+  matchSlug?: string;
+  data: any;
+}
 
-type EventListenerCallback<T> = (data: T) => void;
+export type RealtimeEventHandler = (payload: RealtimeEventPayload) => void;
+export type ConnectionState = 'connecting' | 'connected' | 'reconnecting' | 'disconnected';
 
 class RealtimeClient {
   private eventSource: EventSource | null = null;
-  private state: RealtimeConnectionState = 'DISCONNECTED';
-  private lastReceivedSequence = 0;
-  private lastPingTime = 0;
+  private listeners = new Map<RealtimeEventType | '*', Set<RealtimeEventHandler>>();
+  private stateListeners = new Set<(state: ConnectionState) => void>();
+  private state: ConnectionState = 'disconnected';
+  private lastEventId = 0;
   private reconnectAttempts = 0;
-  private reconnectTimer: NodeJS.Timeout | null = null;
-  private watchdogTimer: NodeJS.Timeout | null = null;
-  private isStarted = false;
-
-  private stateListeners = new Set<(state: RealtimeConnectionState) => void>();
-  private listeners: {
-    score_update: Set<EventListenerCallback<ScoreUpdatePayload>>;
-    incident: Set<EventListenerCallback<IncidentPayload>>;
-    status_change: Set<EventListenerCallback<StatusChangePayload>>;
-    odds_update: Set<EventListenerCallback<OddsUpdatePayload>>;
-    fixture_upsert: Set<EventListenerCallback<FixtureUpsertPayload>>;
-    sync_required: Set<() => void>;
-  } = {
-    score_update: new Set(),
-    incident: new Set(),
-    status_change: new Set(),
-    odds_update: new Set(),
-    fixture_upsert: new Set(),
-    sync_required: new Set(),
-  };
-
-  constructor() {
-    this.setupWindowListeners();
-  }
-
-  public getConnectionState(): RealtimeConnectionState {
-    return this.state;
-  }
-
-  public isConnected(): boolean {
-    return this.state === 'CONNECTED';
-  }
-
-  public getLastSequence(): number {
-    return this.lastReceivedSequence;
-  }
+  private totalReconnects = 0;
+  private reconnectTimer: any = null;
+  private watchdogTimer: any = null;
+  private lastPingTime = 0;
+  private lastDataEventTime = 0;
+  private seenEventIds = new Set<number>();
 
   /**
-   * Register state change observer
-   */
-  public onStateChange(listener: (state: RealtimeConnectionState) => void): () => void {
-    this.stateListeners.add(listener);
-    listener(this.state);
-    return () => {
-      this.stateListeners.delete(listener);
-    };
-  }
-
-  /**
-   * Register listener for specific event types
-   */
-  public on<K extends keyof typeof this.listeners>(
-    eventType: K,
-    callback: any
-  ): () => void {
-    this.listeners[eventType].add(callback);
-    return () => {
-      this.listeners[eventType].delete(callback);
-    };
-  }
-
-  private setState(newState: RealtimeConnectionState) {
-    if (this.state === newState) return;
-    this.state = newState;
-    this.stateListeners.forEach((listener) => {
-      try {
-        listener(newState);
-      } catch (err) {
-        console.error('[RealtimeClient] Error in state listener:', err);
-      }
-    });
-  }
-
-  /**
-   * Initialize and connect to SSE stream
+   * Starts the SSE connection if not already active.
    */
   public start(): void {
-    if (typeof window === 'undefined') return;
-    if (this.isStarted) return;
-    this.isStarted = true;
     this.connect();
-    this.startWatchdog();
   }
 
   /**
-   * Stop connection and cleanup
+   * Stops the SSE connection and cleans up timers.
    */
   public stop(): void {
-    this.isStarted = false;
-    this.clearTimers();
-    if (this.eventSource) {
-      this.eventSource.close();
-      this.eventSource = null;
-    }
-    this.setState('DISCONNECTED');
+    this.disconnect();
   }
 
-  private connect(): void {
-    if (!this.isStarted || typeof window === 'undefined') return;
-
-    if (this.eventSource) {
-      this.eventSource.close();
-      this.eventSource = null;
+  /**
+   * Initializes the persistent SSE connection in browser environments.
+   */
+  public connect(): void {
+    if (typeof window === 'undefined' || typeof EventSource === 'undefined') {
+      return;
     }
 
-    this.setState(this.reconnectAttempts > 0 ? 'RECONNECTING' : 'CONNECTING');
-
-    const url = new URL('/api/sports/stream', window.location.origin);
-    if (this.lastReceivedSequence > 0) {
-      url.searchParams.set('lastEventId', `seq_${this.lastReceivedSequence}`);
+    if (this.eventSource && (this.state === 'connected' || this.state === 'connecting')) {
+      return;
     }
+
+    this.cleanupSocket();
+    this.setState(this.reconnectAttempts > 0 ? 'reconnecting' : 'connecting');
+
+    const streamUrl =
+      this.lastEventId > 0
+        ? `/api/sports/stream?lastEventId=${this.lastEventId}`
+        : `/api/sports/stream`;
 
     try {
-      const es = new EventSource(url.toString());
+      const es = new EventSource(streamUrl);
       this.eventSource = es;
 
       es.onopen = () => {
         this.reconnectAttempts = 0;
         this.lastPingTime = Date.now();
-        this.setState('CONNECTED');
+        this.setState('connected');
+        this.startWatchdog();
       };
 
-      // Server ping (heartbeat)
-      es.addEventListener('ping', (e: MessageEvent) => {
+      const handleRawEvent = (e: MessageEvent) => {
         this.lastPingTime = Date.now();
         try {
-          const data = JSON.parse(e.data);
-          if (data.seq && data.seq > this.lastReceivedSequence) {
-            // Server has progressed while idle, keep sequence aligned
-            this.lastReceivedSequence = Math.max(this.lastReceivedSequence, data.seq);
-          }
-        } catch {}
+          const payload: RealtimeEventPayload = JSON.parse(e.data);
+          this.dispatchEvent(payload);
+        } catch {
+          // Ignore malformed event frames
+        }
+      };
+
+      // Subscribe to all named SSE event types
+      const namedTypes: RealtimeEventType[] = [
+        'connected',
+        'live_snapshot',
+        'score_update',
+        'status_change',
+        'incident',
+        'fixture_upsert',
+        'odds_update',
+      ];
+
+      for (const t of namedTypes) {
+        es.addEventListener(t, handleRawEvent as EventListener);
+      }
+
+      // Graceful serverless window renewal event
+      es.addEventListener('reconnect', () => {
+        this.scheduleReconnect(200);
       });
 
-      // Greeting upon connection
-      es.addEventListener('connected', (e: MessageEvent) => {
-        this.lastPingTime = Date.now();
-        try {
-          const data = JSON.parse(e.data);
-          if (data.currentSequence && this.lastReceivedSequence === 0) {
-            this.lastReceivedSequence = data.currentSequence;
-          }
-        } catch {}
-      });
-
-      // Serverless execution duration limit renewal
-      es.addEventListener('serverless_renew', (e: MessageEvent) => {
-        try {
-          const data = JSON.parse(e.data);
-          if (data.latestSequence) {
-            this.lastReceivedSequence = Math.max(this.lastReceivedSequence, data.latestSequence);
-          }
-        } catch {}
-        // Close current and reconnect seamlessly
-        this.reconnect(0);
-      });
-
-      // Buffer overflow notification: requires fresh HTTP synchronization
-      es.addEventListener('sync_required', (e: MessageEvent) => {
-        try {
-          const data = JSON.parse(e.data);
-          if (data.latestSequence) {
-            this.lastReceivedSequence = data.latestSequence;
-          }
-        } catch {}
-        this.listeners.sync_required.forEach((cb) => {
-          try {
-            cb();
-          } catch {}
-        });
-      });
-
-      // Delta event: SCORE_UPDATE
-      es.addEventListener('score_update', (e: MessageEvent) => {
-        this.processDeltaEvent<ScoreUpdatePayload>(e, (payload) => {
-          this.listeners.score_update.forEach((cb) => cb(payload));
-        });
-      });
-
-      // Delta event: INCIDENT
-      es.addEventListener('incident', (e: MessageEvent) => {
-        this.processDeltaEvent<IncidentPayload>(e, (payload) => {
-          this.listeners.incident.forEach((cb) => cb(payload));
-        });
-      });
-
-      // Delta event: STATUS_CHANGE
-      es.addEventListener('status_change', (e: MessageEvent) => {
-        this.processDeltaEvent<StatusChangePayload>(e, (payload) => {
-          this.listeners.status_change.forEach((cb) => cb(payload));
-        });
-      });
-
-      // Delta event: ODDS_UPDATE
-      es.addEventListener('odds_update', (e: MessageEvent) => {
-        this.processDeltaEvent<OddsUpdatePayload>(e, (payload) => {
-          this.listeners.odds_update.forEach((cb) => cb(payload));
-        });
-      });
-
-      // Delta event: FIXTURE_UPSERT
-      es.addEventListener('fixture_upsert', (e: MessageEvent) => {
-        this.processDeltaEvent<FixtureUpsertPayload>(e, (payload) => {
-          this.listeners.fixture_upsert.forEach((cb) => cb(payload));
-        });
-      });
+      es.onmessage = handleRawEvent;
 
       es.onerror = () => {
-        if (!this.isStarted) return;
+        this.cleanupSocket();
         this.scheduleReconnect();
       };
     } catch {
@@ -244,126 +132,170 @@ class RealtimeClient {
     }
   }
 
-  private processDeltaEvent<T>(e: MessageEvent, dispatch: (payload: T) => void): void {
-    this.lastPingTime = Date.now();
-    try {
-      const event: RealtimeDeltaEvent = JSON.parse(e.data);
-      if (!event) return;
-
-      // Deduplication: ignore events we have already processed
-      if (event.sequence && event.sequence <= this.lastReceivedSequence) {
-        return;
-      }
-
-      if (event.sequence) {
-        this.lastReceivedSequence = event.sequence;
-      }
-
-      dispatch(event as unknown as T);
-    } catch (err) {
-      console.warn('[RealtimeClient] Failed to parse delta event:', err);
+  /**
+   * Subscribes to a specific real-time event type or '*' for all events.
+   */
+  public on(type: RealtimeEventType | '*', handler: RealtimeEventHandler): () => void {
+    if (!this.listeners.has(type)) {
+      this.listeners.set(type, new Set());
     }
+    this.listeners.get(type)!.add(handler);
+
+    if (this.state === 'disconnected') {
+      this.connect();
+    }
+
+    return () => {
+      this.listeners.get(type)?.delete(handler);
+    };
   }
 
   /**
-   * Schedule reconnection with exponential backoff and jitter
+   * Subscribes to connection state transitions.
    */
-  private scheduleReconnect(): void {
-    if (this.reconnectTimer) return;
-    this.setState('RECONNECTING');
+  public onStateChange(cb: (state: ConnectionState) => void): () => void {
+    this.stateListeners.add(cb);
+    cb(this.state);
+    return () => {
+      this.stateListeners.delete(cb);
+    };
+  }
 
-    if (this.eventSource) {
+  public getState(): ConnectionState {
+    return this.state;
+  }
+
+  public isConnected(): boolean {
+    return this.state === 'connected';
+  }
+
+  public getLastDataEventTime(): number {
+    return this.lastDataEventTime;
+  }
+
+  public getTelemetry() {
+    return {
+      state: this.state,
+      lastEventId: this.lastEventId,
+      lastPingTime: this.lastPingTime,
+      lastDataEventTime: this.lastDataEventTime,
+      totalReconnects: this.totalReconnects,
+    };
+  }
+
+  private setState(next: ConnectionState): void {
+    if (this.state === next) return;
+    this.state = next;
+    for (const cb of this.stateListeners) {
       try {
-        this.eventSource.close();
-      } catch {}
-      this.eventSource = null;
-    }
-
-    this.reconnectAttempts++;
-    // Exponential backoff: base 1s, factor 1.5, max 20s
-    const baseDelay = Math.min(20_000, 1000 * Math.pow(1.5, this.reconnectAttempts - 1));
-    // Jitter: +/- 20%
-    const jitter = baseDelay * (0.8 + Math.random() * 0.4);
-
-    this.reconnectTimer = setTimeout(() => {
-      this.reconnectTimer = null;
-      this.connect();
-    }, jitter);
-  }
-
-  private reconnect(delayMs = 0): void {
-    if (this.reconnectTimer) {
-      clearTimeout(this.reconnectTimer);
-      this.reconnectTimer = null;
-    }
-
-    if (delayMs <= 0) {
-      this.connect();
-    } else {
-      this.reconnectTimer = setTimeout(() => {
-        this.reconnectTimer = null;
-        this.connect();
-      }, delayMs);
+        cb(next);
+      } catch {
+        // Ignore listener error
+      }
     }
   }
 
-  /**
-   * Watchdog checking every 10s for stale connection (no heartbeat for 45s)
-   */
-  private startWatchdog(): void {
-    if (this.watchdogTimer) return;
-    this.watchdogTimer = setInterval(() => {
-      if (!this.isStarted) return;
+  private dispatchEvent(payload: RealtimeEventPayload): void {
+    if (!payload) return;
 
-      if (this.state === 'CONNECTED' && this.lastPingTime > 0) {
-        const elapsed = Date.now() - this.lastPingTime;
-        if (elapsed > 45_000) {
-          console.warn('[RealtimeClient] Heartbeat timed out (>45s). Forcing reconnection.');
-          this.reconnect(500);
+    // On 'connected', sync sequence number if server restarted with a lower sequenceId
+    if (payload.type === 'connected') {
+      const serverSeq = Number(payload.data?.sequenceId || payload.id || 0);
+      if (serverSeq > 0 && serverSeq < this.lastEventId) {
+        this.lastEventId = serverSeq;
+        this.seenEventIds.clear();
+      } else if (serverSeq > this.lastEventId) {
+        this.lastEventId = serverSeq;
+      }
+    } else if (payload.type === 'live_snapshot') {
+      this.lastDataEventTime = Date.now();
+    } else if (typeof payload.id === 'number') {
+      if (payload.id <= this.lastEventId || this.seenEventIds.has(payload.id)) {
+        return; // Duplicate or out-of-order frame dropped
+      }
+      this.lastEventId = payload.id;
+      this.seenEventIds.add(payload.id);
+      if (this.seenEventIds.size > 500) {
+        const first = this.seenEventIds.values().next().value;
+        if (first !== undefined) this.seenEventIds.delete(first);
+      }
+      this.lastDataEventTime = Date.now();
+    }
+
+    const typeHandlers = this.listeners.get(payload.type);
+    if (typeHandlers) {
+      for (const fn of typeHandlers) {
+        try {
+          fn(payload);
+        } catch {
+          // Isolate handler exceptions
         }
       }
-    }, 10_000);
+    }
+
+    const wildcardHandlers = this.listeners.get('*');
+    if (wildcardHandlers) {
+      for (const fn of wildcardHandlers) {
+        try {
+          fn(payload);
+        } catch {
+          // Isolate handler exceptions
+        }
+      }
+    }
   }
 
-  private clearTimers(): void {
-    if (this.reconnectTimer) {
-      clearTimeout(this.reconnectTimer);
-      this.reconnectTimer = null;
-    }
+  private startWatchdog(): void {
+    if (this.watchdogTimer) clearInterval(this.watchdogTimer);
+    // If no frame or activity is observed for 45 seconds, recycle the stream
+    this.watchdogTimer = setInterval(() => {
+      if (this.state === 'connected' && Date.now() - this.lastPingTime > 45_000) {
+        this.cleanupSocket();
+        this.scheduleReconnect(500);
+      }
+    }, 15_000);
+  }
+
+  private scheduleReconnect(overrideDelayMs?: number): void {
+    if (this.reconnectTimer) clearTimeout(this.reconnectTimer);
+    this.setState('reconnecting');
+    this.totalReconnects++;
+
+    const baseDelay =
+      overrideDelayMs !== undefined
+        ? overrideDelayMs
+        : Math.min(15_000, 1000 * Math.pow(1.6, this.reconnectAttempts));
+    const jitter = Math.floor(Math.random() * 400);
+    this.reconnectAttempts++;
+
+    this.reconnectTimer = setTimeout(() => {
+      this.connect();
+    }, baseDelay + jitter);
+  }
+
+  private cleanupSocket(): void {
     if (this.watchdogTimer) {
       clearInterval(this.watchdogTimer);
       this.watchdogTimer = null;
     }
+    if (this.eventSource) {
+      try {
+        this.eventSource.close();
+      } catch {
+        // Ignore close errors
+      }
+      this.eventSource = null;
+    }
   }
 
-  private setupWindowListeners(): void {
-    if (typeof window === 'undefined') return;
-
-    // Instant recovery when returning to tab
-    document.addEventListener('visibilitychange', () => {
-      if (document.visibilityState === 'visible' && this.isStarted) {
-        const isStale = Date.now() - this.lastPingTime > 30_000;
-        if (this.state !== 'CONNECTED' || isStale) {
-          this.reconnect(100);
-        }
-      }
-    });
-
-    // Instant recovery on network restore
-    window.addEventListener('online', () => {
-      if (this.isStarted) {
-        this.reconnectAttempts = 0;
-        this.reconnect(200);
-      }
-    });
-
-    // Set state to disconnected when network is lost
-    window.addEventListener('offline', () => {
-      this.setState('DISCONNECTED');
-    });
+  public disconnect(): void {
+    if (this.reconnectTimer) {
+      clearTimeout(this.reconnectTimer);
+      this.reconnectTimer = null;
+    }
+    this.cleanupSocket();
+    this.setState('disconnected');
   }
 }
 
-// Global frontend singleton client
 export const realtimeClient = new RealtimeClient();
-

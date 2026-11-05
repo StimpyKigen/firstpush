@@ -1,3 +1,4 @@
+import '../../src/lib/sportsFeedService.js';
 import { realtimeBroadcaster } from '../../src/lib/realtimeBroadcaster.js';
 
 export const config = {
@@ -15,4 +16,3 @@ export default function handler(req: any, res: any) {
 
   return realtimeBroadcaster.registerClient(req, res);
 }
-

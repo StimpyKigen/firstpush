@@ -14,6 +14,8 @@ import {
   getSyncDiagnostics,
   executeRollingSyncCycle,
   syncLiveScoresOnly,
+  fetchAuthoritativeSportScoreMatchDetail,
+  getLocalDateStringEAT,
   ingestAdminFixtures,
   clearAllFixtures,
   getSavedAdminFixtures,
@@ -887,7 +889,7 @@ Sitemap: https://mshindi.co.ke/sitemap.xml
   initWeeklyFixtureScheduler();
 
   // Central live telemetry coordinator: polls SportScore live endpoint only when clients are connected
-  startLiveTelemetryCoordinator(15_000);
+  startLiveTelemetryCoordinator(10_000);
 
   app.listen(PORT, '0.0.0.0', () => {
     console.log(`Mshindi Projo Server running on http://0.0.0.0:${PORT}`);

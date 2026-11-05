@@ -27,7 +27,7 @@ export default function SportScoreMatchCenter({ match }: SportScoreMatchCenterPr
 
   useEffect(() => {
     let mounted = true;
-    const slug = buildMatchSlug(match.home, match.away);
+    const slug = buildMatchSlug(match.home, match.away, match.matchUrl);
 
     const loadDetail = async () => {
       const d = await fetchSportScoreMatchDetail(slug);
@@ -55,7 +55,7 @@ export default function SportScoreMatchCenter({ match }: SportScoreMatchCenterPr
       mounted = false;
       if (intervalId) clearInterval(intervalId);
     };
-  }, [match.home, match.away, match.id, match.status]);
+  }, [match.home, match.away, match.matchUrl, match.id, match.status]);
 
   const handleTabClick = (tab: TabType) => {
     setActiveTab(tab);

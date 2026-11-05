@@ -1,4 +1,9 @@
-import { queryMarketFixtures, syncLiveScoresOnly } from '../../src/lib/sportsFeedService.js';
+import {
+  queryMarketFixtures,
+  syncLiveScoresOnly,
+  getSyncDiagnostics,
+  getLocalDateStringEAT,
+} from '../../src/lib/sportsFeedService.js';
 
 export default async function handler(req: any, res: any) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -10,16 +15,24 @@ export default async function handler(req: any, res: any) {
   }
 
   try {
-    let liveFixtures = queryMarketFixtures({ scope: 'live' });
-
-    // If zero live in cold-start store, trigger fast background live check
-    if (liveFixtures.length === 0) {
+    const diag = getSyncDiagnostics();
+    const liveAgeMs = diag.lastLiveSyncTime ? Date.now() - new Date(diag.lastLiveSyncTime).getTime() : Infinity;
+    if (liveAgeMs > 8_000) {
       await syncLiveScoresOnly();
-      liveFixtures = queryMarketFixtures({ scope: 'live' });
     }
 
-    res.setHeader('Cache-Control', 'public, max-age=3, s-maxage=5, must-revalidate');
-    return res.status(200).json({ success: true, count: liveFixtures.length, fixtures: liveFixtures });
+    const liveFixtures = queryMarketFixtures({ scope: 'live' });
+    const todayStr = getLocalDateStringEAT(new Date());
+    const recentlyFinished = queryMarketFixtures({ scope: 'finished', date: todayStr });
+
+    res.setHeader('Cache-Control', 'no-cache, no-store, max-age=0, must-revalidate');
+    return res.status(200).json({
+      success: true,
+      count: liveFixtures.length,
+      fixtures: liveFixtures,
+      recentlyFinished,
+      lastLiveSyncTime: getSyncDiagnostics().lastLiveSyncTime,
+    });
   } catch (err: any) {
     return res.status(500).json({ success: false, error: 'Failed to retrieve live fixtures.' });
   }
