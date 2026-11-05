@@ -897,12 +897,14 @@ export async function persistToCloud(
     try {
       const feedRef = doc(db, FIRESTORE_COLLECTION, FIRESTORE_DOC);
       await setDoc(feedRef, cleanData, { merge: true });
-      if (options?.postDoc && options.postDoc.id) {
-        const cleanPost = JSON.parse(JSON.stringify(options.postDoc));
-        const postRef = doc(db, FIRESTORE_COLLECTION, `post_${options.postDoc.id}`);
-        await setDoc(postRef, cleanPost, { merge: true });
-      }
       firestoreSaved = true;
+      if (options?.postDoc && options.postDoc.id) {
+        try {
+          const cleanPost = JSON.parse(JSON.stringify(options.postDoc));
+          const postRef = doc(db, FIRESTORE_COLLECTION, `post_${options.postDoc.id}`);
+          await setDoc(postRef, cleanPost, { merge: true });
+        } catch {}
+      }
     } catch (err: any) {
       lastError = err?.message || 'Firestore write failed';
       if (
