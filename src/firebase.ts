@@ -6,11 +6,23 @@
  * with fallback to `firebase-applet-config.json`.
  */
 
-import { initializeApp, getApps, getApp, FirebaseApp } from 'firebase/app';
-import { getAuth, Auth } from 'firebase/auth';
-import { initializeFirestore, getFirestore, Firestore } from 'firebase/firestore';
-import { getStorage, FirebaseStorage } from 'firebase/storage';
-import firebaseConfigData from '../firebase-applet-config.json';
+import { initializeApp, getApps, getApp, type FirebaseApp } from 'firebase/app';
+import { getAuth, type Auth } from 'firebase/auth';
+import { initializeFirestore, getFirestore, type Firestore } from 'firebase/firestore';
+import { getStorage, type FirebaseStorage } from 'firebase/storage';
+
+// Inlined production configuration from firebase-applet-config.json
+// Avoids raw .json ESM import attributes issues in serverless Node runtimes (Vercel)
+const firebaseConfigData = {
+  projectId: 'mshindiroom-production',
+  appId: '1:31480688378:web:9f8d0bd5ff526b6acc6343',
+  apiKey: 'AIzaSyApRSqG1sMFmXYS8yM80s0TsUkWX65qsy8',
+  authDomain: 'mshindiroom-production.firebaseapp.com',
+  firestoreDatabaseId: '(default)',
+  storageBucket: 'mshindiroom-production.firebasestorage.app',
+  messagingSenderId: '31480688378',
+  measurementId: 'G-KJ3X84XLXX',
+};
 
 const PLACEHOLDER_ENV_VALUES = new Set([
   'your-api-key',

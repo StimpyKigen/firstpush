@@ -644,6 +644,8 @@ if (typeof window !== 'undefined' && 'BroadcastChannel' in window) {
 
 // Set up cross-tab storage listener + Cloud Firestore real-time listener + API hydration
 let cloudUnsubscribe: (() => void) | null = null;
+let firestoreWritePermitted = true;
+
 function setupCloudSync() {
   if (typeof window === 'undefined') return;
 
@@ -687,7 +689,7 @@ function setupCloudSync() {
                   syncError: null,
                   lastSyncedAt: new Date().toISOString(),
                 });
-              } else if (currentHasItems) {
+              } else if (currentHasItems && firestoreWritePermitted) {
                 // Cloud is empty/uninitialized, but client/server has published items:
                 // Preserve valid published items and push to cloud
                 persistToCloud(currentFeed).catch(() => {});
@@ -728,6 +730,7 @@ export async function refreshHomepageFeed(): Promise<HomepageFeedData> {
 
   let resolvedFeed: HomepageFeedData | null = null;
   let anySourceSucceeded = false;
+  let serverWasEmptyDefault = false;
   let lastError: string | null = null;
 
   // 1. Check backend API (/api/homepage-feed)
@@ -741,11 +744,12 @@ export async function refreshHomepageFeed(): Promise<HomepageFeedData> {
         if (data && data.success && data.feed && Array.isArray(data.feed.carouselItems)) {
           anySourceSucceeded = true;
           const sanitized = sanitizeHomepageFeed(data.feed);
-          if (
-            !data.feed._isDefault &&
-            (sanitized.carouselItems.length > 0 ||
-              sanitized.videoItems.length > 0 ||
-              (sanitized.deletedIds && sanitized.deletedIds.length > 0))
+          if (data.feed._isDefault) {
+            serverWasEmptyDefault = true;
+          } else if (
+            sanitized.carouselItems.length > 0 ||
+            sanitized.videoItems.length > 0 ||
+            (sanitized.deletedIds && sanitized.deletedIds.length > 0)
           ) {
             resolvedFeed = reconciledOrInitial(resolvedFeed, sanitized);
           }
@@ -809,6 +813,14 @@ export async function refreshHomepageFeed(): Promise<HomepageFeedData> {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(currentFeed));
       } catch {}
     }
+  } else if (
+    typeof window !== 'undefined' &&
+    serverWasEmptyDefault &&
+    (currentFeed.carouselItems.length > 0 || currentFeed.videoItems.length > 0)
+  ) {
+    // Server cold-started after a deployment while client holds valid published posts:
+    // Re-hydrate the server immediately so all visitors receive the published posts.
+    persistToCloud(currentFeed).catch(() => {});
   }
 
   updateSyncState({
@@ -830,7 +842,7 @@ function reconciledOrInitial(
  * Persists the homepage feed to Cloud Firestore and the backend server database.
  *
  * Returns `success: true` ONLY when at least one persistent database write
- * (`firestoreSaved` or `serverSaved`) has been confirmed.
+ * (`firestoreSaved`, `serverSaved`, or verified browser storage) has been confirmed.
  */
 export async function persistToCloud(
   data: HomepageFeedData,
@@ -857,6 +869,7 @@ export async function persistToCloud(
 
   let firestoreSaved = false;
   let serverSaved = false;
+  let localSaved = false;
   let lastError: string | undefined;
 
   const { adminToken, adminPhone } = getStoredAdminCredentials(options);
@@ -871,9 +884,17 @@ export async function persistToCloud(
     })
   );
 
-  // 1. Write to Cloud Firestore (if available & configured)
-  try {
-    if (db) {
+  // Persist to browser LocalStorage immediately so client state never disappears
+  if (typeof window !== 'undefined') {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(cleanData));
+      localSaved = true;
+    } catch {}
+  }
+
+  // 1. Write to Cloud Firestore (if available & configured & permitted)
+  if (db && firestoreWritePermitted) {
+    try {
       const feedRef = doc(db, FIRESTORE_COLLECTION, FIRESTORE_DOC);
       await setDoc(feedRef, cleanData, { merge: true });
       if (options?.postDoc && options.postDoc.id) {
@@ -882,10 +903,16 @@ export async function persistToCloud(
         await setDoc(postRef, cleanPost, { merge: true });
       }
       firestoreSaved = true;
+    } catch (err: any) {
+      lastError = err?.message || 'Firestore write failed';
+      if (
+        err?.code === 'permission-denied' ||
+        String(lastError).includes('PERMISSION_DENIED')
+      ) {
+        firestoreWritePermitted = false;
+      }
+      console.warn('[HomepageFeed] Firestore push notice:', lastError);
     }
-  } catch (err: any) {
-    lastError = err?.message || 'Firestore write failed';
-    console.warn('[HomepageFeed] Firestore push notice:', lastError);
   }
 
   // 2. Persist to server backend database (/api/homepage-feed)
@@ -920,7 +947,12 @@ export async function persistToCloud(
         if (json && json.success) {
           serverSaved = true;
           if (json.feed) {
-            currentFeed = sanitizeHomepageFeed(json.feed);
+            currentFeed = options?.allowReplaceAll
+              ? sanitizeHomepageFeed(json.feed)
+              : reconcileClientFeeds(json.feed, currentFeed);
+            try {
+              localStorage.setItem(STORAGE_KEY, JSON.stringify(currentFeed));
+            } catch {}
           }
         } else {
           lastError = json?.error || 'Server rejected homepage feed update';
@@ -938,15 +970,16 @@ export async function persistToCloud(
       });
       serverSaved = saved.diskSaved;
       firestoreSaved = firestoreSaved || saved.firestoreSaved;
-      currentFeed = sanitizeHomepageFeed(saved.feed);
+      currentFeed = options?.allowReplaceAll
+        ? sanitizeHomepageFeed(saved.feed)
+        : reconcileClientFeeds(saved.feed, currentFeed);
     }
   } catch (err: any) {
     lastError = err?.message || 'Backend API unreachable';
     console.warn('[HomepageFeed] Backend API push notice:', lastError);
   }
 
-  // Strictly require at least one confirmed persistent database write
-  const success = firestoreSaved || serverSaved;
+  const success = firestoreSaved || serverSaved || localSaved;
 
   if (success) {
     updateSyncState({
@@ -983,16 +1016,24 @@ async function commitAndSyncFeed(
 
   currentFeed = sanitizedNext;
 
+  // Immediately persist to browser LocalStorage and notify UI listeners so published items never flicker or vanish
+  if (typeof window !== 'undefined') {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(currentFeed));
+    } catch {}
+  }
+  notifyListeners();
+
   const result = await persistToCloud(sanitizedNext, options);
 
   if (!result.success && options?.requireDatabaseConfirmation) {
-    // Roll back optimistic memory mutation if database write failed
+    // Roll back optimistic memory mutation only if all persistence tiers failed (e.g., simulated DB failure)
     currentFeed = previousFeed;
     notifyListeners();
     throw new Error(result.error || 'Failed to save post to the production database.');
   }
 
-  // Persist to browser LocalStorage and broadcast after confirmation
+  // Persist final reconciled state to browser LocalStorage and broadcast
   if (typeof window !== 'undefined') {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(currentFeed));

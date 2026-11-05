@@ -684,6 +684,8 @@ export async function saveHomepageFeedAsync(
   };
 }
 
+let serverClientFirestoreWritePermitted = true;
+
 async function mirrorFeedToFirestore(feed: HomepageFeedData): Promise<boolean> {
   const cleanPayload = JSON.parse(
     JSON.stringify({
@@ -721,13 +723,18 @@ async function mirrorFeedToFirestore(feed: HomepageFeedData): Promise<boolean> {
   }
 
   // 2. Try Firebase Client SDK
-  if (clientDb) {
+  if (clientDb && serverClientFirestoreWritePermitted) {
     try {
       const feedRef = doc(clientDb, FIRESTORE_COLLECTION, FIRESTORE_DOC);
       await setDoc(feedRef, cleanPayload, { merge: true });
       return true;
-    } catch {
-      // Expected if Firestore rules require client auth token not present on server
+    } catch (err: any) {
+      if (
+        err?.code === 'permission-denied' ||
+        String(err?.message || '').includes('PERMISSION_DENIED')
+      ) {
+        serverClientFirestoreWritePermitted = false;
+      }
     }
   }
 
