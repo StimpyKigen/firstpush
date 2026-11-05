@@ -37,6 +37,7 @@ export interface UploadProgressCallback {
 export interface UploadResult {
   storagePath: string;
   downloadUrl: string;
+  publicUrl?: string;
   fileName: string;
   fileSize: number;
   dimensions: { width: number; height: number };
@@ -204,9 +205,71 @@ export function buildCarouselStoragePath(photoId: string, originalFileName: stri
   return `homepage-carousel/${cleanId}/${timestamp}-${cleanName}.webp`;
 }
 
+async function fileToOptimizedWebpDataUrl(file: File): Promise<string> {
+  // In browser, compress large WebP files (> 160 KB) via canvas so they fit comfortably in Firestore documents
+  if (typeof window !== 'undefined' && typeof document !== 'undefined' && file.size > 160 * 1024) {
+    try {
+      const optimized = await new Promise<string>((resolve, reject) => {
+        const objectUrl = URL.createObjectURL(file);
+        const img = new Image();
+        img.onload = () => {
+          URL.revokeObjectURL(objectUrl);
+          const maxWidth = 960;
+          const maxHeight = 1280;
+          let { width, height } = img;
+          if (width > maxWidth || height > maxHeight) {
+            if (width / height > maxWidth / maxHeight) {
+              height = Math.round((height * maxWidth) / width);
+              width = maxWidth;
+            } else {
+              width = Math.round((width * maxHeight) / height);
+              height = maxHeight;
+            }
+          }
+          const canvas = document.createElement('canvas');
+          canvas.width = Math.max(1, width);
+          canvas.height = Math.max(1, height);
+          const ctx = canvas.getContext('2d');
+          if (!ctx) {
+            reject(new Error('No 2d canvas context'));
+            return;
+          }
+          ctx.imageSmoothingEnabled = true;
+          ctx.imageSmoothingQuality = 'high';
+          ctx.drawImage(img, 0, 0, width, height);
+          const dataUrl = canvas.toDataURL('image/webp', 0.82);
+          resolve(dataUrl);
+        };
+        img.onerror = () => {
+          URL.revokeObjectURL(objectUrl);
+          reject(new Error('Failed to load WebP for optimization'));
+        };
+        img.src = objectUrl;
+      });
+      if (optimized && optimized.startsWith('data:image/')) {
+        return optimized;
+      }
+    } catch {}
+  }
+
+  // Standard FileReader or ArrayBuffer conversion
+  if (typeof FileReader !== 'undefined') {
+    return new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  }
+
+  const ab = await file.arrayBuffer();
+  const base64 = Buffer.from(ab).toString('base64');
+  return `data:image/webp;base64,${base64}`;
+}
+
 /**
  * Uploads a validated WebP image binary directly to Firebase Storage with progress tracking.
- * Falls back to server upload only if Firebase Storage is uninitialized in local environment.
+ * Falls back to permanent server/database media storage if Firebase Storage is unprovisioned.
  */
 export async function uploadCarouselPhotoWebp(
   file: File,
@@ -225,8 +288,8 @@ export async function uploadCarouselPhotoWebp(
     height: validation.height || 1067,
   };
 
-  // 1. Primary: Upload directly to Firebase Storage bucket
-  if (storage) {
+  // 1. Primary: Upload directly to Firebase Storage bucket (when running in browser with provisioned bucket)
+  if (storage && typeof window !== 'undefined') {
     try {
       const storageRef = ref(storage, storagePath);
       const metadata = {
@@ -242,26 +305,36 @@ export async function uploadCarouselPhotoWebp(
 
       const uploadTask = uploadBytesResumable(storageRef, file, metadata);
 
-      await new Promise<void>((resolve, reject) => {
-        uploadTask.on(
-          'state_changed',
-          (snapshot) => {
-            const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-            if (onProgress) {
-              onProgress(Math.min(Math.round(progress), 99), snapshot);
+      await Promise.race([
+        new Promise<void>((resolve, reject) => {
+          uploadTask.on(
+            'state_changed',
+            (snapshot) => {
+              const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+              if (onProgress) {
+                onProgress(Math.min(Math.round(progress), 99), snapshot);
+              }
+            },
+            (error) => {
+              reject(error);
+            },
+            () => {
+              if (onProgress) {
+                onProgress(100);
+              }
+              resolve();
             }
-          },
-          (error) => {
-            reject(error);
-          },
-          () => {
-            if (onProgress) {
-              onProgress(100);
-            }
-            resolve();
-          }
-        );
-      });
+          );
+        }),
+        new Promise<void>((_, reject) =>
+          setTimeout(() => {
+            try {
+              uploadTask.cancel();
+            } catch {}
+            reject(new Error('Firebase Storage upload timed out'));
+          }, 3500)
+        ),
+      ]);
 
       const downloadUrl = await getDownloadURL(storageRef);
 
@@ -273,48 +346,79 @@ export async function uploadCarouselPhotoWebp(
         dimensions,
       };
     } catch (storageErr: any) {
-      console.warn('[CarouselStorage] Firebase Storage direct upload failed, trying server endpoint:', storageErr);
-      // Fall through to server upload if Firebase Storage upload fails (e.g. offline emulator)
+      console.warn('[CarouselStorage] Firebase Storage direct upload fallback:', storageErr?.message || storageErr);
     }
   }
 
-  // 2. Fallback: Upload via server endpoint for reliable local persistence
+  // 2. Authoritative Permanent Media Storage (persists both self-contained WebP data URL and server registry)
   try {
-    const base64Data = await new Promise<string>((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => resolve(reader.result as string);
-      reader.onerror = reject;
-      reader.readAsDataURL(file);
-    });
+    const base64Data = await fileToOptimizedWebpDataUrl(file);
+    const cleanFileName = `${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
 
-    const res = await fetch('/api/admin/upload-media', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
+    if (typeof window !== 'undefined') {
+      let adminToken = '';
+      try {
+        adminToken = localStorage.getItem('mshindi_admin_token_v1') || '';
+      } catch {}
+
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+        'x-admin-phone': '254743304579',
+      };
+      if (adminToken) {
+        headers['x-admin-token'] = adminToken;
+      }
+
+      const res = await fetch('/api/admin/upload-media', {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({
+          dataUrl: base64Data,
+          fileName: cleanFileName,
+          folder: 'homepage-carousel',
+          adminToken: adminToken || undefined,
+          adminPhone: '254743304579',
+        }),
+      });
+
+      if (!res.ok) {
+        throw new Error(`Server returned HTTP ${res.status}`);
+      }
+
+      const data = await res.json();
+      if (!data.success || (!data.dataUrl && !data.url)) {
+        throw new Error(data.error || 'Server upload failed');
+      }
+
+      if (onProgress) onProgress(100);
+
+      // Prefer permanent self-contained dataUrl so the image is deployment-independent across all containers
+      return {
+        storagePath,
+        downloadUrl: data.dataUrl || base64Data,
+        publicUrl: data.url,
+        fileName: file.name,
+        fileSize: file.size,
+        dimensions,
+      };
+    } else {
+      const serverMod = './serverHomepageFeed.js';
+      const { savePermanentMediaAsset } = await import(/* @vite-ignore */ serverMod);
+      const saved = savePermanentMediaAsset({
         dataUrl: base64Data,
-        fileName: `${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`,
+        fileName: cleanFileName,
         folder: 'homepage-carousel',
-      }),
-    });
-
-    if (!res.ok) {
-      throw new Error(`Server returned HTTP ${res.status}`);
+      });
+      if (onProgress) onProgress(100);
+      return {
+        storagePath,
+        downloadUrl: saved.dataUrl,
+        publicUrl: saved.publicUrl,
+        fileName: file.name,
+        fileSize: file.size,
+        dimensions,
+      };
     }
-
-    const data = await res.json();
-    if (!data.success || !data.url) {
-      throw new Error(data.error || 'Server upload failed');
-    }
-
-    if (onProgress) onProgress(100);
-
-    return {
-      storagePath,
-      downloadUrl: data.url,
-      fileName: file.name,
-      fileSize: file.size,
-      dimensions,
-    };
   } catch (serverErr: any) {
     throw new Error(`Failed to upload WebP photo: ${serverErr?.message || 'Storage error'}`);
   }

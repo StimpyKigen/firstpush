@@ -12,15 +12,35 @@ import { initializeFirestore, getFirestore, Firestore } from 'firebase/firestore
 import { getStorage, FirebaseStorage } from 'firebase/storage';
 import firebaseConfigData from '../firebase-applet-config.json';
 
+const PLACEHOLDER_ENV_VALUES = new Set([
+  'your-api-key',
+  'your-project-id',
+  'your-project-id.firebaseapp.com',
+  'your-project-id.firebasestorage.app',
+  '1234567890',
+  '1:1234567890:web:abcdef123456',
+  'G-XXXXXXXXXX',
+]);
+
+const isPlaceholderValue = (val: string): boolean => {
+  const trimmed = val.trim();
+  if (!trimmed) return true;
+  if (PLACEHOLDER_ENV_VALUES.has(trimmed)) return true;
+  if (trimmed.includes('your-project-id') || trimmed.includes('your-api-key')) return true;
+  return false;
+};
+
 const getEnv = (key: string): string => {
   try {
     if (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env[key]) {
-      return import.meta.env[key] as string;
+      const val = String(import.meta.env[key]);
+      if (!isPlaceholderValue(val)) return val;
     }
   } catch {}
   try {
     if (typeof process !== 'undefined' && process.env && process.env[key]) {
-      return process.env[key] as string;
+      const val = String(process.env[key]);
+      if (!isPlaceholderValue(val)) return val;
     }
   } catch {}
   return '';

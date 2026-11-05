@@ -136,8 +136,8 @@ export async function uploadFeedImage(
 
     if (res.ok) {
       const data = await res.json();
-      if (data && data.success && data.url) {
-        return { url: data.url, source: 'server' };
+      if (data && data.success && (data.dataUrl || data.url)) {
+        return { url: data.dataUrl || data.url, source: 'server' };
       }
     }
   } catch (serverErr: any) {

@@ -6,6 +6,7 @@ import {
   subscribeToHomepageFeed,
   getHomepageFeedSnapshot,
   refreshHomepageFeed,
+  toggleHomepagePostLike,
   type HomepageVideoItem,
 } from '../lib/homepageFeedStore';
 import {
@@ -57,6 +58,8 @@ export default function Home() {
       .filter(
         (i) =>
           i.published &&
+          i.isActive !== false &&
+          i.status !== 'archived' &&
           Boolean(i.imageUrl && i.imageUrl.trim()) &&
           !['carousel-featured-reference', 'slide-1', 'slide-2', 'slide-3'].includes(i.id) &&
           !i.imageUrl.includes('mp3tourl.com')
@@ -69,13 +72,17 @@ export default function Home() {
       });
   }, [feed.carouselItems]);
   const publishedVideos = useMemo(() => {
-    return feed.videoItems.filter(
-      (v) =>
-        v.published &&
-        !['video-1', 'video-2'].includes(v.id) &&
-        !v.youtubeUrl?.includes('aqz-KE-bpKQ') &&
-        !v.youtubeUrl?.includes('kJQP7kiw5Fk')
-    );
+    return feed.videoItems
+      .filter(
+        (v) =>
+          v.published &&
+          v.isActive !== false &&
+          v.status !== 'archived' &&
+          !['video-1', 'video-2'].includes(v.id) &&
+          !v.youtubeUrl?.includes('aqz-KE-bpKQ') &&
+          !v.youtubeUrl?.includes('kJQP7kiw5Fk')
+      )
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
   }, [feed.videoItems]);
 
   // Proactively sync homepage feed on mount across all visitors, devices, and versions
@@ -168,6 +175,7 @@ export default function Home() {
       } catch {}
       return next;
     });
+    toggleHomepagePostLike(videoId, currentUser?.phone || 'visitor').catch(() => {});
   };
 
   // Initial load state: only show skeleton loader while fetching carousels on mount.

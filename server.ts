@@ -26,7 +26,16 @@ import {
 import { realtimeBroadcaster } from './src/lib/realtimeBroadcaster';
 import { fetchBet365OddsForMatch } from './src/lib/sportscoreOddsService';
 import { extractPdfTextServer } from './src/lib/serverPdfParser';
-import { getSavedHomepageFeed, saveHomepageFeed } from './src/lib/serverHomepageFeed';
+import {
+  getSavedHomepageFeedAsync,
+  saveHomepageFeedAsync,
+  savePermanentMediaAsset,
+  getPermanentMediaAsset,
+} from './src/lib/serverHomepageFeed';
+import {
+  verifyAdminPinCredentials,
+  verifyAdminRequest,
+} from './src/lib/adminAuthService';
 import { parseJackpotWebpageText } from './src/lib/jackpotWebParser';
 import {
   initWeeklyFixtureScheduler,
@@ -179,94 +188,113 @@ async function startServer() {
   });
 
   // Homepage Editorial Feed APIs (Carousels & Video/Custom Embeds)
-  app.get('/api/homepage-feed', (req: Request, res: Response) => {
+  app.get('/api/homepage-feed', async (req: Request, res: Response) => {
     try {
-      const feed = getSavedHomepageFeed();
+      const feed = await getSavedHomepageFeedAsync();
+      res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
       res.json({ success: true, feed });
     } catch (err: any) {
-      res.status(500).json({ success: false, error: 'Failed to get homepage feed' });
+      res.status(500).json({ success: false, error: err?.message || 'Failed to get homepage feed' });
     }
   });
 
-  app.post('/api/homepage-feed', (req: Request, res: Response) => {
+  app.post('/api/homepage-feed', async (req: Request, res: Response) => {
     try {
       const feed = req.body;
+      const authCheck = verifyAdminRequest(req.headers as any, feed);
+      if (!authCheck.authorized) {
+        return res.status(403).json({
+          success: false,
+          error: authCheck.reason || 'Forbidden: Administrator permissions required.',
+        });
+      }
+
       if (feed && Array.isArray(feed.carouselItems) && Array.isArray(feed.videoItems)) {
-        saveHomepageFeed(feed);
-        res.json({ success: true, feed });
+        const result = await saveHomepageFeedAsync(feed, {
+          allowReplaceAll: Boolean(feed.allowReplaceAll),
+        });
+        res.json({
+          success: true,
+          feed: result.feed,
+          firestoreSaved: result.firestoreSaved,
+          diskSaved: result.diskSaved,
+        });
       } else {
         res.status(400).json({ success: false, error: 'Invalid feed payload' });
       }
     } catch (err: any) {
-      res.status(500).json({ success: false, error: 'Failed to save homepage feed' });
+      res.status(500).json({ success: false, error: err?.message || 'Failed to save homepage feed' });
     }
   });
 
   // Media Upload API (Authoritative Server Storage for Feed & Admin Media)
   app.post('/api/admin/upload-media', (req: Request, res: Response) => {
     try {
+      const authCheck = verifyAdminRequest(req.headers as any, req.body);
+      if (!authCheck.authorized) {
+        return res.status(403).json({
+          success: false,
+          error: authCheck.reason || 'Forbidden: Administrator permissions required.',
+        });
+      }
+
       const { dataUrl, fileName, folder = 'feed' } = req.body || {};
       if (!dataUrl || !fileName) {
         return res.status(400).json({ success: false, error: 'dataUrl and fileName are required' });
       }
 
-      // Extract base64 buffer
-      const matches = dataUrl.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/);
-      const buffer = matches && matches[2]
-        ? Buffer.from(matches[2], 'base64')
-        : Buffer.from(dataUrl, 'base64');
-
-      const cleanFileName = String(fileName).replace(/[^a-zA-Z0-9._-]/g, '_');
-      const cleanFolder = String(folder).replace(/[^a-zA-Z0-9_-]/g, '_');
-      const targetDir = path.join(process.cwd(), 'public', 'images', 'uploads', cleanFolder);
-      if (!fs.existsSync(targetDir)) {
-        fs.mkdirSync(targetDir, { recursive: true });
-      }
-
-      const filePath = path.join(targetDir, cleanFileName);
-      fs.writeFileSync(filePath, buffer);
-
-      const publicUrl = `/images/uploads/${cleanFolder}/${cleanFileName}`;
-      res.json({ success: true, url: publicUrl });
+      const saved = savePermanentMediaAsset({ dataUrl, fileName, folder });
+      res.json({
+        success: true,
+        url: saved.publicUrl,
+        dataUrl: saved.dataUrl,
+        mimeType: saved.mimeType,
+      });
     } catch (err: any) {
       console.error('[UploadMedia] Server error:', err);
       res.status(500).json({ success: false, error: err?.message || 'Failed to upload media' });
     }
   });
 
+  // Dynamic Permanent Media Serving Route (survives container restarts via data/homepage_media.json)
+  app.get('/images/uploads/:folder/:fileName', (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const asset = getPermanentMediaAsset(req.params.folder, req.params.fileName);
+      if (asset) {
+        res.setHeader('Content-Type', asset.mimeType);
+        res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+        return res.send(asset.buffer);
+      }
+    } catch {}
+    next();
+  });
+
   /**
    * Super-Admin PIN Verification Endpoint
-   * Securely validates administrator PIN on backend and issues signed 2-hour admin token
+   * Securely validates administrator PIN on backend and issues signed admin token
    */
   app.post('/api/admin/verify-pin', (req: Request, res: Response) => {
     try {
       const { phone, pin } = req.body || {};
-      const ADMIN_PHONE = '254743304579';
-      const cleanPhone = String(phone || '').replace(/\D/g, '');
-      const expectedPin = process.env.ADMIN_PIN || '7433';
-
-      if (cleanPhone !== ADMIN_PHONE) {
-        return res.status(403).json({ success: false, error: 'Unauthorized: Phone is not registered as platform admin.' });
+      const result = verifyAdminPinCredentials(phone, pin);
+      if (!result.valid) {
+        const status = result.error?.includes('Unauthorized') ? 403 : 401;
+        return res.status(status).json({
+          success: false,
+          valid: false,
+          error: result.error,
+        });
       }
-
-      if (String(pin).trim() !== expectedPin) {
-        return res.status(401).json({ success: false, error: 'Incorrect administrator PIN code.' });
-      }
-
-      const now = Date.now();
-      const expiresAt = now + 2 * 60 * 60 * 1000;
-      const adminPayload = `${ADMIN_PHONE}:super_admin:${now}:${expiresAt}`;
-      const signature = signAdminPayload(adminPayload);
-      const token = Buffer.from(JSON.stringify({ phone: ADMIN_PHONE, role: 'super_admin', expiresAt, signature })).toString('base64');
 
       return res.json({
         success: true,
-        token,
-        expiresAt,
+        valid: true,
+        token: result.adminToken,
+        adminToken: result.adminToken,
         message: 'Super-admin authenticated successfully.',
       });
     } catch (err) {
-      return res.status(500).json({ success: false, error: 'Admin authentication error.' });
+      return res.status(500).json({ success: false, valid: false, error: 'Admin authentication error.' });
     }
   });
 

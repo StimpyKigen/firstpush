@@ -214,9 +214,10 @@ export default defineConfig(() => {
                 try {
                   res.setHeader('Content-Type', 'application/json');
                   res.setHeader('Access-Control-Allow-Origin', '*');
+                  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
                   if (req.method === 'GET') {
-                    const { getSavedHomepageFeed } = await server.ssrLoadModule('/src/lib/serverHomepageFeed.ts');
-                    const feed = getSavedHomepageFeed();
+                    const { getSavedHomepageFeedAsync } = await server.ssrLoadModule('/src/lib/serverHomepageFeed.ts');
+                    const feed = await getSavedHomepageFeedAsync();
                     res.end(JSON.stringify({ success: true, feed }));
                     return;
                   }
@@ -225,10 +226,24 @@ export default defineConfig(() => {
                     req.on('data', (chunk: any) => { body += chunk; });
                     req.on('end', async () => {
                       try {
-                        const { saveHomepageFeed } = await server.ssrLoadModule('/src/lib/serverHomepageFeed.ts');
+                        const { saveHomepageFeedAsync } = await server.ssrLoadModule('/src/lib/serverHomepageFeed.ts');
+                        const { verifyAdminRequest } = await server.ssrLoadModule('/src/lib/adminAuthService.ts');
                         const parsed = JSON.parse(body || '{}');
-                        saveHomepageFeed(parsed);
-                        res.end(JSON.stringify({ success: true, feed: parsed }));
+                        const authCheck = verifyAdminRequest(req.headers as any, parsed);
+                        if (!authCheck.authorized) {
+                          res.statusCode = 403;
+                          res.end(JSON.stringify({ success: false, error: authCheck.reason || 'Forbidden' }));
+                          return;
+                        }
+                        const saved = await saveHomepageFeedAsync(parsed, {
+                          allowReplaceAll: Boolean(parsed.allowReplaceAll),
+                        });
+                        res.end(JSON.stringify({
+                          success: true,
+                          feed: saved.feed,
+                          firestoreSaved: saved.firestoreSaved,
+                          diskSaved: saved.diskSaved,
+                        }));
                       } catch (e: any) {
                         res.statusCode = 400;
                         res.end(JSON.stringify({ success: false, error: e?.message || 'Invalid JSON payload' }));
@@ -250,32 +265,69 @@ export default defineConfig(() => {
                   if (req.method === 'POST') {
                     let body = '';
                     req.on('data', (chunk: any) => { body += chunk; });
-                    req.on('end', () => {
+                    req.on('end', async () => {
                       try {
+                        const { savePermanentMediaAsset } = await server.ssrLoadModule('/src/lib/serverHomepageFeed.ts');
+                        const { verifyAdminRequest } = await server.ssrLoadModule('/src/lib/adminAuthService.ts');
                         const parsed = JSON.parse(body || '{}');
+                        const authCheck = verifyAdminRequest(req.headers as any, parsed);
+                        if (!authCheck.authorized) {
+                          res.statusCode = 403;
+                          res.end(JSON.stringify({ success: false, error: authCheck.reason || 'Forbidden' }));
+                          return;
+                        }
                         const { dataUrl, fileName, folder = 'feed' } = parsed;
                         if (!dataUrl || !fileName) {
                           res.statusCode = 400;
                           res.end(JSON.stringify({ success: false, error: 'dataUrl and fileName are required' }));
                           return;
                         }
-                        const matches = dataUrl.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/);
-                        const buffer = matches && matches[2]
-                          ? Buffer.from(matches[2], 'base64')
-                          : Buffer.from(dataUrl, 'base64');
-
-                        const cleanFileName = String(fileName).replace(/[^a-zA-Z0-9._-]/g, '_');
-                        const cleanFolder = String(folder).replace(/[^a-zA-Z0-9_-]/g, '_');
-                        const targetDir = path.join(process.cwd(), 'public', 'images', 'uploads', cleanFolder);
-                        if (!fs.existsSync(targetDir)) {
-                          fs.mkdirSync(targetDir, { recursive: true });
-                        }
-                        fs.writeFileSync(path.join(targetDir, cleanFileName), buffer);
-                        const publicUrl = `/images/uploads/${cleanFolder}/${cleanFileName}`;
-                        res.end(JSON.stringify({ success: true, url: publicUrl }));
+                        const saved = savePermanentMediaAsset({ dataUrl, fileName, folder });
+                        res.end(JSON.stringify({
+                          success: true,
+                          url: saved.publicUrl,
+                          dataUrl: saved.dataUrl,
+                          mimeType: saved.mimeType,
+                        }));
                       } catch (e: any) {
                         res.statusCode = 500;
                         res.end(JSON.stringify({ success: false, error: e?.message || 'Upload failed' }));
+                      }
+                    });
+                    return;
+                  }
+                } catch (err: any) {
+                  res.statusCode = 500;
+                  res.end(JSON.stringify({ success: false, error: String(err) }));
+                  return;
+                }
+              }
+              if (url.pathname === '/api/admin/verify-pin') {
+                try {
+                  res.setHeader('Content-Type', 'application/json');
+                  res.setHeader('Access-Control-Allow-Origin', '*');
+                  if (req.method === 'POST') {
+                    let body = '';
+                    req.on('data', (chunk: any) => { body += chunk; });
+                    req.on('end', async () => {
+                      try {
+                        const { verifyAdminPinCredentials } = await server.ssrLoadModule('/src/lib/adminAuthService.ts');
+                        const parsed = JSON.parse(body || '{}');
+                        const result = verifyAdminPinCredentials(parsed.phone, parsed.pin);
+                        if (!result.valid) {
+                          res.statusCode = result.error?.includes('Unauthorized') ? 403 : 401;
+                          res.end(JSON.stringify({ success: false, valid: false, error: result.error }));
+                          return;
+                        }
+                        res.end(JSON.stringify({
+                          success: true,
+                          valid: true,
+                          token: result.adminToken,
+                          adminToken: result.adminToken,
+                        }));
+                      } catch (e: any) {
+                        res.statusCode = 500;
+                        res.end(JSON.stringify({ success: false, valid: false, error: e?.message || 'Verification failed' }));
                       }
                     });
                     return;
