@@ -241,16 +241,16 @@ export default function AdminHomepageFeed() {
     }
   };
 
-  // Publish New WebP Photo or Direct Photo URL to Cloud Firestore
+  // Publish Direct Photo Link to Cloud Firestore Database
   const handlePublishPhoto = async (e: React.FormEvent) => {
     e.preventDefault();
 
     const cleanUrl = normalizeImageUrl(photoUrl);
 
-    if (!selectedFile && !cleanUrl) {
+    if (!cleanUrl && !selectedFile) {
       showToast({
-        title: 'Image Required',
-        message: 'Please drag & drop a WebP photo or paste a valid photo URL.',
+        title: 'Photo Link Required',
+        message: 'Please paste a valid photo URL to save to the Firestore database.',
         type: 'error',
       });
       return;
@@ -268,18 +268,32 @@ export default function AdminHomepageFeed() {
     setIsUploading(true);
 
     try {
-      if (selectedFile) {
+      if (cleanUrl) {
+        // Direct Photo Link path: saved straight to Firestore database (like YouTube embed links)
+        await addCarouselItem({
+          imageUrl: cleanUrl,
+          heading: photoHeading.trim(),
+          caption: photoCaption.trim(),
+          source: photoSource.trim(),
+          order: Number(photoOrder) || 1,
+          published: photoPublished,
+        });
+
+        showToast({
+          title: 'Photo Story Published',
+          message: 'Photo link saved directly to the Firestore database and live on homepage.',
+          type: 'success',
+        });
+      } else if (selectedFile) {
         setUploadProgress(1);
         const photoId = `carousel-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
 
-        // 1. Upload to Firebase Storage under homepage-carousel/{photoId}/{uniqueFilename}.webp
         const uploadResult = await uploadCarouselPhotoWebp(
           selectedFile,
           photoId,
           (progress) => setUploadProgress(progress)
         );
 
-        // 2. Store metadata, caption, storagePath, order, and dimensions in Cloud Firestore & Server DB
         await addCarouselItem({
           imageUrl: uploadResult.downloadUrl,
           storagePath: uploadResult.storagePath,
@@ -293,29 +307,13 @@ export default function AdminHomepageFeed() {
         });
 
         showToast({
-          title: 'WebP Story Published',
-          message: 'Photo binary uploaded to Firebase Storage and metadata saved to Firestore.',
-          type: 'success',
-        });
-      } else {
-        // Direct URL path: saved straight to Firestore database (like YouTube embed links)
-        await addCarouselItem({
-          imageUrl: cleanUrl,
-          heading: photoHeading.trim(),
-          caption: photoCaption.trim(),
-          source: photoSource.trim(),
-          order: Number(photoOrder) || 1,
-          published: photoPublished,
-        });
-
-        showToast({
           title: 'Photo Story Published',
-          message: 'Photo URL saved directly to Firestore database and live on homepage.',
+          message: 'Photo saved to database and live on homepage.',
           type: 'success',
         });
       }
 
-      // 3. Reset form state
+      // Reset form state
       handleClearSelectedFile();
       setPhotoUrl('');
       setPhotoHeading('');
@@ -326,7 +324,7 @@ export default function AdminHomepageFeed() {
     } catch (err: any) {
       showToast({
         title: 'Publish Failed',
-        message: err?.message || 'Could not save photo story.',
+        message: err?.message || 'Could not save photo story to database.',
         type: 'error',
       });
     } finally {
@@ -520,14 +518,14 @@ export default function AdminHomepageFeed() {
   // -------------------------------------------------------------
   const handleDeleteCarousel = async (item: HomepageCarouselItem) => {
     const title = item.heading || item.caption || 'this carousel photo';
-    const confirmMsg = `Are you sure you want to permanently delete "${title}"?\n\nThis will remove the story from the homepage and delete its WebP image from Firebase Storage.`;
+    const confirmMsg = `Are you sure you want to permanently delete "${title}"?\n\nThis will permanently remove the photo story from the homepage and Cloud Firestore database.`;
     if (!confirm(confirmMsg)) return;
 
     try {
       await deleteCarouselItem(item.id);
       showToast({
         title: 'Photo Deleted',
-        message: 'Carousel slide and associated Firebase Storage binary removed.',
+        message: 'Carousel photo story removed from the Firestore database.',
         type: 'info',
       });
     } catch (err: any) {
@@ -623,22 +621,22 @@ export default function AdminHomepageFeed() {
       </div>
 
       {/* =========================================================================
-          SECTION 1: CAROUSEL WEBP PHOTO MANAGEMENT (FIREBASE STORAGE DIRECT UPLOADS)
+          SECTION 1: CAROUSEL PHOTO LINK MANAGEMENT (SAVED IN FIRESTORE DATABASE)
           ========================================================================= */}
       <section className="bg-white border border-slate-200 rounded-2xl p-6 sm:p-7 shadow-xs">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-5 border-b border-slate-100">
           <div>
             <h3 className="font-semibold text-lg text-slate-900 tracking-tight flex items-center gap-2">
               <ImageIcon size={20} className="text-[#006C54]" />
-              Weekly Editorial WebP Carousel
+              Weekly Editorial Photo Carousel
             </h3>
             <p className="text-xs text-slate-500 mt-1">
-              Upload WebP matchday photos directly to Firebase Storage with full caption, credit, and display order management.
+              Publish direct photo links saved in the Cloud Firestore database with full headline, caption, credit, and display order management.
             </p>
           </div>
           <div className="flex items-center gap-2">
             <span className="text-[11px] font-semibold text-[#006C54] flex items-center gap-1.5">
-              <ShieldCheck size={13} /> Firebase Storage Active
+              <ShieldCheck size={13} /> Cloud Firestore Active
             </span>
             <span className="text-xs font-medium text-slate-600">
               {feed.carouselItems.filter((i) => i.published).length} Published · {feed.carouselItems.length} Total
@@ -646,143 +644,23 @@ export default function AdminHomepageFeed() {
           </div>
         </div>
 
-        {/* WebP Upload & Story Creation Form */}
+        {/* Photo Link & Story Creation Form */}
         <form onSubmit={handlePublishPhoto} className="mt-6 space-y-5">
-          {/* DRAG-AND-DROP FILE UPLOAD ZONE */}
-          <div>
-            <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wide mb-2 flex items-center justify-between">
-              <span className="flex items-center gap-1.5">
-                <FileImage size={14} className="text-[#006C54]" />
-                Select or Drop WebP Image (Max 5 MB)
-              </span>
-              <span className="text-[11px] text-slate-400 font-normal lowercase">
-                Enforced: .webp · image/webp · RIFF container
-              </span>
-            </label>
-
-            {!selectedFile ? (
-              <div
-                onDragOver={handleDragOver}
-                onDragLeave={handleDragLeave}
-                onDrop={handleDrop}
-                onClick={() => fileInputRef.current?.click()}
-                className={`border-2 border-dashed rounded-2xl p-6 sm:p-8 text-center cursor-pointer transition-all ${
-                  isDragOver
-                    ? 'border-[#006C54] bg-[#006C54]/5 scale-[1.01]'
-                    : 'border-slate-300 hover:border-[#006C54] hover:bg-slate-50/70 bg-[#FFFFF0]'
-                }`}
-              >
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="image/webp,.webp"
-                  onChange={handleFileInputChange}
-                  className="hidden"
-                />
-                <div className="flex flex-col items-center justify-center space-y-2.5">
-                  <div className="w-12 h-12 rounded-full bg-[#006C54]/10 text-[#006C54] flex items-center justify-center shadow-xs">
-                    <UploadCloud size={24} />
-                  </div>
-                  <div>
-                    <p className="text-sm font-semibold text-slate-800">
-                      Drag &amp; drop your WebP photo here, or <span className="text-[#006C54] underline">browse</span>
-                    </p>
-                    <p className="text-xs text-slate-400 mt-0.5">
-                      Recommended 3:4 editorial ratio (e.g. 1200 × 1600 px). Max 5 MB.
-                    </p>
-                  </div>
-                </div>
-              </div>
-            ) : (
-              /* Selected File Information & Instant Preview */
-              <div className="border border-slate-200 rounded-2xl p-4 bg-slate-50 flex flex-col sm:flex-row items-center justify-between gap-4">
-                <div className="flex items-center gap-4 w-full sm:w-auto">
-                  {localPreviewUrl && (
-                    <div className="relative w-16 h-20 rounded-xl overflow-hidden bg-slate-900 shrink-0 shadow-md border border-slate-300">
-                      <img src={localPreviewUrl} alt="Upload preview" className="w-full h-full object-cover" />
-                    </div>
-                  )}
-                  <div className="text-left space-y-1">
-                    <div className="flex items-center gap-2">
-                      <span className="font-semibold text-xs text-slate-900 truncate max-w-[220px] sm:max-w-[320px]">
-                        {fileValidation?.name || selectedFile.name}
-                      </span>
-                      <span className="text-[10px] font-bold text-emerald-700 bg-emerald-100 border border-emerald-200 px-2 py-0.5 rounded-full">
-                        Valid WebP
-                      </span>
-                    </div>
-                    <p className="text-[11px] text-slate-500">
-                      Size: <strong className="text-slate-700">{formatFileSize(fileValidation?.sizeBytes || selectedFile.size)}</strong>
-                      {fileValidation?.width && fileValidation?.height ? (
-                        <> · Dimensions: <strong className="text-slate-700">{fileValidation.width} × {fileValidation.height} px</strong></>
-                      ) : null}
-                    </p>
-                    <p className="text-[10px] text-slate-400">
-                      Destination: <code className="text-slate-600 font-mono">homepage-carousel/{'{photoId}'}/...webp</code>
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-2 self-end sm:self-auto shrink-0">
-                  <button
-                    type="button"
-                    onClick={() => fileInputRef.current?.click()}
-                    disabled={isUploading}
-                    className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-white border border-slate-300 hover:bg-slate-100 text-slate-700 transition-colors cursor-pointer"
-                  >
-                    Change
-                  </button>
-                  <button
-                    type="button"
-                    onClick={handleClearSelectedFile}
-                    disabled={isUploading}
-                    className="text-xs font-semibold px-3 py-1.5 rounded-lg text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer flex items-center gap-1"
-                  >
-                    <X size={14} /> Remove
-                  </button>
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    accept="image/webp,.webp"
-                    onChange={handleFileInputChange}
-                    className="hidden"
-                  />
-                </div>
-              </div>
-            )}
-
-            {validationError && (
-              <div className="mt-2 text-xs font-medium text-rose-600 flex items-center gap-1.5 bg-rose-50 border border-rose-200 px-3 py-2 rounded-xl">
-                <AlertCircle size={14} />
-                <span>{validationError}</span>
-              </div>
-            )}
-          </div>
-
-          {/* OR DIVIDER */}
-          <div className="relative flex items-center justify-center my-3">
-            <div className="border-t border-slate-200 w-full" />
-            <span className="bg-white px-3 text-[11px] font-semibold tracking-wider text-slate-400 uppercase shrink-0">
-              OR ENTER PHOTO URL
-            </span>
-            <div className="border-t border-slate-200 w-full" />
-          </div>
-
-          {/* DIRECT PHOTO URL INPUT (Stored in Firestore Database) */}
+          {/* DIRECT PHOTO LINK INPUT (Saved in Firestore Database) */}
           <div>
             <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wide mb-1.5 flex items-center justify-between">
               <span className="flex items-center gap-1.5">
                 <LinkIcon size={14} className="text-[#006C54]" />
-                Direct Photo URL (Stored in Firestore Database)
+                Direct Photo Link (Saved in Firestore Database)
               </span>
               <span className="text-[11px] text-slate-400 font-normal">
-                Stored in Firestore · e.g. CDN or image link
+                Stored in Firestore · Direct image URL (.jpg, .png, .webp, https://...)
               </span>
             </label>
             <div className="relative">
               <input
-                type="url"
-                placeholder="Paste photo link (e.g. https://images.unsplash.com/... or https://domain.com/photo.webp)"
+                type="text"
+                placeholder="Paste photo link (e.g. https://mp3tourl.com/images/... or https://images.unsplash.com/...)"
                 value={photoUrl}
                 onChange={(e) => handlePhotoUrlChange(e.target.value)}
                 disabled={isUploading}
@@ -800,7 +678,7 @@ export default function AdminHomepageFeed() {
               ) : null}
             </div>
             <p className="text-[11px] text-slate-400 mt-1">
-              Direct photo URLs are saved straight to the Firestore database without needing Firebase Storage upload, exactly like YouTube video embeds.
+              Photo links are saved directly in the Cloud Firestore database (just like YouTube video embeds) and persist across all deployments.
             </p>
           </div>
 
@@ -900,24 +778,6 @@ export default function AdminHomepageFeed() {
             </div>
           </div>
 
-          {/* UPLOAD PROGRESS BAR */}
-          {isUploading && (
-            <div className="space-y-1.5 pt-1">
-              <div className="flex justify-between text-xs font-semibold text-slate-700">
-                <span className="flex items-center gap-1.5 text-[#006C54]">
-                  <RefreshCw size={13} className="animate-spin" /> Uploading WebP to Firebase Storage...
-                </span>
-                <span>{uploadProgress}%</span>
-              </div>
-              <div className="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden border border-slate-200">
-                <div
-                  className="h-full bg-gradient-to-r from-[#006C54] to-[#4ADE80] transition-all duration-300"
-                  style={{ width: `${uploadProgress}%` }}
-                />
-              </div>
-            </div>
-          )}
-
           {/* ACTION BUTTONS */}
           <div className="flex flex-wrap items-center gap-3 pt-2">
             <button
@@ -928,21 +788,12 @@ export default function AdminHomepageFeed() {
               {isUploading ? (
                 <>
                   <RefreshCw size={14} className="animate-spin" />
-                  <span>
-                    {selectedFile
-                      ? `Uploading to Firebase Storage (${uploadProgress}%)...`
-                      : 'Saving to Firestore...'}
-                  </span>
-                </>
-              ) : selectedFile ? (
-                <>
-                  <UploadCloud size={14} />
-                  <span>Upload WebP &amp; Publish Carousel Story</span>
+                  <span>Saving Photo Link to Firestore...</span>
                 </>
               ) : (
                 <>
                   <Plus size={14} />
-                  <span>Publish Photo URL to Carousel</span>
+                  <span>Publish Photo Link to Carousel</span>
                 </>
               )}
             </button>
@@ -1022,13 +873,11 @@ export default function AdminHomepageFeed() {
 
           {sortedCarouselItems.length === 0 ? (
             <div className="text-center py-10 bg-slate-50 border border-slate-200 rounded-2xl text-slate-400 text-xs">
-              No carousel photos added yet. Upload your first WebP photo above to activate the weekly editorial carousel.
+              No carousel photos added yet. Paste a photo link above to publish to the weekly editorial carousel.
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
               {sortedCarouselItems.map((item, index) => {
-                const isStorageWebp = Boolean(item.storagePath && item.storagePath.startsWith('homepage-carousel/'));
-
                 return (
                   <div
                     key={item.id}
@@ -1047,21 +896,15 @@ export default function AdminHomepageFeed() {
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-transparent pointer-events-none" />
 
-                      {/* Top Badges: Order & Storage Status */}
+                      {/* Top Badges: Order & Firestore Status */}
                       <div className="absolute top-2.5 left-2.5 right-2.5 flex items-center justify-between z-20">
                         <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-black/70 backdrop-blur-xs text-white border border-white/20">
                           #{item.order ?? index + 1}
                         </span>
 
-                        {isStorageWebp ? (
-                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-950/80 text-emerald-300 border border-emerald-400/40 flex items-center gap-1">
-                            <ShieldCheck size={10} /> WebP Storage
-                          </span>
-                        ) : (
-                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-sky-950/80 text-sky-300 border border-sky-400/40 flex items-center gap-1" title="Stored directly in Cloud Firestore database">
-                            <LinkIcon size={10} /> Photo URL
-                          </span>
-                        )}
+                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-950/80 text-emerald-300 border border-emerald-400/40 flex items-center gap-1" title="Saved directly in Cloud Firestore database">
+                          <LinkIcon size={10} /> Firestore Photo Link
+                        </span>
                       </div>
 
                       {/* Overlay Caption Info */}
@@ -1133,7 +976,7 @@ export default function AdminHomepageFeed() {
                             type="button"
                             onClick={() => handleOpenEdit(item)}
                             className="px-2 py-1 rounded-md text-[11px] font-semibold text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer flex items-center gap-1"
-                            title="Edit headline, caption, or order without re-uploading"
+                            title="Edit headline, caption, or order"
                           >
                             <Edit3 size={12} className="text-[#006C54]" />
                             <span>Edit</span>
@@ -1143,7 +986,7 @@ export default function AdminHomepageFeed() {
                             type="button"
                             onClick={() => handleOpenReplace(item)}
                             className="px-2 py-1 rounded-md text-[11px] font-semibold text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer flex items-center gap-1"
-                            title="Upload replacement WebP file"
+                            title="Replace photo link in Firestore"
                           >
                             <RefreshCw size={12} className="text-[#006C54]" />
                             <span>Replace Photo</span>
@@ -1154,7 +997,7 @@ export default function AdminHomepageFeed() {
                           type="button"
                           onClick={() => handleDeleteCarousel(item)}
                           className="p-1.5 rounded-md text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
-                          title="Delete photo & storage binary"
+                          title="Delete photo story from Firestore"
                         >
                           <Trash2 size={13} />
                         </button>
@@ -1169,7 +1012,7 @@ export default function AdminHomepageFeed() {
       </section>
 
       {/* =========================================================================
-          MODAL 1: EDIT CAPTION & METADATA (NO IMAGE RE-UPLOAD)
+          MODAL 1: EDIT CAPTION & METADATA
           ========================================================================= */}
       {editingItem && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
@@ -1278,7 +1121,7 @@ export default function AdminHomepageFeed() {
       )}
 
       {/* =========================================================================
-          MODAL 2: REPLACE WEBP PHOTO (SAFE STORAGE SWAP WORKFLOW)
+          MODAL 2: REPLACE CAROUSEL PHOTO LINK (FIRESTORE DATABASE UPDATE)
           ========================================================================= */}
       {replacingItem && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
@@ -1286,7 +1129,7 @@ export default function AdminHomepageFeed() {
             <div className="flex items-center justify-between pb-3 border-b border-slate-100">
               <h3 className="font-semibold text-base text-slate-900 flex items-center gap-2">
                 <RefreshCw size={18} className="text-[#006C54]" />
-                Replace Carousel Photo
+                Replace Carousel Photo Link
               </h3>
               <button
                 type="button"
@@ -1298,15 +1141,15 @@ export default function AdminHomepageFeed() {
             </div>
 
             <p className="text-xs text-slate-500">
-              Select a new WebP photo or enter a direct photo URL to replace this image. WebP files upload to Firebase Storage; direct photo URLs are saved straight to Firestore.
+              Paste a new direct photo link below to update this carousel slide in the Cloud Firestore database.
             </p>
 
             {/* Current vs New Image Comparison Preview */}
             <div className="grid grid-cols-2 gap-4 py-2">
               <div className="text-center space-y-1">
-                <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wide block">Current Image</span>
+                <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wide block">Current Photo</span>
                 <div className="relative aspect-[3/4] rounded-xl overflow-hidden bg-slate-900 border border-slate-200 shadow-xs">
-                  <img src={replacingItem.imageUrl} alt="Current" className="w-full h-full object-cover" />
+                  <img src={replacingItem.imageUrl} alt="Current" referrerPolicy="no-referrer" className="w-full h-full object-cover" />
                 </div>
               </div>
 
@@ -1322,55 +1165,28 @@ export default function AdminHomepageFeed() {
                     />
                   </div>
                 ) : (
-                  <div
-                    onClick={() => replaceFileInputRef.current?.click()}
-                    className="relative aspect-[3/4] rounded-xl border-2 border-dashed border-slate-300 hover:border-[#006C54] bg-slate-50 flex flex-col items-center justify-center p-3 cursor-pointer text-center"
-                  >
-                    <UploadCloud size={24} className="text-[#006C54] mb-1" />
-                    <span className="text-xs font-semibold text-slate-700">Click to Select WebP</span>
-                    <span className="text-[10px] text-slate-400 mt-0.5">Max 5 MB</span>
+                  <div className="relative aspect-[3/4] rounded-xl border-2 border-dashed border-slate-300 bg-slate-50 flex flex-col items-center justify-center p-3 text-center">
+                    <LinkIcon size={24} className="text-[#006C54] mb-1" />
+                    <span className="text-xs font-semibold text-slate-700">Paste Photo Link Below</span>
+                    <span className="text-[10px] text-slate-400 mt-0.5">Live preview appears here</span>
                   </div>
                 )}
               </div>
             </div>
 
-            <input
-              ref={replaceFileInputRef}
-              type="file"
-              accept="image/webp,.webp"
-              onChange={handleReplaceFileInputChange}
-              className="hidden"
-            />
-
-            {replaceValidation && (
-              <div className="text-xs bg-emerald-50 border border-emerald-200 text-emerald-800 p-2.5 rounded-xl flex items-center justify-between">
-                <span>{replaceValidation.name} ({formatFileSize(replaceValidation.sizeBytes || 0)})</span>
-                {replaceValidation.width && replaceValidation.height ? (
-                  <span className="font-semibold">{replaceValidation.width} × {replaceValidation.height} px</span>
-                ) : null}
-              </div>
-            )}
-
-            {replaceValidationError && (
-              <div className="text-xs font-medium text-rose-600 bg-rose-50 border border-rose-200 p-2.5 rounded-xl flex items-center gap-1.5">
-                <AlertCircle size={14} />
-                <span>{replaceValidationError}</span>
-              </div>
-            )}
-
-            {/* OR ENTER REPLACEMENT PHOTO URL */}
+            {/* REPLACEMENT PHOTO LINK INPUT */}
             <div>
               <label className="block text-[11px] font-semibold text-slate-700 mb-1 flex items-center justify-between">
                 <span className="flex items-center gap-1">
                   <LinkIcon size={12} className="text-[#006C54]" />
-                  Or Enter Replacement Photo URL:
+                  New Photo Link (URL):
                 </span>
-                <span className="text-[10px] text-slate-400">Stored in Firestore</span>
+                <span className="text-[10px] text-slate-400">Saved in Firestore Database</span>
               </label>
               <div className="relative">
                 <input
-                  type="url"
-                  placeholder="https://example.com/photo.webp"
+                  type="text"
+                  placeholder="https://mp3tourl.com/images/... or https://images.unsplash.com/..."
                   value={replaceUrl}
                   onChange={(e) => {
                     const val = e.target.value;
@@ -1397,55 +1213,23 @@ export default function AdminHomepageFeed() {
               </div>
             </div>
 
-            {isReplacing && (
-              <div className="space-y-1.5 pt-1">
-                <div className="flex justify-between text-xs font-semibold text-slate-700">
-                  <span className="text-[#006C54]">
-                    {replaceFile ? 'Uploading replacement to Firebase Storage...' : 'Saving to Firestore database...'}
-                  </span>
-                  {replaceFile && <span>{replaceProgress}%</span>}
-                </div>
-                {replaceFile && (
-                  <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
-                    <div
-                      className="h-full bg-[#006C54] transition-all duration-300"
-                      style={{ width: `${replaceProgress}%` }}
-                    />
-                  </div>
-                )}
-              </div>
-            )}
-
-            <div className="flex items-center justify-between gap-2 pt-3 border-t border-slate-100">
+            <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
               <button
                 type="button"
-                onClick={() => replaceFileInputRef.current?.click()}
+                onClick={() => setReplacingItem(null)}
                 disabled={isReplacing}
-                className="px-3 py-2 text-xs font-semibold rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 cursor-pointer"
+                className="px-4 py-2 text-xs font-semibold rounded-xl text-slate-600 hover:bg-slate-100 cursor-pointer"
               >
-                Choose Another File
+                Cancel
               </button>
-
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={() => setReplacingItem(null)}
-                  disabled={isReplacing}
-                  className="px-4 py-2 text-xs font-semibold rounded-xl text-slate-600 hover:bg-slate-100 cursor-pointer"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="button"
-                  onClick={handleConfirmReplace}
-                  disabled={isReplacing || (!replaceFile && !replaceUrl.trim())}
-                  className="px-5 py-2 text-xs font-semibold rounded-xl bg-[#006C54] hover:bg-[#005441] disabled:opacity-50 text-white transition-all cursor-pointer shadow-xs"
-                >
-                  {isReplacing
-                    ? (replaceFile ? 'Uploading & Replacing...' : 'Saving to Firestore...')
-                    : 'Confirm Replacement'}
-                </button>
-              </div>
+              <button
+                type="button"
+                onClick={handleConfirmReplace}
+                disabled={isReplacing || (!replaceFile && !replaceUrl.trim())}
+                className="px-5 py-2 text-xs font-semibold rounded-xl bg-[#006C54] hover:bg-[#005441] disabled:opacity-50 text-white transition-all cursor-pointer shadow-xs"
+              >
+                {isReplacing ? 'Saving to Firestore...' : 'Save Photo Link'}
+              </button>
             </div>
           </div>
         </div>

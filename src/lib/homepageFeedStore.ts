@@ -258,7 +258,7 @@ export function enrichCarouselItem(
   const mediaType =
     imageUrl.startsWith('data:image/webp') || imageUrl.endsWith('.webp') ? 'image/webp' : 'image';
 
-  return {
+  const cleaned: HomepageCarouselItem = {
     ...existing,
     ...item,
     id: item.id,
@@ -284,7 +284,7 @@ export function enrichCarouselItem(
               url: imageUrl,
               type: 'image',
               mimeType: mediaType,
-              storagePath: item.storagePath,
+              ...(item.storagePath ? { storagePath: item.storagePath } : {}),
             },
           ]
         : [],
@@ -298,6 +298,14 @@ export function enrichCarouselItem(
     shares: typeof item.shares === 'number' ? item.shares : existing?.shares ?? 0,
     comments: Array.isArray(item.comments) ? item.comments : existing?.comments ?? [],
   };
+
+  // Strip undefined properties so Firestore documents remain strictly valid
+  for (const key of Object.keys(cleaned) as Array<keyof HomepageCarouselItem>) {
+    if (cleaned[key] === undefined) {
+      delete cleaned[key];
+    }
+  }
+  return cleaned;
 }
 
 export function enrichVideoItem(
@@ -377,8 +385,7 @@ export function sanitizeHomepageFeed(feed: HomepageFeedData): HomepageFeedData {
           item &&
           item.id &&
           !LEGACY_MOCK_IDS.has(item.id) &&
-          !deletedSet.has(item.id) &&
-          !item.imageUrl?.includes('mp3tourl.com')
+          !deletedSet.has(item.id)
       )
       .map((item) => enrichCarouselItem(item)),
     videoItems: (feed?.videoItems || [])

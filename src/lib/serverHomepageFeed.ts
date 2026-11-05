@@ -81,8 +81,13 @@ async function getAdminFirestore(): Promise<any | null> {
 
   try {
     const rawSa = process.env.FIREBASE_SERVICE_ACCOUNT;
-    const isCloudRun = Boolean(process.env.K_SERVICE || process.env.GOOGLE_CLOUD_PROJECT);
-    if (!rawSa && !isCloudRun) {
+    const isCloudEnv = Boolean(
+      process.env.K_SERVICE ||
+        process.env.GOOGLE_CLOUD_PROJECT ||
+        process.env.GOOGLE_APPLICATION_CREDENTIALS ||
+        (process.platform === 'linux' && !process.env.VERCEL)
+    );
+    if (!rawSa && !isCloudEnv) {
       return null;
     }
 
@@ -132,7 +137,7 @@ export function normalizeCarouselPostItem(
     ? 'image/webp'
     : 'image';
 
-  return {
+  const cleaned: HomepageCarouselItem = {
     ...existing,
     ...item,
     id: item.id,
@@ -158,7 +163,7 @@ export function normalizeCarouselPostItem(
               url: imageUrl,
               type: 'image',
               mimeType: mediaType,
-              storagePath: item.storagePath,
+              ...(item.storagePath ? { storagePath: item.storagePath } : {}),
             },
           ]
         : [],
@@ -172,6 +177,13 @@ export function normalizeCarouselPostItem(
     shares: typeof item.shares === 'number' ? item.shares : existing?.shares ?? 0,
     comments: Array.isArray(item.comments) ? item.comments : existing?.comments ?? [],
   };
+
+  for (const key of Object.keys(cleaned) as Array<keyof HomepageCarouselItem>) {
+    if (cleaned[key] === undefined) {
+      delete cleaned[key];
+    }
+  }
+  return cleaned;
 }
 
 /**
@@ -248,8 +260,7 @@ export function sanitizeFeed(feed: HomepageFeedData): HomepageFeedData {
         item &&
         item.id &&
         !LEGACY_MOCK_IDS.has(item.id) &&
-        !deletedSet.has(item.id) &&
-        !item.imageUrl?.includes('mp3tourl.com')
+        !deletedSet.has(item.id)
     )
     .map((item) => normalizeCarouselPostItem(item));
 

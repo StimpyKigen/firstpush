@@ -61,8 +61,7 @@ export default function Home() {
           i.isActive !== false &&
           i.status !== 'archived' &&
           Boolean(i.imageUrl && i.imageUrl.trim()) &&
-          !['carousel-featured-reference', 'slide-1', 'slide-2', 'slide-3'].includes(i.id) &&
-          !i.imageUrl.includes('mp3tourl.com')
+          !['carousel-featured-reference', 'slide-1', 'slide-2', 'slide-3'].includes(i.id)
       )
       .sort((a, b) => {
         const orderA = typeof a.order === 'number' ? a.order : 9999;

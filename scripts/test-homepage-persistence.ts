@@ -95,31 +95,14 @@ async function runTests() {
     };
 
     // =========================================================================
-    // TEST A — INITIAL PUBLISHING (5 POSTS: 3 PHOTO CAROUSELS + 2 VIDEOS)
+    // TEST A — INITIAL PUBLISHING (5 POSTS: 3 DIRECT PHOTO LINKS + 2 VIDEOS)
     // =========================================================================
-    console.log('▶ Running TEST A: Initial Publishing (5 Homepage Posts)...');
-
-    const upload1 = await uploadCarouselPhotoWebp(
-      createMockWebpFile('premier-league-derby.webp'),
-      'post-photo-1'
-    );
-    const upload2 = await uploadCarouselPhotoWebp(
-      createMockWebpFile('champions-league-night.webp'),
-      'post-photo-2'
-    );
-    const upload3 = await uploadCarouselPhotoWebp(
-      createMockWebpFile('kenya-harambee-stars.webp'),
-      'post-photo-3'
-    );
+    console.log('▶ Running TEST A: Initial Publishing (5 Homepage Posts with Direct Photo Links)...');
 
     const post1 = await addCarouselItem(
       {
         id: 'perm-carousel-1',
-        imageUrl: upload1.downloadUrl,
-        storagePath: upload1.storagePath,
-        fileName: upload1.fileName,
-        fileSize: upload1.fileSize,
-        dimensions: upload1.dimensions,
+        imageUrl: 'https://mp3tourl.com/images/arsenal-chelsea-tactical-derby.jpg',
         heading: 'Arsenal vs Chelsea Tactical Breakdown',
         caption: 'High-pressing midfield transitions define the London derby consensus.',
         source: 'Mshindi Editorial Desk',
@@ -131,11 +114,7 @@ async function runTests() {
     const post2 = await addCarouselItem(
       {
         id: 'perm-carousel-2',
-        imageUrl: upload2.downloadUrl,
-        storagePath: upload2.storagePath,
-        fileName: upload2.fileName,
-        fileSize: upload2.fileSize,
-        dimensions: upload2.dimensions,
+        imageUrl: 'https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&w=1200&q=80',
         heading: 'UEFA Champions League Quarter-Final Preview',
         caption: 'Top European heavyweights clash under the floodlights.',
         source: 'UEFA Media Pool',
@@ -147,11 +126,7 @@ async function runTests() {
     const post3 = await addCarouselItem(
       {
         id: 'perm-carousel-3',
-        imageUrl: upload3.downloadUrl,
-        storagePath: upload3.storagePath,
-        fileName: upload3.fileName,
-        fileSize: upload3.fileSize,
-        dimensions: upload3.dimensions,
+        imageUrl: 'https://mp3tourl.com/images/mega-jackpot-17-leg-consensus.webp',
         heading: 'Mega Jackpot 17-Leg Consensus Report',
         caption: 'Over 4,200 verified punters lock in weekend banker selections.',
         source: 'Mshindi Analytics',
@@ -240,21 +215,10 @@ async function runTests() {
     // =========================================================================
     console.log('\n▶ Running TEST C: Additional Publishing (+3 Posts = 8 Total) & Deployment #2...');
 
-    const upload6 = await uploadCarouselPhotoWebp(
-      createMockWebpFile('serie-a-scudetto.webp'),
-      'post-photo-6'
-    );
-    const upload7 = await uploadCarouselPhotoWebp(
-      createMockWebpFile('la-liga-clasico.webp'),
-      'post-photo-7'
-    );
-
     const post6 = await addCarouselItem(
       {
         id: 'perm-carousel-6',
-        imageUrl: upload6.downloadUrl,
-        storagePath: upload6.storagePath,
-        fileName: upload6.fileName,
+        imageUrl: 'https://mp3tourl.com/images/serie-a-scudetto-stretch.jpg',
         heading: 'Serie A Title Race Enters Final Stretch',
         caption: 'Inter and Napoli tactical metrics compared ahead of Sunday kickoff.',
         source: 'Gazzetta Sport',
@@ -266,9 +230,7 @@ async function runTests() {
     const post7 = await addCarouselItem(
       {
         id: 'perm-carousel-7',
-        imageUrl: upload7.downloadUrl,
-        storagePath: upload7.storagePath,
-        fileName: upload7.fileName,
+        imageUrl: 'https://images.unsplash.com/photo-1522778119026-d647f0596c20?auto=format&fit=crop&w=1200&q=80',
         heading: 'El Clasico Expected Goals (xG) Report',
         caption: 'Real Madrid and Barcelona attacking zones analyzed.',
         source: 'LaLiga Data',
@@ -373,44 +335,29 @@ async function runTests() {
     );
 
     // =========================================================================
-    // TEST E — MEDIA PERSISTENCE ACROSS DEPLOYMENTS (WITHOUT LOCAL UPLOAD FILES)
+    // TEST E — PHOTO LINK PERSISTENCE ACROSS DEPLOYMENTS (SAVED IN DATABASE, NOT STORAGE)
     // =========================================================================
-    console.log('\n▶ Running TEST E: Media Persistence Without Local Static Upload Folder...');
+    console.log('\n▶ Running TEST E: Direct Photo Link Persistence in Database...');
 
-    // Delete files from public/images/uploads/homepage-carousel to simulate container disk wipe
-    const uploadsDir = path.join(process.cwd(), 'public', 'images', 'uploads', 'homepage-carousel');
-    if (fs.existsSync(uploadsDir)) {
-      for (const f of fs.readdirSync(uploadsDir)) {
-        try {
-          fs.unlinkSync(path.join(uploadsDir, f));
-        } catch {}
-      }
-    }
-
-    // Verify every carousel post still has a valid, self-contained WebP dataUrl
+    // Verify every active carousel post preserves its direct photo link in the database
     for (const item of activeHomepageCarousel) {
       assert.ok(
-        item.imageUrl.startsWith('data:image/webp;base64,') || item.imageUrl.startsWith('https://'),
-        `Post ${item.id} imageUrl must be a permanent data URL or HTTPS URL, got: ${item.imageUrl.slice(0, 40)}`
+        item.imageUrl.startsWith('https://'),
+        `Post ${item.id} imageUrl must be a permanent direct HTTPS photo link saved in database, got: ${item.imageUrl.slice(0, 40)}`
+      );
+      assert.strictEqual(
+        item.storagePath,
+        undefined,
+        `Post ${item.id} must be stored as a direct photo link in the database without Firebase Storage dependency`
       );
       assert.ok(
         Array.isArray(item.media) && item.media.length > 0 && item.media[0].url === item.imageUrl,
-        `Post ${item.id} media descriptor must be populated`
-      );
-    }
-
-    // Verify getPermanentMediaAsset also recovers deleted static upload files from data/homepage_media.json
-    if (upload1.publicUrl) {
-      const fileNamePart = path.basename(upload1.publicUrl);
-      const recovered = getPermanentMediaAsset('homepage-carousel', fileNamePart);
-      assert.ok(
-        recovered && recovered.buffer.length > 0,
-        'Server permanent media registry must recover binary buffer even after public/images/uploads is wiped'
+        `Post ${item.id} media descriptor must reference the direct photo link`
       );
     }
 
     console.log(
-      '  ✓ Media URLs and permanent binary registry survived local static directory wipe!'
+      '  ✓ Direct photo links (including mp3tourl.com and external image URLs) persisted cleanly in database!'
     );
 
     // =========================================================================
