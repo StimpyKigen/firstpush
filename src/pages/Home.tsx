@@ -609,11 +609,12 @@ export default function Home() {
               ))
             ) : (
               topFixtures.map((m) => {
-                const isLive = normalizeMatchStatus(m.status, m.displayClock) === 'in';
-                const isFinished = normalizeMatchStatus(m.status, m.displayClock) === 'post';
+                const isLive = m.status === 'in';
+                const isFinished = m.status === 'post';
                 const hasScores =
-                  (m.homeScore !== null && m.homeScore !== undefined) ||
-                  (m.awayScore !== null && m.awayScore !== undefined);
+                  (isLive || isFinished) &&
+                  ((m.homeScore !== null && m.homeScore !== undefined) ||
+                    (m.awayScore !== null && m.awayScore !== undefined));
 
                 return (
                   <Link

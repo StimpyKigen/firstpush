@@ -106,7 +106,21 @@ try {
   if (stored) {
     const parsed = JSON.parse(stored);
     if (Array.isArray(parsed) && parsed.length > 0) {
-      cachedFixtures = parsed;
+      cachedFixtures = parsed.map((item: any) => {
+        if (!item || typeof item !== 'object') return item;
+        if (!item.status || item.status === 'pre') {
+          return {
+            ...item,
+            status: 'pre',
+            period: 'scheduled',
+            displayClock: '',
+            minute: '',
+            homeScore: null,
+            awayScore: null,
+          };
+        }
+        return item;
+      });
     }
   }
 } catch {
@@ -222,7 +236,9 @@ export function mergeHighlightFixtureLists(
       let displayClock = existing.displayClock || existing.minute || '';
       if (status === 'post') {
         displayClock = period === 'after_penalties' ? 'AP' : period === 'after_extra_time' ? 'AET' : 'FT';
-      } else if (isPermitted) {
+      } else if (status === 'pre') {
+        displayClock = '';
+      } else if (status === 'in' && isPermitted) {
         const incClock = inc.displayClock || inc.minute || '';
         const isExNumericMin = /^\d+(?:\+\d*)?'$/.test(displayClock);
         const isIncGeneric = ['1st half', '2nd half', 'live'].includes(incClock.toLowerCase());
@@ -302,7 +318,14 @@ function mapRawApiFixtureToHighlight(m: any, syncTimeLabel: string): HighlightFi
   const blurb = buildBlurb(m.home, m.away, compName, m.status);
   const fid = m.id?.startsWith('mkt-') ? m.id : `mkt-${m.id || `${m.home}-${m.away}`.toLowerCase().replace(/[^a-z0-9]/g, '-')}`;
   const status: MatchStatus = m.status || 'pre';
-  const displayClock = status === 'post' ? 'FT' : (m.displayClock || m.minute || (status === 'in' ? 'LIVE' : ''));
+  const displayClock =
+    status === 'post'
+      ? (m.period === 'after_penalties' ? 'AP' : m.period === 'after_extra_time' ? 'AET' : 'FT')
+      : status === 'in'
+      ? (m.displayClock || m.minute || 'LIVE')
+      : status === 'pre'
+      ? ''
+      : (m.displayClock || '');
 
   return {
     id: fid,

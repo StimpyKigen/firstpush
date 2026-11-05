@@ -19,6 +19,18 @@ export interface CardNotificationEvent {
   minute?: number | string;
 }
 
+function formatScorerDisplay(scorer: any): string {
+  if (!scorer) return '';
+  if (typeof scorer === 'string') return scorer.trim();
+  if (typeof scorer === 'object') {
+    const name = String(scorer.player || scorer.name || '').trim();
+    const min = scorer.minute || scorer.time ? String(scorer.minute || scorer.time).trim() : '';
+    if (!name) return '';
+    return min ? `${name} ${min.endsWith("'") ? min : `${min}'`}` : name;
+  }
+  return String(scorer);
+}
+
 interface FixtureSportCardProps {
   match: FreeMatch;
   consensus: MatchConsensus;
@@ -124,13 +136,15 @@ export default function FixtureSportCard({
         setIsHomeScoreGlowing(false);
       }, 10000);
 
-      const scorer = match.latestGoalscorer || (match as any).homeScorer;
-      if (scorer) {
+      const rawScorer = match.latestGoalscorer || (match as any).homeScorer;
+      const isHomeGoal = !rawScorer || typeof rawScorer !== 'object' || !rawScorer.team || rawScorer.team === 'home';
+      const scorerText = isHomeGoal ? formatScorerDisplay(rawScorer) : '';
+      if (scorerText) {
         const goalEvent: CardNotificationEvent = {
           id: `goal_home_${currentHome}_${Date.now()}`,
           side: 'home',
           type: 'goal',
-          player: scorer,
+          player: scorerText,
         };
         setEventQueue((prev) => [...prev, goalEvent]);
       }
@@ -146,13 +160,15 @@ export default function FixtureSportCard({
         setIsAwayScoreGlowing(false);
       }, 10000);
 
-      const scorer = match.latestGoalscorer || (match as any).awayScorer;
-      if (scorer) {
+      const rawScorer = match.latestGoalscorer || (match as any).awayScorer;
+      const isAwayGoal = !rawScorer || typeof rawScorer !== 'object' || !rawScorer.team || rawScorer.team === 'away';
+      const scorerText = isAwayGoal ? formatScorerDisplay(rawScorer) : '';
+      if (scorerText) {
         const goalEvent: CardNotificationEvent = {
           id: `goal_away_${currentAway}_${Date.now()}`,
           side: 'away',
           type: 'goal',
-          player: scorer,
+          player: scorerText,
         };
         setEventQueue((prev) => [...prev, goalEvent]);
       }
@@ -178,8 +194,8 @@ export default function FixtureSportCard({
       const isGoal = inc.is_goal || rawType.includes('goal');
       const isRed = rawType.includes('red') || inc.cardType === 'red';
       const isYellow = rawType.includes('yellow') || inc.cardType === 'yellow' || inc.is_card;
-      const side = (inc.side || inc.teamSide || 'home') === 'away' ? 'away' : 'home';
-      const player = inc.player || (inc as any).name;
+      const side = (inc.side || inc.team || inc.teamSide || 'home') === 'away' ? 'away' : 'home';
+      const player = formatScorerDisplay(inc.player || (inc as any).name);
 
       if (!player) continue;
 
@@ -218,9 +234,25 @@ export default function FixtureSportCard({
   // External / Polling Custom Event Bus for Match Incidents
   useEffect(() => {
     const handleMatchIncident = (e: Event) => {
-      const customEvent = e as CustomEvent<CardNotificationEvent>;
-      if (customEvent.detail) {
-        setEventQueue((prev) => [...prev, customEvent.detail]);
+      const customEvent = e as CustomEvent<any>;
+      const d = customEvent.detail;
+      if (d && typeof d === 'object') {
+        const player = formatScorerDisplay(d.player || d.name);
+        if (!player) return;
+        const side: 'home' | 'away' = (d.side || d.team || d.teamSide || 'home') === 'away' ? 'away' : 'home';
+        const rawType = String(d.type || '').toLowerCase();
+        const type: 'goal' | 'yellow_card' | 'red_card' =
+          rawType.includes('red') ? 'red_card' : rawType.includes('yellow') || rawType.includes('card') ? 'yellow_card' : 'goal';
+        setEventQueue((prev) => [
+          ...prev,
+          {
+            id: d.id || `evt_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
+            side,
+            type,
+            player,
+            minute: d.minute || d.time,
+          },
+        ]);
       }
     };
 
@@ -398,7 +430,7 @@ export default function FixtureSportCard({
                     {activeNotification.type === 'red_card' && (
                       <span className="w-2 h-2.5 bg-red-600 rounded-[1px] shadow-sm inline-block shrink-0" title="Red Card" />
                     )}
-                    <span>{activeNotification.player}</span>
+                    <span>{formatScorerDisplay(activeNotification.player)}</span>
                   </div>
                 )}
               </div>
@@ -441,7 +473,7 @@ export default function FixtureSportCard({
                     {activeNotification.type === 'red_card' && (
                       <span className="w-2 h-2.5 bg-red-600 rounded-[1px] shadow-sm inline-block shrink-0" title="Red Card" />
                     )}
-                    <span>{activeNotification.player}</span>
+                    <span>{formatScorerDisplay(activeNotification.player)}</span>
                   </div>
                 )}
               </div>

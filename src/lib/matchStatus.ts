@@ -454,17 +454,27 @@ export function getMatchScorePresentation(
   _nowMs?: number
 ): ScorePresentation {
   const detailed = parseDetailedMatchStatus(rawStatus, statusText);
-  // IMPORTANT: If rawStatus is explicitly 'post' (finished), never allow a stale statusText (like 'HT')
-  // to downgrade the presentation back to live/halftime.
+  // IMPORTANT:
+  // 1. If rawStatus is explicitly 'post' (finished), never allow a stale statusText (like 'HT')
+  //    to downgrade the presentation back to live/halftime.
+  // 2. If rawStatus is explicitly 'pre' (scheduled / not started), never allow a polluted displayClock
+  //    (like 'LIVE' or "1'") to promote an unstarted match to live/1'! Only terminal/exceptional overrides apply.
   const normRaw = String(rawStatus || '').toLowerCase().trim();
   const isExplicitlyFinished = normRaw === 'post' || normRaw === 'ft' || normRaw === 'finished' || normRaw === 'ended' || normRaw === 'aet' || normRaw === 'ap';
+  const isExplicitlyScheduled =
+    (normRaw === 'pre' || normRaw === 'scheduled' || normRaw === 'upcoming' || normRaw === 'not_started' || normRaw === 'notstarted') &&
+    !['postponed', 'cancelled', 'abandoned', 'suspended', 'post'].includes(detailed.status);
 
-  const status: MatchStatus = isExplicitlyFinished ? 'post' : detailed.status;
+  const status: MatchStatus = isExplicitlyFinished ? 'post' : isExplicitlyScheduled ? 'pre' : detailed.status;
   const period: MatchPeriod = isExplicitlyFinished && !['full_time', 'after_extra_time', 'after_penalties', 'awarded'].includes(detailed.period)
     ? 'full_time'
+    : isExplicitlyScheduled
+    ? 'scheduled'
     : detailed.period;
   const displayClock = isExplicitlyFinished && detailed.displayClock === 'HT'
     ? 'FT'
+    : isExplicitlyScheduled
+    ? ''
     : detailed.displayClock;
 
   // 1. Postponed / Suspended / Cancelled / Abandoned

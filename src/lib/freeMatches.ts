@@ -470,7 +470,13 @@ function toFreeMatch(item: HighlightFixture | any): FreeMatch {
   const displayClock =
     status === 'post'
       ? (item.period === 'after_penalties' ? 'AP' : item.period === 'after_extra_time' ? 'AET' : 'FT')
-      : (item.displayClock || item.minute || (status === 'in' ? 'LIVE' : ''));
+      : status === 'in'
+      ? (item.displayClock || item.minute || 'LIVE')
+      : status === 'pre'
+      ? ''
+      : (item.displayClock || '');
+  const homeScore = status === 'pre' ? null : item.homeScore;
+  const awayScore = status === 'pre' ? null : item.awayScore;
 
   return {
     id: item.id,
@@ -497,8 +503,8 @@ function toFreeMatch(item: HighlightFixture | any): FreeMatch {
     periodSequence: item.periodSequence,
     displayClock,
     minute: displayClock,
-    homeScore: item.homeScore,
-    awayScore: item.awayScore,
+    homeScore,
+    awayScore,
     homeHtScore: item.homeHtScore,
     awayHtScore: item.awayHtScore,
     result: item.result,
@@ -591,7 +597,9 @@ function mergeFreeMatchPair(existing: FreeMatch, incoming: FreeMatch): FreeMatch
   let finalClock = existing.displayClock || existing.minute || '';
   if (finalStatus === 'post') {
     finalClock = finalPeriod === 'after_penalties' ? 'AP' : finalPeriod === 'after_extra_time' ? 'AET' : 'FT';
-  } else if (isPermitted) {
+  } else if (finalStatus === 'pre') {
+    finalClock = '';
+  } else if (finalStatus === 'in' && isPermitted) {
     const incClock = incoming.displayClock || incoming.minute || '';
     const isExNumericMin = /^\d+(?:\+\d*)?'$/.test(finalClock);
     const isIncGeneric = ['1st half', '2nd half', 'live'].includes(incClock.toLowerCase());
