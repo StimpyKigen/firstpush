@@ -14,6 +14,8 @@ export default function InviteModal({ isOpen, onClose }: InviteModalProps) {
   const currentUser = useCurrentUser();
   const mshindiTokens = useWallet((s) => s.mshindiTokens);
   const totalReferrals = useWallet((s) => s.totalReferrals);
+  const referralProgressRemainder = useWallet((s) => s.referralProgressRemainder);
+  const referralsNeededForNextToken = useWallet((s) => s.referralsNeededForNextToken);
   const [copied, setCopied] = useState(false);
 
   const inviterName = currentUser?.username || 'Punter';
@@ -69,11 +71,11 @@ export default function InviteModal({ isOpen, onClose }: InviteModalProps) {
             </span>
           </div>
           <p className="text-xs text-cream leading-relaxed">
-            Invite <span className="font-bold text-gold">5 friends</span> = Get <span className="font-bold text-gold">20 Mshindi Tokens</span> (Enough to unlock <span className="underline decoration-gold">1 Premium Room for FREE</span>)!
+            Invite <span className="font-bold text-gold">3 friends</span> = Get <span className="font-bold text-gold">1 Mshindi Token (1 MT)</span> (Enough to unlock <span className="underline decoration-gold">1 Premium Room for FREE</span>)!
           </p>
           <div className="flex items-center justify-between text-[11px] text-cream-dim pt-1 border-t border-line/60">
-            <span className="flex items-center gap-1"><Users size={12} className="text-emerald-2" /> Total Referrals: <strong className="text-cream">{totalReferrals}</strong></span>
-            <span className="text-gold font-semibold">+4 MT per successful invite</span>
+            <span className="flex items-center gap-1"><Users size={12} className="text-emerald-2" /> Qualifying Referrals: <strong className="text-cream">{totalReferrals}</strong> ({referralProgressRemainder}/3 toward next MT)</span>
+            <span className="text-gold font-semibold">3 invites = +1 MT ({referralsNeededForNextToken} more needed)</span>
           </div>
         </div>
 

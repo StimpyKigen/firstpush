@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Wallet as WalletIcon, CheckCircle2, ArrowUpRight, ArrowDownLeft, Loader2, Copy, Check, KeyRound, AlertCircle, Smartphone, Coins, UserPlus, Sparkles, Gift } from 'lucide-react';
 import SeoHead from '../components/SeoHead';
 import { useWallet } from '../lib/store';
@@ -29,9 +29,18 @@ export default function WalletPage() {
   const mshindiTokens = useWallet((s) => s.mshindiTokens);
   const tokenTransactions = useWallet((s) => s.tokenTransactions);
   const totalReferrals = useWallet((s) => s.totalReferrals);
+  const referralProgressRemainder = useWallet((s) => s.referralProgressRemainder);
+  const referralsNeededForNextToken = useWallet((s) => s.referralsNeededForNextToken);
   const isCodeUsed = useWallet((s) => s.isCodeUsed);
-  const topUpWithCode = useWallet((s) => s.topUpWithCode);
+  const verifyMpesaAndSyncServer = useWallet((s) => s.verifyMpesaAndSyncServer);
+  const syncAuthoritativeTokens = useWallet((s) => s.syncAuthoritativeTokens);
   const currentUser = useCurrentUser();
+
+  useEffect(() => {
+    if (currentUser?.phone) {
+      void syncAuthoritativeTokens(currentUser);
+    }
+  }, [currentUser?.phone, syncAuthoritativeTokens]);
 
   const [activeTab, setActiveTab] = useHistoryPageState<'mpesa' | 'tokens'>('wallet_activeTab', 'mpesa');
   const [amount, setAmount] = useHistoryPageState<number>('wallet_amount', 100);
@@ -41,6 +50,7 @@ export default function WalletPage() {
   const [copied, setCopied] = useState(false);
   const [txs, setTxs] = useState<Tx[]>(seedTx);
   const [done, setDone] = useState(false);
+  const [lastTokensAwarded, setLastTokensAwarded] = useState(0);
   const [stage, setStage] = useHistoryPageState<'send' | 'verify'>('wallet_stage', 'send');
   const [inviteModalOpen, setInviteModalOpen] = useState(false);
 
@@ -62,40 +72,25 @@ export default function WalletPage() {
       return;
     }
     setChecking(true);
-    try {
-      const res = await fetch('/api/mpesa/verify-code', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          code: clean,
-          amount,
-          userId: currentUser?.phone,
-          roomId: 'wallet-topup',
-        }),
-      });
-      const data = await res.json();
-      if (!res.ok || !data.success) {
-        setChecking(false);
-        setError(data.error || 'Payment code verification failed.');
-        return;
-      }
-      topUpWithCode(clean, amount);
-      setTxs((t) => [{ id: Date.now(), type: 'topup', label: 'M-Pesa Top Up', amount, time: 'just now' }, ...t]);
-      setChecking(false);
-      setDone(true);
-      setCode('');
-      setStage('send');
-      setTimeout(() => setDone(false), 2500);
-    } catch {
-      // Offline fallback
-      topUpWithCode(clean, amount);
-      setTxs((t) => [{ id: Date.now(), type: 'topup', label: 'M-Pesa Top Up', amount, time: 'just now' }, ...t]);
-      setChecking(false);
-      setDone(true);
-      setCode('');
-      setStage('send');
-      setTimeout(() => setDone(false), 2500);
+    const res = await verifyMpesaAndSyncServer({
+      code: clean,
+      amount,
+      roomId: 'wallet-topup',
+      purpose: 'wallet-topup',
+    });
+    setChecking(false);
+
+    if (!res.ok) {
+      setError(res.error || 'Payment code verification failed.');
+      return;
     }
+
+    setLastTokensAwarded(res.tokensAwarded || 0);
+    setTxs((t) => [{ id: Date.now(), type: 'topup', label: 'M-Pesa Top Up', amount, time: 'just now' }, ...t]);
+    setDone(true);
+    setCode('');
+    setStage('send');
+    setTimeout(() => setDone(false), 3000);
   }
 
   return (
@@ -274,7 +269,7 @@ export default function WalletPage() {
 
             {done && (
               <p className="text-xs text-emerald-600 font-bold mt-3 flex items-center gap-1.5 animate-rise">
-                <CheckCircle2 size={13} /> Top up successful! Balance updated.
+                <CheckCircle2 size={13} /> Top up successful! Balance updated{lastTokensAwarded > 0 ? ` (+${lastTokensAwarded} Mshindi Token${lastTokensAwarded === 1 ? '' : 's'} awarded)` : ''}.
               </p>
             )}
           </div>
@@ -293,17 +288,17 @@ export default function WalletPage() {
                 className="inline-flex items-center gap-1 sm:gap-1.5 bg-[#8A6500] hover:bg-[#6d4f00] text-[#FFFFF0] font-bold text-[11px] sm:text-xs px-2.5 py-1.5 sm:px-3.5 sm:py-2 rounded-full transition-all shadow-xs sm:shadow-md shrink-0 whitespace-nowrap active:scale-95 cursor-pointer"
               >
                 <UserPlus size={13} className="shrink-0" />
-                <span>Invite<span className="hidden sm:inline"> Friends</span> (+4 MT)</span>
+                <span>Invite<span className="hidden sm:inline"> Friends</span> (3 = +1 MT)</span>
               </button>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="bg-ink/80 border border-line rounded-xl p-4 flex flex-col gap-1.5">
                 <span className="text-gold font-bold text-sm flex items-center gap-1.5">
-                  <Sparkles size={15} /> 1. Room Cashback
+                  <Sparkles size={15} /> 1. Purchase Rewards
                 </span>
                 <p className="text-xs text-cream-dim leading-relaxed">
-                  Earn tokens automatically whenever you pay to unlock a room (+4 MT for every Ksh 100 spent).
+                  Earn <strong className="text-gold">1 Mshindi Token (1 MT)</strong> for every verified <strong className="text-gold">KSh 100</strong> purchase or top-up.
                 </p>
               </div>
 
@@ -312,7 +307,7 @@ export default function WalletPage() {
                   <UserPlus size={15} /> 2. Invite Punters
                 </span>
                 <p className="text-xs text-cream-dim leading-relaxed">
-                  Get <strong className="text-gold">+4 Mshindi Tokens</strong> for every friend who joins using your sharable link.
+                  Get <strong className="text-gold">1 Mshindi Token (1 MT)</strong> for every <strong className="text-gold">3 qualifying friends</strong> who join using your referral link.
                 </p>
               </div>
 
@@ -321,7 +316,7 @@ export default function WalletPage() {
                   <Coins size={15} /> 3. Unlock Free Rooms
                 </span>
                 <p className="text-xs text-cream-dim leading-relaxed">
-                  Redeem 20 MT (5 invites) to unlock any premium jackpot room for free!
+                  Redeem <strong className="text-gold">1 MT</strong> (3 qualifying invites) to unlock a premium jackpot room for free!
                 </p>
               </div>
             </div>
@@ -329,11 +324,13 @@ export default function WalletPage() {
 
           {/* Tokens Transaction History */}
           <div className="bg-panel border border-line rounded-2xl p-6 sm:p-8">
-            <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
               <h2 className="font-display font-bold text-lg text-cream flex items-center gap-2">
                 <Coins size={18} className="text-gold" /> Mshindi Token Activity
               </h2>
-              <span className="text-xs text-cream-dim tabular-nums">Total Referrals: <strong className="text-emerald-2">{totalReferrals}</strong></span>
+              <span className="text-xs text-cream-dim tabular-nums">
+                Qualifying Referrals: <strong className="text-emerald-2">{totalReferrals}</strong> · Progress: <strong className="text-gold">{referralProgressRemainder}/3</strong> ({referralsNeededForNextToken} more for +1 MT)
+              </span>
             </div>
 
             <div className="flex flex-col divide-y divide-line">

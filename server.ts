@@ -36,6 +36,7 @@ import {
   verifyAdminPinCredentials,
   verifyAdminRequest,
 } from './src/lib/adminAuthService';
+import { handleTokenEconomyHttpRequest } from './src/lib/serverTokenEconomy';
 import { parseJackpotWebpageText } from './src/lib/jackpotWebParser';
 import {
   initWeeklyFixtureScheduler,
@@ -298,36 +299,38 @@ async function startServer() {
     }
   });
 
-  // Server-side redeemed payment codes registry (in-memory anti-replay ledger)
-  const redeemedMpesaCodesLedger = new Set<string>();
-
   /**
-   * Server-Side M-Pesa Code Verification & Anti-Replay Ledger
+   * Authoritative Server-Side Mshindi Token Economy & M-Pesa Payment Verification Endpoints
    */
-  app.post('/api/mpesa/verify-code', (req: Request, res: Response) => {
+  app.post('/api/mpesa/verify-code', async (req: Request, res: Response) => {
     try {
-      const { code, amount } = req.body || {};
-      const cleanCode = String(code || '').trim().toUpperCase();
-
-      if (!/^[A-Z0-9]{8,12}$/.test(cleanCode)) {
-        return res.status(400).json({ success: false, error: 'Invalid M-Pesa confirmation code format (e.g. QFT7K9L2M1).' });
-      }
-
-      if (redeemedMpesaCodesLedger.has(cleanCode)) {
-        return res.status(409).json({ success: false, error: 'This M-Pesa confirmation code has already been redeemed.' });
-      }
-
-      // Record code in server ledger
-      redeemedMpesaCodesLedger.add(cleanCode);
-
-      return res.json({
-        success: true,
-        code: cleanCode,
-        amount: Number(amount) || 10,
-        message: 'Payment code verified successfully.',
+      res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
+      const result = await handleTokenEconomyHttpRequest({
+        method: 'POST',
+        pathname: '/api/mpesa/verify-code',
+        headers: req.headers as any,
+        query: req.query as any,
+        body: req.body,
       });
-    } catch (err) {
-      return res.status(500).json({ success: false, error: 'Payment verification error.' });
+      return res.status(result.statusCode).json(result.payload);
+    } catch (err: any) {
+      return res.status(500).json({ success: false, error: err?.message || 'Payment verification error.' });
+    }
+  });
+
+  app.all(['/api/tokens', '/api/tokens/*'], async (req: Request, res: Response) => {
+    try {
+      res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
+      const result = await handleTokenEconomyHttpRequest({
+        method: req.method,
+        pathname: req.path,
+        headers: req.headers as any,
+        query: req.query as any,
+        body: req.body,
+      });
+      return res.status(result.statusCode).json(result.payload);
+    } catch (err: any) {
+      return res.status(500).json({ success: false, error: err?.message || 'Server token economy error.' });
     }
   });
 

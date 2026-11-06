@@ -63,9 +63,22 @@
           "value": "no-store, no-cache, max-age=0, must-revalidate"
         }
       ]
+    },
+    {
+      "source": "/api/tokens(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-store, no-cache, max-age=0, must-revalidate"
+        }
+      ]
     }
   ],
   "rewrites": [
+    {
+      "source": "/api/tokens/(.*)",
+      "destination": "/api/tokens"
+    },
     {
       "source": "/((?!api/|assets/|sw\\.js|version\\.json|manifest\\.json|icons/|banners/).*)",
       "destination": "/index.html"

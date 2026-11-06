@@ -107,6 +107,53 @@ service cloud.firestore {
     //     - authorId: string
     //     - authorRole: string
     //
+    // Collection: tokenWallets/{userId} (Server-Authoritative Mshindi Token Economy)
+    // Document ID: User UID or normalized phone ID
+    // Fields:
+    //   - userUid: string - Owner UID
+    //   - tokenBalance: int (>= 0) - Authoritative active token count
+    //   - activeTokenIds: list of strings - Active token unit IDs
+    //   - lifetimeEarned: int (>= 0)
+    //   - lifetimeSpent: int (>= 0)
+    //   - qualifyingReferrals: int (>= 0)
+    //   - referralTokensAwardedCount: int (>= 0)
+    //   - updatedAt: string or timestamp
+    //
+    // Collection: tokenUnits/{tokenId} (Server-Authoritative Token Units)
+    // Document ID: Unique token unit ID (UUID / deterministic server ID)
+    // Fields:
+    //   - tokenId: string
+    //   - ownerUid: string - Current owner UID
+    //   - status: string ('active' | 'consumed' | 'revoked')
+    //   - source: string ('signup_bonus' | 'referral_milestone' | 'admin_grant' | 'migration')
+    //   - createdAt: string or timestamp
+    //   - consumedAt: string or timestamp (optional)
+    //
+    // Collection: tokenTransactions/{transactionId} (Immutable Append-Only Server Ledger)
+    // Document ID: Unique transaction ID
+    // Fields:
+    //   - transactionId: string
+    //   - userUid: string - Associated user UID
+    //   - type: string ('credit' | 'debit')
+    //   - amount: int
+    //   - reason: string
+    //   - tokenIds: list of strings
+    //   - createdAt: string or timestamp
+    //
+    // Collection: tokenReferrals/{referralId} (Server-Authoritative Referral Tracking)
+    // Document ID: Deterministic referral ID
+    // Fields:
+    //   - referrerUid: string
+    //   - referredUid: string
+    //   - qualified: bool
+    //   - createdAt: string or timestamp
+    //
+    // Collection: tokenMigrations/{migrationId} (Server-Authoritative Legacy Token Migration Audit)
+    // Document ID: User UID or migration record ID
+    // Fields:
+    //   - userUid: string
+    //   - migratedAt: string or timestamp
+    //
     // ===============================================================
 
     // Helper functions
@@ -135,6 +182,35 @@ service cloud.firestore {
 
     function isValidId(id) {
       return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    // Protected token/currency fields on users/{userId} (strictly server-controlled)
+    function hasNoProtectedTokenFieldsOnCreate() {
+      return !request.resource.data.keys().hasAny([
+        'mshindiTokens',
+        'tokenBalance',
+        'activeTokenIds',
+        'tokenTransactions',
+        'qualifyingReferrals',
+        'referralTokensAwardedCount'
+      ]);
+    }
+
+    function hasNoProtectedTokenFieldsOnUpdate() {
+      return !request.resource.data.diff(resource.data).affectedKeys().hasAny([
+        'mshindiTokens',
+        'tokenBalance',
+        'activeTokenIds',
+        'tokenTransactions',
+        'qualifyingReferrals',
+        'referralTokensAwardedCount'
+      ]);
+    }
+
+    function hasNoProtectedTokenFields() {
+      return resource == null
+        ? hasNoProtectedTokenFieldsOnCreate()
+        : hasNoProtectedTokenFieldsOnUpdate();
     }
 
     // Post Author verification
@@ -362,9 +438,11 @@ service cloud.firestore {
     }
 
     // USERS COLLECTION: user owns their profile, admin has full administrative oversight
+    // Non-admin client writes cannot set or mutate authoritative Mshindi token/currency fields
     match /users/{userId} {
       allow read: if isSignedIn();
-      allow create, update: if isOwner(userId) || isAdmin();
+      allow create: if isAdmin() || (isOwner(userId) && hasNoProtectedTokenFields());
+      allow update: if isAdmin() || (isOwner(userId) && hasNoProtectedTokenFields());
       allow delete: if isAdmin();
 
       // Saved posts private bookmarks subcollection
@@ -387,6 +465,33 @@ service cloud.firestore {
         allow create: if (isOwner(userId) || isAdmin()) && isValidLikedCommentDoc(request.resource.data, commentId);
         allow update: if false;
       }
+    }
+
+    // 4B. MSHINDI TOKEN ECONOMY (Strictly Server-Controlled via Firebase Admin SDK)
+    // Users may read their own authorized token records, but client writes are unconditionally denied.
+    match /tokenWallets/{userId} {
+      allow read: if isOwner(userId) || isAdmin();
+      allow create, update, delete: if false;
+    }
+
+    match /tokenUnits/{tokenId} {
+      allow read: if isSignedIn() && (isOwner(resource.data.ownerUid) || isAdmin());
+      allow create, update, delete: if false;
+    }
+
+    match /tokenTransactions/{transactionId} {
+      allow read: if isSignedIn() && (isOwner(resource.data.userUid) || isAdmin());
+      allow create, update, delete: if false;
+    }
+
+    match /tokenReferrals/{referralId} {
+      allow read: if isSignedIn() && (isOwner(resource.data.referrerUid) || isOwner(resource.data.referredUid) || isAdmin());
+      allow create, update, delete: if false;
+    }
+
+    match /tokenMigrations/{migrationId} {
+      allow read: if isAdmin() || (isSignedIn() && isOwner(resource.data.userUid));
+      allow create, update, delete: if false;
     }
 
     // PLAYER RATINGS: public read, write restricted to profile owner or admin

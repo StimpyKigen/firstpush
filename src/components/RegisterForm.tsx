@@ -91,10 +91,17 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onSwitchToLogin: _on
     }
 
     saveUserProfileToFirestore(phone, cleanUsername, assignedAvatar);
+    const createdAccount = useAuth.getState().getCurrentUser();
+    void useWallet.getState().syncAuthoritativeTokens(createdAccount);
 
-    // Credit referral tokens if invited
+    // Record server-verified referral toward inviter's 3-invitation = 1 MT milestone
     if (referredBy) {
-      useWallet.getState().creditReferralTokens(referredBy, cleanUsername);
+      void useWallet.getState().submitServerReferral({
+        referrerIdentifier: referredBy,
+        referredPhone: createdAccount?.phone || phone,
+        referredUsername: cleanUsername,
+        referredPinHash: createdAccount?.pinHash,
+      });
       localStorage.removeItem('mshindi_ref_code');
     }
 

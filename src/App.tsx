@@ -18,6 +18,7 @@ import { startDailyHighlightSync } from './lib/footballApi';
 import { realtimeClient } from './lib/realtimeClient';
 
 import { useCurrentUser } from './lib/authStore';
+import { useWallet } from './lib/store';
 import { useAutoScrollIntoView } from './lib/useAutoScrollIntoView';
 
 // Primary Home Route loaded immediately
@@ -193,10 +194,19 @@ function ConditionalFooter() {
 
 function App() {
   useAutoScrollIntoView();
+  const currentUser = useCurrentUser();
+
   // Ensure light theme is strictly enforced across all client sessions
   useEffect(() => {
     initTheme();
   }, []);
+
+  // Synchronize authoritative Mshindi Token balance & ledger from the server whenever a user session is active
+  useEffect(() => {
+    if (currentUser?.phone) {
+      void useWallet.getState().syncAuthoritativeTokens(currentUser);
+    }
+  }, [currentUser?.phone, currentUser?.username]);
 
   // Initial data sync, real-time push connection, and background updates
   useEffect(() => {

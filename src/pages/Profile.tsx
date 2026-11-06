@@ -37,7 +37,7 @@ export default function Profile() {
   const mshindiTokens = useWallet((s) => s.mshindiTokens);
   const transactions = useWallet((s) => s.transactions);
   const isCodeUsed = useWallet((s) => s.isCodeUsed);
-  const topUpWithCode = useWallet((s) => s.topUpWithCode);
+  const verifyMpesaAndSyncServer = useWallet((s) => s.verifyMpesaAndSyncServer);
   const resetWallet = useWallet((s) => s.resetWallet);
 
   const getFollowersCount = useFollowStore((s) => s.getFollowersCount);
@@ -137,38 +137,23 @@ export default function Profile() {
       return;
     }
     setChecking(true);
-    try {
-      const res = await fetch('/api/mpesa/verify-code', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          code: clean,
-          amount: depositAmount,
-          userId: currentUser?.phone,
-          roomId: 'profile-deposit',
-        }),
-      });
-      const data = await res.json();
-      if (!res.ok || !data.success) {
-        setChecking(false);
-        setDepositError(data.error || 'Payment code verification failed.');
-        return;
-      }
-      topUpWithCode(clean, depositAmount);
-      setChecking(false);
-      setDepositDone(true);
-      setCodeRaw('');
-      setDepositStage('send');
-      setTimeout(() => { setDepositDone(false); setPanel('none'); }, 1800);
-    } catch {
-      // Offline fallback
-      topUpWithCode(clean, depositAmount);
-      setChecking(false);
-      setDepositDone(true);
-      setCodeRaw('');
-      setDepositStage('send');
-      setTimeout(() => { setDepositDone(false); setPanel('none'); }, 1800);
+    const res = await verifyMpesaAndSyncServer({
+      code: clean,
+      amount: depositAmount,
+      roomId: 'profile-deposit',
+      purpose: 'profile-deposit',
+    });
+    setChecking(false);
+
+    if (!res.ok) {
+      setDepositError(res.error || 'Payment code verification failed.');
+      return;
     }
+
+    setDepositDone(true);
+    setCodeRaw('');
+    setDepositStage('send');
+    setTimeout(() => { setDepositDone(false); setPanel('none'); }, 1800);
   }
 
   function submitCloseAccount() {

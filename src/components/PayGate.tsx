@@ -15,9 +15,9 @@ export default function PayGate({ jackpot, onUnlocked }: { jackpot: Jackpot; onU
   const balance = useWallet((s) => s.balance);
   const mshindiTokens = useWallet((s) => s.mshindiTokens);
   const isCodeUsed = useWallet((s) => s.isCodeUsed);
-  const unlockRoomWithCode = useWallet((s) => s.unlockRoomWithCode);
-  const unlockRoomWithBalance = useWallet((s) => s.unlockRoomWithBalance);
-  const unlockRoomWithTokens = useWallet((s) => s.unlockRoomWithTokens);
+  const unlockRoomWithTokensServer = useWallet((s) => s.unlockRoomWithTokensServer);
+  const unlockRoomWithBalanceServer = useWallet((s) => s.unlockRoomWithBalanceServer);
+  const verifyMpesaAndSyncServer = useWallet((s) => s.verifyMpesaAndSyncServer);
 
   const [step, setStep] = useState<Step>('intro');
   const [copied, setCopied] = useState(false);
@@ -27,10 +27,12 @@ export default function PayGate({ jackpot, onUnlocked }: { jackpot: Jackpot; onU
 
   const canPayFromBalance = balance >= jackpot.entryFee;
 
-  // Conversion logic: 1 MT = 2.5 Ksh equivalent
-  const tokenCost = Math.ceil(jackpot.entryFee / 2.5); // e.g., 50 Ksh -> 20 MT, 100 Ksh -> 40 MT
-  const earnedTokens = Math.max(1, Math.floor(jackpot.entryFee * 0.04)); // e.g., 100 Ksh -> 4 MT, 50 Ksh -> 2 MT
-  const canPayWithTokens = mshindiTokens >= tokenCost;
+  // Official Server-Controlled Token Rates:
+  // - Standard KSh 10 room unlock = 1 Mshindi Token (1 MT)
+  // - Purchase reward rate: KSh 100 = 1 Mshindi Token
+  const tokenCost = Math.max(1, Math.ceil(jackpot.entryFee / 10));
+  const earnedTokens = Math.floor(jackpot.entryFee / 100);
+  const canPayWithTokens = mshindiTokens >= tokenCost && !checking;
 
   function requireAuth(): boolean {
     if (!currentUser) {
@@ -50,14 +52,17 @@ export default function PayGate({ jackpot, onUnlocked }: { jackpot: Jackpot; onU
     setTimeout(() => setCopied(false), 1800);
   }
 
-  function payWithTokens() {
+  async function payWithTokens() {
     if (!requireAuth()) return;
-    const res = unlockRoomWithTokens(jackpot.id, tokenCost, jackpot.name);
+    setError('');
+    setChecking(true);
+    const res = await unlockRoomWithTokensServer(jackpot.id, tokenCost, jackpot.name);
+    setChecking(false);
     if (res.ok) {
       showToast({
         type: 'success',
         title: '🎟️ Room Unlocked with Mshindi Tokens!',
-        message: `Redeemed ${tokenCost} Mshindi Tokens for permanent access to ${jackpot.name}.`,
+        message: `Redeemed ${tokenCost} Mshindi Token${tokenCost === 1 ? '' : 's'} for permanent access to ${jackpot.name}.`,
       });
       onUnlocked();
     } else if (res.error) {
@@ -65,13 +70,24 @@ export default function PayGate({ jackpot, onUnlocked }: { jackpot: Jackpot; onU
     }
   }
 
-  function payWithBalance() {
+  async function payWithBalance() {
     if (!requireAuth()) return;
-    unlockRoomWithBalance(jackpot.id, jackpot.entryFee, jackpot.name);
+    setError('');
+    setChecking(true);
+    const res = await unlockRoomWithBalanceServer(jackpot.id, jackpot.entryFee, jackpot.name);
+    setChecking(false);
+    if (!res.ok) {
+      setError(res.error || 'Could not unlock room with Wallet Balance.');
+      return;
+    }
+    const awarded = res.tokensAwarded ?? earnedTokens;
     showToast({
       type: 'success',
-      title: 'Room Unlocked & Cashback Credited!',
-      message: `Unlocked with Wallet Balance. Earned +${earnedTokens} Mshindi Tokens!`,
+      title: awarded > 0 ? 'Room Unlocked & Token Credited!' : 'Room Unlocked!',
+      message:
+        awarded > 0
+          ? `Unlocked with Wallet Balance. Earned +${awarded} Mshindi Token${awarded === 1 ? '' : 's'}!`
+          : `Unlocked ${jackpot.name} with Wallet Balance.`,
     });
     onUnlocked();
   }
@@ -90,37 +106,30 @@ export default function PayGate({ jackpot, onUnlocked }: { jackpot: Jackpot; onU
     }
     setChecking(true);
 
-    try {
-      const res = await fetch('/api/mpesa/verify-code', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ code: clean, amount: jackpot.entryFee, roomId: jackpot.id }),
-      });
-      const data = await res.json();
-      if (!res.ok || !data.success) {
-        setChecking(false);
-        setError(data.error || 'M-Pesa payment code verification failed.');
-        return;
-      }
-      setChecking(false);
-      unlockRoomWithCode(jackpot.id, clean, jackpot.entryFee, jackpot.name);
-      showToast({
-        type: 'success',
-        title: 'Room Unlocked & Cashback Credited!',
-        message: `Payment verified. Earned +${earnedTokens} Mshindi Tokens!`,
-      });
-      onUnlocked();
-    } catch {
-      // Offline fallback: verify locally and unlock
-      setChecking(false);
-      unlockRoomWithCode(jackpot.id, clean, jackpot.entryFee, jackpot.name);
-      showToast({
-        type: 'success',
-        title: 'Room Unlocked & Cashback Credited!',
-        message: `Payment verified. Earned +${earnedTokens} Mshindi Tokens!`,
-      });
-      onUnlocked();
+    const res = await verifyMpesaAndSyncServer({
+      code: clean,
+      amount: jackpot.entryFee,
+      roomId: jackpot.id,
+      roomName: jackpot.name,
+      purpose: jackpot.id,
+    });
+    setChecking(false);
+
+    if (!res.ok) {
+      setError(res.error || 'M-Pesa payment code verification failed.');
+      return;
     }
+
+    const awarded = res.tokensAwarded ?? earnedTokens;
+    showToast({
+      type: 'success',
+      title: awarded > 0 ? 'Room Unlocked & Token Credited!' : 'Room Unlocked!',
+      message:
+        awarded > 0
+          ? `Payment verified. Earned +${awarded} Mshindi Token${awarded === 1 ? '' : 's'}!`
+          : `Payment verified. ${jackpot.name} unlocked!`,
+    });
+    onUnlocked();
   }
 
   return (

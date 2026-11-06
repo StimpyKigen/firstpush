@@ -170,6 +170,7 @@ export function useAuthFlow() {
     }
     setSuccess('Logged in! Redirecting…');
     saveUserProfileToFirestore(phone, username || 'Punter');
+    void useWallet.getState().syncAuthoritativeTokens(useAuth.getState().getCurrentUser());
     setTimeout(() => navigate('/'), 900);
   }
 
@@ -208,11 +209,18 @@ export function useAuthFlow() {
       return;
     }
     saveUserProfileToFirestore(phone, username, avatarId);
+    const createdAccount = useAuth.getState().getCurrentUser();
+    void useWallet.getState().syncAuthoritativeTokens(createdAccount);
 
-    // Credit referral Mshindi Tokens to inviter
+    // Record server-verified referral toward inviter's 3-invitation = 1 MT milestone
     const refCode = localStorage.getItem('mshindi_ref_code');
     if (refCode) {
-      useWallet.getState().creditReferralTokens(refCode, username);
+      void useWallet.getState().submitServerReferral({
+        referrerIdentifier: refCode,
+        referredPhone: createdAccount?.phone || phone,
+        referredUsername: username,
+        referredPinHash: createdAccount?.pinHash,
+      });
       localStorage.removeItem('mshindi_ref_code');
     }
 
