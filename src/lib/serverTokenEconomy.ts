@@ -245,7 +245,7 @@ function saveEconomyState(): void {
       fs.mkdirSync(CACHE_DIR, { recursive: true });
     }
     fs.writeFileSync(FALLBACK_ECONOMY_FILE, serialized, 'utf-8');
-  } catch {}
+  } catch { }
 
   if (!isServerless) {
     try {
@@ -253,7 +253,7 @@ function saveEconomyState(): void {
         fs.mkdirSync(DATA_DIR, { recursive: true });
       }
       fs.writeFileSync(PRIMARY_ECONOMY_FILE, serialized, 'utf-8');
-    } catch {}
+    } catch { }
   }
 }
 
@@ -1183,10 +1183,10 @@ export async function spendAuthoritativeTokens(params: {
       const statusCode = msg.includes('INSUFFICIENT_TOKENS')
         ? 400
         : msg.includes('UNAUTHORIZED_TOKEN_OWNERSHIP')
-        ? 403
-        : msg.includes('TOKEN_ALREADY_CONSUMED')
-        ? 409
-        : 500;
+          ? 403
+          : msg.includes('TOKEN_ALREADY_CONSUMED')
+            ? 409
+            : 500;
       return {
         success: false,
         error: msg,
@@ -1979,7 +1979,7 @@ export async function handleTokenEconomyHttpRequest(params: {
     }
 
     const userUid = normalizeCanonicalUid(
-      body.userUid || body.userId || body.phone || (headers['x-user-uid'] as string)
+      body.userUid || body.uid || body.userId || body.phone || (headers['x-user-uid'] as string)
     );
     const result = await processVerifiedPurchasePayment({
       userUid: userUid || 'guest_verified',
@@ -2017,12 +2017,14 @@ export async function handleTokenEconomyHttpRequest(params: {
   ) {
     const userUid = normalizeCanonicalUid(
       body.userUid ||
-        body.userId ||
-        body.phone ||
-        query.userUid ||
-        query.userId ||
-        query.phone ||
-        (headers['x-user-uid'] as string)
+      body.uid ||
+      body.userId ||
+      body.phone ||
+      query.userUid ||
+      query.uid ||
+      query.userId ||
+      query.phone ||
+      (headers['x-user-uid'] as string)
     );
     if (!userUid) {
       return {
@@ -2192,4 +2194,3 @@ export async function handleTokenEconomyHttpRequest(params: {
     payload: { success: false, error: `Unsupported token economy action or route: ${pathname}` },
   };
 }
-

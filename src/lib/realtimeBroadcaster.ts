@@ -64,7 +64,7 @@ export interface BroadcasterMetrics {
 
 const MAX_BUFFER_SIZE = 500;
 const HEARTBEAT_INTERVAL_MS = 15_000;
-const SERVERLESS_RENEWAL_MS = 48_000;
+const SERVERLESS_RENEWAL_MS = 25_000;
 
 function stripUndefined<T extends Record<string, any>>(obj: T): Partial<T> {
   const out: Record<string, any> = {};
@@ -177,6 +177,7 @@ class RealtimeBroadcaster {
     }
 
     // Send an initial authoritative live_snapshot when a client connects so live/finished states are immediately synced
+    let initialSnapshotSent = false;
     if (this.snapshotProvider) {
       try {
         const snapshotFixtures = this.snapshotProvider();
@@ -192,6 +193,7 @@ class RealtimeBroadcaster {
             },
           };
           this.writeEvent(res, snapEvent);
+          initialSnapshotSent = true;
         }
       } catch {
         // Non-fatal snapshot error
@@ -240,7 +242,30 @@ class RealtimeBroadcaster {
 
     // Trigger onClientConnectHook asynchronously so the newly connected client gets fresh upstream updates
     if (this.onClientConnectHook) {
-      Promise.resolve(this.onClientConnectHook()).catch(() => {});
+      Promise.resolve(this.onClientConnectHook())
+        .then(() => {
+          if (!initialSnapshotSent && !res.writableEnded && this.clients.has(clientId) && this.snapshotProvider) {
+            try {
+              const freshFixtures = this.snapshotProvider();
+              if (Array.isArray(freshFixtures) && freshFixtures.length > 0) {
+                const snapEvent: RealtimeEventPayload = {
+                  id: this.sequenceId,
+                  sequence: this.sequenceId,
+                  type: 'live_snapshot',
+                  timestamp: new Date().toISOString(),
+                  data: {
+                    count: freshFixtures.length,
+                    fixtures: freshFixtures,
+                  },
+                };
+                this.writeEvent(res, snapEvent);
+              }
+            } catch {
+              // Non-fatal snapshot error
+            }
+          }
+        })
+        .catch(() => {});
     }
 
     const cleanup = () => {

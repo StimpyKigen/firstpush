@@ -394,6 +394,53 @@ export default defineConfig(() => {
                   return;
                 }
               }
+              if (url.pathname === '/api/sports/stream') {
+                try {
+                  await server.ssrLoadModule('/src/lib/sportsFeedService.ts');
+                  const { realtimeBroadcaster } = await server.ssrLoadModule('/src/lib/realtimeBroadcaster.ts');
+                  realtimeBroadcaster.registerClient(req, res);
+                  return;
+                } catch (err) {
+                  res.statusCode = 500;
+                  res.setHeader('Content-Type', 'application/json');
+                  res.end(JSON.stringify({ success: false, error: String(err) }));
+                  return;
+                }
+              }
+              if (url.pathname === '/api/mpesa/verify-code' || url.pathname === '/api/tokens' || url.pathname.startsWith('/api/tokens/')) {
+                try {
+                  const { handleTokenEconomyHttpRequest } = await server.ssrLoadModule('/src/lib/serverTokenEconomy.ts');
+                  res.setHeader('Content-Type', 'application/json');
+                  res.setHeader('Access-Control-Allow-Origin', '*');
+                  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
+                  const queryObj = Object.fromEntries(url.searchParams.entries());
+                  let body = '';
+                  req.on('data', (chunk: any) => { body += chunk; });
+                  req.on('end', async () => {
+                    try {
+                      const parsedBody = body ? JSON.parse(body) : {};
+                      const result = await handleTokenEconomyHttpRequest({
+                        method: req.method || 'GET',
+                        pathname: url.pathname,
+                        headers: (req.headers as any) || {},
+                        query: queryObj,
+                        body: parsedBody,
+                      });
+                      res.statusCode = result.statusCode;
+                      res.end(JSON.stringify(result.payload));
+                    } catch (e: any) {
+                      res.statusCode = 500;
+                      res.end(JSON.stringify({ success: false, error: e?.message || 'Token economy error' }));
+                    }
+                  });
+                  return;
+                } catch (err) {
+                  res.statusCode = 500;
+                  res.setHeader('Content-Type', 'application/json');
+                  res.end(JSON.stringify({ success: false, error: String(err) }));
+                  return;
+                }
+              }
             }
             next();
           });

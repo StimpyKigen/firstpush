@@ -72,12 +72,37 @@
           "value": "no-store, no-cache, max-age=0, must-revalidate"
         }
       ]
+    },
+    {
+      "source": "/api/mpesa/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-store, no-cache, max-age=0, must-revalidate"
+        }
+      ]
     }
   ],
   "rewrites": [
     {
-      "source": "/api/tokens/(.*)",
-      "destination": "/api/tokens"
+      "source": "/api/sports/:endpoint*",
+      "destination": "/api/sports?endpoint=:endpoint*"
+    },
+    {
+      "source": "/api/cron/:endpoint*",
+      "destination": "/api/sports?endpoint=cron-:endpoint*"
+    },
+    {
+      "source": "/api/mpesa/verify-code",
+      "destination": "/api/tokens?endpoint=mpesa-verify-code"
+    },
+    {
+      "source": "/api/tokens/:endpoint*",
+      "destination": "/api/tokens?endpoint=:endpoint*"
+    },
+    {
+      "source": "/api/admin/:endpoint*",
+      "destination": "/api/admin?endpoint=:endpoint*"
     },
     {
       "source": "/((?!api/|assets/|sw\\.js|version\\.json|manifest\\.json|icons/|banners/).*)",

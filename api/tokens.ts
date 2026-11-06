@@ -1,5 +1,23 @@
 import { handleTokenEconomyHttpRequest } from '../src/lib/serverTokenEconomy.js';
 
+function resolveTokenEconomyPathname(req: any): string {
+  const endpointParam = req?.query?.endpoint;
+  if (endpointParam) {
+    const joined = Array.isArray(endpointParam) ? endpointParam.join('/') : String(endpointParam);
+    const cleaned = joined.replace(/^\/+|\/+$/g, '');
+    if (cleaned === 'mpesa-verify-code' || cleaned === 'mpesa/verify-code') {
+      return '/api/mpesa/verify-code';
+    }
+    if (cleaned) {
+      return `/api/tokens/${cleaned}`;
+    }
+  }
+
+  const rawUrl = String(req?.url || '/api/tokens');
+  const pathname = rawUrl.split('?')[0] || '/api/tokens';
+  return pathname;
+}
+
 export default async function handler(req: any, res: any) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
@@ -15,8 +33,7 @@ export default async function handler(req: any, res: any) {
 
   try {
     const body = typeof req.body === 'string' && req.body ? JSON.parse(req.body) : req.body || {};
-    const rawUrl = String(req.url || '/api/tokens');
-    const pathname = rawUrl.split('?')[0] || '/api/tokens';
+    const pathname = resolveTokenEconomyPathname(req);
     const result = await handleTokenEconomyHttpRequest({
       method: req.method || 'GET',
       pathname,
@@ -32,4 +49,3 @@ export default async function handler(req: any, res: any) {
     });
   }
 }
-
