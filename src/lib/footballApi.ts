@@ -1,6 +1,11 @@
 import { type MatchPeriod, type MatchStatus, parseDetailedMatchStatus, isStatusTransitionValid } from './matchStatus.js';
 import { enrichFixturesWithBet365Odds } from './sportscoreOddsService.js';
-import { findMatchingExistingFixture, extractSportScoreMatchSlug, extractSportScoreProviderId } from './fixtureIdentity.js';
+import {
+  findMatchingExistingFixture,
+  areFixturesIdentical,
+  extractSportScoreMatchSlug,
+  extractSportScoreProviderId,
+} from './fixtureIdentity.js';
 import { realtimeClient } from './realtimeClient.js';
 import { resolveCanonicalCompetition, isCompetitionEligible } from './canonicalCompetitions.js';
 import { isHighlightsEligible } from './competitionPriority.js';
@@ -100,27 +105,64 @@ let cachedFixtures: HighlightFixture[] = [];
 // always fetches fresh live/finished state from the backend rather than serving a stale localStorage snapshot.
 let lastFetchedTime = 0;
 
+export function sanitizeFrontendFixtureLifecycle<T extends {
+  status?: MatchStatus;
+  period?: MatchPeriod;
+  periodSequence?: number;
+  displayClock?: string;
+  minute?: string;
+  kickoffIso?: string;
+  homeScore?: number | null;
+  awayScore?: number | null;
+}>(item: T, nowMs: number = Date.now(), maxLiveElapsedMinutes = 160): T {
+  if (!item || typeof item !== 'object') return item;
+  if (item.status === 'in') {
+    const kMs = item.kickoffIso ? Date.parse(item.kickoffIso) : NaN;
+    const elapsedMin = Number.isFinite(kMs) ? (nowMs - kMs) / 60000 : Infinity;
+    if (elapsedMin >= maxLiveElapsedMinutes) {
+      return {
+        ...item,
+        status: 'post',
+        period: 'full_time',
+        periodSequence: 60,
+        displayClock: 'FT',
+        minute: 'FT',
+        homeScore: item.homeScore ?? 0,
+        awayScore: item.awayScore ?? 0,
+      };
+    }
+  }
+  return item;
+}
+
 // Hydrate initial state from localStorage for instant render while fresh network sync runs
 try {
   const stored = typeof localStorage !== 'undefined' ? localStorage.getItem('mshindi_football_cache_v3') : null;
   if (stored) {
     const parsed = JSON.parse(stored);
     if (Array.isArray(parsed) && parsed.length > 0) {
-      cachedFixtures = parsed.map((item: any) => {
-        if (!item || typeof item !== 'object') return item;
-        if (!item.status || item.status === 'pre') {
-          return {
-            ...item,
-            status: 'pre',
-            period: 'scheduled',
-            displayClock: '',
-            minute: '',
-            homeScore: null,
-            awayScore: null,
-          };
-        }
-        return item;
-      });
+      const nowMs = Date.now();
+      cachedFixtures = parsed
+        .filter((item: any) => {
+          if (!item || typeof item !== 'object' || !item.id) return false;
+          const kMs = item.kickoffIso ? Date.parse(item.kickoffIso) : NaN;
+          if (Number.isFinite(kMs) && nowMs - kMs > 7 * 86_400_000) return false;
+          return true;
+        })
+        .map((item: any) => {
+          if (!item.status || item.status === 'pre') {
+            return {
+              ...item,
+              status: 'pre',
+              period: 'scheduled',
+              displayClock: '',
+              minute: '',
+              homeScore: null,
+              awayScore: null,
+            };
+          }
+          return sanitizeFrontendFixtureLifecycle(item, nowMs, 160);
+        });
     }
   }
 } catch {
@@ -374,7 +416,9 @@ function mapRawApiFixtureToHighlight(m: any, syncTimeLabel: string): HighlightFi
 }
 
 /**
- * Reconciles active live fixtures and today's recently finished fixtures from `/api/sports/live`.
+ * Reconciles active live fixtures and today's/yesterday's recently finished fixtures from `/api/sports/live`.
+ * Also transitions any local `status === 'in'` fixture that is absent from the backend's authoritative live list
+ * and has exceeded regulation match duration so finished matches never stay stuck in Live.
  */
 export async function reconcileLiveFixturesFromBackend(): Promise<HighlightFixture[]> {
   try {
@@ -394,15 +438,32 @@ export async function reconcileLiveFixturesFromBackend(): Promise<HighlightFixtu
       hour12: false,
     }).format(new Date()) + ' EAT';
 
-    const rawCombined = [
-      ...(Array.isArray(data?.fixtures) ? data.fixtures : []),
-      ...(Array.isArray(data?.recentlyFinished) ? data.recentlyFinished : []),
-    ];
+    const rawLiveList = Array.isArray(data?.fixtures) ? data.fixtures : [];
+    const rawFinishedList = Array.isArray(data?.recentlyFinished) ? data.recentlyFinished : [];
+    const rawCombined = [...rawLiveList, ...rawFinishedList];
 
+    const mappedLive = rawLiveList.map((m: any) => mapRawApiFixtureToHighlight(m, syncTimeLabel));
     if (rawCombined.length > 0) {
       const mapped = rawCombined.map((m: any) => mapRawApiFixtureToHighlight(m, syncTimeLabel));
       cachedFixtures = mergeHighlightFixtureLists(cachedFixtures, mapped);
-      persistHighlightCacheToStorage(cachedFixtures);
+    }
+
+    // Reconcile any local fixture still marked 'in' that is NO LONGER in the backend's authoritative live list
+    if (data && data.success) {
+      const nowMs = Date.now();
+      let reconciledOrphan = false;
+      cachedFixtures = cachedFixtures.map((f) => {
+        if (f.status !== 'in') return f;
+        const stillLiveOnBackend = mappedLive.some((lf) => lf.status === 'in' && areFixturesIdentical(f, lf));
+        if (stillLiveOnBackend) return f;
+
+        // Not in backend's live list: if kickoff was >= 100 mins ago, transition to FT
+        return sanitizeFrontendFixtureLifecycle(f, nowMs, 100);
+      });
+      reconciledOrphan = true;
+      if (reconciledOrphan || rawCombined.length > 0) {
+        persistHighlightCacheToStorage(cachedFixtures);
+      }
     }
     return cachedFixtures;
   } catch {
@@ -454,6 +515,19 @@ export async function fetchDailyHighlightFixtures(force = false): Promise<Highli
             } catch {}
           }
           cachedFixtures = mergeHighlightFixtureLists(cachedFixtures, mapped);
+
+          // Any cached fixture that was NOT in the backend's daily-fixtures response and is still 'in'
+          // beyond 115 minutes after kickoff must be sanitized to 'post' (FT)
+          const nowMs = Date.now();
+          cachedFixtures = cachedFixtures.map((f) => {
+            if (f.status !== 'in') return f;
+            const inServerPayload = mapped.some((m) => areFixturesIdentical(f, m));
+            if (!inServerPayload) {
+              return sanitizeFrontendFixtureLifecycle(f, nowMs, 115);
+            }
+            return sanitizeFrontendFixtureLifecycle(f, nowMs, 160);
+          });
+
           lastFetchedTime = Date.now();
           persistHighlightCacheToStorage(cachedFixtures);
           return cachedFixtures;

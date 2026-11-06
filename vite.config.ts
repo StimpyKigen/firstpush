@@ -71,15 +71,37 @@ export default defineConfig(() => {
               }
               if (url.pathname === '/api/sports/live') {
                 try {
-                  const { queryMarketFixtures, syncLiveScoresOnly } = await server.ssrLoadModule('/src/lib/sportsFeedService.ts');
-                  let liveFixtures = queryMarketFixtures({ scope: 'live' });
-                  if (liveFixtures.length === 0) {
-                    void syncLiveScoresOnly();
+                  const {
+                    queryMarketFixtures,
+                    syncLiveScoresOnly,
+                    getSyncDiagnostics,
+                    getLocalDateStringEAT,
+                  } = await server.ssrLoadModule('/src/lib/sportsFeedService.ts');
+                  const diag = getSyncDiagnostics();
+                  const liveAgeMs = diag.lastLiveSyncTime ? Date.now() - new Date(diag.lastLiveSyncTime).getTime() : Infinity;
+                  if (liveAgeMs > 8_000) {
+                    await syncLiveScoresOnly();
                   }
+                  const liveFixtures = queryMarketFixtures({ scope: 'live' });
+                  const now = new Date();
+                  const todayStr = getLocalDateStringEAT(now);
+                  const yesterdayStr = getLocalDateStringEAT(new Date(now.getTime() - 24 * 3600 * 1000));
+                  const recentlyFinished = [
+                    ...queryMarketFixtures({ scope: 'finished', date: todayStr }),
+                    ...queryMarketFixtures({ scope: 'finished', date: yesterdayStr }),
+                  ];
                   res.setHeader('Content-Type', 'application/json');
                   res.setHeader('Access-Control-Allow-Origin', '*');
-                  res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
-                  res.end(JSON.stringify({ success: true, count: liveFixtures.length, fixtures: liveFixtures }));
+                  res.setHeader('Cache-Control', 'no-cache, no-store, max-age=0, must-revalidate');
+                  res.end(
+                    JSON.stringify({
+                      success: true,
+                      count: liveFixtures.length,
+                      fixtures: liveFixtures,
+                      recentlyFinished,
+                      lastLiveSyncTime: getSyncDiagnostics().lastLiveSyncTime,
+                    })
+                  );
                   return;
                 } catch (err) {
                   res.statusCode = 500;

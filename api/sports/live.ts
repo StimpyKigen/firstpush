@@ -22,8 +22,16 @@ export default async function handler(req: any, res: any) {
     }
 
     const liveFixtures = queryMarketFixtures({ scope: 'live' });
-    const todayStr = getLocalDateStringEAT(new Date());
-    const recentlyFinished = queryMarketFixtures({ scope: 'finished', date: todayStr });
+    const now = new Date();
+    const todayStr = getLocalDateStringEAT(now);
+    const yesterdayDate = new Date(now.getTime() - 24 * 3600 * 1000);
+    const yesterdayStr = getLocalDateStringEAT(yesterdayDate);
+
+    // Include finished matches from both today and yesterday (EAT) so late-night fixtures
+    // kicking off at 22:00/23:00 EAT and finishing after midnight EAT are always reconciled!
+    const finishedToday = queryMarketFixtures({ scope: 'finished', date: todayStr });
+    const finishedYesterday = queryMarketFixtures({ scope: 'finished', date: yesterdayStr });
+    const recentlyFinished = [...finishedToday, ...finishedYesterday];
 
     res.setHeader('Cache-Control', 'no-cache, no-store, max-age=0, must-revalidate');
     return res.status(200).json({

@@ -359,6 +359,37 @@ export function normalizeSportScoreIncidents(rawIncidents?: any[]): {
   return { incidents: normalized, latestGoalscorer };
 }
 
+export function sanitizeSnapshotLoadedFixture(f: MarketFixture, nowMs: number = Date.now()): MarketFixture {
+  if (!f || typeof f !== 'object') return f;
+  if (f.status === 'in') {
+    const kMs = f.kickoffIso ? new Date(f.kickoffIso).getTime() : 0;
+    const elapsedMin = kMs > 0 ? (nowMs - kMs) / 60000 : Infinity;
+    // A football match cannot still be live 160+ minutes after kickoff when loaded from a cold snapshot
+    if (elapsedMin >= 160) {
+      return {
+        ...f,
+        status: 'post',
+        period: 'full_time',
+        periodSequence: 60,
+        displayClock: 'FT',
+        minute: 'FT',
+        homeScore: f.homeScore ?? 0,
+        awayScore: f.awayScore ?? 0,
+        isAuthoritativeCorrection: true,
+      };
+    }
+  }
+  return f;
+}
+
+interface FixtureReconcileMeta {
+  lastDetailCheckMs: number;
+  consecutiveFailures: number;
+  nextRetryMs: number;
+}
+
+const fixtureReconcileTracker = new Map<string, FixtureReconcileMeta>();
+
 /**
  * Load initial state from bundled catalogue and persistent disk cache
  */
@@ -413,7 +444,8 @@ function loadDiskCache(): void {
             if (!f.matchId) {
               f.matchId = extractSportScoreProviderId(f) || undefined;
             }
-            fixturesStore.set(f.id, f);
+            const sanitized = sanitizeSnapshotLoadedFixture(f);
+            fixturesStore.set(sanitized.id, sanitized);
           }
         });
         lastSyncTimestamp = new Date().toISOString();
@@ -1497,12 +1529,13 @@ export async function syncLiveScoresOnly(): Promise<{ updated: number; liveCount
 
     // Reconcile matches in fixturesStore that:
     // (A) were marked 'in' (live / HT) and are no longer in `liveFixtures`, OR
-    // (B) were marked 'pre' (scheduled) whose kickoff time passed within the last 4 hours
+    // (B) were marked 'pre' (scheduled) whose kickoff time passed within the last 6 hours
     const nowMs = Date.now();
     const candidatesToReconcile: MarketFixture[] = [];
+    let hasTerminalStatusTransition = false;
 
     for (const sf of fixturesStore.values()) {
-      const isStillInLiveFeed = liveFixtures.some((lf) => areFixturesIdentical(sf, lf));
+      const isStillInLiveFeed = liveFixtures.some((lf) => lf.status === 'in' && areFixturesIdentical(sf, lf));
       if (isStillInLiveFeed) continue;
 
       if (sf.status === 'in') {
@@ -1510,80 +1543,131 @@ export async function syncLiveScoresOnly(): Promise<{ updated: number; liveCount
       } else if (sf.status === 'pre' && sf.kickoffIso) {
         const kMs = new Date(sf.kickoffIso).getTime();
         const elapsedMin = (nowMs - kMs) / 60000;
-        // Kickoff was between 2 minutes ago and 240 minutes ago
-        if (elapsedMin >= 2 && elapsedMin <= 240) {
+        // Kickoff was between 2 minutes ago and 360 minutes ago
+        if (elapsedMin >= 2 && elapsedMin <= 360) {
           candidatesToReconcile.push(sf);
         }
       }
     }
 
-    // If there are past-kickoff 'pre' or orphaned 'in' matches, first reconcile against today's date feed (throttled to every 45s)
-    if (candidatesToReconcile.length > 0 && nowMs - lastTodayDateReconcileMs > 45_000) {
+    // If there are past-kickoff 'pre' or orphaned 'in' matches, reconcile against their specific dates (UTC & EAT)
+    // so matches kicking off at 22:00/23:00 EAT and finishing after midnight UTC/EAT are never missed!
+    if (candidatesToReconcile.length > 0 && nowMs - lastTodayDateReconcileMs > 30_000) {
       lastTodayDateReconcileMs = nowMs;
-      try {
-        const todayUtc = new Date().toISOString().slice(0, 10);
-        const todayMatches = await fetchSportScoreFixturesByDate(todayUtc);
-        if (todayMatches.length > 0) {
-          updated += ingestFixtures(todayMatches, true);
+      const datesToFetch = new Set<string>();
+      datesToFetch.add(new Date(nowMs).toISOString().slice(0, 10));
+      datesToFetch.add(getLocalDateStringEAT(nowMs));
+      for (const c of candidatesToReconcile) {
+        if (c.kickoffIso) {
+          datesToFetch.add(c.kickoffIso.slice(0, 10));
+          const eatDate = getLocalDateStringEAT(c.kickoffIso);
+          if (eatDate) datesToFetch.add(eatDate);
         }
-      } catch {}
+      }
+      for (const dateStr of Array.from(datesToFetch).slice(0, 2)) {
+        try {
+          const dateMatches = await fetchSportScoreFixturesByDate(dateStr);
+          if (dateMatches.length > 0) {
+            updated += ingestFixtures(dateMatches, true);
+          }
+        } catch {}
+      }
     }
 
-    // Now check widget match detail for any candidate still stuck in 'in' (e.g. 'HT') or past-kickoff 'pre'
-    const remainingCandidates = candidatesToReconcile.filter((c) => {
-      const current = fixturesStore.get(c.id);
-      if (!current) return false;
-      if (current.status === 'in') return true;
-      if (current.status === 'pre' && current.kickoffIso) {
-        const elapsedMin = (nowMs - new Date(current.kickoffIso).getTime()) / 60000;
-        return elapsedMin >= 5 && elapsedMin <= 240;
-      }
-      return false;
-    }).slice(0, 12);
+    // Now check widget match detail for any candidate still stuck in 'in' (e.g. 'HT') or past-kickoff 'pre'.
+    // CRITICAL: Sort so ALL 'in' matches come FIRST (never starved behind 'pre' matches), ordered by oldest check time!
+    const remainingCandidates = candidatesToReconcile
+      .filter((c) => {
+        const current = fixturesStore.get(c.id);
+        if (!current) return false;
+        if (current.status === 'in') return true;
+        if (current.status === 'pre' && current.kickoffIso) {
+          const meta = fixtureReconcileTracker.get(current.id);
+          if (meta && nowMs < meta.nextRetryMs) return false;
+          const elapsedMin = (nowMs - new Date(current.kickoffIso).getTime()) / 60000;
+          return elapsedMin >= 5 && elapsedMin <= 360;
+        }
+        return false;
+      })
+      .sort((a, b) => {
+        const curA = fixturesStore.get(a.id) || a;
+        const curB = fixturesStore.get(b.id) || b;
+        // Priority 1: 'in' matches ALWAYS before 'pre' matches
+        if (curA.status === 'in' && curB.status !== 'in') return -1;
+        if (curA.status !== 'in' && curB.status === 'in') return 1;
+        // Priority 2: Least recently checked first (round-robin fairness)
+        const metaA = fixtureReconcileTracker.get(curA.id)?.lastDetailCheckMs || 0;
+        const metaB = fixtureReconcileTracker.get(curB.id)?.lastDetailCheckMs || 0;
+        return metaA - metaB;
+      })
+      .slice(0, 16);
 
     if (remainingCandidates.length > 0) {
       await Promise.allSettled(
         remainingCandidates.map(async (sf) => {
           const current = fixturesStore.get(sf.id);
           if (!current) return;
+          const prevStatus = current.status;
+
+          const prevMeta = fixtureReconcileTracker.get(current.id) || {
+            lastDetailCheckMs: 0,
+            consecutiveFailures: 0,
+            nextRetryMs: 0,
+          };
+          prevMeta.lastDetailCheckMs = nowMs;
+          fixtureReconcileTracker.set(current.id, prevMeta);
 
           const detail = await fetchAuthoritativeSportScoreMatchDetail(current, { ingestIntoStore: true });
           if (detail) {
-            if (detail.normalized_status !== current.status || detail.home_score !== current.homeScore || detail.away_score !== current.awayScore) {
+            prevMeta.consecutiveFailures = 0;
+            prevMeta.nextRetryMs = 0;
+            if (detail.normalized_status !== prevStatus || detail.home_score !== current.homeScore || detail.away_score !== current.awayScore) {
               updated++;
+              if (detail.normalized_status === 'post') {
+                hasTerminalStatusTransition = true;
+              }
             }
-            return;
+          } else {
+            prevMeta.consecutiveFailures += 1;
+            const backoffMs = Math.min(300_000, 15_000 * Math.pow(2, prevMeta.consecutiveFailures - 1));
+            prevMeta.nextRetryMs = nowMs + backoffMs;
           }
 
-          // Fallback safety ONLY if widget endpoint could not be reached AND match has been in 'in' for >= 115 mins since kickoff
-          if (current.status === 'in' && current.kickoffIso) {
-            const kMs = new Date(current.kickoffIso).getTime();
-            const elapsedMin = kMs > 0 ? (nowMs - kMs) / 60000 : 0;
-            if (elapsedMin >= 115) {
-              const fallbackFinished: MarketFixture = {
-                ...current,
-                status: 'post',
-                period: 'full_time',
-                periodSequence: 60,
-                displayClock: 'FT',
-                minute: 'FT',
-                homeScore: current.homeScore ?? 0,
-                awayScore: current.awayScore ?? 0,
-                syncedAt: new Date().toISOString(),
-                isAuthoritativeCorrection: true,
-              };
-              updated += ingestFixtures([fallbackFinished], true);
-            }
+          // Re-check current state in fixturesStore after detail check
+          const afterDetail = fixturesStore.get(sf.id);
+          if (!afterDetail || afterDetail.status !== 'in') return;
+
+          // Deterministic stale live match recovery:
+          // 1. If widget endpoint could not be reached AND match has been in 'in' for >= 115 mins since kickoff, OR
+          // 2. If match has been in 'in' for >= 160 mins since kickoff (beyond 90' + ET + penalties) and is no longer in liveFixtures, OR
+          // 3. If match has no valid kickoffIso and is no longer in liveFixtures and widget detail failed
+          const kMs = afterDetail.kickoffIso ? new Date(afterDetail.kickoffIso).getTime() : 0;
+          const elapsedMin = kMs > 0 ? (nowMs - kMs) / 60000 : Infinity;
+          if ((!detail && elapsedMin >= 115) || elapsedMin >= 160) {
+            const fallbackFinished: MarketFixture = {
+              ...afterDetail,
+              status: 'post',
+              period: 'full_time',
+              periodSequence: 60,
+              displayClock: 'FT',
+              minute: 'FT',
+              homeScore: afterDetail.homeScore ?? 0,
+              awayScore: afterDetail.awayScore ?? 0,
+              syncedAt: new Date().toISOString(),
+              isAuthoritativeCorrection: true,
+            };
+            updated += ingestFixtures([fallbackFinished], true);
+            hasTerminalStatusTransition = true;
           }
         })
       );
     }
 
-    if (updated > 0) {
+    if (updated > 0 || hasTerminalStatusTransition) {
       saveDiskCache();
-      // Also persist updated live/finished fixtures back to snapshot store (throttled to every 30s)
-      // so snapshot reloads every 60s never overwrite live or finished matches with old pre/HT data.
-      if (isSnapshotStoreConfigured() && Date.now() - lastLiveSnapshotPersistMs > 30_000) {
+      // Always persist immediately when any match transitions to 'post', or every 25s on score updates,
+      // so Firestore/disk snapshot reloads never resurrect a finished match as 'in'.
+      if (isSnapshotStoreConfigured() && (hasTerminalStatusTransition || Date.now() - lastLiveSnapshotPersistMs > 25_000)) {
         lastLiveSnapshotPersistMs = Date.now();
         saveFixtureSnapshot(Array.from(fixturesStore.values()), {
           isCompleteReconciliation: false,
@@ -1742,7 +1826,8 @@ export async function getDailyMarketHighlights(force = false): Promise<MarketFix
       const { fixtures: snapFixtures, updatedAt: snapUpdatedAt } = await loadFixtureSnapshot();
       if (snapUpdatedAt) lastSnapshotUpdatedMs = new Date(snapUpdatedAt).getTime();
       if (snapFixtures.length > 0) {
-        ingestFixtures(snapFixtures, false);
+        const sanitizedSnap = snapFixtures.map((f) => sanitizeSnapshotLoadedFixture(f, nowMs));
+        ingestFixtures(sanitizedSnap, false);
       }
     }
     snapshotServed =
@@ -1933,13 +2018,17 @@ export function startLiveTelemetryCoordinator(pollIntervalMs = 10_000): void {
 }
 
 // Configure realtimeBroadcaster snapshot & client-connect hooks so SSE clients immediately receive
-// authoritative live + today's recently completed fixtures on connection.
+// authoritative live + today's and yesterday's recently completed fixtures on connection.
 realtimeBroadcaster.setSnapshotProvider(() => {
-  const todayStr = getLocalDateStringEAT(new Date());
+  const now = new Date();
+  const todayStr = getLocalDateStringEAT(now);
+  const yesterdayStr = getLocalDateStringEAT(new Date(now.getTime() - 24 * 3600 * 1000));
   return Array.from(fixturesStore.values()).filter((f) => {
     if (f.status === 'in') return true;
-    if (f.status === 'post' && getLocalDateStringEAT(f.kickoffIso) === todayStr) return true;
-    if ((f.status === 'postponed' || f.status === 'suspended' || f.status === 'cancelled' || f.status === 'abandoned') && getLocalDateStringEAT(f.kickoffIso) === todayStr) {
+    const fDate = getLocalDateStringEAT(f.kickoffIso);
+    const isRecentDay = fDate === todayStr || fDate === yesterdayStr;
+    if (f.status === 'post' && isRecentDay) return true;
+    if ((f.status === 'postponed' || f.status === 'suspended' || f.status === 'cancelled' || f.status === 'abandoned') && isRecentDay) {
       return true;
     }
     return false;

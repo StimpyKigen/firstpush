@@ -375,7 +375,7 @@ async function startServer() {
       const limit = req.query.limit ? Number(req.query.limit) : undefined;
 
       const fixtures = queryMarketFixtures({ scope, league, country, date, limit });
-      res.setHeader('Cache-Control', 'public, max-age=5, s-maxage=10, must-revalidate');
+      res.setHeader('Cache-Control', 'no-cache, no-store, max-age=0, must-revalidate');
       res.json({ success: true, count: fixtures.length, fixtures });
     } catch (err: any) {
       res.status(500).json({ success: false, error: 'Failed to retrieve market fixtures.' });
@@ -384,13 +384,27 @@ async function startServer() {
 
   app.get('/api/sports/live', async (req: Request, res: Response) => {
     try {
-      const liveFixtures = queryMarketFixtures({ scope: 'live' });
-      // If none or low, trigger fast background live check
-      if (liveFixtures.length === 0) {
-        void syncLiveScoresOnly();
+      const diag = getSyncDiagnostics();
+      const liveAgeMs = diag.lastLiveSyncTime ? Date.now() - new Date(diag.lastLiveSyncTime).getTime() : Infinity;
+      if (liveAgeMs > 8_000) {
+        await syncLiveScoresOnly();
       }
-      res.setHeader('Cache-Control', 'public, max-age=3, s-maxage=5, must-revalidate');
-      res.json({ success: true, count: liveFixtures.length, fixtures: liveFixtures });
+      const liveFixtures = queryMarketFixtures({ scope: 'live' });
+      const now = new Date();
+      const todayStr = getLocalDateStringEAT(now);
+      const yesterdayStr = getLocalDateStringEAT(new Date(now.getTime() - 24 * 3600 * 1000));
+      const recentlyFinished = [
+        ...queryMarketFixtures({ scope: 'finished', date: todayStr }),
+        ...queryMarketFixtures({ scope: 'finished', date: yesterdayStr }),
+      ];
+      res.setHeader('Cache-Control', 'no-cache, no-store, max-age=0, must-revalidate');
+      res.json({
+        success: true,
+        count: liveFixtures.length,
+        fixtures: liveFixtures,
+        recentlyFinished,
+        lastLiveSyncTime: getSyncDiagnostics().lastLiveSyncTime,
+      });
     } catch (err: any) {
       res.status(500).json({ success: false, error: 'Failed to retrieve live fixtures.' });
     }
@@ -410,7 +424,7 @@ async function startServer() {
   app.get('/api/sports/daily-fixtures', async (req: Request, res: Response) => {
     try {
       const highlights = await getDailyMarketHighlights();
-      res.setHeader('Cache-Control', 'public, max-age=5, s-maxage=10, must-revalidate');
+      res.setHeader('Cache-Control', 'no-cache, no-store, max-age=0, must-revalidate');
       res.json({ success: true, count: highlights.length, fixtures: highlights });
     } catch (err: any) {
       res.status(500).json({ success: false, error: 'Failed to retrieve daily fixtures.' });
@@ -901,12 +915,39 @@ Sitemap: https://mshindi.co.ke/sitemap.xml
     app.use(vite.middlewares);
   } else {
     const distPath = path.join(process.cwd(), 'dist');
-    app.use(express.static(distPath, {
+
+    // Hashed build assets in /assets/ are immutable for 1 year
+    app.use('/assets', express.static(path.join(distPath, 'assets'), {
       maxAge: '1y',
       immutable: true,
-      index: false,
+      fallthrough: false,
     }));
+
+    // Other static files (sw.js, version.json, manifest.json, icons, banners)
+    app.use(express.static(distPath, {
+      index: false,
+      setHeaders: (res, filePath) => {
+        const base = path.basename(filePath).toLowerCase();
+        if (base === 'sw.js' || base === 'version.json' || base === 'index.html') {
+          res.setHeader('Cache-Control', 'public, max-age=0, no-cache, no-store, must-revalidate');
+        } else if (base === 'manifest.json') {
+          res.setHeader('Cache-Control', 'public, max-age=0, must-revalidate');
+        } else {
+          res.setHeader('Cache-Control', 'public, max-age=86400, stale-while-revalidate=604800');
+        }
+      },
+    }));
+
     app.get('*', (req, res) => {
+      if (
+        req.path.startsWith('/assets/') ||
+        req.path === '/sw.js' ||
+        req.path === '/version.json' ||
+        req.path === '/manifest.json'
+      ) {
+        return res.status(404).end();
+      }
+      res.setHeader('Cache-Control', 'public, max-age=0, no-cache, no-store, must-revalidate');
       res.sendFile(path.join(distPath, 'index.html'));
     });
   }

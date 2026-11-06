@@ -24,7 +24,7 @@ export default async function handler(req: any, res: any) {
       fixtures = queryMarketFixtures({ scope, league, country, date, limit });
     }
 
-    res.setHeader('Cache-Control', 'public, max-age=5, s-maxage=10, must-revalidate');
+    res.setHeader('Cache-Control', 'no-cache, no-store, max-age=0, must-revalidate');
     return res.status(200).json({ success: true, count: fixtures.length, fixtures });
   } catch (err: any) {
     return res.status(500).json({ success: false, error: 'Failed to retrieve market fixtures.' });

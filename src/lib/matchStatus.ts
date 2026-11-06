@@ -312,11 +312,18 @@ export function isStatusTransitionValid(
  */
 export function isLiveMatch(
   fixture: { status?: any; statusText?: any; displayClock?: any; kickoffIso?: any; period?: any } | null | undefined,
-  _nowMs: number = Date.now()
+  nowMs: number = Date.now()
 ): boolean {
   if (!fixture) return false;
   if (fixture.status === 'post' || fixture.status === 'pre' || fixture.status === 'postponed' || fixture.status === 'cancelled' || fixture.status === 'abandoned' || fixture.status === 'suspended') {
     return false;
+  }
+  // Guard against zombie live matches whose kickoff was > 165 minutes ago
+  if (fixture.kickoffIso) {
+    const kMs = Date.parse(fixture.kickoffIso);
+    if (Number.isFinite(kMs) && (nowMs - kMs) / 60000 >= 165) {
+      return false;
+    }
   }
   if (fixture.status === 'in') return true;
   const norm = normalizeMatchStatus(fixture.status, fixture.displayClock || fixture.statusText);
@@ -334,10 +341,17 @@ export function isLiveMatch(
  * Determine if a match has concluded / is finished.
  */
 export function isCompletedMatch(
-  fixture: { status?: any; statusText?: any; displayClock?: any; period?: any } | null | undefined
+  fixture: { status?: any; statusText?: any; displayClock?: any; kickoffIso?: any; period?: any } | null | undefined,
+  nowMs: number = Date.now()
 ): boolean {
   if (!fixture) return false;
   if (fixture.status === 'post') return true;
+  if (fixture.status === 'in' && fixture.kickoffIso) {
+    const kMs = Date.parse(fixture.kickoffIso);
+    if (Number.isFinite(kMs) && (nowMs - kMs) / 60000 >= 165) {
+      return true;
+    }
+  }
   if (fixture.status === 'in' || fixture.status === 'pre') return false;
   const norm = normalizeMatchStatus(fixture.status, fixture.displayClock || fixture.statusText);
   if (norm === 'post') return true;

@@ -8,11 +8,14 @@ import {
 import { buildConsensus } from './consensusEngine.js';
 import {
   fetchDailyHighlightFixtures,
+  reconcileLiveFixturesFromBackend,
+  sanitizeFrontendFixtureLifecycle,
   syncCachedFixturesFromRealtime,
   type HighlightFixture,
 } from './footballApi.js';
 import {
   areFixturesIdentical,
+  findMatchingExistingFixture,
   extractSportScoreProviderId,
   extractSportScoreMatchSlug,
 } from './fixtureIdentity.js';
@@ -94,9 +97,15 @@ function loadStoredMatches(): FreeMatch[] {
     if (raw) {
       const parsed = JSON.parse(raw);
       if (Array.isArray(parsed) && parsed.length > 0) {
+        const nowMs = Date.now();
         return parsed
-          .filter((m: any) => m && m.id && !m.id.startsWith('future_') && m.providerId !== 'ars_che_001')
-          .map((m: any) => toFreeMatch(m));
+          .filter((m: any) => {
+            if (!m || !m.id || m.id.startsWith('future_') || m.providerId === 'ars_che_001') return false;
+            const kMs = m.kickoffIso ? Date.parse(m.kickoffIso) : NaN;
+            if (Number.isFinite(kMs) && nowMs - kMs > 7 * 86_400_000) return false;
+            return true;
+          })
+          .map((m: any) => sanitizeFrontendFixtureLifecycle(toFreeMatch(m), nowMs, 160));
       }
     }
   } catch {}
@@ -173,11 +182,12 @@ if (typeof window !== 'undefined') {
   realtimeClient.on('live_snapshot', (payload) => {
     const d = payload.data || payload;
     const snapList: any[] = Array.isArray(d?.fixtures) ? d.fixtures : [];
-    if (snapList.length === 0) return;
 
     let changed = false;
+    const incomingConverted: FreeMatch[] = [];
     for (const rawSnap of snapList) {
       const inc = toFreeMatch(rawSnap);
+      incomingConverted.push(inc);
       const idx = liveMatches.findIndex((m) => areFixturesIdentical(m, inc));
       if (idx !== -1) {
         const merged = mergeFreeMatchPair(liveMatches[idx], inc);
@@ -196,6 +206,19 @@ if (typeof window !== 'undefined') {
         changed = true;
       }
     }
+
+    // Reconcile any local fixture still marked 'in' that is NOT live in the authoritative SSE snapshot
+    const nowMs = Date.now();
+    liveMatches = liveMatches.map((m) => {
+      if (m.status !== 'in') return m;
+      const stillLiveInSnapshot = incomingConverted.some((inc) => inc.status === 'in' && areFixturesIdentical(m, inc));
+      if (stillLiveInSnapshot) return m;
+      const sanitized = sanitizeFrontendFixtureLifecycle(m, nowMs, 100);
+      if (sanitized.status !== m.status) {
+        changed = true;
+      }
+      return sanitized;
+    });
 
     if (changed) {
       freeMatches.splice(0, freeMatches.length, ...liveMatches);
@@ -674,51 +697,76 @@ export async function refreshFreeMatches(force = false) {
   }
 
   try {
+    // If we currently have live matches, also reconcile directly against `/api/sports/live`
+    if (liveMatches.some((m) => m.status === 'in')) {
+      try {
+        await reconcileLiveFixturesFromBackend();
+      } catch {}
+    }
+
     const highlightFixtures = await fetchDailyHighlightFixtures(force);
     const convertedHighlights = highlightFixtures.map((fixture) => toFreeMatch(fixture));
 
     const persistedFixtures = loadStoredMatches();
-    const baseMap = new Map<string, FreeMatch>();
-    for (const m of persistedFixtures) baseMap.set(makeFreeMatchDedupeKey(m), m);
-    for (const m of liveMatches) baseMap.set(makeFreeMatchDedupeKey(m), m);
-    const storedFixtures = Array.from(baseMap.values());
-
-    const mergedMap = new Map<string, FreeMatch>();
-
-    if (convertedHighlights.length > 0) {
-      const storedMap = new Map<string, FreeMatch>();
-      for (const m of storedFixtures) {
-        if (!m.id?.startsWith('future_') && m.providerId !== 'ars_che_001') {
-          storedMap.set(makeFreeMatchDedupeKey(m), m);
-        }
+    const baseList: FreeMatch[] = [];
+    for (const m of persistedFixtures) {
+      if (!m.id?.startsWith('future_') && m.providerId !== 'ars_che_001') {
+        baseList.push(m);
       }
-
-      for (const m of convertedHighlights) {
-        const key = makeFreeMatchDedupeKey(m);
-        const existing = storedMap.get(key);
-        mergedMap.set(key, existing ? mergeFreeMatchPair(existing, m) : m);
-      }
-
-      for (const m of storedFixtures) {
-        const key = makeFreeMatchDedupeKey(m);
-        if (!mergedMap.has(key)) {
-          const kickoffMs = Date.parse(m.kickoffIso || '');
-          const isExpired =
-            m.status === 'post' && Number.isFinite(kickoffMs) && Date.now() - kickoffMs > 7 * 86_400_000;
-          if (!isExpired) {
-            mergedMap.set(key, m);
-          }
-        }
-      }
-    } else {
-      for (const m of storedFixtures) {
-        if (!m.id?.startsWith('future_') && m.providerId !== 'ars_che_001') {
-          mergedMap.set(makeFreeMatchDedupeKey(m), m);
-        }
+    }
+    for (const m of liveMatches) {
+      if (m.id?.startsWith('future_') || m.providerId === 'ars_che_001') continue;
+      const existingIdx = baseList.findIndex(
+        (b) => makeFreeMatchDedupeKey(b) === makeFreeMatchDedupeKey(m) || areFixturesIdentical(b, m)
+      );
+      if (existingIdx !== -1) {
+        baseList[existingIdx] = mergeFreeMatchPair(baseList[existingIdx], m);
+      } else {
+        baseList.push(m);
       }
     }
 
-    const mergedList = Array.from(mergedMap.values());
+    const nowMs = Date.now();
+    const mergedList: FreeMatch[] = [];
+
+    if (convertedHighlights.length > 0) {
+      const matchedStoredIndices = new Set<number>();
+
+      for (const m of convertedHighlights) {
+        const matchIdx = baseList.findIndex(
+          (b, idx) =>
+            !matchedStoredIndices.has(idx) &&
+            (makeFreeMatchDedupeKey(b) === makeFreeMatchDedupeKey(m) || areFixturesIdentical(b, m))
+        );
+        if (matchIdx !== -1) {
+          matchedStoredIndices.add(matchIdx);
+          mergedList.push(
+            sanitizeFrontendFixtureLifecycle(mergeFreeMatchPair(baseList[matchIdx], m), nowMs, 160)
+          );
+        } else {
+          mergedList.push(sanitizeFrontendFixtureLifecycle(m, nowMs, 160));
+        }
+      }
+
+      // Retain non-expired historical fixtures from baseList that were not in convertedHighlights,
+      // while sanitizing any orphaned 'in' fixture (>= 115m post-kickoff) to 'post' (FT)
+      for (let idx = 0; idx < baseList.length; idx++) {
+        if (matchedStoredIndices.has(idx)) continue;
+        const m = baseList[idx];
+        // Also ensure it doesn't duplicate anything already in mergedList
+        if (mergedList.some((existing) => areFixturesIdentical(existing, m))) continue;
+
+        const kickoffMs = Date.parse(m.kickoffIso || '');
+        const isExpired = Number.isFinite(kickoffMs) && nowMs - kickoffMs > 7 * 86_400_000;
+        if (!isExpired) {
+          mergedList.push(sanitizeFrontendFixtureLifecycle(m, nowMs, 115));
+        }
+      }
+    } else {
+      for (const m of baseList) {
+        mergedList.push(sanitizeFrontendFixtureLifecycle(m, nowMs, 160));
+      }
+    }
 
     if (mergedList.length > 0) {
       liveMatches = mergedList;
