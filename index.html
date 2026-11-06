@@ -48,7 +48,11 @@
             document.documentElement.classList.add('is-android');
           }
           var pwa = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true || /[?&](pwa|splash|loading)=1/.test(location.search) || document.referrer.indexOf('android-app://') !== -1;
-          if (pwa) {
+          var skipSplash = false;
+          try {
+            skipSplash = sessionStorage.getItem('mshindi_skip_pwa_splash') === '1';
+          } catch (e) {}
+          if (pwa && !skipSplash) {
             if (isAndroid) {
               // Android PWA: start in fullscreen logo green accent (#11492D) during loading screen,
               // then transition to #FFFFF0 (light) or #202522 (dark) once loading completes.

@@ -23,11 +23,28 @@ export function isPwaStandalone(): boolean {
  * Once the animation completes (or upon user tap / safety timer), it smoothly fades out into the app.
  */
 export default function PWALoadingScreen() {
-  const [isPwa] = useState(() => isPwaStandalone());
+  const [skipSplash] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    try {
+      return sessionStorage.getItem('mshindi_skip_pwa_splash') === '1';
+    } catch {
+      return false;
+    }
+  });
+  const [isPwa] = useState(() => !skipSplash && isPwaStandalone());
   const [isExiting, setIsExiting] = useState(false);
   const [isDone, setIsDone] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const exitTriggeredRef = useRef(false);
+
+  // Consume the one-time skip-splash flag after mount so future cold launches show the loading screen normally
+  useEffect(() => {
+    if (skipSplash) {
+      try {
+        sessionStorage.removeItem('mshindi_skip_pwa_splash');
+      } catch {}
+    }
+  }, [skipSplash]);
 
   // 1. Mark splash active so other code (themeStore) doesn't override the green status bar
   useEffect(() => {

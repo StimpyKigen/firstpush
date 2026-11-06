@@ -17,6 +17,7 @@ const CLIENT_VERSION_STORAGE_KEY = 'mshindi_client_app_version_v1';
 const LAST_RELOAD_VERSION_KEY = 'mshindi_pwa_last_reload_version_v1';
 const LAST_RELOAD_TS_KEY = 'mshindi_pwa_last_reload_ts_v1';
 const PRESERVED_STATE_KEY = 'mshindi_pwa_preserved_state_v1';
+export const SKIP_PWA_SPLASH_KEY = 'mshindi_skip_pwa_splash';
 
 const MIN_CHECK_INTERVAL_MS = 25_000; // Minimum 25s between foreground/visibility checks
 const PERIODIC_CHECK_INTERVAL_MS = 5 * 60 * 1000; // Check every 5 minutes during active sessions
@@ -169,6 +170,7 @@ function performControlledReload(targetVersion?: string | null): void {
   isRefreshing = true;
 
   try {
+    sessionStorage.setItem(SKIP_PWA_SPLASH_KEY, '1');
     sessionStorage.setItem(LAST_RELOAD_TS_KEY, String(Date.now()));
     if (targetVersion) {
       sessionStorage.setItem(LAST_RELOAD_VERSION_KEY, targetVersion);
@@ -598,4 +600,51 @@ export function isRunningStandalone(): boolean {
     window.matchMedia('(display-mode: standalone)').matches ||
     (window.navigator as any).standalone === true
   );
+}
+
+/**
+ * User-initiated hard refresh for the installed PWA.
+ * Purges runtime/shell Cache Storage, checks/activates any waiting Service Worker,
+ * sets `mshindi_skip_pwa_splash = '1'` so the 8s green loading screen is skipped,
+ * preserves current scroll/navigation state, and reloads the app immediately.
+ */
+export async function hardRefreshPwa(): Promise<void> {
+  if (typeof window === 'undefined') return;
+
+  try {
+    sessionStorage.setItem(SKIP_PWA_SPLASH_KEY, '1');
+    sessionStorage.setItem(LAST_RELOAD_TS_KEY, String(Date.now()));
+  } catch {
+    // Ignore sessionStorage restrictions
+  }
+
+  saveSessionStateBeforeUpdate();
+  dismissUpdateBanner();
+
+  // 1. Check Service Worker registration & activate any waiting worker
+  try {
+    const reg =
+      swRegistration ||
+      ('serviceWorker' in navigator ? await navigator.serviceWorker.getRegistration() : undefined);
+    if (reg) {
+      await reg.update().catch(() => {});
+      if (reg.waiting) {
+        reg.waiting.postMessage({ type: 'SKIP_WAITING' });
+      }
+    }
+  } catch {
+    // Ignore SW errors during manual refresh
+  }
+
+  // 2. Purge Cache Storage so fresh bundles and data are fetched cleanly
+  if ('caches' in window) {
+    try {
+      const keys = await caches.keys();
+      await Promise.all(keys.map((k) => caches.delete(k)));
+    } catch {
+      // Ignore cache deletion errors
+    }
+  }
+
+  window.location.reload();
 }

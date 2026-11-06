@@ -104,6 +104,7 @@ export default function Navbar() {
             <MobileHeaderControls
               open={open}
               setOpen={setOpen}
+              isLoggedIn={Boolean(currentUser)}
             />
           ) : (
             <div className="flex lg:hidden items-center shrink-0">
