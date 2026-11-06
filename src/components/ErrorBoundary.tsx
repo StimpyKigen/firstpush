@@ -1,5 +1,6 @@
 import { Component, ReactNode, ErrorInfo } from 'react';
 import { AlertTriangle, RefreshCw } from 'lucide-react';
+import { hardRefreshPwa, triggerStaleChunkRecovery } from '../lib/swRegister';
 
 interface Props {
   children: ReactNode;
@@ -23,11 +24,21 @@ export class ErrorBoundary extends Component<Props, State> {
 
   public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     console.error('Uncaught error caught by ErrorBoundary:', error, errorInfo);
+    const msg = String(error?.message || error || '');
+    if (
+      msg.includes('_result.default') ||
+      msg.includes('Failed to fetch dynamically imported module') ||
+      msg.includes('Importing a module script failed') ||
+      msg.includes('error loading dynamically imported module') ||
+      msg.includes('Stale chunk')
+    ) {
+      triggerStaleChunkRecovery();
+    }
   }
 
   private handleReset = () => {
     this.setState({ hasError: false, error: null });
-    window.location.reload();
+    void hardRefreshPwa();
   };
 
   public render() {

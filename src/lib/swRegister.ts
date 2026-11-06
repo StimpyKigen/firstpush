@@ -18,6 +18,7 @@ const LAST_RELOAD_VERSION_KEY = 'mshindi_pwa_last_reload_version_v1';
 const LAST_RELOAD_TS_KEY = 'mshindi_pwa_last_reload_ts_v1';
 const PRESERVED_STATE_KEY = 'mshindi_pwa_preserved_state_v1';
 export const SKIP_PWA_SPLASH_KEY = 'mshindi_skip_pwa_splash';
+export const CHUNK_RECOVERY_TS_KEY = 'mshindi_chunk_recovery_ts_v1';
 
 const MIN_CHECK_INTERVAL_MS = 25_000; // Minimum 25s between foreground/visibility checks
 const PERIODIC_CHECK_INTERVAL_MS = 5 * 60 * 1000; // Check every 5 minutes during active sessions
@@ -425,15 +426,35 @@ export async function checkForAppUpdate(
 }
 
 /**
+ * Triggers an immediate splash-free cache-clearing reload when a lazy route chunk is missing
+ * after a new deployment, guarded against infinite loops (max once every 8 seconds).
+ */
+export function triggerStaleChunkRecovery(): boolean {
+  if (typeof window === 'undefined') return false;
+  try {
+    const lastRecovery = Number(sessionStorage.getItem(CHUNK_RECOVERY_TS_KEY) || '0');
+    if (Date.now() - lastRecovery < 8_000) {
+      return false;
+    }
+    sessionStorage.setItem(CHUNK_RECOVERY_TS_KEY, String(Date.now()));
+  } catch {
+    // Ignore sessionStorage restrictions
+  }
+  void hardRefreshPwa();
+  return true;
+}
+
+/**
  * Attaches global handlers to recover automatically if a deployment removes a lazy-loaded chunk
  * while an older session tries to dynamically import it.
  */
 function installChunkErrorRecovery(): void {
   if (typeof window === 'undefined') return;
 
-  window.addEventListener('vite:preloadError', (event) => {
-    event.preventDefault();
-    performControlledReload(diagnostics.latestDetectedVersion);
+  window.addEventListener('vite:preloadError', () => {
+    // Do NOT call event.preventDefault() blindly without recovering, because Vite resolves
+    // prevented preload errors with `undefined`, causing React.lazy (`j._result.default`) to crash.
+    triggerStaleChunkRecovery();
   });
 
   window.addEventListener('unhandledrejection', (event) => {
@@ -441,9 +462,10 @@ function installChunkErrorRecovery(): void {
     if (
       msg.includes('Failed to fetch dynamically imported module') ||
       msg.includes('Importing a module script failed') ||
-      msg.includes('error loading dynamically imported module')
+      msg.includes('error loading dynamically imported module') ||
+      msg.includes('_result.default')
     ) {
-      performControlledReload(diagnostics.latestDetectedVersion);
+      triggerStaleChunkRecovery();
     }
   });
 }

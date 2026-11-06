@@ -1,7 +1,8 @@
-import { useEffect, Suspense, lazy } from 'react';
+import { useEffect, Suspense, lazy, type ComponentType } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AnimatePresence, motion } from 'motion/react';
 import { initTheme } from './lib/themeStore';
+import { triggerStaleChunkRecovery } from './lib/swRegister';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import ScrollToTop from './components/ScrollToTop';
@@ -22,19 +23,45 @@ import { useAutoScrollIntoView } from './lib/useAutoScrollIntoView';
 // Primary Home Route loaded immediately
 import Home from './pages/Home';
 
+/**
+ * Wraps `React.lazy()` so that if a new production deployment replaces hashed JS chunk filenames
+ * while a client session is active (or if a preload error resolves to `undefined`),
+ * it automatically triggers a splash-free hard refresh (`triggerStaleChunkRecovery()`) and keeps
+ * `<Suspense>` showing the skeleton while reloading instead of crashing on `j._result.default`.
+ */
+function lazyWithRetry<T extends ComponentType<any>>(
+  importer: () => Promise<{ default: T }>
+) {
+  return lazy(async () => {
+    try {
+      const mod = await importer();
+      if (mod && typeof mod === 'object' && 'default' in mod && mod.default) {
+        return mod;
+      }
+      throw new Error('Stale chunk module resolved without default export');
+    } catch (error) {
+      if (triggerStaleChunkRecovery()) {
+        // Return a pending promise while the browser reloads so React stays on the Suspense skeleton
+        return new Promise<{ default: T }>(() => {});
+      }
+      throw error;
+    }
+  });
+}
+
 // Lazy-loaded secondary routes for optimal code splitting & Core Web Vitals
-const Room = lazy(() => import('./pages/Room'));
-const Leaderboard = lazy(() => import('./pages/Leaderboard'));
-const HowItWorks = lazy(() => import('./pages/HowItWorks'));
-const WalletPage = lazy(() => import('./pages/WalletPage'));
-const FreeMatches = lazy(() => import('./pages/FreeMatches'));
-const FreeMatchRoom = lazy(() => import('./pages/FreeMatchRoom'));
-const Auth = lazy(() => import('./pages/Auth'));
-const Profile = lazy(() => import('./pages/Profile'));
-const BetSlipRoom = lazy(() => import('./pages/BetSlipRoom'));
-const PrivacyPolicy = lazy(() => import('./pages/PrivacyPolicy'));
-const TermsOfService = lazy(() => import('./pages/TermsOfService'));
-const NotFound = lazy(() => import('./pages/NotFound'));
+const Room = lazyWithRetry(() => import('./pages/Room'));
+const Leaderboard = lazyWithRetry(() => import('./pages/Leaderboard'));
+const HowItWorks = lazyWithRetry(() => import('./pages/HowItWorks'));
+const WalletPage = lazyWithRetry(() => import('./pages/WalletPage'));
+const FreeMatches = lazyWithRetry(() => import('./pages/FreeMatches'));
+const FreeMatchRoom = lazyWithRetry(() => import('./pages/FreeMatchRoom'));
+const Auth = lazyWithRetry(() => import('./pages/Auth'));
+const Profile = lazyWithRetry(() => import('./pages/Profile'));
+const BetSlipRoom = lazyWithRetry(() => import('./pages/BetSlipRoom'));
+const PrivacyPolicy = lazyWithRetry(() => import('./pages/PrivacyPolicy'));
+const TermsOfService = lazyWithRetry(() => import('./pages/TermsOfService'));
+const NotFound = lazyWithRetry(() => import('./pages/NotFound'));
 
 import {
   PageSkeleton,
