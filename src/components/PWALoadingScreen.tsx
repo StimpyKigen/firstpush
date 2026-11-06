@@ -78,7 +78,7 @@ export default function PWALoadingScreen() {
     }
   }, [isPwa, isDone]);
 
-  // 6. Synchronize theme-color: green on loading screen, ivory in-app (except Android PWA which unifies in charcoal)
+  // 6. Synchronize theme-color: green (#11492D) on loading screen, then transition to active theme (#FFFFF0 or #202522)
   useEffect(() => {
     const metaTheme = document.querySelector('meta[name="theme-color"]');
     const root = document.documentElement;
@@ -86,16 +86,32 @@ export default function PWALoadingScreen() {
     const isDark = root.classList.contains('dark');
 
     if (isAndroid) {
-      // Android PWA: maintain unified charcoal status & navigation bar in dark mode
-      const androidColor = isDark ? '#202522' : '#FFFFF0';
-      if (metaTheme) metaTheme.setAttribute('content', androidColor);
-      root.style.backgroundColor = androidColor;
-      if (isExiting || isDone) {
+      if (isPwa && !isExiting && !isDone) {
+        // Android PWA Loading: fullscreen logo green accent (#11492D) across top status bar, viewport & bottom nav bar
+        root.setAttribute('data-splash', 'active');
+        document.querySelectorAll('meta[name="theme-color"]').forEach((el) => {
+          el.setAttribute('content', '#11492D');
+        });
+        root.style.backgroundColor = '#11492D';
+        if (document.body) {
+          document.body.style.backgroundColor = '#11492D';
+        }
+      } else {
+        // Android PWA Loaded: release splash and transition top & bottom system bars to app accents (#FFFFF0 in light, #202522 in dark)
         root.removeAttribute('data-splash');
+        const androidColor = isDark ? '#202522' : '#FFFFF0';
+        document.querySelectorAll('meta[name="theme-color"]').forEach((el) => {
+          el.setAttribute('content', androidColor);
+        });
+        root.style.backgroundColor = androidColor;
+        if (document.body) {
+          document.body.style.backgroundColor = androidColor;
+        }
       }
       return;
     }
 
+    // iOS / WebKit & Desktop PWA: completely untouched
     if (isPwa && !isExiting && !isDone) {
       if (metaTheme) metaTheme.setAttribute('content', '#11492D');
       root.style.backgroundColor = '#11492D';
@@ -111,9 +127,7 @@ export default function PWALoadingScreen() {
     return null;
   }
 
-  const isAndroid = typeof navigator !== 'undefined' && /android/i.test(navigator.userAgent);
-  const isDark = typeof document !== 'undefined' && document.documentElement.classList.contains('dark');
-  const splashBackdropColor = isAndroid ? (isDark ? '#202522' : '#FFFFF0') : '#11492D';
+  const splashBackdropColor = '#11492D';
 
   return (
     <div

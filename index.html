@@ -30,9 +30,7 @@
     <meta name="twitter:image" content="https://mshindi.co.ke/pwa-512.png" />
 
     <!-- Mobile & PWA Configuration (iOS & Android) -->
-    <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#202522" />
-    <meta name="theme-color" media="(prefers-color-scheme: light)" content="#FFFFF0" />
-    <meta name="theme-color" content="#202522" />
+    <meta name="theme-color" content="#FFFFF0" />
     <script>
       (function () {
         try {
@@ -49,22 +47,30 @@
           if (isAndroid) {
             document.documentElement.classList.add('is-android');
           }
-          var pwa = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true || /[?&](pwa|splash|loading)=1/.test(location.search);
+          var pwa = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true || /[?&](pwa|splash|loading)=1/.test(location.search) || document.referrer.indexOf('android-app://') !== -1;
           if (pwa) {
             if (isAndroid) {
-              // Android PWA: maintain unified charcoal nav strip in dark mode (#202522)
-              var androidColor = isDark ? '#202522' : '#FFFFF0';
-              document.querySelectorAll('meta[name=theme-color]').forEach(function(el) { el.setAttribute('content', androidColor); });
-              document.documentElement.style.backgroundColor = androidColor;
+              // Android PWA: start in fullscreen logo green accent (#11492D) during loading screen,
+              // then transition to #FFFFF0 (light) or #202522 (dark) once loading completes.
+              document.documentElement.setAttribute('data-splash', 'active');
+              document.querySelectorAll('meta[name="theme-color"]').forEach(function(el) {
+                el.setAttribute('content', '#11492D');
+              });
+              document.documentElement.style.backgroundColor = '#11492D';
             } else {
-              // iOS and desktop PWA: preserve existing splash animation backdrop
+              // iOS and desktop PWA: preserve existing splash animation backdrop untouched
               document.documentElement.setAttribute('data-splash', 'active');
               document.querySelector('meta[name=theme-color]').setAttribute('content', '#11492D');
               document.documentElement.style.backgroundColor = '#11492D';
             }
-          } else if (isDark) {
-            var meta = document.querySelector('meta[name=theme-color]');
-            if (meta) meta.setAttribute('content', '#202522');
+          } else {
+            var activeColor = isDark ? '#202522' : '#FFFFF0';
+            document.querySelectorAll('meta[name="theme-color"]').forEach(function(el) {
+              el.setAttribute('content', activeColor);
+            });
+            if (isAndroid) {
+              document.documentElement.style.backgroundColor = activeColor;
+            }
           }
         } catch (e) {}
       })();

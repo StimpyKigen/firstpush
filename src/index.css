@@ -1194,12 +1194,84 @@ html.dark body {
   color: #F4F5EF !important;
 }
 
-/* Android PWA: unify bottom strip and surfaces seamlessly in charcoal */
-html.is-android.dark,
-html.is-android.dark body,
-html.is-android.dark .app-shell,
+/* Android PWA: unify top status bar, top header, bottom nav bar, and bottom gesture strip seamlessly in Light (#FFFFF0) and Dark (#202522) modes */
+html.is-android[data-splash="active"],
+html.is-android[data-splash="active"] body,
+html.is-android[data-splash="active"] #root,
+html.is-android[data-splash="active"] .app-shell,
+html.is-android[data-splash="active"] [class*="bg-[#FFFFF0]"],
+html.is-android[data-splash="active"] [class*="dark:bg-[#202522]"] {
+  background-color: #11492D !important;
+}
+
+html.is-android:not(.dark):not([data-splash="active"]),
+html.is-android:not(.dark):not([data-splash="active"]) body,
+html.is-android:not(.dark):not([data-splash="active"]) #root,
+html.is-android:not(.dark):not([data-splash="active"]) .app-shell,
+html.is-android:not(.dark) header.mobile-nav-glass,
+html.is-android:not(.dark) .mobile-nav-glass,
+html.is-android:not(.dark) nav.mobile-bottom-nav,
+html.is-android:not(.dark) .mobile-bottom-nav {
+  background-color: #FFFFF0 !important;
+}
+
+html.is-android:not(.dark) header.mobile-nav-glass::before {
+  content: "";
+  position: fixed;
+  top: -100px;
+  left: 0;
+  right: 0;
+  height: calc(100px + env(safe-area-inset-top, 0px));
+  background-color: #FFFFF0 !important;
+  pointer-events: none;
+  z-index: -1;
+}
+
+html.is-android:not(.dark) nav.mobile-bottom-nav::after {
+  content: "";
+  position: fixed;
+  bottom: -100px;
+  left: 0;
+  right: 0;
+  height: calc(100px + env(safe-area-inset-bottom, 0px));
+  background-color: #FFFFF0 !important;
+  pointer-events: none;
+  z-index: -1;
+}
+
+html.is-android.dark:not([data-splash="active"]),
+html.is-android.dark:not([data-splash="active"]) body,
+html.is-android.dark:not([data-splash="active"]) #root,
+html.is-android.dark:not([data-splash="active"]) .app-shell,
+html.is-android.dark header.mobile-nav-glass,
+html.is-android.dark .mobile-nav-glass,
+html.is-android.dark nav.mobile-bottom-nav,
 html.is-android.dark .mobile-bottom-nav {
   background-color: #202522 !important;
+}
+
+html.is-android.dark header.mobile-nav-glass::before {
+  content: "";
+  position: fixed;
+  top: -100px;
+  left: 0;
+  right: 0;
+  height: calc(100px + env(safe-area-inset-top, 0px));
+  background-color: #202522 !important;
+  pointer-events: none;
+  z-index: -1;
+}
+
+html.is-android.dark nav.mobile-bottom-nav::after {
+  content: "";
+  position: fixed;
+  bottom: -100px;
+  left: 0;
+  right: 0;
+  height: calc(100px + env(safe-area-inset-bottom, 0px));
+  background-color: #202522 !important;
+  pointer-events: none;
+  z-index: -1;
 }
 
 html.dark .app-shell {
@@ -1428,7 +1500,7 @@ html.dark :not(.theme-protected, .theme-protected *, .fixture-card-banner, .fixt
   background-color: #2A312D !important;
 }
 
-html.dark :not(.theme-protected, .theme-protected *, .fixture-card-banner, .fixture-card-banner *, .jackpot-room-card, .jackpot-room-card *, .login-card, .login-card *):where([class*="bg-[#FFFFF0]"]):not([class*="min-h-screen"]):not([class*="app-shell"]),
+html.dark :not(.theme-protected, .theme-protected *, .fixture-card-banner, .fixture-card-banner *, .jackpot-room-card, .jackpot-room-card *, .login-card, .login-card *):where([class*="bg-[#FFFFF0]"]):not([class*="min-h-screen"]):not([class*="min-h-dvh"]):not([class*="app-shell"]):not([class*="mobile-bottom-nav"]):not([class*="mobile-nav-glass"]),
 html.dark :not(.theme-protected, .theme-protected *, .fixture-card-banner, .fixture-card-banner *, .jackpot-room-card, .jackpot-room-card *, .login-card, .login-card *):where([class*="bg-[#FDFBF7]"]) {
   background-color: #2A312D !important;
 }
@@ -1601,10 +1673,10 @@ html.dark .mobile-bottom-nav [class*="text-[#006C54]"] {
 /* ==========================================================================
    Light-Mode Preservation (Guarantees Reversion on Theme Toggle in PWA)
    ========================================================================== */
-html:not(.dark) .fixture-card-standard,
-html.light .fixture-card-standard,
-html:not(.dark) [class*="bg-[#FFFFF0]"]:not(.theme-protected, .theme-protected *, .fixture-card-banner, .fixture-card-banner *),
-html.light [class*="bg-[#FFFFF0]"]:not(.theme-protected, .theme-protected *, .fixture-card-banner, .fixture-card-banner *) {
+html:not(.dark):not([data-splash="active"]) .fixture-card-standard,
+html.light:not([data-splash="active"]) .fixture-card-standard,
+html:not(.dark):not([data-splash="active"]) [class*="bg-[#FFFFF0]"]:not(.theme-protected, .theme-protected *, .fixture-card-banner, .fixture-card-banner *),
+html.light:not([data-splash="active"]) [class*="bg-[#FFFFF0]"]:not(.theme-protected, .theme-protected *, .fixture-card-banner, .fixture-card-banner *) {
   background-color: #FFFFF0 !important;
 }
 

@@ -45,19 +45,26 @@ export function applyTheme(theme: Theme) {
   if (typeof document !== 'undefined') {
     const root = document.documentElement;
     const isAndroid = typeof navigator !== 'undefined' && /android/i.test(navigator.userAgent);
+    const targetColor = theme === 'dark' ? '#202522' : '#FFFFF0';
+
     if (theme === 'dark') {
       root.classList.add('dark');
       root.classList.remove('light');
-      // If splash is not active (or on Android), set status bar to main dark background
-      if (root.dataset.splash !== 'active' || isAndroid) {
-        document.querySelector('meta[name="theme-color"]')?.setAttribute('content', '#202522');
-      }
     } else {
       root.classList.remove('dark');
       root.classList.add('light');
-      // If splash is not active (or on Android), set status bar to ivory
-      if (root.dataset.splash !== 'active' || isAndroid) {
-        document.querySelector('meta[name="theme-color"]')?.setAttribute('content', '#FFFFF0');
+    }
+
+    // If splash is not active, sync status bar and (on Android) system chrome & root background
+    if (root.dataset.splash !== 'active') {
+      document.querySelectorAll('meta[name="theme-color"]').forEach((el) => {
+        el.setAttribute('content', targetColor);
+      });
+      if (isAndroid) {
+        root.style.backgroundColor = targetColor;
+        if (document.body) {
+          document.body.style.backgroundColor = targetColor;
+        }
       }
     }
 
