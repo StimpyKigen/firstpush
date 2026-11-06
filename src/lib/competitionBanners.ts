@@ -211,6 +211,22 @@ export const COMPETITION_BANNERS: Record<string, CompetitionBannerConfig> = {
     dividerColor: 'border-[#BFDBFE]',
     shadow: 'shadow-[0_2px_12px_rgba(0,40,104,0.09)] hover:shadow-[0_4px_18px_rgba(0,40,104,0.16)]',
   },
+  english_championship: {
+    id: 'english_championship',
+    name: 'English Championship',
+    bannerUrl: '/banners/english-championship.jpg',
+    overlayOpacity: 0.32,
+    objectPosition: 'object-[center_50%]',
+    gradientOverlay: 'from-transparent via-[#EFF6FF]/20 to-[#FFFFF0]/35',
+    cardBg: 'bg-gradient-to-b from-[#EBF2FF] via-[#F5F9FF] to-[#FFFFF0]',
+    baseTint: 'bg-gradient-to-b from-[#002B8A]/10 via-[#D99B00]/5 to-transparent',
+    borderColor: 'border-[#60A5FA]/70',
+    borderHoverColor: 'hover:border-[#002B8A]',
+    oddsBorderColor: 'border-[#60A5FA]/50 hover:border-[#002B8A]',
+    consensusTrackBg: 'bg-[#DBEAFE]',
+    dividerColor: 'border-[#BFDBFE]',
+    shadow: 'shadow-[0_2px_12px_rgba(0,43,138,0.09)] hover:shadow-[0_4px_18px_rgba(0,43,138,0.16)]',
+  },
 };
 
 /**
@@ -236,6 +252,7 @@ function bannerKey(value: string | undefined): string {
 /** Country spellings that identify each domestic banner league's home country. */
 const BANNER_COUNTRY_NAMES: Record<string, string[]> = {
   premier_league: ['england', 'english', 'united kingdom', 'uk', 'great britain', 'gb eng'],
+  english_championship: ['england', 'english', 'united kingdom', 'uk', 'great britain', 'gb eng'],
   fa_cup: ['england', 'english', 'united kingdom', 'uk', 'great britain', 'gb eng'],
   efl_cup: ['england', 'english', 'united kingdom', 'uk', 'great britain', 'gb eng'],
   scottish_premiership: ['scotland', 'scottish', 'gb sct', 'united kingdom', 'uk', 'great britain'],
@@ -248,6 +265,16 @@ const BANNER_COUNTRY_NAMES: Record<string, string[]> = {
 /** Exact league titles (normalised) that qualify for a domestic banner when the country matches. */
 const BANNER_LEAGUE_NAMES: Record<string, string[]> = {
   premier_league: ['premier league', 'english premier league', 'epl', 'barclays premier league'],
+  english_championship: [
+    'english championship',
+    'efl championship',
+    'championship',
+    'the championship',
+    'english football league championship',
+    'sky bet championship',
+    'england championship',
+    'cha',
+  ],
   fa_cup: [
     'fa cup',
     'the fa cup',
@@ -289,6 +316,13 @@ const BANNER_LEAGUE_NAMES: Record<string, string[]> = {
 /** Titles that already carry the country adjective, so they are safe without a country field. */
 const BANNER_SELF_QUALIFIED: Record<string, string[]> = {
   premier_league: ['english premier league', 'epl', 'barclays premier league'],
+  english_championship: [
+    'english championship',
+    'efl championship',
+    'english football league championship',
+    'sky bet championship',
+    'england championship',
+  ],
   fa_cup: [
     'english fa cup',
     'england fa cup',
@@ -329,6 +363,9 @@ const BANNER_BY_ID: Record<string, keyof typeof COMPETITION_BANNERS> = {
   uefa_nations_league: 'uefa_nations_league',
   nations_league: 'uefa_nations_league',
   eng_premier_league: 'premier_league',
+  eng_championship: 'english_championship',
+  english_championship: 'english_championship',
+  efl_championship: 'english_championship',
   esp_la_liga: 'la_liga',
   fra_ligue_1: 'ligue_1',
   ger_bundesliga: 'bundesliga',
