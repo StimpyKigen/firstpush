@@ -22,6 +22,7 @@ import DepositPanel from './profile/DepositPanel';
 import SupportPanel from './profile/SupportPanel';
 import CloseAccountPanel from './profile/CloseAccountPanel';
 import { useSmartBack } from '../components/BackNavButton';
+import { useHistoryPageState } from '../lib/navigationHistory';
 
 type Panel = 'none' | 'deposit' | 'close' | 'support';
 
@@ -42,11 +43,11 @@ export default function Profile() {
   const getFollowersCount = useFollowStore((s) => s.getFollowersCount);
   const getFollowingCount = useFollowStore((s) => s.getFollowingCount);
 
-  const [panel, setPanel] = useState<Panel>('none');
+  const [panel, setPanel] = useHistoryPageState<Panel>('profile_panel', 'none');
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [showMyProfileModal, setShowMyProfileModal] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
-  const [showTransactions, setShowTransactions] = useState(false);
+  const [showTransactions, setShowTransactions] = useHistoryPageState<boolean>('profile_showTransactions', false);
 
   // Viewport-aware scroll and back-to-close refs
   const panelContainerRef = useRef<HTMLDivElement>(null);

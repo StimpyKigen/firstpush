@@ -17,6 +17,7 @@ import BackNavButton from '../components/BackNavButton';
 import { RoomDetailSkeleton } from '../components/skeleton';
 import SportScoreMatchCenter from '../components/SportScoreMatchCenter';
 import { formatKickoffDateTime24h } from '../lib/competitionPriority';
+import { useHistoryPageState } from '../lib/navigationHistory';
 
 export default function FreeMatchRoom() {
   const { id } = useParams();
@@ -29,8 +30,8 @@ export default function FreeMatchRoom() {
   const username = currentUser?.username || 'Guest Punter';
   const { savePick, getPick, deletePick } = useUserPicks();
 
-  // Tab indicator state: 'details' vs 'discussion'
-  const [roomTab, setRoomTab] = useState<'details' | 'discussion'>('details');
+  // Tab indicator state: 'details' vs 'discussion' — preserved per history entry
+  const [roomTab, setRoomTab] = useHistoryPageState<'details' | 'discussion'>(`freematch_roomTab_${id || 'default'}`, 'details');
 
   const roomId = `free-${id}`;
   const myPickRecord = match ? getPick(roomId, match.id) : undefined;

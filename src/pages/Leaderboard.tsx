@@ -22,6 +22,7 @@ import { LeaderboardSkeleton, JackpotGridSkeleton } from '../components/skeleton
 import { scrollIntoViewIfNeeded } from '../lib/viewportScroll';
 import type { Bookie, RoomStatus } from '../lib/types';
 import { getBookieTheme } from '../lib/bookies';
+import { useHistoryPageState } from '../lib/navigationHistory';
 
 const jackpotBookies: (Bookie | 'All')[] = [
   'All',
@@ -53,7 +54,8 @@ export default function Leaderboard() {
   // Search parameters for deep linking (?tab=leaderboard vs default rooms)
   const [searchParams, setSearchParams] = useSearchParams();
   const requestedTab = searchParams.get('tab');
-  const [mainTab, setMainTab] = useState<'rooms' | 'leaderboard'>(
+  const [mainTab, setMainTab] = useHistoryPageState<'rooms' | 'leaderboard'>(
+    'lb_mainTab',
     requestedTab === 'leaderboard' || requestedTab === 'ranks' ? 'leaderboard' : 'rooms'
   );
 
@@ -78,11 +80,11 @@ export default function Leaderboard() {
     }
   };
 
-  // State for Jackpot Consensus Rooms (Dominant Tab)
-  const [roomBookie, setRoomBookie] = useState<Bookie | 'All'>('All');
-  const [roomStatus, setRoomStatus] = useState<RoomStatus | 'All'>('All');
-  const [roomQuery, setRoomQuery] = useState('');
-  const [roomViewTab, setRoomViewTab] = useState<'active' | 'archive'>('active');
+  // State for Jackpot Consensus Rooms (Dominant Tab) — preserved per history entry
+  const [roomBookie, setRoomBookie] = useHistoryPageState<Bookie | 'All'>('lb_roomBookie', 'All');
+  const [roomStatus, setRoomStatus] = useHistoryPageState<RoomStatus | 'All'>('lb_roomStatus', 'All');
+  const [roomQuery, setRoomQuery] = useHistoryPageState<string>('lb_roomQuery', '');
+  const [roomViewTab, setRoomViewTab] = useHistoryPageState<'active' | 'archive'>('lb_roomViewTab', 'active');
   const [isAdminModalOpen, setIsAdminModalOpen] = useState(false);
   const [isStatusDropdownOpen, setIsStatusDropdownOpen] = useState(false);
   const statusDropdownRef = useRef<HTMLDivElement>(null);
@@ -97,12 +99,12 @@ export default function Leaderboard() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // State for Leaderboard & Standings Tab
-  const [filterTab, setFilterTab] = useState<'all' | 'my' | DisplayRoomStatus>('all');
-  const [selectedBookie, setSelectedBookie] = useState<string>('all');
-  const [searchQuery, setSearchQuery] = useState<string>('');
+  // State for Leaderboard & Standings Tab — preserved per history entry
+  const [filterTab, setFilterTab] = useHistoryPageState<'all' | 'my' | DisplayRoomStatus>('lb_filterTab', 'all');
+  const [selectedBookie, setSelectedBookie] = useHistoryPageState<string>('lb_selectedBookie', 'all');
+  const [searchQuery, setSearchQuery] = useHistoryPageState<string>('lb_searchQuery', '');
   const [selectedUserForModal, setSelectedUserForModal] = useState<string | null>(null);
-  const [expandedRooms, setExpandedRooms] = useState<Record<string, boolean>>({});
+  const [expandedRooms, setExpandedRooms] = useHistoryPageState<Record<string, boolean>>('lb_expandedRooms', {});
 
   // Active vs Archived rooms
   const activeRooms = useMemo(() => allJackpots.filter((j) => j.status !== 'settled'), [allJackpots]);

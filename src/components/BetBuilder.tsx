@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { useNavigationType } from 'react-router-dom';
 import {
   Dices, Layers, Trash2, Send,
   Sparkles, X, Trophy, ChevronDown, ChevronUp, Plus, Link2,
@@ -74,8 +75,11 @@ export default function BetBuilder({ onPublished }: BetBuilderProps) {
     clearBuilderLegs,
   } = useBetBuilder(onPublished);
 
-  // Scroll to focused fixture when opened from direct link
+  const navigationType = useNavigationType();
+
+  // Scroll to focused fixture when opened from direct link (but do not override scroll restoration on POP)
   useEffect(() => {
+    if (navigationType === 'POP') return;
     if (expandedFixtureId) {
       const timer = setTimeout(() => {
         const el = document.getElementById(`builder-fixture-${expandedFixtureId}`);
@@ -85,7 +89,7 @@ export default function BetBuilder({ onPublished }: BetBuilderProps) {
       }, 250);
       return () => clearTimeout(timer);
     }
-  }, [expandedFixtureId]);
+  }, [expandedFixtureId, navigationType]);
 
   // Deactivate background scroll when Publish pop-up is active
   useEffect(() => {

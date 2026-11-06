@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useSyncExternalStore } from 'react';
-import { useParams, Navigate, useLocation } from 'react-router-dom';
+import { useParams, Navigate, useLocation, useNavigationType } from 'react-router-dom';
 import { Users, Clock, Trophy, ChevronDown, CheckCircle2, XCircle, RadioTower, Sparkles, Crown, Medal, AlertTriangle } from 'lucide-react';
 import SeoHead from '../components/SeoHead';
 import { scrollIntoViewIfNeeded } from '../lib/viewportScroll';
@@ -19,6 +19,7 @@ import StarRating from '../components/StarRating';
 import { getPunterStats, getStarRating } from '../lib/punterRatings';
 import BackNavButton from '../components/BackNavButton';
 import { RoomDetailSkeleton } from '../components/skeleton';
+import { useHistoryPageState } from '../lib/navigationHistory';
 
 const CONVICTIONS: Conviction[] = ['Banker', 'Value Pick', 'Long Shot'];
 
@@ -34,7 +35,7 @@ export default function Room() {
   const { savePick, getPick, getExtraLikes, deletePick } = useUserPicks();
 
   const [unlockedLocal, setUnlockedLocal] = useState(false);
-  const [openMatch, setOpenMatch] = useState<string | null>(null);
+  const [openMatch, setOpenMatch] = useHistoryPageState<string | null>(`room_openMatch_${id || 'default'}`, null);
 
   // Form states per match or active match
   const [selectedOutcome, setSelectedOutcome] = useState<Outcome>('1');
@@ -48,16 +49,19 @@ export default function Room() {
     if (activeJackpots.length === 0) {
       return <RoomDetailSkeleton />;
     }
-    return <Navigate to="/" replace />;
+    return <Navigate to="/leaderboard" replace />;
   }
 
   const bookieTheme = getBookieTheme(jackpot.bookie);
   const isUnlocked = unlocked || unlockedLocal;
 
   const location = useLocation();
+  const navigationType = useNavigationType();
   const paygateRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    // Never override scroll restoration on POP (Back/Forward navigation)
+    if (navigationType === 'POP') return;
     if (!isUnlocked) {
       const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
       if (isMobile || location.hash === '#unlock') {
@@ -67,7 +71,7 @@ export default function Room() {
         return () => clearTimeout(timer);
       }
     }
-  }, [isUnlocked, location.hash]);
+  }, [isUnlocked, location.hash, navigationType]);
 
   // Slip progress calculations
   const totalMatches = jackpot.matches.length;
@@ -179,7 +183,7 @@ export default function Room() {
         }}
       />
       <div className="mb-4 sm:mb-6">
-        <BackNavButton fallbackUrl="/" label="All Jackpot Rooms" />
+        <BackNavButton fallbackUrl="/leaderboard" label="All Jackpot Rooms" />
       </div>
 
       {/* Header */}

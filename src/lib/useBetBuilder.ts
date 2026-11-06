@@ -21,6 +21,7 @@ import {
   getDeviceLocalDateString,
 } from './competitionPriority';
 import type { FilterScopeTab } from '../components/MatchFiltersToolbar';
+import { useHistoryPageState } from './navigationHistory';
 
 /** Fixture filtering, parlay-cart math, and publish flow for the custom Bet Builder. */
 export function useBetBuilder(onPublished?: () => void) {
@@ -31,10 +32,10 @@ export function useBetBuilder(onPublished?: () => void) {
   const removeBuilderLeg = useBetSlipStore((s) => s.removeBuilderLeg);
   const clearBuilderLegs = useBetSlipStore((s) => s.clearBuilderLegs);
 
-  const [activeTab, setActiveTab] = useState<FilterScopeTab>('highlights');
-  const [selectedDate, setSelectedDate] = useState<string>('all');
-  const [searchQuery, setSearchQuery] = useState('');
-  const [leagueFilter, setLeagueFilter] = useState<string>(() => {
+  const [activeTab, setActiveTab] = useHistoryPageState<FilterScopeTab>('builder_activeTab', 'highlights');
+  const [selectedDate, setSelectedDate] = useHistoryPageState<string>('builder_selectedDate', 'all');
+  const [searchQuery, setSearchQuery] = useHistoryPageState<string>('builder_searchQuery', '');
+  const [leagueFilter, setLeagueFilter] = useHistoryPageState<string>('builder_leagueFilter', () => {
     try {
       const val = localStorage.getItem('mshindi_builder_league_filter') || 'all';
       if (val !== 'all' && !SPORTSCORE_COUNTRY_DIRECTORY_CONFIG.some((entry) => entry.id === val)) {
@@ -45,9 +46,9 @@ export function useBetBuilder(onPublished?: () => void) {
       return 'all';
     }
   });
-  const [selectedSubLeague, setSelectedSubLeague] = useState<string>('all');
+  const [selectedSubLeague, setSelectedSubLeague] = useHistoryPageState<string>('builder_selectedSubLeague', 'all');
   const [searchParams] = useSearchParams();
-  const [expandedFixtureId, setExpandedFixtureId] = useState<string | null>(() => {
+  const [expandedFixtureId, setExpandedFixtureId] = useHistoryPageState<string | null>('builder_expandedFixtureId', () => {
     return searchParams.get('match') || null;
   });
 

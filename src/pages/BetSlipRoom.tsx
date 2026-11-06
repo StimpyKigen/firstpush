@@ -17,6 +17,7 @@ import PunterProfileModal from '../components/PunterProfileModal';
 import InviteModal from '../components/InviteModal';
 import BackNavButton from '../components/BackNavButton';
 import { showToast } from '../lib/notificationStore';
+import { useHistoryPageState } from '../lib/navigationHistory';
 
 function ClapperPlayIcon({ className, size = 16 }: { className?: string; size?: number }) {
   return (
@@ -58,11 +59,11 @@ export default function BetSlipRoom({ initialTab, initialFilter }: BetSlipRoomPr
 
   const isSavedMode = initialFilter === 'saved' || searchParams.get('view') === 'saved';
 
-  // User search & navigation states
-  const [punterSearchQuery, setPunterSearchQuery] = useState('');
+  // User search & navigation states — preserved per history entry
+  const [punterSearchQuery, setPunterSearchQuery] = useHistoryPageState<string>('slips_punterSearchQuery', '');
   const [selectedProfileUser, setSelectedProfileUser] = useState<string | null>(null);
   const [showInviteModal, setShowInviteModal] = useState(false);
-  const [activeTab, setActiveTab] = useState<'builder' | 'slips' | 'punters'>(() => {
+  const [activeTab, setActiveTab] = useHistoryPageState<'builder' | 'slips' | 'punters'>('slips_activeTab', () => {
     if (initialTab) return initialTab;
     if (isSavedMode) return 'slips';
     if (searchParams.get('tab') === 'builder' || searchParams.get('match')) return 'builder';

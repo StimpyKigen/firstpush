@@ -36,15 +36,16 @@ import {
   isHighlightsEligible,
   getDeviceLocalDateString,
 } from '../lib/competitionPriority';
+import { useHistoryPageState } from '../lib/navigationHistory';
 
 export default function FreeMatches() {
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState<FilterScopeTab>('highlights');
-  const [selectedDate, setSelectedDate] = useState<string>('all');
-  const [searchQuery, setSearchQuery] = useState('');
+  const [activeTab, setActiveTab] = useHistoryPageState<FilterScopeTab>('free_activeTab', 'highlights');
+  const [selectedDate, setSelectedDate] = useHistoryPageState<string>('free_selectedDate', 'all');
+  const [searchQuery, setSearchQuery] = useHistoryPageState<string>('free_searchQuery', '');
 
-  // League directory filter
-  const [leagueFilter, setLeagueFilter] = useState<string>(() => {
+  // League directory filter preserved per navigation history entry + localStorage fallback
+  const [leagueFilter, setLeagueFilter] = useHistoryPageState<string>('free_leagueFilter', () => {
     try {
       const val = localStorage.getItem('mshindi_freematch_league_filter') || 'all';
       if (val !== 'all' && !SPORTSCORE_COUNTRY_DIRECTORY_CONFIG.some((entry) => entry.id === val)) {
@@ -56,7 +57,7 @@ export default function FreeMatches() {
     }
   });
 
-  const [selectedSubLeague, setSelectedSubLeague] = useState<string>('all');
+  const [selectedSubLeague, setSelectedSubLeague] = useHistoryPageState<string>('free_selectedSubLeague', 'all');
 
   const handleLeagueFilterChange = (val: string, subLeague: string = 'all') => {
     setLeagueFilter(val);

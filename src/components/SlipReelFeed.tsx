@@ -3,6 +3,8 @@ import { motion, AnimatePresence } from 'motion/react';
 import { ChevronUp, ChevronDown, Layers, X, Bookmark } from 'lucide-react';
 import SlipReelCard from './SlipReelCard';
 import type { BetSlipPost } from '../lib/betSlipStore';
+import { useBackToClose } from '../lib/useBackToClose';
+import { useHistoryPageState } from '../lib/navigationHistory';
 
 interface SlipReelFeedProps {
   posts: BetSlipPost[];
@@ -12,7 +14,8 @@ interface SlipReelFeedProps {
 }
 
 export default function SlipReelFeed({ posts, onClose, initialFilter = 'all', isLoading = false }: SlipReelFeedProps) {
-  const [filter, setFilter] = useState<'all' | 'saved'>(initialFilter);
+  useBackToClose(true, onClose);
+  const [filter, setFilter] = useHistoryPageState<'all' | 'saved'>('slipreel_filter', initialFilter);
 
   const reelPosts = useMemo(() => {
     const list = posts.filter((p) => p.builtSlip && (filter === 'all' || p.savedByMe));
@@ -35,8 +38,8 @@ export default function SlipReelFeed({ posts, onClose, initialFilter = 'all', is
   );
 
   const scrollRef = useRef<HTMLDivElement>(null);
-  const [activeIndex, setActiveIndex] = useState(0);
-  const [prevIndex, setPrevIndex] = useState(0);
+  const [activeIndex, setActiveIndex] = useHistoryPageState<number>('slipreel_activeIndex', 0);
+  const [prevIndex, setPrevIndex] = useState(activeIndex);
   const [showSwipeHint, setShowSwipeHint] = useState(true);
 
   useEffect(() => {

@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { Calendar, Search, X, Check, ChevronDown, CheckCircle2, ChevronRight } from 'lucide-react';
 import type { SportScoreDirectoryRow } from '../lib/leagueDirectory';
+import { useBackToClose } from '../lib/useBackToClose';
 
 export type FilterScopeTab = 'highlights' | 'live' | 'upcoming';
 
@@ -75,6 +76,10 @@ export default function MatchFiltersToolbar({
   const [isDateDropdownOpen, setIsDateDropdownOpen] = useState(false);
   const [isLeagueDropdownOpen, setIsLeagueDropdownOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+
+  // Register open dropdowns on the centralized LIFO Back stack so mobile Back closes the dropdown first
+  useBackToClose(isDateDropdownOpen, () => setIsDateDropdownOpen(false));
+  useBackToClose(isLeagueDropdownOpen, () => setIsLeagueDropdownOpen(false));
 
   const dateDropdownRef = useRef<HTMLDivElement>(null);
   const leagueDropdownRef = useRef<HTMLDivElement>(null);

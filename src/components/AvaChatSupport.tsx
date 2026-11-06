@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { X, RefreshCw } from 'lucide-react';
+import { useBackToClose } from '../lib/useBackToClose';
 
 interface ChatMessage {
   id: string;
@@ -28,6 +29,7 @@ function AvaLogo({ className = "w-6 h-6" }: { className?: string }) {
 export default function AvaChatSupport() {
   const location = useLocation();
   const [isOpen, setIsOpen] = useState(false);
+  useBackToClose(isOpen, () => setIsOpen(false));
   const [messages, setMessages] = useState<ChatMessage[]>(() => [
     {
       id: 'welcome-1',

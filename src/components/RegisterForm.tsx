@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { Smartphone, Lock, User, AlertCircle, CheckCircle2, ArrowRight, Eye, EyeOff, Gift } from 'lucide-react';
 import { useAuth, isValidPhone, isValidUsername, isValidPin } from '../lib/authStore';
 import { useWallet } from '../lib/store';
 import { getRandomGlyphAvatar } from '../lib/avatarCatalog';
 import { saveUserProfileToFirestore } from '../lib/firebasePhoneAuth';
 import { validateUsername } from '../lib/contentModeration';
+import { executeCentralizedBack } from '../lib/navigationHistory';
 
 interface RegisterFormProps {
   onSwitchToLogin?: () => void;
@@ -13,6 +14,7 @@ interface RegisterFormProps {
 
 export const RegisterForm: React.FC<RegisterFormProps> = ({ onSwitchToLogin: _onSwitchToLogin }) => {
   const navigate = useNavigate();
+  const location = useLocation();
   const signUp = useAuth((s) => s.signUp);
   const isPhoneRegistered = useAuth((s) => s.isPhoneRegistered);
   const isUsernameTaken = useAuth((s) => s.isUsernameTaken);
@@ -98,7 +100,7 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onSwitchToLogin: _on
 
     setSuccess('Account created! Welcome to MshindiRoom.');
     setTimeout(() => {
-      navigate('/');
+      executeCentralizedBack(navigate, location, '/');
     }, 900);
   };
 

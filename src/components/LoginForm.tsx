@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { Smartphone, Lock, AlertCircle, CheckCircle2, ArrowRight, Eye, EyeOff, Check } from 'lucide-react';
 import { useAuth, isValidPhone, normalizePhone } from '../lib/authStore';
 import { saveUserProfileToFirestore } from '../lib/firebasePhoneAuth';
+import { executeCentralizedBack } from '../lib/navigationHistory';
 
 interface LoginFormProps {
   onSwitchToRegister?: () => void;
@@ -10,6 +11,7 @@ interface LoginFormProps {
 
 export const LoginForm: React.FC<LoginFormProps> = ({ onSwitchToRegister: _onSwitchToRegister }) => {
   const navigate = useNavigate();
+  const location = useLocation();
   const logIn = useAuth((s) => s.logIn);
   const isPhoneRegistered = useAuth((s) => s.isPhoneRegistered);
 
@@ -58,7 +60,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSwitchToRegister: _onSwi
     setSuccess('Signed in successfully! Redirecting...');
     saveUserProfileToFirestore(phone, 'Punter');
     setTimeout(() => {
-      navigate('/');
+      executeCentralizedBack(navigate, location, '/');
     }, 800);
   };
 

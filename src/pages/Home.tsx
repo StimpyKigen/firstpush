@@ -32,6 +32,9 @@ import FixtureSportCard from '../components/FixtureSportCard';
 import QuickBetBuilderModal, { type MatchForBuilder } from '../components/QuickBetBuilderModal';
 import { useBetSlipStore } from '../lib/betSlipStore';
 import { showToast } from '../lib/notificationStore';
+import { useHistoryPageState } from '../lib/navigationHistory';
+
+let hasHomeCarouselInitiallyLoaded = false;
 
 /**
  * Extracts standard 11-character YouTube video ID from various URL formats
@@ -177,13 +180,18 @@ export default function Home() {
     toggleHomepagePostLike(videoId, currentUser?.phone || 'visitor').catch(() => {});
   };
 
-  // Initial load state: only show skeleton loader while fetching carousels on mount.
-  // Once the carousels start showing, hasInitiallyLoaded turns true permanently
-  // so that NO skeleton loader ever shows again during slide transitions or auto-rotation.
-  const [hasInitiallyLoaded, setHasInitiallyLoaded] = useState(false);
+  // Initial load state: only show skeleton loader while fetching carousels on first mount.
+  // Once the carousels start showing, hasInitiallyLoaded turns true permanently across the session
+  // so that NO skeleton loader ever shows again during slide transitions, auto-rotation, or Back navigation.
+  const [hasInitiallyLoaded, setHasInitiallyLoaded] = useState(
+    () => hasHomeCarouselInitiallyLoaded || publishedPhotos.length > 0
+  );
 
   useEffect(() => {
-    if (hasInitiallyLoaded) return;
+    if (hasInitiallyLoaded) {
+      hasHomeCarouselInitiallyLoaded = true;
+      return;
+    }
 
     if (publishedPhotos.length > 0) {
       // Preload all active photos immediately in parallel
@@ -196,24 +204,27 @@ export default function Home() {
       const firstImage = publishedPhotos[0]?.imageUrl;
       if (firstImage) {
         preloadCarouselImage(firstImage, 'high').finally(() => {
+          hasHomeCarouselInitiallyLoaded = true;
           setHasInitiallyLoaded(true);
         });
       } else {
+        hasHomeCarouselInitiallyLoaded = true;
         setHasInitiallyLoaded(true);
       }
     } else {
       const timer = setTimeout(() => {
+        hasHomeCarouselInitiallyLoaded = true;
         setHasInitiallyLoaded(true);
       }, 600);
       return () => clearTimeout(timer);
     }
   }, [publishedPhotos, hasInitiallyLoaded]);
 
-  // Active Carousel Slide Index & 1-Second Smooth Fade State
-  const [activeCarouselIndex, setActiveCarouselIndex] = useState(0);
+  // Active Carousel Slide Index & 1-Second Smooth Fade State — preserved per history entry
+  const [activeCarouselIndex, setActiveCarouselIndex] = useHistoryPageState<number>('home_carouselIdx', 0);
   const [isCarouselFading, setIsCarouselFading] = useState(false);
   const isTransitioningRef = useRef(false);
-  const activeIndexRef = useRef(0);
+  const activeIndexRef = useRef(activeCarouselIndex);
 
   useEffect(() => {
     activeIndexRef.current = activeCarouselIndex;
@@ -892,7 +903,10 @@ export default function Home() {
 
             {/* MOBILE VIEW: Compact Sideward Scroll with Smooth Snap & Heart button */}
             <div className="block md:hidden">
-              <div className="flex overflow-x-auto snap-x snap-mandatory gap-3 pb-4 px-4 sm:px-0 -mx-4 sm:mx-0 no-scrollbar">
+              <div
+                data-scroll-restore-id="home-mobile-videos"
+                className="flex overflow-x-auto snap-x snap-mandatory gap-3 pb-4 px-4 sm:px-0 -mx-4 sm:mx-0 no-scrollbar"
+              >
                 {publishedVideos.map((video) => {
                   const videoId = extractYouTubeId(video.embedUrl) || extractYouTubeId(video.youtubeUrl);
                   const isPlaying = activeVideoId === video.id;

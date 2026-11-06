@@ -11,6 +11,7 @@ import {
   type SportScoreMatchDetail,
   type SportScoreStandings
 } from '../lib/sportscoreService';
+import { useHistoryPageState } from '../lib/navigationHistory';
 
 interface SportScoreMatchCenterProps {
   match: FreeMatch;
@@ -19,7 +20,7 @@ interface SportScoreMatchCenterProps {
 type TabType = 'lineups' | 'timeline' | 'details' | 'standings' | 'tracker';
 
 export default function SportScoreMatchCenter({ match }: SportScoreMatchCenterProps) {
-  const [activeTab, setActiveTab] = useState<TabType>('lineups');
+  const [activeTab, setActiveTab] = useHistoryPageState<TabType>(`matchcenter_tab_${match.id}`, 'lineups');
   const [detail, setDetail] = useState<SportScoreMatchDetail | null>(null);
   const [standings, setStandings] = useState<SportScoreStandings | null>(null);
   const [isLoadingDetail, setIsLoadingDetail] = useState(true);

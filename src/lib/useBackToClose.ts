@@ -1,34 +1,48 @@
 import { useEffect, useRef } from 'react';
+import {
+  pushOverlayToBackStack,
+  updateOverlayCloseCallback,
+  removeOverlayFromBackStack,
+} from './navigationHistory';
+
+let overlayCounter = 0;
 
 /**
- * Hook to ensure pressing the hardware or browser Back button closes
- * an open overlay or modal first instead of navigating the user away.
+ * Intercepts browser/hardware Back button when a modal, drawer, reel, or overlay is open
+ * so pressing Back closes ONLY the topmost active overlay instead of navigating away
+ * or corrupting React Router's `window.history.state.idx`.
  */
 export function useBackToClose(isOpen: boolean, onClose?: () => void) {
   const onCloseRef = useRef(onClose);
   onCloseRef.current = onClose;
-  const isPoppingRef = useRef(false);
+
+  const overlayIdRef = useRef<string | null>(null);
+  if (!overlayIdRef.current) {
+    overlayCounter += 1;
+    overlayIdRef.current = `mshindi-overlay-${overlayCounter}`;
+  }
 
   useEffect(() => {
-    if (!isOpen || !onCloseRef.current || typeof window === 'undefined') return;
+    const id = overlayIdRef.current!;
+    if (!isOpen || !onCloseRef.current) {
+      return;
+    }
 
-    const stateId = `modal-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
-    window.history.pushState({ modalId: stateId }, '');
-
-    const handlePopState = () => {
-      isPoppingRef.current = true;
-      onCloseRef.current();
-    };
-
-    window.addEventListener('popstate', handlePopState);
+    pushOverlayToBackStack(id, () => {
+      onCloseRef.current?.();
+    });
 
     return () => {
-      window.removeEventListener('popstate', handlePopState);
-      // If modal was closed from UI rather than popstate, pop the history state
-      if (!isPoppingRef.current && window.history.state?.modalId === stateId) {
-        window.history.back();
-      }
-      isPoppingRef.current = false;
+      removeOverlayFromBackStack(id);
     };
   }, [isOpen]);
+
+  useEffect(() => {
+    const id = overlayIdRef.current!;
+    if (isOpen && onClose) {
+      updateOverlayCloseCallback(id, () => {
+        onCloseRef.current?.();
+      });
+    }
+  }, [isOpen, onClose]);
 }

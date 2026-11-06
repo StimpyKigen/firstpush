@@ -144,7 +144,7 @@ export default function TermsOfService() {
         {/* Footer Link */}
         <div className="border-t border-line pt-6 flex justify-between items-center text-xs text-cream-dim">
           <Link to="/privacy" className="text-gold hover:underline font-semibold">Read Privacy Policy &rarr;</Link>
-          <Link to="/" className="text-cream-dim hover:text-cream">&larr; Back to Home</Link>
+          <BackNavButton fallbackUrl="/" label="Back" variant="minimal" />
         </div>
       </motion.div>
     </div>

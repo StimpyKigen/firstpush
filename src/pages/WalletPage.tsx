@@ -6,6 +6,7 @@ import { useCurrentUser } from '../lib/authStore';
 import { RECEIVER_MPESA_NUMBER, RECEIVER_NAME, isValidMpesaCode, normalizeCode } from '../lib/mpesa';
 import InviteModal from '../components/InviteModal';
 import BackNavButton from '../components/BackNavButton';
+import { useHistoryPageState } from '../lib/navigationHistory';
 
 const presets = [50, 100, 250, 500, 1000];
 
@@ -32,15 +33,15 @@ export default function WalletPage() {
   const topUpWithCode = useWallet((s) => s.topUpWithCode);
   const currentUser = useCurrentUser();
 
-  const [activeTab, setActiveTab] = useState<'mpesa' | 'tokens'>('mpesa');
-  const [amount, setAmount] = useState(100);
+  const [activeTab, setActiveTab] = useHistoryPageState<'mpesa' | 'tokens'>('wallet_activeTab', 'mpesa');
+  const [amount, setAmount] = useHistoryPageState<number>('wallet_amount', 100);
   const [code, setCode] = useState('');
   const [checking, setChecking] = useState(false);
   const [error, setError] = useState('');
   const [copied, setCopied] = useState(false);
   const [txs, setTxs] = useState<Tx[]>(seedTx);
   const [done, setDone] = useState(false);
-  const [stage, setStage] = useState<'send' | 'verify'>('send');
+  const [stage, setStage] = useHistoryPageState<'send' | 'verify'>('wallet_stage', 'send');
   const [inviteModalOpen, setInviteModalOpen] = useState(false);
 
   function copyNumber() {
