@@ -195,6 +195,22 @@ export const COMPETITION_BANNERS: Record<string, CompetitionBannerConfig> = {
     dividerColor: 'border-[#A7F3D0]',
     shadow: 'shadow-[0_2px_12px_rgba(5,150,105,0.09)] hover:shadow-[0_4px_18px_rgba(5,150,105,0.16)]',
   },
+  scottish_premiership: {
+    id: 'scottish_premiership',
+    name: 'Scottish Premiership',
+    bannerUrl: '/banners/scottish-premiership.jpg',
+    overlayOpacity: 0.32,
+    objectPosition: 'object-[center_50%]',
+    gradientOverlay: 'from-transparent via-[#EFF6FF]/20 to-[#FFFFF0]/35',
+    cardBg: 'bg-gradient-to-b from-[#E8F1FE] via-[#F3F8FF] to-[#FFFFF0]',
+    baseTint: 'bg-gradient-to-b from-[#002868]/10 via-[#F59E0B]/4 to-transparent',
+    borderColor: 'border-[#60A5FA]/70',
+    borderHoverColor: 'hover:border-[#002868]',
+    oddsBorderColor: 'border-[#60A5FA]/50 hover:border-[#002868]',
+    consensusTrackBg: 'bg-[#DBEAFE]',
+    dividerColor: 'border-[#BFDBFE]',
+    shadow: 'shadow-[0_2px_12px_rgba(0,40,104,0.09)] hover:shadow-[0_4px_18px_rgba(0,40,104,0.16)]',
+  },
 };
 
 /**
@@ -222,6 +238,7 @@ const BANNER_COUNTRY_NAMES: Record<string, string[]> = {
   premier_league: ['england', 'english', 'united kingdom', 'uk', 'great britain', 'gb eng'],
   fa_cup: ['england', 'english', 'united kingdom', 'uk', 'great britain', 'gb eng'],
   efl_cup: ['england', 'english', 'united kingdom', 'uk', 'great britain', 'gb eng'],
+  scottish_premiership: ['scotland', 'scottish', 'gb sct', 'united kingdom', 'uk', 'great britain'],
   la_liga: ['spain', 'spanish', 'espana'],
   ligue_1: ['france', 'french'],
   bundesliga: ['germany', 'german', 'deutschland'],
@@ -253,6 +270,16 @@ const BANNER_LEAGUE_NAMES: Record<string, string[]> = {
     'english league cup',
     'football league cup',
   ],
+  scottish_premiership: [
+    'scottish premiership',
+    'premiership',
+    'spfl premiership',
+    'scotland premiership',
+    'cinch premiership',
+    'william hill premiership',
+    'scottish premier league',
+    'spfl',
+  ],
   la_liga: ['la liga', 'laliga', 'spanish la liga', 'primera division', 'la liga ea sports', 'laliga ea sports'],
   ligue_1: ['ligue 1', 'french ligue 1', 'france ligue 1', 'ligue 1 uber eats', 'league 1'],
   bundesliga: ['bundesliga', 'german bundesliga', '1 bundesliga'],
@@ -280,6 +307,14 @@ const BANNER_SELF_QUALIFIED: Record<string, string[]> = {
     'the carabao cup',
     'english league cup',
   ],
+  scottish_premiership: [
+    'scottish premiership',
+    'spfl premiership',
+    'scotland premiership',
+    'cinch premiership',
+    'william hill premiership',
+    'scottish premier league',
+  ],
   la_liga: ['spanish la liga', 'la liga ea sports', 'laliga ea sports'],
   ligue_1: ['french ligue 1', 'france ligue 1'],
   bundesliga: ['german bundesliga'],
@@ -303,6 +338,8 @@ const BANNER_BY_ID: Record<string, keyof typeof COMPETITION_BANNERS> = {
   eng_efl_cup: 'efl_cup',
   efl_cup: 'efl_cup',
   eng_league_cup: 'efl_cup',
+  sco_premiership: 'scottish_premiership',
+  scottish_premiership: 'scottish_premiership',
 };
 
 /** Countries / scopes that mean "no specific domestic country" (continental or unknown). */
