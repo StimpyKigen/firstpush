@@ -771,7 +771,7 @@ export default function Home() {
           ========================================================================= */}
       {!hasInitiallyLoaded ? (
         <section className="theme-protected w-full bg-[#02241b] text-white">
-          <div className="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8 py-4 sm:py-16 relative overflow-hidden">
+          <div className="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8 pt-4 pb-4 sm:pt-12 sm:pb-16 relative overflow-hidden">
             <div className="text-left mb-3 sm:mb-10 relative z-10 px-1 sm:px-0">
               <span className="text-white font-bold text-xs uppercase tracking-wider block mb-1">
                 Weekly Editorial
@@ -786,7 +786,7 @@ export default function Home() {
       ) : publishedPhotos.length > 0 && currentPhoto ? (
         <section className="theme-protected w-full bg-[#02241b] text-white">
           <div
-            className="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8 py-4 sm:py-16 relative overflow-hidden"
+            className="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8 pt-4 pb-4 sm:pt-12 sm:pb-16 relative overflow-hidden"
             onTouchStart={handleCarouselTouchStart}
             onTouchMove={handleCarouselTouchMove}
             onTouchEnd={handleCarouselTouchEnd}
@@ -973,7 +973,7 @@ export default function Home() {
           - Desktop: Original full-size FixtureSportCard spanning from absolute left to absolute right across desktop
           - Mobile: Compact card sizes, 2 side by side on row 1, 2 on row 2, 1 on row 3 (grid-cols-2)
           ========================================================================= */}
-      <section className="w-full bg-[#FFFFF0] text-slate-900 py-6 sm:py-14 border-b border-amber-900/10">
+      <section className="w-full bg-[#FFFFF0] text-slate-900 pt-6 pb-6 sm:pt-[42px] sm:pb-14 border-b border-amber-900/10">
         <div className="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8 mb-4 sm:mb-8">
           {/* Section Heading in line vertically with other headings */}
           <div className="text-left px-1 sm:px-0">
@@ -1213,7 +1213,7 @@ export default function Home() {
           - Minimalistic heart icon on bottom right of video cards
           ========================================================================= */}
       <section
-        className={`theme-protected w-full bg-[#D4AF37] text-slate-900 pt-6 sm:pt-16 ${
+        className={`theme-protected w-full bg-[#D4AF37] text-slate-900 pt-6 sm:pt-12 ${
           currentUser
             ? 'pb-[calc(5.5rem+env(safe-area-inset-bottom,0px))] sm:pb-16'
             : 'pb-6 sm:pb-16'
@@ -1233,7 +1233,7 @@ export default function Home() {
         {publishedVideos.length === 0 ? (
           <div className="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8">
             <div className="bg-white/90 border border-slate-200 rounded-2xl p-8 text-center text-slate-600 text-xs max-w-md mx-auto shadow-2xs">
-              No highlights or media embeds published yet. Admin can publish videos and embeds via the Admin Console.
+              No Highlights and Media Published
             </div>
           </div>
         ) : (
