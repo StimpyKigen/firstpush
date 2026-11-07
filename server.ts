@@ -29,6 +29,7 @@ import { extractPdfTextServer } from './src/lib/serverPdfParser';
 import {
   getSavedHomepageFeedAsync,
   saveHomepageFeedAsync,
+  cleanupExpiredCarouselPostsAsync,
   savePermanentMediaAsset,
   getPermanentMediaAsset,
 } from './src/lib/serverHomepageFeed';
@@ -188,20 +189,74 @@ async function startServer() {
     }
   });
 
-  // Homepage Editorial Feed APIs (Carousels & Video/Custom Embeds)
+  // Homepage Editorial Feed APIs (Carousels & Video/Custom Embeds + 24h Story Cleanup)
   app.get('/api/homepage-feed', async (req: Request, res: Response) => {
+    res.setHeader('Cache-Control', 'no-store, no-cache, max-age=0, must-revalidate');
+    if (String(req.query.action || '').toLowerCase() === 'cleanup') {
+      const cronSecret = process.env.CRON_SECRET;
+      const authHeader = String(req.headers.authorization || '');
+      const authorized =
+        (cronSecret && authHeader === `Bearer ${cronSecret}`) ||
+        verifyAdminRequest(req.headers as any, {}).authorized;
+      if (!authorized) {
+        return res.status(403).json({
+          success: false,
+          error: 'Forbidden: Valid CRON_SECRET or administrator credentials required for cleanup.',
+        });
+      }
+      try {
+        const result = await cleanupExpiredCarouselPostsAsync();
+        return res.json({
+          success: true,
+          action: 'cleanup',
+          serverTime: result.serverTime,
+          removedIds: result.removedIds,
+          purgedMediaUrls: result.purgedMediaUrls,
+          remainingCarouselCount: result.remainingCarouselCount,
+          firestoreUpdated: result.firestoreUpdated,
+        });
+      } catch (err: any) {
+        return res.status(500).json({ success: false, error: err?.message || 'Cleanup failed' });
+      }
+    }
+
     try {
       const feed = await getSavedHomepageFeedAsync();
-      res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
-      res.json({ success: true, feed });
+      res.json({ success: true, serverTime: new Date().toISOString(), feed });
     } catch (err: any) {
       res.status(500).json({ success: false, error: err?.message || 'Failed to get homepage feed' });
     }
   });
 
   app.post('/api/homepage-feed', async (req: Request, res: Response) => {
+    res.setHeader('Cache-Control', 'no-store, no-cache, max-age=0, must-revalidate');
     try {
-      const feed = req.body;
+      const feed = req.body || {};
+      const action = String(req.query.action || feed.action || '').toLowerCase();
+      if (action === 'cleanup') {
+        const cronSecret = process.env.CRON_SECRET;
+        const authHeader = String(req.headers.authorization || '');
+        const authorized =
+          (cronSecret && authHeader === `Bearer ${cronSecret}`) ||
+          verifyAdminRequest(req.headers as any, feed).authorized;
+        if (!authorized) {
+          return res.status(403).json({
+            success: false,
+            error: 'Forbidden: Valid CRON_SECRET or administrator credentials required for cleanup.',
+          });
+        }
+        const result = await cleanupExpiredCarouselPostsAsync();
+        return res.json({
+          success: true,
+          action: 'cleanup',
+          serverTime: result.serverTime,
+          removedIds: result.removedIds,
+          purgedMediaUrls: result.purgedMediaUrls,
+          remainingCarouselCount: result.remainingCarouselCount,
+          firestoreUpdated: result.firestoreUpdated,
+        });
+      }
+
       const authCheck = verifyAdminRequest(req.headers as any, feed);
       if (!authCheck.authorized) {
         return res.status(403).json({
@@ -216,6 +271,7 @@ async function startServer() {
         });
         res.json({
           success: true,
+          serverTime: new Date().toISOString(),
           feed: result.feed,
           firestoreSaved: result.firestoreSaved,
           diskSaved: result.diskSaved,
@@ -962,6 +1018,15 @@ Sitemap: https://mshindi.co.ke/sitemap.xml
 
   // Central live telemetry coordinator: polls SportScore live endpoint only when clients are connected
   startLiveTelemetryCoordinator(10_000);
+
+  // Scheduled server-side 24-hour carousel story cleanup (runs on startup + every 10 minutes)
+  void cleanupExpiredCarouselPostsAsync().catch(() => {});
+  const carouselCleanupTimer = setInterval(() => {
+    void cleanupExpiredCarouselPostsAsync().catch(() => {});
+  }, 10 * 60 * 1000);
+  if (typeof carouselCleanupTimer.unref === 'function') {
+    carouselCleanupTimer.unref();
+  }
 
   app.listen(PORT, '0.0.0.0', () => {
     console.log(`Mshindi Projo Server running on http://0.0.0.0:${PORT}`);

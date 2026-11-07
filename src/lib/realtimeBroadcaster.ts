@@ -20,13 +20,15 @@ export type RealtimeEventType =
   | 'incident'
   | 'fixture_upsert'
   | 'odds_update'
+  | 'carousel_update'
   | 'heartbeat'
   | 'ping'
   | 'SCORE_UPDATE'
   | 'STATUS_CHANGE'
   | 'INCIDENT'
   | 'FIXTURE_UPSERT'
-  | 'ODDS_UPDATE';
+  | 'ODDS_UPDATE'
+  | 'CAROUSEL_UPDATE';
 
 export interface RealtimeEventPayload {
   id: number;
@@ -538,6 +540,28 @@ class RealtimeBroadcaster {
       { fixtureId: delta.fixtureId, providerId: delta.providerId, matchSlug: delta.matchSlug }
     );
     return { ...evt, type: 'FIXTURE_UPSERT' };
+  }
+
+  /**
+   * Convenience helper to broadcast an authoritative homepage carousel feed update
+   * (new story published, story edited/replaced, or expired story purged) over the existing SSE stream.
+   */
+  public broadcastCarouselUpdate(payload: {
+    serverTime: string;
+    updatedAt?: string;
+    reason?: 'published' | 'updated' | 'deleted' | 'expired_cleanup';
+    feed?: any;
+  }): RealtimeEventPayload {
+    return this.emit(
+      'carousel_update',
+      {
+        serverTime: payload.serverTime,
+        updatedAt: payload.updatedAt || payload.serverTime,
+        reason: payload.reason || 'updated',
+        feed: payload.feed,
+      },
+      { fixtureId: `carousel-${payload.updatedAt || payload.serverTime}` }
+    );
   }
 
   private writeEvent(res: any, payload: RealtimeEventPayload): void {

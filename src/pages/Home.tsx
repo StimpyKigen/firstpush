@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useSyncExternalStore, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useSyncExternalStore, useRef, useMemo, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { Play, Clock, MessageSquare, Heart } from 'lucide-react';
 import SeoHead from '../components/SeoHead';
@@ -7,6 +7,11 @@ import {
   getHomepageFeedSnapshot,
   refreshHomepageFeed,
   toggleHomepagePostLike,
+  getActiveCarouselItems,
+  getAuthoritativeNowMs,
+  getCarouselPostRemainingMs,
+  formatCarouselCountdown,
+  type HomepageCarouselItem,
   type HomepageVideoItem,
 } from '../lib/homepageFeedStore';
 import {
@@ -20,19 +25,34 @@ import {
   sortHighlightsComparator,
   formatKickoffDateTime24h,
 } from '../lib/competitionPriority';
-import { normalizeMatchStatus } from '../lib/matchStatus';
 import { useCurrentUser } from '../lib/authStore';
 import { useAuthWallStore } from '../lib/authWallStore';
 import { EditorialCarouselSkeleton } from '../components/skeleton';
 import {
-  useCarouselCardLoader,
+  CAROUSEL_BATCH_SIZE,
+  loadCarouselInBatchesOfThree,
+  preloadCarouselStoryItem,
   preloadCarouselImage,
 } from '../lib/carouselImagePreloader';
+import {
+  getReadyCarouselRenderUrl,
+  isCarouselItemImageReady,
+  pruneCarouselImageCache,
+} from '../lib/carouselImageCache';
 import FixtureSportCard from '../components/FixtureSportCard';
 import QuickBetBuilderModal, { type MatchForBuilder } from '../components/QuickBetBuilderModal';
 import { useBetSlipStore } from '../lib/betSlipStore';
 import { showToast } from '../lib/notificationStore';
 import { useHistoryPageState } from '../lib/navigationHistory';
+
+/** Authoritative 10-second automatic transition interval per slide (10,000 ms). */
+export const CAROUSEL_AUTO_ADVANCE_MS = 10_000;
+const CAROUSEL_FADE_HALF_MS = 400;
+
+interface CommittedCarouselSlide {
+  item: HomepageCarouselItem;
+  renderUrl: string;
+}
 
 let hasHomeCarouselInitiallyLoaded = false;
 
@@ -56,23 +76,47 @@ export default function Home() {
   const currentUser = useCurrentUser();
   const openAuthWall = useAuthWallStore((s) => s.openAuthWall);
 
+  // Server-authoritative clock state for accurate 24-hour story countdowns & immediate expiration
+  const [authoritativeNowMs, setAuthoritativeNowMs] = useState<number>(() => getAuthoritativeNowMs());
+
   const publishedPhotos = useMemo(() => {
-    return feed.carouselItems
-      .filter(
-        (i) =>
-          i.published &&
-          i.isActive !== false &&
-          i.status !== 'archived' &&
-          Boolean(i.imageUrl && i.imageUrl.trim()) &&
-          !['carousel-featured-reference', 'slide-1', 'slide-2', 'slide-3'].includes(i.id)
-      )
-      .sort((a, b) => {
-        const orderA = typeof a.order === 'number' ? a.order : 9999;
-        const orderB = typeof b.order === 'number' ? b.order : 9999;
-        if (orderA !== orderB) return orderA - orderB;
-        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-      });
-  }, [feed.carouselItems]);
+    return getActiveCarouselItems(feed, authoritativeNowMs);
+  }, [feed, authoritativeNowMs]);
+
+  // Tick authoritative clock every second when carousel posts exist (paused while tab/PWA is hidden)
+  useEffect(() => {
+    setAuthoritativeNowMs(getAuthoritativeNowMs());
+    if (feed.carouselItems.length === 0) return;
+
+    let tickTimer: ReturnType<typeof setInterval> | null = null;
+    const startTick = () => {
+      if (tickTimer) clearInterval(tickTimer);
+      tickTimer = setInterval(() => {
+        if (typeof document === 'undefined' || document.visibilityState === 'visible') {
+          setAuthoritativeNowMs(getAuthoritativeNowMs());
+        }
+      }, 1000);
+    };
+
+    const onVisibility = () => {
+      if (document.visibilityState === 'visible') {
+        setAuthoritativeNowMs(getAuthoritativeNowMs());
+      }
+    };
+
+    startTick();
+    if (typeof document !== 'undefined') {
+      document.addEventListener('visibilitychange', onVisibility);
+    }
+
+    return () => {
+      if (tickTimer) clearInterval(tickTimer);
+      if (typeof document !== 'undefined') {
+        document.removeEventListener('visibilitychange', onVisibility);
+      }
+    };
+  }, [feed.carouselItems.length]);
+
   const publishedVideos = useMemo(() => {
     return feed.videoItems
       .filter(
@@ -87,9 +131,32 @@ export default function Home() {
       .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
   }, [feed.videoItems]);
 
+  // Track whether initial feed lookup has settled so we never dismiss the initial skeleton prematurely
+  const [isInitialFeedResolved, setIsInitialFeedResolved] = useState<boolean>(
+    () => hasHomeCarouselInitiallyLoaded || publishedPhotos.length > 0
+  );
+
   // Proactively sync homepage feed on mount across all visitors, devices, and versions
   useEffect(() => {
-    refreshHomepageFeed().catch(() => {});
+    let mounted = true;
+    const safetyTimer = setTimeout(() => {
+      if (mounted) setIsInitialFeedResolved(true);
+    }, 4500);
+
+    refreshHomepageFeed()
+      .catch(() => {})
+      .finally(() => {
+        clearTimeout(safetyTimer);
+        if (mounted) {
+          setAuthoritativeNowMs(getAuthoritativeNowMs());
+          setIsInitialFeedResolved(true);
+        }
+      });
+
+    return () => {
+      mounted = false;
+      clearTimeout(safetyTimer);
+    };
   }, []);
 
   // Subscribe to live Free Matches store for popular top fixtures
@@ -180,112 +247,327 @@ export default function Home() {
     toggleHomepagePostLike(videoId, currentUser?.phone || 'visitor').catch(() => {});
   };
 
-  // Initial load state: only show skeleton loader while fetching carousels on first mount.
-  // Once the carousels start showing, hasInitiallyLoaded turns true permanently across the session
-  // so that NO skeleton loader ever shows again during slide transitions, auto-rotation, or Back navigation.
-  const [hasInitiallyLoaded, setHasInitiallyLoaded] = useState(
-    () => hasHomeCarouselInitiallyLoaded || publishedPhotos.length > 0
-  );
-
-  useEffect(() => {
-    if (hasInitiallyLoaded) {
-      hasHomeCarouselInitiallyLoaded = true;
-      return;
-    }
-
-    if (publishedPhotos.length > 0) {
-      // Preload all active photos immediately in parallel
-      publishedPhotos.forEach((photo) => {
-        if (photo.imageUrl) {
-          preloadCarouselImage(photo.imageUrl, 'high');
-        }
-      });
-
-      const firstImage = publishedPhotos[0]?.imageUrl;
-      if (firstImage) {
-        preloadCarouselImage(firstImage, 'high').finally(() => {
-          hasHomeCarouselInitiallyLoaded = true;
-          setHasInitiallyLoaded(true);
-        });
-      } else {
-        hasHomeCarouselInitiallyLoaded = true;
-        setHasInitiallyLoaded(true);
-      }
-    } else {
-      const timer = setTimeout(() => {
-        hasHomeCarouselInitiallyLoaded = true;
-        setHasInitiallyLoaded(true);
-      }, 600);
-      return () => clearTimeout(timer);
-    }
-  }, [publishedPhotos, hasInitiallyLoaded]);
-
-  // Active Carousel Slide Index & 1-Second Smooth Fade State — preserved per history entry
+  // Active Carousel Slide Index — preserved per history entry
   const [activeCarouselIndex, setActiveCarouselIndex] = useHistoryPageState<number>('home_carouselIdx', 0);
+
+  // Initial load state: show EditorialCarouselSkeleton ONLY once on first load until the first batch
+  // of up to 3 active photographs (`CAROUSEL_BATCH_SIZE = 3`) is downloaded, decoded, and cached.
+  // Never show another full skeleton between subsequent batches or slide transitions.
+  const [hasInitiallyLoaded, setHasInitiallyLoaded] = useState<boolean>(() => {
+    if (!hasHomeCarouselInitiallyLoaded) return false;
+    if (publishedPhotos.length === 0) return true;
+    return publishedPhotos.some((item) => isCarouselItemImageReady(item));
+  });
+
+  // Atomic committed slide state: guarantees photograph and caption ALWAYS belong to the exact same post
+  // and transition together only after the target photograph has loaded and decoded.
+  const [displayedSlide, setDisplayedSlide] = useState<CommittedCarouselSlide | null>(() => {
+    if (publishedPhotos.length === 0) return null;
+    const safeIdx = activeCarouselIndex >= 0 && activeCarouselIndex < publishedPhotos.length ? activeCarouselIndex : 0;
+    const candidate = publishedPhotos[safeIdx] || publishedPhotos[0];
+    const readyUrl = candidate ? getReadyCarouselRenderUrl(candidate) : null;
+    if (candidate && readyUrl) {
+      return { item: candidate, renderUrl: readyUrl };
+    }
+    const fallbackReady = publishedPhotos.find((p) => getReadyCarouselRenderUrl(p) !== null);
+    if (fallbackReady) {
+      const fbUrl = getReadyCarouselRenderUrl(fallbackReady);
+      if (fbUrl) return { item: fallbackReady, renderUrl: fbUrl };
+    }
+    return null;
+  });
+
   const [isCarouselFading, setIsCarouselFading] = useState(false);
   const isTransitioningRef = useRef(false);
+  const transitionTokenRef = useRef(0);
   const activeIndexRef = useRef(activeCarouselIndex);
+  const publishedPhotosRef = useRef<HomepageCarouselItem[]>(publishedPhotos);
+  const displayedSlideRef = useRef<CommittedCarouselSlide | null>(displayedSlide);
+  const knownPostIdsRef = useRef<Set<string>>(new Set());
+  const hasSeededKnownIdsRef = useRef(false);
+
+  // Timer management refs for 10-second auto-advance (tab-switch & PWA-minimize aware, zero overlap)
+  const autoAdvanceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const slideStartedAtMsRef = useRef<number>(Date.now());
+  const accumulatedSlideMsRef = useRef<number>(0);
 
   useEffect(() => {
     activeIndexRef.current = activeCarouselIndex;
   }, [activeCarouselIndex]);
 
-  // Keep active index within valid bounds when feed updates dynamically
   useEffect(() => {
-    if (publishedPhotos.length > 0 && activeCarouselIndex >= publishedPhotos.length) {
-      setActiveCarouselIndex(0);
+    publishedPhotosRef.current = publishedPhotos;
+  }, [publishedPhotos]);
+
+  useEffect(() => {
+    displayedSlideRef.current = displayedSlide;
+  }, [displayedSlide]);
+
+  // Progressive 3-by-3 batch loading:
+  // 1. Downloads, decodes & caches first 3 images before removing initial EditorialCarouselSkeleton.
+  // 2. Continues downloading remaining images in background batches of 3 (`3..5`, `6..8`, ...).
+  // 3. Prunes expired/replaced image cache entries automatically.
+  const progressiveFeedSignature = useMemo(
+    () => publishedPhotos.map((p) => `${p.id}:${p.imageVersion || p.imageUrl}`).join('|'),
+    [publishedPhotos]
+  );
+  const isEmptyFeedConfirmed = isInitialFeedResolved && publishedPhotos.length === 0;
+
+  useEffect(() => {
+    if (publishedPhotos.length === 0) {
+      if (!isEmptyFeedConfirmed) {
+        return;
+      }
+      hasHomeCarouselInitiallyLoaded = true;
+      setHasInitiallyLoaded(true);
+      setDisplayedSlide(null);
+      void pruneCarouselImageCache([]);
+      return;
     }
-  }, [publishedPhotos.length, activeCarouselIndex]);
 
+    const abortController = new AbortController();
 
+    void loadCarouselInBatchesOfThree(publishedPhotos, {
+      signal: abortController.signal,
+      onInitialBatchReady: (firstBatchResults) => {
+        if (abortController.signal.aborted) return;
 
-  // Smooth slide change function: 500ms fade-out, swap slide, 500ms fade-in = 1 second smooth transition
-  const goToSlide = (nextIdx: number) => {
-    if (isTransitioningRef.current || nextIdx === activeIndexRef.current) return;
-    
-    // Pre-decode target image with high priority immediately before transition begins
-    const targetPhoto = publishedPhotos[nextIdx];
-    if (targetPhoto?.imageUrl) {
-      preloadCarouselImage(targetPhoto.imageUrl, 'high');
-    }
+        // Seed initial committed slide if none is displayed yet
+        if (!displayedSlideRef.current) {
+          const latestList = publishedPhotosRef.current;
+          const desiredIdx =
+            activeIndexRef.current >= 0 && activeIndexRef.current < latestList.length
+              ? activeIndexRef.current
+              : 0;
+          const chosenIdx = desiredIdx < firstBatchResults.length ? desiredIdx : 0;
+          const chosenItem = latestList[chosenIdx] || latestList[0];
+          if (chosenItem) {
+            const readyUrl =
+              getReadyCarouselRenderUrl(chosenItem) ||
+              firstBatchResults[chosenIdx]?.renderUrl ||
+              chosenItem.imageUrl;
+            const committed: CommittedCarouselSlide = { item: chosenItem, renderUrl: readyUrl };
+            displayedSlideRef.current = committed;
+            setDisplayedSlide(committed);
+            setActiveCarouselIndex(chosenIdx);
+            slideStartedAtMsRef.current = Date.now();
+            accumulatedSlideMsRef.current = 0;
+          }
+        }
 
-    isTransitioningRef.current = true;
-    setIsCarouselFading(true);
+        if (!hasSeededKnownIdsRef.current) {
+          knownPostIdsRef.current = new Set(publishedPhotosRef.current.map((p) => p.id));
+          hasSeededKnownIdsRef.current = true;
+        }
 
-    setTimeout(() => {
-      setActiveCarouselIndex(nextIdx);
-      setIsCarouselFading(false);
+        hasHomeCarouselInitiallyLoaded = true;
+        setHasInitiallyLoaded(true);
+      },
+    });
+
+    return () => {
+      abortController.abort();
+    };
+  }, [isEmptyFeedConfirmed, progressiveFeedSignature, setActiveCarouselIndex]);
+
+  /**
+   * Transitions to `targetIdx` ONLY once the target slide's photograph has finished loading & decoding.
+   * Retains the current photograph + caption while waiting so a new caption NEVER renders over an old photo.
+   */
+  const goToSlide = useCallback(
+    async (targetIdx: number, options?: { forceImmediateNewStory?: boolean }) => {
+      const list = publishedPhotosRef.current;
+      if (list.length === 0) return;
+
+      const normalizedIdx = ((targetIdx % list.length) + list.length) % list.length;
+      const targetPhoto = list[normalizedIdx];
+      if (!targetPhoto) return;
+
+      const currentCommitted = displayedSlideRef.current;
+      if (
+        !options?.forceImmediateNewStory &&
+        currentCommitted &&
+        currentCommitted.item.id === targetPhoto.id &&
+        currentCommitted.item.imageVersion === targetPhoto.imageVersion
+      ) {
+        return;
+      }
+
+      const requestToken = ++transitionTokenRef.current;
+
+      // Ensure target image is downloaded, cached in Cache Storage, and hardware-decoded BEFORE swapping
+      let resolvedRenderUrl = getReadyCarouselRenderUrl(targetPhoto);
+      if (!resolvedRenderUrl) {
+        const loadRes = await preloadCarouselStoryItem(targetPhoto, 'high');
+        if (requestToken !== transitionTokenRef.current) {
+          return; // Superseded by newer navigation or live push
+        }
+        if (!loadRes.ok && list.length > 1 && !options?.forceImmediateNewStory) {
+          // Gracefully skip broken image without blocking the carousel
+          const fallbackIdx = (normalizedIdx + 1) % list.length;
+          if (fallbackIdx !== normalizedIdx) {
+            const fallbackItem = list[fallbackIdx];
+            const fallbackReady = fallbackItem ? getReadyCarouselRenderUrl(fallbackItem) : null;
+            if (fallbackItem && fallbackReady) {
+              resolvedRenderUrl = fallbackReady;
+              return goToSlide(fallbackIdx);
+            }
+          }
+        }
+        resolvedRenderUrl = loadRes.renderUrl || targetPhoto.imageUrl;
+      }
+
+      // Re-verify target post is still unexpired in the latest active list
+      const latestList = publishedPhotosRef.current;
+      const latestMatchIdx = latestList.findIndex((p) => p.id === targetPhoto.id);
+      if (latestMatchIdx === -1) {
+        if (latestList.length > 0) {
+          void goToSlide(0, { forceImmediateNewStory: true });
+        }
+        return;
+      }
+      const freshestTarget = latestList[latestMatchIdx];
+
+      isTransitioningRef.current = true;
+      setIsCarouselFading(true);
+
       setTimeout(() => {
-        isTransitioningRef.current = false;
-      }, 500);
-    }, 500);
-  };
+        if (requestToken !== transitionTokenRef.current) {
+          setIsCarouselFading(false);
+          isTransitioningRef.current = false;
+          return;
+        }
+
+        const nextCommitted: CommittedCarouselSlide = {
+          item: freshestTarget,
+          renderUrl: resolvedRenderUrl || freshestTarget.imageUrl,
+        };
+        displayedSlideRef.current = nextCommitted;
+        setDisplayedSlide(nextCommitted);
+        setActiveCarouselIndex(latestMatchIdx);
+        setIsCarouselFading(false);
+
+        // Reset 10-second slide visibility window from the moment the new slide appears
+        slideStartedAtMsRef.current = Date.now();
+        accumulatedSlideMsRef.current = 0;
+
+        // Preload & decode the upcoming slide in advance
+        const upcoming = publishedPhotosRef.current[(latestMatchIdx + 1) % publishedPhotosRef.current.length];
+        if (upcoming) {
+          void preloadCarouselImage(upcoming.imageUrl, 'high', upcoming.imageVersion);
+        }
+
+        setTimeout(() => {
+          if (requestToken === transitionTokenRef.current) {
+            isTransitioningRef.current = false;
+          }
+        }, CAROUSEL_FADE_HALF_MS);
+      }, CAROUSEL_FADE_HALF_MS);
+    },
+    [setActiveCarouselIndex]
+  );
+
+  // Reconcile live updates:
+  // - New admin story published -> make Slide 0 immediately once decoded without reloading page
+  // - Caption edited on active story -> update caption atomically in place
+  // - Photo replaced on active story -> decode replacement image first, then swap atomically
+  // - Active story expired or deleted -> advance immediately to next active story
+  useEffect(() => {
+    if (!hasInitiallyLoaded) return;
+
+    if (publishedPhotos.length === 0) {
+      displayedSlideRef.current = null;
+      setDisplayedSlide(null);
+      knownPostIdsRef.current.clear();
+      return;
+    }
+
+    const topStory = publishedPhotos[0];
+    if (
+      hasSeededKnownIdsRef.current &&
+      topStory &&
+      !knownPostIdsRef.current.has(topStory.id)
+    ) {
+      knownPostIdsRef.current = new Set(publishedPhotos.map((p) => p.id));
+      void goToSlide(0, { forceImmediateNewStory: true });
+      return;
+    }
+    knownPostIdsRef.current = new Set(publishedPhotos.map((p) => p.id));
+
+    const current = displayedSlideRef.current;
+    if (!current) {
+      void goToSlide(0, { forceImmediateNewStory: true });
+      return;
+    }
+
+    const matchingIdx = publishedPhotos.findIndex((p) => p.id === current.item.id);
+    if (matchingIdx === -1) {
+      // Currently displayed story expired or was deleted: transition immediately
+      const fallbackIdx = Math.min(activeIndexRef.current, publishedPhotos.length - 1);
+      void goToSlide(Math.max(0, fallbackIdx), { forceImmediateNewStory: true });
+      return;
+    }
+
+    if (matchingIdx !== activeIndexRef.current) {
+      setActiveCarouselIndex(matchingIdx);
+    }
+
+    const updatedItem = publishedPhotos[matchingIdx];
+    if (updatedItem.imageVersion !== current.item.imageVersion || updatedItem.imageUrl !== current.item.imageUrl) {
+      // Admin replaced the photograph on the active slide: decode new photo before swapping
+      void preloadCarouselStoryItem(updatedItem, 'high').then((res) => {
+        if (displayedSlideRef.current?.item.id === updatedItem.id) {
+          const nextCommitted: CommittedCarouselSlide = {
+            item: updatedItem,
+            renderUrl: res.renderUrl || updatedItem.imageUrl,
+          };
+          displayedSlideRef.current = nextCommitted;
+          setDisplayedSlide(nextCommitted);
+          void pruneCarouselImageCache(publishedPhotosRef.current);
+        }
+      });
+    } else if (
+      updatedItem.heading !== current.item.heading ||
+      updatedItem.caption !== current.item.caption ||
+      updatedItem.source !== current.item.source ||
+      updatedItem.link !== current.item.link ||
+      updatedItem.expiresAt !== current.item.expiresAt
+    ) {
+      // Metadata-only edit on active slide: update text in place without re-downloading image
+      const nextCommitted: CommittedCarouselSlide = {
+        item: updatedItem,
+        renderUrl: current.renderUrl,
+      };
+      displayedSlideRef.current = nextCommitted;
+      setDisplayedSlide(nextCommitted);
+    }
+  }, [publishedPhotos, hasInitiallyLoaded, goToSlide, setActiveCarouselIndex]);
 
   // Active playing video ID (thumbnail-first playback)
   const [activeVideoId, setActiveVideoId] = useState<string | null>(null);
 
-  // Current Active Photo
-  const currentPhoto = publishedPhotos[activeCarouselIndex] || publishedPhotos[0];
-
-  // Coordinated Carousel Card & Image Preloader Hook
-  const { isReady: isCardReady, displayImageUrl } = useCarouselCardLoader(
-    currentPhoto,
-    publishedPhotos,
-    activeCarouselIndex
-  );
+  // Committed Active Photo & Synchronized Metadata
+  const currentPhoto = displayedSlide?.item || null;
+  const currentRenderImageUrl = displayedSlide?.renderUrl || currentPhoto?.imageUrl || '';
+  const currentCountdownLabel = currentPhoto
+    ? formatCarouselCountdown(getCarouselPostRemainingMs(currentPhoto, authoritativeNowMs))
+    : '';
 
   // Carousel Next / Prev Navigation
-  const nextSlide = () => {
-    if (publishedPhotos.length > 0) {
-      goToSlide((activeIndexRef.current + 1) % publishedPhotos.length);
+  const nextSlide = useCallback(() => {
+    if (publishedPhotosRef.current.length > 1 && !isTransitioningRef.current) {
+      void goToSlide((activeIndexRef.current + 1) % publishedPhotosRef.current.length);
     }
-  };
+  }, [goToSlide]);
 
-  const prevSlide = () => {
-    if (publishedPhotos.length > 0) {
-      goToSlide((activeIndexRef.current - 1 + publishedPhotos.length) % publishedPhotos.length);
+  const prevSlide = useCallback(() => {
+    if (publishedPhotosRef.current.length > 1 && !isTransitioningRef.current) {
+      void goToSlide(
+        (activeIndexRef.current - 1 + publishedPhotosRef.current.length) %
+          publishedPhotosRef.current.length
+      );
     }
-  };
+  }, [goToSlide]);
 
   // Carousel Touch Swipe Listeners
   const carouselTouchStartX = useRef<number | null>(null);
@@ -311,15 +593,66 @@ export default function Home() {
     }
   };
 
-  // 6-Second Automatic Carousel Rotation with 1-Second Fade Transition
+  // 10-Second Automatic Carousel Transition Timer (Single non-overlapping controller, visibility-aware)
   useEffect(() => {
-    if (publishedPhotos.length <= 1) return;
-    const interval = setInterval(() => {
-      const nextIdx = (activeIndexRef.current + 1) % publishedPhotos.length;
-      goToSlide(nextIdx);
-    }, 6000);
-    return () => clearInterval(interval);
-  }, [publishedPhotos.length]);
+    const clearAutoTimer = () => {
+      if (autoAdvanceTimerRef.current) {
+        clearTimeout(autoAdvanceTimerRef.current);
+        autoAdvanceTimerRef.current = null;
+      }
+    };
+
+    if (!hasInitiallyLoaded || publishedPhotos.length <= 1 || !currentPhoto) {
+      clearAutoTimer();
+      return;
+    }
+
+    const scheduleNextAdvance = (delayMs: number) => {
+      clearAutoTimer();
+      slideStartedAtMsRef.current = Date.now();
+      autoAdvanceTimerRef.current = setTimeout(async () => {
+        autoAdvanceTimerRef.current = null;
+        if (typeof document !== 'undefined' && document.visibilityState === 'hidden') {
+          return;
+        }
+        const total = publishedPhotosRef.current.length;
+        if (total > 1) {
+          await goToSlide((activeIndexRef.current + 1) % total);
+        }
+      }, delayMs);
+    };
+
+    const elapsedInCurrentSlice = Math.max(0, Date.now() - slideStartedAtMsRef.current);
+    const totalElapsed = accumulatedSlideMsRef.current + elapsedInCurrentSlice;
+    const initialRemaining = Math.max(1500, CAROUSEL_AUTO_ADVANCE_MS - totalElapsed);
+
+    if (typeof document === 'undefined' || document.visibilityState === 'visible') {
+      scheduleNextAdvance(
+        totalElapsed >= CAROUSEL_AUTO_ADVANCE_MS ? CAROUSEL_AUTO_ADVANCE_MS : initialRemaining
+      );
+    }
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'hidden') {
+        accumulatedSlideMsRef.current += Math.max(0, Date.now() - slideStartedAtMsRef.current);
+        clearAutoTimer();
+      } else {
+        const remaining = Math.max(1500, CAROUSEL_AUTO_ADVANCE_MS - accumulatedSlideMsRef.current);
+        scheduleNextAdvance(Math.min(CAROUSEL_AUTO_ADVANCE_MS, remaining));
+      }
+    };
+
+    if (typeof document !== 'undefined') {
+      document.addEventListener('visibilitychange', handleVisibilityChange);
+    }
+
+    return () => {
+      clearAutoTimer();
+      if (typeof document !== 'undefined') {
+        document.removeEventListener('visibilitychange', handleVisibilityChange);
+      }
+    };
+  }, [hasInitiallyLoaded, publishedPhotos.length, currentPhoto?.id, activeCarouselIndex, goToSlide]);
 
   // Outside Tap (Not Scroll) Detection to Pause Active Video & Return Mshindi Play Button
   useEffect(() => {
@@ -455,9 +788,9 @@ export default function Home() {
                     isCarouselFading ? 'opacity-0' : 'opacity-100'
                   }`}
                 >
-                  {/* Active Photo: Strictly from active carousel, with high priority and async decoding */}
+                  {/* Active Photo: Strictly from committed decoded cache entry, synchronized atomically with caption */}
                   <img
-                    src={currentPhoto.imageUrl}
+                    src={currentRenderImageUrl}
                     alt={currentPhoto.heading || currentPhoto.caption || 'Active carousel story'}
                     loading="eager"
                     decoding="async"
@@ -465,9 +798,49 @@ export default function Home() {
                     className="w-full h-full object-cover"
                   />
 
+                  {/* Server-Authoritative 24-Hour Story Countdown Badge */}
+                  {currentCountdownLabel && (
+                    <div
+                      className="absolute top-2.5 right-2.5 z-20 inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-black/60 backdrop-blur-xs text-[10px] sm:text-[11px] font-semibold text-white/95 border border-white/15 pointer-events-none select-none"
+                      title="24-hour story countdown"
+                      data-testid="carousel-story-countdown"
+                    >
+                      <Clock size={10} className="text-[#4ADE80] shrink-0" />
+                      <span>{currentCountdownLabel}</span>
+                    </div>
+                  )}
+
                   {/* Subtle inner border for crisp edge definition without fading */}
                   <div className="absolute inset-0 ring-1 ring-inset ring-white/10 rounded-xl sm:rounded-2xl lg:rounded-3xl pointer-events-none" />
                 </div>
+
+                {/* Stories Slide Indicator Dots (when > 1 active story) */}
+                {publishedPhotos.length > 1 && (
+                  <div className="flex items-center gap-1.5 mt-2" role="tablist" aria-label="Carousel stories">
+                    {publishedPhotos.map((story, idx) => {
+                      const isCurrent = story.id === currentPhoto.id;
+                      return (
+                        <button
+                          key={story.id}
+                          type="button"
+                          role="tab"
+                          aria-selected={isCurrent}
+                          aria-label={`Story ${idx + 1} of ${publishedPhotos.length}`}
+                          onClick={() => {
+                            if (!isCurrent && !isTransitioningRef.current) {
+                              void goToSlide(idx);
+                            }
+                          }}
+                          className={`h-1.5 rounded-full transition-all duration-300 cursor-pointer ${
+                            isCurrent
+                              ? 'w-5 bg-[#D4AF37]'
+                              : 'w-1.5 bg-white/30 hover:bg-white/55'
+                          }`}
+                        />
+                      );
+                    })}
+                  </div>
+                )}
 
                 {/* Photo & News Source Credit: Italic at bottom left under the Carousel photo */}
                 {currentPhoto.source && currentPhoto.source.trim() ? (

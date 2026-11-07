@@ -3,6 +3,10 @@
     {
       "path": "/api/sports/weekly-sync",
       "schedule": "0 21 * * 0"
+    },
+    {
+      "path": "/api/homepage-feed?action=cleanup",
+      "schedule": "0 2 * * *"
     }
   ],
   "headers": [
@@ -75,6 +79,15 @@
     },
     {
       "source": "/api/mpesa/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-store, no-cache, max-age=0, must-revalidate"
+        }
+      ]
+    },
+    {
+      "source": "/api/homepage-feed(.*)",
       "headers": [
         {
           "key": "Cache-Control",

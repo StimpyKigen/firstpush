@@ -9,6 +9,49 @@ import type {
   HomepageVideoItem,
 } from './homepageFeedStore.js';
 import { ADMIN_PHONE_NORMALIZED } from './adminAuthService.js';
+import { realtimeBroadcaster } from './realtimeBroadcaster.js';
+
+/** Exact 24-hour story TTL in milliseconds (86,400,000 ms). */
+export const CAROUSEL_STORY_TTL_MS = 24 * 60 * 60 * 1000;
+const MAX_TOMBSTONE_IDS = 300;
+
+export function computeCarouselImageVersion(imageUrl: string, versionSeed?: string): string {
+  const input = `${(imageUrl || '').trim()}::${(versionSeed || '').trim()}`;
+  let hash = 0x811c9dc5;
+  for (let i = 0; i < input.length; i++) {
+    hash ^= input.charCodeAt(i);
+    hash = Math.imul(hash, 0x01000193);
+  }
+  return `imgv-${(hash >>> 0).toString(16).padStart(8, '0')}`;
+}
+
+export function computeCarouselExpiresAt(publishedAtIso: string): string {
+  const pubMs = Date.parse(publishedAtIso);
+  const baseMs = Number.isFinite(pubMs) ? pubMs : Date.now();
+  return new Date(baseMs + CAROUSEL_STORY_TTL_MS).toISOString();
+}
+
+export function getCarouselExpiresAtMs(
+  item: Pick<HomepageCarouselItem, 'publishedAt' | 'createdAt' | 'expiresAt'>
+): number {
+  if (item.expiresAt) {
+    const expMs = Date.parse(item.expiresAt);
+    if (Number.isFinite(expMs)) return expMs;
+  }
+  const pubRaw = item.publishedAt || item.createdAt;
+  const pubMs = pubRaw ? Date.parse(pubRaw) : NaN;
+  if (Number.isFinite(pubMs)) {
+    return pubMs + CAROUSEL_STORY_TTL_MS;
+  }
+  return Date.now() + CAROUSEL_STORY_TTL_MS;
+}
+
+export function isServerCarouselItemExpired(
+  item: Pick<HomepageCarouselItem, 'publishedAt' | 'createdAt' | 'expiresAt'>,
+  referenceNowMs: number = Date.now()
+): boolean {
+  return referenceNowMs >= getCarouselExpiresAtMs(item);
+}
 
 // Authoritative repository data files (persist across builds and deployments)
 const DATA_DIR = path.join(process.cwd(), 'data');
@@ -31,6 +74,11 @@ const FIRESTORE_DOC = 'homepageFeed';
 // In-memory runtime cache (fastest response, survives across requests within Node process)
 let inMemoryFeed: (HomepageFeedData & { _isDefault?: boolean }) | null = null;
 let simulatedDbFailure = false;
+let serverCloudSyncEnabled = process.env.MSHINDI_ISOLATE_LOCAL_TESTS !== '1';
+
+export function setServerCloudSyncEnabledForTests(enabled: boolean): void {
+  serverCloudSyncEnabled = enabled;
+}
 
 export function setServerDatabaseFailureSimulation(shouldFail: boolean): void {
   simulatedDbFailure = shouldFail;
@@ -117,6 +165,7 @@ async function getAdminFirestore(): Promise<any | null> {
 
 /**
  * Enriches and normalizes a carousel item with full permanent post lifecycle fields
+ * including independent 24-hour story timestamps (`publishedAt`, `expiresAt`) and `imageVersion`.
  */
 export function normalizeCarouselPostItem(
   item: HomepageCarouselItem,
@@ -137,11 +186,47 @@ export function normalizeCarouselPostItem(
     ? 'image/webp'
     : 'image';
 
+  const rawPublishedAt = item.publishedAt || existing?.publishedAt || createdAt;
+  const publishedMs = Number.isFinite(Date.parse(rawPublishedAt))
+    ? Date.parse(rawPublishedAt)
+    : Date.parse(now);
+  const publishedAt = new Date(publishedMs).toISOString();
+
+  // Independent 24-hour story expiration: exact 24 hours after publishedAt unless an explicit valid expiresAt is carried
+  let expiresAt: string;
+  if (item.expiresAt && Number.isFinite(Date.parse(item.expiresAt))) {
+    expiresAt = new Date(Date.parse(item.expiresAt)).toISOString();
+  } else if (
+    existing?.expiresAt &&
+    existing.publishedAt === publishedAt &&
+    Number.isFinite(Date.parse(existing.expiresAt))
+  ) {
+    expiresAt = new Date(Date.parse(existing.expiresAt)).toISOString();
+  } else {
+    expiresAt = computeCarouselExpiresAt(publishedAt);
+  }
+
+  // Track photo replacement timestamp separately from caption edits so cached images stay valid unless photo changes
+  const imageChanged = Boolean(existing?.imageUrl && existing.imageUrl !== imageUrl);
+  const versionExplicitlyBumped = Boolean(
+    item.imageVersion && existing?.imageVersion && item.imageVersion !== existing.imageVersion
+  );
+  const photoUpdatedAt = imageChanged || versionExplicitlyBumped
+    ? item.photoUpdatedAt || item.updatedAt || now
+    : item.photoUpdatedAt || existing?.photoUpdatedAt || publishedAt;
+  const imageVersion = versionExplicitlyBumped
+    ? item.imageVersion!
+    : !imageChanged && (item.imageVersion || existing?.imageVersion)
+    ? (item.imageVersion || existing?.imageVersion)!
+    : computeCarouselImageVersion(imageUrl, photoUpdatedAt);
+
   const cleaned: HomepageCarouselItem = {
     ...existing,
     ...item,
     id: item.id,
     imageUrl,
+    photoUpdatedAt,
+    imageVersion,
     heading: item.heading ?? existing?.heading ?? '',
     caption: item.caption ?? existing?.caption ?? '',
     source: item.source ?? existing?.source ?? '',
@@ -155,7 +240,7 @@ export function normalizeCarouselPostItem(
     content: (item.caption || item.heading || item.content || existing?.content || '').trim(),
     mediaType,
     media:
-      Array.isArray(item.media) && item.media.length > 0
+      Array.isArray(item.media) && item.media.length > 0 && !imageChanged
         ? item.media
         : imageUrl
         ? [
@@ -169,7 +254,8 @@ export function normalizeCarouselPostItem(
         : [],
     createdAt,
     updatedAt: item.updatedAt || now,
-    publishedAt: item.publishedAt || existing?.publishedAt || createdAt,
+    publishedAt,
+    expiresAt,
     likes: typeof item.likes === 'number' ? item.likes : existing?.likes ?? 0,
     likedBy: Array.isArray(item.likedBy) ? item.likedBy : existing?.likedBy ?? [],
     saves: typeof item.saves === 'number' ? item.saves : existing?.saves ?? 0,
@@ -358,6 +444,10 @@ export function reconcileHomepageFeeds(
     const orderA = typeof a.order === 'number' ? a.order : 9999;
     const orderB = typeof b.order === 'number' ? b.order : 9999;
     if (orderA !== orderB) return orderA - orderB;
+    const pubDiff =
+      new Date(b.publishedAt || b.createdAt).getTime() -
+      new Date(a.publishedAt || a.createdAt).getTime();
+    if (pubDiff !== 0) return pubDiff;
     return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
   });
 
@@ -372,12 +462,18 @@ export function reconcileHomepageFeeds(
       ? cleanPrimary.updatedAt || new Date().toISOString()
       : cleanSecondary.updatedAt || new Date().toISOString();
 
+  const mergedDeletedIds = Array.from(deletedSet);
+  const boundedDeletedIds =
+    mergedDeletedIds.length > MAX_TOMBSTONE_IDS
+      ? mergedDeletedIds.slice(mergedDeletedIds.length - MAX_TOMBSTONE_IDS)
+      : mergedDeletedIds;
+
   return {
     authorId: ADMIN_PHONE_NORMALIZED,
     authorRole: 'admin',
     carouselItems,
     videoItems,
-    deletedIds: Array.from(deletedSet),
+    deletedIds: boundedDeletedIds,
     updatedAt: latestUpdatedAt,
   };
 }
@@ -538,7 +634,9 @@ export function getSavedHomepageFeed(): HomepageFeedData & { _isDefault?: boolea
  * Async version that also queries Cloud Firestore (`mshindiroom-production`)
  * and reconciles cloud records with server persistent records.
  */
-export async function getSavedHomepageFeedAsync(): Promise<
+export async function getSavedHomepageFeedAsync(options?: {
+  skipAutoCleanup?: boolean;
+}): Promise<
   HomepageFeedData & { _isDefault?: boolean }
 > {
   if (simulatedDbFailure) {
@@ -549,23 +647,25 @@ export async function getSavedHomepageFeedAsync(): Promise<
   let cloudFeed: HomepageFeedData | null = null;
 
   // 1. Try Firebase Admin SDK if configured
-  try {
-    const adminDb = await getAdminFirestore();
-    if (adminDb) {
-      const snap = await adminDb.collection(FIRESTORE_COLLECTION).doc(FIRESTORE_DOC).get();
-      if (snap.exists) {
-        const data = snap.data() as HomepageFeedData;
-        if (data && Array.isArray(data.carouselItems) && Array.isArray(data.videoItems)) {
-          cloudFeed = sanitizeFeed(data);
+  if (serverCloudSyncEnabled) {
+    try {
+      const adminDb = await getAdminFirestore();
+      if (adminDb) {
+        const snap = await adminDb.collection(FIRESTORE_COLLECTION).doc(FIRESTORE_DOC).get();
+        if (snap.exists) {
+          const data = snap.data() as HomepageFeedData;
+          if (data && Array.isArray(data.carouselItems) && Array.isArray(data.videoItems)) {
+            cloudFeed = sanitizeFeed(data);
+          }
         }
       }
+    } catch (err) {
+      console.warn('[serverHomepageFeed] Admin Firestore read notice:', err);
     }
-  } catch (err) {
-    console.warn('[serverHomepageFeed] Admin Firestore read notice:', err);
   }
 
   // 2. Try Firebase Client SDK against mshindiroom-production
-  if (!cloudFeed && clientDb) {
+  if (serverCloudSyncEnabled && !cloudFeed && clientDb) {
     try {
       const docRef = doc(clientDb, FIRESTORE_COLLECTION, FIRESTORE_DOC);
       const snap = await getDoc(docRef);
@@ -591,24 +691,49 @@ export async function getSavedHomepageFeedAsync(): Promise<
       localFeed.videoItems.length > 0 ||
       (localFeed.deletedIds && localFeed.deletedIds.length > 0));
 
+  let resolved: HomepageFeedData & { _isDefault?: boolean };
   if (hasCloudItems && hasLocalItems) {
     const reconciled = reconcileHomepageFeeds(localFeed, cloudFeed!);
     inMemoryFeed = reconciled;
     writeJsonFileSafe(PRIMARY_DATA_FILE, reconciled);
     writeJsonFileSafe(FALLBACK_CACHE_FILE, reconciled);
     writeIndexedPostsFiles(reconciled);
-    return reconciled;
-  }
-
-  if (hasCloudItems) {
+    resolved = reconciled;
+  } else if (hasCloudItems) {
     inMemoryFeed = cloudFeed!;
     writeJsonFileSafe(PRIMARY_DATA_FILE, cloudFeed!);
     writeJsonFileSafe(FALLBACK_CACHE_FILE, cloudFeed!);
     writeIndexedPostsFiles(cloudFeed!);
-    return cloudFeed!;
+    resolved = cloudFeed!;
+  } else {
+    resolved = localFeed;
   }
 
-  return localFeed;
+  if (!options?.skipAutoCleanup) {
+    // Server-authoritative 24-hour story expiration enforcement:
+    // Even if the scheduled cleanup job has not run yet, expired active carousel posts immediately
+    // disappear from the active carousel AND trigger idempotent physical server cleanup.
+    const serverNowMs = Date.now();
+    const hasExpired = resolved.carouselItems.some((item) =>
+      isServerCarouselItemExpired(item, serverNowMs)
+    );
+    if (hasExpired) {
+      try {
+        const cleanupResult = await cleanupExpiredCarouselPostsAsync(serverNowMs);
+        return cleanupResult.feed;
+      } catch (err) {
+        console.warn('[serverHomepageFeed] Read-time expired cleanup fallback:', err);
+        return {
+          ...resolved,
+          carouselItems: resolved.carouselItems.filter(
+            (item) => !isServerCarouselItemExpired(item, serverNowMs)
+          ),
+        };
+      }
+    }
+  }
+
+  return resolved;
 }
 
 /**
@@ -665,6 +790,16 @@ export function saveHomepageFeed(
   // 5. Asynchronously mirror to Cloud Firestore (`mshindiroom-production`)
   void mirrorFeedToFirestore(finalFeed);
 
+  // 6. Broadcast live carousel update over the existing SSE stream so active visitors sync immediately
+  try {
+    realtimeBroadcaster.broadcastCarouselUpdate({
+      serverTime: new Date().toISOString(),
+      updatedAt: finalFeed.updatedAt,
+      reason: 'updated',
+      feed: finalFeed,
+    });
+  } catch {}
+
   return finalFeed;
 }
 
@@ -684,9 +819,151 @@ export async function saveHomepageFeedAsync(
   };
 }
 
+export interface ExpiredCarouselCleanupResult {
+  removedIds: string[];
+  purgedMediaUrls: string[];
+  remainingCarouselCount: number;
+  serverTime: string;
+  firestoreUpdated: boolean;
+  feed: HomepageFeedData;
+}
+
+let inFlightCleanupPromise: Promise<ExpiredCarouselCleanupResult> | null = null;
+
+/**
+ * Idempotent server-side cleanup job that physically deletes expired 24-hour carousel stories
+ * (`serverNowMs >= expiresAt`) across disk storage, indexed post records, Cloud Firestore,
+ * and unreferenced server-hosted media files.
+ *
+ * - Strictly uses server clock (`referenceNowMs`, defaults to `Date.now()`) — never client clocks.
+ * - Cannot delete unexpired or newer posts (`expiresAt > referenceNowMs`).
+ * - Records expired IDs in `deletedIds` tombstones so stale/offline clients cannot resurrect them.
+ * - Retains media files if still referenced by any unexpired carousel story.
+ */
+export async function cleanupExpiredCarouselPostsAsync(
+  referenceNowMs: number = Date.now()
+): Promise<ExpiredCarouselCleanupResult> {
+  if (simulatedDbFailure) {
+    throw new Error('Simulated database cleanup failure');
+  }
+
+  // Coalesce concurrent default-clock cleanup passes for idempotency
+  const isDefaultClock = Math.abs(referenceNowMs - Date.now()) < 1000;
+  if (isDefaultClock && inFlightCleanupPromise) {
+    return inFlightCleanupPromise;
+  }
+
+  const runCleanup = async (): Promise<ExpiredCarouselCleanupResult> => {
+    const serverTime = new Date(referenceNowMs).toISOString();
+    const current = await getSavedHomepageFeedAsync({ skipAutoCleanup: true });
+
+    const expiredItems: HomepageCarouselItem[] = [];
+    const survivingItems: HomepageCarouselItem[] = [];
+
+    for (const item of current.carouselItems) {
+      // Only active/published stories participate in the 24-hour story auto-expiration sweep;
+      // explicitly archived items stay archived unless also expired past 24h from publication.
+      if (isServerCarouselItemExpired(item, referenceNowMs)) {
+        expiredItems.push(item);
+      } else {
+        survivingItems.push(item);
+      }
+    }
+
+    if (expiredItems.length === 0) {
+      return {
+        removedIds: [],
+        purgedMediaUrls: [],
+        remainingCarouselCount: survivingItems.length,
+        serverTime,
+        firestoreUpdated: false,
+        feed: current,
+      };
+    }
+
+    const removedIds = expiredItems.map((i) => i.id);
+    const deletedSet = new Set<string>([...(current.deletedIds || []), ...removedIds]);
+    const allDeletedIds = Array.from(deletedSet);
+    const boundedDeletedIds =
+      allDeletedIds.length > MAX_TOMBSTONE_IDS
+        ? allDeletedIds.slice(allDeletedIds.length - MAX_TOMBSTONE_IDS)
+        : allDeletedIds;
+
+    const updatedFeed: HomepageFeedData = sanitizeFeed({
+      ...current,
+      carouselItems: survivingItems,
+      videoItems: current.videoItems,
+      deletedIds: boundedDeletedIds,
+      updatedAt: serverTime,
+    });
+
+    // 1. Update server memory and persistent JSON files atomically
+    inMemoryFeed = updatedFeed;
+    writeJsonFileSafe(PRIMARY_DATA_FILE, updatedFeed);
+    writeJsonFileSafe(FALLBACK_CACHE_FILE, updatedFeed);
+    writeIndexedPostsFiles(updatedFeed);
+
+    // 2. Purge unreferenced local uploaded media files whose retention window has ended
+    const stillReferencedUrls = new Set<string>(
+      survivingItems.map((item) => (item.imageUrl || '').trim()).filter(Boolean)
+    );
+    const candidateMediaUrls = expiredItems
+      .map((item) => (item.imageUrl || '').trim())
+      .filter((url) => url && !stillReferencedUrls.has(url));
+    const purgedMediaUrls = purgeUnreferencedPermanentMedia(candidateMediaUrls, stillReferencedUrls);
+
+    // 3. Synchronize updated aggregate document & delete individual post_{id} docs in Cloud Firestore
+    let firestoreUpdated = await mirrorFeedToFirestore(updatedFeed);
+    try {
+      const adminDb = await getAdminFirestore();
+      if (adminDb && removedIds.length > 0) {
+        const batch = adminDb.batch();
+        for (const expiredId of removedIds) {
+          batch.delete(adminDb.collection(FIRESTORE_COLLECTION).doc(`post_${expiredId}`));
+        }
+        await batch.commit();
+        firestoreUpdated = true;
+      }
+    } catch (err) {
+      console.warn('[serverHomepageFeed] Firestore expired post doc cleanup notice:', err);
+    }
+
+    // 4. Broadcast live removal to active visitors via SSE
+    try {
+      realtimeBroadcaster.broadcastCarouselUpdate({
+        serverTime,
+        updatedAt: updatedFeed.updatedAt,
+        reason: 'expired_cleanup',
+        feed: updatedFeed,
+      });
+    } catch {}
+
+    return {
+      removedIds,
+      purgedMediaUrls,
+      remainingCarouselCount: updatedFeed.carouselItems.length,
+      serverTime,
+      firestoreUpdated,
+      feed: updatedFeed,
+    };
+  };
+
+  if (isDefaultClock) {
+    inFlightCleanupPromise = runCleanup().finally(() => {
+      inFlightCleanupPromise = null;
+    });
+    return inFlightCleanupPromise;
+  }
+
+  return runCleanup();
+}
+
 let serverClientFirestoreWritePermitted = true;
 
 async function mirrorFeedToFirestore(feed: HomepageFeedData): Promise<boolean> {
+  if (!serverCloudSyncEnabled) {
+    return false;
+  }
   const cleanPayload = JSON.parse(
     JSON.stringify({
       ...feed,
@@ -866,4 +1143,59 @@ export function getPermanentMediaAsset(
   }
 
   return null;
+}
+
+/**
+ * Deletes uploaded permanent media entries (`/images/uploads/<folder>/<fileName>`) ONLY when
+ * they are no longer referenced by any surviving unexpired carousel story.
+ * External HTTPS image URLs are ignored safely.
+ */
+export function purgeUnreferencedPermanentMedia(
+  candidatePublicUrls: string[],
+  stillReferencedUrls: Set<string> = new Set()
+): string[] {
+  if (!Array.isArray(candidatePublicUrls) || candidatePublicUrls.length === 0) return [];
+
+  const registry =
+    readJsonFileSafe<Record<string, PermanentMediaEntry>>(PRIMARY_MEDIA_FILE) ||
+    readJsonFileSafe<Record<string, PermanentMediaEntry>>(FALLBACK_MEDIA_FILE) ||
+    {};
+
+  let registryMutated = false;
+  const purged: string[] = [];
+
+  for (const rawUrl of candidatePublicUrls) {
+    const cleanUrl = (rawUrl || '').trim();
+    if (!cleanUrl || stillReferencedUrls.has(cleanUrl)) continue;
+    if (!cleanUrl.startsWith('/images/uploads/')) continue;
+
+    const rel = cleanUrl.replace(/^\/images\/uploads\//, '');
+    const slashIdx = rel.indexOf('/');
+    if (slashIdx <= 0) continue;
+
+    const folder = rel.slice(0, slashIdx).replace(/[^a-zA-Z0-9_-]/g, '_');
+    const fileName = rel.slice(slashIdx + 1).replace(/[^a-zA-Z0-9._-]/g, '_');
+    const key = `${folder}/${fileName}`;
+
+    if (registry[key]) {
+      delete registry[key];
+      registryMutated = true;
+    }
+
+    try {
+      const diskPath = path.join(process.cwd(), 'public', 'images', 'uploads', folder, fileName);
+      if (fs.existsSync(diskPath)) {
+        fs.unlinkSync(diskPath);
+      }
+    } catch {}
+
+    purged.push(cleanUrl);
+  }
+
+  if (registryMutated) {
+    writeJsonFileSafe(PRIMARY_MEDIA_FILE, registry);
+    writeJsonFileSafe(FALLBACK_MEDIA_FILE, registry);
+  }
+
+  return purged;
 }

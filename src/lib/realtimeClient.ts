@@ -17,6 +17,7 @@ export type RealtimeEventType =
   | 'incident'
   | 'fixture_upsert'
   | 'odds_update'
+  | 'carousel_update'
   | 'heartbeat';
 
 export interface RealtimeEventPayload {
@@ -110,6 +111,7 @@ class RealtimeClient {
         'incident',
         'fixture_upsert',
         'odds_update',
+        'carousel_update',
       ];
 
       for (const t of namedTypes) {

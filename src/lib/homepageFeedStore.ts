@@ -12,6 +12,12 @@ import { doc, getDoc, setDoc, onSnapshot } from 'firebase/firestore';
 import { db } from '../firebase.js';
 import { useAuth, isAdminPhone } from './authStore.js';
 import { deleteCarouselPhotoStorage } from './carouselStorageService.js';
+import { realtimeClient } from './realtimeClient.js';
+
+/** Exact 24-hour story lifecycle duration in milliseconds (86,400,000 ms). */
+export const CAROUSEL_STORY_TTL_MS = 24 * 60 * 60 * 1000;
+const CLOCK_OFFSET_STORAGE_KEY = 'mshindi_server_clock_offset_v1';
+const MAX_TOMBSTONE_IDS = 300;
 
 export interface HomepageMediaDescriptor {
   url: string;
@@ -47,6 +53,9 @@ export interface HomepageCarouselItem {
   createdAt: string;
   updatedAt?: string;
   publishedAt?: string;
+  expiresAt?: string; // Exact 24 hours after publishedAt
+  photoUpdatedAt?: string; // Bumped ONLY when imageUrl/photo binary changes
+  imageVersion?: string; // Deterministic cache-busting token for binary Cache Storage
   createdBy?: string;
   updatedBy?: string;
   order?: number;
@@ -240,11 +249,127 @@ const LEGACY_MOCK_IDS = new Set([
   'video-2',
 ]);
 
+// Server-authoritative clock offset (`serverNowMs - clientNowMs`) so skewed device clocks
+// never distort 24-hour countdowns or prematurely hide/extend active stories.
+let serverClockOffsetMs = (() => {
+  if (typeof window === 'undefined') return 0;
+  try {
+    const stored = Number(localStorage.getItem(CLOCK_OFFSET_STORAGE_KEY));
+    return Number.isFinite(stored) ? stored : 0;
+  } catch {
+    return 0;
+  }
+})();
+
+export function updateServerClockOffset(serverTimeIso?: string | null): void {
+  if (!serverTimeIso) return;
+  const serverMs = Date.parse(serverTimeIso);
+  if (!Number.isFinite(serverMs)) return;
+  serverClockOffsetMs = serverMs - Date.now();
+  if (typeof window !== 'undefined') {
+    try {
+      localStorage.setItem(CLOCK_OFFSET_STORAGE_KEY, String(serverClockOffsetMs));
+    } catch {}
+  }
+}
+
+export function getServerClockOffsetMs(): number {
+  return serverClockOffsetMs;
+}
+
+export function getAuthoritativeNowMs(): number {
+  return Date.now() + serverClockOffsetMs;
+}
+
+export function computeCarouselImageVersion(imageUrl: string, versionSeed?: string): string {
+  const input = `${(imageUrl || '').trim()}::${(versionSeed || '').trim()}`;
+  let hash = 0x811c9dc5;
+  for (let i = 0; i < input.length; i++) {
+    hash ^= input.charCodeAt(i);
+    hash = Math.imul(hash, 0x01000193);
+  }
+  return `imgv-${(hash >>> 0).toString(16).padStart(8, '0')}`;
+}
+
+export function computeCarouselExpiresAt(publishedAtIso: string): string {
+  const pubMs = Date.parse(publishedAtIso);
+  const baseMs = Number.isFinite(pubMs) ? pubMs : getAuthoritativeNowMs();
+  return new Date(baseMs + CAROUSEL_STORY_TTL_MS).toISOString();
+}
+
+export function getCarouselExpiresAtMs(
+  item: Pick<HomepageCarouselItem, 'publishedAt' | 'createdAt' | 'expiresAt'>
+): number {
+  if (item.expiresAt) {
+    const expMs = Date.parse(item.expiresAt);
+    if (Number.isFinite(expMs)) return expMs;
+  }
+  const pubRaw = item.publishedAt || item.createdAt;
+  const pubMs = pubRaw ? Date.parse(pubRaw) : NaN;
+  if (Number.isFinite(pubMs)) {
+    return pubMs + CAROUSEL_STORY_TTL_MS;
+  }
+  return getAuthoritativeNowMs() + CAROUSEL_STORY_TTL_MS;
+}
+
+export function isCarouselPostExpired(
+  item: Pick<HomepageCarouselItem, 'publishedAt' | 'createdAt' | 'expiresAt'>,
+  referenceNowMs: number = getAuthoritativeNowMs()
+): boolean {
+  return referenceNowMs >= getCarouselExpiresAtMs(item);
+}
+
+export function getCarouselPostRemainingMs(
+  item: Pick<HomepageCarouselItem, 'publishedAt' | 'createdAt' | 'expiresAt'>,
+  referenceNowMs: number = getAuthoritativeNowMs()
+): number {
+  return Math.max(0, getCarouselExpiresAtMs(item) - referenceNowMs);
+}
+
+export function formatCarouselCountdown(remainingMs: number): string {
+  if (!Number.isFinite(remainingMs) || remainingMs <= 0) return 'Expired';
+  const totalSeconds = Math.max(1, Math.floor(remainingMs / 1000));
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+  if (hours > 0) {
+    return `${hours}h ${String(minutes).padStart(2, '0')}m`;
+  }
+  return `${minutes}m ${String(seconds).padStart(2, '0')}s`;
+}
+
+export function getActiveCarouselItems(
+  feed: HomepageFeedData = currentFeed,
+  referenceNowMs: number = getAuthoritativeNowMs()
+): HomepageCarouselItem[] {
+  return (feed?.carouselItems || [])
+    .filter(
+      (i) =>
+        i &&
+        i.published &&
+        i.isActive !== false &&
+        i.status !== 'archived' &&
+        Boolean(i.imageUrl && i.imageUrl.trim()) &&
+        !LEGACY_MOCK_IDS.has(i.id) &&
+        !isCarouselPostExpired(i, referenceNowMs)
+    )
+    .sort((a, b) => {
+      const orderA = typeof a.order === 'number' ? a.order : 9999;
+      const orderB = typeof b.order === 'number' ? b.order : 9999;
+      if (orderA !== orderB) return orderA - orderB;
+      const pubDiff =
+        new Date(b.publishedAt || b.createdAt).getTime() -
+        new Date(a.publishedAt || a.createdAt).getTime();
+      if (pubDiff !== 0) return pubDiff;
+      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+    });
+}
+
 export function enrichCarouselItem(
   item: HomepageCarouselItem,
   existing?: HomepageCarouselItem
 ): HomepageCarouselItem {
-  const now = new Date().toISOString();
+  const now = new Date(getAuthoritativeNowMs()).toISOString();
   const createdAt = existing?.createdAt || item.createdAt || now;
   const isPublished =
     typeof item.published === 'boolean'
@@ -258,11 +383,45 @@ export function enrichCarouselItem(
   const mediaType =
     imageUrl.startsWith('data:image/webp') || imageUrl.endsWith('.webp') ? 'image/webp' : 'image';
 
+  const rawPublishedAt = item.publishedAt || existing?.publishedAt || createdAt;
+  const publishedMs = Number.isFinite(Date.parse(rawPublishedAt))
+    ? Date.parse(rawPublishedAt)
+    : Date.parse(now);
+  const publishedAt = new Date(publishedMs).toISOString();
+
+  let expiresAt: string;
+  if (item.expiresAt && Number.isFinite(Date.parse(item.expiresAt))) {
+    expiresAt = new Date(Date.parse(item.expiresAt)).toISOString();
+  } else if (
+    existing?.expiresAt &&
+    existing.publishedAt === publishedAt &&
+    Number.isFinite(Date.parse(existing.expiresAt))
+  ) {
+    expiresAt = new Date(Date.parse(existing.expiresAt)).toISOString();
+  } else {
+    expiresAt = computeCarouselExpiresAt(publishedAt);
+  }
+
+  const imageChanged = Boolean(existing?.imageUrl && existing.imageUrl !== imageUrl);
+  const versionExplicitlyBumped = Boolean(
+    item.imageVersion && existing?.imageVersion && item.imageVersion !== existing.imageVersion
+  );
+  const photoUpdatedAt = imageChanged || versionExplicitlyBumped
+    ? item.photoUpdatedAt || item.updatedAt || now
+    : item.photoUpdatedAt || existing?.photoUpdatedAt || publishedAt;
+  const imageVersion = versionExplicitlyBumped
+    ? item.imageVersion!
+    : !imageChanged && (item.imageVersion || existing?.imageVersion)
+    ? (item.imageVersion || existing?.imageVersion)!
+    : computeCarouselImageVersion(imageUrl, photoUpdatedAt);
+
   const cleaned: HomepageCarouselItem = {
     ...existing,
     ...item,
     id: item.id,
     imageUrl,
+    photoUpdatedAt,
+    imageVersion,
     heading: item.heading ?? existing?.heading ?? '',
     caption: item.caption ?? existing?.caption ?? '',
     source: item.source ?? existing?.source ?? '',
@@ -276,7 +435,7 @@ export function enrichCarouselItem(
     content: (item.caption || item.heading || item.content || existing?.content || '').trim(),
     mediaType,
     media:
-      Array.isArray(item.media) && item.media.length > 0
+      Array.isArray(item.media) && item.media.length > 0 && !imageChanged
         ? item.media
         : imageUrl
         ? [
@@ -290,7 +449,8 @@ export function enrichCarouselItem(
         : [],
     createdAt,
     updatedAt: item.updatedAt || now,
-    publishedAt: item.publishedAt || existing?.publishedAt || createdAt,
+    publishedAt,
+    expiresAt,
     likes: typeof item.likes === 'number' ? item.likes : existing?.likes ?? 0,
     likedBy: Array.isArray(item.likedBy) ? item.likedBy : existing?.likedBy ?? [],
     saves: typeof item.saves === 'number' ? item.saves : existing?.saves ?? 0,
@@ -470,6 +630,10 @@ export function reconcileClientFeeds(
     const orderA = typeof a.order === 'number' ? a.order : 9999;
     const orderB = typeof b.order === 'number' ? b.order : 9999;
     if (orderA !== orderB) return orderA - orderB;
+    const pubDiff =
+      new Date(b.publishedAt || b.createdAt).getTime() -
+      new Date(a.publishedAt || a.createdAt).getTime();
+    if (pubDiff !== 0) return pubDiff;
     return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
   });
 
@@ -484,12 +648,18 @@ export function reconcileClientFeeds(
       ? cleanPrimary.updatedAt || new Date().toISOString()
       : cleanSecondary.updatedAt || new Date().toISOString();
 
+  const mergedDeletedIds = Array.from(deletedSet);
+  const boundedDeletedIds =
+    mergedDeletedIds.length > MAX_TOMBSTONE_IDS
+      ? mergedDeletedIds.slice(mergedDeletedIds.length - MAX_TOMBSTONE_IDS)
+      : mergedDeletedIds;
+
   return {
     authorId: ADMIN_PHONE_ID,
     authorRole: 'admin',
     carouselItems,
     videoItems,
-    deletedIds: Array.from(deletedSet),
+    deletedIds: boundedDeletedIds,
     updatedAt: latestUpdatedAt,
   };
 }
@@ -642,15 +812,63 @@ if (typeof window !== 'undefined' && 'BroadcastChannel' in window) {
   } catch {}
 }
 
-// Set up cross-tab storage listener + Cloud Firestore real-time listener + API hydration
+// Set up cross-tab storage listener + SSE push listener + Cloud Firestore real-time listener + API hydration
 let cloudUnsubscribe: (() => void) | null = null;
+let sseUnsubscribe: (() => void) | null = null;
 let firestoreWritePermitted = true;
+let clientCloudSyncEnabled =
+  typeof process === 'undefined' || process.env?.MSHINDI_ISOLATE_LOCAL_TESTS !== '1';
+let lastForegroundSyncMs = 0;
+
+export function setClientCloudSyncEnabledForTests(enabled: boolean): void {
+  clientCloudSyncEnabled = enabled;
+}
+
+/**
+ * Allows open tabs, SSE push listeners, or tests to inject an authoritative feed push directly
+ * without a full page reload, synchronizing server clock offset and sibling tabs.
+ */
+export function applyAuthoritativeFeedPush(
+  incomingFeed: HomepageFeedData,
+  serverTime?: string,
+  options?: { broadcastToTabs?: boolean }
+): HomepageFeedData {
+  if (serverTime) {
+    updateServerClockOffset(serverTime);
+  }
+  const sanitized = sanitizeHomepageFeed(incomingFeed);
+  currentFeed = reconcileClientFeeds(sanitized, currentFeed);
+  if (typeof window !== 'undefined') {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(currentFeed));
+    } catch {}
+  }
+  if (options?.broadcastToTabs !== false) {
+    try {
+      channel?.postMessage({ type: 'FEED_UPDATED', payload: currentFeed, serverTime });
+    } catch {}
+  }
+  updateSyncState({
+    isLoading: false,
+    syncError: null,
+    lastSyncedAt: new Date(getAuthoritativeNowMs()).toISOString(),
+  });
+  return currentFeed;
+}
 
 function setupCloudSync() {
   if (typeof window === 'undefined') return;
 
   // 1. LocalStorage cross-tab listener
   window.addEventListener('storage', (e) => {
+    if (e.key === CLOCK_OFFSET_STORAGE_KEY && e.newValue !== null) {
+      const parsedOffset = Number(e.newValue);
+      if (Number.isFinite(parsedOffset)) {
+        serverClockOffsetMs = parsedOffset;
+        notifyListeners();
+      }
+      return;
+    }
     if (e.key === STORAGE_KEY && e.newValue) {
       try {
         const parsed = JSON.parse(e.newValue);
@@ -660,7 +878,38 @@ function setupCloudSync() {
     }
   });
 
-  // 2. Real-time Firestore listener (syncs across all devices & visitors globally)
+  // 2. Real-time SSE listener over existing /api/sports/stream connection (zero extra connections)
+  if (!sseUnsubscribe) {
+    sseUnsubscribe = realtimeClient.on('carousel_update', (evt) => {
+      if (simulatedClientDbFailure) return;
+      const eventData = evt?.data;
+      if (eventData?.serverTime) {
+        updateServerClockOffset(eventData.serverTime);
+      }
+      if (eventData?.feed && Array.isArray(eventData.feed.carouselItems)) {
+        applyAuthoritativeFeedPush(eventData.feed, eventData.serverTime, { broadcastToTabs: true });
+      } else {
+        refreshHomepageFeed().catch(() => {});
+      }
+    });
+  }
+
+  // 3. Installed PWA & Tab Resume listener (throttled to >= 15s to prevent redundant requests)
+  if (typeof document !== 'undefined') {
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible') {
+        const now = Date.now();
+        if (now - lastForegroundSyncMs >= 15_000) {
+          lastForegroundSyncMs = now;
+          refreshHomepageFeed().catch(() => {});
+        } else {
+          notifyListeners();
+        }
+      }
+    });
+  }
+
+  // 4. Real-time Firestore listener (syncs across all devices & visitors globally)
   try {
     if (db && !cloudUnsubscribe) {
       const feedRef = doc(db, FIRESTORE_COLLECTION, FIRESTORE_DOC);
@@ -687,7 +936,7 @@ function setupCloudSync() {
                 updateSyncState({
                   isLoading: false,
                   syncError: null,
-                  lastSyncedAt: new Date().toISOString(),
+                  lastSyncedAt: new Date(getAuthoritativeNowMs()).toISOString(),
                 });
               } else if (currentHasItems && firestoreWritePermitted) {
                 // Cloud is empty/uninitialized, but client/server has published items:
@@ -706,7 +955,8 @@ function setupCloudSync() {
     console.warn('[HomepageFeed] Cloud sync initialization fallback:', err?.message || err);
   }
 
-  // 3. Hydrate immediately from persistent backend API & Firestore on startup
+  // 5. Hydrate immediately from persistent backend API & Firestore on startup
+  lastForegroundSyncMs = Date.now();
   refreshHomepageFeed().catch(() => {});
 }
 
@@ -733,14 +983,18 @@ export async function refreshHomepageFeed(): Promise<HomepageFeedData> {
   let serverWasEmptyDefault = false;
   let lastError: string | null = null;
 
-  // 1. Check backend API (/api/homepage-feed)
+  // 1. Check backend API (/api/homepage-feed) with strict cache: 'no-store'
   try {
     if (typeof window !== 'undefined') {
       const res = await fetch('/api/homepage-feed', {
-        headers: { 'Cache-Control': 'no-cache', Pragma: 'no-cache' },
+        cache: 'no-store',
+        headers: { 'Cache-Control': 'no-cache, no-store, must-revalidate', Pragma: 'no-cache' },
       });
       if (res.ok) {
         const data = await res.json();
+        if (data?.serverTime) {
+          updateServerClockOffset(data.serverTime);
+        }
         if (data && data.success && data.feed && Array.isArray(data.feed.carouselItems)) {
           anySourceSucceeded = true;
           const sanitized = sanitizeHomepageFeed(data.feed);
@@ -763,6 +1017,7 @@ export async function refreshHomepageFeed(): Promise<HomepageFeedData> {
       const { getSavedHomepageFeedAsync } = await import(/* @vite-ignore */ serverMod);
       const serverFeed = await getSavedHomepageFeedAsync();
       anySourceSucceeded = true;
+      updateServerClockOffset(new Date().toISOString());
       if (
         !serverFeed._isDefault &&
         (serverFeed.carouselItems.length > 0 ||
@@ -777,7 +1032,7 @@ export async function refreshHomepageFeed(): Promise<HomepageFeedData> {
   }
 
   // 2. Check Cloud Firestore directly
-  if (db) {
+  if (clientCloudSyncEnabled && db) {
     try {
       const feedRef = doc(db, FIRESTORE_COLLECTION, FIRESTORE_DOC);
       const snap = await getDoc(feedRef);
@@ -893,7 +1148,7 @@ export async function persistToCloud(
   }
 
   // 1. Write to Cloud Firestore (if available & configured & permitted)
-  if (db && firestoreWritePermitted) {
+  if (clientCloudSyncEnabled && db && firestoreWritePermitted) {
     try {
       const feedRef = doc(db, FIRESTORE_COLLECTION, FIRESTORE_DOC);
       await setDoc(feedRef, cleanData, { merge: true });
@@ -946,6 +1201,9 @@ export async function persistToCloud(
       clearTimeout(timeoutId);
       if (res.ok) {
         const json = await res.json();
+        if (json?.serverTime) {
+          updateServerClockOffset(json.serverTime);
+        }
         if (json && json.success) {
           serverSaved = true;
           if (json.feed) {
@@ -1080,6 +1338,8 @@ export async function addCarouselItem(
     order?: number;
     createdBy?: string;
     published?: boolean;
+    publishedAt?: string;
+    expiresAt?: string;
   },
   options?: AdminMutationOptions
 ): Promise<HomepageCarouselItem> {
@@ -1090,30 +1350,56 @@ export async function addCarouselItem(
     throw new Error('Cannot publish carousel item without a valid image URL.');
   }
 
+  // Idempotency guard: if retrying publication of the exact same ID & payload, update in place cleanly
+  const existingDuplicate = item.id
+    ? currentFeed.carouselItems.find((existing) => existing.id === item.id)
+    : undefined;
+
   const minOrder = currentFeed.carouselItems.reduce(
     (min, i) => (typeof i.order === 'number' && i.order < min ? i.order : min),
     0
   );
 
-  const now = new Date().toISOString();
-  const newItem = enrichCarouselItem({
-    id: item.id || `carousel-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
-    imageUrl: cleanImageUrl,
-    storagePath: item.storagePath,
-    fileName: item.fileName,
-    fileSize: item.fileSize,
-    dimensions: item.dimensions,
-    heading: item.heading?.trim() || '',
-    caption: item.caption?.trim() || '',
-    source: item.source?.trim() || '',
-    link: item.link?.trim() || undefined,
-    createdBy: item.createdBy || ADMIN_PHONE_ID,
-    published: item.published ?? true,
-    createdAt: now,
-    updatedAt: now,
-    publishedAt: now,
-    order: typeof item.order === 'number' ? item.order : minOrder - 1,
-  });
+  const nowIso = new Date(getAuthoritativeNowMs()).toISOString();
+  const publishedAtIso =
+    item.publishedAt && Number.isFinite(Date.parse(item.publishedAt))
+      ? new Date(Date.parse(item.publishedAt)).toISOString()
+      : existingDuplicate?.publishedAt || nowIso;
+  const expiresAtIso =
+    item.expiresAt && Number.isFinite(Date.parse(item.expiresAt))
+      ? new Date(Date.parse(item.expiresAt)).toISOString()
+      : computeCarouselExpiresAt(publishedAtIso);
+
+  const newItem = enrichCarouselItem(
+    {
+      id: item.id || `carousel-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+      imageUrl: cleanImageUrl,
+      storagePath: item.storagePath,
+      fileName: item.fileName,
+      fileSize: item.fileSize,
+      dimensions: item.dimensions,
+      heading: item.heading?.trim() || '',
+      caption: item.caption?.trim() || '',
+      source: item.source?.trim() || '',
+      link: item.link?.trim() || undefined,
+      createdBy: item.createdBy || ADMIN_PHONE_ID,
+      published: item.published ?? true,
+      createdAt: existingDuplicate?.createdAt || publishedAtIso,
+      updatedAt: nowIso,
+      publishedAt: publishedAtIso,
+      expiresAt: expiresAtIso,
+      photoUpdatedAt: existingDuplicate?.imageUrl === cleanImageUrl
+        ? existingDuplicate.photoUpdatedAt || publishedAtIso
+        : nowIso,
+      order:
+        typeof item.order === 'number'
+          ? item.order
+          : existingDuplicate && typeof existingDuplicate.order === 'number'
+          ? existingDuplicate.order
+          : minOrder - 1,
+    },
+    existingDuplicate
+  );
 
   const deletedSet = new Set(currentFeed.deletedIds || []);
   deletedSet.delete(newItem.id);
@@ -1210,17 +1496,23 @@ export async function replaceCarouselItemPhoto(
   const existing = currentFeed.carouselItems.find((item) => item.id === id);
   if (!existing) return null;
 
+  const nowIso = new Date(getAuthoritativeNowMs()).toISOString();
+  const nextImageUrl = photoData.imageUrl.trim();
+  const nextImageVersion = computeCarouselImageVersion(nextImageUrl, `${nowIso}-${Math.random().toString(36).slice(2, 6)}`);
+
   const updatedItem = enrichCarouselItem(
     {
       ...existing,
-      imageUrl: photoData.imageUrl.trim(),
+      imageUrl: nextImageUrl,
+      photoUpdatedAt: nowIso,
+      imageVersion: nextImageVersion,
       storagePath: photoData.storagePath,
       fileName: photoData.fileName,
       fileSize: photoData.fileSize,
       dimensions: photoData.dimensions,
       updatedBy: photoData.updatedBy || existing.updatedBy,
       createdAt: existing.createdAt,
-      updatedAt: new Date().toISOString(),
+      updatedAt: nowIso,
     },
     existing
   );

@@ -22,6 +22,7 @@ import {
   Sparkles,
   Newspaper,
   Link as LinkIcon,
+  Clock,
 } from 'lucide-react';
 import {
   subscribeToHomepageFeed,
@@ -39,6 +40,10 @@ import {
   deleteVideoItem,
   normalizeYouTubeEmbedUrl,
   normalizeCustomEmbedUrl,
+  getAuthoritativeNowMs,
+  getCarouselPostRemainingMs,
+  isCarouselPostExpired,
+  formatCarouselCountdown,
   type HomepageCarouselItem,
   type HomepageVideoItem,
 } from '../../lib/homepageFeedStore';
@@ -143,24 +148,34 @@ export default function AdminHomepageFeed() {
   const [isCustomPreviewOpen, setIsCustomPreviewOpen] = useState(false);
   const [isSavingVideo, setIsSavingVideo] = useState(false);
 
-  // Sorted carousel items according to explicit order ascending
-  const sortedCarouselItems = useMemo(() => {
-    return [...feed.carouselItems].sort((a, b) => {
-      const orderA = typeof a.order === 'number' ? a.order : 9999;
-      const orderB = typeof b.order === 'number' ? b.order : 9999;
-      if (orderA !== orderB) return orderA - orderB;
-      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-    });
-  }, [feed.carouselItems]);
+  const [authoritativeNowMs, setAuthoritativeNowMs] = useState<number>(() => getAuthoritativeNowMs());
 
-  // Set default order to next available position when list updates
   React.useEffect(() => {
-    if (feed.carouselItems.length > 0) {
-      const maxOrder = Math.max(...feed.carouselItems.map((c) => (typeof c.order === 'number' ? c.order : 0)));
-      setPhotoOrder(maxOrder + 1);
-    } else {
-      setPhotoOrder(1);
-    }
+    const timer = setInterval(() => {
+      setAuthoritativeNowMs(getAuthoritativeNowMs());
+    }, 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  // Active unexpired carousel items arranged newest-first / explicit order
+  const sortedCarouselItems = useMemo(() => {
+    return feed.carouselItems
+      .filter((item) => !isCarouselPostExpired(item, authoritativeNowMs))
+      .sort((a, b) => {
+        const orderA = typeof a.order === 'number' ? a.order : 9999;
+        const orderB = typeof b.order === 'number' ? b.order : 9999;
+        if (orderA !== orderB) return orderA - orderB;
+        const pubDiff =
+          new Date(b.publishedAt || b.createdAt).getTime() -
+          new Date(a.publishedAt || a.createdAt).getTime();
+        if (pubDiff !== 0) return pubDiff;
+        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+      });
+  }, [feed.carouselItems, authoritativeNowMs]);
+
+  // Default new stories to Slide 1 (newest published post first)
+  React.useEffect(() => {
+    setPhotoOrder(1);
   }, [feed.carouselItems.length]);
 
   // Handle WebP File Selection & Deep Client Validation
@@ -268,20 +283,21 @@ export default function AdminHomepageFeed() {
     setIsUploading(true);
 
     try {
+      const explicitOrder = Number(photoOrder) > 1 ? Number(photoOrder) : undefined;
       if (cleanUrl) {
-        // Direct Photo Link path: saved straight to Firestore database (like YouTube embed links)
+        // Direct Photo Link path: saved straight to Firestore database (newest published post first)
         await addCarouselItem({
           imageUrl: cleanUrl,
           heading: photoHeading.trim(),
           caption: photoCaption.trim(),
           source: photoSource.trim(),
-          order: Number(photoOrder) || 1,
+          order: explicitOrder,
           published: photoPublished,
         });
 
         showToast({
-          title: 'Photo Story Published',
-          message: 'Photo link saved directly to the Firestore database and live on homepage.',
+          title: 'Photo Story Published (24h)',
+          message: 'Photo link saved to Firestore and live as Slide #1 on homepage for 24 hours.',
           type: 'success',
         });
       } else if (selectedFile) {
@@ -300,15 +316,15 @@ export default function AdminHomepageFeed() {
           heading: photoHeading.trim(),
           caption: photoCaption.trim(),
           source: photoSource.trim(),
-          order: Number(photoOrder) || 1,
+          order: explicitOrder,
           published: photoPublished,
           dimensions: uploadResult.dimensions,
           fileSize: uploadResult.fileSize,
         });
 
         showToast({
-          title: 'Photo Story Published',
-          message: 'Photo saved to database and live on homepage.',
+          title: 'Photo Story Published (24h)',
+          message: 'Photo saved to database and live as Slide #1 on homepage for 24 hours.',
           type: 'success',
         });
       }
@@ -896,14 +912,20 @@ export default function AdminHomepageFeed() {
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-transparent pointer-events-none" />
 
-                      {/* Top Badges: Order & Firestore Status */}
-                      <div className="absolute top-2.5 left-2.5 right-2.5 flex items-center justify-between z-20">
+                      {/* Top Badges: Order & 24h Story Countdown */}
+                      <div className="absolute top-2.5 left-2.5 right-2.5 flex items-center justify-between z-20 gap-1.5">
                         <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-black/70 backdrop-blur-xs text-white border border-white/20">
-                          #{item.order ?? index + 1}
+                          #{index + 1}
                         </span>
 
-                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-950/80 text-emerald-300 border border-emerald-400/40 flex items-center gap-1" title="Saved directly in Cloud Firestore database">
-                          <LinkIcon size={10} /> Firestore Photo Link
+                        <span
+                          className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-950/85 text-emerald-300 border border-emerald-400/40 flex items-center gap-1"
+                          title={`Expires at ${item.expiresAt || '24h after publication'}`}
+                        >
+                          <Clock size={10} />
+                          {formatCarouselCountdown(
+                            getCarouselPostRemainingMs(item, authoritativeNowMs)
+                          )}
                         </span>
                       </div>
 
