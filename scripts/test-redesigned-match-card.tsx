@@ -167,6 +167,9 @@ assert(!live00Html.includes('Bet365 Odds'), 'Live card must NOT include Bet365 O
 assert(!live00Html.includes('Bet Builder'), 'Live card must NOT include Bet Builder button');
 assert(!live00Html.includes('punters analyzing'), 'Live card must NOT include "punters analyzing" text');
 assert(!live00Html.includes('2.10'), 'Live card must NOT include odds boxes');
+assert(!live00Html.includes('Consensus:'), 'Live card must NOT include consensus indicator text');
+assert(!live00Html.includes('bg-rose-500'), 'Live card must NOT include consensus bar');
+assert(live00Html.includes('min-h-[240px]'), 'Live card must maintain minimum height without reducing size');
 assert(live00Html.includes('AS Saint-Étienne'), 'Must include home team');
 assert(live00Html.includes('Stade Lavallois'), 'Must include away team');
 assert(live00Html.includes('saint-etienne.png'), 'Must include home team logo');
@@ -176,12 +179,12 @@ assert(live00Html.includes('0 - 0'), 'Must include 0 - 0 centered score');
 assert(!live00Html.includes('No goals yet'), 'When a goal hasn\'t been scored, "No goals yet" text must NOT be displayed');
 assert(live00Html.includes('232'), 'Must include punters count in footer');
 assert(live00Html.includes('Details &amp; Discussion'), 'Must include Details & Discussion');
-console.log('  PASS: Live 0-0 card rendered cleanly without "No goals yet", with logos, centered "v", and punters count');
+console.log('  PASS: Live 0-0 card rendered cleanly without consensus or "No goals yet", with logos, centered "v", and preserved height');
 
 // --------------------------------------------------------------------------------------
 // 4. COMPONENT TESTS: Live Match 0-1 Single Goal
 // --------------------------------------------------------------------------------------
-console.log('\nTest 6: Live match (0-1) renders single goal with bold latest scorer and CircleDot');
+console.log('\nTest 6: Live match (0-1) renders single goal without consensus indicator');
 const live01Match = createMockMatch({
   home: 'AJ Auxerre',
   away: 'Paris FC',
@@ -213,17 +216,19 @@ const live01Html = renderToString(
 
 assert(!live01Html.includes('Bet365 Odds'), 'Live card must NOT include Bet365 Odds');
 assert(!live01Html.includes('Bet Builder'), 'Live card must NOT include Bet Builder');
+assert(!live01Html.includes('Consensus:'), 'Live card must NOT include consensus indicator text');
+assert(!live01Html.includes('bg-rose-500'), 'Live card must NOT include consensus bar');
 assert(live01Html.includes('0 - 1'), 'Must include 0 - 1 score');
 assert(live01Html.includes('J. Diallo 68&#x27;'), 'Must include scorer name and minute');
-assert(live01Html.includes('font-bold text-slate-900'), 'Latest goal must have font-bold text-slate-900');
+assert(live01Html.includes('font-normal text-slate-600'), 'Settled scorer must be in faded state');
 assert(live01Html.includes('lucide-circle-dot'), 'Must include circle-dot icon');
 assert(live01Html.includes('468'), 'Must include punters count in footer');
-console.log('  PASS: Live 0-1 card rendered with bold away scorer and centered circle dot');
+console.log('  PASS: Live 0-1 card rendered with away scorer in faded state and centered circle dot without consensus');
 
 // --------------------------------------------------------------------------------------
 // 5. COMPONENT TESTS: Finished Match (3-1) with Multiple Goals on Both Sides
 // --------------------------------------------------------------------------------------
-console.log('\nTest 7: Finished match (3-1) renders FT badge, chronological lists, and latest bold');
+console.log('\nTest 7: Finished match (3-1) renders FT badge, chronological lists, faded settled scorers, and no consensus');
 const finishedMatch = createMockMatch({
   home: 'ADO Den Haag',
   away: 'Sparta Rotterdam',
@@ -253,6 +258,7 @@ const finishedHtml = renderToString(
 assert(finishedHtml.includes('FT'), 'Finished card must have FT badge');
 assert(!finishedHtml.includes('Bet365 Odds'), 'Finished card must NOT include Bet365 Odds');
 assert(!finishedHtml.includes('Bet Builder'), 'Finished card must NOT include Bet Builder');
+assert(!finishedHtml.includes('Consensus:'), 'Finished card must NOT include consensus');
 assert(finishedHtml.includes('3 - 1'), 'Must include 3 - 1 score');
 assert(finishedHtml.includes('F. van Dijk 22&#x27;'), 'Must include van Dijk 22');
 assert(finishedHtml.includes('L. Koning 30&#x27;'), 'Must include Koning 30');
@@ -265,14 +271,14 @@ const idxJanssen = finishedHtml.indexOf('K. Janssen');
 const idxDeBoer = finishedHtml.indexOf('R. de Boer');
 assert(idxVanDijk < idxJanssen && idxJanssen < idxDeBoer, 'Home goals must be in chronological order (22 before 55 before 80)');
 
-// Confirm only the latest goal (R. de Boer) has font-bold text-slate-900, while earlier goals have font-normal
-assert(finishedHtml.includes('font-normal text-slate-600'), 'Older goals must have font-normal');
-console.log('  PASS: Finished 3-1 card verified with FT badge, chronological ordering, and bold latest scorer');
+// All settled goals render in faded state
+assert(finishedHtml.includes('font-normal text-slate-600'), 'Settled goals must have font-normal faded state');
+console.log('  PASS: Finished 3-1 card verified with FT badge, chronological ordering, and faded settled scorers');
 
 // --------------------------------------------------------------------------------------
-// 6. COMPONENT TESTS: Dynamic Goal Sequence (Superseding Goal Drops Previous to Normal Weight)
+// 6. COMPONENT TESTS: Dynamic Goal Sequence (Settled Scorers are in Faded State)
 // --------------------------------------------------------------------------------------
-console.log('\nTest 8: Sequential goal updates ensure only newest goal is bold and previous drops to normal');
+console.log('\nTest 8: Settled goals remain in faded state');
 const matchInitial = createMockMatch({
   home: 'Pau FC',
   away: 'FC Nantes',
@@ -297,39 +303,8 @@ const htmlInitial = renderToString(
     />
   </MemoryRouter>
 );
-// In initial render, Y. Simon is the latest goal, so it should be bold
-assert(htmlInitial.includes('font-bold text-slate-900'), 'First goal must be bold when it is latest');
-
-// Now a new goal arrives at 85'
-const matchUpdated = createMockMatch({
-  ...matchInitial,
-  homeScore: 1,
-  awayScore: 1,
-  incidents: [
-    { id: 'goal-1', minute: "24'", player: 'Y. Simon', team: 'home', type: 'goal' },
-    { id: 'goal-2', minute: "85'", player: 'M. Coco', team: 'away', type: 'goal' },
-  ],
-});
-const updatedGoals = extractMatchGoals(matchUpdated);
-assert.strictEqual(updatedGoals[updatedGoals.length - 1].player, 'M. Coco');
-
-const htmlUpdated = renderToString(
-  <MemoryRouter>
-    <FixtureSportCard
-      match={matchUpdated}
-      consensus={createMockConsensus(741)}
-      builderLegs={[]}
-      onToggleLeg={() => {}}
-      onOpenBetBuilder={() => {}}
-    />
-  </MemoryRouter>
-);
-
-// In updated render:
-// M. Coco (85') must be bold
-assert(htmlUpdated.includes('M. Coco 85&#x27;'), 'New goal M. Coco must be present');
-// Y. Simon (24') is now an older goal and must have font-normal text-slate-600
-assert(htmlUpdated.includes('font-normal text-slate-600'), 'Previous goal Y. Simon must drop back to font-normal');
-console.log('  PASS: Superseding goal becomes bold and older goal drops back to normal weight');
+// In settled state (without active 5s timer), goal renders in faded state
+assert(htmlInitial.includes('font-normal text-slate-600'), 'Settled goal must be in faded state');
+console.log('  PASS: Settled goal is in faded state (bold expires after 5s)');
 
 console.log('\n=== ALL REDESIGNED MATCH CARD TESTS PASSED SUCCESSFULLY! ===');

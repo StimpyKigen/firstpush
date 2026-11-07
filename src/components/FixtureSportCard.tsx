@@ -657,18 +657,15 @@ export default function FixtureSportCard({
   const awayScoreDisplay = scorePres.awayScoreDisplay ?? (match.awayScore != null ? String(match.awayScore) : '0');
 
   const renderGoalLine = (g: ParsedGoal) => {
-    const isLatest = g.id === latestGoalId;
-    const isGlowing = g.id === glowingGoalId;
+    const isNewUpdate = g.id === glowingGoalId;
     const displayText = g.player ? `${g.player} ${g.minute}` : g.minute;
 
     return (
       <div
         key={g.id}
         className={`truncate max-w-full text-xs leading-tight transition-all duration-300 ${
-          isGlowing
-            ? 'text-black dark:text-white font-extrabold [text-shadow:0_0_8px_rgba(0,0,0,0.95)] animate-pulse scale-105'
-            : isLatest
-            ? 'font-bold text-slate-900 dark:text-white'
+          isNewUpdate
+            ? 'font-bold text-slate-900 dark:text-white [text-shadow:0_0_8px_rgba(0,0,0,0.8)] animate-pulse scale-105'
             : 'font-normal text-slate-600 dark:text-slate-400'
         }`}
         title={displayText}
@@ -680,7 +677,7 @@ export default function FixtureSportCard({
 
   return (
     <div
-      className={`group relative overflow-hidden border rounded-2xl p-4 sm:p-5 flex flex-col justify-between transition-all duration-200 ${
+      className={`group relative overflow-hidden border rounded-2xl p-4 sm:p-5 flex flex-col justify-between min-h-[240px] sm:min-h-[255px] transition-all duration-200 ${
         banner
           ? `fixture-card-banner ${banner.cardBg || 'bg-gradient-to-b from-[#E3EFFE] via-[#F0F6FE] to-[#FFFFF0]'} ${banner.borderColor || 'border-[#7BA7F8]'} ${banner.borderHoverColor || 'hover:border-[#0A3B8C]'} ${banner.shadow || 'shadow-[0_2px_12px_rgba(10,59,140,0.09)] hover:shadow-[0_4px_18px_rgba(10,59,140,0.16)]'}`
           : 'fixture-card-standard bg-[#FFFFF0] dark:bg-[#2A312D] border-[#DCDCC8] dark:border-[#414A43] hover:border-[#006C54]/50 dark:hover:border-[#006C54]/50 shadow-[0_1px_4px_rgba(0,0,0,0.03)] hover:shadow-[0_4px_14px_rgba(0,108,84,0.08)]'
@@ -712,169 +709,144 @@ export default function FixtureSportCard({
         </div>
       )}
 
-      <div className="relative z-10">
-        {/* Card Header: League Info & Live/FT Badge */}
-        <div className="flex items-center justify-between gap-2 mb-3 text-xs">
-          <div className="min-w-0">
-            <span className={`t-label truncate block ${banner ? 'font-bold text-black' : 'font-semibold text-slate-800 dark:text-slate-200'}`}>
-              {leagueDisplayTitle}
-            </span>
-          </div>
-
-          {scorePres.badgeVariant === 'halftime' ? (
-            <span className="text-[13px] font-bold text-red-600 [text-shadow:0_0_8px_rgba(220,38,38,0.85)] animate-pulse shrink-0 tracking-wide select-none">
-              HT
-            </span>
-          ) : scorePres.isLive ? (
-            <span className="text-[13px] font-bold text-red-600 [text-shadow:0_0_8px_rgba(220,38,38,0.85)] animate-pulse tabular-nums shrink-0 tracking-wide select-none">
-              {scorePres.badgeText}
-            </span>
-          ) : scorePres.badgeVariant === 'finished' ? (
-            <span className="text-[13px] font-bold text-black dark:text-white shrink-0 tracking-wide select-none">
-              FT
-            </span>
-          ) : scorePres.isPostponedOrCancelled ? (
-            <span className="text-[12px] font-medium text-rose-600 shrink-0 select-none">
-              {scorePres.badgeText}
-            </span>
-          ) : (
-            <span className={`t-meta flex items-center gap-1 shrink-0 ${banner ? 'font-bold text-black' : 'font-semibold text-slate-700 dark:text-slate-300'} select-none`}>
-              <Clock size={11} className={banner ? 'text-black' : 'text-slate-400'} />
-              {timeDisplay}
-            </span>
-          )}
-        </div>
-
-        {/* Team Names, Centered Score & Two-Column Scorers List */}
-        <Link
-          to={`/free/${match.id}`}
-          onClick={handleCardClick}
-          className="block group"
-        >
-          {/* Team Names & Logos: Rigidly Centered 'v' Divider */}
-          <div className="flex items-center justify-between gap-1.5 w-full min-w-0 text-center">
-            {/* Home Team (Left Half, right-aligned to hug the 'v') */}
-            <div className="flex-1 min-w-0 flex items-center justify-end gap-1.5">
-              {match.homeLogo && (
-                <img
-                  src={match.homeLogo}
-                  alt=""
-                  loading="lazy"
-                  decoding="async"
-                  referrerPolicy="no-referrer"
-                  className="w-4 h-4 sm:w-5 sm:h-5 object-contain shrink-0"
-                />
-              )}
-              <span
-                className="font-bold text-xs sm:text-sm text-slate-900 dark:text-white truncate group-hover:text-[#006C54] transition-colors"
-                title={match.home}
-              >
-                {match.home}
+      <div className="relative z-10 flex-1 flex flex-col justify-between">
+        <div>
+          {/* Card Header: League Info & Live/FT Badge */}
+          <div className="flex items-center justify-between gap-2 mb-3 text-xs">
+            <div className="min-w-0">
+              <span className={`t-label truncate block ${banner ? 'font-bold text-black' : 'font-semibold text-slate-800 dark:text-slate-200'}`}>
+                {leagueDisplayTitle}
               </span>
             </div>
 
-            {/* Exact Center 'v' Divider */}
-            <span className="text-xs text-slate-400 dark:text-slate-500 font-normal select-none shrink-0 px-1 text-center">
-              v
-            </span>
-
-            {/* Away Team (Right Half, left-aligned to hug the 'v') */}
-            <div className="flex-1 min-w-0 flex items-center justify-start gap-1.5">
-              <span
-                className="font-bold text-xs sm:text-sm text-slate-900 dark:text-white truncate group-hover:text-[#006C54] transition-colors"
-                title={match.away}
-              >
-                {match.away}
+            {scorePres.badgeVariant === 'halftime' ? (
+              <span className="text-[13px] font-bold text-red-600 [text-shadow:0_0_8px_rgba(220,38,38,0.85)] animate-pulse shrink-0 tracking-wide select-none">
+                HT
               </span>
-              {match.awayLogo && (
-                <img
-                  src={match.awayLogo}
-                  alt=""
-                  loading="lazy"
-                  decoding="async"
-                  referrerPolicy="no-referrer"
-                  className="w-4 h-4 sm:w-5 sm:h-5 object-contain shrink-0"
-                />
-              )}
-            </div>
+            ) : scorePres.isLive ? (
+              <span className="text-[13px] font-bold text-red-600 [text-shadow:0_0_8px_rgba(220,38,38,0.85)] animate-pulse tabular-nums shrink-0 tracking-wide select-none">
+                {scorePres.badgeText}
+              </span>
+            ) : scorePres.badgeVariant === 'finished' ? (
+              <span className="text-[13px] font-bold text-black dark:text-white shrink-0 tracking-wide select-none">
+                FT
+              </span>
+            ) : scorePres.isPostponedOrCancelled ? (
+              <span className="text-[12px] font-medium text-rose-600 shrink-0 select-none">
+                {scorePres.badgeText}
+              </span>
+            ) : (
+              <span className={`t-meta flex items-center gap-1 shrink-0 ${banner ? 'font-bold text-black' : 'font-semibold text-slate-700 dark:text-slate-300'} select-none`}>
+                <Clock size={11} className={banner ? 'text-black' : 'text-slate-400'} />
+                {timeDisplay}
+              </span>
+            )}
           </div>
 
-          {/* Centered Bold Score */}
-          <div className="text-center font-bold text-2xl tracking-tight text-slate-900 dark:text-white tabular-nums my-1">
-            {`${homeScoreDisplay} - ${awayScoreDisplay}`}
-          </div>
+          {/* Team Names, Centered Score & Two-Column Scorers List */}
+          <Link
+            to={`/free/${match.id}`}
+            onClick={handleCardClick}
+            className="block group"
+          >
+            {/* Team Names & Logos: Rigidly Centered 'v' Divider */}
+            <div className="flex items-center justify-between gap-1.5 w-full min-w-0 text-center">
+              {/* Home Team (Left Half, right-aligned to hug the 'v') */}
+              <div className="flex-1 min-w-0 flex items-center justify-end gap-1.5">
+                {match.homeLogo && (
+                  <img
+                    src={match.homeLogo}
+                    alt=""
+                    loading="lazy"
+                    decoding="async"
+                    referrerPolicy="no-referrer"
+                    className="w-4 h-4 sm:w-5 sm:h-5 object-contain shrink-0"
+                  />
+                )}
+                <span
+                  className="font-bold text-xs sm:text-sm text-slate-900 dark:text-white truncate group-hover:text-[#006C54] transition-colors"
+                  title={match.home}
+                >
+                  {match.home}
+                </span>
+              </div>
 
-          {/* Two-Column Scorer List with Centered CircleDot (rendered only when goals exist) */}
-          {allGoals.length > 0 && (
-            <div className="my-2 min-h-[26px] flex items-center justify-center">
-              <div className="w-full flex items-center justify-center gap-2 text-xs">
-                {/* Home Column (Right-aligned under Home Team) */}
-                <div className="flex-1 flex flex-col items-end justify-center min-w-0 space-y-0.5">
-                  {homeGoals.map((g) => renderGoalLine(g))}
-                </div>
+              {/* Exact Center 'v' Divider */}
+              <span className="text-xs text-slate-400 dark:text-slate-500 font-normal select-none shrink-0 px-1 text-center">
+                v
+              </span>
 
-                {/* Centered CircleDot Icon */}
-                <div className="shrink-0 flex items-center justify-center select-none px-0.5 self-center">
-                  <CircleDot size={13} className="text-slate-400 dark:text-slate-500" />
-                </div>
-
-                {/* Away Column (Left-aligned under Away Team) */}
-                <div className="flex-1 flex flex-col items-start justify-center min-w-0 space-y-0.5">
-                  {awayGoals.map((g) => renderGoalLine(g))}
-                </div>
+              {/* Away Team (Right Half, left-aligned to hug the 'v') */}
+              <div className="flex-1 min-w-0 flex items-center justify-start gap-1.5">
+                <span
+                  className="font-bold text-xs sm:text-sm text-slate-900 dark:text-white truncate group-hover:text-[#006C54] transition-colors"
+                  title={match.away}
+                >
+                  {match.away}
+                </span>
+                {match.awayLogo && (
+                  <img
+                    src={match.awayLogo}
+                    alt=""
+                    loading="lazy"
+                    decoding="async"
+                    referrerPolicy="no-referrer"
+                    className="w-4 h-4 sm:w-5 sm:h-5 object-contain shrink-0"
+                  />
+                )}
               </div>
             </div>
-          )}
 
-          {activeNotification?.kind === 'var' && (
-            <div className="flex justify-center text-[11px] font-bold text-black [text-shadow:0_0_6px_rgba(0,0,0,0.8),0_0_12px_rgba(0,0,0,0.5)] animate-pulse whitespace-nowrap mb-1">
-              <span>{activeNotification.decision ? `VAR · ${activeNotification.decision}` : 'VAR'}</span>
+            {/* Centered Bold Score */}
+            <div className="text-center font-bold text-2xl tracking-tight text-slate-900 dark:text-white tabular-nums my-1">
+              {`${homeScoreDisplay} - ${awayScoreDisplay}`}
             </div>
-          )}
-        </Link>
 
-        {/* Consensus Split Progress Bar */}
-        <div className="mt-2.5">
-          <div className="flex items-center justify-between t-meta text-slate-600 dark:text-slate-400 mb-1">
-            <span className="flex items-center gap-1">
-              <Flame size={11} className="text-[#006C54]" /> Consensus: <strong className="text-slate-900 dark:text-white font-semibold">{majLabel}</strong>
-            </span>
-            <span className="t-num font-semibold text-slate-800 dark:text-slate-200">{majority}%</span>
-          </div>
-          <div className={`w-full rounded-full h-1.5 flex overflow-hidden ${banner ? banner.consensusTrackBg || 'bg-[#DDE8F8]' : 'bg-[#E6E6D2] dark:bg-[#414A43]'}`}>
-            <div
-              style={{ width: `${consensus.homePct}%` }}
-              className="bg-[#006C54] transition-all duration-500"
-              title={`Home: ${consensus.homePct}%`}
-            />
-            <div
-              style={{ width: `${consensus.drawPct}%` }}
-              className="bg-[#EEAA04] transition-all duration-500"
-              title={`Draw: ${consensus.drawPct}%`}
-            />
-            <div
-              style={{ width: `${consensus.awayPct}%` }}
-              className="bg-rose-500 transition-all duration-500"
-              title={`Away: ${consensus.awayPct}%`}
-            />
-          </div>
+            {/* Two-Column Scorer List with Centered CircleDot (rendered only when goals exist) */}
+            {allGoals.length > 0 && (
+              <div className="my-2 min-h-[26px] flex items-center justify-center">
+                <div className="w-full flex items-center justify-center gap-2 text-xs">
+                  {/* Home Column (Right-aligned under Home Team) */}
+                  <div className="flex-1 flex flex-col items-end justify-center min-w-0 space-y-0.5">
+                    {homeGoals.map((g) => renderGoalLine(g))}
+                  </div>
+
+                  {/* Centered CircleDot Icon */}
+                  <div className="shrink-0 flex items-center justify-center select-none px-0.5 self-center">
+                    <CircleDot size={13} className="text-slate-400 dark:text-slate-500" />
+                  </div>
+
+                  {/* Away Column (Left-aligned under Away Team) */}
+                  <div className="flex-1 flex flex-col items-start justify-center min-w-0 space-y-0.5">
+                    {awayGoals.map((g) => renderGoalLine(g))}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {activeNotification?.kind === 'var' && (
+              <div className="flex justify-center text-[11px] font-bold text-black [text-shadow:0_0_6px_rgba(0,0,0,0.8),0_0_12px_rgba(0,0,0,0.5)] animate-pulse whitespace-nowrap mb-1">
+                <span>{activeNotification.decision ? `VAR · ${activeNotification.decision}` : 'VAR'}</span>
+              </div>
+            )}
+          </Link>
         </div>
-      </div>
 
-      {/* Card Footer: Details & Discussion Link & Punters Counter (No Bet Builder) */}
-      <div className={`relative z-10 pt-3 mt-3 border-t flex items-center justify-between gap-2 ${banner ? banner.dividerColor || 'border-[#D9E7F9]' : 'border-[#F0F0E4] dark:border-[#414A43]'}`}>
-        <Link
-          to={`/free/${match.id}`}
-          onClick={handleCardClick}
-          className="inline-flex items-center gap-1 text-xs font-semibold text-[#006C54] hover:text-[#005441] transition-colors"
-        >
-          <span>Details &amp; Discussion</span>
-          <ArrowRight size={12} />
-        </Link>
+        {/* Card Footer: Details & Discussion Link & Punters Counter (No Bet Builder) */}
+        <div className={`pt-3 mt-3 border-t flex items-center justify-between gap-2 ${banner ? banner.dividerColor || 'border-[#D9E7F9]' : 'border-[#F0F0E4] dark:border-[#414A43]'}`}>
+          <Link
+            to={`/free/${match.id}`}
+            onClick={handleCardClick}
+            className="inline-flex items-center gap-1 text-xs font-semibold text-[#006C54] hover:text-[#005441] transition-colors"
+          >
+            <span>Details &amp; Discussion</span>
+            <ArrowRight size={12} />
+          </Link>
 
-        <div className="inline-flex items-center gap-1 text-xs text-slate-500 dark:text-slate-400 select-none">
-          <Users size={13} className="text-slate-400 dark:text-slate-500 shrink-0" />
-          <span className="tabular-nums font-normal">{consensus.totalVotes.toLocaleString()}</span>
+          <div className="inline-flex items-center gap-1 text-xs text-slate-500 dark:text-slate-400 select-none">
+            <Users size={13} className="text-slate-400 dark:text-slate-500 shrink-0" />
+            <span className="tabular-nums font-normal">{consensus.totalVotes.toLocaleString()}</span>
+          </div>
         </div>
       </div>
     </div>
