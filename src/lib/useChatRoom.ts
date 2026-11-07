@@ -8,47 +8,91 @@ import {
 } from './chatRoomStore';
 import { useCurrentUser } from './authStore';
 
-const MOCK_REPLIES = [
-  'Hapo niko na wewe boss, form yao leo iko locked.',
-  'Hii game draw ni bait, away side watashinda.',
-  'Banker bila stress! Wacha tuchukue mapema.',
-  'Hiyo first half defensive play ilikuwa shaky, second half kutakuwa na goals.',
-  'Hapa ni kuamini slip na kutulia tu.',
-  'Over 1.5 tayari inaiva, tusiwe na haraka.',
-  'Mimi nilishika 1X double chance mapema, so tuko safe kabisa.',
-  'Momentum iko upande wao kabisa hii second half.',
+// ── PRE-MATCH (Scheduled / Not Yet Started) ───────────────────────────
+// Strictly discussions about analysis, predictions, odds value, and convictions.
+// NEVER mentions imaginary live scores or in-play events!
+const PRE_MATCH_TRAFFIC_COMMENTS = [
+  'Lineups za leo zimetoka, tactical setup iko sharp.',
+  'Mimi niko na conviction kubwa na home win leo.',
+  'Hii fixture odds za draw ziko na value poa sana.',
+  'Nani mwingine ameweka double chance 1X kwa multi-bet?',
+  'Picks za leo ziko na analysis safi, lets see kickoff.',
+  'Head to head records zinapeana advantage kwa home team.',
+  'Hapa ni kuamini slip mapema kabla odds zishuke.',
+  'Mimi nilishika over 1.5 kwa banker slip yangu.',
+  'Form guide inaonyesha away team wako na momentum nzuri.',
+  'Clean sheet inawezekana sana kulingana na defense yao.',
+  'Kiprotich naye alitabiri BTTS kwa hii fixture.',
+  'Odd ya over 2.5 iko juu sana, inaweza kuwa trap au value.',
+];
+
+const PRE_MATCH_REPLIES = [
+  'Hapo niko na wewe boss, form yao kwa home ground ni solid.',
+  'Mimi nimeamua kuweka 1X double chance kukuwa safe.',
+  'Banker pick bila stress, stats zao za recent games ziko wazi.',
+  'Hiyo prediction iko on point, midfield yao iko fit leo.',
+  'Kama kawa, hapa ni kuamini analysis na kutulia tu.',
+  'Hii game away side defense iko shaky, wanaweza admit goals.',
   'Picks za leo ziko na conviction kali sana!',
-  'True analysis bro, midfield yao iko on fire leo.',
-  'Corner count pia inaenda juu sana leo.',
-  'Kama kawaida, hii league haina easy fixtures.',
-  'Subs za second half zitaamua game.',
+  'Tuko pamoja kwa hio pick bro, lets lock it in!',
 ];
 
-const ONGOING_TRAFFIC_COMMENTS = [
-  'Hii pressure ya away team ni moto sana leo!',
-  'Ref anapeana easy cards, someone might see red soon.',
-  'Kila mtu asimame imara na slip zake.',
-  'Pace ya game iko juu sana!',
-  'Winger wao anasumbua backline kila dakika.',
-  'Odds za live market zinabadilika haraka sana.',
-  'Over 2.5 banker bado iko hai kabisa.',
-  'Tactical change imefanya midfield kuwa wazi.',
-  'Shots on target zinaongezeka, goal inaninginia.',
-  'Kipa wao leo ameamka poa sana, saves deadly!',
-  'Hii match draw itakuwa surprise kubwa.',
-  'Tumeingia second half na moto ile ile.',
+const PRE_MATCH_INITIAL = [
+  'Lineups za leo zimetoka, tactical setup iko sharp.',
+  'Hii fixture inaonekana kuwa na value kubwa sana kwenye odds.',
+  'Mimi niko na over 1.5 kwa banker slip yangu.',
+  'Nani mwingine anaback home win kwa hii game?',
 ];
 
-const INITIAL_CONVERSATIONS: Record<string, string[]> = {
-  default: [
-    'Lineups za leo zimetoka, tactical setup iko sharp.',
-    'Hii match inaonekana kuwa na high tempo kutoka kickoff.',
-    'Mimi niko na over 2.5 kwa multi-bet yangu.',
-    'Odds za home win ziko na value poa sana.',
-  ],
-};
+// ── LIVE MATCH (In-Play) ──────────────────────────────────────────────
+// General flow, momentum, and game atmosphere. NEVER declares false scores!
+const LIVE_TRAFFIC_COMMENTS = [
+  'High tempo game, kila mtu ashikilie slip yake.',
+  'Midfield battle iko tight sana pande zote mbili.',
+  'Pace ya hii game iko juu sana.',
+  'Tactical adjustments zitakuwa key hapa.',
+  'Game inaendelea kuwa nzuri sana kuwatch.',
+  'Tuko pamoja kwa hizi picks, let\'s stay focused.',
+  'Hii fixture defense ya wote iko committed kabisa.',
+  'Hapa ni kuangalia stats za live match kwa makini.',
+];
 
-export function useChatRoom(roomId: string, isRoomOpen = true) {
+const LIVE_REPLIES = [
+  'True analysis bro, hii game iko na intensity ya hali ya juu.',
+  'Kila mtu asimame imara na slip zake, 90 mins ni nyingi.',
+  'Momentum inabadilika haraka sana, game iko open.',
+  'Good observation boss, lets see how it unfolds.',
+  'Tunaomba slips zetu zihold up vizuri mpaka mwisho.',
+];
+
+const LIVE_INITIAL = [
+  'Game inaendelea na high intensity pande zote.',
+  'Tactical battle nzuri sana, kila mtu awe macho na slips.',
+  'Live odds zinabadilika kulingana na match tempo.',
+];
+
+// ── FINISHED MATCH (Full Time) ────────────────────────────────────────
+const FINISHED_TRAFFIC_COMMENTS = [
+  'Game imeisha, slip ilishika poa kabisa!',
+  'Hiyo ilikuwa tough match pande zote mbili.',
+  'Analysis ya leo ilikuwa on point kwa hii fixture.',
+  'Wacha tujiandae kwa game inayofuata kwenye slate.',
+  'Good match overall, let\'s review our final consensus.',
+];
+
+const FINISHED_REPLIES = [
+  'Kabisa boss, hio prediction ililipa safi sana.',
+  'Tough result lakini consensus ilikuwa close.',
+  'Slips za leo zimetembea vizuri, on to the next one!',
+];
+
+const FINISHED_INITIAL = [
+  'Full time result is locked in.',
+  'Great discussion and analysis on this fixture today.',
+  'Let\'s prepare for the upcoming matches on the slate.',
+];
+
+export function useChatRoom(roomId: string, isRoomOpen = true, matchStatus: string = 'pre') {
   const currentUser = useCurrentUser();
   const roomMessages = useChatRoomStore((s) => s.messagesByRoom[roomId] || []);
   const addMessageToStore = useChatRoomStore((s) => s.addMessage);
@@ -66,10 +110,32 @@ export function useChatRoom(roomId: string, isRoomOpen = true) {
     return isRoomOpen ? baseCount + 1 : baseCount;
   }, [mockParticipants.length, isRoomOpen]);
 
+  // Determine conversation category based on match lifecycle
+  const isLive = matchStatus === 'in' || matchStatus === 'awaiting_confirmation';
+  const isFinished = matchStatus === 'post' || matchStatus === 'finished';
+
+  const trafficComments = isLive
+    ? LIVE_TRAFFIC_COMMENTS
+    : isFinished
+    ? FINISHED_TRAFFIC_COMMENTS
+    : PRE_MATCH_TRAFFIC_COMMENTS;
+
+  const mockReplies = isLive
+    ? LIVE_REPLIES
+    : isFinished
+    ? FINISHED_REPLIES
+    : PRE_MATCH_REPLIES;
+
+  const initialSeeds = isLive
+    ? LIVE_INITIAL
+    : isFinished
+    ? FINISHED_INITIAL
+    : PRE_MATCH_INITIAL;
+
   // Seed initial room messages if empty
   useEffect(() => {
     if (roomMessages.length === 0 && mockParticipants.length >= 3) {
-      const seeds = INITIAL_CONVERSATIONS.default;
+      const seeds = initialSeeds;
       const now = Date.now();
       seeds.forEach((text, i) => {
         const participant = mockParticipants[i % mockParticipants.length];
@@ -81,12 +147,12 @@ export function useChatRoom(roomId: string, isRoomOpen = true) {
           colorSeed: participant.colorSeed,
           avatarId: participant.avatarId,
           text,
-          sentAt: now - (seeds.length - i) * 120000, // 2-8 mins ago
+          sentAt: now - (seeds.length - i) * 120000,
         };
         addMessageToStore(roomId, seedMsg);
       });
     }
-  }, [roomId, roomMessages.length, mockParticipants, addMessageToStore]);
+  }, [roomId, roomMessages.length, mockParticipants, addMessageToStore, initialSeeds]);
 
   // Cleanup all typing timers on unmount
   useEffect(() => {
@@ -136,14 +202,12 @@ export function useChatRoom(roomId: string, isRoomOpen = true) {
       return;
     }
 
-    // Interval to emulate active room comments
+    // Interval to emulate active room comments without inventing scores
     const interval = setInterval(() => {
       const randomParticipant =
         mockParticipants[Math.floor(Math.random() * mockParticipants.length)];
       const randomComment =
-        ONGOING_TRAFFIC_COMMENTS[
-          Math.floor(Math.random() * ONGOING_TRAFFIC_COMMENTS.length)
-        ];
+        trafficComments[Math.floor(Math.random() * trafficComments.length)];
 
       // Briefly show typing
       setMockUserTyping(randomParticipant, 1400);
@@ -165,7 +229,7 @@ export function useChatRoom(roomId: string, isRoomOpen = true) {
       }, 1400);
 
       typingTimersRef.current.set(`traffic-post-${Date.now()}`, postTimer);
-    }, 8500); // every 8.5 seconds
+    }, 9500);
 
     backgroundTrafficIntervalRef.current = interval;
 
@@ -173,7 +237,7 @@ export function useChatRoom(roomId: string, isRoomOpen = true) {
       clearInterval(interval);
       backgroundTrafficIntervalRef.current = null;
     };
-  }, [isRoomOpen, roomId, mockParticipants, addMessageToStore, setMockUserTyping]);
+  }, [isRoomOpen, roomId, mockParticipants, addMessageToStore, setMockUserTyping, trafficComments]);
 
   // When current user types, trigger a mock user typing as well
   const notifyTyping = useCallback(() => {
@@ -207,13 +271,13 @@ export function useChatRoom(roomId: string, isRoomOpen = true) {
 
       addMessageToStore(roomId, userMsg);
 
-      // Simulate a realistic mock reply after user sends a message
+      // Simulate a realistic mock reply matching the match lifecycle
       if (mockParticipants.length > 0) {
         const availableMocks = mockParticipants.filter((m) => m.id !== userId);
         const responder =
           availableMocks[Math.floor(Math.random() * availableMocks.length)];
         const replyText =
-          MOCK_REPLIES[Math.floor(Math.random() * MOCK_REPLIES.length)];
+          mockReplies[Math.floor(Math.random() * mockReplies.length)];
 
         // Start typing after 600ms
         const typingDelay = setTimeout(() => {
@@ -246,7 +310,7 @@ export function useChatRoom(roomId: string, isRoomOpen = true) {
         typingTimersRef.current.set(`reply-send-${Date.now()}`, sendDelay);
       }
     },
-    [currentUser, roomId, mockParticipants, addMessageToStore, setMockUserTyping]
+    [currentUser, roomId, mockParticipants, addMessageToStore, setMockUserTyping, mockReplies]
   );
 
   return {

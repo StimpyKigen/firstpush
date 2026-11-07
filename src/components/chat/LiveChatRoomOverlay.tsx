@@ -28,7 +28,7 @@ export default function LiveChatRoomOverlay({
     sendMessage,
     notifyTyping,
     currentUserId,
-  } = useChatRoom(roomId, isOpen);
+  } = useChatRoom(roomId, isOpen, match.status || 'pre');
 
   // Lock body scroll while open
   useEffect(() => {

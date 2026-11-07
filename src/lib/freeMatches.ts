@@ -464,6 +464,30 @@ export function updateMatchAuthoritativeDetail(matchId: string, detailInput: Aut
     if (!isTarget) return m;
 
     const detailed = parseDetailedMatchStatus(detail.status, detail.status_text, detail.live_minute);
+
+    // Safety guard against historical slug collisions:
+    // Future fixtures cannot be converted to finished ('post') or live ('in') by historical slug results.
+    const kickoffMs = m.kickoffIso
+      ? Date.parse(m.kickoffIso)
+      : (m.kickoff ? Date.parse(m.kickoff) : NaN);
+    const isFutureMatch = Number.isFinite(kickoffMs) && kickoffMs > Date.now() + 5 * 60 * 1000;
+    if (isFutureMatch && (detailed.status === 'post' || detailed.status === 'in')) {
+      return m;
+    }
+
+    // Safety guard: If the detail specifies a kickoff date that diverges by > 24 hours from m, ignore it
+    const incomingKickoff = (detail as any).kickoff || (detail as any).time || (detail as any).kickoffIso;
+    if (incomingKickoff) {
+      const incomingMs = Date.parse(String(incomingKickoff));
+      if (
+        Number.isFinite(incomingMs) &&
+        Number.isFinite(kickoffMs) &&
+        Math.abs(incomingMs - kickoffMs) > 24 * 3600 * 1000
+      ) {
+        return m;
+      }
+    }
+
     const isPermitted = isStatusTransitionValid(
       m.status || 'pre',
       m.period || 'scheduled',

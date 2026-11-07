@@ -128,7 +128,45 @@ async function runTests() {
   assert(listHtml.includes('Second consecutive message from Nostradamus'), 'ChatMessageList renders message 2');
   assert(listHtml.includes('You'), 'ChatMessageList renders "You" for current user');
 
-  console.log('\n🎉 ALL LIVE CHAT ROOM UNIT & RENDER TESTS PASSED!\n');
+  console.log('\n--- 6. Testing Safeguard Against False Match Simulation ---');
+  const { setUploadedFreeMatches, getFreeMatch, updateMatchAuthoritativeDetail } = await import('../src/lib/freeMatches');
+
+  const futureKickoff = new Date(Date.now() + 24 * 3600 * 1000).toISOString();
+  const testFutureMatch = {
+    id: 'mkt-test-future-fixture',
+    home: 'Chelsea',
+    away: 'Sunderland',
+    homeScore: null,
+    awayScore: null,
+    status: 'pre' as const,
+    period: 'scheduled' as const,
+    kickoffIso: futureKickoff,
+    kickoff: futureKickoff,
+    time: '20:00',
+    date: 'Tomorrow',
+    league: 'Premier League',
+    competition: 'Premier League',
+    hasOdds: false,
+  };
+
+  setUploadedFreeMatches([testFutureMatch as any]);
+  assert(getFreeMatch('mkt-test-future-fixture')?.status === 'pre', 'Future fixture initialized with status "pre"');
+
+  // Attempt to apply a historical/simulated match detail claiming FT 2-1
+  updateMatchAuthoritativeDetail('mkt-test-future-fixture', {
+    status: 'finished',
+    status_text: 'FT',
+    home_score: 2,
+    away_score: 1,
+    url: 'chelsea-vs-sunderland',
+  });
+
+  const guardedMatch = getFreeMatch('mkt-test-future-fixture');
+  assert(guardedMatch?.status === 'pre', 'Safeguard blocked future match from transitioning to "post" (FT)');
+  assert(guardedMatch?.homeScore === null, 'Safeguard kept homeScore null (no false score injected)');
+  assert(guardedMatch?.awayScore === null, 'Safeguard kept awayScore null (no false score injected)');
+
+  console.log('\n🎉 ALL LIVE CHAT ROOM & SAFEGUARD TESTS PASSED!\n');
 }
 
 runTests().catch((err) => {

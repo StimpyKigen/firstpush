@@ -1325,13 +1325,38 @@ export async function fetchAuthoritativeSportScoreMatchDetail(
         true
       );
 
-      if (existing || isCompetitionEligible({
-        id: normFixture.competitionId,
-        providerId: normFixture.providerId,
-        slug: normFixture.leagueCode,
-        competition: normFixture.competition,
-        country: normFixture.country,
-      })) {
+      let shouldIngest = Boolean(
+        existing ||
+        isCompetitionEligible({
+          id: normFixture.competitionId,
+          providerId: normFixture.providerId,
+          slug: normFixture.leagueCode,
+          competition: normFixture.competition,
+          country: normFixture.country,
+        })
+      );
+
+      // Strict sanity guards against historical slug collisions:
+      if (existing && shouldIngest) {
+        const existKickoffMs = existing.kickoffIso
+          ? Date.parse(existing.kickoffIso)
+          : (existing.kickoff ? Date.parse(existing.kickoff) : NaN);
+        const incomingKickoffMs = parsedKickoffIso ? Date.parse(parsedKickoffIso) : NaN;
+        const isKickoffDivergent =
+          Number.isFinite(existKickoffMs) &&
+          Number.isFinite(incomingKickoffMs) &&
+          Math.abs(existKickoffMs - incomingKickoffMs) > 24 * 3600 * 1000;
+        const isFutureMatch =
+          Number.isFinite(existKickoffMs) && existKickoffMs > Date.now() + 5 * 60 * 1000;
+
+        // If kickoff dates diverge by > 24 hours, or if existing is a future-scheduled fixture
+        // but incoming detail says finished or in-play, reject ingestion!
+        if (isKickoffDivergent || (isFutureMatch && (detailed.status === 'post' || detailed.status === 'in'))) {
+          shouldIngest = false;
+        }
+      }
+
+      if (shouldIngest) {
         ingestFixtures([normFixture], true);
       }
     }

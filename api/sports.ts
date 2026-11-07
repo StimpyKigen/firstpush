@@ -152,7 +152,8 @@ export default async function handler(req: any, res: any) {
     }
 
     try {
-      const detail = await fetchAuthoritativeSportScoreMatchDetail(slug, { ingestIntoStore: true });
+      // Keep match-detail proxy read-only (ingestIntoStore: false) so reading detail never pollutes live fixturesStore
+      const detail = await fetchAuthoritativeSportScoreMatchDetail(slug, { ingestIntoStore: false });
       if (!detail) {
         return res.status(404).json({ error: 'SportScore match detail not found.' });
       }
