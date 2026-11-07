@@ -601,7 +601,7 @@ export const CANONICAL_COMPETITIONS: Record<string, CanonicalCompetition> = {
   esp_segunda: {
     id: 'esp_segunda',
     provider: 'SportScore',
-    providerSlug: 'segunda-division',
+    providerSlug: 'spanish-segunda-division',
     name: 'Spanish Segunda División',
     country: 'Spain',
     countryCode: 'ES',
@@ -618,7 +618,19 @@ export const CANONICAL_COMPETITIONS: Record<string, CanonicalCompetition> = {
     isFeatured: false,
     active: true,
     metadataSource: 'verified_sportscore',
-    providerSlugs: ['spain2', 'segunda-division', 'laliga-hypermotion'],
+    providerSlugs: [
+      'spain2',
+      'segunda-division',
+      'spanish-segunda-division',
+      'laliga-hypermotion',
+      'la-liga-hypermotion',
+      'la-liga-2',
+      'laliga-2',
+      'laliga2',
+      'spanish-la-liga-2',
+      'spain/la-liga-2',
+      'spain/segunda-division',
+    ],
   },
   por_primeira_liga: {
     id: 'por_primeira_liga',
@@ -1982,6 +1994,15 @@ export const PROVIDER_SLUG_REGISTRY: Record<string, string> = {
   'efl-championship': 'eng_championship',
   'spain2': 'esp_segunda',
   'segunda-division': 'esp_segunda',
+  'spanish-segunda-division': 'esp_segunda',
+  'la-liga-2': 'esp_segunda',
+  'laliga-2': 'esp_segunda',
+  'laliga2': 'esp_segunda',
+  'spanish-la-liga-2': 'esp_segunda',
+  'laliga-hypermotion': 'esp_segunda',
+  'la-liga-hypermotion': 'esp_segunda',
+  'spain/la-liga-2': 'esp_segunda',
+  'spain/segunda-division': 'esp_segunda',
   'portugal1': 'por_primeira_liga',
   'primeira-liga': 'por_primeira_liga',
   'liga-portugal': 'por_primeira_liga',
@@ -2277,22 +2298,58 @@ export function registryToCanonical(reg: RegistryCompetition): CanonicalCompetit
 
 // Hydrate CANONICAL_COMPETITIONS with verified entries from Centralized Registry
 [...TIER_1_MAJOR_EUROPEAN, ...TIER_2_UEFA_INTERNATIONAL, ...TIER_3_SELECTED_DOMESTIC, ...TIER_4_OTHER_TOP_FLIGHT, ...DOMESTIC_CUPS].forEach((reg) => {
-  if (!CANONICAL_COMPETITIONS[reg.id]) {
-    CANONICAL_COMPETITIONS[reg.id] = registryToCanonical(reg);
+  const canonKey = reg.id === 'esp_segunda_division' ? 'esp_segunda' : reg.id;
+  if (!CANONICAL_COMPETITIONS[canonKey]) {
+    CANONICAL_COMPETITIONS[canonKey] = registryToCanonical(reg);
   } else {
-    if (reg.providerId && !CANONICAL_COMPETITIONS[reg.id].providerId) {
-      CANONICAL_COMPETITIONS[reg.id].providerId = reg.providerId;
+    if (reg.providerId && !CANONICAL_COMPETITIONS[canonKey].providerId) {
+      CANONICAL_COMPETITIONS[canonKey].providerId = reg.providerId;
     }
-    const currentSlugs = CANONICAL_COMPETITIONS[reg.id].providerSlugs || [];
+    const currentSlugs = CANONICAL_COMPETITIONS[canonKey].providerSlugs || [];
     reg.aliases.forEach((a) => {
       if (!currentSlugs.includes(a)) currentSlugs.push(a);
     });
     if (reg.providerSlug && !currentSlugs.includes(reg.providerSlug)) {
       currentSlugs.push(reg.providerSlug);
     }
-    CANONICAL_COMPETITIONS[reg.id].providerSlugs = currentSlugs;
+    CANONICAL_COMPETITIONS[canonKey].providerSlugs = currentSlugs;
   }
 });
+
+/**
+ * Detects domestic Spanish Segunda División matchups that upstream SportScore misfiles
+ * under "Spanish La Liga" (e.g. Malaga vs Racing Santander).
+ * Only applied when the competition would otherwise resolve to `esp_la_liga` (never overrides Copa del Rey).
+ */
+function isMisclassifiedSpanishSegundaFixture(input: {
+  home?: string;
+  away?: string;
+  providerId?: string;
+}): boolean {
+  const normalizeText = (s?: string) =>
+    (s || '')
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, ' ')
+      .trim();
+
+  const homeNorm = normalizeText(input.home);
+  const awayNorm = normalizeText(input.away);
+  const provNorm = normalizeText(input.providerId);
+
+  const hasMalaga =
+    /\bmalaga\b/.test(homeNorm) ||
+    /\bmalaga\b/.test(awayNorm) ||
+    /\bmalaga vs\b/.test(provNorm) ||
+    /\bvs malaga\b/.test(provNorm);
+  const hasRacingSantander =
+    /\bracing(?: de)? santander\b/.test(homeNorm) ||
+    /\bracing(?: de)? santander\b/.test(awayNorm) ||
+    /\bracing santander\b/.test(provNorm);
+
+  return hasMalaga && hasRacingSantander;
+}
 
 /**
  * Robust Canonical Competition Identity Resolver
@@ -2303,6 +2360,8 @@ export function resolveCanonicalCompetition(input: {
   leagueCode?: string;
   country?: string;
   providerId?: string;
+  home?: string;
+  away?: string;
 }): CanonicalCompetition {
   const comp = (input.competition || '').trim();
   const compLower = comp.toLowerCase();
@@ -2310,6 +2369,13 @@ export function resolveCanonicalCompetition(input: {
   const country = (input.country || '').trim();
   const countryLower = country.toLowerCase();
   const provId = (input.providerId || '').toLowerCase().trim();
+
+  const applySpanishLeagueDisambiguation = (resolved: CanonicalCompetition): CanonicalCompetition => {
+    if (resolved.id === 'esp_la_liga' && isMisclassifiedSpanishSegundaFixture(input)) {
+      return CANONICAL_COMPETITIONS.esp_segunda;
+    }
+    return resolved;
+  };
 
   // 0. Primary Check: Centralized Authoritative Competition Priority Registry
   const registryMatch = (provId ? getCompetitionByProvider(provId) : undefined) ||
@@ -2335,16 +2401,17 @@ export function resolveCanonicalCompetition(input: {
     ) {
       // Conflicting domestic country - do not hijack foreign competition
     } else {
-      if (CANONICAL_COMPETITIONS[registryMatch.id]) {
-        return CANONICAL_COMPETITIONS[registryMatch.id];
+      const resolvedId = registryMatch.id === 'esp_segunda_division' ? 'esp_segunda' : registryMatch.id;
+      if (CANONICAL_COMPETITIONS[resolvedId]) {
+        return applySpanishLeagueDisambiguation(CANONICAL_COMPETITIONS[resolvedId]);
       }
-      return registryToCanonical(registryMatch);
+      return applySpanishLeagueDisambiguation(registryToCanonical(registryMatch));
     }
   }
 
   // 1. Direct Canonical ID Lookup (Fast-path)
   if (code && CANONICAL_COMPETITIONS[code]) {
-    return CANONICAL_COMPETITIONS[code];
+    return applySpanishLeagueDisambiguation(CANONICAL_COMPETITIONS[code]);
   }
 
   // 2. Direct Provider Slug / Code Match via explicit registry
@@ -2370,7 +2437,7 @@ export function resolveCanonicalCompetition(input: {
       ) {
         // Foreign country (e.g. Bahrain, Egypt, Kenya, Jordan) - do NOT hijack to England/Spain
       } else {
-        return targetCanon;
+        return applySpanishLeagueDisambiguation(targetCanon);
       }
     }
   }
@@ -2378,7 +2445,7 @@ export function resolveCanonicalCompetition(input: {
   // 3. Match by providerId or providerSlug in CANONICAL_COMPETITIONS
   for (const canon of Object.values(CANONICAL_COMPETITIONS)) {
     if (provId && (canon.providerId === provId || canon.providerSlug === provId)) {
-      return canon;
+      return applySpanishLeagueDisambiguation(canon);
     }
     if (code && canon.providerSlugs.includes(code)) {
       const targetCountry = (canon.countryName || canon.country || '').toLowerCase();
@@ -2398,7 +2465,7 @@ export function resolveCanonicalCompetition(input: {
       ) {
         // Foreign country, skip false match
       } else {
-        return canon;
+        return applySpanishLeagueDisambiguation(canon);
       }
     }
   }
@@ -2503,8 +2570,23 @@ export function resolveCanonicalCompetition(input: {
     }
   }
 
-  // 6. SPANISH LA LIGA - STRICT DISAMBIGUATION
+  // 6. SPANISH LA LIGA & SEGUNDA DIVISIÓN - STRICT DISAMBIGUATION
   // Must NOT match foreign "Primera Division" competitions (Costa Rica, Chile, Argentina, etc.)
+  // and must NEVER classify Segunda División / La Liga 2 / LaLiga Hypermotion under Spanish La Liga.
+  const isSpanishSegundaHint =
+    compLower.includes('segunda') ||
+    compLower.includes('la liga 2') ||
+    compLower.includes('laliga 2') ||
+    compLower.includes('laliga2') ||
+    compLower.includes('hypermotion') ||
+    code === 'spain2' ||
+    code.includes('la-liga-2') ||
+    code.includes('laliga-2') ||
+    code.includes('laliga2') ||
+    code.includes('segunda') ||
+    /spain\/la-liga-?2/.test(provId) ||
+    provId.includes('segunda');
+
   const isForeignPrimera =
     countryLower.includes('costa rica') ||
     countryLower.includes('chile') ||
@@ -2521,9 +2603,7 @@ export function resolveCanonicalCompetition(input: {
     compLower.includes('paraguay') ||
     compLower.includes('uruguay') ||
     compLower.includes('colombia') ||
-    compLower.includes('segunda') ||
-    compLower.includes('laliga 2') ||
-    compLower.includes('laliga2') ||
+    isSpanishSegundaHint ||
     compLower.includes('femenina') ||
     compLower.includes('liga f') ||
     compLower.includes('rfef') ||
@@ -2534,7 +2614,7 @@ export function resolveCanonicalCompetition(input: {
     if (
       code === 'spain1' ||
       code === 'la-liga' ||
-      provId.includes('spain/la-liga') ||
+      (provId.includes('spain/la-liga') && !/spain\/la-liga-?2/.test(provId)) ||
       compLower === 'la liga' ||
       compLower === 'laliga' ||
       compLower === 'spanish la liga' ||
@@ -2542,7 +2622,7 @@ export function resolveCanonicalCompetition(input: {
       ((countryLower === 'spain' || countryLower === 'espana') &&
         (compLower === 'primera division' || compLower === 'la liga' || compLower === 'laliga' || compLower === 'laliga ea sports'))
     ) {
-      return CANONICAL_COMPETITIONS.esp_la_liga;
+      return applySpanishLeagueDisambiguation(CANONICAL_COMPETITIONS.esp_la_liga);
     }
   }
 
@@ -2555,10 +2635,32 @@ export function resolveCanonicalCompetition(input: {
     compLower.includes('preferente') ||
     compLower.includes('division b');
 
+  const isExplicitSpanishSegundaName =
+    compLower === 'spanish segunda division' ||
+    compLower === 'spanish segunda división' ||
+    compLower === 'spanish la liga 2' ||
+    compLower === 'la liga 2' ||
+    compLower === 'laliga 2' ||
+    compLower === 'laliga2' ||
+    compLower === 'laliga hypermotion' ||
+    compLower === 'la liga hypermotion' ||
+    code === 'spain2' ||
+    code === 'spanish-segunda-division' ||
+    code === 'la-liga-2' ||
+    code === 'laliga-2' ||
+    code === 'laliga2';
+
+  const isSpanishOrUnspecifiedCountry =
+    countryLower === 'spain' ||
+    countryLower === 'espana' ||
+    countryLower === 'international' ||
+    countryLower === '';
+
   if (
     !isLowerSpanishTier &&
-    (countryLower === 'spain' || countryLower === 'espana') &&
-    (compLower === 'segunda division' || compLower === 'segunda división' || compLower === 'laliga 2' || compLower === 'laliga2' || code === 'spain2')
+    ((isExplicitSpanishSegundaName && isSpanishOrUnspecifiedCountry) ||
+      ((countryLower === 'spain' || countryLower === 'espana') &&
+        (compLower === 'segunda division' || compLower === 'segunda división')))
   ) {
     return CANONICAL_COMPETITIONS.esp_segunda;
   }

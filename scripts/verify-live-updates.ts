@@ -26,6 +26,7 @@ import {
   queryMarketFixtures,
 } from '../src/lib/sportsFeedService.js';
 import { sanitizeFrontendFixtureLifecycle } from '../src/lib/footballApi.js';
+import { resolveCanonicalCompetition } from '../src/lib/canonicalCompetitions.js';
 import {
   getMatchScorePresentation,
   isCompletedMatch,
@@ -823,6 +824,127 @@ async function section7() {
   ok('Post-10:00 UTC match (RB Leipzig vs FC Augsburg) updates 0-1 1H -> 3-1 HT via per-competition + widget without touching lastSyncTimestamp');
 }
 
+// ---------------------------------------------------------------------------
+// 8. Release hygiene: Malaga vs Racing Santander Segunda classification & forceAuthoritativeOverwrite snapshot repair
+// ---------------------------------------------------------------------------
+function section8() {
+  console.log('\n[8] Spanish Segunda División disambiguation & snapshot corruption repair');
+
+  const malagaSegunda = resolveCanonicalCompetition({
+    competition: 'Spanish La Liga',
+    leagueCode: 'spanish-la-liga',
+    country: 'Spain',
+    providerId: 'malaga-vs-racing-santander-jw2r09hkv17lrz8',
+    home: 'Malaga',
+    away: 'Racing Santander',
+  });
+  assert.equal(malagaSegunda.id, 'esp_segunda', 'Malaga vs Racing Santander must resolve to esp_segunda');
+  assert.equal(malagaSegunda.name, 'Spanish Segunda División');
+
+  // Copa del Rey matchup between the same clubs must remain Copa del Rey
+  const malagaCup = resolveCanonicalCompetition({
+    competition: 'Copa del Rey',
+    leagueCode: 'copa-del-rey',
+    country: 'Spain',
+    providerId: 'malaga-vs-racing-santander-cup1',
+    home: 'Malaga',
+    away: 'Racing Santander',
+  });
+  assert.equal(malagaCup.id, 'esp_copa_del_rey', 'Copa del Rey matchup must not be overridden');
+
+  // Genuine Spanish La Liga matchup remains esp_la_liga
+  const valenciaReal = resolveCanonicalCompetition({
+    competition: 'Spanish La Liga',
+    leagueCode: 'spanish-la-liga',
+    country: 'Spain',
+    providerId: 'valencia-cf-vs-real-madrid-xyz',
+    home: 'Valencia CF',
+    away: 'Real Madrid',
+  });
+  assert.equal(valenciaReal.id, 'esp_la_liga');
+
+  // Explicit Segunda División / La Liga 2 / LaLiga Hypermotion variants
+  for (const variant of ['Spanish Segunda División', 'Spanish Segunda Division', 'La Liga 2', 'LaLiga Hypermotion']) {
+    const resolved = resolveCanonicalCompetition({ competition: variant, country: 'International' });
+    assert.equal(resolved.id, 'esp_segunda', `Variant "${variant}" must resolve to esp_segunda`);
+  }
+  ok('Malaga vs Racing Santander & Segunda División variants resolve cleanly to Spanish Segunda División');
+
+  // Verify forceAuthoritativeOverwrite repairs both corrupted 0-4 FT -> 0-5 FT and prematurely fabricated FT -> 3-1 HT
+  const corruptedMugla = fx({
+    id: 'mkt-repair-muglaspor',
+    home: 'Muglaspor',
+    away: 'Erokspor',
+    status: 'post',
+    period: 'full_time',
+    periodSequence: 60,
+    displayClock: 'FT',
+    minute: 'FT',
+    homeScore: 0,
+    awayScore: 4,
+    observedAtMs: 5_000,
+  });
+  const realMugla = fx({
+    id: 'mkt-repair-muglaspor',
+    home: 'Muglaspor',
+    away: 'Erokspor',
+    status: 'post',
+    period: 'full_time',
+    periodSequence: 60,
+    displayClock: 'FT',
+    minute: 'FT',
+    homeScore: 0,
+    awayScore: 5,
+    observedAtMs: 6_000,
+    isAuthoritativeCorrection: true,
+  });
+  const repairedMugla = mergeMarketFixtureRecords(corruptedMugla, realMugla, {
+    forceAuthoritativeOverwrite: true,
+  });
+  assert.equal(repairedMugla.merged.homeScore, 0);
+  assert.equal(repairedMugla.merged.awayScore, 5);
+  assert.equal(repairedMugla.merged.status, 'post');
+
+  const fabricatedFtLeipzig = fx({
+    id: 'mkt-repair-leipzig',
+    home: 'RB Leipzig',
+    away: 'FC Augsburg',
+    status: 'post',
+    period: 'full_time',
+    periodSequence: 60,
+    displayClock: 'FT',
+    minute: 'FT',
+    homeScore: 0,
+    awayScore: 1,
+    observedAtMs: 9_000,
+  });
+  const authoritativeHtLeipzig = fx({
+    id: 'mkt-repair-leipzig',
+    home: 'RB Leipzig',
+    away: 'FC Augsburg',
+    status: 'in',
+    period: 'halftime',
+    periodSequence: 20,
+    displayClock: 'HT',
+    minute: 'HT',
+    homeScore: 3,
+    awayScore: 1,
+    homeHtScore: 3,
+    awayHtScore: 1,
+    observedAtMs: 8_500,
+    isAuthoritativeCorrection: true,
+  });
+  const repairedLeipzig = mergeMarketFixtureRecords(fabricatedFtLeipzig, authoritativeHtLeipzig, {
+    forceAuthoritativeOverwrite: true,
+  });
+  assert.equal(repairedLeipzig.merged.status, 'in');
+  assert.equal(repairedLeipzig.merged.period, 'halftime');
+  assert.equal(repairedLeipzig.merged.displayClock, 'HT');
+  assert.equal(repairedLeipzig.merged.homeScore, 3);
+  assert.equal(repairedLeipzig.merged.awayScore, 1);
+  ok('forceAuthoritativeOverwrite repairs corrupted 0-4 FT -> 0-5 FT and fabricated FT -> 3-1 HT');
+}
+
 (async () => {
   try {
     console.log('================================================================================');
@@ -835,6 +957,7 @@ async function section7() {
     await section5();
     await section6();
     await section7();
+    section8();
     console.log(`\nALL ${passed} LIVE-UPDATE CHECKS PASSED`);
     process.exit(0);
   } catch (err) {

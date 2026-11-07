@@ -35,6 +35,7 @@ export interface SaveSnapshotOptions {
   isCompleteReconciliation?: boolean;
   reconciliationScopeDates?: string[];
   source?: 'weekly_cron' | 'rolling_sync' | 'manual';
+  forceAuthoritativeOverwrite?: boolean;
 }
 
 export interface SnapshotSaveStats {
@@ -295,7 +296,9 @@ export async function saveFixtureSnapshotWithStats(
           }
 
           // Merge and update in current day
-          const { merged, hasChanged } = mergeMarketFixtureRecords(existing, incoming);
+          const { merged, hasChanged } = mergeMarketFixtureRecords(existing, incoming, {
+            forceAuthoritativeOverwrite: options?.forceAuthoritativeOverwrite,
+          });
           currentDayMap.set(existing.id, merged);
           if (hasChanged) {
             updatedCount++;
@@ -413,7 +416,9 @@ export async function saveFixtureSnapshotWithStats(
           byDay[previousDay] = oldList.filter((item) => item.id !== existing!.id);
         }
 
-        const { merged, hasChanged } = mergeMarketFixtureRecords(existing, incoming);
+        const { merged, hasChanged } = mergeMarketFixtureRecords(existing, incoming, {
+          forceAuthoritativeOverwrite: options?.forceAuthoritativeOverwrite,
+        });
         dayMap.set(existing.id, merged);
         if (hasChanged) {
           updatedCount++;

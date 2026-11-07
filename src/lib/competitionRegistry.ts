@@ -152,7 +152,17 @@ export const TIER_1_MAJOR_EUROPEAN: RegistryCompetition[] = [
     mappingSource: 'verified_sportscore',
     gender: 'men',
     ageGroup: 'senior',
-    aliases: ['segunda-division', 'laliga2', 'la-liga-2', 'spanish-segunda-division', 'spain2'],
+    aliases: [
+      'segunda-division',
+      'laliga2',
+      'la-liga-2',
+      'laliga-2',
+      'spanish-la-liga-2',
+      'laliga-hypermotion',
+      'la-liga-hypermotion',
+      'spanish-segunda-division',
+      'spain2',
+    ],
     selectionReason: 'Mandatory Tier 1 European Major: Spain 2nd Division',
   },
 
@@ -2132,6 +2142,9 @@ const REGISTRY_BY_SLUG = new Map<string, RegistryCompetition>();
 // Populate indexes
 ALL_REGISTERED_COMPETITIONS.forEach((comp) => {
   REGISTRY_BY_CANONICAL_ID.set(comp.id.toLowerCase(), comp);
+  if (comp.id === 'esp_segunda_division') {
+    REGISTRY_BY_CANONICAL_ID.set('esp_segunda', comp);
+  }
   if (comp.providerId) {
     REGISTRY_BY_PROVIDER_ID.set(comp.providerId.toLowerCase(), comp);
   }
@@ -2140,6 +2153,15 @@ ALL_REGISTERED_COMPETITIONS.forEach((comp) => {
     REGISTRY_BY_SLUG.set(alias.toLowerCase(), comp);
   });
 });
+
+function normalizeAsciiSlug(value: string): string {
+  return value
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/(^-|-$)/g, '');
+}
 
 /**
  * Get registered competition by canonical ID
@@ -2157,7 +2179,7 @@ export function getCompetitionByProvider(idOrSlug: string): RegistryCompetition 
   const key = idOrSlug.toLowerCase().trim();
   const direct = REGISTRY_BY_PROVIDER_ID.get(key) || REGISTRY_BY_SLUG.get(key);
   if (direct) return direct;
-  const slugified = key.replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+  const slugified = normalizeAsciiSlug(key);
   return REGISTRY_BY_SLUG.get(slugified);
 }
 
@@ -2188,15 +2210,18 @@ export function isCompetitionEligible(input: {
 
   // Check slug
   const targetSlug = input.slug || input.leagueCode;
-  if (targetSlug && REGISTRY_BY_SLUG.has(targetSlug.toLowerCase())) {
-    const comp = REGISTRY_BY_SLUG.get(targetSlug.toLowerCase());
-    return Boolean(comp && comp.isEligibleForFetching);
+  if (targetSlug) {
+    const normalizedSlug = normalizeAsciiSlug(targetSlug);
+    const comp = REGISTRY_BY_SLUG.get(targetSlug.toLowerCase()) || REGISTRY_BY_SLUG.get(normalizedSlug);
+    if (comp) {
+      return Boolean(comp.isEligibleForFetching);
+    }
   }
 
   // Check name exact match against slugified name
   const nameToTest = input.name || input.competition;
   if (nameToTest) {
-    const slugified = nameToTest.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+    const slugified = normalizeAsciiSlug(nameToTest);
     if (REGISTRY_BY_SLUG.has(slugified)) {
       const comp = REGISTRY_BY_SLUG.get(slugified);
       return Boolean(comp && comp.isEligibleForFetching);

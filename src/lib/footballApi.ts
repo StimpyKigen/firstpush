@@ -159,9 +159,15 @@ export function sanitizeFrontendFixtureLifecycle<T extends {
   return item;
 }
 
+const FOOTBALL_CACHE_KEY = 'mshindi_football_cache_v4';
+const LEGACY_FOOTBALL_CACHE_KEY = 'mshindi_football_cache_v3';
+
 // Hydrate initial state from localStorage for instant render while fresh network sync runs
 try {
-  const stored = typeof localStorage !== 'undefined' ? localStorage.getItem('mshindi_football_cache_v3') : null;
+  if (typeof localStorage !== 'undefined') {
+    localStorage.removeItem(LEGACY_FOOTBALL_CACHE_KEY);
+  }
+  const stored = typeof localStorage !== 'undefined' ? localStorage.getItem(FOOTBALL_CACHE_KEY) : null;
   if (stored) {
     const parsed = JSON.parse(stored);
     if (Array.isArray(parsed) && parsed.length > 0) {
@@ -196,7 +202,7 @@ try {
 export function persistHighlightCacheToStorage(list: HighlightFixture[] = cachedFixtures): void {
   try {
     if (typeof localStorage !== 'undefined' && Array.isArray(list) && list.length > 0) {
-      localStorage.setItem('mshindi_football_cache_v3', JSON.stringify(list));
+      localStorage.setItem(FOOTBALL_CACHE_KEY, JSON.stringify(list));
     }
   } catch {
     // ignore storage quota errors

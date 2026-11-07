@@ -97,10 +97,14 @@ export interface MatchIncidentItem {
   away_score?: number;
 }
 
+const FOOTBALL_CACHE_KEY = 'mshindi_football_cache_v4';
+const LEGACY_FOOTBALL_CACHE_KEY = 'mshindi_football_cache_v3';
+
 function loadStoredMatches(): FreeMatch[] {
   if (typeof window === 'undefined') return [];
   try {
-    const raw = localStorage.getItem('mshindi_football_cache_v3');
+    localStorage.removeItem(LEGACY_FOOTBALL_CACHE_KEY);
+    const raw = localStorage.getItem(FOOTBALL_CACHE_KEY);
     if (raw) {
       const parsed = JSON.parse(raw);
       if (Array.isArray(parsed) && parsed.length > 0) {
@@ -123,7 +127,7 @@ function persistLiveMatchesToStorage(): void {
   if (typeof window === 'undefined') return;
   try {
     if (liveMatches.length > 0) {
-      localStorage.setItem('mshindi_football_cache_v3', JSON.stringify(liveMatches));
+      localStorage.setItem(FOOTBALL_CACHE_KEY, JSON.stringify(liveMatches));
       syncCachedFixturesFromRealtime(liveMatches);
     }
   } catch {}
@@ -932,7 +936,8 @@ export function clearAllFreeMatches() {
   emitFreeMatchesChange();
 
   try {
-    localStorage.removeItem('mshindi_football_cache_v3');
+    localStorage.removeItem(FOOTBALL_CACHE_KEY);
+    localStorage.removeItem(LEGACY_FOOTBALL_CACHE_KEY);
     localStorage.removeItem('mshindi_uploaded_fixtures');
     localStorage.removeItem('mshindi_fixture_batches');
   } catch {}

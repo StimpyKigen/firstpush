@@ -332,10 +332,11 @@ function unionIncidentsById(
 export function mergeMarketFixtureRecords(
   existing: MarketFixture,
   incoming: MarketFixture,
-  options?: { isAuthoritativeCorrection?: boolean }
+  options?: { isAuthoritativeCorrection?: boolean; forceAuthoritativeOverwrite?: boolean }
 ): { merged: MarketFixture; hasChanged: boolean; rejectedStaleTransition?: boolean } {
   const incomingObservedMs = resolveObservedMs(incoming);
   const existingObservedMs = resolveObservedMs(existing);
+  const forceOverwrite = Boolean(options?.forceAuthoritativeOverwrite);
 
   // LIVE-DATA PROTECTION (permanent invariant): a response that was observed EARLIER than the
   // data we already hold (stale snapshot, late-arriving fetch, schedule refresh, out-of-order
@@ -343,13 +344,15 @@ export function mergeMarketFixtureRecords(
   // incident history. An explicit authoritative correction (e.g. cold-snapshot zombie recovery)
   // is the only way to bypass this.
   const isStaleObservation =
+    !forceOverwrite &&
     !incoming.isAuthoritativeCorrection &&
     incomingObservedMs > 0 &&
     existingObservedMs > 0 &&
     incomingObservedMs < existingObservedMs;
 
   const allowCorrection =
-    !isStaleObservation && Boolean(options?.isAuthoritativeCorrection || incoming.isAuthoritativeCorrection);
+    forceOverwrite ||
+    (!isStaleObservation && Boolean(options?.isAuthoritativeCorrection || incoming.isAuthoritativeCorrection));
 
   const existingDetailed = parseDetailedMatchStatus(existing.status, existing.displayClock || existing.minute);
   const incomingDetailed = parseDetailedMatchStatus(incoming.status, incoming.displayClock || incoming.minute);
@@ -364,14 +367,15 @@ export function mergeMarketFixtureRecords(
 
   // Check monotonic state validity
   const isTransitionPermitted =
-    !isStaleObservation &&
-    isStatusTransitionValid(
-      existingStatus,
-      existingPeriod,
-      incomingStatus,
-      incomingPeriod,
-      allowCorrection
-    );
+    forceOverwrite ||
+    (!isStaleObservation &&
+      isStatusTransitionValid(
+        existingStatus,
+        existingPeriod,
+        incomingStatus,
+        incomingPeriod,
+        allowCorrection
+      ));
 
   let finalStatus: MatchStatus = existingStatus;
   let finalPeriod: MatchPeriod = existingPeriod;
@@ -460,8 +464,9 @@ export function mergeMarketFixtureRecords(
     }
   } else if (incomingStatus === 'pre') {
     // CRITICAL LIVE SCORE PROTECTION:
-    // Stale scheduled refresh must NEVER reset existing live or finished scores!
-    if (existingStatus === 'pre') {
+    // Stale scheduled refresh must NEVER reset existing live or finished scores
+    // unless an explicit repair overwrite is resetting a prematurely fabricated result!
+    if (existingStatus === 'pre' || forceOverwrite) {
       finalHomeScore = null;
       finalAwayScore = null;
       finalHomeHtScore = null;
@@ -581,7 +586,8 @@ export function mergeMarketFixtureRecords(
     existing.drawOdds !== merged.drawOdds ||
     existing.awayOdds !== merged.awayOdds ||
     existing.bookmaker !== merged.bookmaker ||
-    existing.competition !== merged.competition;
+    existing.competition !== merged.competition ||
+    existing.competitionId !== merged.competitionId;
 
   if (hasChanged) {
     merged.updateVersion = (existing.updateVersion || 1) + 1;

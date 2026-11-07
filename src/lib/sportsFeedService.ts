@@ -483,14 +483,17 @@ function loadDiskCache(): void {
         parsedFixtures.forEach((f: MarketFixture) => {
           if (f && f.id) {
             if (f.id.startsWith('future_') || f.providerId === 'ars_che_001') return;
-            if (!f.competitionId) {
+            if (!f.competitionId || f.competitionId === 'esp_la_liga') {
               const canon = resolveCanonicalCompetition({
                 competition: f.competition,
                 country: f.country,
                 leagueCode: f.leagueCode,
                 providerId: f.providerId || f.id,
+                home: f.home,
+                away: f.away,
               });
               f.competitionId = canon.id;
+              f.competition = canon.name;
             }
             if (!f.matchSlug) {
               f.matchSlug = extractSportScoreMatchSlug(f) || undefined;
@@ -755,6 +758,8 @@ export async function fetchLeagueFixtures(leagueCode: string): Promise<MarketFix
         leagueCode,
         country: rawCountry,
         providerId,
+        home: homeTeam,
+        away: awayTeam,
       });
 
       const kickoffIso = m.time ? `${m.match_date}T${m.time}:00Z` : `${m.match_date}T15:00:00Z`;
@@ -836,12 +841,14 @@ export function ingestFixtures(
   for (const f of fixtures) {
     if (!f || !f.id || isSimulatedReality(f)) continue;
 
-    if (!f.competitionId) {
+    if (!f.competitionId || f.competitionId === 'esp_la_liga') {
       const canon = resolveCanonicalCompetition({
         competition: f.competition,
         country: f.country,
         leagueCode: f.leagueCode,
         providerId: f.providerId || f.id,
+        home: f.home,
+        away: f.away,
       });
       f.competitionId = canon.id;
       f.competition = canon.name;
@@ -1114,6 +1121,8 @@ export function normalizeSportScoreMatch(
     leagueCode,
     country: m.country || country,
     providerId: slug,
+    home,
+    away,
   });
 
   return {
@@ -1703,7 +1712,7 @@ export async function syncLiveScoresOnly(): Promise<{ updated: number; liveCount
       .sort((a, b) => {
         const curA = fixturesStore.get(a.id) || a;
         const curB = fixturesStore.get(b.id) || b;
-        const rank = (s?: MatchStatus) => (s === 'in' ? 0 : s === 'awaiting_confirmation' ? 1 : 2);
+        const rank = (s?: MatchStatus) => (s === 'in' || s === 'awaiting_confirmation' ? 0 : 1);
         const rankDiff = rank(curA.status) - rank(curB.status);
         if (rankDiff !== 0) return rankDiff;
         // Priority 2: Least recently checked first (round-robin fairness)
@@ -1711,7 +1720,7 @@ export async function syncLiveScoresOnly(): Promise<{ updated: number; liveCount
         const metaB = fixtureReconcileTracker.get(curB.id)?.lastDetailCheckMs || 0;
         return metaA - metaB;
       })
-      .slice(0, 16);
+      .slice(0, 32);
 
     const confirmedExtraTimeIds = new Set<string>();
     const WIDGET_POLL_CONCURRENCY = 4;
