@@ -33,7 +33,7 @@ export default function GlyphAvatarGroup({
         return (
           <div
             key={user.id || `${user.name}-${idx}`}
-            className="relative transition-transform duration-150 hover:scale-110 hover:z-20 -ml-2.5 first:ml-0 rounded-lg ring-2 ring-[#FFFFF0] dark:ring-[#202522] shadow-xs shrink-0"
+            className="relative transition-transform duration-150 hover:scale-110 hover:z-20 -ml-2 first:ml-0 rounded-md ring-2 ring-[#FFFFF0] dark:ring-[#202522] shadow-xs shrink-0"
             style={{ zIndex: 10 - idx }}
             title={user.name}
           >
@@ -50,7 +50,7 @@ export default function GlyphAvatarGroup({
 
       {remainingCount > 0 && (
         <div
-          className="relative -ml-2.5 rounded-full ring-2 ring-[#FFFFF0] dark:ring-[#202522] bg-[#F5F5E4] dark:bg-[#2A312C] text-slate-800 dark:text-[#E2E8F0] border border-[#DCDCC8] dark:border-[#414A43] shadow-xs flex items-center justify-center font-bold text-[10px] tabular-nums px-1.5 py-0.5 min-w-[22px] h-[22px] shrink-0"
+          className="relative -ml-2 rounded-full ring-2 ring-[#FFFFF0] dark:ring-[#202522] bg-[#F5F5E4] dark:bg-[#2A312C] text-slate-800 dark:text-[#E2E8F0] border border-[#DCDCC8] dark:border-[#414A43] shadow-xs flex items-center justify-center font-bold text-[10px] tabular-nums px-1 min-w-[20px] h-[20px] shrink-0"
           style={{ zIndex: 5 }}
           title={`${remainingCount} more punters`}
         >

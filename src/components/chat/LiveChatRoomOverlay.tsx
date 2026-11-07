@@ -104,7 +104,7 @@ export default function LiveChatRoomOverlay({
         />
 
         {/* Typing Indicator */}
-        <div className="shrink-0 min-h-[24px] px-2 bg-[#FFFFF0] dark:bg-[#202522]">
+        <div className="shrink-0 h-[28px] px-2 bg-[#FFFFF0] dark:bg-[#202522] flex items-center">
           <TypingIndicator users={typingUsers} />
         </div>
 

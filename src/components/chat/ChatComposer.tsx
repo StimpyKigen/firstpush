@@ -19,10 +19,11 @@ export default function ChatComposer({
   const inputRef = useRef<HTMLInputElement>(null);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setText(e.target.value);
+    const val = e.target.value;
+    setText(val);
     const now = Date.now();
-    // Debounce typing notification to at most once every 1.5s
-    if (onTyping && now - lastTypingCallRef.current > 1500) {
+    // Debounce typing notification to at most once every 700ms when text is present
+    if (onTyping && val.trim().length > 0 && now - lastTypingCallRef.current > 700) {
       lastTypingCallRef.current = now;
       onTyping();
     }

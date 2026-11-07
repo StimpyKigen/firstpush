@@ -166,8 +166,8 @@ export function useChatRoom(roomId: string, isRoomOpen = true, matchStatus: stri
     };
   }, [roomId]);
 
-  // Helper to add typing user
-  const setMockUserTyping = useCallback((user: ChatUser, durationMs = 2200) => {
+  // Helper to add a typing user with an expiration timer
+  const setMockUserTyping = useCallback((user: ChatUser, durationMs = 3200) => {
     const typingUser: TypingUser = {
       id: user.id,
       name: user.name,
@@ -180,19 +180,34 @@ export function useChatRoom(roomId: string, isRoomOpen = true, matchStatus: stri
       return [...prev, typingUser];
     });
 
-    if (typingTimersRef.current.has(user.id)) {
-      clearTimeout(typingTimersRef.current.get(user.id)!);
+    const timerKey = `timer-${user.id}`;
+    if (typingTimersRef.current.has(timerKey)) {
+      clearTimeout(typingTimersRef.current.get(timerKey)!);
     }
 
     const timer = setTimeout(() => {
       setTypingUsers((prev) => prev.filter((u) => u.id !== user.id));
-      typingTimersRef.current.delete(user.id);
+      typingTimersRef.current.delete(timerKey);
     }, durationMs);
 
-    typingTimersRef.current.set(user.id, timer);
+    typingTimersRef.current.set(timerKey, timer);
   }, []);
 
-  // Background High-Traffic Simulator: periodic comments while room is open
+  // Helper to trigger multiple mock users typing (stacking avatars)
+  const setMultipleMockUsersTyping = useCallback(
+    (users: ChatUser[], baseDuration = 3200) => {
+      users.forEach((u, idx) => {
+        const staggerDelay = idx * 250;
+        const staggerTimer = setTimeout(() => {
+          setMockUserTyping(u, baseDuration - staggerDelay + Math.random() * 600);
+        }, staggerDelay);
+        typingTimersRef.current.set(`stagger-${u.id}-${Date.now()}`, staggerTimer);
+      });
+    },
+    [setMockUserTyping]
+  );
+
+  // Background High-Traffic Simulator: periodic comments & consistent typing presence
   useEffect(() => {
     if (!isRoomOpen || mockParticipants.length === 0) {
       if (backgroundTrafficIntervalRef.current) {
@@ -202,34 +217,43 @@ export function useChatRoom(roomId: string, isRoomOpen = true, matchStatus: stri
       return;
     }
 
-    // Interval to emulate active room comments without inventing scores
+    // Interval to emulate active room comments and concurrent typing without inventing scores
     const interval = setInterval(() => {
-      const randomParticipant =
-        mockParticipants[Math.floor(Math.random() * mockParticipants.length)];
+      // Pick primary commenter and 1-2 co-typers for stacking avatars
+      const shuffled = [...mockParticipants].sort(() => 0.5 - Math.random());
+      const typingCount = Math.min(shuffled.length, Math.random() > 0.4 ? 2 : 3);
+      const activeTypers = shuffled.slice(0, typingCount);
+      const primaryPoster = activeTypers[0];
       const randomComment =
         trafficComments[Math.floor(Math.random() * trafficComments.length)];
 
-      // Briefly show typing
-      setMockUserTyping(randomParticipant, 1400);
+      // Trigger concurrent typing with stacking avatars
+      setMultipleMockUsersTyping(activeTypers, 3400);
 
-      // Post comment after typing
+      // Primary poster delivers the comment after typing
       const postTimer = setTimeout(() => {
-        setTypingUsers((prev) => prev.filter((u) => u.id !== randomParticipant.id));
+        setTypingUsers((prev) => prev.filter((u) => u.id !== primaryPoster.id));
+        const timerKey = `timer-${primaryPoster.id}`;
+        if (typingTimersRef.current.has(timerKey)) {
+          clearTimeout(typingTimersRef.current.get(timerKey)!);
+          typingTimersRef.current.delete(timerKey);
+        }
+
         const trafficMsg: ChatMessage = {
           id: `traffic-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
           roomId,
-          userId: randomParticipant.id,
-          userName: randomParticipant.name,
-          colorSeed: randomParticipant.colorSeed,
-          avatarId: randomParticipant.avatarId,
+          userId: primaryPoster.id,
+          userName: primaryPoster.name,
+          colorSeed: primaryPoster.colorSeed,
+          avatarId: primaryPoster.avatarId,
           text: randomComment,
           sentAt: Date.now(),
         };
         addMessageToStore(roomId, trafficMsg);
-      }, 1400);
+      }, 2400);
 
       typingTimersRef.current.set(`traffic-post-${Date.now()}`, postTimer);
-    }, 9500);
+    }, 6500);
 
     backgroundTrafficIntervalRef.current = interval;
 
@@ -237,16 +261,24 @@ export function useChatRoom(roomId: string, isRoomOpen = true, matchStatus: stri
       clearInterval(interval);
       backgroundTrafficIntervalRef.current = null;
     };
-  }, [isRoomOpen, roomId, mockParticipants, addMessageToStore, setMockUserTyping, trafficComments]);
+  }, [
+    isRoomOpen,
+    roomId,
+    mockParticipants,
+    addMessageToStore,
+    setMultipleMockUsersTyping,
+    trafficComments,
+  ]);
 
-  // When current user types, trigger a mock user typing as well
+  // When current user types, immediately trigger 2-3 mock users typing in response
   const notifyTyping = useCallback(() => {
-    if (Math.random() > 0.35 && mockParticipants.length > 0) {
-      const randomMock =
-        mockParticipants[Math.floor(Math.random() * mockParticipants.length)];
-      setMockUserTyping(randomMock, 2200);
-    }
-  }, [mockParticipants, setMockUserTyping]);
+    if (mockParticipants.length === 0) return;
+    const shuffled = [...mockParticipants].sort(() => 0.5 - Math.random());
+    const count = Math.min(shuffled.length, Math.random() > 0.35 ? 2 : 3);
+    const responders = shuffled.slice(0, count);
+
+    setMultipleMockUsersTyping(responders, 3600);
+  }, [mockParticipants, setMultipleMockUsersTyping]);
 
   // Send message handler
   const sendMessage = useCallback(
@@ -271,46 +303,55 @@ export function useChatRoom(roomId: string, isRoomOpen = true, matchStatus: stri
 
       addMessageToStore(roomId, userMsg);
 
-      // Simulate a realistic mock reply matching the match lifecycle
+      // Simulate a realistic mock reply with multiple users typing in reaction
       if (mockParticipants.length > 0) {
         const availableMocks = mockParticipants.filter((m) => m.id !== userId);
-        const responder =
-          availableMocks[Math.floor(Math.random() * availableMocks.length)];
-        const replyText =
-          mockReplies[Math.floor(Math.random() * mockReplies.length)];
+        if (availableMocks.length > 0) {
+          const shuffled = [...availableMocks].sort(() => 0.5 - Math.random());
+          const responderCount = Math.min(availableMocks.length, Math.random() > 0.3 ? 2 : 3);
+          const responders = shuffled.slice(0, responderCount);
+          const primaryResponder = responders[0];
+          const replyText =
+            mockReplies[Math.floor(Math.random() * mockReplies.length)];
 
-        // Start typing after 600ms
-        const typingDelay = setTimeout(() => {
-          setMockUserTyping(responder, 1600);
-        }, 600);
+          // Trigger responders typing with stacking avatars
+          setMultipleMockUsersTyping(responders, 3400);
 
-        // Send reply after typing completes (approx 2.2s)
-        const sendDelay = setTimeout(() => {
-          setTypingUsers((prev) => prev.filter((u) => u.id !== responder.id));
-          if (typingTimersRef.current.has(responder.id)) {
-            clearTimeout(typingTimersRef.current.get(responder.id)!);
-            typingTimersRef.current.delete(responder.id);
-          }
+          // Primary responder delivers the reply after typing
+          const sendDelay = setTimeout(() => {
+            setTypingUsers((prev) => prev.filter((u) => u.id !== primaryResponder.id));
+            const timerKey = `timer-${primaryResponder.id}`;
+            if (typingTimersRef.current.has(timerKey)) {
+              clearTimeout(typingTimersRef.current.get(timerKey)!);
+              typingTimersRef.current.delete(timerKey);
+            }
 
-          const mockMsg: ChatMessage = {
-            id: `reply-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
-            roomId,
-            userId: responder.id,
-            userName: responder.name,
-            colorSeed: responder.colorSeed,
-            avatarId: responder.avatarId,
-            text: replyText,
-            sentAt: Date.now(),
-          };
+            const mockMsg: ChatMessage = {
+              id: `reply-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+              roomId,
+              userId: primaryResponder.id,
+              userName: primaryResponder.name,
+              colorSeed: primaryResponder.colorSeed,
+              avatarId: primaryResponder.avatarId,
+              text: replyText,
+              sentAt: Date.now(),
+            };
 
-          addMessageToStore(roomId, mockMsg);
-        }, 2200);
+            addMessageToStore(roomId, mockMsg);
+          }, 2400);
 
-        typingTimersRef.current.set(`reply-type-${Date.now()}`, typingDelay);
-        typingTimersRef.current.set(`reply-send-${Date.now()}`, sendDelay);
+          typingTimersRef.current.set(`reply-send-${Date.now()}`, sendDelay);
+        }
       }
     },
-    [currentUser, roomId, mockParticipants, addMessageToStore, setMockUserTyping, mockReplies]
+    [
+      currentUser,
+      roomId,
+      mockParticipants,
+      addMessageToStore,
+      setMultipleMockUsersTyping,
+      mockReplies,
+    ]
   );
 
   return {
