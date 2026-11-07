@@ -1042,6 +1042,16 @@ async function runVerification() {
       !homeSource.includes('}, 6000)') && !homeSource.includes('}, 5000)'),
       'Home.tsx must not contain legacy 5s or 6s carousel auto-advance timers'
     );
+    assert.ok(
+      !homeSource.includes('carousel-story-countdown'),
+      'Home.tsx must NOT render the visible countdown pill overlay on the homepage card'
+    );
+    assert.ok(
+      homeSource.includes('([-1, 0, 1] as const)') &&
+        homeSource.includes('carousel-dots-glide-next-a') &&
+        homeSource.includes('carousel-dots-glide-prev-a'),
+      'Home.tsx must enforce a maximum of 3 gliding dot indicators with the middle slot as main active indicator'
+    );
 
     // 13.2: Confirm public/sw.js preserves mshindi-carousel-media-v1 across deployments & skips /api/
     const swSource = fs.readFileSync(path.join(process.cwd(), 'public', 'sw.js'), 'utf-8');

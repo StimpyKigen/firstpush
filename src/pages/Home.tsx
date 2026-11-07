@@ -9,8 +9,6 @@ import {
   toggleHomepagePostLike,
   getActiveCarouselItems,
   getAuthoritativeNowMs,
-  getCarouselPostRemainingMs,
-  formatCarouselCountdown,
   type HomepageCarouselItem,
   type HomepageVideoItem,
 } from '../lib/homepageFeedStore';
@@ -278,6 +276,15 @@ export default function Home() {
   });
 
   const [isCarouselFading, setIsCarouselFading] = useState(false);
+  const [indicatorGlide, setIndicatorGlide] = useState<{
+    step: number;
+    direction: 'next' | 'prev' | null;
+    targetIdx: number;
+  }>(() => ({
+    step: 0,
+    direction: null,
+    targetIdx: activeCarouselIndex >= 0 ? activeCarouselIndex : 0,
+  }));
   const isTransitioningRef = useRef(false);
   const transitionTokenRef = useRef(0);
   const activeIndexRef = useRef(activeCarouselIndex);
@@ -375,7 +382,10 @@ export default function Home() {
    * Retains the current photograph + caption while waiting so a new caption NEVER renders over an old photo.
    */
   const goToSlide = useCallback(
-    async (targetIdx: number, options?: { forceImmediateNewStory?: boolean }) => {
+    async (
+      targetIdx: number,
+      options?: { forceImmediateNewStory?: boolean; direction?: 'next' | 'prev' }
+    ) => {
       const list = publishedPhotosRef.current;
       if (list.length === 0) return;
 
@@ -410,7 +420,7 @@ export default function Home() {
             const fallbackReady = fallbackItem ? getReadyCarouselRenderUrl(fallbackItem) : null;
             if (fallbackItem && fallbackReady) {
               resolvedRenderUrl = fallbackReady;
-              return goToSlide(fallbackIdx);
+              return goToSlide(fallbackIdx, { direction: options?.direction || 'next' });
             }
           }
         }
@@ -422,14 +432,26 @@ export default function Home() {
       const latestMatchIdx = latestList.findIndex((p) => p.id === targetPhoto.id);
       if (latestMatchIdx === -1) {
         if (latestList.length > 0) {
-          void goToSlide(0, { forceImmediateNewStory: true });
+          void goToSlide(0, { forceImmediateNewStory: true, direction: 'next' });
         }
         return;
       }
       const freshestTarget = latestList[latestMatchIdx];
 
+      const resolvedDirection: 'next' | 'prev' =
+        options?.direction ||
+        (latestList.length > 1 &&
+        latestMatchIdx === (activeIndexRef.current - 1 + latestList.length) % latestList.length
+          ? 'prev'
+          : 'next');
+
       isTransitioningRef.current = true;
       setIsCarouselFading(true);
+      setIndicatorGlide((prev) => ({
+        step: prev.step + (resolvedDirection === 'next' ? 1 : -1),
+        direction: resolvedDirection,
+        targetIdx: latestMatchIdx,
+      }));
 
       setTimeout(() => {
         if (requestToken !== transitionTokenRef.current) {
@@ -549,14 +571,13 @@ export default function Home() {
   // Committed Active Photo & Synchronized Metadata
   const currentPhoto = displayedSlide?.item || null;
   const currentRenderImageUrl = displayedSlide?.renderUrl || currentPhoto?.imageUrl || '';
-  const currentCountdownLabel = currentPhoto
-    ? formatCarouselCountdown(getCarouselPostRemainingMs(currentPhoto, authoritativeNowMs))
-    : '';
 
   // Carousel Next / Prev Navigation
   const nextSlide = useCallback(() => {
     if (publishedPhotosRef.current.length > 1 && !isTransitioningRef.current) {
-      void goToSlide((activeIndexRef.current + 1) % publishedPhotosRef.current.length);
+      void goToSlide((activeIndexRef.current + 1) % publishedPhotosRef.current.length, {
+        direction: 'next',
+      });
     }
   }, [goToSlide]);
 
@@ -564,7 +585,8 @@ export default function Home() {
     if (publishedPhotosRef.current.length > 1 && !isTransitioningRef.current) {
       void goToSlide(
         (activeIndexRef.current - 1 + publishedPhotosRef.current.length) %
-          publishedPhotosRef.current.length
+          publishedPhotosRef.current.length,
+        { direction: 'prev' }
       );
     }
   }, [goToSlide]);
@@ -617,7 +639,7 @@ export default function Home() {
         }
         const total = publishedPhotosRef.current.length;
         if (total > 1) {
-          await goToSlide((activeIndexRef.current + 1) % total);
+          await goToSlide((activeIndexRef.current + 1) % total, { direction: 'next' });
         }
       }, delayMs);
     };
@@ -798,47 +820,97 @@ export default function Home() {
                     className="w-full h-full object-cover"
                   />
 
-                  {/* Server-Authoritative 24-Hour Story Countdown Badge */}
-                  {currentCountdownLabel && (
-                    <div
-                      className="absolute top-2.5 right-2.5 z-20 inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-black/60 backdrop-blur-xs text-[10px] sm:text-[11px] font-semibold text-white/95 border border-white/15 pointer-events-none select-none"
-                      title="24-hour story countdown"
-                      data-testid="carousel-story-countdown"
-                    >
-                      <Clock size={10} className="text-[#4ADE80] shrink-0" />
-                      <span>{currentCountdownLabel}</span>
-                    </div>
-                  )}
-
                   {/* Subtle inner border for crisp edge definition without fading */}
                   <div className="absolute inset-0 ring-1 ring-inset ring-white/10 rounded-xl sm:rounded-2xl lg:rounded-3xl pointer-events-none" />
                 </div>
 
-                {/* Stories Slide Indicator Dots (when > 1 active story) */}
+                {/* Stories Gliding Indicator Dots (Max 3 regardless of active count, middle as main active indicator) */}
                 {publishedPhotos.length > 1 && (
-                  <div className="flex items-center gap-1.5 mt-2" role="tablist" aria-label="Carousel stories">
-                    {publishedPhotos.map((story, idx) => {
-                      const isCurrent = story.id === currentPhoto.id;
-                      return (
-                        <button
-                          key={story.id}
-                          type="button"
-                          role="tab"
-                          aria-selected={isCurrent}
-                          aria-label={`Story ${idx + 1} of ${publishedPhotos.length}`}
-                          onClick={() => {
-                            if (!isCurrent && !isTransitioningRef.current) {
-                              void goToSlide(idx);
-                            }
-                          }}
-                          className={`h-1.5 rounded-full transition-all duration-300 cursor-pointer ${
-                            isCurrent
-                              ? 'w-5 bg-[#D4AF37]'
-                              : 'w-1.5 bg-white/30 hover:bg-white/55'
-                          }`}
-                        />
-                      );
-                    })}
+                  <div className="mt-2 overflow-hidden px-0.5 py-0.5">
+                    {publishedPhotos.length === 2 ? (
+                      <div className="flex items-center gap-1.5" role="tablist" aria-label="Carousel stories">
+                        {publishedPhotos.map((story, idx) => {
+                          const isCurrent =
+                            isCarouselFading
+                              ? indicatorGlide.targetIdx === idx
+                              : story.id === currentPhoto.id;
+                          return (
+                            <button
+                              key={story.id}
+                              type="button"
+                              role="tab"
+                              aria-selected={isCurrent}
+                              aria-label={`Story ${idx + 1} of 2`}
+                              onClick={() => {
+                                if (!isCurrent && !isTransitioningRef.current) {
+                                  void goToSlide(idx, {
+                                    direction: idx > activeCarouselIndex ? 'next' : 'prev',
+                                  });
+                                }
+                              }}
+                              className={`carousel-glide-dot h-1.5 rounded-full cursor-pointer ${
+                                isCurrent
+                                  ? 'w-5 bg-[#D4AF37]'
+                                  : 'w-1.5 bg-white/30 hover:bg-white/55'
+                              }`}
+                            />
+                          );
+                        })}
+                      </div>
+                    ) : (
+                      <div
+                        role="tablist"
+                        aria-label="Carousel stories"
+                        className={`flex items-center gap-1.5 ${
+                          indicatorGlide.direction === 'next'
+                            ? Math.abs(indicatorGlide.step) % 2 === 0
+                              ? 'carousel-dots-glide-next-a'
+                              : 'carousel-dots-glide-next-b'
+                            : indicatorGlide.direction === 'prev'
+                            ? Math.abs(indicatorGlide.step) % 2 === 0
+                              ? 'carousel-dots-glide-prev-a'
+                              : 'carousel-dots-glide-prev-b'
+                            : ''
+                        }`}
+                      >
+                        {([-1, 0, 1] as const).map((slotOffset) => {
+                          const virtualKey = indicatorGlide.step + slotOffset;
+                          const isMainCenter = slotOffset === 0;
+                          const isEnteringEdge =
+                            (indicatorGlide.direction === 'next' && slotOffset === 1) ||
+                            (indicatorGlide.direction === 'prev' && slotOffset === -1);
+
+                          return (
+                            <button
+                              key={`glide-dot-${virtualKey}`}
+                              type="button"
+                              role="tab"
+                              aria-selected={isMainCenter}
+                              aria-label={
+                                slotOffset === -1
+                                  ? 'Previous story'
+                                  : slotOffset === 1
+                                  ? 'Next story'
+                                  : `Current story (${activeCarouselIndex + 1} of ${publishedPhotos.length})`
+                              }
+                              onClick={() => {
+                                if (isTransitioningRef.current) return;
+                                if (slotOffset === -1) {
+                                  prevSlide();
+                                } else if (slotOffset === 1) {
+                                  nextSlide();
+                                }
+                              }}
+                              className={`carousel-glide-dot h-1.5 rounded-full cursor-pointer ${
+                                isMainCenter
+                                  ? 'w-5 bg-[#D4AF37]'
+                                  : 'w-1.5 bg-white/30 hover:bg-white/55'
+                              } ${isEnteringEdge ? 'carousel-glide-dot-enter' : ''}`}
+                            />
+                          );
+                        })}
+                      </div>
+                    )}
                   </div>
                 )}
 
