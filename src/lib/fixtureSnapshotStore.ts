@@ -28,6 +28,7 @@ const COLLECTION = 'fixtureSnapshots';
 const META_DOC = '_meta';
 
 let cachedDb: any | null | undefined;
+let loggedPreviewIsolationNotice = false;
 
 export interface SaveSnapshotOptions {
   keepFromDate?: string;
@@ -44,8 +45,36 @@ export interface SnapshotSaveStats {
   datesWritten: string[];
 }
 
+/**
+ * Enforces strict Production vs Preview state isolation:
+ * When running in a non-production Vercel environment (`VERCEL_ENV !== 'production'`),
+ * `FIREBASE_SERVICE_ACCOUNT` is ignored so Preview deployments can never read from or
+ * write to Production's `fixtureSnapshots` collection. Preview deployments may optionally
+ * supply `FIREBASE_SERVICE_ACCOUNT_PREVIEW` for a separate project, or fall back cleanly
+ * to their isolated local disk snapshot cache.
+ */
+export function resolveScopedServiceAccountRaw(): string | undefined {
+  const vercelEnv = process.env.VERCEL_ENV?.trim().toLowerCase();
+  if (vercelEnv && vercelEnv !== 'production') {
+    const previewRaw = process.env.FIREBASE_SERVICE_ACCOUNT_PREVIEW?.trim();
+    if (!previewRaw && process.env.FIREBASE_SERVICE_ACCOUNT && !loggedPreviewIsolationNotice) {
+      loggedPreviewIsolationNotice = true;
+      console.info(
+        `[FixtureSnapshot] Isolating VERCEL_ENV="${vercelEnv}" from Production FIREBASE_SERVICE_ACCOUNT (falling back to isolated local cache unless FIREBASE_SERVICE_ACCOUNT_PREVIEW is configured).`
+      );
+    }
+    return previewRaw || undefined;
+  }
+  return process.env.FIREBASE_SERVICE_ACCOUNT?.trim() || undefined;
+}
+
+export function resetSnapshotStoreCacheForTests(): void {
+  cachedDb = undefined;
+  loggedPreviewIsolationNotice = false;
+}
+
 function parseServiceAccount(): Record<string, any> | null {
-  const raw = process.env.FIREBASE_SERVICE_ACCOUNT;
+  const raw = resolveScopedServiceAccountRaw();
   if (!raw) return null;
   try {
     const text = raw.trim().startsWith('{') ? raw : Buffer.from(raw, 'base64').toString('utf-8');
@@ -55,7 +84,7 @@ function parseServiceAccount(): Record<string, any> | null {
     }
     return json;
   } catch (err) {
-    console.warn('[FixtureSnapshot] FIREBASE_SERVICE_ACCOUNT is not valid JSON/base64:', err);
+    console.warn('[FixtureSnapshot] Scoped Firebase service account is not valid JSON/base64:', err);
     return null;
   }
 }
@@ -70,9 +99,20 @@ async function getDb(): Promise<any | null> {
   try {
     const admin = await import('firebase-admin');
     const mod: any = (admin as any).default || admin;
-    const app = mod.apps?.length
-      ? mod.app()
-      : mod.initializeApp({ credential: mod.credential.cert(creds) });
+    const vercelEnv = process.env.VERCEL_ENV?.trim().toLowerCase();
+    const isNonProdVercel = Boolean(vercelEnv && vercelEnv !== 'production');
+    let app: any;
+    if (isNonProdVercel) {
+      const previewAppName = 'mshindi-fixture-snapshot-preview';
+      const existingPreviewApp = Array.isArray(mod.apps)
+        ? mod.apps.find((a: any) => a?.name === previewAppName)
+        : null;
+      app = existingPreviewApp || mod.initializeApp({ credential: mod.credential.cert(creds) }, previewAppName);
+    } else {
+      app = mod.apps?.length
+        ? mod.app()
+        : mod.initializeApp({ credential: mod.credential.cert(creds) });
+    }
     cachedDb = mod.firestore(app);
     return cachedDb;
   } catch (err) {
@@ -83,7 +123,7 @@ async function getDb(): Promise<any | null> {
 }
 
 export function isSnapshotStoreConfigured(): boolean {
-  return Boolean(process.env.FIREBASE_SERVICE_ACCOUNT);
+  return Boolean(resolveScopedServiceAccountRaw());
 }
 
 function getLocalCachePath(): string {

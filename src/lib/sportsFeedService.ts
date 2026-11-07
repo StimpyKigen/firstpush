@@ -203,11 +203,12 @@ const livePipelineStats = {
 
 const BASE_URL = 'https://footballcharts-backend.onrender.com/api/v1';
 
-function getApiKey(): string {
-  if (typeof process !== 'undefined' && process.env?.SPORTS_FEED_API_KEY) {
-    return process.env.SPORTS_FEED_API_KEY;
+export function getApiKey(): string {
+  const key = typeof process !== 'undefined' ? process.env?.SPORTS_FEED_API_KEY?.trim() : '';
+  if (!key) {
+    throw new Error('[SportsFeed] SPORTS_FEED_API_KEY environment variable is not set.');
   }
-  return 'fc_9qB_ndigFOSIT-SYuIqN8MAUCUqHK05w';
+  return key;
 }
 
 // Persistent Disk Cache Directory
@@ -664,10 +665,11 @@ export async function discoverAllLeagues(forceRefresh = false): Promise<Discover
     return discoveredLeagues;
   }
 
+  const apiKey = getApiKey();
   try {
     const res = await fetch(`${BASE_URL}/leagues/`, {
       headers: {
-        Authorization: `Bearer ${getApiKey()}`,
+        Authorization: `Bearer ${apiKey}`,
       },
       signal: AbortSignal.timeout(15000),
     });
@@ -702,10 +704,11 @@ export async function discoverAllLeagues(forceRefresh = false): Promise<Discover
  * Fetch and normalize fixtures for a specific league
  */
 export async function fetchLeagueFixtures(leagueCode: string): Promise<MarketFixture[]> {
+  const apiKey = getApiKey();
   try {
     const res = await fetch(`${BASE_URL}/leagues/${encodeURIComponent(leagueCode)}/fixtures/`, {
       headers: {
-        Authorization: `Bearer ${getApiKey()}`,
+        Authorization: `Bearer ${apiKey}`,
       },
       signal: AbortSignal.timeout(35000),
     });
@@ -1832,6 +1835,15 @@ export async function executeRollingSyncCycle(): Promise<{ updated: number; tota
   try {
     const weeklyDates = getWeeklyTargetDatesEAT();
     const count = await syncSportScoreCatalog(weeklyDates);
+    if (count > 0) {
+      saveDiskCache();
+      if (isSnapshotStoreConfigured()) {
+        saveFixtureSnapshot(Array.from(fixturesStore.values()), {
+          isCompleteReconciliation: false,
+          source: 'rolling_sync',
+        }).catch(() => {});
+      }
+    }
     syncCycleCounter++;
     return { updated: count, total: fixturesStore.size };
   } finally {
@@ -1942,18 +1954,6 @@ export async function getDailyMarketHighlights(force = false): Promise<MarketFix
   }
 
   const nowMs = Date.now();
-  const hasUpcomingOrLive = Array.from(fixturesStore.values()).some((f) => {
-    if (f.status === 'in') return true;
-    if (f.status === 'pre') {
-      const kMs = f.kickoffIso ? new Date(f.kickoffIso).getTime() : 0;
-      return kMs >= nowMs - 3 * 3600 * 1000;
-    }
-    return false;
-  });
-
-  const hasBet365Odds = Array.from(fixturesStore.values()).some((f) => f.bookmaker === 'Bet365');
-  const isStale = !lastSyncTimestamp || (Date.now() - new Date(lastSyncTimestamp).getTime() > 10 * 60 * 1000);
-
   let snapshotServed = false;
   if (isSnapshotStoreConfigured()) {
     const snapshotAgeMs = Date.now() - lastSnapshotLoadMs;
@@ -1963,7 +1963,7 @@ export async function getDailyMarketHighlights(force = false): Promise<MarketFix
       if (snapUpdatedAt) lastSnapshotUpdatedMs = new Date(snapUpdatedAt).getTime();
       if (snapFixtures.length > 0) {
         const sanitizedSnap = snapFixtures.map((f) => sanitizeSnapshotLoadedFixture(f, nowMs));
-        ingestFixtures(sanitizedSnap, false);
+        ingestFixtures(sanitizedSnap, false, { updateFullSyncTimestamp: false });
       }
     }
     snapshotServed =
@@ -1971,22 +1971,35 @@ export async function getDailyMarketHighlights(force = false): Promise<MarketFix
       Array.from(fixturesStore.values()).some((f) => f.status === 'pre' || f.status === 'in');
   }
 
-  if (!snapshotServed && (force || !hasUpcomingOrLive || !hasBet365Odds || isStale)) {
+  const hasUpcomingOrLive = Array.from(fixturesStore.values()).some((f) => {
+    if (f.status === 'in' || f.status === 'awaiting_confirmation') return true;
+    if (f.status === 'pre') {
+      const kMs = f.kickoffIso ? new Date(f.kickoffIso).getTime() : 0;
+      return kMs >= nowMs - 3 * 3600 * 1000;
+    }
+    return false;
+  });
+
+  const hasBet365Odds = Array.from(fixturesStore.values()).some((f) => f.bookmaker === 'Bet365');
+  const isStale = !lastSyncTimestamp || Date.now() - new Date(lastSyncTimestamp).getTime() > 10 * 60 * 1000;
+
+  // Do NOT allow the 48-hour snapshot window to suppress periodic rolling sync cycles (`isStale` / `force` / empty slate).
+  if (force || isStale || !hasUpcomingOrLive || (!snapshotServed && !hasBet365Odds)) {
     try {
       await executeRollingSyncCycle();
     } catch (err) {
       console.warn('SportScore rolling sync notice in getDailyMarketHighlights:', err);
     }
-  } else {
-    // CRITICAL FIX: Even when snapshotServed is true, always keep live & recently-finished matches
-    // synchronized with SportScore if lastLiveSyncTimestamp is older than 12 seconds!
-    const liveAgeMs = lastLiveSyncTimestamp ? Date.now() - new Date(lastLiveSyncTimestamp).getTime() : Infinity;
-    if (force || liveAgeMs > 12_000) {
-      try {
-        await syncLiveScoresOnly();
-      } catch (err) {
-        console.warn('Live score sync notice in getDailyMarketHighlights:', err);
-      }
+  }
+
+  // Always keep live, awaiting-confirmation, and recently-finished matches synchronized
+  // across ALL active competitions (not just priority slugs) when lastLiveSyncTimestamp > 12s ago.
+  const liveAgeMs = lastLiveSyncTimestamp ? Date.now() - new Date(lastLiveSyncTimestamp).getTime() : Infinity;
+  if (force || liveAgeMs > 12_000) {
+    try {
+      await syncLiveScoresOnly();
+    } catch (err) {
+      console.warn('Live score sync notice in getDailyMarketHighlights:', err);
     }
   }
 
@@ -2031,10 +2044,11 @@ export async function getMarketFixtures(leagueCode: string = 'premier'): Promise
  */
 export async function getMarketResults(leagueCode: string = 'premier', season?: string): Promise<MarketResult[]> {
   const targetSeason = season || '2025-2026';
+  const apiKey = getApiKey();
   try {
     const res = await fetch(`${BASE_URL}/leagues/${encodeURIComponent(leagueCode)}/results/?season=${encodeURIComponent(targetSeason)}`, {
       headers: {
-        Authorization: `Bearer ${getApiKey()}`,
+        Authorization: `Bearer ${apiKey}`,
       },
       signal: AbortSignal.timeout(12000),
     });

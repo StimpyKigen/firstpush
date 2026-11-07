@@ -5,6 +5,9 @@ import tokensHandler from '../api/tokens.js';
 import adminHandler from '../api/admin.js';
 import homepageFeedHandler from '../api/homepage-feed.js';
 import { issueUserSessionToken, setTokenPersistenceEnabled } from '../src/lib/serverTokenEconomy.js';
+import { generateAdminToken } from '../src/lib/adminAuthService.js';
+import { isSnapshotStoreConfigured, resetSnapshotStoreCacheForTests } from '../src/lib/fixtureSnapshotStore.js';
+import { getApiKey } from '../src/lib/sportsFeedService.js';
 
 function assert(condition: unknown, message: string): void {
   if (!condition) {
@@ -254,6 +257,33 @@ async function runVerification() {
     assert(resCronUnauth.statusCode === 401, '/api/cron/weekly-sync must reject unauthorized requests with 401');
     if (prevCronSecret === undefined) delete process.env.CRON_SECRET;
     else process.env.CRON_SECRET = prevCronSecret;
+
+    // 2i. /api/sports/sync & /api/sports/sync-live must require admin auth
+    const resSyncUnauth = createMockRes();
+    await sportsHandler(
+      {
+        method: 'POST',
+        url: '/api/sports?endpoint=sync',
+        query: { endpoint: 'sync' },
+        headers: {},
+        body: {},
+      },
+      resSyncUnauth
+    );
+    assert(resSyncUnauth.statusCode === 403, '/api/sports/sync must reject unauthenticated requests with 403');
+
+    const resSyncLiveUnauth = createMockRes();
+    await sportsHandler(
+      {
+        method: 'POST',
+        url: '/api/sports?endpoint=sync-live',
+        query: { endpoint: 'sync-live' },
+        headers: {},
+        body: {},
+      },
+      resSyncLiveUnauth
+    );
+    assert(resSyncLiveUnauth.statusCode === 403, '/api/sports/sync-live must reject unauthenticated requests with 403');
   }
   console.log('    PASS: All consolidated /api/sports/* and /api/cron/weekly-sync routes verified.\n');
 
@@ -394,8 +424,124 @@ async function runVerification() {
       resFixtures.statusCode === 200 && resFixtures.body?.success === true && Array.isArray(resFixtures.body?.fixtures),
       '/api/admin/fixtures GET failed'
     );
+
+    const resFixturesPostUnauth = createMockRes();
+    await adminHandler(
+      {
+        method: 'POST',
+        url: '/api/admin?endpoint=fixtures',
+        query: { endpoint: 'fixtures' },
+        headers: {},
+        body: { fixtures: [] },
+      },
+      resFixturesPostUnauth
+    );
+    assert(resFixturesPostUnauth.statusCode === 403, 'POST /api/admin/fixtures must reject unauthenticated requests with 403');
+
+    const resFixturesDeleteUnauth = createMockRes();
+    await adminHandler(
+      {
+        method: 'DELETE',
+        url: '/api/admin?endpoint=fixtures',
+        query: { endpoint: 'fixtures' },
+        headers: {},
+        body: {},
+      },
+      resFixturesDeleteUnauth
+    );
+    assert(resFixturesDeleteUnauth.statusCode === 403, 'DELETE /api/admin/fixtures must reject unauthenticated requests with 403');
+
+    const resBatchDeleteUnauth = createMockRes();
+    await adminHandler(
+      {
+        method: 'DELETE',
+        url: '/api/admin?endpoint=fixtures/batch/test-batch-1',
+        query: { endpoint: ['fixtures', 'batch', 'test-batch-1'] },
+        headers: {},
+        body: {},
+      },
+      resBatchDeleteUnauth
+    );
+    assert(
+      resBatchDeleteUnauth.statusCode === 403,
+      'DELETE /api/admin/fixtures/batch/:id must reject unauthenticated requests with 403'
+    );
+
+    // Authenticated admin POST /api/admin/fixtures succeeds
+    const validAdminToken = generateAdminToken();
+    const resFixturesPostAuth = createMockRes();
+    await adminHandler(
+      {
+        method: 'POST',
+        url: '/api/admin?endpoint=fixtures',
+        query: { endpoint: 'fixtures' },
+        headers: { 'x-admin-token': validAdminToken },
+        body: { fixtures: [], fileName: 'auth-verify.pdf' },
+      },
+      resFixturesPostAuth
+    );
+    assert(
+      resFixturesPostAuth.statusCode === 200 && resFixturesPostAuth.body?.success === true,
+      'Authenticated POST /api/admin/fixtures failed'
+    );
   }
   console.log('    PASS: All consolidated /api/admin/* routes verified.\n');
+
+  // 6. Test Production vs Preview Snapshot Isolation & Strict SPORTS_FEED_API_KEY Enforcement
+  console.log('[6] Testing Production vs Preview snapshot isolation & SPORTS_FEED_API_KEY fail-loud check...');
+  {
+    const prevVercelEnv = process.env.VERCEL_ENV;
+    const prevSa = process.env.FIREBASE_SERVICE_ACCOUNT;
+    const prevPreviewSa = process.env.FIREBASE_SERVICE_ACCOUNT_PREVIEW;
+    const prevFeedKey = process.env.SPORTS_FEED_API_KEY;
+
+    try {
+      process.env.FIREBASE_SERVICE_ACCOUNT = '{"project_id":"prod-mock"}';
+      delete process.env.FIREBASE_SERVICE_ACCOUNT_PREVIEW;
+
+      process.env.VERCEL_ENV = 'preview';
+      resetSnapshotStoreCacheForTests();
+      assert(
+        isSnapshotStoreConfigured() === false,
+        'Preview deployment must NOT read Production FIREBASE_SERVICE_ACCOUNT when FIREBASE_SERVICE_ACCOUNT_PREVIEW is unset'
+      );
+
+      process.env.FIREBASE_SERVICE_ACCOUNT_PREVIEW = '{"project_id":"preview-mock"}';
+      resetSnapshotStoreCacheForTests();
+      assert(
+        isSnapshotStoreConfigured() === true,
+        'Preview deployment must accept dedicated FIREBASE_SERVICE_ACCOUNT_PREVIEW'
+      );
+
+      process.env.VERCEL_ENV = 'production';
+      delete process.env.FIREBASE_SERVICE_ACCOUNT_PREVIEW;
+      resetSnapshotStoreCacheForTests();
+      assert(
+        isSnapshotStoreConfigured() === true,
+        'Production deployment must read FIREBASE_SERVICE_ACCOUNT'
+      );
+
+      delete process.env.SPORTS_FEED_API_KEY;
+      let threwMissingKey = false;
+      try {
+        getApiKey();
+      } catch (err: any) {
+        threwMissingKey = String(err?.message || '').includes('SPORTS_FEED_API_KEY');
+      }
+      assert(threwMissingKey, 'getApiKey() must fail loudly when SPORTS_FEED_API_KEY is unset');
+    } finally {
+      if (prevVercelEnv === undefined) delete process.env.VERCEL_ENV;
+      else process.env.VERCEL_ENV = prevVercelEnv;
+      if (prevSa === undefined) delete process.env.FIREBASE_SERVICE_ACCOUNT;
+      else process.env.FIREBASE_SERVICE_ACCOUNT = prevSa;
+      if (prevPreviewSa === undefined) delete process.env.FIREBASE_SERVICE_ACCOUNT_PREVIEW;
+      else process.env.FIREBASE_SERVICE_ACCOUNT_PREVIEW = prevPreviewSa;
+      if (prevFeedKey === undefined) delete process.env.SPORTS_FEED_API_KEY;
+      else process.env.SPORTS_FEED_API_KEY = prevFeedKey;
+      resetSnapshotStoreCacheForTests();
+    }
+  }
+  console.log('    PASS: Production/Preview snapshot isolation & strict SPORTS_FEED_API_KEY enforcement verified.\n');
 
   // 5. Test Homepage Feed Function (api/homepage-feed.ts)
   console.log('[5] Testing api/homepage-feed.ts routes...');
@@ -422,6 +568,7 @@ async function runVerification() {
   console.log('    PASS: /api/homepage-feed GET & POST security verified.\n');
 
   console.log('ALL VERCEL SERVERLESS FUNCTION CONSOLIDATION & PARITY CHECKS PASSED!');
+  process.exit(0);
 }
 
 runVerification().catch((err) => {

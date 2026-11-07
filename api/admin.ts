@@ -115,6 +115,13 @@ export default async function handler(req: any, res: any) {
         return res.status(200).json({ success: true, count: fixtures.length, fixtures, batches });
       }
       if (req.method === 'POST') {
+        const authCheck = verifyAdminRequest(req.headers || {}, body);
+        if (!authCheck.authorized) {
+          return res.status(403).json({
+            success: false,
+            error: authCheck.reason || 'Forbidden: Administrator permissions required.',
+          });
+        }
         const fixtures = Array.isArray(body.fixtures) ? body.fixtures : [];
         const fileName = body.fileName || 'uploaded-fixtures.pdf';
         const sectoredCount = body.sectoredCount || 1;
@@ -128,6 +135,13 @@ export default async function handler(req: any, res: any) {
         });
       }
       if (req.method === 'DELETE') {
+        const authCheck = verifyAdminRequest(req.headers || {}, body);
+        if (!authCheck.authorized) {
+          return res.status(403).json({
+            success: false,
+            error: authCheck.reason || 'Forbidden: Administrator permissions required.',
+          });
+        }
         clearAllFixtures();
         return res.status(200).json({ success: true, message: 'All fixtures cleared from match slate.' });
       }
@@ -142,6 +156,13 @@ export default async function handler(req: any, res: any) {
       return res.status(405).json({ success: false, error: 'Method not allowed.' });
     }
     try {
+      const authCheck = verifyAdminRequest(req.headers || {}, body);
+      if (!authCheck.authorized) {
+        return res.status(403).json({
+          success: false,
+          error: authCheck.reason || 'Forbidden: Administrator permissions required.',
+        });
+      }
       const batchId = subpath.slice('fixtures/batch/'.length);
       deleteAdminBatch(batchId);
       return res.status(200).json({

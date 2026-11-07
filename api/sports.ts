@@ -242,6 +242,16 @@ export default async function handler(req: any, res: any) {
 
   // 12. Manual/On-Demand Rolling or Live Sync (/api/sports/sync & /api/sports/sync-live)
   if (subpath === 'sync') {
+    const body = typeof req.body === 'string' && req.body ? JSON.parse(req.body) : req.body || {};
+    const adminCheck = verifyAdminRequest(req.headers || {}, body);
+    const hasValidCronSecret =
+      Boolean(process.env.CRON_SECRET) && req.headers?.authorization === `Bearer ${process.env.CRON_SECRET}`;
+    if (!adminCheck.authorized && !hasValidCronSecret) {
+      return res.status(403).json({
+        success: false,
+        error: adminCheck.reason || 'Forbidden: Administrator permissions required.',
+      });
+    }
     try {
       const result = await executeRollingSyncCycle();
       return res.status(200).json({ success: true, result, diagnostics: getSyncDiagnostics() });
@@ -251,6 +261,16 @@ export default async function handler(req: any, res: any) {
   }
 
   if (subpath === 'sync-live') {
+    const body = typeof req.body === 'string' && req.body ? JSON.parse(req.body) : req.body || {};
+    const adminCheck = verifyAdminRequest(req.headers || {}, body);
+    const hasValidCronSecret =
+      Boolean(process.env.CRON_SECRET) && req.headers?.authorization === `Bearer ${process.env.CRON_SECRET}`;
+    if (!adminCheck.authorized && !hasValidCronSecret) {
+      return res.status(403).json({
+        success: false,
+        error: adminCheck.reason || 'Forbidden: Administrator permissions required.',
+      });
+    }
     try {
       const result = await syncLiveScoresOnly();
       return res.status(200).json({ success: true, result, diagnostics: getSyncDiagnostics() });
