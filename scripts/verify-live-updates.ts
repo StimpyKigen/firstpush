@@ -19,6 +19,9 @@ import {
   fetchAuthoritativeSportScoreMatchDetail,
   sanitizeSnapshotLoadedFixture,
   syncLiveScoresOnly,
+  getWeeklyTargetDatesEAT,
+  getLocalDateStringEAT,
+  getSyncDiagnostics,
   ingestFixtures,
   queryMarketFixtures,
 } from '../src/lib/sportsFeedService.js';
@@ -502,6 +505,9 @@ async function section6() {
   console.log('\n[6] Non-terminal >115m awaiting_confirmation & >=240m suspended/unconfirmed safeguards');
 
   const nowMs = Date.now();
+  const runKey = nowMs.toString(36);
+  const muglaFixtureId = `mkt-muglaspor-erokspor-${runKey}`;
+  const muglaMatchId = `m9${runKey}`;
   const kickoff130mAgo = new Date(nowMs - 130 * 60_000).toISOString();
 
   // Seed a live match at 0-4 whose kickoff was 130 minutes ago (Muglaspor vs Erokspor scenario)
@@ -509,12 +515,12 @@ async function section6() {
   ingestFixtures(
     [
       {
-        id: 'mkt-muglaspor-erokspor-test',
-        providerId: 'muglaspor-vs-erokspor-m9test1',
-        matchId: 'm9test1',
-        matchSlug: 'muglaspor-vs-erokspor',
-        matchUrl: 'https://sportscore.com/football/match/muglaspor-vs-erokspor/m9test1/',
-        home: 'Muglaspor',
+        id: muglaFixtureId,
+        providerId: `muglaspor-vs-erokspor-${muglaMatchId}`,
+        matchId: muglaMatchId,
+        matchSlug: `muglaspor-${runKey}-vs-erokspor`,
+        matchUrl: `https://sportscore.com/football/match/muglaspor-${runKey}-vs-erokspor/${muglaMatchId}/`,
+        home: `Muglaspor ${runKey}`,
         away: 'Erokspor',
         competition: 'Turkish 2. Lig',
         competitionId: 'tur-2-lig',
@@ -551,7 +557,7 @@ async function section6() {
     globalThis.fetch = origFetch;
   }
 
-  const afterOutage = queryMarketFixtures({ scope: 'all' }).find((f) => f.id === 'mkt-muglaspor-erokspor-test');
+  const afterOutage = queryMarketFixtures({ scope: 'all' }).find((f) => f.id === muglaFixtureId);
   assert.ok(afterOutage, 'Match must still exist in store');
   assert.equal(afterOutage?.status, 'awaiting_confirmation', 'Match >115m with failed provider check must be awaiting_confirmation, NEVER post');
   assert.equal(afterOutage?.displayClock, 'Awaiting FT');
@@ -563,8 +569,8 @@ async function section6() {
   // 6.2 Next poll: provider widget returns authoritative finished 0-5 -> match STILL gets polled and updates to 0-5 FT!
   const muglaFinishedWidget = {
     match: {
-      id: 'm9test1',
-      home_team: 'Muglaspor',
+      id: muglaMatchId,
+      home_team: `Muglaspor ${runKey}`,
       away_team: 'Erokspor',
       home_score: 0,
       away_score: 5,
@@ -574,13 +580,13 @@ async function section6() {
       status_text: 'FT',
       time: kickoff130mAgo,
       competition: 'Turkish 2. Lig',
-      url: '/football/match/muglaspor-vs-erokspor/m9test1/',
+      url: `/football/match/muglaspor-${runKey}-vs-erokspor/${muglaMatchId}/`,
       incidents: [],
     },
   };
   globalThis.fetch = (async (input: any) => {
     const url = String(input);
-    if (url.includes('/api/widget/match/') && url.includes('muglaspor-vs-erokspor')) {
+    if (url.includes('/api/widget/match/') && url.includes(`muglaspor-${runKey}-vs-erokspor`)) {
       return new Response(JSON.stringify(muglaFinishedWidget), {
         status: 200,
         headers: { 'Content-Type': 'application/json' },
@@ -597,7 +603,7 @@ async function section6() {
     globalThis.fetch = origFetch;
   }
 
-  const afterRecovery = queryMarketFixtures({ scope: 'finished' }).find((f) => f.id === 'mkt-muglaspor-erokspor-test');
+  const afterRecovery = queryMarketFixtures({ scope: 'finished' }).find((f) => f.id === muglaFixtureId);
   assert.ok(afterRecovery, 'Match must transition to finished once provider explicitly confirms finished');
   assert.equal(afterRecovery?.status, 'post');
   assert.equal(afterRecovery?.displayClock, 'FT');
@@ -649,6 +655,174 @@ async function section6() {
   ok('>=240m safeguard marks match suspended/unconfirmed and never auto-finalizes with a score');
 }
 
+// ============================================================================
+// SECTION 7 — Per-competition + widget polling for post-10:00 UTC matches & lastSyncTimestamp isolation
+// ============================================================================
+async function section7() {
+  console.log('\n[7] Per-competition live polling (post-10:00 UTC), yesterday window & lastSyncTimestamp isolation');
+
+  // 7.1 getWeeklyTargetDatesEAT includes yesterday
+  const fixedNow = new Date('2026-11-07T15:35:00Z'); // 18:35 EAT
+  const targetDates = getWeeklyTargetDatesEAT(fixedNow);
+  const expectedYesterday = getLocalDateStringEAT(new Date(fixedNow.getTime() - 86_400_000));
+  const expectedToday = getLocalDateStringEAT(fixedNow);
+  assert.equal(targetDates[0], expectedYesterday, 'First weekly target date must be yesterday EAT');
+  assert.equal(targetDates[1], expectedToday, 'Second weekly target date must be today EAT');
+  assert.equal(targetDates.length, 9, 'Rolling window must cover yesterday + today + 7 days (9 dates)');
+  ok('getWeeklyTargetDatesEAT includes yesterday EAT for cross-midnight reconciliation');
+
+  // 7.2 Post-10:00 UTC match (RB Leipzig vs FC Augsburg, 14:30 UTC) gets live updates via per-competition + widget
+  // even when status=live would be empty and global date= truncates at 10:00 UTC, WITHOUT mutating lastSyncTime!
+  const nowMs = Date.now();
+  const rblRunKey = nowMs.toString(36);
+  const rblFixtureId = `mkt-rbleipzig-augsburg-${rblRunKey}`;
+  const rblMatchId = `rbl${rblRunKey}`;
+  // Ensure kickoff UTC hour is >= 10 (e.g. 2026-11-07T14:30:00Z if running on 2026-11-07, or dynamic >=10:00 UTC)
+  const baseKickoff = new Date(nowMs - 55 * 60_000);
+  if (baseKickoff.getUTCHours() < 10) {
+    baseKickoff.setUTCHours(14, 30, 0, 0);
+  }
+  const leipzigKickoffIso = baseKickoff.toISOString();
+
+  ingestFixtures(
+    [
+      {
+        id: rblFixtureId,
+        providerId: `rb-leipzig-${rblRunKey}-vs-fc-augsburg-${rblMatchId}`,
+        matchId: rblMatchId,
+        matchSlug: `rb-leipzig-${rblRunKey}-vs-fc-augsburg`,
+        matchUrl: `https://sportscore.com/football/match/rb-leipzig-${rblRunKey}-vs-fc-augsburg/${rblMatchId}/`,
+        home: `RB Leipzig ${rblRunKey}`,
+        away: 'FC Augsburg',
+        competition: 'German Bundesliga',
+        competitionId: 'ger_bundesliga',
+        country: 'Germany',
+        leagueCode: 'german-bundesliga',
+        kickoff: '17:30 EAT',
+        kickoffIso: leipzigKickoffIso,
+        status: 'in',
+        period: 'first_half',
+        periodSequence: 10,
+        displayClock: "34'",
+        minute: "34'",
+        homeScore: 0,
+        awayScore: 1,
+        homeOdds: 1.55,
+        drawOdds: 4.2,
+        awayOdds: 5.5,
+        homePct: 58,
+        drawPct: 24,
+        awayPct: 18,
+        bookmaker: 'Bet365',
+        syncedAt: new Date(nowMs - 10 * 60_000).toISOString(),
+      },
+    ],
+    true,
+    { updateFullSyncTimestamp: false }
+  );
+
+  const fullSyncBefore = getSyncDiagnostics().lastSyncTime;
+  const requestedUrls: string[] = [];
+  let inFlight = 0;
+  let maxConcurrency = 0;
+
+  const origFetch = globalThis.fetch;
+  globalThis.fetch = (async (input: any) => {
+    const url = String(input);
+    requestedUrls.push(url);
+    inFlight++;
+    if (inFlight > maxConcurrency) maxConcurrency = inFlight;
+    await new Promise((r) => setTimeout(r, 5));
+    inFlight--;
+
+    if (url.includes('competition=bundesliga')) {
+      return new Response(
+        JSON.stringify({
+          matches: [
+            {
+              id: rblMatchId,
+              home: `RB Leipzig ${rblRunKey}`,
+              away: 'FC Augsburg',
+              home_score: 2,
+              away_score: 1,
+              status: 'live',
+              status_text: '1st half',
+              time: leipzigKickoffIso,
+              competition: 'German Bundesliga',
+              country: 'Germany',
+              url: `/football/match/rb-leipzig-${rblRunKey}-vs-fc-augsburg/${rblMatchId}/`,
+            },
+          ],
+        }),
+        { status: 200, headers: { 'Content-Type': 'application/json' } }
+      );
+    }
+
+    if (url.includes('/api/widget/match/') && url.includes(`rb-leipzig-${rblRunKey}-vs-fc-augsburg`)) {
+      return new Response(
+        JSON.stringify({
+          match: {
+            id: rblMatchId,
+            home_team: `RB Leipzig ${rblRunKey}`,
+            away_team: 'FC Augsburg',
+            home_score: 3,
+            away_score: 1,
+            home_ht_score: 3,
+            away_ht_score: 1,
+            status: 'halftime',
+            status_text: 'Half-time',
+            time: leipzigKickoffIso.replace('Z', '+00:00'),
+            competition: 'German Bundesliga',
+            url: `/football/match/rb-leipzig-${rblRunKey}-vs-fc-augsburg/${rblMatchId}/`,
+            incidents: [],
+          },
+        }),
+        { status: 200, headers: { 'Content-Type': 'application/json' } }
+      );
+    }
+
+    return new Response(JSON.stringify({ matches: [] }), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }) as any;
+
+  try {
+    await syncLiveScoresOnly();
+  } finally {
+    globalThis.fetch = origFetch;
+  }
+
+  // Assert no status=live call and no global date= call without competition=
+  assert.equal(
+    requestedUrls.some((u) => u.includes('status=live')),
+    false,
+    'syncLiveScoresOnly must NOT depend on status=live'
+  );
+  assert.equal(
+    requestedUrls.some((u) => u.includes('/api/v1/fixtures/') && u.includes('date=') && !u.includes('competition=')),
+    false,
+    'syncLiveScoresOnly must NOT call global date= endpoint for post-10:00 UTC matches'
+  );
+  assert.equal(
+    requestedUrls.some((u) => u.includes('competition=bundesliga')),
+    true,
+    'syncLiveScoresOnly must poll fetchSportScoreFixturesByCompetition using verified providerSlug (bundesliga)'
+  );
+  assert.ok(maxConcurrency <= 4, `Concurrency must stay capped <= 4 (saw ${maxConcurrency})`);
+
+  const updatedLeipzig = queryMarketFixtures({ scope: 'live' }).find((f) => f.id === rblFixtureId);
+  assert.ok(updatedLeipzig, 'RB Leipzig vs FC Augsburg must be in live scope');
+  assert.equal(updatedLeipzig?.homeScore, 3, 'Authoritative widget score 3-1 HT must win over stale 0-1 / 2-1');
+  assert.equal(updatedLeipzig?.awayScore, 1);
+  assert.equal(updatedLeipzig?.period, 'halftime');
+  assert.equal(updatedLeipzig?.displayClock, 'HT');
+
+  const fullSyncAfter = getSyncDiagnostics().lastSyncTime;
+  assert.equal(fullSyncAfter, fullSyncBefore, 'Partial syncLiveScoresOnly must NEVER overwrite lastSyncTimestamp');
+  ok('Post-10:00 UTC match (RB Leipzig vs FC Augsburg) updates 0-1 1H -> 3-1 HT via per-competition + widget without touching lastSyncTimestamp');
+}
+
 (async () => {
   try {
     console.log('================================================================================');
@@ -660,6 +834,7 @@ async function section6() {
     await section4();
     await section5();
     await section6();
+    await section7();
     console.log(`\nALL ${passed} LIVE-UPDATE CHECKS PASSED`);
     process.exit(0);
   } catch (err) {

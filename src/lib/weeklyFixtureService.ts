@@ -460,7 +460,7 @@ export async function executeWeeklyIngestion(options?: {
     }
 
     // Safely upsert fixtures with monotonic status progression and live score protection
-    ingestFixtures(allEligibleFixtures, false);
+    ingestFixtures(allEligibleFixtures, false, { updateFullSyncTimestamp: true });
 
     log.newFixturesInserted = newCount;
     log.existingFixturesUpdated = updatedCount;

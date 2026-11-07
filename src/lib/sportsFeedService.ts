@@ -276,12 +276,13 @@ export function getLocalDateStringEAT(dateInput: Date | string | number = new Da
 }
 
 /**
- * Returns an 8-day rolling date window (YYYY-MM-DD) in East Africa Time (EAT, UTC+3).
+ * Returns a 9-day rolling date window (yesterday through +7 days, YYYY-MM-DD) in East Africa Time (EAT, UTC+3)
+ * so cross-midnight and yesterday's late-finishing fixtures are always reconciled.
  */
 export function getWeeklyTargetDatesEAT(nowInput: Date | number = Date.now()): string[] {
   const nowMs = typeof nowInput === 'number' ? nowInput : nowInput.getTime();
   const dates: string[] = [];
-  for (let i = 0; i < 8; i++) {
+  for (let i = -1; i < 8; i++) {
     const dateMs = nowMs + i * 86400000;
     const dStr = getLocalDateStringEAT(new Date(dateMs));
     if (dStr && !dates.includes(dStr)) {
@@ -821,7 +822,11 @@ export async function fetchLeagueFixtures(leagueCode: string): Promise<MarketFix
  * 3. Atomic state updates & SSE delta broadcasting.
  * 4. Legitimate provider corrections (e.g. VAR disallowed goal).
  */
-export function ingestFixtures(fixtures: MarketFixture[], isAuthoritative = false): number {
+export function ingestFixtures(
+  fixtures: MarketFixture[],
+  isAuthoritative = false,
+  options?: { updateFullSyncTimestamp?: boolean }
+): number {
   let updatedCount = 0;
   const nowIso = new Date().toISOString();
 
@@ -991,7 +996,9 @@ export function ingestFixtures(fixtures: MarketFixture[], isAuthoritative = fals
   }
 
   if (updatedCount > 0) {
-    lastSyncTimestamp = nowIso;
+    if (options?.updateFullSyncTimestamp) {
+      lastSyncTimestamp = nowIso;
+    }
     saveDiskCache();
   }
   return updatedCount;
@@ -1347,7 +1354,35 @@ export async function fetchAuthoritativeSportScoreMatchDetail(
 }
 
 /**
- * Fetch SportScore fixtures targeted for a specific eligible competition and date
+ * Resolve the SportScore competition slug for a tracked fixture so per-competition polling
+ * can query `/api/v1/fixtures/?sport=football&competition=<slug>&date=<YYYY-MM-DD>`.
+ */
+export function resolveFixtureCompetitionSlug(f: MarketFixture): string | null {
+  if (f.competitionId) {
+    const byId = getCompetitionById(f.competitionId);
+    if (byId?.providerSlug) return byId.providerSlug;
+  }
+  if (f.leagueCode) {
+    const byLeague = getCompetitionByProvider(f.leagueCode);
+    if (byLeague?.providerSlug) return byLeague.providerSlug;
+  }
+  if (f.competition) {
+    const byName = getCompetitionByProvider(f.competition);
+    if (byName?.providerSlug) return byName.providerSlug;
+  }
+  if (f.leagueCode && f.leagueCode.includes('-')) {
+    return f.leagueCode.toLowerCase().trim();
+  }
+  if (f.competition) {
+    const fallbackSlug = slugify(f.competition);
+    if (fallbackSlug) return fallbackSlug;
+  }
+  return null;
+}
+
+/**
+ * Fetch SportScore fixtures targeted for a specific competition and date.
+ * Admits registered eligible competitions AND any fixture already tracked in `fixturesStore`.
  */
 export async function fetchSportScoreFixturesByCompetition(compSlug: string, date: string): Promise<MarketFixture[]> {
   try {
@@ -1361,13 +1396,14 @@ export async function fetchSportScoreFixturesByCompetition(compSlug: string, dat
     for (const m of rawMatches) {
       if (!isSimulatedReality({ competition: m.competition, country: m.country, home: m.home, away: m.away })) {
         const normalized = normalizeSportScoreMatch(m, nowIso);
-        const isEligible = isCompetitionEligible({
-          id: normalized.competitionId,
-          providerId: normalized.providerId,
-          slug: normalized.leagueCode,
-          competition: normalized.competition,
-          country: normalized.country,
-        });
+        const isEligible =
+          isCompetitionEligible({
+            id: normalized.competitionId,
+            providerId: normalized.providerId,
+            slug: normalized.leagueCode,
+            competition: normalized.competition,
+            country: normalized.country,
+          }) || Boolean(findMatchingExistingFixture(normalized, fixturesStore.values()));
         if (isEligible) {
           fixtures.push(normalized);
         }
@@ -1501,7 +1537,8 @@ export async function fetchSportScoreLiveFixtures(): Promise<MarketFixture[]> {
 let hasLoggedRegistrySummary = false;
 
 /**
- * Synchronize SportScore catalogue for specified dates and live matches.
+ * Synchronize SportScore catalogue for specified dates across priority competitions.
+ * Note: Does NOT rely on `status=live` (which returns 0 matches upstream).
  */
 export async function syncSportScoreCatalog(dates?: string[]): Promise<number> {
   if (!hasLoggedRegistrySummary) {
@@ -1512,15 +1549,9 @@ export async function syncSportScoreCatalog(dates?: string[]): Promise<number> {
   const targetDates = dates && dates.length > 0 ? dates : getWeeklyTargetDatesEAT();
   let totalIngested = 0;
 
-  // 1. Ingest active live fixtures first for real-time accuracy
-  const live = await fetchSportScoreLiveFixtures();
-  if (live.length > 0) {
-    totalIngested += ingestFixtures(live);
-  }
-
-  // 2. Fetch targeted priority competitions for each target date
+  // Fetch targeted priority competitions for each target date (capped concurrency to avoid 503s)
   const prioritySlugs = getPriorityProviderSlugs();
-  const CONCURRENCY_LIMIT = 8;
+  const CONCURRENCY_LIMIT = 4;
 
   for (const d of targetDates) {
     for (let i = 0; i < prioritySlugs.length; i += CONCURRENCY_LIMIT) {
@@ -1530,29 +1561,30 @@ export async function syncSportScoreCatalog(dates?: string[]): Promise<number> {
       );
       for (const res of results) {
         if (res.status === 'fulfilled' && res.value.length > 0) {
-          totalIngested += ingestFixtures(res.value);
+          totalIngested += ingestFixtures(res.value, false, { updateFullSyncTimestamp: true });
         }
       }
     }
 
     const fixtures = await fetchSportScoreFixturesByDate(d);
     if (fixtures.length > 0) {
-      totalIngested += ingestFixtures(fixtures);
+      totalIngested += ingestFixtures(fixtures, false, { updateFullSyncTimestamp: true });
     }
   }
 
+  lastSyncTimestamp = new Date().toISOString();
   return totalIngested;
 }
 
 /**
  * Dedicated live scores & match state reconciliation loop.
- * 1. Fetches `/api/v1/fixtures/?sport=football&status=live`.
- * 2. Enriches each live fixture via `/api/widget/match/?sport=football&slug=<matchSlug>`
- *    (unwrapping `json.match`) to capture exact `live_minute`, fresher `home_score`/`away_score`,
- *    `home_ht_score`/`away_ht_score`, `incidents`, and immediate `finished` transitions.
- * 3. Reconciles any fixture in `fixturesStore` that was previously `'in'` or kicked off within
- *    the last 4 hours (still `'pre'` or `'in'`) and is not in `status=live`, ensuring no match
- *    ever stays stuck on `'HT'`, `'0-0'`, or `'Upcoming'`.
+ * 1. Does NOT rely on `status=live` (unreliable upstream) or global `date=` for anything after 10:00 UTC.
+ * 2. Collects all currently `'in'`, `'awaiting_confirmation'`, and recently-kicked-off `'pre'` matches,
+ *    groups them by `(competitionSlug, date)`, and polls `fetchSportScoreFixturesByCompetition()` with
+ *    concurrency strictly capped at 3 to avoid upstream 503s.
+ * 3. Cross-checks `'in'`, `'awaiting_confirmation'`, and un-transitioned past-kickoff `'pre'` matches
+ *    against the authoritative widget endpoint (`fetchAuthoritativeSportScoreMatchDetail()`, concurrency 4).
+ * 4. Never overwrites the full rolling-sync `lastSyncTimestamp`.
  */
 export async function syncLiveScoresOnly(): Promise<{ updated: number; liveCount: number }> {
   if (isLiveSyncing) {
@@ -1560,121 +1592,98 @@ export async function syncLiveScoresOnly(): Promise<{ updated: number; liveCount
   }
   isLiveSyncing = true;
   try {
-    const liveFixtures = await fetchSportScoreLiveFixtures();
     let updated = 0;
-
-    if (liveFixtures.length > 0) {
-      // Enrich each live fixture with SportScore widget match detail (concurrency-capped)
-      const BATCH_SIZE = 8;
-      for (let i = 0; i < liveFixtures.length; i += BATCH_SIZE) {
-        const batch = liveFixtures.slice(i, i + BATCH_SIZE);
-        await Promise.allSettled(
-          batch.map(async (lf) => {
-            try {
-              const cleanSlug = extractSportScoreMatchSlug(lf);
-              if (!cleanSlug) return;
-              const res = await fetchSportScoreWithRetry(
-                `https://sportscore.com/api/widget/match/?sport=football&slug=${encodeURIComponent(cleanSlug)}`,
-                1,
-                5000
-              );
-              if (!res.ok) return;
-              const json = await res.json();
-              const dm = json?.match || json;
-              if (!dm || typeof dm !== 'object') return;
-
-              // Re-evaluate detailed status using widget's status, status_text, and live_minute
-              const detailed = parseDetailedMatchStatus(
-                dm.status || lf.rawStatus,
-                dm.status_text || lf.statusText,
-                dm.live_minute
-              );
-              lf.status = detailed.status;
-              lf.period = detailed.period;
-              lf.periodSequence = detailed.periodSequence;
-              lf.displayClock = detailed.displayClock;
-              lf.minute = detailed.displayClock;
-              if (dm.status) lf.rawStatus = dm.status;
-              if (dm.status_text) lf.statusText = dm.status_text;
-
-              // Apply fresher widget scores if present
-              if (dm.home_score !== null && dm.home_score !== undefined && dm.home_score !== '') {
-                lf.homeScore = Number(dm.home_score);
-              }
-              if (dm.away_score !== null && dm.away_score !== undefined && dm.away_score !== '') {
-                lf.awayScore = Number(dm.away_score);
-              }
-              if (dm.home_ht_score !== null && dm.home_ht_score !== undefined && dm.home_ht_score !== '') {
-                lf.homeHtScore = Number(dm.home_ht_score);
-              }
-              if (dm.away_ht_score !== null && dm.away_ht_score !== undefined && dm.away_ht_score !== '') {
-                lf.awayHtScore = Number(dm.away_ht_score);
-              }
-
-              if (Array.isArray(dm.incidents) && dm.incidents.length > 0) {
-                const { incidents, latestGoalscorer } = normalizeSportScoreIncidents(dm.incidents);
-                lf.incidents = incidents;
-                if (latestGoalscorer) {
-                  lf.latestGoalscorer = latestGoalscorer;
-                }
-              }
-            } catch {}
-          })
-        );
-      }
-
-      updated += ingestFixtures(liveFixtures, true);
-    }
-
-    // Reconcile matches in fixturesStore that:
-    // (A) were marked 'in' (live / HT) and are no longer in `liveFixtures`, OR
-    // (B) were marked 'pre' (scheduled) whose kickoff time passed within the last 6 hours
     const nowMs = Date.now();
     const candidatesToReconcile: MarketFixture[] = [];
     let hasTerminalStatusTransition = false;
 
     for (const sf of fixturesStore.values()) {
-      const isStillInLiveFeed = liveFixtures.some((lf) => lf.status === 'in' && areFixturesIdentical(sf, lf));
-      if (isStillInLiveFeed) continue;
-
       if (sf.status === 'in' || sf.status === 'awaiting_confirmation') {
         candidatesToReconcile.push(sf);
       } else if (sf.status === 'pre' && sf.kickoffIso) {
         const kMs = new Date(sf.kickoffIso).getTime();
         const elapsedMin = (nowMs - kMs) / 60000;
-        // Kickoff was between 2 minutes ago and 360 minutes ago
-        if (elapsedMin >= 2 && elapsedMin <= 360) {
+        // Kickoff passed between 1 minute ago and 360 minutes ago (covers cross-midnight & yesterday matches)
+        if (elapsedMin >= 1 && elapsedMin <= 360) {
           candidatesToReconcile.push(sf);
         }
       }
     }
 
-    // If there are past-kickoff 'pre' or orphaned 'in' matches, reconcile against their specific dates (UTC & EAT)
-    // so matches kicking off at 22:00/23:00 EAT and finishing after midnight UTC/EAT are never missed!
-    if (candidatesToReconcile.length > 0 && nowMs - lastTodayDateReconcileMs > 30_000) {
-      lastTodayDateReconcileMs = nowMs;
-      const datesToFetch = new Set<string>();
-      datesToFetch.add(new Date(nowMs).toISOString().slice(0, 10));
-      datesToFetch.add(getLocalDateStringEAT(nowMs));
+    // Step A: Group active & recently-kicked-off candidates by competition slug + match date (no .slice(0, 2) truncation!)
+    if (candidatesToReconcile.length > 0) {
+      const compDatePairs = new Map<string, { compSlug: string; dateStr: string }>();
+      const pre10UtcUnmappedDates = new Set<string>();
+
+      const fallbackUtcToday = new Date(nowMs).toISOString().slice(0, 10);
+      const fallbackEatToday = getLocalDateStringEAT(nowMs);
+
       for (const c of candidatesToReconcile) {
+        const compSlug = resolveFixtureCompetitionSlug(c);
+        const candidateDates = new Set<string>();
+        let kickoffUtcHour = 12;
+
         if (c.kickoffIso) {
-          datesToFetch.add(c.kickoffIso.slice(0, 10));
-          const eatDate = getLocalDateStringEAT(c.kickoffIso);
-          if (eatDate) datesToFetch.add(eatDate);
+          const kDate = new Date(c.kickoffIso);
+          if (Number.isFinite(kDate.getTime())) {
+            kickoffUtcHour = kDate.getUTCHours();
+            candidateDates.add(kDate.toISOString().slice(0, 10));
+            const eatDate = getLocalDateStringEAT(kDate);
+            if (eatDate) candidateDates.add(eatDate);
+          }
+        }
+        if (candidateDates.size === 0) {
+          candidateDates.add(fallbackUtcToday);
+          if (fallbackEatToday) candidateDates.add(fallbackEatToday);
+        }
+
+        if (compSlug) {
+          for (const dateStr of candidateDates) {
+            compDatePairs.set(`${compSlug}::${dateStr}`, { compSlug, dateStr });
+          }
+        } else if (kickoffUtcHour < 10) {
+          // Only allow global date endpoint fallback for unmapped matches strictly before 10:00 UTC
+          for (const dateStr of candidateDates) {
+            pre10UtcUnmappedDates.add(dateStr);
+          }
         }
       }
-      for (const dateStr of Array.from(datesToFetch).slice(0, 2)) {
-        try {
-          const dateMatches = await fetchSportScoreFixturesByDate(dateStr);
-          if (dateMatches.length > 0) {
-            updated += ingestFixtures(dateMatches, true);
+
+      const COMP_POLL_CONCURRENCY = 3;
+      const compTasks = Array.from(compDatePairs.values());
+      for (let i = 0; i < compTasks.length; i += COMP_POLL_CONCURRENCY) {
+        const batch = compTasks.slice(i, i + COMP_POLL_CONCURRENCY);
+        const results = await Promise.allSettled(
+          batch.map(({ compSlug, dateStr }) => fetchSportScoreFixturesByCompetition(compSlug, dateStr))
+        );
+        for (const res of results) {
+          if (res.status === 'fulfilled' && res.value.length > 0) {
+            for (const item of res.value) {
+              const prev = fixturesStore.get(item.id) || findMatchingExistingFixture(item, fixturesStore.values());
+              if (prev && prev.status !== 'post' && item.status === 'post') {
+                hasTerminalStatusTransition = true;
+              }
+            }
+            updated += ingestFixtures(res.value, true, { updateFullSyncTimestamp: false });
           }
-        } catch {}
+        }
+      }
+
+      if (pre10UtcUnmappedDates.size > 0 && nowMs - lastTodayDateReconcileMs > 30_000) {
+        lastTodayDateReconcileMs = nowMs;
+        for (const dateStr of Array.from(pre10UtcUnmappedDates)) {
+          try {
+            const dateMatches = await fetchSportScoreFixturesByDate(dateStr);
+            if (dateMatches.length > 0) {
+              updated += ingestFixtures(dateMatches, true, { updateFullSyncTimestamp: false });
+            }
+          } catch {}
+        }
       }
     }
 
-    // Now check widget match detail for any candidate in 'in', 'awaiting_confirmation', or past-kickoff 'pre'.
-    // CRITICAL: Sort so ALL 'in' and 'awaiting_confirmation' matches come FIRST (never starved behind 'pre' matches), ordered by oldest check time!
+    // Step B: Cross-check 'in', 'awaiting_confirmation', and un-transitioned past-kickoff 'pre' matches
+    // against the fixed fetchAuthoritativeSportScoreMatchDetail() widget endpoint (capped concurrency = 4).
     const remainingCandidates = candidatesToReconcile
       .filter((c) => {
         const current = fixturesStore.get(c.id);
@@ -1702,10 +1711,12 @@ export async function syncLiveScoresOnly(): Promise<{ updated: number; liveCount
       .slice(0, 16);
 
     const confirmedExtraTimeIds = new Set<string>();
+    const WIDGET_POLL_CONCURRENCY = 4;
 
-    if (remainingCandidates.length > 0) {
+    for (let i = 0; i < remainingCandidates.length; i += WIDGET_POLL_CONCURRENCY) {
+      const batch = remainingCandidates.slice(i, i + WIDGET_POLL_CONCURRENCY);
       await Promise.allSettled(
-        remainingCandidates.map(async (sf) => {
+        batch.map(async (sf) => {
           const current = fixturesStore.get(sf.id);
           if (!current) return;
           const prevStatus = current.status;
@@ -1767,7 +1778,7 @@ export async function syncLiveScoresOnly(): Promise<{ updated: number; liveCount
           syncedAt: new Date().toISOString(),
           isAuthoritativeCorrection: false,
         };
-        updated += ingestFixtures([safeguardUnconfirmed], false);
+        updated += ingestFixtures([safeguardUnconfirmed], false, { updateFullSyncTimestamp: false });
       } else if (elapsedMin > AWAITING_CONFIRMATION_MINUTES) {
         const hasConfirmedExtraTimeOrPenalties = confirmedExtraTimeIds.has(afterDetail.id) && elapsedMin < 160;
         if (!hasConfirmedExtraTimeOrPenalties && afterDetail.status !== 'awaiting_confirmation') {
@@ -1783,7 +1794,7 @@ export async function syncLiveScoresOnly(): Promise<{ updated: number; liveCount
             syncedAt: new Date().toISOString(),
             isAuthoritativeCorrection: false,
           };
-          updated += ingestFixtures([awaitingConfirmation], false);
+          updated += ingestFixtures([awaitingConfirmation], false, { updateFullSyncTimestamp: false });
         }
       }
     }
