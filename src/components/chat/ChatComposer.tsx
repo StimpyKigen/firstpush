@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback } from 'react';
+import React, { useState, useRef } from 'react';
 import { Send } from 'lucide-react';
 
 interface ChatComposerProps {
@@ -11,7 +11,7 @@ interface ChatComposerProps {
 export default function ChatComposer({
   onSend,
   onTyping,
-  placeholder = 'Type a message...',
+  placeholder = 'Comment here...',
   disabled = false,
 }: ChatComposerProps) {
   const [text, setText] = useState('');
@@ -54,13 +54,14 @@ export default function ChatComposer({
         className="flex-1 bg-white dark:bg-[#2A312C] border border-[#DCDCC8] dark:border-[#414A43] rounded-full px-4 py-2 text-xs text-slate-800 dark:text-[#F4F5EF] placeholder:text-slate-400 focus:outline-none focus:border-[#006C54] focus:ring-1 focus:ring-[#006C54] transition-all shadow-2xs"
       />
 
+      {/* Lucide Send button with emerald accent outline and no border */}
       <button
         type="submit"
         disabled={disabled || !text.trim()}
         aria-label="Send message"
-        className="w-8 h-8 rounded-full bg-[#006C54] hover:bg-[#005441] disabled:opacity-40 text-white flex items-center justify-center transition-all cursor-pointer shadow-xs shrink-0 active:scale-95"
+        className="p-2 rounded-full text-[#006C54] hover:text-[#005441] dark:text-[#00A878] dark:hover:text-[#00C48C] disabled:opacity-30 disabled:hover:text-[#006C54] bg-transparent border-0 shadow-none flex items-center justify-center transition-all cursor-pointer shrink-0 active:scale-95"
       >
-        <Send size={14} className="ml-0.5" />
+        <Send size={18} />
       </button>
     </form>
   );

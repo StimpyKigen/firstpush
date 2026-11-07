@@ -1,11 +1,9 @@
 import React, { useEffect } from 'react';
-import { X, RadioTower, Users } from 'lucide-react';
+import { X, Users } from 'lucide-react';
 import { useChatRoom } from '../../lib/useChatRoom';
 import ChatMessageList from './ChatMessageList';
 import TypingIndicator from './TypingIndicator';
 import ChatComposer from './ChatComposer';
-import GlyphAvatarGroup from './GlyphAvatarGroup';
-import { getRoomMockParticipants } from '../../lib/chatRoomStore';
 import { useBackToClose } from '../../lib/useBackToClose';
 import type { FreeMatch } from '../../lib/freeMatches';
 
@@ -31,8 +29,6 @@ export default function LiveChatRoomOverlay({
     notifyTyping,
     currentUserId,
   } = useChatRoom(roomId, isOpen);
-
-  const mockParticipants = getRoomMockParticipants(roomId);
 
   // Lock body scroll while open
   useEffect(() => {
@@ -77,29 +73,17 @@ export default function LiveChatRoomOverlay({
           className="shrink-0 flex items-center justify-between gap-2 px-4 py-3 bg-[#FFFFF0] dark:bg-[#202522] border-b border-[#E6E6D2] dark:border-[#414A43] select-none"
           style={{ paddingTop: 'max(12px, env(safe-area-inset-top, 0px))' }}
         >
-          <div className="flex items-center gap-2.5 min-w-0">
-            <div className="shrink-0">
-              <GlyphAvatarGroup users={mockParticipants} max={2} size={24} />
-            </div>
-
-            <div className="min-w-0">
-              <div className="flex items-center gap-1.5">
-                <span className="font-display font-bold text-slate-900 dark:text-[#F4F5EF] text-sm truncate leading-tight">
-                  {match.home} v {match.away}
-                </span>
-              </div>
-              <div className="flex items-center gap-2 text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
-                <span className="inline-flex items-center gap-1 font-semibold text-[#006C54]">
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#006C54] animate-pulse" />
-                  Live Chat
-                </span>
-                <span>·</span>
-                <span className="tabular-nums font-medium flex items-center gap-1">
-                  <Users size={11} className="text-slate-400" />
-                  {activeUsersCount} online
-                </span>
-              </div>
-            </div>
+          {/* Left: "Live Chat" with pulsing green dot, and online counter following it */}
+          <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
+            <span className="inline-flex items-center gap-1.5 font-bold text-[#006C54] dark:text-[#00A878]">
+              <span className="w-2 h-2 rounded-full bg-[#006C54] dark:bg-[#00A878] animate-pulse" />
+              Live Chat
+            </span>
+            <span className="text-slate-300 dark:text-slate-600">·</span>
+            <span className="tabular-nums font-semibold flex items-center gap-1 text-slate-600 dark:text-slate-300">
+              <Users size={12} className="text-slate-400" />
+              {activeUsersCount} online
+            </span>
           </div>
 
           <button
@@ -112,7 +96,7 @@ export default function LiveChatRoomOverlay({
           </button>
         </div>
 
-        {/* Scrollable Message List */}
+        {/* Scrollable Message List (bottom-up YouTube live chat style) */}
         <ChatMessageList
           messages={messages}
           currentUserId={currentUserId}
@@ -129,7 +113,7 @@ export default function LiveChatRoomOverlay({
           <ChatComposer
             onSend={sendMessage}
             onTyping={notifyTyping}
-            placeholder={`Chat with ${match.home} & ${match.away} punters...`}
+            placeholder="Comment here..."
           />
         </div>
       </div>

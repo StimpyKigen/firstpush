@@ -1,6 +1,5 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { MOCK_GAMBLERS } from './mockData';
 
 export interface ChatUser {
   id: string;
@@ -41,10 +40,28 @@ export const PLATFORM_MOCK_USERS: ChatUser[] = [
   { id: 'mock-10', name: 'Juma_Master', colorSeed: 18, isMock: true },
   { id: 'mock-11', name: 'Otieno_Tips', colorSeed: 25, isMock: true },
   { id: 'mock-12', name: 'MwangiPicks', colorSeed: 32, isMock: true },
+  { id: 'mock-13', name: 'KiprotichPicks', colorSeed: 9, isMock: true },
+  { id: 'mock-14', name: 'OddsMasterKE', colorSeed: 10, isMock: true },
+  { id: 'mock-15', name: 'Kamau_Betting', colorSeed: 35, isMock: true },
+  { id: 'mock-16', name: 'Achieng_Bets', colorSeed: 39, isMock: true },
+  { id: 'mock-17', name: 'Wanjiku_Picks', colorSeed: 42, isMock: true },
+  { id: 'mock-18', name: 'Kip_Punter', colorSeed: 21, isMock: true },
+  { id: 'mock-19', name: 'Nairobi_King', colorSeed: 28, isMock: true },
+  { id: 'mock-20', name: 'SureBetSniper', colorSeed: 47, isMock: true },
+  { id: 'mock-21', name: 'CornerCountKE', colorSeed: 51, isMock: true },
+  { id: 'mock-22', name: 'HalfTimeDraws', colorSeed: 56, isMock: true },
+  { id: 'mock-23', name: 'GambaWise', colorSeed: 63, isMock: true },
+  { id: 'mock-24', name: 'MatatuPunter', colorSeed: 67, isMock: true },
+  { id: 'mock-25', name: 'BetikaGuru', colorSeed: 72, isMock: true },
+  { id: 'mock-26', name: 'MegaJackpotHunter', colorSeed: 78, isMock: true },
+  { id: 'mock-27', name: 'CleanSheetDan', colorSeed: 84, isMock: true },
+  { id: 'mock-28', name: 'OverUnderSpecialist', colorSeed: 91, isMock: true },
+  { id: 'mock-29', name: 'EldoretTips', colorSeed: 95, isMock: true },
+  { id: 'mock-30', name: 'KisumuStrikers', colorSeed: 99, isMock: true },
 ];
 
 /**
- * Returns a stable pool of 5 to 8 mock users assigned to a room based on room ID hash.
+ * Returns a stable pool of 18 to 28 mock users assigned to a room based on room ID hash to emulate high traffic.
  */
 export function getRoomMockParticipants(roomId: string): ChatUser[] {
   let hash = 0;
@@ -52,7 +69,8 @@ export function getRoomMockParticipants(roomId: string): ChatUser[] {
     hash = (hash << 5) - hash + roomId.charCodeAt(i);
     hash |= 0;
   }
-  const count = 5 + (Math.abs(hash) % 4); // 5 to 8 users
+  // 18 to 28 active mock users per room
+  const count = 18 + (Math.abs(hash) % 11);
   const startIndex = Math.abs(hash) % PLATFORM_MOCK_USERS.length;
   const pool: ChatUser[] = [];
   for (let i = 0; i < count; i++) {
@@ -120,7 +138,6 @@ export const useChatRoomStore = create<ChatRoomState>()(
       addMessage: (roomId: string, message: ChatMessage) => {
         set((state) => {
           const roomMsgs = state.messagesByRoom[roomId] || [];
-          // Avoid duplicate message IDs
           if (roomMsgs.some((m) => m.id === message.id)) {
             return state;
           }

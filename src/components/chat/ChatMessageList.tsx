@@ -66,85 +66,60 @@ export default function ChatMessageList({
   return (
     <div
       ref={containerRef}
-      className={`flex-1 overflow-y-auto px-4 py-3 space-y-4 no-scrollbar overscroll-contain ${className}`}
+      className={`flex-1 overflow-y-auto px-4 py-3 no-scrollbar overscroll-contain flex flex-col justify-end min-h-0 ${className}`}
     >
-      {groups.map((group) => {
-        const head = group[0];
-        const isSelf = currentUserId && head.userId === currentUserId;
+      {/* Messages starting from bottom going up like YouTube Live Chat */}
+      <div className="mt-auto space-y-3 w-full">
+        {groups.map((group) => {
+          const head = group[0];
+          const isSelf = currentUserId && head.userId === currentUserId;
 
-        return (
-          <div
-            key={head.id}
-            className={`flex items-start gap-2.5 ${isSelf ? 'flex-row-reverse' : 'flex-row'}`}
-          >
-            {/* Sender Avatar (rendered once per consecutive group) */}
-            <div className="shrink-0 mt-0.5">
-              <Avatar
-                name={head.userName}
-                seed={head.colorSeed}
-                size={28}
-                avatarId={head.avatarId}
-                showBorder={false}
-              />
-            </div>
-
-            {/* Content Column */}
+          return (
             <div
-              className={`flex flex-col min-w-0 max-w-[82%] sm:max-w-[78%] ${
-                isSelf ? 'items-end' : 'items-start'
-              }`}
+              key={head.id}
+              className="flex items-start gap-2.5 flex-row w-full animate-in fade-in duration-150"
             >
-              {/* Header: Name + Time */}
-              <div
-                className={`flex items-center gap-1.5 mb-1 px-1 text-xs select-none ${
-                  isSelf ? 'flex-row-reverse' : 'flex-row'
-                }`}
-              >
-                <span className="font-semibold text-slate-800 dark:text-[#F4F5EF] truncate">
-                  {isSelf ? 'You' : head.userName}
-                </span>
-                <span className="text-[10px] text-slate-400 tabular-nums">
-                  {formatMessageTime(head.sentAt)}
-                </span>
+              {/* Sender Avatar (always on left) */}
+              <div className="shrink-0 mt-0.5">
+                <Avatar
+                  name={head.userName}
+                  seed={head.colorSeed}
+                  size={26}
+                  avatarId={head.avatarId}
+                  showBorder={false}
+                />
               </div>
 
-              {/* Consecutive Bubbles */}
-              <div className="space-y-1 w-full">
-                {group.map((msg, i) => {
-                  const isFirst = i === 0;
-                  const isLast = i === group.length - 1;
+              {/* Content Column (always on left, text starts on same vertical line as username) */}
+              <div className="flex flex-col min-w-0 flex-1 items-start text-left">
+                {/* Header: Name + Time */}
+                <div className="flex items-baseline gap-1.5 mb-0.5 select-none text-left">
+                  <span className="font-bold text-xs text-slate-900 dark:text-[#F4F5EF] truncate">
+                    {isSelf ? `${head.userName} (You)` : head.userName}
+                  </span>
+                  <span className="text-[10px] text-slate-400 tabular-nums">
+                    {formatMessageTime(head.sentAt)}
+                  </span>
+                </div>
 
-                  let roundedClass = 'rounded-2xl';
-                  if (isSelf) {
-                    roundedClass = `${isFirst ? 'rounded-tr-2xl' : 'rounded-tr-md'} ${
-                      isLast ? 'rounded-br-2xl' : 'rounded-br-md'
-                    } rounded-l-2xl`;
-                  } else {
-                    roundedClass = `${isFirst ? 'rounded-tl-2xl' : 'rounded-tl-md'} ${
-                      isLast ? 'rounded-bl-2xl' : 'rounded-bl-md'
-                    } rounded-r-2xl`;
-                  }
-
-                  return (
-                    <div
+                {/* Consecutive Comments (no bubble borders or backgrounds, flush with username) */}
+                <div className="space-y-1 w-full text-left">
+                  {group.map((msg) => (
+                    <p
                       key={msg.id}
-                      className={`px-3.5 py-2 text-xs leading-relaxed break-words shadow-2xs transition-all ${roundedClass} ${
-                        isSelf
-                          ? 'bg-[#006C54] text-white'
-                          : 'bg-white dark:bg-[#202522] border border-[#E6E6D2] dark:border-[#414A43] text-slate-800 dark:text-[#F4F5EF]'
-                      }`}
+                      className="text-xs text-slate-800 dark:text-[#E2E8F0] leading-snug break-words"
                     >
                       {msg.text}
-                    </div>
-                  );
-                })}
+                    </p>
+                  ))}
+                </div>
               </div>
             </div>
-          </div>
-        );
-      })}
+          );
+        })}
 
-      <div ref={scrollEndRef} />
+        <div ref={scrollEndRef} />
+      </div>
     </div>
   );
 }

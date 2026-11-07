@@ -42,7 +42,7 @@ async function runTests() {
 
   console.log('\n--- 2. Testing Connected User Counter (+1 on user join) ---');
   const mockParticipants = getRoomMockParticipants(`room-${testMatchId}`);
-  assert(mockParticipants.length >= 5 && mockParticipants.length <= 8, `Mock participants assigned between 5 and 8 (actual: ${mockParticipants.length})`);
+  assert(mockParticipants.length >= 18 && mockParticipants.length <= 28, `Mock participants assigned between 18 and 28 (actual: ${mockParticipants.length})`);
   
   const countBeforeUser = mockParticipants.length;
   const countAfterUserJoins = mockParticipants.length + 1;
@@ -135,3 +135,4 @@ runTests().catch((err) => {
   console.error(err);
   process.exit(1);
 });
+

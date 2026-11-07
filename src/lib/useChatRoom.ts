@@ -19,6 +19,24 @@ const MOCK_REPLIES = [
   'Momentum iko upande wao kabisa hii second half.',
   'Picks za leo ziko na conviction kali sana!',
   'True analysis bro, midfield yao iko on fire leo.',
+  'Corner count pia inaenda juu sana leo.',
+  'Kama kawaida, hii league haina easy fixtures.',
+  'Subs za second half zitaamua game.',
+];
+
+const ONGOING_TRAFFIC_COMMENTS = [
+  'Hii pressure ya away team ni moto sana leo!',
+  'Ref anapeana easy cards, someone might see red soon.',
+  'Kila mtu asimame imara na slip zake.',
+  'Pace ya game iko juu sana!',
+  'Winger wao anasumbua backline kila dakika.',
+  'Odds za live market zinabadilika haraka sana.',
+  'Over 2.5 banker bado iko hai kabisa.',
+  'Tactical change imefanya midfield kuwa wazi.',
+  'Shots on target zinaongezeka, goal inaninginia.',
+  'Kipa wao leo ameamka poa sana, saves deadly!',
+  'Hii match draw itakuwa surprise kubwa.',
+  'Tumeingia second half na moto ile ile.',
 ];
 
 const INITIAL_CONVERSATIONS: Record<string, string[]> = {
@@ -26,6 +44,7 @@ const INITIAL_CONVERSATIONS: Record<string, string[]> = {
     'Lineups za leo zimetoka, tactical setup iko sharp.',
     'Hii match inaonekana kuwa na high tempo kutoka kickoff.',
     'Mimi niko na over 2.5 kwa multi-bet yangu.',
+    'Odds za home win ziko na value poa sana.',
   ],
 };
 
@@ -36,8 +55,9 @@ export function useChatRoom(roomId: string, isRoomOpen = true) {
 
   const [typingUsers, setTypingUsers] = useState<TypingUser[]>([]);
   const typingTimersRef = useRef<Map<string, NodeJS.Timeout>>(new Map());
+  const backgroundTrafficIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Stable mock participants for this room
+  // Stable mock participants for this room (18-28 active users)
   const mockParticipants = useMemo(() => getRoomMockParticipants(roomId), [roomId]);
 
   // Active users count: mock pool count + 1 if current user has joined/viewed
@@ -61,7 +81,7 @@ export function useChatRoom(roomId: string, isRoomOpen = true) {
           colorSeed: participant.colorSeed,
           avatarId: participant.avatarId,
           text,
-          sentAt: now - (seeds.length - i) * 180000, // 3-9 mins ago
+          sentAt: now - (seeds.length - i) * 120000, // 2-8 mins ago
         };
         addMessageToStore(roomId, seedMsg);
       });
@@ -73,11 +93,15 @@ export function useChatRoom(roomId: string, isRoomOpen = true) {
     return () => {
       typingTimersRef.current.forEach((t) => clearTimeout(t));
       typingTimersRef.current.clear();
+      if (backgroundTrafficIntervalRef.current) {
+        clearInterval(backgroundTrafficIntervalRef.current);
+        backgroundTrafficIntervalRef.current = null;
+      }
     };
   }, [roomId]);
 
   // Helper to add typing user
-  const setMockUserTyping = useCallback((user: ChatUser, durationMs = 2500) => {
+  const setMockUserTyping = useCallback((user: ChatUser, durationMs = 2200) => {
     const typingUser: TypingUser = {
       id: user.id,
       name: user.name,
@@ -90,7 +114,6 @@ export function useChatRoom(roomId: string, isRoomOpen = true) {
       return [...prev, typingUser];
     });
 
-    // Clear existing timer
     if (typingTimersRef.current.has(user.id)) {
       clearTimeout(typingTimersRef.current.get(user.id)!);
     }
@@ -103,10 +126,60 @@ export function useChatRoom(roomId: string, isRoomOpen = true) {
     typingTimersRef.current.set(user.id, timer);
   }, []);
 
-  // When current user types, optionally trigger a mock user typing as well
+  // Background High-Traffic Simulator: periodic comments while room is open
+  useEffect(() => {
+    if (!isRoomOpen || mockParticipants.length === 0) {
+      if (backgroundTrafficIntervalRef.current) {
+        clearInterval(backgroundTrafficIntervalRef.current);
+        backgroundTrafficIntervalRef.current = null;
+      }
+      return;
+    }
+
+    // Interval to emulate active room comments
+    const interval = setInterval(() => {
+      const randomParticipant =
+        mockParticipants[Math.floor(Math.random() * mockParticipants.length)];
+      const randomComment =
+        ONGOING_TRAFFIC_COMMENTS[
+          Math.floor(Math.random() * ONGOING_TRAFFIC_COMMENTS.length)
+        ];
+
+      // Briefly show typing
+      setMockUserTyping(randomParticipant, 1400);
+
+      // Post comment after typing
+      const postTimer = setTimeout(() => {
+        setTypingUsers((prev) => prev.filter((u) => u.id !== randomParticipant.id));
+        const trafficMsg: ChatMessage = {
+          id: `traffic-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+          roomId,
+          userId: randomParticipant.id,
+          userName: randomParticipant.name,
+          colorSeed: randomParticipant.colorSeed,
+          avatarId: randomParticipant.avatarId,
+          text: randomComment,
+          sentAt: Date.now(),
+        };
+        addMessageToStore(roomId, trafficMsg);
+      }, 1400);
+
+      typingTimersRef.current.set(`traffic-post-${Date.now()}`, postTimer);
+    }, 8500); // every 8.5 seconds
+
+    backgroundTrafficIntervalRef.current = interval;
+
+    return () => {
+      clearInterval(interval);
+      backgroundTrafficIntervalRef.current = null;
+    };
+  }, [isRoomOpen, roomId, mockParticipants, addMessageToStore, setMockUserTyping]);
+
+  // When current user types, trigger a mock user typing as well
   const notifyTyping = useCallback(() => {
-    if (Math.random() > 0.45 && mockParticipants.length > 0) {
-      const randomMock = mockParticipants[Math.floor(Math.random() * mockParticipants.length)];
+    if (Math.random() > 0.35 && mockParticipants.length > 0) {
+      const randomMock =
+        mockParticipants[Math.floor(Math.random() * mockParticipants.length)];
       setMockUserTyping(randomMock, 2200);
     }
   }, [mockParticipants, setMockUserTyping]);
@@ -117,7 +190,7 @@ export function useChatRoom(roomId: string, isRoomOpen = true) {
       const cleanText = text.trim();
       if (!cleanText) return;
 
-      const userId = currentUser ? (currentUser.phone || currentUser.username) : 'guest-punter';
+      const userId = currentUser ? currentUser.phone || currentUser.username : 'guest-punter';
       const userName = currentUser ? currentUser.username : 'Guest Punter';
       const colorSeed = currentUser ? currentUser.username.length * 7 : 3;
 
@@ -134,20 +207,21 @@ export function useChatRoom(roomId: string, isRoomOpen = true) {
 
       addMessageToStore(roomId, userMsg);
 
-      // Simulate a realistic mock reply after user sends a message!
+      // Simulate a realistic mock reply after user sends a message
       if (mockParticipants.length > 0) {
         const availableMocks = mockParticipants.filter((m) => m.id !== userId);
-        const responder = availableMocks[Math.floor(Math.random() * availableMocks.length)];
-        const replyText = MOCK_REPLIES[Math.floor(Math.random() * MOCK_REPLIES.length)];
+        const responder =
+          availableMocks[Math.floor(Math.random() * availableMocks.length)];
+        const replyText =
+          MOCK_REPLIES[Math.floor(Math.random() * MOCK_REPLIES.length)];
 
-        // Start typing after 800ms
+        // Start typing after 600ms
         const typingDelay = setTimeout(() => {
-          setMockUserTyping(responder, 1800);
-        }, 800);
+          setMockUserTyping(responder, 1600);
+        }, 600);
 
-        // Send reply after typing completes (approx 2.4s)
+        // Send reply after typing completes (approx 2.2s)
         const sendDelay = setTimeout(() => {
-          // Immediately remove typing state for this user
           setTypingUsers((prev) => prev.filter((u) => u.id !== responder.id));
           if (typingTimersRef.current.has(responder.id)) {
             clearTimeout(typingTimersRef.current.get(responder.id)!);
@@ -166,9 +240,8 @@ export function useChatRoom(roomId: string, isRoomOpen = true) {
           };
 
           addMessageToStore(roomId, mockMsg);
-        }, 2400);
+        }, 2200);
 
-        // Clean up on component unmount
         typingTimersRef.current.set(`reply-type-${Date.now()}`, typingDelay);
         typingTimersRef.current.set(`reply-send-${Date.now()}`, sendDelay);
       }
@@ -182,6 +255,6 @@ export function useChatRoom(roomId: string, isRoomOpen = true) {
     activeUsersCount,
     sendMessage,
     notifyTyping,
-    currentUserId: currentUser ? (currentUser.phone || currentUser.username) : 'guest-punter',
+    currentUserId: currentUser ? currentUser.phone || currentUser.username : 'guest-punter',
   };
 }
