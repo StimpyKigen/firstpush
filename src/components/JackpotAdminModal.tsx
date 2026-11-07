@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { X, Trophy, Lock, ShieldAlert, Newspaper, KeyRound, CalendarDays } from 'lucide-react';
+import { X, Trophy, Lock, ShieldAlert, Newspaper, KeyRound, CalendarDays, MessageSquare } from 'lucide-react';
 import AdminModerationDashboard from './AdminModerationDashboard';
 import AdminHomepageFeed from './admin/AdminHomepageFeed';
 import AdminFixturesManager from './admin/AdminFixturesManager';
+import AdminChatRoomManager from './admin/AdminChatRoomManager';
 import LiveRoomsResultsManager from './jackpotAdmin/LiveRoomsResultsManager';
 import CreateJackpotForm from './jackpotAdmin/CreateJackpotForm';
 import { isAdminUser, useCurrentUser, hashPin } from '../lib/authStore';
@@ -15,7 +16,7 @@ interface JackpotAdminModalProps {
   onClose: () => void;
 }
 
-type AdminTab = 'jackpots' | 'moderation' | 'feed' | 'fixtures';
+type AdminTab = 'jackpots' | 'moderation' | 'feed' | 'fixtures' | 'chatroom';
 
 export default function JackpotAdminModal({ isOpen, onClose }: JackpotAdminModalProps) {
   // Admin authentication & tabs state
@@ -222,6 +223,19 @@ export default function JackpotAdminModal({ isOpen, onClose }: JackpotAdminModal
                   <CalendarDays size={14} />
                   <span>Fixtures</span>
                 </button>
+
+                <button
+                  type="button"
+                  onClick={() => setActiveAdminTab('chatroom')}
+                  className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
+                    activeAdminTab === 'chatroom'
+                      ? 'bg-[#006C54] text-white shadow-xs'
+                      : 'text-slate-600 hover:text-slate-900 hover:bg-white/70'
+                  }`}
+                >
+                  <MessageSquare size={14} />
+                  <span>Chat room</span>
+                </button>
               </div>
             </div>
           )}
@@ -260,6 +274,10 @@ export default function JackpotAdminModal({ isOpen, onClose }: JackpotAdminModal
                   {isVerifying ? 'Verifying Admin Credentials...' : 'Unlock Admin Console'}
                 </button>
               </form>
+            </div>
+          ) : activeAdminTab === 'chatroom' ? (
+            <div className="p-6 sm:p-8">
+              <AdminChatRoomManager />
             </div>
           ) : activeAdminTab === 'fixtures' ? (
             <div className="p-6 sm:p-8">

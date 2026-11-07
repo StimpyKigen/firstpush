@@ -18,6 +18,8 @@ import { RoomDetailSkeleton } from '../components/skeleton';
 import SportScoreMatchCenter from '../components/SportScoreMatchCenter';
 import { formatKickoffDateTime24h } from '../lib/competitionPriority';
 import { useHistoryPageState } from '../lib/navigationHistory';
+import { useChatRoomStore, getRoomMockParticipants } from '../lib/chatRoomStore';
+import LiveChatRoomOverlay from '../components/chat/LiveChatRoomOverlay';
 
 export default function FreeMatchRoom() {
   const { id } = useParams();
@@ -32,6 +34,11 @@ export default function FreeMatchRoom() {
 
   // Tab indicator state: 'details' vs 'discussion' — preserved per history entry
   const [roomTab, setRoomTab] = useHistoryPageState<'details' | 'discussion'>(`freematch_roomTab_${id || 'default'}`, 'details');
+  const [isChatOpen, setIsChatOpen] = useState(false);
+
+  const isChatRoomEnabled = useChatRoomStore((s) => (match ? s.isChatRoomEnabled(match.id) : false));
+  const mockParticipants = match ? getRoomMockParticipants(`room-${match.id}`) : [];
+  const chatUsersCount = isChatOpen ? mockParticipants.length + 1 : mockParticipants.length;
 
   const roomId = `free-${id}`;
   const myPickRecord = match ? getPick(roomId, match.id) : undefined;
@@ -188,6 +195,25 @@ export default function FreeMatchRoom() {
               </span>
             )}
           </button>
+
+          {/* CHAT ROOM TAB (Only when enabled by admin for this fixture) */}
+          {isChatRoomEnabled && (
+            <>
+              {/* Vertical Divider */}
+              <div className="h-4 sm:h-5 w-[1px] bg-slate-300 shrink-0" aria-hidden="true" />
+
+              <button
+                type="button"
+                onClick={() => setIsChatOpen(true)}
+                className="text-sm sm:text-base transition-colors flex items-center gap-2 cursor-pointer select-none font-semibold text-slate-500 hover:text-slate-800"
+              >
+                <span>Chat Room</span>
+                <span className="text-[11px] tabular-nums font-bold text-slate-500">
+                  {chatUsersCount}
+                </span>
+              </button>
+            </>
+          )}
         </div>
       </div>
 
@@ -318,6 +344,15 @@ export default function FreeMatchRoom() {
             />
           </div>
         </div>
+      )}
+
+      {/* Live Chat Room Overlay */}
+      {isChatRoomEnabled && (
+        <LiveChatRoomOverlay
+          isOpen={isChatOpen}
+          onClose={() => setIsChatOpen(false)}
+          match={match}
+        />
       )}
     </div>
   );
