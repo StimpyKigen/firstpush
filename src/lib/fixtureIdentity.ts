@@ -300,6 +300,24 @@ export function findMatchingExistingFixture<T extends {
   return null;
 }
 
+/** Epoch ms of the provider observation a fixture record reflects (0 when unknown). */
+export function resolveObservedMs(f: { observedAtMs?: number; syncedAt?: string; lastSyncTime?: string }): number {
+  if (typeof f.observedAtMs === 'number' && Number.isFinite(f.observedAtMs) && f.observedAtMs > 0) return f.observedAtMs;
+  const t = Date.parse(f.syncedAt || f.lastSyncTime || '');
+  return Number.isFinite(t) ? t : 0;
+}
+
+/** Additive, idempotent incident merge keyed by stable incident ID (never drops known events). */
+function unionIncidentsById(
+  existing: MarketFixture['incidents'],
+  incoming: MarketFixture['incidents']
+): MarketFixture['incidents'] {
+  if (!incoming || incoming.length === 0) return existing;
+  if (!existing || existing.length === 0) return incoming;
+  const seen = new Set(existing.map((i) => i.id));
+  const additions = incoming.filter((i) => !seen.has(i.id));
+  return additions.length > 0 ? [...existing, ...additions] : existing;
+}
 /**
  * Performs a safe, non-destructive, incremental merge of incoming fixture data onto an existing record.
  * Guarantees:
@@ -316,7 +334,22 @@ export function mergeMarketFixtureRecords(
   incoming: MarketFixture,
   options?: { isAuthoritativeCorrection?: boolean }
 ): { merged: MarketFixture; hasChanged: boolean; rejectedStaleTransition?: boolean } {
-  const allowCorrection = Boolean(options?.isAuthoritativeCorrection || incoming.isAuthoritativeCorrection);
+  const incomingObservedMs = resolveObservedMs(incoming);
+  const existingObservedMs = resolveObservedMs(existing);
+
+  // LIVE-DATA PROTECTION (permanent invariant): a response that was observed EARLIER than the
+  // data we already hold (stale snapshot, late-arriving fetch, schedule refresh, out-of-order
+  // provider reply) may enrich metadata but can NEVER overwrite status, period, clock, scores or
+  // incident history. An explicit authoritative correction (e.g. cold-snapshot zombie recovery)
+  // is the only way to bypass this.
+  const isStaleObservation =
+    !incoming.isAuthoritativeCorrection &&
+    incomingObservedMs > 0 &&
+    existingObservedMs > 0 &&
+    incomingObservedMs < existingObservedMs;
+
+  const allowCorrection =
+    !isStaleObservation && Boolean(options?.isAuthoritativeCorrection || incoming.isAuthoritativeCorrection);
 
   const existingDetailed = parseDetailedMatchStatus(existing.status, existing.displayClock || existing.minute);
   const incomingDetailed = parseDetailedMatchStatus(incoming.status, incoming.displayClock || incoming.minute);
@@ -330,13 +363,15 @@ export function mergeMarketFixtureRecords(
       : incomingDetailed.period || incoming.period;
 
   // Check monotonic state validity
-  const isTransitionPermitted = isStatusTransitionValid(
-    existingStatus,
-    existingPeriod,
-    incomingStatus,
-    incomingPeriod,
-    allowCorrection
-  );
+  const isTransitionPermitted =
+    !isStaleObservation &&
+    isStatusTransitionValid(
+      existingStatus,
+      existingPeriod,
+      incomingStatus,
+      incomingPeriod,
+      allowCorrection
+    );
 
   let finalStatus: MatchStatus = existingStatus;
   let finalPeriod: MatchPeriod = existingPeriod;
@@ -396,18 +431,18 @@ export function mergeMarketFixtureRecords(
   let finalHomeHtScore = existing.homeHtScore;
   let finalAwayHtScore = existing.awayHtScore;
 
-  if (incomingStatus === 'in' || incomingStatus === 'post') {
+  if (!isStaleObservation && (incomingStatus === 'in' || incomingStatus === 'post')) {
     if (incoming.homeScore !== null && incoming.homeScore !== undefined && !Number.isNaN(Number(incoming.homeScore))) {
       if (isTransitionPermitted || allowCorrection) {
         finalHomeScore = Number(incoming.homeScore);
-      } else if (existingStatus === 'post' && incomingStatus === 'post') {
+      } else if (existingStatus === 'post' && incomingStatus === 'post' && !isStaleObservation) {
         finalHomeScore = Number(incoming.homeScore);
       }
     }
     if (incoming.awayScore !== null && incoming.awayScore !== undefined && !Number.isNaN(Number(incoming.awayScore))) {
       if (isTransitionPermitted || allowCorrection) {
         finalAwayScore = Number(incoming.awayScore);
-      } else if (existingStatus === 'post' && incomingStatus === 'post') {
+      } else if (existingStatus === 'post' && incomingStatus === 'post' && !isStaleObservation) {
         finalAwayScore = Number(incoming.awayScore);
       }
     }
@@ -473,8 +508,12 @@ export function mergeMarketFixtureRecords(
   const finalCountry = incoming.country || existing.country;
   const finalKickoff = incoming.kickoff || existing.kickoff;
   const finalKickoffIso = incoming.kickoffIso || existing.kickoffIso;
-  const finalIncidents = (incoming.incidents && incoming.incidents.length > 0) ? incoming.incidents : existing.incidents;
-  const finalLatestGoalscorer = incoming.latestGoalscorer || existing.latestGoalscorer;
+  const finalIncidents = isStaleObservation
+    ? unionIncidentsById(existing.incidents, incoming.incidents)
+    : (incoming.incidents && incoming.incidents.length > 0) ? incoming.incidents : existing.incidents;
+  const finalLatestGoalscorer = isStaleObservation
+    ? existing.latestGoalscorer || incoming.latestGoalscorer
+    : incoming.latestGoalscorer || existing.latestGoalscorer;
 
   const merged: MarketFixture = {
     ...existing,
@@ -514,6 +553,7 @@ export function mergeMarketFixtureRecords(
     incidents: finalIncidents,
     latestGoalscorer: finalLatestGoalscorer,
     lastSyncTime: incoming.syncedAt || new Date().toISOString(),
+    observedAtMs: Math.max(incomingObservedMs, existingObservedMs) || undefined,
   };
 
   // Determine if meaningful properties genuinely changed
@@ -527,6 +567,8 @@ export function mergeMarketFixtureRecords(
     existing.homeHtScore !== merged.homeHtScore ||
     existing.awayHtScore !== merged.awayHtScore ||
     (incoming.incidents?.length || 0) > (existing.incidents?.length || 0) ||
+    (merged.incidents?.length || 0) !== (existing.incidents?.length || 0) ||
+    (merged.incidents?.length || 0) !== (existing.incidents?.length || 0) ||
     existing.latestGoalscorer?.minute !== merged.latestGoalscorer?.minute ||
     existing.kickoffIso !== merged.kickoffIso ||
     existing.homeOdds !== merged.homeOdds ||

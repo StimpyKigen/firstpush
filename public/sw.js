@@ -10,7 +10,7 @@
  * 6. Automatic purging of all outdated `mshindiroom-*` Cache Storage entries on activation.
  */
 
-const BUILD_VERSION = '2.4.0-20261106215941-edfcc13';
+const BUILD_VERSION = '2.4.0-20261106222204-5af441e';
 const STATIC_CACHE = `mshindiroom-static-${BUILD_VERSION}`;
 const IMAGE_CACHE = `mshindiroom-images-${BUILD_VERSION}`;
 const VALID_CACHES = new Set([STATIC_CACHE, IMAGE_CACHE]);

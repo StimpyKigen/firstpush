@@ -10,26 +10,7 @@ import { formatKickoffDateTime24h } from '../lib/competitionPriority';
 import { getCompetitionBanner } from '../lib/competitionBanners';
 import { useCurrentUser } from '../lib/authStore';
 import { useAuthWallStore } from '../lib/authWallStore';
-
-export interface CardNotificationEvent {
-  id: string;
-  side: 'home' | 'away';
-  type: 'goal' | 'yellow_card' | 'red_card';
-  player: string;
-  minute?: number | string;
-}
-
-function formatScorerDisplay(scorer: any): string {
-  if (!scorer) return '';
-  if (typeof scorer === 'string') return scorer.trim();
-  if (typeof scorer === 'object') {
-    const name = String(scorer.player || scorer.name || '').trim();
-    const min = scorer.minute || scorer.time ? String(scorer.minute || scorer.time).trim() : '';
-    if (!name) return '';
-    return min ? `${name} ${min.endsWith("'") ? min : `${min}'`}` : name;
-  }
-  return String(scorer);
-}
+import { liveEventTracker, CARD_NOTIFICATION_MS, type CardNotification } from '../lib/liveCardEvents';
 
 interface FixtureSportCardProps {
   match: FreeMatch;
@@ -67,38 +48,27 @@ export default function FixtureSportCard({
   const dOdds = match.drawOdds || 3.30;
   const aOdds = match.awayOdds || 3.60;
 
-  // Score glow states (glowing black for 10 seconds when score changes)
+  // Live event notifications (goal glow, "Goal" + scorer, named cards, VAR). All logic lives in the
+  // pure liveEventTracker (src/lib/liveCardEvents.ts); this component only schedules display.
   const [isHomeScoreGlowing, setIsHomeScoreGlowing] = useState(false);
   const [isAwayScoreGlowing, setIsAwayScoreGlowing] = useState(false);
-  const prevHomeScoreRef = useRef<number | null | undefined>(match.homeScore);
-  const prevAwayScoreRef = useRef<number | null | undefined>(match.awayScore);
   const homeScoreTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const awayScoreTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Sequential event queue for goalscorer and card notifications (10 seconds each, FIFO, non-overlapping)
-  const [eventQueue, setEventQueue] = useState<CardNotificationEvent[]>([]);
-  const [activeNotification, setActiveNotification] = useState<CardNotificationEvent | null>(null);
+  // Sequential FIFO queue: each notification shows for CARD_NOTIFICATION_MS (5s), non-overlapping.
+  const [eventQueue, setEventQueue] = useState<CardNotification[]>([]);
+  const [activeNotification, setActiveNotification] = useState<CardNotification | null>(null);
   const notificationTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const seenIncidentKeysRef = useRef<Set<string>>(new Set());
-  const isFirstMountRef = useRef(true);
 
-  // Sequential FIFO Queue Runner
-  // When activeNotification is null and eventQueue has items:
-  // pop the first item, display it for 10 seconds, then clear.
-  // The earlier event completes its full 10 seconds before the next one starts.
   useEffect(() => {
     if (!activeNotification && eventQueue.length > 0) {
-      const nextNotification = eventQueue[0];
+      const next = eventQueue[0];
       setEventQueue((prev) => prev.slice(1));
-      setActiveNotification(nextNotification);
-
-      if (notificationTimerRef.current) {
-        clearTimeout(notificationTimerRef.current);
-      }
-
+      setActiveNotification(next);
+      if (notificationTimerRef.current) clearTimeout(notificationTimerRef.current);
       notificationTimerRef.current = setTimeout(() => {
         setActiveNotification(null);
-      }, 10000);
+      }, CARD_NOTIFICATION_MS);
     }
   }, [activeNotification, eventQueue]);
 
@@ -111,157 +81,97 @@ export default function FixtureSportCard({
     };
   }, []);
 
-  // Score Change & Goalscorer Detection
+  // Feed authoritative match state into the tracker whenever any relevant field changes.
   useEffect(() => {
-    if (isFirstMountRef.current) {
-      isFirstMountRef.current = false;
-      prevHomeScoreRef.current = match.homeScore;
-      prevAwayScoreRef.current = match.awayScore;
-      // Pre-seed seen incidents so historic events don't spam 10s notifications on mount
-      if (match.incidents && Array.isArray(match.incidents)) {
-        for (const inc of match.incidents) {
-          const key = inc.id || `${inc.type}_${inc.time || inc.minute}_${inc.side || inc.teamSide}_${inc.player || ''}`;
-          seenIncidentKeysRef.current.add(key);
-        }
-      }
-      return;
-    }
+    const result = liveEventTracker.process({
+      id: match.id,
+      status: match.status,
+      period: match.period,
+      homeScore: match.homeScore,
+      awayScore: match.awayScore,
+      incidents: match.incidents as any,
+    });
 
-    const prevHome = prevHomeScoreRef.current;
-    const currentHome = match.homeScore;
-    if (typeof currentHome === 'number' && typeof prevHome === 'number' && currentHome > prevHome) {
+    if (result.glow.home) {
       setIsHomeScoreGlowing(true);
       if (homeScoreTimerRef.current) clearTimeout(homeScoreTimerRef.current);
-      homeScoreTimerRef.current = setTimeout(() => {
-        setIsHomeScoreGlowing(false);
-      }, 10000);
-
-      const rawScorer = match.latestGoalscorer || (match as any).homeScorer;
-      const isHomeGoal = !rawScorer || typeof rawScorer !== 'object' || !rawScorer.team || rawScorer.team === 'home';
-      const scorerText = isHomeGoal ? formatScorerDisplay(rawScorer) : '';
-      if (scorerText) {
-        const goalEvent: CardNotificationEvent = {
-          id: `goal_home_${currentHome}_${Date.now()}`,
-          side: 'home',
-          type: 'goal',
-          player: scorerText,
-        };
-        setEventQueue((prev) => [...prev, goalEvent]);
-      }
+      homeScoreTimerRef.current = setTimeout(() => setIsHomeScoreGlowing(false), CARD_NOTIFICATION_MS);
     }
-    prevHomeScoreRef.current = currentHome;
-
-    const prevAway = prevAwayScoreRef.current;
-    const currentAway = match.awayScore;
-    if (typeof currentAway === 'number' && typeof prevAway === 'number' && currentAway > prevAway) {
+    if (result.glow.away) {
       setIsAwayScoreGlowing(true);
       if (awayScoreTimerRef.current) clearTimeout(awayScoreTimerRef.current);
-      awayScoreTimerRef.current = setTimeout(() => {
-        setIsAwayScoreGlowing(false);
-      }, 10000);
-
-      const rawScorer = match.latestGoalscorer || (match as any).awayScorer;
-      const isAwayGoal = !rawScorer || typeof rawScorer !== 'object' || !rawScorer.team || rawScorer.team === 'away';
-      const scorerText = isAwayGoal ? formatScorerDisplay(rawScorer) : '';
-      if (scorerText) {
-        const goalEvent: CardNotificationEvent = {
-          id: `goal_away_${currentAway}_${Date.now()}`,
-          side: 'away',
-          type: 'goal',
-          player: scorerText,
-        };
-        setEventQueue((prev) => [...prev, goalEvent]);
-      }
-    }
-    prevAwayScoreRef.current = currentAway;
-  }, [match.homeScore, match.awayScore, match.latestGoalscorer]);
-
-  // Timeline Incidents Ingestion (Goals, Yellow & Red Cards)
-  useEffect(() => {
-    if (!match.incidents || !Array.isArray(match.incidents) || isFirstMountRef.current) {
-      return;
+      awayScoreTimerRef.current = setTimeout(() => setIsAwayScoreGlowing(false), CARD_NOTIFICATION_MS);
     }
 
-    const newEvents: CardNotificationEvent[] = [];
-    for (const inc of match.incidents) {
-      const incKey = inc.id || `${inc.type}_${inc.time || inc.minute}_${inc.side || inc.teamSide}_${inc.player || ''}`;
-      if (seenIncidentKeysRef.current.has(incKey)) {
-        continue;
-      }
-      seenIncidentKeysRef.current.add(incKey);
-
-      const rawType = (inc.type || '').toLowerCase();
-      const isGoal = inc.is_goal || rawType.includes('goal');
-      const isRed = rawType.includes('red') || inc.cardType === 'red';
-      const isYellow = rawType.includes('yellow') || inc.cardType === 'yellow' || inc.is_card;
-      const side = (inc.side || inc.team || inc.teamSide || 'home') === 'away' ? 'away' : 'home';
-      const player = formatScorerDisplay(inc.player || (inc as any).name);
-
-      if (!player) continue;
-
-      if (isGoal) {
-        newEvents.push({
-          id: incKey,
-          side,
-          type: 'goal',
-          player,
-          minute: inc.time || inc.minute,
+    if (result.enrichments.length > 0) {
+      for (const enrich of result.enrichments) {
+        let applied = false;
+        // Late scorer for a goal still on screen or queued: enrich it in place (no duplicate "Goal").
+        setActiveNotification((cur) => {
+          if (cur && cur.id === enrich.notificationId) {
+            applied = true;
+            return { ...cur, player: enrich.player, minute: enrich.minute };
+          }
+          return cur;
         });
-      } else if (isRed) {
-        newEvents.push({
-          id: incKey,
-          side,
-          type: 'red_card',
-          player,
-          minute: inc.time || inc.minute,
+        setEventQueue((q) => {
+          const idx = q.findIndex((n) => n.id === enrich.notificationId);
+          if (idx === -1) return q;
+          applied = true;
+          const copy = q.slice();
+          copy[idx] = { ...copy[idx], player: enrich.player, minute: enrich.minute };
+          return copy;
         });
-      } else if (isYellow) {
-        newEvents.push({
-          id: incKey,
-          side,
-          type: 'yellow_card',
-          player,
-          minute: inc.time || inc.minute,
-        });
+        // Goal banner already expired: show the scorer on its own (without repeating "Goal").
+        // Deferred one tick so the in-place checks above have resolved.
+        setTimeout(() => {
+          if (!applied) {
+            setEventQueue((q) => [
+              ...q,
+              {
+                id: enrich.notificationId + ':scorer',
+                kind: 'goal',
+                side: enrich.side,
+                player: enrich.player,
+                minute: enrich.minute,
+                showGoalLabel: false,
+              },
+            ]);
+          }
+        }, 0);
       }
     }
 
-    if (newEvents.length > 0) {
-      setEventQueue((prev) => [...prev, ...newEvents]);
+    if (result.notifications.length > 0) {
+      setEventQueue((q) => {
+        const known = new Set(q.map((n) => n.id));
+        const fresh = result.notifications.filter((n) => !known.has(n.id));
+        return fresh.length > 0 ? [...q, ...fresh] : q;
+      });
     }
-  }, [match.incidents]);
+  }, [match.id, match.status, match.period, match.homeScore, match.awayScore, match.incidents]);
 
-  // External / Polling Custom Event Bus for Match Incidents
-  useEffect(() => {
-    const handleMatchIncident = (e: Event) => {
-      const customEvent = e as CustomEvent<any>;
-      const d = customEvent.detail;
-      if (d && typeof d === 'object') {
-        const player = formatScorerDisplay(d.player || d.name);
-        if (!player) return;
-        const side: 'home' | 'away' = (d.side || d.team || d.teamSide || 'home') === 'away' ? 'away' : 'home';
-        const rawType = String(d.type || '').toLowerCase();
-        const type: 'goal' | 'yellow_card' | 'red_card' =
-          rawType.includes('red') ? 'red_card' : rawType.includes('yellow') || rawType.includes('card') ? 'yellow_card' : 'goal';
-        setEventQueue((prev) => [
-          ...prev,
-          {
-            id: d.id || `evt_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
-            side,
-            type,
-            player,
-            minute: d.minute || d.time,
-          },
-        ]);
-      }
-    };
-
-    window.addEventListener(`match_incident_${match.id}`, handleMatchIncident);
-    return () => {
-      window.removeEventListener(`match_incident_${match.id}`, handleMatchIncident);
-    };
-  }, [match.id]);
-
+  /** Notification block rendered beneath a team's score line. */
+  const renderSideNotification = (side: 'home' | 'away') => {
+    const n = activeNotification;
+    if (!n || n.side !== side) return null;
+    const scorerText = n.player ? (n.minute ? `${n.player} ${n.minute}` : n.player) : '';
+    return (
+      <div className="flex flex-col items-end mt-0.5 text-[11px] font-bold text-black [text-shadow:0_0_6px_rgba(0,0,0,0.8),0_0_12px_rgba(0,0,0,0.5)] animate-pulse whitespace-nowrap">
+        {n.kind === 'goal' && n.showGoalLabel !== false && <span>Goal</span>}
+        {n.kind === 'goal' && scorerText && <span>{scorerText}</span>}
+        {(n.kind === 'yellow_card' || n.kind === 'red_card') && (
+          <span className="flex items-center gap-1">
+            <span>{n.player}</span>
+            <span
+              className={`w-2 h-2.5 rounded-[1px] shadow-sm inline-block shrink-0 ${n.kind === 'red_card' ? 'bg-red-600' : 'bg-amber-400'}`}
+              title={n.kind === 'red_card' ? 'Red Card' : 'Yellow Card'}
+            />
+          </span>
+        )}
+      </div>
+    );
+  };
   // Authoritative status presentation with DD/MM HH:mm in 24h format (without EAT suffix)
   const scorePres = getMatchScorePresentation(
     match.status,
@@ -422,17 +332,7 @@ export default function FixtureSportCard({
                     {scorePres.homeScoreDisplay}
                   </span>
                 )}
-                {activeNotification?.side === 'home' && (
-                  <div className="flex items-center justify-end gap-1 mt-0.5 text-[11px] font-bold text-black [text-shadow:0_0_6px_rgba(0,0,0,0.8),0_0_12px_rgba(0,0,0,0.5)] animate-pulse whitespace-nowrap">
-                    {activeNotification.type === 'yellow_card' && (
-                      <span className="w-2 h-2.5 bg-amber-400 rounded-[1px] shadow-sm inline-block shrink-0" title="Yellow Card" />
-                    )}
-                    {activeNotification.type === 'red_card' && (
-                      <span className="w-2 h-2.5 bg-red-600 rounded-[1px] shadow-sm inline-block shrink-0" title="Red Card" />
-                    )}
-                    <span>{formatScorerDisplay(activeNotification.player)}</span>
-                  </div>
-                )}
+                {renderSideNotification('home')}
               </div>
             </div>
 
@@ -465,19 +365,14 @@ export default function FixtureSportCard({
                     {scorePres.awayScoreDisplay}
                   </span>
                 )}
-                {activeNotification?.side === 'away' && (
-                  <div className="flex items-center justify-end gap-1 mt-0.5 text-[11px] font-bold text-black [text-shadow:0_0_6px_rgba(0,0,0,0.8),0_0_12px_rgba(0,0,0,0.5)] animate-pulse whitespace-nowrap">
-                    {activeNotification.type === 'yellow_card' && (
-                      <span className="w-2 h-2.5 bg-amber-400 rounded-[1px] shadow-sm inline-block shrink-0" title="Yellow Card" />
-                    )}
-                    {activeNotification.type === 'red_card' && (
-                      <span className="w-2 h-2.5 bg-red-600 rounded-[1px] shadow-sm inline-block shrink-0" title="Red Card" />
-                    )}
-                    <span>{formatScorerDisplay(activeNotification.player)}</span>
-                  </div>
-                )}
+                {renderSideNotification('away')}
               </div>
             </div>
+            {activeNotification?.kind === 'var' && (
+              <div className="flex justify-center text-[11px] font-bold text-black [text-shadow:0_0_6px_rgba(0,0,0,0.8),0_0_12px_rgba(0,0,0,0.5)] animate-pulse whitespace-nowrap">
+                <span>{activeNotification.decision ? `VAR · ${activeNotification.decision}` : 'VAR'}</span>
+              </div>
+            )}
           </div>
         </Link>
 

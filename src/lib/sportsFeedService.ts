@@ -100,6 +100,12 @@ export interface MarketFixture {
   recordUpdateTime?: number | string;
   updateVersion?: number;
   isAuthoritativeCorrection?: boolean;
+  /**
+   * Epoch ms of the provider observation this record reflects. Used by
+   * `mergeMarketFixtureRecords` to reject older responses (stale snapshots, late fetches)
+   * so they can never overwrite newer live scores/status. Defaults to `syncedAt`.
+   */
+  observedAtMs?: number;
   incidents?: MatchIncidentItem[];
   latestGoalscorer?: { player: string; minute: string; team: 'home' | 'away' } | any;
 }
@@ -312,6 +318,7 @@ export function normalizeSportScoreIncidents(rawIncidents?: any[]): {
 
   const normalized: MatchIncidentItem[] = [];
   let latestGoalscorer: { player: string; minute: string; team: 'home' | 'away' } | undefined;
+  const idOccurrences = new Map<string, number>();
 
   for (let idx = 0; idx < rawIncidents.length; idx++) {
     const inc = rawIncidents[idx];
@@ -321,19 +328,44 @@ export function normalizeSportScoreIncidents(rawIncidents?: any[]): {
     const minStr = String(rawMin).trim().endsWith("'") ? String(rawMin).trim() : `${rawMin}'`;
     const team: 'home' | 'away' = inc.side === 'away' || inc.team === 'away' ? 'away' : 'home';
     const typeLower = String(inc.type || '').toLowerCase();
+    const isShootoutEvent = typeLower.includes('shootout') || typeLower.includes('shoot-out');
 
     let incType: MatchIncidentItem['type'] = 'other';
-    if (inc.is_goal || typeLower.includes('goal') || typeLower.includes('penalty') && !typeLower.includes('miss')) {
+    if (isShootoutEvent) {
+      // Penalty-shootout kicks never change the match score and must never be treated as goals.
+      incType = 'other';
+    } else if (inc.is_goal || typeLower.includes('goal') || typeLower.includes('penalty') && !typeLower.includes('miss')) {
       incType = typeLower.includes('own') ? 'own_goal' : typeLower.includes('pen') ? 'penalty_goal' : 'goal';
     } else if (inc.is_card || typeLower.includes('card')) {
       incType = typeLower.includes('red') ? 'red_card' : 'yellow_card';
     } else if (inc.is_sub || typeLower.includes('sub')) {
       incType = 'substitution';
+    } else if (typeLower === 'var' || typeLower.startsWith('var ') || typeLower.includes('video assistant') || inc.type_id === 28) {
+      incType = 'var';
     }
 
-    const playerName = String(inc.player || inc.player_in || 'Player').trim();
-    const itemId = inc.id || `${minStr}_${incType}_${team}_${playerName}_${idx}`;
+    // Only a provider-supplied name is ever used. No placeholder like "Player" is invented,
+    // so unidentified cards/goals can be recognised (and suppressed) by the UI.
+    const playerName = String(inc.player || (incType === 'substitution' ? inc.player_in : '') || '').trim();
 
+    // VAR decision is carried through ONLY if SportScore supplies explicit decision text.
+    let decision: string | undefined;
+    if (incType === 'var') {
+      const candidate = [inc.decision, inc.var_decision, inc.result, inc.reason, inc.text, inc.description, inc.var_result]
+        .find((v) => typeof v === 'string' && v.trim().length > 0);
+      decision = candidate ? String(candidate).trim() : undefined;
+    }
+
+    // Stable, content-derived ID (independent of array position) so the same provider event
+    // keeps the same ID across polls, snapshots and SSE replays. A counter disambiguates the
+    // rare case of two identical events in the same minute.
+    const baseId = inc.id ? String(inc.id) : `${minStr}_${incType}_${team}_${playerName}`;
+    const occurrence = (idOccurrences.get(baseId) || 0) + 1;
+    idOccurrences.set(baseId, occurrence);
+    const itemId = inc.id ? baseId : occurrence > 1 ? `${baseId}#${occurrence}` : baseId;
+
+    const hs = inc.home_score;
+    const as = inc.away_score;
     normalized.push({
       id: itemId,
       type: incType,
@@ -342,14 +374,16 @@ export function normalizeSportScoreIncidents(rawIncidents?: any[]): {
       player: playerName,
       assist: inc.assist || inc.player_out || undefined,
       scoreAfter:
-        inc.home_score !== undefined && inc.away_score !== undefined
-          ? `${inc.home_score} - ${inc.away_score}`
+        hs !== undefined && hs !== null && as !== undefined && as !== null
+          ? `${hs} - ${as}`
           : inc.scoreAfter,
+      ...(decision ? { decision } : {}),
+      ...(typeof inc.type_id === 'number' ? { typeId: inc.type_id } : {}),
     });
 
-    if (incType === 'goal' || incType === 'own_goal' || incType === 'penalty_goal') {
+    if ((incType === 'goal' || incType === 'own_goal' || incType === 'penalty_goal') && playerName) {
       latestGoalscorer = {
-        player: playerName || 'Goal',
+        player: playerName,
         minute: minStr,
         team,
       };

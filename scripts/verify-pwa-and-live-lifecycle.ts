@@ -88,7 +88,7 @@ async function runVerificationSuite() {
     'Service Worker must reject text/html responses for .js/.css/image assets'
   );
   const vercelJson = JSON.parse(fs.readFileSync(path.join(rootDir, 'vercel.json'), 'utf-8'));
-  const rewriteSource = vercelJson.rewrites?.[0]?.source || '';
+  const rewriteSource = vercelJson.rewrites?.find((r: any) => r.destination === '/index.html')?.source || '';
   assert.ok(
     rewriteSource.includes('assets/') && rewriteSource.includes('sw\\.js') && rewriteSource.includes('version\\.json'),
     'vercel.json rewrite must exclude /assets/, /sw.js, and /version.json from /index.html fallback'

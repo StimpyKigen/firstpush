@@ -69,6 +69,8 @@ export interface FreeMatch {
   incidents?: MatchIncidentItem[];
   latestGoalscorer?: { player: string; minute: string; team: 'home' | 'away' } | any;
   updateVersion?: number;
+  /** Server emit time (ms) of the last real-time event applied; used to drop out-of-order SSE frames. */
+  lastRealtimeAtMs?: number;
 }
 
 export interface MatchIncidentItem {
@@ -84,6 +86,10 @@ export interface MatchIncidentItem {
   name?: string;
   assist?: string;
   scoreAfter?: string;
+  /** Provider-reported VAR outcome text, ONLY when SportScore supplies one. Never inferred. */
+  decision?: string;
+  /** Provider numeric incident type id (e.g. 1 goal, 3 yellow, 28 VAR) when available. */
+  typeId?: number;
   is_goal?: boolean;
   is_card?: boolean;
   home_score?: number;
@@ -231,6 +237,7 @@ if (typeof window !== 'undefined') {
     let changed = false;
     liveMatches = liveMatches.map((m) => {
       if (matchesSseTarget(m, payload, d)) {
+        if (isStaleRealtimeFrame(m, payload)) return m;
         const incStatus: MatchStatus = (d.status as MatchStatus) || m.status || 'in';
         const incPeriod: MatchPeriod = (d.period as MatchPeriod) || m.period || 'second_half';
         const isPermitted = isStatusTransitionValid(
@@ -264,6 +271,7 @@ if (typeof window !== 'undefined') {
           status: nextStatus,
           latestGoalscorer: d.latestGoalscorer || m.latestGoalscorer,
           updateVersion: d.updateVersion || ((m.updateVersion || 1) + 1),
+          lastRealtimeAtMs: realtimeFrameMs(payload),
         };
       }
       return m;
@@ -316,6 +324,7 @@ if (typeof window !== 'undefined') {
     let changed = false;
     liveMatches = liveMatches.map((m) => {
       if (matchesSseTarget(m, payload, d)) {
+        if (isStaleRealtimeFrame(m, payload)) return m;
         const incStatus = d.status as MatchStatus;
         const incPeriod = (d.period as MatchPeriod) || (incStatus === 'post' ? 'full_time' : m.period || 'second_half');
         const isPermitted = isStatusTransitionValid(
@@ -345,6 +354,7 @@ if (typeof window !== 'undefined') {
           awayScore: nextAwayScore,
           result: d.result || m.result,
           updateVersion: d.updateVersion || ((m.updateVersion || 1) + 1),
+          lastRealtimeAtMs: realtimeFrameMs(payload),
         };
       }
       return m;
@@ -394,6 +404,20 @@ if (typeof window !== 'undefined') {
   });
 }
 
+/** Server emit time of an SSE frame in epoch ms (0 when absent/unparseable). */
+function realtimeFrameMs(payload: any): number {
+  const t = Date.parse(String(payload?.timestamp || payload?.data?.timestamp || ''));
+  return Number.isFinite(t) ? t : 0;
+}
+
+/**
+ * Out-of-order protection: a score/status frame emitted BEFORE one we already applied for this
+ * match (e.g. relayed by a different serverless instance) must not overwrite newer state.
+ */
+export function isStaleRealtimeFrame(m: { lastRealtimeAtMs?: number }, payload: any): boolean {
+  const frameMs = realtimeFrameMs(payload);
+  return frameMs > 0 && typeof m.lastRealtimeAtMs === 'number' && frameMs < m.lastRealtimeAtMs;
+}
 export interface AuthoritativeMatchDetail {
   home?: string;
   away?: string;

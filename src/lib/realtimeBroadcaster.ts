@@ -80,7 +80,14 @@ class RealtimeBroadcaster {
   private clients = new Map<string, ConnectedClient>();
   private eventBuffer: RealtimeEventPayload[] = [];
   private lastSignatureByKey = new Map<string, string>();
-  private sequenceId = 1000;
+  /**
+   * Event IDs are wall-clock based (ms epoch, strictly increasing per instance) rather than a
+   * per-process counter starting at a constant. On serverless hosting every cold start / extra
+   * instance would otherwise restart at the same number, so a client reconnecting to a different
+   * instance would drop genuinely new frames as "old" (id <= lastEventId). Time-based IDs stay
+   * monotonic across instances, restarts and deployments (within normal clock skew).
+   */
+  private sequenceId = Date.now();
   private totalConnectionsServed = 0;
   private totalEventsDispatched = 0;
   private totalDeliveriesSent = 0;
@@ -346,7 +353,7 @@ class RealtimeBroadcaster {
       }
     }
 
-    this.sequenceId++;
+    this.sequenceId = Math.max(this.sequenceId + 1, Date.now());
     this.totalEventsDispatched++;
     const nowIso = new Date().toISOString();
     this.lastEventDispatchedAt = nowIso;
