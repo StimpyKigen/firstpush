@@ -13,7 +13,13 @@
  *     monotonic cross-instance IDs, out-of-order frame guard.
  */
 import assert from 'assert';
-import { normalizeSportScoreIncidents } from '../src/lib/sportsFeedService.js';
+import {
+  normalizeSportScoreIncidents,
+  parseSportScoreWidgetTimestamp,
+  fetchAuthoritativeSportScoreMatchDetail,
+  ingestFixtures,
+  queryMarketFixtures,
+} from '../src/lib/sportsFeedService.js';
 import { mergeMarketFixtureRecords } from '../src/lib/fixtureIdentity.js';
 import { LiveEventTracker, type TrackerMatchInput } from '../src/lib/liveCardEvents.js';
 import { realtimeBroadcaster } from '../src/lib/realtimeBroadcaster.js';
@@ -344,18 +350,144 @@ function section4() {
   for (const c of [tabA, tabB, reconnect]) c.res.end();
 }
 
-try {
-  console.log('================================================================================');
-  console.log('MSHINDIROOM — LIVE MATCH UPDATE VERIFICATION SUITE');
-  console.log('================================================================================');
-  section1();
-  section2();
-  section3();
-  section4();
-  console.log(`\nALL ${passed} LIVE-UPDATE CHECKS PASSED`);
-  process.exit(0);
-} catch (err) {
-  console.error('\nFAILED:', err);
-  process.exit(1);
+async function section5() {
+  console.log('\n[5] SportScore widget ISO-8601 & epoch timestamp parser (fetchAuthoritativeSportScoreMatchDetail)');
+
+  // 5a. Direct timestamp parser unit checks
+  assert.equal(
+    parseSportScoreWidgetTimestamp('2026-11-07T14:00:00+00:00'),
+    '2026-11-07T14:00:00.000Z',
+    'ISO-8601 string with +00:00 offset must parse without RangeError'
+  );
+  assert.equal(
+    parseSportScoreWidgetTimestamp(1794060000),
+    new Date(1794060000 * 1000).toISOString(),
+    'Unix seconds number must parse accurately'
+  );
+  assert.equal(
+    parseSportScoreWidgetTimestamp('1794060000'),
+    new Date(1794060000 * 1000).toISOString(),
+    'Numeric epoch string must parse accurately'
+  );
+
+  // Invalid dm.time logs raw value & returns undefined instead of throwing RangeError
+  const loggedErrors: any[][] = [];
+  const origConsoleError = console.error;
+  console.error = (...args: any[]) => {
+    loggedErrors.push(args);
+  };
+  try {
+    assert.equal(parseSportScoreWidgetTimestamp('not-a-valid-date', 'test-slug'), undefined);
+    assert.equal(loggedErrors.length, 1, 'invalid dm.time must log an explicit error');
+    assert.equal(loggedErrors[0][1]?.rawTime, 'not-a-valid-date');
+  } finally {
+    console.error = origConsoleError;
+  }
+  ok('parseSportScoreWidgetTimestamp handles ISO strings, numeric epochs, and logs invalid values cleanly');
+
+  // 5b. Full fetchAuthoritativeSportScoreMatchDetail with real ISO-string widget payload
+  ingestFixtures([
+    fx({
+      id: 'mkt-ss-frosinone-vs-cagliari-k82rekhgdvd7rep',
+      providerId: 'ss-frosinone-vs-cagliari-k82rekhgdvd7rep',
+      matchId: 'k82rekhgdvd7rep',
+      matchSlug: 'frosinone-vs-cagliari',
+      matchUrl: '/football/match/frosinone-vs-cagliari/k82rekhgdvd7rep/',
+      home: 'Cagliari',
+      away: 'Frosinone',
+      competition: 'Italian Serie A',
+      competitionId: 'ita_serie_a',
+      leagueCode: 'italian-serie-a',
+      country: 'Italy',
+      kickoffIso: '2026-11-07T14:00:00+00:00',
+      status: 'in',
+      period: 'first_half',
+      displayClock: '1st Half',
+      minute: '1st Half',
+      homeScore: 1,
+      awayScore: 0,
+      syncedAt: '2026-11-07T14:52:05.594Z',
+    }),
+  ]);
+
+  const realWidgetPayload = {
+    sport: 'football',
+    match: {
+      home: 'Cagliari',
+      away: 'Frosinone',
+      home_score: '1',
+      away_score: '0',
+      home_ht_score: '1',
+      away_ht_score: '0',
+      status: 'live',
+      status_text: '2nd half',
+      time: '2026-11-07T14:00:00+00:00',
+      competition: 'Italian Serie A',
+      url: '/football/match/frosinone-vs-cagliari/k82rekhgdvd7rep/',
+      live_minute: '60',
+      incidents: [
+        {
+          time: 38,
+          type: 'Goal',
+          type_id: 1,
+          side: 'home',
+          player: 'Michel Adopo',
+          is_goal: true,
+          home_score: 1,
+          away_score: 0,
+        },
+      ],
+    },
+  };
+
+  const origFetch = globalThis.fetch;
+  globalThis.fetch = (async () =>
+    new Response(JSON.stringify(realWidgetPayload), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' },
+    })) as any;
+
+  try {
+    const detail = await fetchAuthoritativeSportScoreMatchDetail('frosinone-vs-cagliari', {
+      ingestIntoStore: true,
+    });
+    assert.ok(detail, 'fetchAuthoritativeSportScoreMatchDetail must NOT return null on ISO dm.time');
+    assert.equal(detail.normalized_status, 'in');
+    assert.equal(detail.normalized_period, 'second_half');
+    assert.equal(detail.display_clock, "60'");
+    assert.equal(detail.kickoff, '2026-11-07T14:00:00.000Z');
+    assert.equal(detail.home_score, 1);
+    assert.equal(detail.away_score, 0);
+
+    const updatedInStore = queryMarketFixtures({ scope: 'live' }).find(
+      (f) => f.matchId === 'k82rekhgdvd7rep'
+    );
+    assert.ok(updatedInStore, 'fixturesStore record must remain live and updated');
+    assert.equal(updatedInStore?.period, 'second_half');
+    assert.equal(updatedInStore?.displayClock, "60'");
+    assert.equal(updatedInStore?.homeHtScore, 1);
+    assert.equal(updatedInStore?.awayHtScore, 0);
+  } finally {
+    globalThis.fetch = origFetch;
+  }
+  ok('fetchAuthoritativeSportScoreMatchDetail parses real ISO-string widget payload and updates fixturesStore');
 }
+
+(async () => {
+  try {
+    console.log('================================================================================');
+    console.log('MSHINDIROOM — LIVE MATCH UPDATE VERIFICATION SUITE');
+    console.log('================================================================================');
+    section1();
+    section2();
+    section3();
+    section4();
+    await section5();
+    console.log(`\nALL ${passed} LIVE-UPDATE CHECKS PASSED`);
+    process.exit(0);
+  } catch (err) {
+    console.error('\nFAILED:', err);
+    process.exit(1);
+  }
+})();
 

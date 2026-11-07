@@ -1184,6 +1184,45 @@ async function fetchSportScoreWithRetry(url: string, maxRetries = 2, timeoutMs =
 }
 
 /**
+ * Parses `dm.time` from SportScore widget match-detail payloads.
+ * Handles both ISO 8601 strings (e.g. "2026-11-07T13:00:00+00:00") and numeric Unix epochs
+ * (seconds or milliseconds), validating `Number.isFinite(d.getTime())` before `.toISOString()`.
+ */
+export function parseSportScoreWidgetTimestamp(rawTime: unknown, slugContext?: string): string | undefined {
+  if (rawTime === null || rawTime === undefined || rawTime === '') {
+    return undefined;
+  }
+  if (typeof rawTime === 'string' && rawTime.trim() === '') {
+    return undefined;
+  }
+
+  const numericVal =
+    typeof rawTime === 'number'
+      ? rawTime
+      : typeof rawTime === 'string'
+      ? Number(rawTime.trim())
+      : NaN;
+
+  const d =
+    typeof rawTime === 'string' && Number.isNaN(numericVal)
+      ? new Date(rawTime.trim())
+      : Number.isFinite(numericVal)
+      ? new Date(numericVal > 1e12 ? numericVal : numericVal * 1000)
+      : new Date(NaN);
+
+  if (!Number.isFinite(d.getTime())) {
+    console.error('[SportScore Widget] Invalid dm.time value in match detail:', {
+      slug: slugContext,
+      rawTime,
+      error: 'Invalid time value (non-finite Date)',
+    });
+    return undefined;
+  }
+
+  return d.toISOString();
+}
+
+/**
  * Authoritative SportScore Match Detail Fetcher & Normalizer.
  * Used by both `syncLiveScoresOnly` and `/api/sports/match-detail` proxy routes.
  * Unwraps `data.match`, maps `home`->`home_team` and `away`->`away_team` for compatibility,
@@ -1200,6 +1239,7 @@ export async function fetchAuthoritativeSportScoreMatchDetail(
 
   if (!candidateSlug) return null;
 
+  let rawDmTimeForLog: unknown = undefined;
   try {
     const url = `https://sportscore.com/api/widget/match/?sport=football&slug=${encodeURIComponent(candidateSlug)}`;
     const res = await fetchSportScoreWithRetry(url, 1, 6000);
@@ -1210,6 +1250,9 @@ export async function fetchAuthoritativeSportScoreMatchDetail(
     if (!dm || typeof dm !== 'object' || (!dm.home && !dm.away && !dm.home_team && !dm.away_team)) {
       return null;
     }
+
+    rawDmTimeForLog = dm.time;
+    const parsedKickoffIso = parseSportScoreWidgetTimestamp(dm.time, candidateSlug);
 
     const homeTeam = String(dm.home || dm.home_team || '').trim();
     const awayTeam = String(dm.away || dm.away_team || '').trim();
@@ -1224,7 +1267,7 @@ export async function fetchAuthoritativeSportScoreMatchDetail(
           matchUrl: dm.url,
           home: homeTeam,
           away: awayTeam,
-          kickoffIso: dm.time ? new Date(Number(dm.time) * 1000).toISOString() : undefined,
+          kickoffIso: parsedKickoffIso,
         } as any,
         fixturesStore.values()
       );
@@ -1237,7 +1280,7 @@ export async function fetchAuthoritativeSportScoreMatchDetail(
           home: homeTeam,
           away: awayTeam,
           url: dm.url || existing?.matchUrl,
-          time: dm.time || existing?.kickoffIso,
+          time: parsedKickoffIso || existing?.kickoffIso,
           competition: dm.competition || existing?.competition,
         },
         nowIso,
@@ -1267,7 +1310,7 @@ export async function fetchAuthoritativeSportScoreMatchDetail(
       away_score: dm.away_score !== null && dm.away_score !== undefined && dm.away_score !== '' ? Number(dm.away_score) : null,
       home_ht_score: dm.home_ht_score !== null && dm.home_ht_score !== undefined && dm.home_ht_score !== '' ? Number(dm.home_ht_score) : null,
       away_ht_score: dm.away_ht_score !== null && dm.away_ht_score !== undefined && dm.away_ht_score !== '' ? Number(dm.away_ht_score) : null,
-      kickoff: dm.time || dm.kickoff,
+      kickoff: parsedKickoffIso || dm.kickoff || dm.time,
       normalized_status: detailed.status,
       normalized_period: detailed.period,
       display_clock: detailed.displayClock,
@@ -1276,7 +1319,11 @@ export async function fetchAuthoritativeSportScoreMatchDetail(
     };
 
     return normalizedDetail;
-  } catch {
+  } catch (err: any) {
+    console.error(
+      `[SportScore Widget] Authoritative match detail fetch failed for "${candidateSlug}":`,
+      { rawTime: rawDmTimeForLog, error: err?.message || err }
+    );
     return null;
   }
 }
