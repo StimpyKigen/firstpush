@@ -6,14 +6,15 @@
  */
 
 export type MatchStatus =
-  | 'pre'         // Scheduled / Not started
-  | 'in'          // Live / In progress
-  | 'post'        // Finished / Full Time
-  | 'postponed'   // Postponed
-  | 'cancelled'   // Cancelled
-  | 'abandoned'   // Abandoned
-  | 'suspended'   // Suspended
-  | 'unknown';    // Safe fallback
+  | 'pre'                    // Scheduled / Not started
+  | 'in'                     // Live / In progress
+  | 'awaiting_confirmation'  // >115m post-kickoff without provider terminal confirmation (keep polling, never fabricate FT)
+  | 'post'                   // Finished / Full Time (provider-confirmed ONLY)
+  | 'postponed'              // Postponed
+  | 'cancelled'              // Cancelled
+  | 'abandoned'              // Abandoned
+  | 'suspended'              // Suspended / Unconfirmed (>=240m without provider confirmation)
+  | 'unknown';               // Safe fallback
 
 export type MatchPeriod =
   | 'scheduled'
@@ -23,6 +24,8 @@ export type MatchPeriod =
   | 'extra_time'
   | 'extra_time_halftime'
   | 'penalties'
+  | 'awaiting_confirmation'
+  | 'unconfirmed'
   | 'full_time'
   | 'after_extra_time'
   | 'after_penalties'
@@ -33,6 +36,11 @@ export type MatchPeriod =
   | 'delayed'
   | 'awarded'
   | 'unknown';
+
+/** Elapsed minutes past kickoff after which an unconfirmed live match enters non-terminal 'awaiting_confirmation'. */
+export const AWAITING_CONFIRMATION_MINUTES = 115;
+/** Elapsed minutes past kickoff after which a match with zero provider confirmation is marked 'suspended' / 'unconfirmed'. */
+export const UNCONFIRMED_MATCH_MINUTES = 240;
 
 export interface DetailedStatusResult {
   status: MatchStatus;
@@ -75,6 +83,8 @@ export function getPeriodSequence(period: MatchPeriod): number {
     case 'extra_time': return 40;
     case 'extra_time_halftime': return 45;
     case 'penalties': return 50;
+    case 'awaiting_confirmation': return 55;
+    case 'unconfirmed': return 58;
     case 'full_time': return 60;
     case 'after_extra_time': return 61;
     case 'after_penalties': return 62;
@@ -123,6 +133,15 @@ export function parseDetailedMatchStatus(
   }
   if (s === 'abandoned' || txt.includes('abandoned') || s === 'abnd') {
     return { status: 'abandoned', period: 'abandoned', displayClock: 'ABANDONED', periodSequence: 96, isTerminal: true, rawStatus: s, statusText: txt };
+  }
+  if (s === 'unconfirmed' || txt === 'unconfirmed') {
+    return { status: 'suspended', period: 'unconfirmed', displayClock: 'UNCONFIRMED', periodSequence: 58, isTerminal: false, rawStatus: s, statusText: txt };
+  }
+  if (
+    s === 'awaiting_confirmation' || s === 'awaiting-confirmation' || s === 'stale' ||
+    txt === 'awaiting ft' || txt === 'awaiting confirmation' || txt === 'awaiting-confirmation'
+  ) {
+    return { status: 'awaiting_confirmation', period: 'awaiting_confirmation', displayClock: 'Awaiting FT', periodSequence: 55, isTerminal: false, rawStatus: s, statusText: txt };
   }
   if (s === 'suspended' || txt.includes('suspended') || s === 'interrupted' || txt.includes('interrupted') || s === 'susp') {
     return { status: 'suspended', period: 'suspended', displayClock: 'SUSPENDED', periodSequence: 85, isTerminal: false, rawStatus: s, statusText: txt };
@@ -266,20 +285,37 @@ export function isStatusTransitionValid(
 ): boolean {
   if (isAuthoritativeCorrection) return true;
 
-  // Terminal states cannot be reverted to live or scheduled
-  if (existingStatus === 'post' && (incomingStatus === 'in' || incomingStatus === 'pre')) {
+  // Terminal states cannot be reverted to live, scheduled, or unconfirmed/awaiting_confirmation
+  if (
+    existingStatus === 'post' &&
+    (incomingStatus === 'in' ||
+      incomingStatus === 'pre' ||
+      incomingStatus === 'awaiting_confirmation' ||
+      incomingPeriod === 'unconfirmed')
+  ) {
     return false;
   }
 
-  // Active live in-play states cannot be reverted back to scheduled by a schedule refresh
+  // Active live in-play or awaiting-confirmation states cannot be reverted back to scheduled by a schedule refresh
   if (existingStatus === 'in' && incomingStatus === 'pre') {
     return false;
   }
-  if (existingStatus === 'cancelled' && (incomingStatus === 'in' || incomingStatus === 'pre')) {
+  if (existingStatus === 'cancelled' && (incomingStatus === 'in' || incomingStatus === 'pre' || incomingStatus === 'awaiting_confirmation')) {
     return false;
   }
-  if (existingStatus === 'abandoned' && (incomingStatus === 'in' || incomingStatus === 'pre')) {
+  if (existingStatus === 'abandoned' && (incomingStatus === 'in' || incomingStatus === 'pre' || incomingStatus === 'awaiting_confirmation')) {
     return false;
+  }
+
+  // Non-terminal unconfirmed / awaiting-confirmation states must NEVER regress to 'pre',
+  // MUST accept any genuine provider 'in' or 'post' or official exceptional status when it arrives,
+  // and 'unconfirmed' (>=240m) must not regress back to 'awaiting_confirmation'.
+  if (existingStatus === 'awaiting_confirmation' || (existingStatus === 'suspended' && existingPeriod === 'unconfirmed')) {
+    if (incomingStatus === 'pre') return false;
+    if (existingPeriod === 'unconfirmed' && (incomingStatus === 'awaiting_confirmation' || incomingPeriod === 'awaiting_confirmation')) {
+      return false;
+    }
+    return true;
   }
 
   const existingSeq = getPeriodSequence(existingPeriod);
@@ -315,7 +351,15 @@ export function isLiveMatch(
   nowMs: number = Date.now()
 ): boolean {
   if (!fixture) return false;
-  if (fixture.status === 'post' || fixture.status === 'pre' || fixture.status === 'postponed' || fixture.status === 'cancelled' || fixture.status === 'abandoned' || fixture.status === 'suspended') {
+  if (
+    fixture.status === 'post' ||
+    fixture.status === 'pre' ||
+    fixture.status === 'awaiting_confirmation' ||
+    fixture.status === 'postponed' ||
+    fixture.status === 'cancelled' ||
+    fixture.status === 'abandoned' ||
+    fixture.status === 'suspended'
+  ) {
     return false;
   }
   // Guard against zombie live matches whose kickoff was > 165 minutes ago
@@ -328,7 +372,15 @@ export function isLiveMatch(
   if (fixture.status === 'in') return true;
   const norm = normalizeMatchStatus(fixture.status, fixture.displayClock || fixture.statusText);
   if (norm === 'in') return true;
-  if (norm === 'pre' || norm === 'post' || norm === 'postponed' || norm === 'cancelled' || norm === 'abandoned' || norm === 'suspended') {
+  if (
+    norm === 'pre' ||
+    norm === 'post' ||
+    norm === 'awaiting_confirmation' ||
+    norm === 'postponed' ||
+    norm === 'cancelled' ||
+    norm === 'abandoned' ||
+    norm === 'suspended'
+  ) {
     return false;
   }
   if (fixture.period && ['first_half', 'halftime', 'second_half', 'extra_time', 'extra_time_halftime', 'penalties'].includes(fixture.period)) {
@@ -339,20 +391,26 @@ export function isLiveMatch(
 
 /**
  * Determine if a match has concluded / is finished.
+ * STRICT INVARIANT: Only provider-confirmed terminal post-match states return true.
+ * Never fabricate completion based on elapsed time alone.
  */
 export function isCompletedMatch(
   fixture: { status?: any; statusText?: any; displayClock?: any; kickoffIso?: any; period?: any } | null | undefined,
-  nowMs: number = Date.now()
+  _nowMs: number = Date.now()
 ): boolean {
   if (!fixture) return false;
   if (fixture.status === 'post') return true;
-  if (fixture.status === 'in' && fixture.kickoffIso) {
-    const kMs = Date.parse(fixture.kickoffIso);
-    if (Number.isFinite(kMs) && (nowMs - kMs) / 60000 >= 165) {
-      return true;
-    }
+  if (
+    fixture.status === 'in' ||
+    fixture.status === 'pre' ||
+    fixture.status === 'awaiting_confirmation' ||
+    fixture.status === 'suspended' ||
+    fixture.status === 'postponed' ||
+    fixture.status === 'cancelled' ||
+    fixture.status === 'abandoned'
+  ) {
+    return false;
   }
-  if (fixture.status === 'in' || fixture.status === 'pre') return false;
   const norm = normalizeMatchStatus(fixture.status, fixture.displayClock || fixture.statusText);
   if (norm === 'post') return true;
   if (fixture.period && ['full_time', 'after_extra_time', 'after_penalties', 'awarded'].includes(fixture.period)) {
@@ -374,6 +432,8 @@ export function formatLiveMatchClock(
   const lower = clock.toLowerCase();
 
   // Stop clock on non-running states
+  if (period === 'unconfirmed' || lower === 'unconfirmed') return 'UNCONFIRMED';
+  if (period === 'awaiting_confirmation' || lower === 'awaiting ft' || lower === 'awaiting confirmation') return 'Awaiting FT';
   if (period === 'postponed' || lower === 'postponed') return 'POSTPONED';
   if (period === 'suspended' || lower === 'suspended') return 'SUSPENDED';
   if (period === 'abandoned' || lower === 'abandoned') return 'ABANDONED';
@@ -538,18 +598,43 @@ export function getMatchScorePresentation(
     };
   }
   if (status === 'suspended') {
+    const isUnconfirmed = period === 'unconfirmed' || displayClock === 'UNCONFIRMED';
     return {
       shouldShowScore: false,
       scoreDisplay: null,
       homeScoreDisplay: null,
       awayScoreDisplay: null,
-      badgeText: 'SUSPENDED',
+      badgeText: isUnconfirmed ? 'UNCONFIRMED' : 'SUSPENDED',
       badgeVariant: 'alert',
       isLive: false,
       isFinished: false,
       isScheduled: false,
       isPostponedOrCancelled: true,
       period,
+    };
+  }
+
+  if (status === 'awaiting_confirmation') {
+    const hasConfirmedLiveScores =
+      homeScore !== null &&
+      homeScore !== undefined &&
+      !Number.isNaN(Number(homeScore)) &&
+      awayScore !== null &&
+      awayScore !== undefined &&
+      !Number.isNaN(Number(awayScore));
+
+    return {
+      shouldShowScore: hasConfirmedLiveScores,
+      scoreDisplay: hasConfirmedLiveScores ? `${Number(homeScore)} - ${Number(awayScore)}` : null,
+      homeScoreDisplay: hasConfirmedLiveScores ? String(Number(homeScore)) : null,
+      awayScoreDisplay: hasConfirmedLiveScores ? String(Number(awayScore)) : null,
+      badgeText: 'Awaiting FT',
+      badgeVariant: 'muted',
+      isLive: false,
+      isFinished: false,
+      isScheduled: false,
+      isPostponedOrCancelled: false,
+      period: 'awaiting_confirmation',
     };
   }
 

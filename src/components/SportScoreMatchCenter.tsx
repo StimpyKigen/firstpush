@@ -43,9 +43,13 @@ export default function SportScoreMatchCenter({ match }: SportScoreMatchCenterPr
 
     void loadDetail();
 
-    // If match is live, periodically sync with 2D Sportscore tracker every 10 seconds
+    // If match is live or awaiting FT confirmation, periodically sync with SportScore every 10 seconds
     let intervalId: NodeJS.Timeout | null = null;
-    const isLiveMatch = match.status === 'in' || detail?.status === 'live' || detail?.status === 'in';
+    const isLiveMatch =
+      match.status === 'in' ||
+      match.status === 'awaiting_confirmation' ||
+      detail?.status === 'live' ||
+      detail?.status === 'in';
     if (isLiveMatch) {
       intervalId = setInterval(() => {
         if (mounted) void loadDetail();

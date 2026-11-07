@@ -17,9 +17,18 @@ import {
   normalizeSportScoreIncidents,
   parseSportScoreWidgetTimestamp,
   fetchAuthoritativeSportScoreMatchDetail,
+  sanitizeSnapshotLoadedFixture,
+  syncLiveScoresOnly,
   ingestFixtures,
   queryMarketFixtures,
 } from '../src/lib/sportsFeedService.js';
+import { sanitizeFrontendFixtureLifecycle } from '../src/lib/footballApi.js';
+import {
+  getMatchScorePresentation,
+  isCompletedMatch,
+  type MatchPeriod,
+  type MatchStatus,
+} from '../src/lib/matchStatus.js';
 import { mergeMarketFixtureRecords } from '../src/lib/fixtureIdentity.js';
 import { LiveEventTracker, type TrackerMatchInput } from '../src/lib/liveCardEvents.js';
 import { realtimeBroadcaster } from '../src/lib/realtimeBroadcaster.js';
@@ -306,51 +315,64 @@ function fakeClient() {
   return { res, frames };
 }
 
-function section4() {
+async function section4() {
   console.log('\n[4] SSE broadcaster: latency, multi-tab, reconnect recovery, IDs');
-  const tabA = fakeClient();
-  const tabB = fakeClient();
-  realtimeBroadcaster.registerClient({ headers: {}, query: {}, on() {} }, tabA.res);
-  realtimeBroadcaster.registerClient({ headers: {}, query: {}, on() {} }, tabB.res);
+  const origFetch = globalThis.fetch;
+  globalThis.fetch = (async () =>
+    new Response(JSON.stringify({ matches: [] }), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' },
+    })) as any;
+  try {
+    const tabA = fakeClient();
+    const tabB = fakeClient();
+    realtimeBroadcaster.registerClient({ headers: {}, query: {}, on() {} }, tabA.res);
+    realtimeBroadcaster.registerClient({ headers: {}, query: {}, on() {} }, tabB.res);
 
-  const t0 = performance.now();
-  const evt = realtimeBroadcaster.broadcastScoreUpdate('mkt-ss-lat', 1, 0, "10'", 'first_half', undefined, 'p-lat', 'in', null, null, 'slug', 'H', 'A', iso(0), 2);
-  const lastA = tabA.frames[tabA.frames.length - 1];
-  const lastB = tabB.frames[tabB.frames.length - 1];
-  assert.ok(lastA.raw.includes('event: score_update'));
-  assert.ok(lastB.raw.includes('event: score_update'));
-  const latencyMs = Math.max(lastA.at, lastB.at) - t0;
-  assert.ok(latencyMs < 50, `emit→socket latency ${latencyMs.toFixed(2)}ms`);
-  ok(`multi-tab fan-out: both tabs received score_update in ${latencyMs.toFixed(2)} ms`);
+    const t0 = performance.now();
+    const evt = realtimeBroadcaster.broadcastScoreUpdate('mkt-ss-lat', 1, 0, "10'", 'first_half', undefined, 'p-lat', 'in', null, null, 'slug', 'H', 'A', iso(0), 2);
+    const lastA = tabA.frames[tabA.frames.length - 1];
+    const lastB = tabB.frames[tabB.frames.length - 1];
+    assert.ok(lastA.raw.includes('event: score_update'));
+    assert.ok(lastB.raw.includes('event: score_update'));
+    const latencyMs = Math.max(lastA.at, lastB.at) - t0;
+    assert.ok(latencyMs < 50, `emit→socket latency ${latencyMs.toFixed(2)}ms`);
+    ok(`multi-tab fan-out: both tabs received score_update in ${latencyMs.toFixed(2)} ms`);
 
-  // monotonic, time-based IDs (safe across instances/restarts)
-  const e1 = realtimeBroadcaster.emit('score_update', { homeScore: 1 }, { fixtureId: 'x1', force: true });
-  const e2 = realtimeBroadcaster.emit('score_update', { homeScore: 2 }, { fixtureId: 'x1', force: true });
-  assert.ok(e2.id > e1.id && e1.id > evt.id - 1);
-  assert.ok(e1.id > 1_700_000_000_000, 'event IDs are wall-clock based so IDs from different instances stay ordered');
-  ok('event IDs strictly increase and are wall-clock based (cross-instance safe)');
+    // monotonic, time-based IDs (safe across instances/restarts)
+    const e1 = realtimeBroadcaster.emit('score_update', { homeScore: 1 }, { fixtureId: 'x1', force: true });
+    const e2 = realtimeBroadcaster.emit('score_update', { homeScore: 2 }, { fixtureId: 'x1', force: true });
+    assert.ok(e2.id > e1.id && e1.id > evt.id - 1);
+    assert.ok(e1.id > 1_700_000_000_000, 'event IDs are wall-clock based so IDs from different instances stay ordered');
+    ok('event IDs strictly increase and are wall-clock based (cross-instance safe)');
 
-  // disconnect -> events missed -> reconnect with Last-Event-ID replays only the missed ones
-  const lastSeenId = e2.id;
-  const m1 = realtimeBroadcaster.emit('score_update', { homeScore: 3 }, { fixtureId: 'x1', force: true });
-  const m2 = realtimeBroadcaster.emit('status_change', { status: 'post' }, { fixtureId: 'x1', force: true });
-  const reconnect = fakeClient();
-  realtimeBroadcaster.registerClient({ headers: { 'last-event-id': String(lastSeenId) }, query: {}, on() {} }, reconnect.res);
-  const replayText = reconnect.frames.map((f) => f.raw).join('');
-  assert.ok(replayText.includes(`id: ${m1.id}`) && replayText.includes(`id: ${m2.id}`), 'missed events replayed');
-  assert.ok(!replayText.includes(`id: ${e1.id}\n`), 'already-seen events not replayed');
-  ok('reconnect with Last-Event-ID recovers exactly the missed events');
+    // disconnect -> events missed -> reconnect with Last-Event-ID replays only the missed ones
+    const lastSeenId = e2.id;
+    const m1 = realtimeBroadcaster.emit('score_update', { homeScore: 3 }, { fixtureId: 'x1', force: true });
+    const m2 = realtimeBroadcaster.emit('status_change', { status: 'post' }, { fixtureId: 'x1', force: true });
+    const reconnect = fakeClient();
+    realtimeBroadcaster.registerClient({ headers: { 'last-event-id': String(lastSeenId) }, query: {}, on() {} }, reconnect.res);
+    const replayText = reconnect.frames.map((f) => f.raw).join('');
+    assert.ok(replayText.includes(`id: ${m1.id}`) && replayText.includes(`id: ${m2.id}`), 'missed events replayed');
+    assert.ok(!replayText.includes(`id: ${e1.id}\n`), 'already-seen events not replayed');
+    ok('reconnect with Last-Event-ID recovers exactly the missed events');
 
-  // out-of-order frame guard (client side)
-  assert.equal(isStaleRealtimeFrame({ lastRealtimeAtMs: Date.parse(iso(0)) }, { timestamp: iso(-10_000) }), true);
-  assert.equal(isStaleRealtimeFrame({ lastRealtimeAtMs: Date.parse(iso(-10_000)) }, { timestamp: iso(0) }), false);
-  assert.equal(isStaleRealtimeFrame({}, { timestamp: iso(-10_000) }), false);
-  ok('older SSE frames are dropped; newer frames apply');
+    // out-of-order frame guard (client side)
+    assert.equal(isStaleRealtimeFrame({ lastRealtimeAtMs: Date.parse(iso(0)) }, { timestamp: iso(-10_000) }), true);
+    assert.equal(isStaleRealtimeFrame({ lastRealtimeAtMs: Date.parse(iso(-10_000)) }, { timestamp: iso(0) }), false);
+    assert.equal(isStaleRealtimeFrame({}, { timestamp: iso(-10_000) }), false);
+    ok('older SSE frames are dropped; newer frames apply');
 
-  for (const c of [tabA, tabB, reconnect]) c.res.end();
+    for (const c of [tabA, tabB, reconnect]) c.res.end();
+    await new Promise((r) => setTimeout(r, 50));
+  } finally {
+    globalThis.fetch = origFetch;
+  }
 }
 
 async function section5() {
+  // Let any async onClientConnect tick from section4 settle cleanly before mocking fetch
+  await new Promise((r) => setTimeout(r, 30));
   console.log('\n[5] SportScore widget ISO-8601 & epoch timestamp parser (fetchAuthoritativeSportScoreMatchDetail)');
 
   // 5a. Direct timestamp parser unit checks
@@ -473,6 +495,160 @@ async function section5() {
   ok('fetchAuthoritativeSportScoreMatchDetail parses real ISO-string widget payload and updates fixturesStore');
 }
 
+// ============================================================================
+// SECTION 6 — No synthetic FT fabrication (>115m awaiting_confirmation & >=240m unconfirmed)
+// ============================================================================
+async function section6() {
+  console.log('\n[6] Non-terminal >115m awaiting_confirmation & >=240m suspended/unconfirmed safeguards');
+
+  const nowMs = Date.now();
+  const kickoff130mAgo = new Date(nowMs - 130 * 60_000).toISOString();
+
+  // Seed a live match at 0-4 whose kickoff was 130 minutes ago (Muglaspor vs Erokspor scenario)
+  // Note: set lastDetailCheckMs-friendly old syncedAt so it sorts at the head of remainingCandidates too.
+  ingestFixtures(
+    [
+      {
+        id: 'mkt-muglaspor-erokspor-test',
+        providerId: 'muglaspor-vs-erokspor-m9test1',
+        matchId: 'm9test1',
+        matchSlug: 'muglaspor-vs-erokspor',
+        matchUrl: 'https://sportscore.com/football/match/muglaspor-vs-erokspor/m9test1/',
+        home: 'Muglaspor',
+        away: 'Erokspor',
+        competition: 'Turkish 2. Lig',
+        competitionId: 'tur-2-lig',
+        country: 'Turkiye',
+        leagueCode: 'TUR',
+        kickoff: '16:00 EAT',
+        kickoffIso: kickoff130mAgo,
+        status: 'in',
+        period: 'second_half',
+        periodSequence: 30,
+        displayClock: "87'",
+        minute: "87'",
+        homeScore: 0,
+        awayScore: 4,
+        homeOdds: 3.1,
+        drawOdds: 3.3,
+        awayOdds: 2.1,
+        homePct: 29,
+        drawPct: 27,
+        awayPct: 44,
+        bookmaker: 'Market Consensus',
+        syncedAt: new Date(nowMs - 20 * 60_000).toISOString(),
+      },
+    ],
+    true
+  );
+
+  // 6.1 Upstream fails (404) at 130 mins -> must NOT stamp status:'post' / 'FT'!
+  const origFetch = globalThis.fetch;
+  globalThis.fetch = (async () => new Response('Not found', { status: 404 })) as any;
+  try {
+    await syncLiveScoresOnly();
+  } finally {
+    globalThis.fetch = origFetch;
+  }
+
+  const afterOutage = queryMarketFixtures({ scope: 'all' }).find((f) => f.id === 'mkt-muglaspor-erokspor-test');
+  assert.ok(afterOutage, 'Match must still exist in store');
+  assert.equal(afterOutage?.status, 'awaiting_confirmation', 'Match >115m with failed provider check must be awaiting_confirmation, NEVER post');
+  assert.equal(afterOutage?.displayClock, 'Awaiting FT');
+  assert.equal(afterOutage?.homeScore, 0);
+  assert.equal(afterOutage?.awayScore, 4);
+  assert.equal(isCompletedMatch(afterOutage, nowMs), false, 'awaiting_confirmation must NOT be treated as completed');
+  ok('Match at 130m without provider confirmation enters awaiting_confirmation (never fabricated 0-4 FT)');
+
+  // 6.2 Next poll: provider widget returns authoritative finished 0-5 -> match STILL gets polled and updates to 0-5 FT!
+  const muglaFinishedWidget = {
+    match: {
+      id: 'm9test1',
+      home_team: 'Muglaspor',
+      away_team: 'Erokspor',
+      home_score: 0,
+      away_score: 5,
+      home_ht_score: 0,
+      away_ht_score: 2,
+      status: 'finished',
+      status_text: 'FT',
+      time: kickoff130mAgo,
+      competition: 'Turkish 2. Lig',
+      url: '/football/match/muglaspor-vs-erokspor/m9test1/',
+      incidents: [],
+    },
+  };
+  globalThis.fetch = (async (input: any) => {
+    const url = String(input);
+    if (url.includes('/api/widget/match/') && url.includes('muglaspor-vs-erokspor')) {
+      return new Response(JSON.stringify(muglaFinishedWidget), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+    return new Response(JSON.stringify({ matches: [] }), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }) as any;
+  try {
+    await syncLiveScoresOnly();
+  } finally {
+    globalThis.fetch = origFetch;
+  }
+
+  const afterRecovery = queryMarketFixtures({ scope: 'finished' }).find((f) => f.id === 'mkt-muglaspor-erokspor-test');
+  assert.ok(afterRecovery, 'Match must transition to finished once provider explicitly confirms finished');
+  assert.equal(afterRecovery?.status, 'post');
+  assert.equal(afterRecovery?.displayClock, 'FT');
+  assert.equal(afterRecovery?.homeScore, 0);
+  assert.equal(afterRecovery?.awayScore, 5, 'Final score must be authoritative 0-5, not stale 0-4');
+  ok('awaiting_confirmation match keeps polling and transitions cleanly to authoritative 0-5 FT');
+
+  // 6.3 Safeguard at >=240m: marked 'suspended'/'unconfirmed', never auto-finalized with a score
+  const kickoff250mAgo = new Date(nowMs - 250 * 60_000).toISOString();
+  const unconfirmedSnap = sanitizeSnapshotLoadedFixture(
+    {
+      ...(afterOutage as any),
+      id: 'mkt-250m-unconfirmed',
+      kickoffIso: kickoff250mAgo,
+      status: 'awaiting_confirmation',
+      homeScore: 1,
+      awayScore: 1,
+    },
+    nowMs
+  );
+  assert.equal(unconfirmedSnap.status, 'suspended');
+  assert.equal(unconfirmedSnap.period, 'unconfirmed');
+  assert.equal(unconfirmedSnap.displayClock, 'UNCONFIRMED');
+  const pres = getMatchScorePresentation(
+    unconfirmedSnap.status,
+    unconfirmedSnap.displayClock,
+    unconfirmedSnap.kickoff,
+    unconfirmedSnap.homeScore,
+    unconfirmedSnap.awayScore,
+    unconfirmedSnap.kickoffIso
+  );
+  assert.equal(pres.shouldShowScore, false, 'Unconfirmed >=240m match must never display a finalized score');
+  assert.equal(pres.isFinished, false);
+  assert.equal(pres.badgeText, 'UNCONFIRMED');
+
+  const clientUnconfirmed = sanitizeFrontendFixtureLifecycle(
+    {
+      status: 'in' as MatchStatus,
+      period: 'second_half' as MatchPeriod,
+      kickoffIso: kickoff250mAgo,
+      homeScore: null,
+      awayScore: null,
+    },
+    nowMs
+  );
+  assert.equal(clientUnconfirmed.status, 'suspended');
+  assert.equal(clientUnconfirmed.period, 'unconfirmed');
+  assert.equal(clientUnconfirmed.homeScore, null);
+  ok('>=240m safeguard marks match suspended/unconfirmed and never auto-finalizes with a score');
+}
+
 (async () => {
   try {
     console.log('================================================================================');
@@ -481,8 +657,9 @@ async function section5() {
     section1();
     section2();
     section3();
-    section4();
+    await section4();
     await section5();
+    await section6();
     console.log(`\nALL ${passed} LIVE-UPDATE CHECKS PASSED`);
     process.exit(0);
   } catch (err) {

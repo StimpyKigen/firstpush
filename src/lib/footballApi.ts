@@ -1,4 +1,11 @@
-import { type MatchPeriod, type MatchStatus, parseDetailedMatchStatus, isStatusTransitionValid } from './matchStatus.js';
+import {
+  type MatchPeriod,
+  type MatchStatus,
+  AWAITING_CONFIRMATION_MINUTES,
+  UNCONFIRMED_MATCH_MINUTES,
+  parseDetailedMatchStatus,
+  isStatusTransitionValid,
+} from './matchStatus.js';
 import { enrichFixturesWithBet365Odds } from './sportscoreOddsService.js';
 import {
   findMatchingExistingFixture,
@@ -114,21 +121,38 @@ export function sanitizeFrontendFixtureLifecycle<T extends {
   kickoffIso?: string;
   homeScore?: number | null;
   awayScore?: number | null;
-}>(item: T, nowMs: number = Date.now(), maxLiveElapsedMinutes = 160): T {
+}>(
+  item: T,
+  nowMs: number = Date.now(),
+  awaitingThresholdMinutes: number = AWAITING_CONFIRMATION_MINUTES,
+  unconfirmedThresholdMinutes: number = UNCONFIRMED_MATCH_MINUTES
+): T {
   if (!item || typeof item !== 'object') return item;
-  if (item.status === 'in') {
+  if (item.status === 'in' || item.status === 'awaiting_confirmation') {
     const kMs = item.kickoffIso ? Date.parse(item.kickoffIso) : NaN;
     const elapsedMin = Number.isFinite(kMs) ? (nowMs - kMs) / 60000 : Infinity;
-    if (elapsedMin >= maxLiveElapsedMinutes) {
+    if (elapsedMin >= unconfirmedThresholdMinutes) {
       return {
         ...item,
-        status: 'post',
-        period: 'full_time',
-        periodSequence: 60,
-        displayClock: 'FT',
-        minute: 'FT',
-        homeScore: item.homeScore ?? 0,
-        awayScore: item.awayScore ?? 0,
+        status: 'suspended',
+        period: 'unconfirmed',
+        periodSequence: 58,
+        displayClock: 'UNCONFIRMED',
+        minute: 'UNCONFIRMED',
+        homeScore: item.homeScore ?? null,
+        awayScore: item.awayScore ?? null,
+      };
+    }
+    if (elapsedMin > awaitingThresholdMinutes) {
+      return {
+        ...item,
+        status: 'awaiting_confirmation',
+        period: 'awaiting_confirmation',
+        periodSequence: 55,
+        displayClock: 'Awaiting FT',
+        minute: 'Awaiting FT',
+        homeScore: item.homeScore ?? null,
+        awayScore: item.awayScore ?? null,
       };
     }
   }
@@ -161,7 +185,7 @@ try {
               awayScore: null,
             };
           }
-          return sanitizeFrontendFixtureLifecycle(item, nowMs, 160);
+          return sanitizeFrontendFixtureLifecycle(item, nowMs, AWAITING_CONFIRMATION_MINUTES);
         });
     }
   }
@@ -290,6 +314,11 @@ export function mergeHighlightFixtureLists(
         } else {
           displayClock = incClock || (period === 'halftime' ? 'HT' : period === 'second_half' ? '2nd Half' : 'LIVE');
         }
+      } else if (isPermitted) {
+        displayClock =
+          inc.displayClock ||
+          inc.minute ||
+          (status === 'awaiting_confirmation' ? 'Awaiting FT' : period === 'unconfirmed' ? 'UNCONFIRMED' : displayClock);
       }
 
       let homeScore = existing.homeScore;
@@ -448,17 +477,17 @@ export async function reconcileLiveFixturesFromBackend(): Promise<HighlightFixtu
       cachedFixtures = mergeHighlightFixtureLists(cachedFixtures, mapped);
     }
 
-    // Reconcile any local fixture still marked 'in' that is NO LONGER in the backend's authoritative live list
+    // Reconcile any local fixture in 'in' or 'awaiting_confirmation' without fabricating FT
     if (data && data.success) {
       const nowMs = Date.now();
       let reconciledOrphan = false;
       cachedFixtures = cachedFixtures.map((f) => {
-        if (f.status !== 'in') return f;
+        if (f.status !== 'in' && f.status !== 'awaiting_confirmation') return f;
         const stillLiveOnBackend = mappedLive.some((lf) => lf.status === 'in' && areFixturesIdentical(f, lf));
         if (stillLiveOnBackend) return f;
 
-        // Not in backend's live list: if kickoff was >= 100 mins ago, transition to FT
-        return sanitizeFrontendFixtureLifecycle(f, nowMs, 100);
+        // Not actively 'in' on backend: transition >115m to 'awaiting_confirmation' (or >=240m to 'unconfirmed'), NEVER fake FT
+        return sanitizeFrontendFixtureLifecycle(f, nowMs, AWAITING_CONFIRMATION_MINUTES);
       });
       reconciledOrphan = true;
       if (reconciledOrphan || rawCombined.length > 0) {
@@ -472,7 +501,7 @@ export async function reconcileLiveFixturesFromBackend(): Promise<HighlightFixtu
 }
 
 export async function fetchDailyHighlightFixtures(force = false): Promise<HighlightFixture[]> {
-  const hasLiveMatches = cachedFixtures.some((f) => f.status === 'in');
+  const hasLiveMatches = cachedFixtures.some((f) => f.status === 'in' || f.status === 'awaiting_confirmation');
   const cacheTtlMs = hasLiveMatches ? 6_000 : 25_000;
 
   if (!force && lastFetchedTime > 0 && cachedFixtures.length > 0 && Date.now() - lastFetchedTime < cacheTtlMs) {
@@ -516,14 +545,14 @@ export async function fetchDailyHighlightFixtures(force = false): Promise<Highli
           }
           cachedFixtures = mergeHighlightFixtureLists(cachedFixtures, mapped);
 
-          // Any cached fixture that was NOT in the backend's daily-fixtures response and is still 'in'
-          // beyond 115 minutes after kickoff must be sanitized to 'post' (FT)
+          // Any cached fixture still 'in' or 'awaiting_confirmation' beyond 115m without provider confirmation
+          // enters non-terminal 'awaiting_confirmation' (or 'suspended'/'unconfirmed' at >=240m), NEVER synthetic 'FT'.
           const nowMs = Date.now();
           cachedFixtures = cachedFixtures.map((f) => {
-            if (f.status !== 'in') return f;
+            if (f.status !== 'in' && f.status !== 'awaiting_confirmation') return f;
             const inServerPayload = mapped.some((m) => areFixturesIdentical(f, m));
             if (!inServerPayload) {
-              return sanitizeFrontendFixtureLifecycle(f, nowMs, 115);
+              return sanitizeFrontendFixtureLifecycle(f, nowMs, AWAITING_CONFIRMATION_MINUTES);
             }
             return sanitizeFrontendFixtureLifecycle(f, nowMs, 160);
           });

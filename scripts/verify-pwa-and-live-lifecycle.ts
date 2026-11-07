@@ -261,8 +261,8 @@ async function runVerificationSuite() {
   assert.strictEqual(apStatus.displayClock, 'AP');
   logPass('Test E (Stoppage Time & Extra Time): 90+5\', AET, and AP handled accurately');
 
-  // Test F: Missing / Stopped Provider Update (Stale Live Match Recovery)
-  const staleKickoffIso = new Date(nowMs - 170 * 60_000).toISOString(); // 170 mins ago
+  // Test F: Missing / Stopped Provider Update (Non-Terminal Awaiting-Confirmation & 240m Safeguard)
+  const staleKickoffIso = new Date(nowMs - 170 * 60_000).toISOString(); // 170 mins ago (>115m, <240m)
   const zombieLiveMatch: MarketFixture = {
     ...baseLiveFixture,
     id: 'mkt-zombie-match',
@@ -271,23 +271,45 @@ async function runVerificationSuite() {
     period: 'second_half',
     displayClock: "88'",
     minute: "88'",
-    homeScore: 2,
-    awayScore: 0,
+    homeScore: 0,
+    awayScore: 4,
   };
   const recoveredBackend = sanitizeSnapshotLoadedFixture(zombieLiveMatch, nowMs);
-  assert.strictEqual(recoveredBackend.status, 'post', 'Backend snapshot sanitizer must transition zombie match to post');
-  assert.strictEqual(recoveredBackend.displayClock, 'FT');
-  assert.strictEqual(recoveredBackend.homeScore, 2);
-  assert.strictEqual(recoveredBackend.awayScore, 0);
+  assert.strictEqual(
+    recoveredBackend.status,
+    'awaiting_confirmation',
+    'Backend snapshot sanitizer must NEVER fabricate post/FT at 170m; must enter awaiting_confirmation'
+  );
+  assert.strictEqual(recoveredBackend.displayClock, 'Awaiting FT');
+  assert.strictEqual(recoveredBackend.isAuthoritativeCorrection, false);
+  assert.strictEqual(recoveredBackend.homeScore, 0);
+  assert.strictEqual(recoveredBackend.awayScore, 4);
 
-  const recoveredFrontend = sanitizeFrontendFixtureLifecycle({ ...zombieLiveMatch }, nowMs, 160);
-  assert.strictEqual(recoveredFrontend.status, 'post', 'Frontend lifecycle sanitizer must transition zombie match to post');
-  assert.strictEqual(recoveredFrontend.displayClock, 'FT');
+  const recoveredFrontend = sanitizeFrontendFixtureLifecycle({ ...zombieLiveMatch }, nowMs, 115);
+  assert.strictEqual(
+    recoveredFrontend.status,
+    'awaiting_confirmation',
+    'Frontend lifecycle sanitizer must enter awaiting_confirmation, never synthetic post/FT'
+  );
+  assert.strictEqual(recoveredFrontend.displayClock, 'Awaiting FT');
 
-  // Also verify UI selector guard in isLiveMatch / isCompletedMatch even before state mutation
+  // Verify 240m safeguard -> 'suspended' / 'unconfirmed' (never auto-finalized with a score)
+  const unconfirmedKickoffIso = new Date(nowMs - 250 * 60_000).toISOString();
+  const unconfirmedBackend = sanitizeSnapshotLoadedFixture(
+    { ...zombieLiveMatch, kickoffIso: unconfirmedKickoffIso, homeScore: null, awayScore: null },
+    nowMs
+  );
+  assert.strictEqual(unconfirmedBackend.status, 'suspended');
+  assert.strictEqual(unconfirmedBackend.period, 'unconfirmed');
+  assert.strictEqual(unconfirmedBackend.displayClock, 'UNCONFIRMED');
+  assert.strictEqual(unconfirmedBackend.homeScore, null, 'Must never guess 0 when score is null');
+
+  // Also verify UI selector guard in isLiveMatch / isCompletedMatch
   assert.strictEqual(isLiveMatch(zombieLiveMatch, nowMs), false, 'isLiveMatch must reject >165m zombie match');
-  assert.strictEqual(isCompletedMatch(zombieLiveMatch, nowMs), true, 'isCompletedMatch must accept >165m zombie match');
-  logPass('Test F (Stale Live Match Recovery): Orphaned/zombie live matches deterministically transition to FT');
+  assert.strictEqual(isCompletedMatch(zombieLiveMatch, nowMs), false, 'isCompletedMatch must NEVER treat unconfirmed >115m match as completed');
+  assert.strictEqual(isCompletedMatch(recoveredBackend, nowMs), false, 'awaiting_confirmation must NEVER be completed');
+  assert.strictEqual(isCompletedMatch(unconfirmedBackend, nowMs), false, 'unconfirmed/suspended must NEVER be completed');
+  logPass('Test F (Stale Live Match Safeguards): >115m enters non-terminal awaiting_confirmation & >=240m enters suspended/unconfirmed without fabricating FT');
 
   // Test G: Out-of-Order & Regressive Responses
   assert.strictEqual(

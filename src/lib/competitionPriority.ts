@@ -510,8 +510,16 @@ export function isHighlightsEligible(
 ): boolean {
   if (!fixture) return false;
   const norm = normalizeMatchStatus(fixture.status, fixture.statusText);
-  // Live matches ('in'), completed matches ('post'), cancelled, postponed, abandoned, suspended fixtures are NOT eligible for highlights
-  if (norm === 'in' || norm === 'post' || norm === 'cancelled' || norm === 'postponed' || norm === 'abandoned' || norm === 'suspended') {
+  // Live matches ('in'), awaiting-confirmation, completed matches ('post'), cancelled, postponed, abandoned, suspended fixtures are NOT eligible for highlights
+  if (
+    norm === 'in' ||
+    norm === 'awaiting_confirmation' ||
+    norm === 'post' ||
+    norm === 'cancelled' ||
+    norm === 'postponed' ||
+    norm === 'abandoned' ||
+    norm === 'suspended'
+  ) {
     return false;
   }
   if (fixture.period && ['first_half', 'halftime', 'second_half', 'extra_time', 'penalties'].includes(fixture.period)) {

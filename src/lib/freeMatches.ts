@@ -2,6 +2,7 @@ import type { MatchConsensus } from './types.js';
 import {
   type MatchPeriod,
   type MatchStatus,
+  AWAITING_CONFIRMATION_MINUTES,
   isStatusTransitionValid,
   parseDetailedMatchStatus,
 } from './matchStatus.js';
@@ -111,7 +112,7 @@ function loadStoredMatches(): FreeMatch[] {
             if (Number.isFinite(kMs) && nowMs - kMs > 7 * 86_400_000) return false;
             return true;
           })
-          .map((m: any) => sanitizeFrontendFixtureLifecycle(toFreeMatch(m), nowMs, 160));
+          .map((m: any) => sanitizeFrontendFixtureLifecycle(toFreeMatch(m), nowMs, AWAITING_CONFIRMATION_MINUTES));
       }
     }
   } catch {}
@@ -213,14 +214,15 @@ if (typeof window !== 'undefined') {
       }
     }
 
-    // Reconcile any local fixture still marked 'in' that is NOT live in the authoritative SSE snapshot
+    // Reconcile any local fixture in 'in' or 'awaiting_confirmation' that is NOT actively 'in' in the SSE snapshot
+    // (never fabricate FT; transition >115m to 'awaiting_confirmation' and >=240m to 'suspended'/'unconfirmed').
     const nowMs = Date.now();
     liveMatches = liveMatches.map((m) => {
-      if (m.status !== 'in') return m;
+      if (m.status !== 'in' && m.status !== 'awaiting_confirmation') return m;
       const stillLiveInSnapshot = incomingConverted.some((inc) => inc.status === 'in' && areFixturesIdentical(m, inc));
       if (stillLiveInSnapshot) return m;
-      const sanitized = sanitizeFrontendFixtureLifecycle(m, nowMs, 100);
-      if (sanitized.status !== m.status) {
+      const sanitized = sanitizeFrontendFixtureLifecycle(m, nowMs, AWAITING_CONFIRMATION_MINUTES);
+      if (sanitized.status !== m.status || sanitized.displayClock !== m.displayClock) {
         changed = true;
       }
       return sanitized;
@@ -656,6 +658,11 @@ function mergeFreeMatchPair(existing: FreeMatch, incoming: FreeMatch): FreeMatch
     } else {
       finalClock = incClock || (finalPeriod === 'halftime' ? 'HT' : finalPeriod === 'second_half' ? '2nd Half' : 'LIVE');
     }
+  } else if (isPermitted) {
+    finalClock =
+      incoming.displayClock ||
+      incoming.minute ||
+      (finalStatus === 'awaiting_confirmation' ? 'Awaiting FT' : finalPeriod === 'unconfirmed' ? 'UNCONFIRMED' : finalClock);
   }
 
   let finalHomeScore = existing.homeScore;
@@ -721,8 +728,8 @@ export async function refreshFreeMatches(force = false) {
   }
 
   try {
-    // If we currently have live matches, also reconcile directly against `/api/sports/live`
-    if (liveMatches.some((m) => m.status === 'in')) {
+    // If we currently have live or awaiting-confirmation matches, also reconcile directly against `/api/sports/live`
+    if (liveMatches.some((m) => m.status === 'in' || m.status === 'awaiting_confirmation')) {
       try {
         await reconcileLiveFixturesFromBackend();
       } catch {}

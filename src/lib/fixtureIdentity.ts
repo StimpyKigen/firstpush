@@ -407,21 +407,27 @@ export function mergeMarketFixtureRecords(
         finalClock = incomingClock || (finalPeriod === 'halftime' ? 'HT' : finalPeriod === 'second_half' ? '2nd Half' : '1st Half');
         finalMinute = incoming.minute || finalClock;
       }
+    } else if (finalStatus === 'awaiting_confirmation') {
+      finalClock = incoming.displayClock || 'Awaiting FT';
+      finalMinute = incoming.minute || finalClock;
+    } else if (finalStatus === 'suspended' && finalPeriod === 'unconfirmed') {
+      finalClock = 'UNCONFIRMED';
+      finalMinute = 'UNCONFIRMED';
     } else {
       finalClock = incoming.displayClock || '';
       finalMinute = incoming.minute || '';
     }
   } else if (existingStatus === 'post') {
-    // Invariant: Terminal full-time matches remain full-time and never revert to HT or live
+    // Invariant: Terminal full-time matches remain full-time and never revert to HT, live, or awaiting_confirmation
     finalStatus = 'post';
     finalPeriod = existingPeriod === 'scheduled' ? 'full_time' : existingPeriod;
     finalClock = existing.displayClock && existing.displayClock !== 'HT' ? existing.displayClock : 'FT';
     finalMinute = finalClock;
-  } else if (existingStatus === 'in' && incomingStatus === 'pre') {
-    // Invariant: In-play match cannot be regressed to scheduled by stale schedule refresh
-    finalStatus = 'in';
+  } else if ((existingStatus === 'in' || existingStatus === 'awaiting_confirmation') && incomingStatus === 'pre') {
+    // Invariant: In-play or awaiting-confirmation match cannot be regressed to scheduled by stale schedule refresh
+    finalStatus = existingStatus;
     finalPeriod = existingPeriod;
-    finalClock = existing.displayClock || 'LIVE';
+    finalClock = existing.displayClock || (existingStatus === 'awaiting_confirmation' ? 'Awaiting FT' : 'LIVE');
     finalMinute = existing.minute || finalClock;
   }
 

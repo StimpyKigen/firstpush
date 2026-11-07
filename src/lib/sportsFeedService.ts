@@ -14,6 +14,8 @@ import {
   normalizeMatchStatus,
   parseDetailedMatchStatus,
   isStatusTransitionValid,
+  AWAITING_CONFIRMATION_MINUTES,
+  UNCONFIRMED_MATCH_MINUTES,
   type MatchStatus,
   type MatchPeriod,
 } from './matchStatus.js';
@@ -395,21 +397,37 @@ export function normalizeSportScoreIncidents(rawIncidents?: any[]): {
 
 export function sanitizeSnapshotLoadedFixture(f: MarketFixture, nowMs: number = Date.now()): MarketFixture {
   if (!f || typeof f !== 'object') return f;
-  if (f.status === 'in') {
-    const kMs = f.kickoffIso ? new Date(f.kickoffIso).getTime() : 0;
-    const elapsedMin = kMs > 0 ? (nowMs - kMs) / 60000 : Infinity;
-    // A football match cannot still be live 160+ minutes after kickoff when loaded from a cold snapshot
-    if (elapsedMin >= 160) {
+  if (f.status === 'in' || f.status === 'awaiting_confirmation') {
+    const kMs = f.kickoffIso ? new Date(f.kickoffIso).getTime() : NaN;
+    const elapsedMin = Number.isFinite(kMs) ? (nowMs - kMs) / 60000 : Infinity;
+    // Safeguard: matches with zero provider confirmation after >= 240 minutes become 'suspended' / 'unconfirmed'
+    // (NEVER auto-finalized as 'post' / 'FT' with a guessed score).
+    if (elapsedMin >= UNCONFIRMED_MATCH_MINUTES) {
       return {
         ...f,
-        status: 'post',
-        period: 'full_time',
-        periodSequence: 60,
-        displayClock: 'FT',
-        minute: 'FT',
-        homeScore: f.homeScore ?? 0,
-        awayScore: f.awayScore ?? 0,
-        isAuthoritativeCorrection: true,
+        status: 'suspended',
+        period: 'unconfirmed',
+        periodSequence: 58,
+        displayClock: 'UNCONFIRMED',
+        minute: 'UNCONFIRMED',
+        homeScore: f.homeScore ?? null,
+        awayScore: f.awayScore ?? null,
+        isAuthoritativeCorrection: false,
+      };
+    }
+    // Non-terminal awaiting-confirmation state for matches > 115 minutes without provider terminal status.
+    // Keep polling via widget & competition endpoints until provider explicitly returns finished / AET / AP.
+    if (elapsedMin > AWAITING_CONFIRMATION_MINUTES) {
+      return {
+        ...f,
+        status: 'awaiting_confirmation',
+        period: 'awaiting_confirmation',
+        periodSequence: 55,
+        displayClock: 'Awaiting FT',
+        minute: 'Awaiting FT',
+        homeScore: f.homeScore ?? null,
+        awayScore: f.awayScore ?? null,
+        isAuthoritativeCorrection: false,
       };
     }
   }
@@ -1619,7 +1637,7 @@ export async function syncLiveScoresOnly(): Promise<{ updated: number; liveCount
       const isStillInLiveFeed = liveFixtures.some((lf) => lf.status === 'in' && areFixturesIdentical(sf, lf));
       if (isStillInLiveFeed) continue;
 
-      if (sf.status === 'in') {
+      if (sf.status === 'in' || sf.status === 'awaiting_confirmation') {
         candidatesToReconcile.push(sf);
       } else if (sf.status === 'pre' && sf.kickoffIso) {
         const kMs = new Date(sf.kickoffIso).getTime();
@@ -1655,13 +1673,13 @@ export async function syncLiveScoresOnly(): Promise<{ updated: number; liveCount
       }
     }
 
-    // Now check widget match detail for any candidate still stuck in 'in' (e.g. 'HT') or past-kickoff 'pre'.
-    // CRITICAL: Sort so ALL 'in' matches come FIRST (never starved behind 'pre' matches), ordered by oldest check time!
+    // Now check widget match detail for any candidate in 'in', 'awaiting_confirmation', or past-kickoff 'pre'.
+    // CRITICAL: Sort so ALL 'in' and 'awaiting_confirmation' matches come FIRST (never starved behind 'pre' matches), ordered by oldest check time!
     const remainingCandidates = candidatesToReconcile
       .filter((c) => {
         const current = fixturesStore.get(c.id);
         if (!current) return false;
-        if (current.status === 'in') return true;
+        if (current.status === 'in' || current.status === 'awaiting_confirmation') return true;
         if (current.status === 'pre' && current.kickoffIso) {
           const meta = fixtureReconcileTracker.get(current.id);
           if (meta && nowMs < meta.nextRetryMs) return false;
@@ -1673,15 +1691,17 @@ export async function syncLiveScoresOnly(): Promise<{ updated: number; liveCount
       .sort((a, b) => {
         const curA = fixturesStore.get(a.id) || a;
         const curB = fixturesStore.get(b.id) || b;
-        // Priority 1: 'in' matches ALWAYS before 'pre' matches
-        if (curA.status === 'in' && curB.status !== 'in') return -1;
-        if (curA.status !== 'in' && curB.status === 'in') return 1;
+        const rank = (s?: MatchStatus) => (s === 'in' ? 0 : s === 'awaiting_confirmation' ? 1 : 2);
+        const rankDiff = rank(curA.status) - rank(curB.status);
+        if (rankDiff !== 0) return rankDiff;
         // Priority 2: Least recently checked first (round-robin fairness)
         const metaA = fixtureReconcileTracker.get(curA.id)?.lastDetailCheckMs || 0;
         const metaB = fixtureReconcileTracker.get(curB.id)?.lastDetailCheckMs || 0;
         return metaA - metaB;
       })
       .slice(0, 16);
+
+    const confirmedExtraTimeIds = new Set<string>();
 
     if (remainingCandidates.length > 0) {
       await Promise.allSettled(
@@ -1708,40 +1728,64 @@ export async function syncLiveScoresOnly(): Promise<{ updated: number; liveCount
                 hasTerminalStatusTransition = true;
               }
             }
+            if (
+              detail.normalized_status === 'in' &&
+              (detail.period === 'extra_time' ||
+                detail.period === 'extra_time_halftime' ||
+                detail.period === 'penalties')
+            ) {
+              confirmedExtraTimeIds.add(current.id);
+            }
           } else {
             prevMeta.consecutiveFailures += 1;
             const backoffMs = Math.min(300_000, 15_000 * Math.pow(2, prevMeta.consecutiveFailures - 1));
             prevMeta.nextRetryMs = nowMs + backoffMs;
           }
-
-          // Re-check current state in fixturesStore after detail check
-          const afterDetail = fixturesStore.get(sf.id);
-          if (!afterDetail || afterDetail.status !== 'in') return;
-
-          // Deterministic stale live match recovery:
-          // 1. If widget endpoint could not be reached AND match has been in 'in' for >= 115 mins since kickoff, OR
-          // 2. If match has been in 'in' for >= 160 mins since kickoff (beyond 90' + ET + penalties) and is no longer in liveFixtures, OR
-          // 3. If match has no valid kickoffIso and is no longer in liveFixtures and widget detail failed
-          const kMs = afterDetail.kickoffIso ? new Date(afterDetail.kickoffIso).getTime() : 0;
-          const elapsedMin = kMs > 0 ? (nowMs - kMs) / 60000 : Infinity;
-          if ((!detail && elapsedMin >= 115) || elapsedMin >= 160) {
-            const fallbackFinished: MarketFixture = {
-              ...afterDetail,
-              status: 'post',
-              period: 'full_time',
-              periodSequence: 60,
-              displayClock: 'FT',
-              minute: 'FT',
-              homeScore: afterDetail.homeScore ?? 0,
-              awayScore: afterDetail.awayScore ?? 0,
-              syncedAt: new Date().toISOString(),
-              isAuthoritativeCorrection: true,
-            };
-            updated += ingestFixtures([fallbackFinished], true);
-            hasTerminalStatusTransition = true;
-          }
         })
       );
+    }
+
+    // Apply non-terminal lifecycle safeguards across all candidates still lacking provider terminal confirmation.
+    // NEVER fabricate status:'post' / 'FT' or guess a final score based on elapsed time alone!
+    for (const sf of candidatesToReconcile) {
+      const afterDetail = fixturesStore.get(sf.id);
+      if (!afterDetail || (afterDetail.status !== 'in' && afterDetail.status !== 'awaiting_confirmation')) continue;
+
+      const kMs = afterDetail.kickoffIso ? new Date(afterDetail.kickoffIso).getTime() : NaN;
+      const elapsedMin = Number.isFinite(kMs) ? (nowMs - kMs) / 60000 : Infinity;
+
+      if (elapsedMin >= UNCONFIRMED_MATCH_MINUTES) {
+        const safeguardUnconfirmed: MarketFixture = {
+          ...afterDetail,
+          status: 'suspended',
+          period: 'unconfirmed',
+          periodSequence: 58,
+          displayClock: 'UNCONFIRMED',
+          minute: 'UNCONFIRMED',
+          homeScore: afterDetail.homeScore ?? null,
+          awayScore: afterDetail.awayScore ?? null,
+          syncedAt: new Date().toISOString(),
+          isAuthoritativeCorrection: false,
+        };
+        updated += ingestFixtures([safeguardUnconfirmed], false);
+      } else if (elapsedMin > AWAITING_CONFIRMATION_MINUTES) {
+        const hasConfirmedExtraTimeOrPenalties = confirmedExtraTimeIds.has(afterDetail.id) && elapsedMin < 160;
+        if (!hasConfirmedExtraTimeOrPenalties && afterDetail.status !== 'awaiting_confirmation') {
+          const awaitingConfirmation: MarketFixture = {
+            ...afterDetail,
+            status: 'awaiting_confirmation',
+            period: 'awaiting_confirmation',
+            periodSequence: 55,
+            displayClock: 'Awaiting FT',
+            minute: 'Awaiting FT',
+            homeScore: afterDetail.homeScore ?? null,
+            awayScore: afterDetail.awayScore ?? null,
+            syncedAt: new Date().toISOString(),
+            isAuthoritativeCorrection: false,
+          };
+          updated += ingestFixtures([awaitingConfirmation], false);
+        }
+      }
     }
 
     if (updated > 0 || hasTerminalStatusTransition) {
@@ -1809,8 +1853,8 @@ export function queryMarketFixtures(options: {
       if (f.status === 'post' || f.status === 'pre' || f.status === 'postponed' || f.status === 'cancelled' || f.status === 'abandoned' || f.status === 'suspended') {
         return false;
       }
-      if (f.status === 'in') return true;
-      if (f.period && ['first_half', 'halftime', 'second_half', 'extra_time', 'extra_time_halftime', 'penalties'].includes(f.period)) {
+      if (f.status === 'in' || f.status === 'awaiting_confirmation') return true;
+      if (f.period && ['first_half', 'halftime', 'second_half', 'extra_time', 'extra_time_halftime', 'penalties', 'awaiting_confirmation'].includes(f.period)) {
         return true;
       }
       return false;
@@ -1820,8 +1864,8 @@ export function queryMarketFixtures(options: {
   } else if (scope === 'highlights') {
     const { startMs: hlStartMs, nextDay6amMs: hlCutoffMs } = getHighlightsCutoffWindowEAT(new Date());
     list = list.filter((f) => {
-      if (f.status === 'post' || f.status === 'in') return false;
-      if (f.period && ['full_time', 'after_extra_time', 'after_penalties', 'awarded', 'first_half', 'halftime', 'second_half', 'extra_time', 'extra_time_halftime', 'penalties'].includes(f.period)) return false;
+      if (f.status === 'post' || f.status === 'in' || f.status === 'awaiting_confirmation' || f.status === 'suspended') return false;
+      if (f.period && ['full_time', 'after_extra_time', 'after_penalties', 'awarded', 'first_half', 'halftime', 'second_half', 'extra_time', 'extra_time_halftime', 'penalties', 'awaiting_confirmation', 'unconfirmed'].includes(f.period)) return false;
       const kMs = f.kickoffIso ? new Date(f.kickoffIso).getTime() : 0;
       return kMs >= hlStartMs && kMs <= hlCutoffMs;
     });
@@ -2105,7 +2149,7 @@ realtimeBroadcaster.setSnapshotProvider(() => {
   const todayStr = getLocalDateStringEAT(now);
   const yesterdayStr = getLocalDateStringEAT(new Date(now.getTime() - 24 * 3600 * 1000));
   return Array.from(fixturesStore.values()).filter((f) => {
-    if (f.status === 'in') return true;
+    if (f.status === 'in' || f.status === 'awaiting_confirmation') return true;
     const fDate = getLocalDateStringEAT(f.kickoffIso);
     const isRecentDay = fDate === todayStr || fDate === yesterdayStr;
     if (f.status === 'post' && isRecentDay) return true;
