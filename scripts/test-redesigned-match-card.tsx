@@ -137,12 +137,14 @@ assert(!upcomingHtml.includes('No goals yet'), 'Upcoming card must not include N
 console.log('  PASS: Upcoming match renders legacy odds, Bet365 Odds, and Bet Builder');
 
 // --------------------------------------------------------------------------------------
-// 3. COMPONENT TESTS: Live Match 0-0 Scoreless
+// 3. COMPONENT TESTS: Live Match 0-0 Scoreless (No goals yet text removed)
 // --------------------------------------------------------------------------------------
-console.log('\nTest 5: Live match (0-0) renders redesigned layout with "No goals yet"');
+console.log('\nTest 5: Live match (0-0) renders redesigned layout without "No goals yet" text and with team logos');
 const live00Match = createMockMatch({
   home: 'AS Saint-Étienne',
   away: 'Stade Lavallois',
+  homeLogo: 'https://images.sportscore.io/teams/saint-etienne.png',
+  awayLogo: 'https://images.sportscore.io/teams/lavallois.png',
   status: 'in',
   displayClock: "30'",
   homeScore: 0,
@@ -167,12 +169,14 @@ assert(!live00Html.includes('punters analyzing'), 'Live card must NOT include "p
 assert(!live00Html.includes('2.10'), 'Live card must NOT include odds boxes');
 assert(live00Html.includes('AS Saint-Étienne'), 'Must include home team');
 assert(live00Html.includes('Stade Lavallois'), 'Must include away team');
+assert(live00Html.includes('saint-etienne.png'), 'Must include home team logo');
+assert(live00Html.includes('lavallois.png'), 'Must include away team logo');
 assert(live00Html.includes('>v<'), 'Must include lowercase "v" separator');
 assert(live00Html.includes('0 - 0'), 'Must include 0 - 0 centered score');
-assert(live00Html.includes('No goals yet'), 'Must include "No goals yet" placeholder');
+assert(!live00Html.includes('No goals yet'), 'When a goal hasn\'t been scored, "No goals yet" text must NOT be displayed');
 assert(live00Html.includes('232'), 'Must include punters count in footer');
 assert(live00Html.includes('Details &amp; Discussion'), 'Must include Details & Discussion');
-console.log('  PASS: Live 0-0 card rendered with "No goals yet", inline teams with "v", and punters count');
+console.log('  PASS: Live 0-0 card rendered cleanly without "No goals yet", with logos, centered "v", and punters count');
 
 // --------------------------------------------------------------------------------------
 // 4. COMPONENT TESTS: Live Match 0-1 Single Goal

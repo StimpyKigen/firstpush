@@ -751,17 +751,52 @@ export default function FixtureSportCard({
           onClick={handleCardClick}
           className="block group"
         >
-          {/* Team Names: side by side horizontally, centered, separated by lowercase 'v' */}
-          <div className="flex items-center justify-center gap-2 min-w-0 text-center">
-            <span className="font-bold text-sm sm:text-base text-slate-900 dark:text-white truncate max-w-[44%] text-right group-hover:text-[#006C54] transition-colors">
-              {match.home}
-            </span>
-            <span className="text-xs text-slate-400 dark:text-slate-500 font-normal select-none shrink-0">
+          {/* Team Names & Logos: Rigidly Centered 'v' Divider */}
+          <div className="flex items-center justify-between gap-1.5 w-full min-w-0 text-center">
+            {/* Home Team (Left Half, right-aligned to hug the 'v') */}
+            <div className="flex-1 min-w-0 flex items-center justify-end gap-1.5">
+              {match.homeLogo && (
+                <img
+                  src={match.homeLogo}
+                  alt=""
+                  loading="lazy"
+                  decoding="async"
+                  referrerPolicy="no-referrer"
+                  className="w-4 h-4 sm:w-5 sm:h-5 object-contain shrink-0"
+                />
+              )}
+              <span
+                className="font-bold text-xs sm:text-sm text-slate-900 dark:text-white truncate group-hover:text-[#006C54] transition-colors"
+                title={match.home}
+              >
+                {match.home}
+              </span>
+            </div>
+
+            {/* Exact Center 'v' Divider */}
+            <span className="text-xs text-slate-400 dark:text-slate-500 font-normal select-none shrink-0 px-1 text-center">
               v
             </span>
-            <span className="font-bold text-sm sm:text-base text-slate-900 dark:text-white truncate max-w-[44%] text-left group-hover:text-[#006C54] transition-colors">
-              {match.away}
-            </span>
+
+            {/* Away Team (Right Half, left-aligned to hug the 'v') */}
+            <div className="flex-1 min-w-0 flex items-center justify-start gap-1.5">
+              <span
+                className="font-bold text-xs sm:text-sm text-slate-900 dark:text-white truncate group-hover:text-[#006C54] transition-colors"
+                title={match.away}
+              >
+                {match.away}
+              </span>
+              {match.awayLogo && (
+                <img
+                  src={match.awayLogo}
+                  alt=""
+                  loading="lazy"
+                  decoding="async"
+                  referrerPolicy="no-referrer"
+                  className="w-4 h-4 sm:w-5 sm:h-5 object-contain shrink-0"
+                />
+              )}
+            </div>
           </div>
 
           {/* Centered Bold Score */}
@@ -769,13 +804,9 @@ export default function FixtureSportCard({
             {`${homeScoreDisplay} - ${awayScoreDisplay}`}
           </div>
 
-          {/* Two-Column Scorer List with Centered CircleDot */}
-          <div className="my-2 min-h-[30px] flex items-center justify-center">
-            {allGoals.length === 0 ? (
-              <div className="text-center text-xs text-slate-400 dark:text-slate-500 italic py-1 select-none">
-                No goals yet
-              </div>
-            ) : (
+          {/* Two-Column Scorer List with Centered CircleDot (rendered only when goals exist) */}
+          {allGoals.length > 0 && (
+            <div className="my-2 min-h-[26px] flex items-center justify-center">
               <div className="w-full flex items-center justify-center gap-2 text-xs">
                 {/* Home Column (Right-aligned under Home Team) */}
                 <div className="flex-1 flex flex-col items-end justify-center min-w-0 space-y-0.5">
@@ -792,8 +823,8 @@ export default function FixtureSportCard({
                   {awayGoals.map((g) => renderGoalLine(g))}
                 </div>
               </div>
-            )}
-          </div>
+            </div>
+          )}
 
           {activeNotification?.kind === 'var' && (
             <div className="flex justify-center text-[11px] font-bold text-black [text-shadow:0_0_6px_rgba(0,0,0,0.8),0_0_12px_rgba(0,0,0,0.5)] animate-pulse whitespace-nowrap mb-1">
