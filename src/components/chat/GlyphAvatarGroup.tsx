@@ -42,7 +42,7 @@ export default function GlyphAvatarGroup({
               seed={seed}
               size={size}
               avatarId={user.avatarId}
-              showBorder={false}
+              showBorder={true}
             />
           </div>
         );

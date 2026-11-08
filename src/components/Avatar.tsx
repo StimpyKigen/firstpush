@@ -24,6 +24,8 @@ export default function Avatar({
 
   // Prominent rounded-square / squircle radius proportional to avatar dimensions (iconic ~22% squircle ratio)
   const borderRadius = Math.max(5, Math.round(size * 0.22));
+  // Border thickness proportional to avatar dimensions
+  const borderWidth = size <= 26 ? 1.5 : 2;
 
   if (preset) {
     const src = preset.svgContent || (preset as any).src || '';
@@ -34,7 +36,7 @@ export default function Avatar({
           width: size,
           height: size,
           borderRadius,
-          border: showBorder ? `2px solid ${fg}` : 'none',
+          border: showBorder ? `${borderWidth}px solid ${fg}` : 'none',
           backgroundColor: 'transparent',
         }}
         title={preset.label}
@@ -60,7 +62,7 @@ export default function Avatar({
           width: size,
           height: size,
           borderRadius,
-          border: showBorder ? `2px solid ${fg}` : 'none',
+          border: showBorder ? `${borderWidth}px solid ${fg}` : 'none',
           backgroundColor: 'transparent',
         }}
         title={name || 'User Avatar'}
@@ -85,7 +87,7 @@ export default function Avatar({
         height: size,
         borderRadius,
         background: `linear-gradient(145deg, ${bg}, ${fg}33)`,
-        border: showBorder ? `2px solid ${fg}` : 'none',
+        border: showBorder ? `${borderWidth}px solid ${fg}` : 'none',
         color: fg,
         fontSize: size * 0.36,
       }}

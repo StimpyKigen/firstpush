@@ -79,14 +79,14 @@ export default function ChatMessageList({
               key={head.id}
               className="flex items-start gap-2.5 flex-row w-full animate-in fade-in duration-150"
             >
-              {/* Sender Avatar (always on left) */}
+              {/* Sender Avatar (always on left with unique assigned colored border) */}
               <div className="shrink-0 mt-0.5">
                 <Avatar
                   name={head.userName}
                   seed={head.colorSeed}
                   size={26}
                   avatarId={head.avatarId}
-                  showBorder={false}
+                  showBorder={true}
                 />
               </div>
 
