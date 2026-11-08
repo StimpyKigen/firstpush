@@ -47,6 +47,21 @@ export default function ChatMessageList({
     }
   }, [messages.length]);
 
+  // Keep latest messages visible when mobile virtual keyboard opens/resizes
+  useEffect(() => {
+    const handleViewportResize = () => {
+      scrollEndRef.current?.scrollIntoView({ behavior: 'auto', block: 'end' });
+    };
+
+    const vv = typeof window !== 'undefined' ? window.visualViewport : null;
+    if (vv) {
+      vv.addEventListener('resize', handleViewportResize);
+    }
+    return () => {
+      if (vv) vv.removeEventListener('resize', handleViewportResize);
+    };
+  }, []);
+
   const groups = groupMessages(messages);
 
   if (messages.length === 0) {

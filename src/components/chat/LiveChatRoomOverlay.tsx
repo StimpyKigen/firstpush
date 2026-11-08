@@ -23,6 +23,8 @@ export default function LiveChatRoomOverlay({
   useBackToClose(isOpen, onClose);
   const [isStickerOpen, setIsStickerOpen] = useState(false);
   const [isEmojiOpen, setIsEmojiOpen] = useState(false);
+  const [viewportStyle, setViewportStyle] = useState<React.CSSProperties>({});
+  const [isKeyboardActive, setIsKeyboardActive] = useState(false);
   const composerRef = useRef<ChatComposerHandle>(null);
 
   const roomId = `room-${match.id}`;
@@ -35,6 +37,55 @@ export default function LiveChatRoomOverlay({
     currentUserId,
     cooldownRemaining,
   } = useChatRoom(roomId, isOpen, match.status || 'pre');
+
+  // Dynamically track visual viewport so the mobile overlay and composer ALWAYS stay above the virtual keyboard
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const updateViewport = () => {
+      if (typeof window === 'undefined') return;
+
+      // On desktop (>= 640px), let standard Tailwind classes manage centered card layout
+      if (window.innerWidth >= 640) {
+        setViewportStyle({});
+        setIsKeyboardActive(false);
+        return;
+      }
+
+      const vv = window.visualViewport;
+      if (vv) {
+        const keyboardOpen = vv.height < window.innerHeight - 80;
+        setIsKeyboardActive(keyboardOpen);
+
+        // Pin overlay top and height directly to visual viewport, eliminating keyboard overlap
+        setViewportStyle({
+          height: `${vv.height}px`,
+          top: `${vv.offsetTop}px`,
+          bottom: 'auto',
+        });
+      } else {
+        setViewportStyle({});
+        setIsKeyboardActive(false);
+      }
+    };
+
+    updateViewport();
+
+    const vv = typeof window !== 'undefined' ? window.visualViewport : null;
+    if (vv) {
+      vv.addEventListener('resize', updateViewport);
+      vv.addEventListener('scroll', updateViewport);
+    }
+    window.addEventListener('resize', updateViewport);
+
+    return () => {
+      if (vv) {
+        vv.removeEventListener('resize', updateViewport);
+        vv.removeEventListener('scroll', updateViewport);
+      }
+      window.removeEventListener('resize', updateViewport);
+    };
+  }, [isOpen]);
 
   // Automatically close sticker or emoji drawer if cooldown starts
   useEffect(() => {
@@ -78,7 +129,10 @@ export default function LiveChatRoomOverlay({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 bg-[#FFFFF0] dark:bg-[#202522] sm:bg-black/75 sm:backdrop-blur-sm sm:flex sm:items-center sm:justify-center animate-in fade-in duration-150">
+    <div
+      style={viewportStyle}
+      className="fixed inset-0 z-50 bg-[#FFFFF0] dark:bg-[#202522] sm:bg-black/75 sm:backdrop-blur-sm sm:flex sm:items-center sm:justify-center animate-in fade-in duration-150"
+    >
       {/* Desktop: click backdrop to exit */}
       <div className="hidden sm:block absolute inset-0" onClick={onClose} />
 
@@ -135,7 +189,7 @@ export default function LiveChatRoomOverlay({
         {/* Composer & Drawers (Sticker & Apple Emoji) */}
         <div
           className="shrink-0 flex flex-col"
-          style={{ paddingBottom: (isStickerOpen || isEmojiOpen) ? '0px' : 'max(0px, env(safe-area-inset-bottom, 0px))' }}
+          style={{ paddingBottom: (isStickerOpen || isEmojiOpen || isKeyboardActive) ? '0px' : 'max(0px, env(safe-area-inset-bottom, 0px))' }}
         >
           <ChatComposer
             ref={composerRef}
