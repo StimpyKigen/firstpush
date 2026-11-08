@@ -21,6 +21,7 @@
     "@vitejs/plugin-react": "^5.0.4",
     "canvas-confetti": "^1.9.4",
     "dotenv": "^17.2.3",
+    "emoji-picker-react": "^5.1.4",
     "express": "^4.21.2",
     "firebase": "^12.16.0",
     "firebase-admin": "^14.5.0",

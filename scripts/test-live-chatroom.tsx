@@ -11,6 +11,8 @@ import TypingIndicator, { formatTypingNames } from '../src/components/chat/Typin
 import ChatMessageList, { groupMessages } from '../src/components/chat/ChatMessageList';
 import ChatComposer from '../src/components/chat/ChatComposer';
 import StickerGallery from '../src/components/chat/StickerGallery';
+import EmojiDrawer from '../src/components/chat/EmojiDrawer';
+import { emojiToAppleUnified, FormattedMessageText } from '../src/components/chat/AppleEmoji';
 import { getChatSticker, CHAT_STICKERS } from '../src/components/chat/chatStickers';
 
 function assert(condition: boolean, message: string) {
@@ -142,6 +144,20 @@ async function runTests() {
   assert(stickerHtml.includes('GOAAAL!'), 'StickerGallery renders GOAAAL! sticker');
   assert(stickerHtml.includes('Banker'), 'StickerGallery renders Banker sticker');
   assert(CHAT_STICKERS.length >= 10, `Curated at least 10 football/banter stickers (actual: ${CHAT_STICKERS.length})`);
+
+  // EmojiDrawer
+  const emojiDrawerHtml = renderToString(<EmojiDrawer isOpen={true} onClose={() => {}} onSelectEmoji={() => {}} />);
+  assert(emojiDrawerHtml.includes('Apple Emojis'), 'EmojiDrawer renders Apple Emojis header');
+  assert(emojiDrawerHtml.includes('aria-label="Close emoji picker"'), 'EmojiDrawer renders close button');
+
+  // AppleEmoji unified conversion & formatting
+  assert(emojiToAppleUnified('⚽') === '26bd', 'emojiToAppleUnified correctly converts ⚽ to 26bd');
+  assert(emojiToAppleUnified('🔥') === '1f525', 'emojiToAppleUnified correctly converts 🔥 to 1f525');
+  assert(emojiToAppleUnified('👍🏽') === '1f44d-1f3fd', 'emojiToAppleUnified correctly converts 👍🏽 to 1f44d-1f3fd');
+
+  const formattedHtml = renderToString(<FormattedMessageText text="Conviction 🔥⚽" />);
+  assert(formattedHtml.includes('https://cdn.jsdelivr.net/npm/emoji-datasource-apple/img/apple/64/1f525.png'), 'FormattedMessageText renders Apple fire emoji');
+  assert(formattedHtml.includes('https://cdn.jsdelivr.net/npm/emoji-datasource-apple/img/apple/64/26bd.png'), 'FormattedMessageText renders Apple soccer ball emoji');
 
   // Sticker message resolution
   assert(getChatSticker('[sticker:goal]')?.name === 'GOAL!', 'getChatSticker resolves [sticker:goal]');

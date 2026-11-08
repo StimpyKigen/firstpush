@@ -1,7 +1,10 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, forwardRef, useImperativeHandle } from 'react';
 import { ArrowUp, Smile, Sticker } from 'lucide-react';
 
-const QUICK_EMOJIS = ['⚽', '🔥', '💰', '🔒', '👏', '🚀', '💯', '🤣', '👀', '🟥', '🧊', '🏆'];
+export interface ChatComposerHandle {
+  insertEmoji: (emoji: string) => void;
+  focus: () => void;
+}
 
 interface ChatComposerProps {
   onSend: (text: string) => void;
@@ -10,24 +13,71 @@ interface ChatComposerProps {
   disabled?: boolean;
   isStickerOpen?: boolean;
   onToggleSticker?: () => void;
+  isEmojiOpen?: boolean;
+  onToggleEmoji?: () => void;
   cooldownRemaining?: number;
 }
 
-export default function ChatComposer({
-  onSend,
-  onTyping,
-  placeholder = 'Comment here...',
-  disabled = false,
-  isStickerOpen = false,
-  onToggleSticker,
-  cooldownRemaining = 0,
-}: ChatComposerProps) {
+const ChatComposer = forwardRef<ChatComposerHandle, ChatComposerProps>(function ChatComposer(
+  {
+    onSend,
+    onTyping,
+    placeholder = 'Comment here...',
+    disabled = false,
+    isStickerOpen = false,
+    onToggleSticker,
+    isEmojiOpen = false,
+    onToggleEmoji,
+    cooldownRemaining = 0,
+  },
+  ref
+) {
   const [text, setText] = useState('');
-  const [showEmojiBar, setShowEmojiBar] = useState(false);
   const lastTypingCallRef = useRef<number>(0);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const isCooldown = Boolean(cooldownRemaining && cooldownRemaining > 0);
+
+  // Insert emoji at the active cursor position, advancing the cursor immediately after
+  const insertEmojiAtCursor = (emoji: string) => {
+    if (disabled || isCooldown) return;
+    const input = inputRef.current;
+    if (!input) {
+      setText((prev) => prev + emoji);
+      return;
+    }
+
+    const start = input.selectionStart ?? text.length;
+    const end = input.selectionEnd ?? text.length;
+    const newText = text.slice(0, start) + emoji + text.slice(end);
+    setText(newText);
+
+    // Debounce typing notification to at most once every 700ms when text is present
+    const now = Date.now();
+    if (onTyping && newText.trim().length > 0 && now - lastTypingCallRef.current > 700) {
+      lastTypingCallRef.current = now;
+      onTyping();
+    }
+
+    // Advance selection cursor to immediately follow newly inserted emoji
+    requestAnimationFrame(() => {
+      const newPos = start + emoji.length;
+      try {
+        input.setSelectionRange(newPos, newPos);
+      } catch {
+        // Fallback for environments where setSelectionRange is unhandled
+      }
+    });
+  };
+
+  useImperativeHandle(
+    ref,
+    () => ({
+      insertEmoji: insertEmojiAtCursor,
+      focus: () => inputRef.current?.focus(),
+    }),
+    [disabled, isCooldown, text, onTyping]
+  );
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (isCooldown) return;
@@ -77,32 +127,17 @@ export default function ChatComposer({
     inputRef.current?.focus({ preventScroll: true });
   };
 
-  // Auto-close emoji bar and sticker drawer when cooldown starts
-  useEffect(() => {
-    if (isCooldown) {
-      setShowEmojiBar(false);
-      if (isStickerOpen) {
-        onToggleSticker?.();
-      }
-    }
-  }, [isCooldown, isStickerOpen, onToggleSticker]);
-
   const handleEmojiClick = () => {
     if (disabled || isCooldown) return;
-    // Focus the input to trigger mobile device emoji keyboard, and toggle quick bar
-    inputRef.current?.focus({ preventScroll: true });
-    setShowEmojiBar((prev) => !prev);
-  };
-
-  const handleInsertEmoji = (emoji: string) => {
-    if (disabled || isCooldown) return;
-    setText((prev) => prev + emoji);
-    inputRef.current?.focus({ preventScroll: true });
+    // Blur input so mobile virtual keyboard dismisses cleanly when emoji drawer opens
+    if (inputRef.current) {
+      inputRef.current.blur();
+    }
+    onToggleEmoji?.();
   };
 
   const handleStickerClick = () => {
     if (disabled || isCooldown) return;
-    setShowEmojiBar(false);
     if (inputRef.current) {
       inputRef.current.blur();
     }
@@ -111,39 +146,22 @@ export default function ChatComposer({
 
   return (
     <div className="flex flex-col w-full bg-[#FFFFF0] dark:bg-[#202522] border-t border-[#E6E6D2] dark:border-[#414A43]">
-      {/* Quick Emoji Bar when Emoji icon is tapped */}
-      {showEmojiBar && !isCooldown && (
-        <div className="px-3 py-1.5 flex items-center gap-1.5 overflow-x-auto no-scrollbar border-b border-[#E6E6D2]/60 dark:border-[#414A43]/60 bg-[#F5F5E4]/50 dark:bg-[#2A312C]/50 animate-in fade-in duration-100">
-          {QUICK_EMOJIS.map((emoji) => (
-            <button
-              key={emoji}
-              type="button"
-              onMouseDown={(e) => e.preventDefault()}
-              onClick={() => handleInsertEmoji(emoji)}
-              className="text-base p-1 rounded-lg hover:bg-black/5 dark:hover:bg-white/10 active:scale-125 transition-transform cursor-pointer shrink-0"
-            >
-              {emoji}
-            </button>
-          ))}
-        </div>
-      )}
-
       <form
         onSubmit={handleSubmit}
         className="px-3 py-2.5 flex items-center gap-2"
       >
-        {/* Left Side: Emoji & Sticker Icons */}
+        {/* Left Side: Apple Emoji & Sticker Icons */}
         <div className="flex items-center gap-1 shrink-0 select-none">
           <button
             type="button"
             onClick={handleEmojiClick}
             disabled={disabled || isCooldown}
             aria-label="Insert emoji"
-            title={isCooldown ? `Cooldown active (${cooldownRemaining}s)` : 'Emoji'}
+            title={isCooldown ? `Cooldown active (${cooldownRemaining}s)` : 'Apple Emojis'}
             className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors ${
               disabled || isCooldown
                 ? 'text-slate-300 dark:text-slate-600 opacity-40 cursor-not-allowed pointer-events-none'
-                : showEmojiBar
+                : isEmojiOpen
                 ? 'text-[#006C54] dark:text-[#00A878] bg-[#006C54]/10 dark:bg-[#00A878]/10 cursor-pointer'
                 : 'text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-[#F4F5EF] hover:bg-black/5 dark:hover:bg-white/5 cursor-pointer'
             }`}
@@ -180,8 +198,9 @@ export default function ChatComposer({
             onPaste={handlePaste}
             onDrop={handleDrop}
             onFocus={() => {
-              // Close sticker drawer when typing so keyboard takes over cleanly
+              // Close sticker or emoji drawer when typing so keyboard takes over cleanly
               if (isStickerOpen) onToggleSticker?.();
+              if (isEmojiOpen) onToggleEmoji?.();
             }}
             placeholder={placeholder}
             disabled={disabled}
@@ -223,4 +242,6 @@ export default function ChatComposer({
       </form>
     </div>
   );
-}
+});
+
+export default ChatComposer;

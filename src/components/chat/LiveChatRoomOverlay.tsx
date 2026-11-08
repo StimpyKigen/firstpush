@@ -1,10 +1,11 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { X, Users } from 'lucide-react';
 import { useChatRoom } from '../../lib/useChatRoom';
 import ChatMessageList from './ChatMessageList';
 import TypingIndicator from './TypingIndicator';
-import ChatComposer from './ChatComposer';
+import ChatComposer, { type ChatComposerHandle } from './ChatComposer';
 import StickerGallery from './StickerGallery';
+import EmojiDrawer from './EmojiDrawer';
 import { useBackToClose } from '../../lib/useBackToClose';
 import type { FreeMatch } from '../../lib/freeMatches';
 
@@ -21,6 +22,8 @@ export default function LiveChatRoomOverlay({
 }: LiveChatRoomOverlayProps) {
   useBackToClose(isOpen, onClose);
   const [isStickerOpen, setIsStickerOpen] = useState(false);
+  const [isEmojiOpen, setIsEmojiOpen] = useState(false);
+  const composerRef = useRef<ChatComposerHandle>(null);
 
   const roomId = `room-${match.id}`;
   const {
@@ -33,12 +36,23 @@ export default function LiveChatRoomOverlay({
     cooldownRemaining,
   } = useChatRoom(roomId, isOpen, match.status || 'pre');
 
-  // Automatically close sticker drawer if cooldown starts
+  // Automatically close sticker or emoji drawer if cooldown starts
   useEffect(() => {
-    if (cooldownRemaining > 0 && isStickerOpen) {
-      setIsStickerOpen(false);
+    if (cooldownRemaining > 0) {
+      if (isStickerOpen) setIsStickerOpen(false);
+      if (isEmojiOpen) setIsEmojiOpen(false);
     }
-  }, [cooldownRemaining, isStickerOpen]);
+  }, [cooldownRemaining, isStickerOpen, isEmojiOpen]);
+
+  const handleToggleSticker = () => {
+    setIsEmojiOpen(false);
+    setIsStickerOpen((prev) => !prev);
+  };
+
+  const handleToggleEmoji = () => {
+    setIsStickerOpen(false);
+    setIsEmojiOpen((prev) => !prev);
+  };
 
   // Lock body scroll while open
   useEffect(() => {
@@ -118,17 +132,20 @@ export default function LiveChatRoomOverlay({
           <TypingIndicator users={typingUsers} />
         </div>
 
-        {/* Composer & Sticker Drawer */}
+        {/* Composer & Drawers (Sticker & Apple Emoji) */}
         <div
           className="shrink-0 flex flex-col"
-          style={{ paddingBottom: isStickerOpen ? '0px' : 'max(0px, env(safe-area-inset-bottom, 0px))' }}
+          style={{ paddingBottom: (isStickerOpen || isEmojiOpen) ? '0px' : 'max(0px, env(safe-area-inset-bottom, 0px))' }}
         >
           <ChatComposer
+            ref={composerRef}
             onSend={sendMessage}
             onTyping={notifyTyping}
             placeholder="Comment here..."
             isStickerOpen={isStickerOpen}
-            onToggleSticker={() => setIsStickerOpen((prev) => !prev)}
+            onToggleSticker={handleToggleSticker}
+            isEmojiOpen={isEmojiOpen}
+            onToggleEmoji={handleToggleEmoji}
             cooldownRemaining={cooldownRemaining}
           />
 
@@ -138,6 +155,15 @@ export default function LiveChatRoomOverlay({
             onClose={() => setIsStickerOpen(false)}
             onSelectSticker={(stickerId) => {
               sendMessage(`[sticker:${stickerId}]`);
+            }}
+          />
+
+          {/* Apple Emoji Picker Drawer (Keyboard-size pop-up, compact, search & skin-tones) */}
+          <EmojiDrawer
+            isOpen={isEmojiOpen}
+            onClose={() => setIsEmojiOpen(false)}
+            onSelectEmoji={(emoji) => {
+              composerRef.current?.insertEmoji(emoji);
             }}
           />
         </div>

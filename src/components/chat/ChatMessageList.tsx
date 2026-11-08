@@ -2,6 +2,7 @@ import React, { useRef, useEffect } from 'react';
 import Avatar from '../Avatar';
 import type { ChatMessage } from '../../lib/chatRoomStore';
 import { getChatSticker } from './chatStickers';
+import { FormattedMessageText } from './AppleEmoji';
 
 interface ChatMessageListProps {
   messages: ChatMessage[];
@@ -122,7 +123,7 @@ export default function ChatMessageList({
                         key={msg.id}
                         className="text-xs text-slate-800 dark:text-[#E2E8F0] leading-snug break-words"
                       >
-                        {msg.text}
+                        <FormattedMessageText text={msg.text} />
                       </p>
                     );
                   })}
