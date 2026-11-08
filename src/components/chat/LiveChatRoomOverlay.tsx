@@ -23,7 +23,6 @@ export default function LiveChatRoomOverlay({
   useBackToClose(isOpen, onClose);
   const [isStickerOpen, setIsStickerOpen] = useState(false);
   const [isEmojiOpen, setIsEmojiOpen] = useState(false);
-  const [keyboardHeight, setKeyboardHeight] = useState(0);
   const composerRef = useRef<ChatComposerHandle>(null);
 
   const roomId = `room-${match.id}`;
@@ -36,47 +35,6 @@ export default function LiveChatRoomOverlay({
     currentUserId,
     cooldownRemaining,
   } = useChatRoom(roomId, isOpen, match.status || 'pre');
-
-  // Dynamically track visual viewport keyboard height on mobile to lift composer without displacing layout
-  useEffect(() => {
-    if (!isOpen) return;
-
-    const updateKeyboard = () => {
-      if (typeof window === 'undefined') return;
-
-      // On desktop (>= 640px), let standard Tailwind modal layout handle positioning
-      if (window.innerWidth >= 640) {
-        setKeyboardHeight(0);
-        return;
-      }
-
-      const vv = window.visualViewport;
-      if (vv) {
-        const kh = Math.max(0, window.innerHeight - vv.height);
-        // Only treat as active keyboard if contraction exceeds 80px
-        setKeyboardHeight(kh > 80 ? kh : 0);
-      } else {
-        setKeyboardHeight(0);
-      }
-    };
-
-    updateKeyboard();
-
-    const vv = typeof window !== 'undefined' ? window.visualViewport : null;
-    if (vv) {
-      vv.addEventListener('resize', updateKeyboard);
-      vv.addEventListener('scroll', updateKeyboard);
-    }
-    window.addEventListener('resize', updateKeyboard);
-
-    return () => {
-      if (vv) {
-        vv.removeEventListener('resize', updateKeyboard);
-        vv.removeEventListener('scroll', updateKeyboard);
-      }
-      window.removeEventListener('resize', updateKeyboard);
-    };
-  }, [isOpen]);
 
   // Automatically close sticker or emoji drawer if cooldown starts
   useEffect(() => {
@@ -96,33 +54,24 @@ export default function LiveChatRoomOverlay({
     setIsEmojiOpen((prev) => !prev);
   };
 
-  // Lock background scroll when live chat is open, restoring exact scroll position on exit
+  // Lock body scroll while open
   useEffect(() => {
     if (!isOpen) return;
 
-    const scrollY = window.scrollY || document.documentElement.scrollTop;
-    const originalPosition = document.body.style.position;
-    const originalTop = document.body.style.top;
-    const originalLeft = document.body.style.left;
-    const originalRight = document.body.style.right;
-    const originalWidth = document.body.style.width;
-    const originalOverflow = document.body.style.overflow;
+    const html = document.documentElement;
+    const body = document.body;
+    const prevHtmlOverflow = html.style.overflow;
+    const prevBodyOverflow = body.style.overflow;
+    const prevBodyOverscroll = body.style.overscrollBehavior;
 
-    document.body.style.position = 'fixed';
-    document.body.style.top = `-${scrollY}px`;
-    document.body.style.left = '0';
-    document.body.style.right = '0';
-    document.body.style.width = '100%';
-    document.body.style.overflow = 'hidden';
+    html.style.overflow = 'hidden';
+    body.style.overflow = 'hidden';
+    body.style.overscrollBehavior = 'none';
 
     return () => {
-      document.body.style.position = originalPosition;
-      document.body.style.top = originalTop;
-      document.body.style.left = originalLeft;
-      document.body.style.right = originalRight;
-      document.body.style.width = originalWidth;
-      document.body.style.overflow = originalOverflow;
-      window.scrollTo(0, scrollY);
+      html.style.overflow = prevHtmlOverflow;
+      body.style.overflow = prevBodyOverflow;
+      body.style.overscrollBehavior = prevBodyOverscroll;
     };
   }, [isOpen]);
 
@@ -188,16 +137,10 @@ export default function LiveChatRoomOverlay({
           <TypingIndicator users={typingUsers} />
         </div>
 
-        {/* Composer & Drawers (Sticker & Apple Emoji) with Constant Space Separator */}
+        {/* Composer & Drawers (Sticker & Apple Emoji) */}
         <div
           className="shrink-0 flex flex-col bg-[#FFFFF0] dark:bg-[#202522]"
-          style={{
-            paddingBottom: (isStickerOpen || isEmojiOpen)
-              ? '0px'
-              : keyboardHeight > 0
-                ? `${keyboardHeight + 8}px`
-                : 'max(8px, env(safe-area-inset-bottom, 8px))',
-          }}
+          style={{ paddingBottom: (isStickerOpen || isEmojiOpen) ? '0px' : 'max(0px, env(safe-area-inset-bottom, 0px))' }}
         >
           <ChatComposer
             ref={composerRef}
