@@ -1,6 +1,7 @@
 import React, { useRef, useEffect } from 'react';
 import Avatar from '../Avatar';
 import type { ChatMessage } from '../../lib/chatRoomStore';
+import { getChatSticker } from './chatStickers';
 
 interface ChatMessageListProps {
   messages: ChatMessage[];
@@ -104,14 +105,27 @@ export default function ChatMessageList({
 
                 {/* Consecutive Comments (no bubble borders or backgrounds, flush with username) */}
                 <div className="space-y-1 w-full text-left">
-                  {group.map((msg) => (
-                    <p
-                      key={msg.id}
-                      className="text-xs text-slate-800 dark:text-[#E2E8F0] leading-snug break-words"
-                    >
-                      {msg.text}
-                    </p>
-                  ))}
+                  {group.map((msg) => {
+                    const sticker = getChatSticker(msg.text);
+                    if (sticker) {
+                      return (
+                        <div key={msg.id} className="py-1">
+                          <div className="w-16 h-16 sm:w-20 sm:h-20 transition-transform hover:scale-105 drop-shadow-xs select-none">
+                            {sticker.render(64)}
+                          </div>
+                        </div>
+                      );
+                    }
+
+                    return (
+                      <p
+                        key={msg.id}
+                        className="text-xs text-slate-800 dark:text-[#E2E8F0] leading-snug break-words"
+                      >
+                        {msg.text}
+                      </p>
+                    );
+                  })}
                 </div>
               </div>
             </div>

@@ -9,6 +9,9 @@ import {
 import GlyphAvatarGroup from '../src/components/chat/GlyphAvatarGroup';
 import TypingIndicator, { formatTypingNames } from '../src/components/chat/TypingIndicator';
 import ChatMessageList, { groupMessages } from '../src/components/chat/ChatMessageList';
+import ChatComposer from '../src/components/chat/ChatComposer';
+import StickerGallery from '../src/components/chat/StickerGallery';
+import { getChatSticker, CHAT_STICKERS } from '../src/components/chat/chatStickers';
 
 function assert(condition: boolean, message: string) {
   if (!condition) {
@@ -127,6 +130,23 @@ async function runTests() {
   assert(listHtml.includes('First message from Nostradamus'), 'ChatMessageList renders message 1');
   assert(listHtml.includes('Second consecutive message from Nostradamus'), 'ChatMessageList renders message 2');
   assert(listHtml.includes('You'), 'ChatMessageList renders "You" for current user');
+
+  // ChatComposer with inside send button and emoji/sticker icons
+  const composerHtml = renderToString(<ChatComposer onSend={() => {}} placeholder="Comment here..." />);
+  assert(composerHtml.includes('aria-label="Send message"'), 'ChatComposer renders send button inside input area');
+  assert(composerHtml.includes('aria-label="Insert emoji"'), 'ChatComposer renders emoji icon on the left');
+  assert(composerHtml.includes('aria-label="Send sticker"'), 'ChatComposer renders sticker icon on the left');
+
+  // StickerGallery
+  const stickerHtml = renderToString(<StickerGallery isOpen={true} onClose={() => {}} onSelectSticker={() => {}} />);
+  assert(stickerHtml.includes('GOAAAL!'), 'StickerGallery renders GOAAAL! sticker');
+  assert(stickerHtml.includes('Banker'), 'StickerGallery renders Banker sticker');
+  assert(CHAT_STICKERS.length >= 10, `Curated at least 10 football/banter stickers (actual: ${CHAT_STICKERS.length})`);
+
+  // Sticker message resolution
+  assert(getChatSticker('[sticker:goal]')?.name === 'GOAL!', 'getChatSticker resolves [sticker:goal]');
+  assert(getChatSticker('[sticker:banker]')?.name === 'Banker', 'getChatSticker resolves [sticker:banker]');
+  assert(getChatSticker('plain text') === undefined, 'getChatSticker rejects non-sticker text');
 
   console.log('\n--- 6. Testing Safeguard Against False Match Simulation ---');
   const { setUploadedFreeMatches, getFreeMatch, updateMatchAuthoritativeDetail } = await import('../src/lib/freeMatches');

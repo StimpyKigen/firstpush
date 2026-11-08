@@ -1,9 +1,10 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { X, Users } from 'lucide-react';
 import { useChatRoom } from '../../lib/useChatRoom';
 import ChatMessageList from './ChatMessageList';
 import TypingIndicator from './TypingIndicator';
 import ChatComposer from './ChatComposer';
+import StickerGallery from './StickerGallery';
 import { useBackToClose } from '../../lib/useBackToClose';
 import type { FreeMatch } from '../../lib/freeMatches';
 
@@ -19,6 +20,7 @@ export default function LiveChatRoomOverlay({
   match,
 }: LiveChatRoomOverlayProps) {
   useBackToClose(isOpen, onClose);
+  const [isStickerOpen, setIsStickerOpen] = useState(false);
 
   const roomId = `room-${match.id}`;
   const {
@@ -108,12 +110,26 @@ export default function LiveChatRoomOverlay({
           <TypingIndicator users={typingUsers} />
         </div>
 
-        {/* Composer */}
-        <div className="shrink-0" style={{ paddingBottom: 'max(0px, env(safe-area-inset-bottom, 0px))' }}>
+        {/* Composer & Sticker Drawer */}
+        <div
+          className="shrink-0 flex flex-col"
+          style={{ paddingBottom: isStickerOpen ? '0px' : 'max(0px, env(safe-area-inset-bottom, 0px))' }}
+        >
           <ChatComposer
             onSend={sendMessage}
             onTyping={notifyTyping}
             placeholder="Comment here..."
+            isStickerOpen={isStickerOpen}
+            onToggleSticker={() => setIsStickerOpen((prev) => !prev)}
+          />
+
+          {/* Sticker Gallery Drawer (Keyboard-size pop-up, does NOT focus input or show OS keyboard) */}
+          <StickerGallery
+            isOpen={isStickerOpen}
+            onClose={() => setIsStickerOpen(false)}
+            onSelectSticker={(stickerId) => {
+              sendMessage(`[sticker:${stickerId}]`);
+            }}
           />
         </div>
       </div>
