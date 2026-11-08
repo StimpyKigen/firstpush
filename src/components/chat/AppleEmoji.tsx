@@ -18,12 +18,12 @@ interface AppleEmojiProps {
   className?: string;
 }
 
-export function AppleEmoji({ emoji, size = 18, className = '' }: AppleEmojiProps) {
+export function AppleEmoji({ emoji, size = 15, className = '' }: AppleEmojiProps) {
   const unified = emojiToAppleUnified(emoji);
   const url = getAppleEmojiUrl(unified);
 
   return (
-    <span className={`inline-flex items-center justify-center align-[-0.15em] mx-[0.5px] select-none ${className}`}>
+    <span className={`inline-flex items-center justify-center align-[-1.5px] mx-[1px] select-none ${className}`}>
       <img
         src={url}
         alt={emoji}
@@ -44,31 +44,12 @@ export function AppleEmoji({ emoji, size = 18, className = '' }: AppleEmojiProps
   );
 }
 
-// Renders text with Apple-style emojis, auto-sizing jumbo if message is purely 1-4 emojis
+// Renders text with Apple-style emojis, sized to natural compact text size (never overshadows text)
 export function FormattedMessageText({ text }: { text: string }) {
-  const trimmed = text.trim();
   const segmenter =
     typeof Intl !== 'undefined' && Intl.Segmenter
       ? new Intl.Segmenter('en', { granularity: 'grapheme' })
       : null;
-  const graphemes = segmenter
-    ? Array.from(segmenter.segment(trimmed)).map((s) => s.segment)
-    : Array.from(trimmed);
-
-  const isAllEmojis =
-    graphemes.length > 0 &&
-    graphemes.length <= 4 &&
-    graphemes.every((g) => /\p{Extended_Pictographic}/u.test(g));
-
-  if (isAllEmojis) {
-    return (
-      <span className="flex items-center gap-1.5 py-1 select-none">
-        {graphemes.map((g, idx) => (
-          <AppleEmoji key={idx} emoji={g} size={34} />
-        ))}
-      </span>
-    );
-  }
 
   // Split on emoji clusters while preserving non-emoji text
   const emojiRegex = /(\p{Extended_Pictographic}+)/gu;
@@ -85,7 +66,7 @@ export function FormattedMessageText({ text }: { text: string }) {
           return (
             <React.Fragment key={i}>
               {subGraphemes.map((g, gi) => (
-                <AppleEmoji key={`${i}-${gi}`} emoji={g} size={16} />
+                <AppleEmoji key={`${i}-${gi}`} emoji={g} size={15} />
               ))}
             </React.Fragment>
           );

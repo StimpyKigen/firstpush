@@ -145,10 +145,10 @@ async function runTests() {
   assert(stickerHtml.includes('Banker'), 'StickerGallery renders Banker sticker');
   assert(CHAT_STICKERS.length >= 10, `Curated at least 10 football/banter stickers (actual: ${CHAT_STICKERS.length})`);
 
-  // EmojiDrawer
+  // EmojiDrawer (header removed so composer button collapses drawer)
   const emojiDrawerHtml = renderToString(<EmojiDrawer isOpen={true} onClose={() => {}} onSelectEmoji={() => {}} />);
-  assert(emojiDrawerHtml.includes('Apple Emojis'), 'EmojiDrawer renders Apple Emojis header');
-  assert(emojiDrawerHtml.includes('aria-label="Close emoji picker"'), 'EmojiDrawer renders close button');
+  assert(emojiDrawerHtml.includes('mshindi-emoji-drawer'), 'EmojiDrawer renders compact root container');
+  assert(!emojiDrawerHtml.includes('aria-label="Close emoji picker"'), 'EmojiDrawer omitted redundant header & close button');
 
   // AppleEmoji unified conversion & formatting
   assert(emojiToAppleUnified('⚽') === '26bd', 'emojiToAppleUnified correctly converts ⚽ to 26bd');
@@ -158,6 +158,7 @@ async function runTests() {
   const formattedHtml = renderToString(<FormattedMessageText text="Conviction 🔥⚽" />);
   assert(formattedHtml.includes('https://cdn.jsdelivr.net/npm/emoji-datasource-apple/img/apple/64/1f525.png'), 'FormattedMessageText renders Apple fire emoji');
   assert(formattedHtml.includes('https://cdn.jsdelivr.net/npm/emoji-datasource-apple/img/apple/64/26bd.png'), 'FormattedMessageText renders Apple soccer ball emoji');
+  assert(formattedHtml.includes('width:15px;height:15px'), 'FormattedMessageText renders natural compact 15px emoji size without overshadowing text');
 
   // Sticker message resolution
   assert(getChatSticker('[sticker:goal]')?.name === 'GOAL!', 'getChatSticker resolves [sticker:goal]');

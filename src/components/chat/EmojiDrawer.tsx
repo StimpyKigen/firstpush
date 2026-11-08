@@ -1,6 +1,5 @@
 import React, { Suspense, lazy, useEffect, useState } from 'react';
 import { EmojiStyle, SkinTonePickerLocation, Theme } from 'emoji-picker-react';
-import { X, Smile } from 'lucide-react';
 
 const LazyEmojiPicker = lazy(() => import('emoji-picker-react'));
 
@@ -12,7 +11,6 @@ interface EmojiDrawerProps {
 
 export default function EmojiDrawer({
   isOpen,
-  onClose,
   onSelectEmoji,
 }: EmojiDrawerProps) {
   const [isDark, setIsDark] = useState(false);
@@ -37,7 +35,7 @@ export default function EmojiDrawer({
   return (
     <div
       tabIndex={-1}
-      className="w-full h-[270px] sm:h-[300px] bg-[#FFFFF0] dark:bg-[#202522] border-t border-[#E6E6D2] dark:border-[#414A43] flex flex-col overflow-hidden select-none animate-in slide-in-from-bottom-2 duration-150"
+      className="mshindi-emoji-drawer w-full h-[270px] sm:h-[290px] bg-[#FFFFF0] dark:bg-[#202522] border-t border-[#E6E6D2] dark:border-[#414A43] flex flex-col overflow-hidden select-none animate-in slide-in-from-bottom-2 duration-150"
       style={
         {
           '--epr-bg-color': '#FFFFF0',
@@ -56,28 +54,45 @@ export default function EmojiDrawer({
           '--epr-dark-search-border-color': '#414A43',
           '--epr-search-border-color-active': '#006C54',
           '--epr-dark-search-border-color-active': '#00A878',
+          '--epr-search-input-height': '30px',
+          '--epr-search-input-padding': '0 10px',
+          '--epr-search-input-border-radius': '9999px',
+          '--epr-header-padding': '8px 10px 4px 10px',
+          '--epr-category-navigation-button-size': '18px',
+          '--epr-category-label-height': '22px',
+          '--epr-emoji-size': '22px',
+          '--epr-horizontal-padding': '10px',
           '--epr-picker-border-radius': '0px',
         } as React.CSSProperties
       }
     >
-      {/* Header with Title and Close Button */}
-      <div className="shrink-0 px-3 py-1.5 border-b border-[#E6E6D2] dark:border-[#414A43] flex items-center justify-between bg-[#F5F5E4]/60 dark:bg-[#2A312C]/60">
-        <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-700 dark:text-[#F4F5EF]">
-          <Smile size={15} className="text-[#006C54] dark:text-[#00A878]" />
-          <span>Apple Emojis</span>
-        </div>
+      <style>{`
+        .mshindi-emoji-drawer .epr-search-container input {
+          font-size: 12px !important;
+          height: 30px !important;
+          border-radius: 9999px !important;
+          line-height: normal !important;
+        }
+        .mshindi-emoji-drawer .epr-category-nav {
+          padding: 2px 6px !important;
+          gap: 4px !important;
+        }
+        .mshindi-emoji-drawer .epr-category-nav button {
+          width: 20px !important;
+          height: 20px !important;
+          padding: 2px !important;
+        }
+        .mshindi-emoji-drawer .epr-category-nav button svg {
+          width: 13px !important;
+          height: 13px !important;
+        }
+        .mshindi-emoji-drawer .epr-skin-tones {
+          transform: scale(0.85);
+          transform-origin: center right;
+        }
+      `}</style>
 
-        <button
-          type="button"
-          onClick={onClose}
-          aria-label="Close emoji picker"
-          className="w-7 h-7 rounded-full bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 text-slate-500 dark:text-slate-400 flex items-center justify-center transition-colors cursor-pointer shrink-0"
-        >
-          <X size={14} />
-        </button>
-      </div>
-
-      {/* Picker Container with Lazy Loading Suspense */}
+      {/* Picker Container with Lazy Loading Suspense (Header removed so clicking emoji icon collapses drawer) */}
       <div className="flex-1 min-h-0 w-full overflow-hidden">
         <Suspense
           fallback={
