@@ -57,10 +57,10 @@ export default function LiveChatRoomOverlay({
         const keyboardOpen = vv.height < window.innerHeight - 80;
         setIsKeyboardActive(keyboardOpen);
 
-        // Pin mobile chat panel directly to visual viewport, eliminating keyboard overlap
+        // Pin mobile chat panel directly to top of visible screen, eliminating keyboard overlap and double-lift jump
         setPanelStyle({
           height: `${vv.height}px`,
-          top: `${vv.offsetTop}px`,
+          top: 0,
           position: 'absolute',
           left: 0,
           right: 0,
@@ -107,7 +107,7 @@ export default function LiveChatRoomOverlay({
     setIsEmojiOpen((prev) => !prev);
   };
 
-  // Lock body scroll while open
+  // Lock body scroll while open and prevent background window shift
   useEffect(() => {
     if (!isOpen) return;
 
@@ -121,10 +121,23 @@ export default function LiveChatRoomOverlay({
     body.style.overflow = 'hidden';
     body.style.overscrollBehavior = 'none';
 
+    // Reset and pin window scroll to prevent OS focus-scroll jump
+    if (typeof window !== 'undefined') {
+      window.scrollTo(0, 0);
+    }
+
+    const preventScroll = () => {
+      if (typeof window !== 'undefined' && (window.scrollY !== 0 || window.scrollX !== 0)) {
+        window.scrollTo(0, 0);
+      }
+    };
+    window.addEventListener('scroll', preventScroll, { passive: true });
+
     return () => {
       html.style.overflow = prevHtmlOverflow;
       body.style.overflow = prevBodyOverflow;
       body.style.overscrollBehavior = prevBodyOverscroll;
+      window.removeEventListener('scroll', preventScroll);
     };
   }, [isOpen]);
 
@@ -192,10 +205,16 @@ export default function LiveChatRoomOverlay({
           <TypingIndicator users={typingUsers} />
         </div>
 
-        {/* Composer & Drawers (Sticker & Apple Emoji) */}
+        {/* Composer & Drawers (Sticker & Apple Emoji) with Constant Space Separator */}
         <div
-          className="shrink-0 flex flex-col"
-          style={{ paddingBottom: (isStickerOpen || isEmojiOpen || isKeyboardActive) ? '0px' : 'max(0px, env(safe-area-inset-bottom, 0px))' }}
+          className="shrink-0 flex flex-col bg-[#FFFFF0] dark:bg-[#202522]"
+          style={{
+            paddingBottom: (isStickerOpen || isEmojiOpen)
+              ? '0px'
+              : isKeyboardActive
+                ? '8px'
+                : 'max(8px, env(safe-area-inset-bottom, 8px))',
+          }}
         >
           <ChatComposer
             ref={composerRef}
