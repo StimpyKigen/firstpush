@@ -325,13 +325,10 @@ export function useChatRoom(roomId: string, isRoomOpen = true, matchStatus: stri
       const userName = currentUser ? currentUser.username : 'Guest Punter';
       const colorSeed = currentUser ? currentUser.username.length * 7 : 3;
 
-      const isSticker = cleanText.startsWith('[sticker:');
-      if (!isSticker) {
-        const { allowed, remainingSeconds } = useChatRoomStore.getState().canUserSendMessage(userId);
-        if (!allowed) {
-          setCooldownRemaining(remainingSeconds);
-          return false;
-        }
+      const { allowed, remainingSeconds } = useChatRoomStore.getState().canUserSendMessage(userId);
+      if (!allowed) {
+        setCooldownRemaining(remainingSeconds);
+        return false;
       }
 
       const userMsg: ChatMessage = {
@@ -348,17 +345,15 @@ export function useChatRoom(roomId: string, isRoomOpen = true, matchStatus: stri
       const added = addMessageToStore(roomId, userMsg);
       if (!added) return false;
 
-      if (!isSticker) {
-        setCooldownRemaining(30);
-        if (typeof window !== 'undefined' && typeof fetch === 'function') {
-          fetch('/api/sports/chat-cooldown', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ userId, isSticker: false }),
-          }).catch(() => {
-            // Non-blocking fire-and-forget fallback
-          });
-        }
+      setCooldownRemaining(30);
+      if (typeof window !== 'undefined' && typeof fetch === 'function') {
+        fetch('/api/sports/chat-cooldown', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userId }),
+        }).catch(() => {
+          // Non-blocking fire-and-forget fallback
+        });
       }
 
       // Simulate a realistic mock reply with multiple users typing in reaction

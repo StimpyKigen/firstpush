@@ -257,10 +257,6 @@ export default async function handler(req: any, res: any) {
       return res.status(400).json({ error: 'User ID is required.' });
     }
 
-    if (isSticker) {
-      return res.status(200).json({ allowed: true, remainingSeconds: 0 });
-    }
-
     const now = Date.now();
     const lastSent = serverChatCooldowns.get(String(userId)) || 0;
     const elapsed = (now - lastSent) / 1000;
@@ -269,7 +265,7 @@ export default async function handler(req: any, res: any) {
       return res.status(429).json({
         allowed: false,
         remainingSeconds,
-        error: `Cooldown active. Please wait ${remainingSeconds}s before sending another text message.`,
+        error: `Cooldown active. Please wait ${remainingSeconds}s before sending another message.`,
       });
     }
 

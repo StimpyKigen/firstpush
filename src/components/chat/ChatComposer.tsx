@@ -79,6 +79,12 @@ const ChatComposer = forwardRef<ChatComposerHandle, ChatComposerProps>(function 
     [disabled, isCooldown, text, onTyping]
   );
 
+  const handleBeforeInput = (e: React.FormEvent<HTMLInputElement>) => {
+    if (isCooldown) {
+      e.preventDefault();
+    }
+  };
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (isCooldown) return;
     const val = e.target.value;
@@ -194,6 +200,7 @@ const ChatComposer = forwardRef<ChatComposerHandle, ChatComposerProps>(function 
             type="text"
             value={text}
             onChange={handleInputChange}
+            onBeforeInput={handleBeforeInput}
             onKeyDown={handleKeyDown}
             onPaste={handlePaste}
             onDrop={handleDrop}
@@ -204,7 +211,7 @@ const ChatComposer = forwardRef<ChatComposerHandle, ChatComposerProps>(function 
             }}
             placeholder={placeholder}
             disabled={disabled}
-            readOnly={disabled || isCooldown}
+            readOnly={disabled}
             maxLength={300}
             className={`flex-1 h-7 bg-transparent border-0 py-0 text-xs text-slate-800 dark:text-[#F4F5EF] placeholder:text-slate-400 focus:outline-none min-w-0 pr-1.5 leading-normal select-text ${
               isCooldown

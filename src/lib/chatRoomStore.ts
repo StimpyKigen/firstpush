@@ -172,11 +172,10 @@ export const useChatRoomStore = create<ChatRoomState>()(
       },
 
       addMessage: (roomId: string, message: ChatMessage) => {
-        // Enforce cooldown if it is a text message from a user (not a mock participant, and not a sticker)
-        const isSticker = message.text.startsWith('[sticker:');
+        // Enforce cooldown if it is a message from a real user (text, sticker, or emoji)
         const isUserMessage = Boolean(message.userId && !message.userId.startsWith('mock-'));
 
-        if (!isSticker && isUserMessage) {
+        if (isUserMessage) {
           const { allowed } = get().canUserSendMessage(message.userId);
           if (!allowed) {
             return false;
@@ -196,8 +195,8 @@ export const useChatRoomStore = create<ChatRoomState>()(
           };
         });
 
-        // Set fresh 30-second cooldown after successful text message submission
-        if (!isSticker && isUserMessage) {
+        // Set fresh 30-second cooldown after successful message submission
+        if (isUserMessage) {
           get().setUserCooldownDeadline(message.userId, Date.now() + CHAT_COOLDOWN_SECONDS * 1000);
         }
 

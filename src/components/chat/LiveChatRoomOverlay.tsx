@@ -155,6 +155,8 @@ export default function LiveChatRoomOverlay({
             onClose={() => setIsStickerOpen(false)}
             onSelectSticker={(stickerId) => {
               sendMessage(`[sticker:${stickerId}]`);
+              setIsStickerOpen(false);
+              composerRef.current?.focus();
             }}
           />
 

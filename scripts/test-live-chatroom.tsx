@@ -243,7 +243,7 @@ async function runTests() {
   const secondSent = useChatRoomStore.getState().addMessage(cooldownTestRoom, duplicateTextMsg);
   assert(secondSent === false, 'Duplicate text message rejected by store during cooldown');
 
-  // 4. Sticker message during cooldown is exempted and allowed
+  // 4. Sticker message during cooldown is also restricted
   const stickerMsg: ChatMessage = {
     id: 'cool-msg-sticker',
     roomId: cooldownTestRoom,
@@ -253,21 +253,28 @@ async function runTests() {
     text: '[sticker:goal]',
     sentAt: Date.now(),
   };
-  const stickerSent = useChatRoomStore.getState().addMessage(cooldownTestRoom, stickerMsg);
-  assert(stickerSent === true, 'Sticker message allowed during active text cooldown');
+  const stickerSentDuringCooldown = useChatRoomStore.getState().addMessage(cooldownTestRoom, stickerMsg);
+  assert(stickerSentDuringCooldown === false, 'Sticker message rejected by store during active cooldown');
 
-  // 5. When deadline expires in the past, user is allowed again
+  // 5. When deadline expires in the past, user is allowed again (and sending a sticker triggers fresh cooldown)
   useChatRoomStore.getState().setUserCooldownDeadline(cooldownTestUser, Date.now() - 1000);
   const expiredCheck = useChatRoomStore.getState().canUserSendMessage(cooldownTestUser);
   assert(expiredCheck.allowed === true, 'User permitted to send once deadline has passed');
-  assert(expiredCheck.remainingSeconds === 0, '0 seconds remaining after deadline expired');
+
+  const stickerSentAfterExpiry = useChatRoomStore.getState().addMessage(cooldownTestRoom, stickerMsg);
+  assert(stickerSentAfterExpiry === true, 'Sticker sent successfully after cooldown expired');
+  const afterStickerCheck = useChatRoomStore.getState().canUserSendMessage(cooldownTestUser);
+  assert(afterStickerCheck.allowed === false, 'Sending a sticker initiates fresh 30-second cooldown');
+
+  // Reset for composer tests
+  useChatRoomStore.getState().setUserCooldownDeadline(cooldownTestUser, Date.now() - 1000);
 
   // 6. Composer rendering with active cooldown
   const cooldownComposerHtml = renderToString(
     <ChatComposer onSend={() => {}} placeholder="Comment here..." cooldownRemaining={27} />
   );
   assert(cooldownComposerHtml.includes('27s'), 'ChatComposer renders "27s" timer badge inside input area');
-  assert(cooldownComposerHtml.toLowerCase().includes('readonly'), 'ChatComposer sets readonly attribute on input during cooldown');
+  assert(!cooldownComposerHtml.toLowerCase().includes('readonly'), 'ChatComposer does NOT set readonly attribute during cooldown so mobile virtual keyboard persists');
   assert(cooldownComposerHtml.toLowerCase().includes('disabled'), 'ChatComposer disables send button during cooldown');
   assert(cooldownComposerHtml.includes('disabled="" aria-label="Insert emoji"'), 'Emoji button is disabled during cooldown');
   assert(cooldownComposerHtml.includes('disabled="" aria-label="Send sticker"'), 'Sticker button is disabled during cooldown');
@@ -277,7 +284,6 @@ async function runTests() {
     <ChatComposer onSend={() => {}} placeholder="Comment here..." cooldownRemaining={0} />
   );
   assert(!normalComposerHtml.includes('27s') && !normalComposerHtml.includes('0s'), 'ChatComposer does not render timer badge when no cooldown');
-  assert(!normalComposerHtml.toLowerCase().includes('readonly'), 'ChatComposer does not set readonly when no cooldown');
   assert(!normalComposerHtml.includes('disabled="" aria-label="Insert emoji"'), 'Emoji button is enabled when no cooldown');
   assert(!normalComposerHtml.includes('disabled="" aria-label="Send sticker"'), 'Sticker button is enabled when no cooldown');
 
