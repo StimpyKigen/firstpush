@@ -20,6 +20,9 @@ export const config = {
   maxDuration: 60,
 };
 
+// In-memory server-side rate limit and cooldown tracker (30 seconds per user)
+const serverChatCooldowns = new Map<string, number>();
+
 function resolveSportsSubpath(req: any): string {
   const endpointParam = req?.query?.endpoint;
   if (endpointParam) {
@@ -239,6 +242,39 @@ export default async function handler(req: any, res: any) {
     } catch {
       return res.status(500).json({ success: false, error: 'Failed to retrieve match odds.' });
     }
+  }
+
+  // 12. Chat Cooldown Enforcement (/api/sports/chat-cooldown)
+  if (subpath === 'chat-cooldown') {
+    if (req.method === 'OPTIONS') {
+      return res.status(204).end();
+    }
+    const body = typeof req.body === 'string' && req.body ? JSON.parse(req.body) : req.body || {};
+    const userId = body.userId || req.query?.userId;
+    const isSticker = Boolean(body.isSticker || req.query?.isSticker === 'true');
+
+    if (!userId) {
+      return res.status(400).json({ error: 'User ID is required.' });
+    }
+
+    if (isSticker) {
+      return res.status(200).json({ allowed: true, remainingSeconds: 0 });
+    }
+
+    const now = Date.now();
+    const lastSent = serverChatCooldowns.get(String(userId)) || 0;
+    const elapsed = (now - lastSent) / 1000;
+    if (elapsed < 30) {
+      const remainingSeconds = Math.ceil(30 - elapsed);
+      return res.status(429).json({
+        allowed: false,
+        remainingSeconds,
+        error: `Cooldown active. Please wait ${remainingSeconds}s before sending another text message.`,
+      });
+    }
+
+    serverChatCooldowns.set(String(userId), now);
+    return res.status(200).json({ allowed: true, remainingSeconds: 0 });
   }
 
   // 12. Manual/On-Demand Rolling or Live Sync (/api/sports/sync & /api/sports/sync-live)

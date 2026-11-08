@@ -94,12 +94,47 @@ const FINISHED_INITIAL = [
 
 export function useChatRoom(roomId: string, isRoomOpen = true, matchStatus: string = 'pre') {
   const currentUser = useCurrentUser();
+  const currentUserId = currentUser ? currentUser.phone || currentUser.username : 'guest-punter';
   const roomMessages = useChatRoomStore((s) => s.messagesByRoom[roomId] || []);
   const addMessageToStore = useChatRoomStore((s) => s.addMessage);
+
+  const [cooldownRemaining, setCooldownRemaining] = useState<number>(() => {
+    return useChatRoomStore.getState().canUserSendMessage(currentUserId).remainingSeconds;
+  });
 
   const [typingUsers, setTypingUsers] = useState<TypingUser[]>([]);
   const typingTimersRef = useRef<Map<string, NodeJS.Timeout>>(new Map());
   const backgroundTrafficIntervalRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Track wall-clock cooldown deadline reliably across visibility/focus/backgrounding
+  useEffect(() => {
+    const syncCooldown = () => {
+      const { remainingSeconds } = useChatRoomStore.getState().canUserSendMessage(currentUserId);
+      setCooldownRemaining(remainingSeconds);
+    };
+
+    syncCooldown();
+    const interval = setInterval(syncCooldown, 250);
+
+    const handleVisibilityChange = () => {
+      if (typeof document !== 'undefined' && document.visibilityState === 'visible') {
+        syncCooldown();
+      }
+    };
+
+    if (typeof window !== 'undefined') {
+      window.addEventListener('visibilitychange', handleVisibilityChange);
+      window.addEventListener('focus', syncCooldown);
+    }
+
+    return () => {
+      clearInterval(interval);
+      if (typeof window !== 'undefined') {
+        window.removeEventListener('visibilitychange', handleVisibilityChange);
+        window.removeEventListener('focus', syncCooldown);
+      }
+    };
+  }, [currentUserId]);
 
   // Stable mock participants for this room (18-28 active users)
   const mockParticipants = useMemo(() => getRoomMockParticipants(roomId), [roomId]);
@@ -284,11 +319,20 @@ export function useChatRoom(roomId: string, isRoomOpen = true, matchStatus: stri
   const sendMessage = useCallback(
     (text: string) => {
       const cleanText = text.trim();
-      if (!cleanText) return;
+      if (!cleanText) return false;
 
       const userId = currentUser ? currentUser.phone || currentUser.username : 'guest-punter';
       const userName = currentUser ? currentUser.username : 'Guest Punter';
       const colorSeed = currentUser ? currentUser.username.length * 7 : 3;
+
+      const isSticker = cleanText.startsWith('[sticker:');
+      if (!isSticker) {
+        const { allowed, remainingSeconds } = useChatRoomStore.getState().canUserSendMessage(userId);
+        if (!allowed) {
+          setCooldownRemaining(remainingSeconds);
+          return false;
+        }
+      }
 
       const userMsg: ChatMessage = {
         id: `msg-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
@@ -301,7 +345,21 @@ export function useChatRoom(roomId: string, isRoomOpen = true, matchStatus: stri
         sentAt: Date.now(),
       };
 
-      addMessageToStore(roomId, userMsg);
+      const added = addMessageToStore(roomId, userMsg);
+      if (!added) return false;
+
+      if (!isSticker) {
+        setCooldownRemaining(30);
+        if (typeof window !== 'undefined' && typeof fetch === 'function') {
+          fetch('/api/sports/chat-cooldown', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ userId, isSticker: false }),
+          }).catch(() => {
+            // Non-blocking fire-and-forget fallback
+          });
+        }
+      }
 
       // Simulate a realistic mock reply with multiple users typing in reaction
       if (mockParticipants.length > 0) {
@@ -343,6 +401,8 @@ export function useChatRoom(roomId: string, isRoomOpen = true, matchStatus: stri
           typingTimersRef.current.set(`reply-send-${Date.now()}`, sendDelay);
         }
       }
+
+      return true;
     },
     [
       currentUser,
@@ -360,6 +420,7 @@ export function useChatRoom(roomId: string, isRoomOpen = true, matchStatus: stri
     activeUsersCount,
     sendMessage,
     notifyTyping,
-    currentUserId: currentUser ? currentUser.phone || currentUser.username : 'guest-punter',
+    currentUserId,
+    cooldownRemaining,
   };
 }

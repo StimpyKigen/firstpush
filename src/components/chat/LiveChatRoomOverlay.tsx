@@ -30,6 +30,7 @@ export default function LiveChatRoomOverlay({
     sendMessage,
     notifyTyping,
     currentUserId,
+    cooldownRemaining,
   } = useChatRoom(roomId, isOpen, match.status || 'pre');
 
   // Lock body scroll while open
@@ -121,6 +122,7 @@ export default function LiveChatRoomOverlay({
             placeholder="Comment here..."
             isStickerOpen={isStickerOpen}
             onToggleSticker={() => setIsStickerOpen((prev) => !prev)}
+            cooldownRemaining={cooldownRemaining}
           />
 
           {/* Sticker Gallery Drawer (Keyboard-size pop-up, does NOT focus input or show OS keyboard) */}

@@ -186,6 +186,80 @@ async function runTests() {
   assert(guardedMatch?.homeScore === null, 'Safeguard kept homeScore null (no false score injected)');
   assert(guardedMatch?.awayScore === null, 'Safeguard kept awayScore null (no false score injected)');
 
+  console.log('\n--- 7. Testing 30-Second Message Cooldown Restriction ---');
+  const cooldownTestUser = 'punter-254712345678';
+  const cooldownTestRoom = 'room-cooldown-test';
+
+  // 1. Initial state: user is permitted to send
+  const initialCheck = useChatRoomStore.getState().canUserSendMessage(cooldownTestUser);
+  assert(initialCheck.allowed === true, 'Initial state: User is allowed to send');
+  assert(initialCheck.remainingSeconds === 0, 'Initial state: 0 cooldown seconds remaining');
+
+  // 2. Successful text message submission triggers 30s deadline
+  const textMsg: ChatMessage = {
+    id: 'cool-msg-1',
+    roomId: cooldownTestRoom,
+    userId: cooldownTestUser,
+    userName: 'CoolPunter',
+    colorSeed: 5,
+    text: 'My banker conviction for tonight!',
+    sentAt: Date.now(),
+  };
+
+  const firstSent = useChatRoomStore.getState().addMessage(cooldownTestRoom, textMsg);
+  assert(firstSent === true, 'First text message sent successfully');
+
+  const afterSendCheck = useChatRoomStore.getState().canUserSendMessage(cooldownTestUser);
+  assert(afterSendCheck.allowed === false, 'User is restricted immediately after sending text message');
+  assert(afterSendCheck.remainingSeconds >= 29 && afterSendCheck.remainingSeconds <= 30, `Cooldown remaining is ~30s (actual: ${afterSendCheck.remainingSeconds}s)`);
+
+  // 3. Attempting to send a second text message within 30s must be blocked by the store
+  const duplicateTextMsg: ChatMessage = {
+    id: 'cool-msg-2',
+    roomId: cooldownTestRoom,
+    userId: cooldownTestUser,
+    userName: 'CoolPunter',
+    colorSeed: 5,
+    text: 'Another rapid message that must be blocked!',
+    sentAt: Date.now(),
+  };
+  const secondSent = useChatRoomStore.getState().addMessage(cooldownTestRoom, duplicateTextMsg);
+  assert(secondSent === false, 'Duplicate text message rejected by store during cooldown');
+
+  // 4. Sticker message during cooldown is exempted and allowed
+  const stickerMsg: ChatMessage = {
+    id: 'cool-msg-sticker',
+    roomId: cooldownTestRoom,
+    userId: cooldownTestUser,
+    userName: 'CoolPunter',
+    colorSeed: 5,
+    text: '[sticker:goal]',
+    sentAt: Date.now(),
+  };
+  const stickerSent = useChatRoomStore.getState().addMessage(cooldownTestRoom, stickerMsg);
+  assert(stickerSent === true, 'Sticker message allowed during active text cooldown');
+
+  // 5. When deadline expires in the past, user is allowed again
+  useChatRoomStore.getState().setUserCooldownDeadline(cooldownTestUser, Date.now() - 1000);
+  const expiredCheck = useChatRoomStore.getState().canUserSendMessage(cooldownTestUser);
+  assert(expiredCheck.allowed === true, 'User permitted to send once deadline has passed');
+  assert(expiredCheck.remainingSeconds === 0, '0 seconds remaining after deadline expired');
+
+  // 6. Composer rendering with active cooldown
+  const cooldownComposerHtml = renderToString(
+    <ChatComposer onSend={() => {}} placeholder="Comment here..." cooldownRemaining={27} />
+  );
+  assert(cooldownComposerHtml.includes('27s'), 'ChatComposer renders "27s" timer badge inside input area');
+  assert(cooldownComposerHtml.toLowerCase().includes('readonly'), 'ChatComposer sets readonly attribute on input during cooldown');
+  assert(cooldownComposerHtml.toLowerCase().includes('disabled'), 'ChatComposer disables send button during cooldown');
+
+  // 7. Composer rendering without cooldown
+  const normalComposerHtml = renderToString(
+    <ChatComposer onSend={() => {}} placeholder="Comment here..." cooldownRemaining={0} />
+  );
+  assert(!normalComposerHtml.includes('27s') && !normalComposerHtml.includes('0s'), 'ChatComposer does not render timer badge when no cooldown');
+  assert(!normalComposerHtml.toLowerCase().includes('readonly'), 'ChatComposer does not set readonly when no cooldown');
+
   console.log('\n🎉 ALL LIVE CHAT ROOM & SAFEGUARD TESTS PASSED!\n');
 }
 

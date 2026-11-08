@@ -80,20 +80,29 @@ export function getRoomMockParticipants(roomId: string): ChatUser[] {
   return pool;
 }
 
+export const CHAT_COOLDOWN_SECONDS = 30;
+
 interface ChatRoomState {
   // Admin-assigned fixtures where live chat room is explicitly enabled
   enabledMatchIds: string[];
   // Messages stored per room
   messagesByRoom: Record<string, ChatMessage[]>;
+  // Cooldown deadline timestamp (epoch ms) per user
+  userCooldowns: Record<string, number>;
   
   // Actions
   isChatRoomEnabled: (matchId: string) => boolean;
   enableChatRoom: (matchId: string) => void;
   disableChatRoom: (matchId: string) => void;
   toggleChatRoom: (matchId: string) => boolean;
-  addMessage: (roomId: string, message: ChatMessage) => void;
+  addMessage: (roomId: string, message: ChatMessage) => boolean;
   getRoomMessages: (roomId: string) => ChatMessage[];
   clearRoomMessages: (roomId: string) => void;
+
+  // Cooldown actions
+  getUserCooldownDeadline: (userId: string) => number;
+  setUserCooldownDeadline: (userId: string, deadlineMs: number) => void;
+  canUserSendMessage: (userId: string) => { allowed: boolean; remainingSeconds: number };
 }
 
 export const useChatRoomStore = create<ChatRoomState>()(
@@ -101,6 +110,7 @@ export const useChatRoomStore = create<ChatRoomState>()(
     (set, get) => ({
       enabledMatchIds: [],
       messagesByRoom: {},
+      userCooldowns: {},
 
       isChatRoomEnabled: (matchId: string) => {
         if (!matchId) return false;
@@ -135,7 +145,44 @@ export const useChatRoomStore = create<ChatRoomState>()(
         }
       },
 
+      getUserCooldownDeadline: (userId: string) => {
+        if (!userId) return 0;
+        return get().userCooldowns[userId] || 0;
+      },
+
+      setUserCooldownDeadline: (userId: string, deadlineMs: number) => {
+        if (!userId) return;
+        set((state) => ({
+          userCooldowns: {
+            ...state.userCooldowns,
+            [userId]: deadlineMs,
+          },
+        }));
+      },
+
+      canUserSendMessage: (userId: string) => {
+        if (!userId) return { allowed: true, remainingSeconds: 0 };
+        const deadline = get().userCooldowns[userId] || 0;
+        const now = Date.now();
+        if (now >= deadline) {
+          return { allowed: true, remainingSeconds: 0 };
+        }
+        const remainingSeconds = Math.max(0, Math.ceil((deadline - now) / 1000));
+        return { allowed: remainingSeconds === 0, remainingSeconds };
+      },
+
       addMessage: (roomId: string, message: ChatMessage) => {
+        // Enforce cooldown if it is a text message from a user (not a mock participant, and not a sticker)
+        const isSticker = message.text.startsWith('[sticker:');
+        const isUserMessage = Boolean(message.userId && !message.userId.startsWith('mock-'));
+
+        if (!isSticker && isUserMessage) {
+          const { allowed } = get().canUserSendMessage(message.userId);
+          if (!allowed) {
+            return false;
+          }
+        }
+
         set((state) => {
           const roomMsgs = state.messagesByRoom[roomId] || [];
           if (roomMsgs.some((m) => m.id === message.id)) {
@@ -148,6 +195,13 @@ export const useChatRoomStore = create<ChatRoomState>()(
             },
           };
         });
+
+        // Set fresh 30-second cooldown after successful text message submission
+        if (!isSticker && isUserMessage) {
+          get().setUserCooldownDeadline(message.userId, Date.now() + CHAT_COOLDOWN_SECONDS * 1000);
+        }
+
+        return true;
       },
 
       getRoomMessages: (roomId: string) => {
@@ -167,6 +221,7 @@ export const useChatRoomStore = create<ChatRoomState>()(
       partialize: (state) => ({
         enabledMatchIds: state.enabledMatchIds,
         messagesByRoom: state.messagesByRoom,
+        userCooldowns: state.userCooldowns,
       }),
     }
   )

@@ -10,6 +10,7 @@ interface ChatComposerProps {
   disabled?: boolean;
   isStickerOpen?: boolean;
   onToggleSticker?: () => void;
+  cooldownRemaining?: number;
 }
 
 export default function ChatComposer({
@@ -19,13 +20,17 @@ export default function ChatComposer({
   disabled = false,
   isStickerOpen = false,
   onToggleSticker,
+  cooldownRemaining = 0,
 }: ChatComposerProps) {
   const [text, setText] = useState('');
   const [showEmojiBar, setShowEmojiBar] = useState(false);
   const lastTypingCallRef = useRef<number>(0);
   const inputRef = useRef<HTMLInputElement>(null);
 
+  const isCooldown = Boolean(cooldownRemaining && cooldownRemaining > 0);
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (isCooldown) return;
     const val = e.target.value;
     setText(val);
     const now = Date.now();
@@ -36,10 +41,35 @@ export default function ChatComposer({
     }
   };
 
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (isCooldown) {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+      }
+      return;
+    }
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSubmit(e);
+    }
+  };
+
+  const handlePaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
+    if (isCooldown) {
+      e.preventDefault();
+    }
+  };
+
+  const handleDrop = (e: React.DragEvent<HTMLInputElement>) => {
+    if (isCooldown) {
+      e.preventDefault();
+    }
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const trimmed = text.trim();
-    if (!trimmed || disabled) return;
+    if (!trimmed || disabled || isCooldown) return;
 
     onSend(trimmed);
     setText('');
@@ -120,32 +150,50 @@ export default function ChatComposer({
           </button>
         </div>
 
-        {/* Unified Input Pill containing Text Input and Inside Emerald Send Button */}
-        <div className="flex-1 relative flex items-center bg-white dark:bg-[#2A312C] border border-[#DCDCC8] dark:border-[#414A43] rounded-full pl-4 pr-1.5 py-1 focus-within:border-[#006C54] focus-within:ring-1 focus-within:ring-[#006C54] transition-all shadow-2xs min-h-[38px]">
+        {/* Unified Input Pill containing Text Input, Countdown Timer and Inside Emerald Send Button */}
+        <div className="flex-1 relative flex items-center bg-white dark:bg-[#2A312C] border border-[#DCDCC8] dark:border-[#414A43] rounded-full pl-4 pr-[9px] py-1 focus-within:border-[#006C54] focus-within:ring-1 focus-within:ring-[#006C54] transition-all shadow-2xs min-h-[38px]">
           <input
             ref={inputRef}
             type="text"
             value={text}
             onChange={handleInputChange}
+            onKeyDown={handleKeyDown}
+            onPaste={handlePaste}
+            onDrop={handleDrop}
             onFocus={() => {
               // Close sticker drawer when typing so keyboard takes over cleanly
               if (isStickerOpen) onToggleSticker?.();
             }}
             placeholder={placeholder}
             disabled={disabled}
+            readOnly={disabled || isCooldown}
             maxLength={300}
-            className="flex-1 h-7 bg-transparent border-0 py-0 text-xs text-slate-800 dark:text-[#F4F5EF] placeholder:text-slate-400 focus:outline-none min-w-0 pr-1.5 leading-normal select-text caret-[#006C54] dark:caret-[#00A878]"
+            className={`flex-1 h-7 bg-transparent border-0 py-0 text-xs text-slate-800 dark:text-[#F4F5EF] placeholder:text-slate-400 focus:outline-none min-w-0 pr-1.5 leading-normal select-text ${
+              isCooldown
+                ? 'cursor-not-allowed opacity-75 caret-transparent'
+                : 'caret-[#006C54] dark:caret-[#00A878]'
+            }`}
           />
+
+          {/* 30-Second Cooldown Countdown Badge immediately before the Send Button */}
+          {isCooldown && (
+            <span
+              aria-label={`${cooldownRemaining} seconds cooldown remaining`}
+              className="shrink-0 text-slate-400 dark:text-slate-500 font-mono text-[11px] tabular-nums font-medium pr-1.5 select-none animate-in fade-in duration-150"
+            >
+              {`${cooldownRemaining}s`}
+            </span>
+          )}
 
           {/* New Send Button inside input area: Solid Emerald Circle with Bold White Upward Arrow (from user's photo) */}
           <button
             type="submit"
-            disabled={disabled || !text.trim()}
+            disabled={disabled || isCooldown || !text.trim()}
             aria-label="Send message"
             onMouseDown={(e) => e.preventDefault()}
             onTouchStart={(e) => e.preventDefault()}
             className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 transition-all cursor-pointer select-none ${
-              text.trim()
+              text.trim() && !disabled && !isCooldown
                 ? 'bg-[#006C54] hover:bg-[#005441] dark:bg-[#00A878] dark:hover:bg-[#008f66] text-white active:scale-90 shadow-2xs'
                 : 'bg-black/10 dark:bg-white/10 text-slate-400 dark:text-slate-500 cursor-not-allowed opacity-40'
             }`}
