@@ -23,8 +23,7 @@ export default function LiveChatRoomOverlay({
   useBackToClose(isOpen, onClose);
   const [isStickerOpen, setIsStickerOpen] = useState(false);
   const [isEmojiOpen, setIsEmojiOpen] = useState(false);
-  const [panelStyle, setPanelStyle] = useState<React.CSSProperties>({});
-  const [isKeyboardActive, setIsKeyboardActive] = useState(false);
+  const [keyboardHeight, setKeyboardHeight] = useState(0);
   const composerRef = useRef<ChatComposerHandle>(null);
 
   const roomId = `room-${match.id}`;
@@ -38,54 +37,44 @@ export default function LiveChatRoomOverlay({
     cooldownRemaining,
   } = useChatRoom(roomId, isOpen, match.status || 'pre');
 
-  // Dynamically track visual viewport so the mobile overlay and composer ALWAYS stay above the virtual keyboard
+  // Dynamically track visual viewport keyboard height on mobile to lift composer without displacing layout
   useEffect(() => {
     if (!isOpen) return;
 
-    const updateViewport = () => {
+    const updateKeyboard = () => {
       if (typeof window === 'undefined') return;
 
-      // On desktop (>= 640px), let standard Tailwind classes manage centered card layout
+      // On desktop (>= 640px), let standard Tailwind modal layout handle positioning
       if (window.innerWidth >= 640) {
-        setPanelStyle({});
-        setIsKeyboardActive(false);
+        setKeyboardHeight(0);
         return;
       }
 
       const vv = window.visualViewport;
       if (vv) {
-        const keyboardOpen = vv.height < window.innerHeight - 80;
-        setIsKeyboardActive(keyboardOpen);
-
-        // Pin mobile chat panel directly to top of visible screen, eliminating keyboard overlap and double-lift jump
-        setPanelStyle({
-          height: `${vv.height}px`,
-          top: 0,
-          position: 'absolute',
-          left: 0,
-          right: 0,
-        });
+        const kh = Math.max(0, window.innerHeight - vv.height);
+        // Only treat as active keyboard if contraction exceeds 80px
+        setKeyboardHeight(kh > 80 ? kh : 0);
       } else {
-        setPanelStyle({});
-        setIsKeyboardActive(false);
+        setKeyboardHeight(0);
       }
     };
 
-    updateViewport();
+    updateKeyboard();
 
     const vv = typeof window !== 'undefined' ? window.visualViewport : null;
     if (vv) {
-      vv.addEventListener('resize', updateViewport);
-      vv.addEventListener('scroll', updateViewport);
+      vv.addEventListener('resize', updateKeyboard);
+      vv.addEventListener('scroll', updateKeyboard);
     }
-    window.addEventListener('resize', updateViewport);
+    window.addEventListener('resize', updateKeyboard);
 
     return () => {
       if (vv) {
-        vv.removeEventListener('resize', updateViewport);
-        vv.removeEventListener('scroll', updateViewport);
+        vv.removeEventListener('resize', updateKeyboard);
+        vv.removeEventListener('scroll', updateKeyboard);
       }
-      window.removeEventListener('resize', updateViewport);
+      window.removeEventListener('resize', updateKeyboard);
     };
   }, [isOpen]);
 
@@ -107,37 +96,33 @@ export default function LiveChatRoomOverlay({
     setIsEmojiOpen((prev) => !prev);
   };
 
-  // Lock body scroll while open and prevent background window shift
+  // Lock background scroll when live chat is open, restoring exact scroll position on exit
   useEffect(() => {
     if (!isOpen) return;
 
-    const html = document.documentElement;
-    const body = document.body;
-    const prevHtmlOverflow = html.style.overflow;
-    const prevBodyOverflow = body.style.overflow;
-    const prevBodyOverscroll = body.style.overscrollBehavior;
+    const scrollY = window.scrollY || document.documentElement.scrollTop;
+    const originalPosition = document.body.style.position;
+    const originalTop = document.body.style.top;
+    const originalLeft = document.body.style.left;
+    const originalRight = document.body.style.right;
+    const originalWidth = document.body.style.width;
+    const originalOverflow = document.body.style.overflow;
 
-    html.style.overflow = 'hidden';
-    body.style.overflow = 'hidden';
-    body.style.overscrollBehavior = 'none';
-
-    // Reset and pin window scroll to prevent OS focus-scroll jump
-    if (typeof window !== 'undefined') {
-      window.scrollTo(0, 0);
-    }
-
-    const preventScroll = () => {
-      if (typeof window !== 'undefined' && (window.scrollY !== 0 || window.scrollX !== 0)) {
-        window.scrollTo(0, 0);
-      }
-    };
-    window.addEventListener('scroll', preventScroll, { passive: true });
+    document.body.style.position = 'fixed';
+    document.body.style.top = `-${scrollY}px`;
+    document.body.style.left = '0';
+    document.body.style.right = '0';
+    document.body.style.width = '100%';
+    document.body.style.overflow = 'hidden';
 
     return () => {
-      html.style.overflow = prevHtmlOverflow;
-      body.style.overflow = prevBodyOverflow;
-      body.style.overscrollBehavior = prevBodyOverscroll;
-      window.removeEventListener('scroll', preventScroll);
+      document.body.style.position = originalPosition;
+      document.body.style.top = originalTop;
+      document.body.style.left = originalLeft;
+      document.body.style.right = originalRight;
+      document.body.style.width = originalWidth;
+      document.body.style.overflow = originalOverflow;
+      window.scrollTo(0, scrollY);
     };
   }, [isOpen]);
 
@@ -153,13 +138,11 @@ export default function LiveChatRoomOverlay({
       {/* Desktop: click backdrop to exit */}
       <div className="hidden sm:block absolute inset-0" onClick={onClose} />
 
-      {/* Panel (Mobile: Pinned to visualViewport, Desktop: 390px × 90dvh framed card matching SlipFeed) */}
+      {/* Panel (Mobile: Fullscreen, Desktop: 390px × 90dvh framed card matching SlipFeed) */}
       <div
-        style={panelStyle}
         className={[
-          'relative w-full overflow-hidden flex flex-col bg-[#FFFFF0] dark:bg-[#202522]',
-          'h-full sm:h-[90dvh]',
-          'sm:w-[390px] sm:max-h-[820px]',
+          'relative w-full h-full overflow-hidden flex flex-col bg-[#FFFFF0] dark:bg-[#202522]',
+          'sm:w-[390px] sm:h-[90dvh] sm:max-h-[820px]',
           'sm:rounded-[32px]',
           'sm:border sm:border-[#DCDCC8] dark:sm:border-[#414A43]',
           'sm:shadow-[0_24px_80px_-8px_rgba(0,0,0,0.5),0_0_0_1px_rgba(0,0,0,0.05)]',
@@ -211,8 +194,8 @@ export default function LiveChatRoomOverlay({
           style={{
             paddingBottom: (isStickerOpen || isEmojiOpen)
               ? '0px'
-              : isKeyboardActive
-                ? '8px'
+              : keyboardHeight > 0
+                ? `${keyboardHeight + 8}px`
                 : 'max(8px, env(safe-area-inset-bottom, 8px))',
           }}
         >

@@ -218,11 +218,6 @@ const ChatComposer = forwardRef<ChatComposerHandle, ChatComposerProps>(function 
               // Close sticker or emoji drawer when typing so keyboard takes over cleanly
               if (isStickerOpen) onToggleSticker?.();
               if (isEmojiOpen) onToggleEmoji?.();
-
-              // Suppress native mobile OS window auto-scroll so the chat bottom does not shoot up
-              if (typeof window !== 'undefined' && (window.scrollY !== 0 || window.scrollX !== 0)) {
-                window.scrollTo({ top: 0, left: 0, behavior: 'instant' as ScrollBehavior });
-              }
             }}
             placeholder={placeholder}
             disabled={disabled}
