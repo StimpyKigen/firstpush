@@ -252,6 +252,8 @@ async function runTests() {
   assert(cooldownComposerHtml.includes('27s'), 'ChatComposer renders "27s" timer badge inside input area');
   assert(cooldownComposerHtml.toLowerCase().includes('readonly'), 'ChatComposer sets readonly attribute on input during cooldown');
   assert(cooldownComposerHtml.toLowerCase().includes('disabled'), 'ChatComposer disables send button during cooldown');
+  assert(cooldownComposerHtml.includes('disabled="" aria-label="Insert emoji"'), 'Emoji button is disabled during cooldown');
+  assert(cooldownComposerHtml.includes('disabled="" aria-label="Send sticker"'), 'Sticker button is disabled during cooldown');
 
   // 7. Composer rendering without cooldown
   const normalComposerHtml = renderToString(
@@ -259,6 +261,8 @@ async function runTests() {
   );
   assert(!normalComposerHtml.includes('27s') && !normalComposerHtml.includes('0s'), 'ChatComposer does not render timer badge when no cooldown');
   assert(!normalComposerHtml.toLowerCase().includes('readonly'), 'ChatComposer does not set readonly when no cooldown');
+  assert(!normalComposerHtml.includes('disabled="" aria-label="Insert emoji"'), 'Emoji button is enabled when no cooldown');
+  assert(!normalComposerHtml.includes('disabled="" aria-label="Send sticker"'), 'Sticker button is enabled when no cooldown');
 
   console.log('\n🎉 ALL LIVE CHAT ROOM & SAFEGUARD TESTS PASSED!\n');
 }

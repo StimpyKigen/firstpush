@@ -33,6 +33,13 @@ export default function LiveChatRoomOverlay({
     cooldownRemaining,
   } = useChatRoom(roomId, isOpen, match.status || 'pre');
 
+  // Automatically close sticker drawer if cooldown starts
+  useEffect(() => {
+    if (cooldownRemaining > 0 && isStickerOpen) {
+      setIsStickerOpen(false);
+    }
+  }, [cooldownRemaining, isStickerOpen]);
+
   // Lock body scroll while open
   useEffect(() => {
     if (!isOpen) return;

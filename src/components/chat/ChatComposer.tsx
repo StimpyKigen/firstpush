@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { ArrowUp, Smile, Sticker } from 'lucide-react';
 
 const QUICK_EMOJIS = ['⚽', '🔥', '💰', '🔒', '👏', '🚀', '💯', '🤣', '👀', '🟥', '🧊', '🏆'];
@@ -77,18 +77,31 @@ export default function ChatComposer({
     inputRef.current?.focus({ preventScroll: true });
   };
 
+  // Auto-close emoji bar and sticker drawer when cooldown starts
+  useEffect(() => {
+    if (isCooldown) {
+      setShowEmojiBar(false);
+      if (isStickerOpen) {
+        onToggleSticker?.();
+      }
+    }
+  }, [isCooldown, isStickerOpen, onToggleSticker]);
+
   const handleEmojiClick = () => {
+    if (disabled || isCooldown) return;
     // Focus the input to trigger mobile device emoji keyboard, and toggle quick bar
     inputRef.current?.focus({ preventScroll: true });
     setShowEmojiBar((prev) => !prev);
   };
 
   const handleInsertEmoji = (emoji: string) => {
+    if (disabled || isCooldown) return;
     setText((prev) => prev + emoji);
     inputRef.current?.focus({ preventScroll: true });
   };
 
   const handleStickerClick = () => {
+    if (disabled || isCooldown) return;
     setShowEmojiBar(false);
     if (inputRef.current) {
       inputRef.current.blur();
@@ -99,7 +112,7 @@ export default function ChatComposer({
   return (
     <div className="flex flex-col w-full bg-[#FFFFF0] dark:bg-[#202522] border-t border-[#E6E6D2] dark:border-[#414A43]">
       {/* Quick Emoji Bar when Emoji icon is tapped */}
-      {showEmojiBar && (
+      {showEmojiBar && !isCooldown && (
         <div className="px-3 py-1.5 flex items-center gap-1.5 overflow-x-auto no-scrollbar border-b border-[#E6E6D2]/60 dark:border-[#414A43]/60 bg-[#F5F5E4]/50 dark:bg-[#2A312C]/50 animate-in fade-in duration-100">
           {QUICK_EMOJIS.map((emoji) => (
             <button
@@ -124,12 +137,15 @@ export default function ChatComposer({
           <button
             type="button"
             onClick={handleEmojiClick}
+            disabled={disabled || isCooldown}
             aria-label="Insert emoji"
-            title="Emoji"
-            className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors cursor-pointer ${
-              showEmojiBar
-                ? 'text-[#006C54] dark:text-[#00A878] bg-[#006C54]/10 dark:bg-[#00A878]/10'
-                : 'text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-[#F4F5EF] hover:bg-black/5 dark:hover:bg-white/5'
+            title={isCooldown ? `Cooldown active (${cooldownRemaining}s)` : 'Emoji'}
+            className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors ${
+              disabled || isCooldown
+                ? 'text-slate-300 dark:text-slate-600 opacity-40 cursor-not-allowed pointer-events-none'
+                : showEmojiBar
+                ? 'text-[#006C54] dark:text-[#00A878] bg-[#006C54]/10 dark:bg-[#00A878]/10 cursor-pointer'
+                : 'text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-[#F4F5EF] hover:bg-black/5 dark:hover:bg-white/5 cursor-pointer'
             }`}
           >
             <Smile size={19} />
@@ -138,12 +154,15 @@ export default function ChatComposer({
           <button
             type="button"
             onClick={handleStickerClick}
+            disabled={disabled || isCooldown}
             aria-label="Send sticker"
-            title="Stickers"
-            className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors cursor-pointer ${
-              isStickerOpen
-                ? 'text-[#006C54] dark:text-[#00A878] bg-[#006C54]/10 dark:bg-[#00A878]/10'
-                : 'text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-[#F4F5EF] hover:bg-black/5 dark:hover:bg-white/5'
+            title={isCooldown ? `Cooldown active (${cooldownRemaining}s)` : 'Stickers'}
+            className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors ${
+              disabled || isCooldown
+                ? 'text-slate-300 dark:text-slate-600 opacity-40 cursor-not-allowed pointer-events-none'
+                : isStickerOpen
+                ? 'text-[#006C54] dark:text-[#00A878] bg-[#006C54]/10 dark:bg-[#00A878]/10 cursor-pointer'
+                : 'text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-[#F4F5EF] hover:bg-black/5 dark:hover:bg-white/5 cursor-pointer'
             }`}
           >
             <Sticker size={19} />
