@@ -59,15 +59,17 @@ const ChatComposer = forwardRef<ChatComposerHandle, ChatComposerProps>(function 
       onTyping();
     }
 
-    // Advance selection cursor to immediately follow newly inserted emoji
-    requestAnimationFrame(() => {
-      const newPos = start + emoji.length;
-      try {
-        input.setSelectionRange(newPos, newPos);
-      } catch {
-        // Fallback for environments where setSelectionRange is unhandled
-      }
-    });
+    // Only advance selection range if user is actively in the input to avoid triggering OS keyboard on mobile
+    if (document.activeElement === input) {
+      requestAnimationFrame(() => {
+        const newPos = start + emoji.length;
+        try {
+          input.setSelectionRange(newPos, newPos);
+        } catch {
+          // Fallback for environments where setSelectionRange is unhandled
+        }
+      });
+    }
   };
 
   useImperativeHandle(
@@ -127,10 +129,18 @@ const ChatComposer = forwardRef<ChatComposerHandle, ChatComposerProps>(function 
     const trimmed = text.trim();
     if (!trimmed || disabled || isCooldown) return;
 
+    // Only keep virtual keyboard if user triggered/focused the input and is not sending from drawers
+    const shouldKeepKeyboard =
+      document.activeElement === inputRef.current && !isStickerOpen && !isEmojiOpen;
+
     onSend(trimmed);
     setText('');
-    // Keep input focused so mobile virtual keyboard does not collapse
-    inputRef.current?.focus({ preventScroll: true });
+
+    if (shouldKeepKeyboard) {
+      inputRef.current?.focus({ preventScroll: true });
+    } else {
+      inputRef.current?.blur();
+    }
   };
 
   const handleEmojiClick = () => {

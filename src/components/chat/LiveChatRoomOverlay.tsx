@@ -23,7 +23,7 @@ export default function LiveChatRoomOverlay({
   useBackToClose(isOpen, onClose);
   const [isStickerOpen, setIsStickerOpen] = useState(false);
   const [isEmojiOpen, setIsEmojiOpen] = useState(false);
-  const [viewportStyle, setViewportStyle] = useState<React.CSSProperties>({});
+  const [panelStyle, setPanelStyle] = useState<React.CSSProperties>({});
   const [isKeyboardActive, setIsKeyboardActive] = useState(false);
   const composerRef = useRef<ChatComposerHandle>(null);
 
@@ -47,7 +47,7 @@ export default function LiveChatRoomOverlay({
 
       // On desktop (>= 640px), let standard Tailwind classes manage centered card layout
       if (window.innerWidth >= 640) {
-        setViewportStyle({});
+        setPanelStyle({});
         setIsKeyboardActive(false);
         return;
       }
@@ -57,14 +57,16 @@ export default function LiveChatRoomOverlay({
         const keyboardOpen = vv.height < window.innerHeight - 80;
         setIsKeyboardActive(keyboardOpen);
 
-        // Pin overlay top and height directly to visual viewport, eliminating keyboard overlap
-        setViewportStyle({
+        // Pin mobile chat panel directly to visual viewport, eliminating keyboard overlap
+        setPanelStyle({
           height: `${vv.height}px`,
           top: `${vv.offsetTop}px`,
-          bottom: 'auto',
+          position: 'absolute',
+          left: 0,
+          right: 0,
         });
       } else {
-        setViewportStyle({});
+        setPanelStyle({});
         setIsKeyboardActive(false);
       }
     };
@@ -130,17 +132,21 @@ export default function LiveChatRoomOverlay({
 
   return (
     <div
-      style={viewportStyle}
-      className="fixed inset-0 z-50 bg-[#FFFFF0] dark:bg-[#202522] sm:bg-black/75 sm:backdrop-blur-sm sm:flex sm:items-center sm:justify-center animate-in fade-in duration-150"
+      className="fixed inset-0 z-50 overflow-hidden bg-[#FFFFF0] dark:bg-[#202522] sm:bg-black/75 sm:backdrop-blur-sm sm:flex sm:items-center sm:justify-center animate-in fade-in duration-150"
     >
+      {/* Mobile Canvas Bleed Underlay: ensures space between livechat and keyboard or during transitions is ALWAYS ivory (#FFFFF0) or charcoal (#202522) */}
+      <div className="sm:hidden absolute -inset-y-40 inset-x-0 bg-[#FFFFF0] dark:bg-[#202522] pointer-events-none" />
+
       {/* Desktop: click backdrop to exit */}
       <div className="hidden sm:block absolute inset-0" onClick={onClose} />
 
-      {/* Panel (Mobile: Fullscreen, Desktop: 390px × 90dvh framed card matching SlipFeed) */}
+      {/* Panel (Mobile: Pinned to visualViewport, Desktop: 390px × 90dvh framed card matching SlipFeed) */}
       <div
+        style={panelStyle}
         className={[
-          'relative w-full h-full overflow-hidden flex flex-col bg-[#FFFFF0] dark:bg-[#202522]',
-          'sm:w-[390px] sm:h-[90dvh] sm:max-h-[820px]',
+          'relative w-full overflow-hidden flex flex-col bg-[#FFFFF0] dark:bg-[#202522]',
+          'h-full sm:h-[90dvh]',
+          'sm:w-[390px] sm:max-h-[820px]',
           'sm:rounded-[32px]',
           'sm:border sm:border-[#DCDCC8] dark:sm:border-[#414A43]',
           'sm:shadow-[0_24px_80px_-8px_rgba(0,0,0,0.5),0_0_0_1px_rgba(0,0,0,0.05)]',
@@ -210,7 +216,6 @@ export default function LiveChatRoomOverlay({
             onSelectSticker={(stickerId) => {
               sendMessage(`[sticker:${stickerId}]`);
               setIsStickerOpen(false);
-              composerRef.current?.focus();
             }}
           />
 
