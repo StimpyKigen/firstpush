@@ -87,10 +87,10 @@ export default function ChatComposer({
 
       <form
         onSubmit={handleSubmit}
-        className="px-3 py-2.5 flex items-center gap-2 select-none"
+        className="px-3 py-2.5 flex items-center gap-2"
       >
         {/* Left Side: Emoji & Sticker Icons */}
-        <div className="flex items-center gap-1 shrink-0">
+        <div className="flex items-center gap-1 shrink-0 select-none">
           <button
             type="button"
             onClick={handleEmojiClick}
@@ -121,7 +121,7 @@ export default function ChatComposer({
         </div>
 
         {/* Unified Input Pill containing Text Input and Inside Emerald Send Button */}
-        <div className="flex-1 relative flex items-center bg-white dark:bg-[#2A312C] border border-[#DCDCC8] dark:border-[#414A43] rounded-full pl-3.5 pr-1.5 py-1 focus-within:border-[#006C54] focus-within:ring-1 focus-within:ring-[#006C54] transition-all shadow-2xs min-h-[38px]">
+        <div className="flex-1 relative flex items-center bg-white dark:bg-[#2A312C] border border-[#DCDCC8] dark:border-[#414A43] rounded-full pl-4 pr-1.5 py-1 focus-within:border-[#006C54] focus-within:ring-1 focus-within:ring-[#006C54] transition-all shadow-2xs min-h-[38px]">
           <input
             ref={inputRef}
             type="text"
@@ -134,7 +134,7 @@ export default function ChatComposer({
             placeholder={placeholder}
             disabled={disabled}
             maxLength={300}
-            className="flex-1 bg-transparent border-0 text-xs text-slate-800 dark:text-[#F4F5EF] placeholder:text-slate-400 focus:outline-none min-w-0 pr-1"
+            className="flex-1 h-7 bg-transparent border-0 py-0 text-xs text-slate-800 dark:text-[#F4F5EF] placeholder:text-slate-400 focus:outline-none min-w-0 pr-1.5 leading-normal select-text caret-[#006C54] dark:caret-[#00A878]"
           />
 
           {/* New Send Button inside input area: Solid Emerald Circle with Bold White Upward Arrow (from user's photo) */}
@@ -144,7 +144,7 @@ export default function ChatComposer({
             aria-label="Send message"
             onMouseDown={(e) => e.preventDefault()}
             onTouchStart={(e) => e.preventDefault()}
-            className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 transition-all cursor-pointer ${
+            className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 transition-all cursor-pointer select-none ${
               text.trim()
                 ? 'bg-[#006C54] hover:bg-[#005441] dark:bg-[#00A878] dark:hover:bg-[#008f66] text-white active:scale-90 shadow-2xs'
                 : 'bg-black/10 dark:bg-white/10 text-slate-400 dark:text-slate-500 cursor-not-allowed opacity-40'
