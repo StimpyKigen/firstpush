@@ -113,14 +113,20 @@ export default function LiveChatRoomOverlay({
     const body = document.body;
     const prevHtmlOverflow = html.style.overflow;
     const prevBodyOverflow = body.style.overflow;
+    const prevHtmlScrollBehavior = html.style.scrollBehavior;
+    const prevHtmlHeight = html.style.height;
+    const prevBodyHeight = body.style.height;
 
     html.style.overflow = 'hidden';
     body.style.overflow = 'hidden';
+    html.style.scrollBehavior = 'auto';
+    html.style.height = '100%';
+    body.style.height = '100%';
 
     // Prevent any browser attempt to scroll the window while chat is active
     const onWindowScroll = () => {
       if ((window.scrollY || document.documentElement.scrollTop) !== savedScrollY) {
-        window.scrollTo(0, savedScrollY);
+        window.scrollTo({ top: savedScrollY, behavior: 'instant' as ScrollBehavior });
       }
     };
     window.addEventListener('scroll', onWindowScroll, { passive: false });
@@ -128,8 +134,11 @@ export default function LiveChatRoomOverlay({
     return () => {
       html.style.overflow = prevHtmlOverflow;
       body.style.overflow = prevBodyOverflow;
+      html.style.scrollBehavior = prevHtmlScrollBehavior;
+      html.style.height = prevHtmlHeight;
+      body.style.height = prevBodyHeight;
       window.removeEventListener('scroll', onWindowScroll);
-      window.scrollTo(0, savedScrollY);
+      window.scrollTo({ top: savedScrollY, behavior: 'instant' as ScrollBehavior });
     };
   }, [isOpen]);
 

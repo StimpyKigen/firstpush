@@ -1,4 +1,4 @@
-import { useState, useSyncExternalStore } from 'react';
+import { useState, useRef, useSyncExternalStore } from 'react';
 import { useParams, Navigate } from 'react-router-dom';
 import { Users, Clock, CheckCircle2, RadioTower, Unlock } from 'lucide-react';
 import SeoHead from '../components/SeoHead';
@@ -35,6 +35,20 @@ export default function FreeMatchRoom() {
   // Tab indicator state: 'details' vs 'discussion' — preserved per history entry
   const [roomTab, setRoomTab] = useHistoryPageState<'details' | 'discussion'>(`freematch_roomTab_${id || 'default'}`, 'details');
   const [isChatOpen, setIsChatOpen] = useState(false);
+  const savedScrollRef = useRef(0);
+
+  const handleOpenChat = () => {
+    savedScrollRef.current = window.scrollY || document.documentElement.scrollTop || 0;
+    setIsChatOpen(true);
+    window.scrollTo({ top: 0, behavior: 'instant' as ScrollBehavior });
+  };
+
+  const handleCloseChat = () => {
+    setIsChatOpen(false);
+    requestAnimationFrame(() => {
+      window.scrollTo({ top: savedScrollRef.current, behavior: 'instant' as ScrollBehavior });
+    });
+  };
 
   const isChatRoomEnabled = useChatRoomStore((s) => (match ? s.isChatRoomEnabled(match.id) : false));
   const mockParticipants = match ? getRoomMockParticipants(`room-${match.id}`) : [];
@@ -113,7 +127,8 @@ export default function FreeMatchRoom() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8">
+    <>
+      <div className={`max-w-4xl mx-auto px-4 sm:px-6 py-8 ${isChatOpen ? 'hidden sm:block' : ''}`}>
       <SeoHead
         title={`${match.home} vs ${match.away} (${match.competition}) Predictions & Room`}
         description={`Live prediction discussion for ${match.home} vs ${match.away} in ${match.competition}. View crowd consensus split, punter picks & match analysis.`}
@@ -204,7 +219,7 @@ export default function FreeMatchRoom() {
 
               <button
                 type="button"
-                onClick={() => setIsChatOpen(true)}
+                onClick={handleOpenChat}
                 className="text-sm sm:text-base transition-colors flex items-center gap-2 cursor-pointer select-none font-semibold text-slate-500 hover:text-slate-800"
               >
                 <span>Chat Room</span>
@@ -345,15 +360,16 @@ export default function FreeMatchRoom() {
           </div>
         </div>
       )}
+      </div>
 
       {/* Live Chat Room Overlay */}
       {isChatRoomEnabled && (
         <LiveChatRoomOverlay
           isOpen={isChatOpen}
-          onClose={() => setIsChatOpen(false)}
+          onClose={handleCloseChat}
           match={match}
         />
       )}
-    </div>
+    </>
   );
 }
