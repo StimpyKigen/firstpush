@@ -9,6 +9,6 @@ As mandated by the user, **always use and adhere to these two systems from now h
 
 ---
 
-## 2. Microsoft Playwright MCP (`microsoft/playwright-mcp`) [STATUS: DISABLED]
-> **DISABLED PER USER MANDATE**: Do NOT use Playwright MCP or Playwright CLI for testing, UI validation, scraping, or browser automation under any circumstances until the user explicitly instructs to re-enable it. Rely exclusively on automated terminal checks (`npx tsc --noEmit`, `npm run build`), unit/integration testing, and code review.
+## 2. Microsoft Playwright MCP & CLI (`microsoft/playwright-mcp`, `playwright-cli`) [STATUS: PAUSED]
+> **PAUSED PER USER MANDATE**: Do NOT use Playwright MCP or Playwright CLI for testing, UI validation, scraping, or browser automation under any circumstances until the user explicitly instructs to activate it again. Rely exclusively on automated terminal checks (`npx tsc --noEmit`, `npm run build`), unit/integration testing, and code review.
 
