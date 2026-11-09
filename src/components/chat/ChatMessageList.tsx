@@ -40,17 +40,22 @@ export default function ChatMessageList({
   const scrollEndRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // Auto-scroll to bottom on new message
+  // Auto-scroll to bottom on new message within chat container only
   useEffect(() => {
-    if (scrollEndRef.current) {
-      scrollEndRef.current.scrollIntoView({ behavior: 'smooth', block: 'end' });
+    if (containerRef.current) {
+      containerRef.current.scrollTo({
+        top: containerRef.current.scrollHeight,
+        behavior: 'smooth',
+      });
     }
   }, [messages.length]);
 
-  // Keep latest messages visible when mobile virtual keyboard opens/resizes
+  // Keep latest messages visible when mobile virtual keyboard opens/resizes without touching window scroll
   useEffect(() => {
     const handleViewportResize = () => {
-      scrollEndRef.current?.scrollIntoView({ behavior: 'auto', block: 'end' });
+      if (containerRef.current) {
+        containerRef.current.scrollTop = containerRef.current.scrollHeight;
+      }
     };
 
     const vv = typeof window !== 'undefined' ? window.visualViewport : null;

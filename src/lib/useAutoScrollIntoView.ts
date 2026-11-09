@@ -10,6 +10,10 @@ export function useAutoScrollIntoView() {
   useEffect(() => {
     function isEditableInput(el: unknown): el is HTMLElement {
       if (!(el instanceof HTMLElement)) return false;
+      // Never auto-scroll inputs inside modal overlays, chatrooms, or fixed elements
+      if (el.closest('[data-no-autoscroll="true"], [data-chat-overlay="true"], .fixed')) {
+        return false;
+      }
       if (el.isContentEditable) return true;
       if (el instanceof HTMLTextAreaElement) return true;
       if (el instanceof HTMLInputElement) {

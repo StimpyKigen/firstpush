@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { X, Users } from 'lucide-react';
 import { useChatRoom } from '../../lib/useChatRoom';
 import ChatMessageList from './ChatMessageList';
@@ -21,9 +22,15 @@ export default function LiveChatRoomOverlay({
   match,
 }: LiveChatRoomOverlayProps) {
   useBackToClose(isOpen, onClose);
+  const [mounted, setMounted] = useState(false);
   const [isStickerOpen, setIsStickerOpen] = useState(false);
   const [isEmojiOpen, setIsEmojiOpen] = useState(false);
+  const [viewportHeight, setViewportHeight] = useState<number | null>(null);
   const composerRef = useRef<ChatComposerHandle>(null);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const roomId = `room-${match.id}`;
   const {
@@ -35,6 +42,38 @@ export default function LiveChatRoomOverlay({
     currentUserId,
     cooldownRemaining,
   } = useChatRoom(roomId, isOpen, match.status || 'pre');
+
+  // Track visualViewport on mobile so panel bottom stays flush above the keyboard with zero jump
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const updateHeight = () => {
+      if (typeof window === 'undefined') return;
+      if (window.innerWidth >= 640) {
+        setViewportHeight(null);
+        return;
+      }
+      const vv = window.visualViewport;
+      if (vv) {
+        setViewportHeight(vv.height);
+      }
+    };
+
+    updateHeight();
+
+    const vv = typeof window !== 'undefined' ? window.visualViewport : null;
+    if (vv) {
+      vv.addEventListener('resize', updateHeight);
+    }
+    window.addEventListener('resize', updateHeight);
+
+    return () => {
+      if (vv) {
+        vv.removeEventListener('resize', updateHeight);
+      }
+      window.removeEventListener('resize', updateHeight);
+    };
+  }, [isOpen]);
 
   // Automatically close sticker or emoji drawer if cooldown starts
   useEffect(() => {
@@ -77,18 +116,36 @@ export default function LiveChatRoomOverlay({
 
   if (!isOpen) return null;
 
-  return (
+  const isKeyboardOpen = Boolean(
+    viewportHeight &&
+    typeof window !== 'undefined' &&
+    viewportHeight < window.innerHeight - 80
+  );
+
+  const overlayElement = (
     <div
+      data-chat-overlay="true"
       className="fixed inset-0 z-50 overflow-hidden bg-[#FFFFF0] dark:bg-[#202522] sm:bg-black/75 sm:backdrop-blur-sm sm:flex sm:items-center sm:justify-center animate-in fade-in duration-150"
     >
-      {/* Mobile Canvas Bleed Underlay: ensures space between livechat and keyboard or during transitions is ALWAYS ivory (#FFFFF0) or charcoal (#202522) */}
-      <div className="sm:hidden absolute -inset-y-40 inset-x-0 bg-[#FFFFF0] dark:bg-[#202522] pointer-events-none" />
+      {/* 
+        Solid Full-Bleed Theme Canvas Underlay:
+        Spans 100vh beyond all screen edges so that behind the keyboard, during animation,
+        or in any edge transition, ONLY Ivory (#FFFFF0) or Charcoal (#202522) is visible.
+        The underlying match page is 100% occluded.
+      */}
+      <div
+        className="fixed -inset-[100vh] bg-[#FFFFF0] dark:bg-[#202522] pointer-events-none -z-10"
+        aria-hidden="true"
+      />
 
       {/* Desktop: click backdrop to exit */}
       <div className="hidden sm:block absolute inset-0" onClick={onClose} />
 
-      {/* Panel (Mobile: Fullscreen, Desktop: 390px × 90dvh framed card matching SlipFeed) */}
+      {/* Panel (Mobile: Height pinned to visualViewport, Desktop: 390px × 90dvh framed card matching SlipFeed) */}
       <div
+        style={{
+          height: viewportHeight ? `${viewportHeight}px` : undefined,
+        }}
         className={[
           'relative w-full h-full overflow-hidden flex flex-col bg-[#FFFFF0] dark:bg-[#202522]',
           'sm:w-[390px] sm:h-[90dvh] sm:max-h-[820px]',
@@ -140,7 +197,11 @@ export default function LiveChatRoomOverlay({
         {/* Composer & Drawers (Sticker & Apple Emoji) */}
         <div
           className="shrink-0 flex flex-col bg-[#FFFFF0] dark:bg-[#202522]"
-          style={{ paddingBottom: (isStickerOpen || isEmojiOpen) ? '0px' : 'max(0px, env(safe-area-inset-bottom, 0px))' }}
+          style={{
+            paddingBottom: (isStickerOpen || isEmojiOpen || isKeyboardOpen)
+              ? '0px'
+              : 'max(0px, env(safe-area-inset-bottom, 0px))',
+          }}
         >
           <ChatComposer
             ref={composerRef}
@@ -176,4 +237,10 @@ export default function LiveChatRoomOverlay({
       </div>
     </div>
   );
+
+  if (!mounted || typeof document === 'undefined') {
+    return null;
+  }
+
+  return createPortal(overlayElement, document.body);
 }

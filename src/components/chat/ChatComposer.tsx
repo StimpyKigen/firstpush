@@ -208,6 +208,7 @@ const ChatComposer = forwardRef<ChatComposerHandle, ChatComposerProps>(function 
           <input
             ref={inputRef}
             type="text"
+            data-no-autoscroll="true"
             value={text}
             onChange={handleInputChange}
             onBeforeInput={handleBeforeInput}
