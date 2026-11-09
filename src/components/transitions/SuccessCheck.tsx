@@ -106,7 +106,7 @@ export function SuccessCheck({
         }
       `}</style>
       <span
-        className={cn('t-success-check text-[#006C54] dark:text-emerald-400', className)}
+        className={cn('t-success-check text-current', className)}
         data-state={active ? 'in' : 'out'}
         aria-hidden="true"
         {...props}

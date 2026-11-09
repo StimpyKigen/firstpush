@@ -247,26 +247,36 @@ export function PullToRefresh() {
         opacity: pullDistance > 8 || state === 'refreshing' || state === 'success' ? 1 : 0,
       }}
     >
-      {/* Floating Island Capsule */}
-      <div className="w-10 h-10 rounded-full bg-white dark:bg-[#202522] border border-[#E6E6D2] dark:border-[#414A43] shadow-lg flex items-center justify-center transition-colors">
-        {state === 'refreshing' ? (
-          <Classic className="size-5.5 text-[#006C54] dark:text-emerald-400" />
-        ) : state === 'success' ? (
-          <SuccessCheck active={true} size={20} className="text-[#006C54] dark:text-emerald-400" />
-        ) : (
-          <Classic
-            className={cn(
-              'size-5.5 transition-colors duration-150',
-              state === 'ready'
-                ? 'text-[#006C54] dark:text-emerald-400'
-                : 'text-slate-400 dark:text-slate-500'
-            )}
-            style={{
-              transform: `rotate(${pullDistance * 3.5}deg)`,
-            }}
+      {state === 'success' ? (
+        /* Completed state: emerald green circular badge with shining white tick */
+        <div className="w-9 h-9 rounded-full bg-[#006C54] dark:bg-emerald-600 shadow-md shadow-emerald-950/25 flex items-center justify-center transition-all duration-200">
+          <SuccessCheck
+            active={true}
+            size={18}
+            strokeWidth={3.2}
+            className="text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.35)]"
           />
-        )}
-      </div>
+        </div>
+      ) : (
+        /* Pulling and refreshing states: clean floating emerald spinner without background */
+        <div className="flex items-center justify-center p-1">
+          {state === 'refreshing' ? (
+            <Classic className="size-7 text-[#006C54] dark:text-emerald-400 drop-shadow-sm" />
+          ) : (
+            <Classic
+              className={cn(
+                'size-7 transition-colors duration-150 drop-shadow-sm',
+                state === 'ready'
+                  ? 'text-[#006C54] dark:text-emerald-400'
+                  : 'text-[#006C54]/80 dark:text-emerald-400/80'
+              )}
+              style={{
+                transform: `rotate(${pullDistance * 3.5}deg)`,
+              }}
+            />
+          )}
+        </div>
+      )}
     </div>
   );
 }
