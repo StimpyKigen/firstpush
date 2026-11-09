@@ -449,6 +449,7 @@ export default defineConfig(() => {
     ],
     resolve: {
       alias: {
+        '@/components': path.resolve(__dirname, 'src/components'),
         '@': path.resolve(__dirname, '.'),
       },
       dedupe: ['react', 'react-dom', 'react-router-dom'],

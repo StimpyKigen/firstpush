@@ -3,45 +3,9 @@ import {
   X, Copy, Check, ArrowLeft, Loader2, Sparkles, CheckCircle2
 } from 'lucide-react';
 import CompetitionLogoStrip from './CompetitionLogoStrip';
+import { BadgeCheck } from '@/components/animate-ui/icons/badge-check';
 import { useSubscription } from '../../hooks/useSubscription';
 import { RECEIVER_MPESA_NUMBER, isValidMpesaCode, normalizeCode } from '../../lib/mpesa';
-
-// Well-sized, authentic white football icon matching the inspo photo
-// Tuned with reduced dimensions (~14-15px) so it accents rather than overshadows the bold points text
-function WhiteFootballIcon({ className = '' }: { className?: string }) {
-  return (
-    <svg
-      className={`shrink-0 text-white/90 drop-shadow-xs w-3.5 h-3.5 sm:w-[15px] sm:h-[15px] ${className}`}
-      viewBox="0 0 24 24"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-      aria-hidden="true"
-    >
-      {/* Outer Ball Body */}
-      <circle cx="12" cy="12" r="9.5" stroke="#FFFFFF" strokeWidth="1.35" fill="#FFFFFF" fillOpacity="0.2" />
-      {/* Center Dark Pentagon with Clean Seams */}
-      <polygon
-        points="12,8.4 15.3,10.7 14,14.6 10,14.6 8.7,10.7"
-        fill="#080B09"
-        stroke="#FFFFFF"
-        strokeWidth="1.2"
-        strokeLinejoin="round"
-      />
-      {/* Seam Radii to Edge */}
-      <line x1="12" y1="8.4" x2="12" y2="2.5" stroke="#FFFFFF" strokeWidth="1.2" strokeLinecap="round" />
-      <line x1="15.3" y1="10.7" x2="21.1" y2="8.8" stroke="#FFFFFF" strokeWidth="1.2" strokeLinecap="round" />
-      <line x1="14" y1="14.6" x2="17.6" y2="19.7" stroke="#FFFFFF" strokeWidth="1.2" strokeLinecap="round" />
-      <line x1="10" y1="14.6" x2="6.4" y2="19.7" stroke="#FFFFFF" strokeWidth="1.2" strokeLinecap="round" />
-      <line x1="8.7" y1="10.7" x2="2.9" y2="8.8" stroke="#FFFFFF" strokeWidth="1.2" strokeLinecap="round" />
-      {/* Edge Patches */}
-      <polygon points="9.8,2.7 14.2,2.7 12,5" fill="#080B09" stroke="#FFFFFF" strokeWidth="1" strokeLinejoin="round" />
-      <polygon points="21.2,7.5 21.2,11.5 18.2,9.6" fill="#080B09" stroke="#FFFFFF" strokeWidth="1" strokeLinejoin="round" />
-      <polygon points="19.2,18 15.4,20.8 15.6,17.4" fill="#080B09" stroke="#FFFFFF" strokeWidth="1" strokeLinejoin="round" />
-      <polygon points="4.8,18 8.6,20.8 8.4,17.4" fill="#080B09" stroke="#FFFFFF" strokeWidth="1" strokeLinejoin="round" />
-      <polygon points="2.8,7.5 2.8,11.5 5.8,9.6" fill="#080B09" stroke="#FFFFFF" strokeWidth="1" strokeLinejoin="round" />
-    </svg>
-  );
-}
 
 interface PremiumPaywallProps {
   onCloseOverride?: () => void;
@@ -213,12 +177,12 @@ export default function PremiumPaywall({ onCloseOverride }: PremiumPaywallProps)
                   </h1>
                 </div>
 
-                {/* 5 Feature Bullet Points with reduced white football icons that don't overshadow bold text */}
+                {/* 5 Feature Bullet Points with animated BadgeCheck icons that loop when card is active */}
                 <div className="space-y-3 sm:space-y-3.5 mb-6 sm:mb-7 px-1">
                   {/* Point 1 */}
                   <div className="flex items-start gap-2.5 sm:gap-3">
                     <div className="pt-0.5 shrink-0">
-                      <WhiteFootballIcon />
+                      <BadgeCheck animateOnHover />
                     </div>
                     <p className="text-white font-semibold sm:font-bold text-[13.5px] sm:text-[14.5px] leading-snug">
                       Enjoy an uninterrupted MshindiRoom experience.
@@ -228,7 +192,7 @@ export default function PremiumPaywall({ onCloseOverride }: PremiumPaywallProps)
                   {/* Point 2 */}
                   <div className="flex items-start gap-2.5 sm:gap-3">
                     <div className="pt-0.5 shrink-0">
-                      <WhiteFootballIcon />
+                      <BadgeCheck animateOnHover />
                     </div>
                     <p className="text-white font-semibold sm:font-bold text-[13.5px] sm:text-[14.5px] leading-snug">
                       Explore shared betting insights and a growing library of betslips.
@@ -238,7 +202,7 @@ export default function PremiumPaywall({ onCloseOverride }: PremiumPaywallProps)
                   {/* Point 3 */}
                   <div className="flex items-start gap-2.5 sm:gap-3">
                     <div className="pt-0.5 shrink-0">
-                      <WhiteFootballIcon />
+                      <BadgeCheck animateOnHover />
                     </div>
                     <p className="text-white font-semibold sm:font-bold text-[13.5px] sm:text-[14.5px] leading-snug">
                       Connect with fellow punters in live chat rooms.
@@ -248,7 +212,7 @@ export default function PremiumPaywall({ onCloseOverride }: PremiumPaywallProps)
                   {/* Point 4 */}
                   <div className="flex items-start gap-2.5 sm:gap-3">
                     <div className="pt-0.5 shrink-0">
-                      <WhiteFootballIcon />
+                      <BadgeCheck animateOnHover />
                     </div>
                     <p className="text-white font-semibold sm:font-bold text-[13.5px] sm:text-[14.5px] leading-snug">
                       Access a variety of powerful betting tools.
@@ -258,7 +222,7 @@ export default function PremiumPaywall({ onCloseOverride }: PremiumPaywallProps)
                   {/* Point 5 */}
                   <div className="flex items-start gap-2.5 sm:gap-3">
                     <div className="pt-0.5 shrink-0">
-                      <WhiteFootballIcon />
+                      <BadgeCheck animateOnHover />
                     </div>
                     <p className="text-white font-semibold sm:font-bold text-[13.5px] sm:text-[14.5px] leading-snug">
                       Get detailed match information, live scores and football updates.
@@ -266,17 +230,16 @@ export default function PremiumPaywall({ onCloseOverride }: PremiumPaywallProps)
                   </div>
                 </div>
 
-                {/* Subscription Buttons: Ksh 20/week & Ksh 75/month */}
+                {/* Subscription Buttons: Ksh 20/week & Ksh 75/month (Rounded Rectangle with Uniform Mshindi Gold) */}
                 <div className="grid grid-cols-2 gap-2.5 sm:gap-3 pt-1">
                   <button
                     type="button"
                     onClick={() => setSelectedPlan('weekly')}
                     className={[
-                      'w-full py-3 sm:py-3.5 px-3 rounded-full',
-                      'bg-gradient-to-r from-[#FFD200] via-[#FFC000] to-[#FFA800]',
-                      'hover:brightness-105 active:scale-95',
+                      'w-full py-3 sm:py-3.5 px-3 rounded-xl sm:rounded-2xl',
+                      'bg-[#FFD200] hover:bg-[#FFC000] active:scale-95',
                       'text-black font-extrabold text-[13.5px] sm:text-[15px]',
-                      'shadow-[0_4px_16px_rgba(255,193,7,0.35)] transition-all cursor-pointer text-center',
+                      'shadow-[0_4px_14px_rgba(255,210,0,0.35)] transition-all cursor-pointer text-center',
                     ].join(' ')}
                   >
                     Ksh 20/week
@@ -286,11 +249,10 @@ export default function PremiumPaywall({ onCloseOverride }: PremiumPaywallProps)
                     type="button"
                     onClick={() => setSelectedPlan('monthly')}
                     className={[
-                      'w-full py-3 sm:py-3.5 px-3 rounded-full',
-                      'bg-gradient-to-r from-[#FFD200] via-[#FFC000] to-[#FFA800]',
-                      'hover:brightness-105 active:scale-95',
+                      'w-full py-3 sm:py-3.5 px-3 rounded-xl sm:rounded-2xl',
+                      'bg-[#FFD200] hover:bg-[#FFC000] active:scale-95',
                       'text-black font-extrabold text-[13.5px] sm:text-[15px]',
-                      'shadow-[0_4px_16px_rgba(255,193,7,0.35)] transition-all cursor-pointer text-center',
+                      'shadow-[0_4px_14px_rgba(255,210,0,0.35)] transition-all cursor-pointer text-center',
                     ].join(' ')}
                   >
                     Ksh 75/month
@@ -363,10 +325,10 @@ export default function PremiumPaywall({ onCloseOverride }: PremiumPaywallProps)
                   type="submit"
                   disabled={isProcessingPayment || !mpesaCode.trim()}
                   className={[
-                    'w-full py-3.5 rounded-full font-extrabold text-sm',
-                    'bg-gradient-to-r from-[#FFD200] via-[#FFC000] to-[#FFA800] text-black',
+                    'w-full py-3.5 rounded-xl sm:rounded-2xl font-extrabold text-sm',
+                    'bg-[#FFD200] hover:bg-[#FFC000] text-black',
                     'hover:brightness-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed',
-                    'shadow-[0_4px_16px_rgba(255,193,7,0.35)] transition-all cursor-pointer flex items-center justify-center gap-2',
+                    'shadow-[0_4px_14px_rgba(255,210,0,0.35)] transition-all cursor-pointer flex items-center justify-center gap-2',
                   ].join(' ')}
                 >
                   {isProcessingPayment ? (
