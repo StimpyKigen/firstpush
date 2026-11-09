@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { UserCircle2, X } from 'lucide-react';
+import { UserCircle2 } from 'lucide-react';
 import { BadgeCheck } from './animate-ui/icons/badge-check';
 import { useAuthWallStore } from '../lib/authWallStore';
 import { useBackToClose } from '../lib/useBackToClose';
@@ -48,16 +48,6 @@ export default function AuthWallModal() {
             `,
           }}
         >
-          {/* Top Right Close Button */}
-          <button
-            type="button"
-            onClick={closeAuthWall}
-            className="absolute top-4 right-4 text-white/60 hover:text-white p-1.5 rounded-full hover:bg-white/10 transition-colors cursor-pointer"
-            aria-label="Close"
-          >
-            <X size={18} strokeWidth={2.2} />
-          </button>
-
           <div className="relative flex flex-col items-center text-center pt-1">
             <h3 id="auth-wall-title" className="text-xl sm:text-2xl font-extrabold text-white tracking-tight leading-snug">
               {title}
@@ -93,11 +83,11 @@ export default function AuthWallModal() {
               <span>Sign Up / Sign In</span>
             </Link>
 
-            {/* Secondary Exit Button: Faded Ivory White */}
+            {/* Secondary Exit Button: Faded Ivory White with slightly reduced font weight */}
             <button
               type="button"
               onClick={closeAuthWall}
-              className="mt-3.5 text-[#FAF8F2]/75 hover:text-[#FFFFF0] font-bold text-sm sm:text-[14.5px] tracking-wide transition-colors cursor-pointer active:scale-95 px-4 py-1.5 select-none"
+              className="mt-3.5 text-[#FAF8F2]/75 hover:text-[#FFFFF0] font-medium text-sm sm:text-[14.5px] tracking-wide transition-colors cursor-pointer active:scale-95 px-4 py-1.5 select-none"
             >
               Continue Browsing
             </button>
