@@ -84,7 +84,7 @@ export default function DesktopNav({
                 <Link
                   to="/profile"
                   onClick={() => setProfileOpen(false)}
-                  className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-semibold text-slate-700 dark:text-[#F4F5EF] hover:text-slate-900 dark:hover:text-white hover:bg-[#F5F5E4] dark:hover:bg-[#2F3732] transition-colors"
+                  className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-semibold text-slate-700 dark:text-[#F4F5EF] hover:text-slate-900 dark:hover:text-white hover:bg-[#F5F5E4] dark:hover:bg-transparent transition-colors"
                 >
                   <UserCog size={15} /> My Profile
                 </Link>

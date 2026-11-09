@@ -110,7 +110,7 @@ export default function SubscriptionSection() {
                 type="button"
                 onClick={() => startTrial()}
                 disabled={isLoading}
-                className="px-3 py-1.5 rounded-lg bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-slate-200 hover:bg-slate-300 dark:hover:bg-slate-600 font-bold text-xs transition-colors cursor-pointer"
+                className="px-3 py-1.5 rounded-xl bg-[#EEAA04] hover:bg-[#d99903] dark:bg-[#FFC72C] dark:hover:bg-[#e6b325] text-slate-950 font-bold text-xs shadow-2xs transition-colors cursor-pointer"
               >
                 Start 3-Day Trial
               </button>
@@ -119,7 +119,7 @@ export default function SubscriptionSection() {
             <button
               type="button"
               onClick={() => openPaywall('profile_section')}
-              className="px-3.5 py-1.5 rounded-lg bg-[#006C54] hover:bg-[#005441] text-white font-bold text-xs shadow-2xs transition-colors cursor-pointer"
+              className="px-3.5 py-1.5 rounded-xl bg-[#006C54] hover:bg-[#005441] text-white font-bold text-xs shadow-2xs transition-colors cursor-pointer"
             >
               {hasPremiumAccess ? 'Renew / Extend' : 'Upgrade to Premium'}
             </button>

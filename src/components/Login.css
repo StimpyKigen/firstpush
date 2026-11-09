@@ -340,7 +340,7 @@ html:has(.login-page-container) {
   letter-spacing: 0.5px;
   text-transform: uppercase;
   padding: 10px 34px;
-  border-radius: 9999px;
+  border-radius: 12px;
   cursor: pointer;
   transition: all 0.25s ease;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
