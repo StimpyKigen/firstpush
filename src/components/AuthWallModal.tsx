@@ -73,11 +73,11 @@ export default function AuthWallModal() {
               </div>
             </div>
 
-            {/* Primary Action Button: Rectangular with rounded corners in Gold with Black Text */}
+            {/* Primary Action Button: Rectangular with rounded corners (No Right Arrow) */}
             <Link
               to="/auth"
               onClick={closeAuthWall}
-              className="w-full py-3 sm:py-3.5 px-4 rounded-lg sm:rounded-[10px] bg-[#FFD200] hover:bg-[#FFC000] active:scale-95 text-black font-extrabold text-sm sm:text-[15px] shadow-[0_4px_14px_rgba(255,210,0,0.35)] transition-all flex items-center justify-center gap-2 cursor-pointer"
+              className="w-full py-3 sm:py-3.5 px-4 rounded-lg sm:rounded-[10px] bg-[#006C54] hover:bg-[#005441] active:scale-95 text-white font-extrabold text-sm sm:text-[15px] shadow-[0_4px_14px_rgba(0,108,84,0.35)] transition-all flex items-center justify-center gap-2 cursor-pointer"
             >
               <UserCircle2 size={18} />
               <span>Sign Up / Sign In</span>
