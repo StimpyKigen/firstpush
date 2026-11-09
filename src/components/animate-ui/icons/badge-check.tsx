@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { motion, type Variants } from 'motion/react';
+import { motion } from 'motion/react';
 
 export interface BadgeCheckProps extends React.SVGProps<SVGSVGElement> {
   size?: number | string;
@@ -7,48 +7,6 @@ export interface BadgeCheckProps extends React.SVGProps<SVGSVGElement> {
   animateOnHover?: boolean;
   loop?: boolean;
 }
-
-const badgeVariants: Variants = {
-  initial: { scale: 1 },
-  animate: {
-    scale: [1, 0.93, 1],
-    transition: {
-      duration: 1.6,
-      ease: 'easeInOut',
-      repeat: Infinity,
-      repeatDelay: 2.2,
-    },
-  },
-  hover: {
-    scale: [1, 0.88, 1.05, 1],
-    transition: {
-      duration: 0.5,
-      ease: 'easeOut',
-    },
-  },
-};
-
-const checkVariants: Variants = {
-  initial: { pathLength: 1, opacity: 1 },
-  animate: {
-    pathLength: [1, 0, 1],
-    opacity: [1, 0.35, 1],
-    transition: {
-      duration: 1.6,
-      ease: 'easeInOut',
-      repeat: Infinity,
-      repeatDelay: 2.2,
-    },
-  },
-  hover: {
-    pathLength: [0, 1],
-    opacity: [0, 1],
-    transition: {
-      duration: 0.45,
-      ease: 'easeOut',
-    },
-  },
-};
 
 export const BadgeCheck = React.forwardRef<SVGSVGElement, BadgeCheckProps>(
   (
@@ -61,8 +19,6 @@ export const BadgeCheck = React.forwardRef<SVGSVGElement, BadgeCheckProps>(
     },
     ref
   ) => {
-    const [isHovered, setIsHovered] = React.useState(false);
-
     return (
       <motion.svg
         ref={ref}
@@ -75,26 +31,53 @@ export const BadgeCheck = React.forwardRef<SVGSVGElement, BadgeCheckProps>(
         strokeWidth={2}
         strokeLinecap="round"
         strokeLinejoin="round"
-        className={className}
-        onMouseEnter={() => {
-          if (animateOnHover) setIsHovered(true);
-        }}
-        onMouseLeave={() => {
-          if (animateOnHover) setIsHovered(false);
-        }}
+        whileHover={
+          animateOnHover
+            ? {
+                scale: 1.15,
+                filter: 'drop-shadow(0 0 6px rgba(52,211,153,0.65))',
+              }
+            : undefined
+        }
+        whileTap={animateOnHover ? { scale: 0.92 } : undefined}
+        transition={{ type: 'spring', stiffness: 400, damping: 25 }}
+        className={`select-none ${className}`}
         {...(props as any)}
       >
-        <motion.path
+        <style>{`
+          @keyframes badgeCheckPulseUniform {
+            0%, 100% { transform: scale(1); }
+            45% { transform: scale(0.92); }
+            60% { transform: scale(1.04); }
+            75% { transform: scale(1); }
+          }
+          @keyframes badgeCheckDrawUniform {
+            0%, 35%, 100% { stroke-dashoffset: 0; opacity: 1; }
+            50% { stroke-dashoffset: 14; opacity: 0.3; }
+            70% { stroke-dashoffset: 0; opacity: 1; }
+          }
+        `}</style>
+        <path
           d="M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76Z"
-          variants={badgeVariants}
-          initial="initial"
-          animate={isHovered ? 'hover' : loop ? 'animate' : 'initial'}
+          style={
+            loop
+              ? {
+                  transformOrigin: 'center',
+                  animation: 'badgeCheckPulseUniform 3.2s ease-in-out infinite',
+                }
+              : undefined
+          }
         />
-        <motion.path
+        <path
           d="m9 12 2 2 4-4"
-          variants={checkVariants}
-          initial="initial"
-          animate={isHovered ? 'hover' : loop ? 'animate' : 'initial'}
+          strokeDasharray="14"
+          style={
+            loop
+              ? {
+                  animation: 'badgeCheckDrawUniform 3.2s ease-in-out infinite',
+                }
+              : undefined
+          }
         />
       </motion.svg>
     );
@@ -106,4 +89,3 @@ BadgeCheck.displayName = 'BadgeCheck';
 export const BadgeCheckIcon = BadgeCheck;
 export type BadgeCheckIconProps = BadgeCheckProps;
 export default BadgeCheck;
-

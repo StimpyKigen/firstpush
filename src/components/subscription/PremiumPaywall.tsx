@@ -230,13 +230,13 @@ export default function PremiumPaywall({ onCloseOverride }: PremiumPaywallProps)
                   </div>
                 </div>
 
-                {/* Subscription Buttons: Ksh 20/week & Ksh 75/month (Rounded Rectangle with Uniform Mshindi Gold) */}
+                {/* Subscription Buttons: Ksh 20/week & Ksh 75/month (Rectangular with Aesthetic Rounded Corners & Uniform Gold) */}
                 <div className="grid grid-cols-2 gap-2.5 sm:gap-3 pt-1">
                   <button
                     type="button"
                     onClick={() => setSelectedPlan('weekly')}
                     className={[
-                      'w-full py-3 sm:py-3.5 px-3 rounded-xl sm:rounded-2xl',
+                      'w-full py-3 sm:py-3.5 px-3 rounded-lg sm:rounded-[10px]',
                       'bg-[#FFD200] hover:bg-[#FFC000] active:scale-95',
                       'text-black font-extrabold text-[13.5px] sm:text-[15px]',
                       'shadow-[0_4px_14px_rgba(255,210,0,0.35)] transition-all cursor-pointer text-center',
@@ -249,7 +249,7 @@ export default function PremiumPaywall({ onCloseOverride }: PremiumPaywallProps)
                     type="button"
                     onClick={() => setSelectedPlan('monthly')}
                     className={[
-                      'w-full py-3 sm:py-3.5 px-3 rounded-xl sm:rounded-2xl',
+                      'w-full py-3 sm:py-3.5 px-3 rounded-lg sm:rounded-[10px]',
                       'bg-[#FFD200] hover:bg-[#FFC000] active:scale-95',
                       'text-black font-extrabold text-[13.5px] sm:text-[15px]',
                       'shadow-[0_4px_14px_rgba(255,210,0,0.35)] transition-all cursor-pointer text-center',
@@ -325,7 +325,7 @@ export default function PremiumPaywall({ onCloseOverride }: PremiumPaywallProps)
                   type="submit"
                   disabled={isProcessingPayment || !mpesaCode.trim()}
                   className={[
-                    'w-full py-3.5 rounded-xl sm:rounded-2xl font-extrabold text-sm',
+                    'w-full py-3.5 rounded-lg sm:rounded-[10px] font-extrabold text-sm',
                     'bg-[#FFD200] hover:bg-[#FFC000] text-black',
                     'hover:brightness-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed',
                     'shadow-[0_4px_14px_rgba(255,210,0,0.35)] transition-all cursor-pointer flex items-center justify-center gap-2',
@@ -354,7 +354,7 @@ export default function PremiumPaywall({ onCloseOverride }: PremiumPaywallProps)
             type="button"
             onClick={handleStartTrial}
             disabled={isLoading || isProcessingPayment}
-            className="text-slate-400 hover:text-white font-bold text-sm sm:text-[15px] tracking-wide transition-colors cursor-pointer active:scale-95 px-4 py-1.5 select-none disabled:opacity-50"
+            className="text-[#FAF8F2]/75 hover:text-[#FFFFF0] font-bold text-sm sm:text-[15px] tracking-wide transition-colors cursor-pointer active:scale-95 px-4 py-1.5 select-none disabled:opacity-50"
           >
             {isLoading ? (
               <span className="inline-flex items-center gap-2">
