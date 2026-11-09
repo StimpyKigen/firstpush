@@ -229,54 +229,60 @@ export function PullToRefresh() {
           ? 'Content refreshed'
           : 'Pull to refresh'
       }
-      className={cn(
-        'fixed left-1/2 -translate-x-1/2 z-[9999] pointer-events-none transition-transform ease-out',
-        state === 'idle' || state === 'refreshing' || state === 'success'
-          ? 'duration-300'
-          : 'duration-75'
-      )}
+      className="fixed top-0 inset-x-0 z-[9999] pointer-events-none flex justify-center items-start"
       style={{
-        top: `max(14px, env(safe-area-inset-top, 14px))`,
-        transform: `translate(-50%, ${pullDistance > 0 ? pullDistance - 42 : -65}px) scale(${
-          state === 'ready'
-            ? 1.08
-            : state === 'refreshing' || state === 'success'
-            ? 1
-            : Math.max(0.7, Math.min(1, pullDistance / PULL_THRESHOLD))
-        })`,
-        opacity: pullDistance > 8 || state === 'refreshing' || state === 'success' ? 1 : 0,
+        paddingTop: `max(14px, env(safe-area-inset-top, 14px))`,
       }}
     >
-      {state === 'success' ? (
-        /* Completed state: emerald green circular badge with shining white tick */
-        <div className="w-9 h-9 rounded-full bg-[#006C54] dark:bg-emerald-600 shadow-md shadow-emerald-950/25 flex items-center justify-center transition-all duration-200">
-          <SuccessCheck
-            active={true}
-            size={18}
-            strokeWidth={3.2}
-            className="text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.35)]"
-          />
-        </div>
-      ) : (
-        /* Pulling and refreshing states: clean floating emerald spinner without background */
-        <div className="flex items-center justify-center p-1">
-          {state === 'refreshing' ? (
-            <Classic className="size-7 text-[#006C54] dark:text-emerald-400 drop-shadow-sm" />
-          ) : (
-            <Classic
-              className={cn(
-                'size-7 transition-colors duration-150 drop-shadow-sm',
-                state === 'ready'
-                  ? 'text-[#006C54] dark:text-emerald-400'
-                  : 'text-[#006C54]/80 dark:text-emerald-400/80'
-              )}
-              style={{
-                transform: `rotate(${pullDistance * 3.5}deg)`,
-              }}
+      <div
+        className={cn(
+          'flex items-center justify-center transition-transform ease-out',
+          state === 'idle' || state === 'refreshing' || state === 'success'
+            ? 'duration-300'
+            : 'duration-75'
+        )}
+        style={{
+          transform: `translateY(${pullDistance > 0 ? pullDistance - 42 : -65}px) scale(${
+            state === 'ready'
+              ? 1.08
+              : state === 'refreshing' || state === 'success'
+              ? 1
+              : Math.max(0.7, Math.min(1, pullDistance / PULL_THRESHOLD))
+          })`,
+          opacity: pullDistance > 8 || state === 'refreshing' || state === 'success' ? 1 : 0,
+        }}
+      >
+        {state === 'success' ? (
+          /* Completed state: emerald green circular badge with shining white tick */
+          <div className="w-9 h-9 rounded-full bg-[#006C54] dark:bg-emerald-600 shadow-md shadow-emerald-950/25 flex items-center justify-center transition-all duration-200">
+            <SuccessCheck
+              active={true}
+              size={18}
+              strokeWidth={3.2}
+              className="text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.35)]"
             />
-          )}
-        </div>
-      )}
+          </div>
+        ) : (
+          /* Pulling and refreshing states: clean floating emerald spinner without background */
+          <div className="flex items-center justify-center">
+            {state === 'refreshing' ? (
+              <Classic className="size-7 text-[#006C54] dark:text-emerald-400 drop-shadow-sm" />
+            ) : (
+              <Classic
+                className={cn(
+                  'size-7 transition-colors duration-150 drop-shadow-sm',
+                  state === 'ready'
+                    ? 'text-[#006C54] dark:text-emerald-400'
+                    : 'text-[#006C54]/80 dark:text-emerald-400/80'
+                )}
+                style={{
+                  transform: `rotate(${pullDistance * 3.5}deg)`,
+                }}
+              />
+            )}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
