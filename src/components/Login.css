@@ -524,7 +524,7 @@ html:has(.login-page-container) {
   margin-top: 6px;
   background: linear-gradient(135deg, #EEAA04 0%, #d99903 100%);
   border: none;
-  border-radius: 9999px;
+  border-radius: 12px;
   color: #0a1317;
   font-family: 'Outfit', 'Inter', -apple-system, sans-serif;
   font-size: 14.5px;
@@ -906,11 +906,11 @@ html:has(.login-page-container) {
     margin-bottom: 9px !important;
   }
 
-  /* Pill Action Button matching the photo ("LOGIN" pill with white border) */
+  /* Action Button ("LOGIN" with white border) */
   .submit-btn {
     width: 100% !important;
     height: 46px !important;
-    border-radius: 9999px !important;
+    border-radius: 12px !important;
     border: 1.5px solid rgba(255, 255, 255, 0.88) !important;
     background: rgba(30, 68, 54, 0.88) !important;
     backdrop-filter: blur(10px) !important;
