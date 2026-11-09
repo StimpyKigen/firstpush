@@ -35,9 +35,6 @@ export default function AuthWallModal() {
       className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-black/80 backdrop-blur-xl animate-in fade-in duration-200 touch-none select-none"
     >
       <div className="relative w-full max-w-[420px]">
-        {/* Colorful Glow Effect Behind the Card Borders (inherited from paywall card) */}
-        <div className="absolute -inset-1 rounded-[32px] bg-gradient-to-r from-emerald-500/30 via-fuchsia-500/25 to-amber-400/35 blur-xl -z-10 pointer-events-none" />
-
         {/* Card Body with Deep Black Obsidian Canvas & Multi-Color Radial Mesh Glows */}
         <div
           className="relative w-full rounded-[28px] overflow-hidden border border-white/15 bg-[#080B09] shadow-[0_24px_70px_-10px_rgba(0,0,0,0.9)] p-6 sm:p-8 text-white select-none animate-in fade-in zoom-in-95 duration-200"
