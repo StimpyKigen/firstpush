@@ -37,17 +37,15 @@ export default function DesktopNav({
             <Link
               key={l.to}
               to={l.to}
-              className={`group inline-flex items-center gap-1.5 px-2.5 xl:px-3 py-1.5 text-xs xl:text-[13px] whitespace-nowrap shrink-0 transition-colors ${
-                active
-                  ? 'text-[#EEAA04] font-bold'
-                  : 'text-[#1c1e21] dark:text-[#F4F5EF] font-bold hover:text-[#EEAA04]'
-              }`}
+              className={`group inline-flex items-center gap-1.5 px-2.5 xl:px-3 py-1.5 text-xs xl:text-[13px] whitespace-nowrap shrink-0 transition-colors ${active
+                ? 'text-[#EEAA04] font-bold'
+                : 'text-[#1c1e21] dark:text-[#F4F5EF] font-bold hover:text-[#EEAA04]'
+                }`}
             >
               <l.icon
                 size={14}
-                className={`shrink-0 hidden xl:block transition-colors ${
-                  active ? 'text-[#EEAA04]' : 'text-[#5d6c7b] dark:text-[#B5BDB6] group-hover:text-[#EEAA04]'
-                }`}
+                className={`shrink-0 hidden xl:block transition-colors ${active ? 'text-[#EEAA04]' : 'text-[#5d6c7b] dark:text-[#B5BDB6] group-hover:text-[#EEAA04]'
+                  }`}
               />
               <span className="transition-colors">{l.label}</span>
               {isBuilder && builderLegsCount > 0 && (
@@ -84,7 +82,7 @@ export default function DesktopNav({
                 <Link
                   to="/profile"
                   onClick={() => setProfileOpen(false)}
-                  className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-semibold text-slate-700 dark:text-[#F4F5EF] hover:text-slate-900 dark:hover:text-white hover:bg-[#F5F5E4] dark:hover:bg-transparent transition-colors"
+                  className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-semibold text-slate-700 dark:text-[#F4F5EF] hover:text-slate-900 dark:hover:text-white hover:bg-black/5 dark:!bg-transparent dark:hover:!bg-transparent transition-colors"
                 >
                   <UserCog size={15} /> My Profile
                 </Link>

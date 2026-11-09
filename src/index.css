@@ -1507,7 +1507,7 @@ html.dark :not(.theme-protected, .theme-protected *, .fixture-card-banner, .fixt
 
 /* Secondary Card Background: #2F3732 */
 html.dark :not(.theme-protected, .theme-protected *, .fixture-card-banner, .fixture-card-banner *, .jackpot-room-card, .jackpot-room-card *, .login-card, .login-card *):where(.bg-slate-50),
-html.dark :not(.theme-protected, .theme-protected *, .fixture-card-banner, .fixture-card-banner *, .jackpot-room-card, .jackpot-room-card *, .login-card, .login-card *):where([class*="bg-[#F5F5E4]"]) {
+html.dark :not(.theme-protected, .theme-protected *, .fixture-card-banner, .fixture-card-banner *, .jackpot-room-card, .jackpot-room-card *, .login-card, .login-card *):where([class*="bg-[#F5F5E4]"]):not([class*="hover:bg-[#F5F5E4]"]):not([class*="dark:!bg-transparent"]):not([class*="dark:hover:bg-transparent"]) {
   background-color: #2F3732 !important;
 }
 
