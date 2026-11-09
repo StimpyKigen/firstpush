@@ -1,5 +1,4 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { createPortal } from 'react-dom';
 import { X, Users } from 'lucide-react';
 import { useChatRoom } from '../../lib/useChatRoom';
 import ChatMessageList from './ChatMessageList';
@@ -22,15 +21,10 @@ export default function LiveChatRoomOverlay({
   match,
 }: LiveChatRoomOverlayProps) {
   useBackToClose(isOpen, onClose);
-  const [mounted, setMounted] = useState(false);
   const [isStickerOpen, setIsStickerOpen] = useState(false);
   const [isEmojiOpen, setIsEmojiOpen] = useState(false);
-  const [viewportHeight, setViewportHeight] = useState<number | null>(null);
+  const [keyboardLift, setKeyboardLift] = useState(0);
   const composerRef = useRef<ChatComposerHandle>(null);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   const roomId = `room-${match.id}`;
   const {
@@ -43,35 +37,52 @@ export default function LiveChatRoomOverlay({
     cooldownRemaining,
   } = useChatRoom(roomId, isOpen, match.status || 'pre');
 
-  // Track visualViewport on mobile so panel bottom stays flush above the keyboard with zero jump
+  // Track visual viewport on platforms that do not resize layout viewport natively (e.g. iOS Safari)
   useEffect(() => {
     if (!isOpen) return;
 
-    const updateHeight = () => {
+    const updateKeyboard = () => {
       if (typeof window === 'undefined') return;
+
+      // On desktop (>= 640px), standard Tailwind modal layout handles positioning
       if (window.innerWidth >= 640) {
-        setViewportHeight(null);
+        setKeyboardLift(0);
         return;
       }
+
+      // On Android with interactive-widget=resizes-content, the layout viewport resizes natively
+      // Adding JS padding would conflict with native browser resize and cause jumps/trickling
+      const isAndroid = /Android/i.test(navigator.userAgent);
+      if (isAndroid) {
+        setKeyboardLift(0);
+        return;
+      }
+
+      // On iOS Safari / other platforms where the layout viewport does not resize:
       const vv = window.visualViewport;
       if (vv) {
-        setViewportHeight(vv.height);
+        const lift = Math.max(0, window.innerHeight - vv.height);
+        setKeyboardLift(lift > 80 ? lift : 0);
+      } else {
+        setKeyboardLift(0);
       }
     };
 
-    updateHeight();
+    updateKeyboard();
 
     const vv = typeof window !== 'undefined' ? window.visualViewport : null;
     if (vv) {
-      vv.addEventListener('resize', updateHeight);
+      vv.addEventListener('resize', updateKeyboard);
+      vv.addEventListener('scroll', updateKeyboard);
     }
-    window.addEventListener('resize', updateHeight);
+    window.addEventListener('resize', updateKeyboard);
 
     return () => {
       if (vv) {
-        vv.removeEventListener('resize', updateHeight);
+        vv.removeEventListener('resize', updateKeyboard);
+        vv.removeEventListener('scroll', updateKeyboard);
       }
-      window.removeEventListener('resize', updateHeight);
+      window.removeEventListener('resize', updateKeyboard);
     };
   }, [isOpen]);
 
@@ -93,36 +104,38 @@ export default function LiveChatRoomOverlay({
     setIsEmojiOpen((prev) => !prev);
   };
 
-  // Lock body scroll while open
+  // Lock background scroll when live chat is open, preserving exact window scroll
   useEffect(() => {
     if (!isOpen) return;
 
+    const savedScrollY = window.scrollY || document.documentElement.scrollTop;
     const html = document.documentElement;
     const body = document.body;
     const prevHtmlOverflow = html.style.overflow;
     const prevBodyOverflow = body.style.overflow;
-    const prevBodyOverscroll = body.style.overscrollBehavior;
 
     html.style.overflow = 'hidden';
     body.style.overflow = 'hidden';
-    body.style.overscrollBehavior = 'none';
+
+    // Prevent any browser attempt to scroll the window while chat is active
+    const onWindowScroll = () => {
+      if ((window.scrollY || document.documentElement.scrollTop) !== savedScrollY) {
+        window.scrollTo(0, savedScrollY);
+      }
+    };
+    window.addEventListener('scroll', onWindowScroll, { passive: false });
 
     return () => {
       html.style.overflow = prevHtmlOverflow;
       body.style.overflow = prevBodyOverflow;
-      body.style.overscrollBehavior = prevBodyOverscroll;
+      window.removeEventListener('scroll', onWindowScroll);
+      window.scrollTo(0, savedScrollY);
     };
   }, [isOpen]);
 
   if (!isOpen) return null;
 
-  const isKeyboardOpen = Boolean(
-    viewportHeight &&
-    typeof window !== 'undefined' &&
-    viewportHeight < window.innerHeight - 80
-  );
-
-  const overlayElement = (
+  return (
     <div
       data-chat-overlay="true"
       className="fixed inset-0 z-50 overflow-hidden bg-[#FFFFF0] dark:bg-[#202522] sm:bg-black/75 sm:backdrop-blur-sm sm:flex sm:items-center sm:justify-center animate-in fade-in duration-150"
@@ -141,11 +154,8 @@ export default function LiveChatRoomOverlay({
       {/* Desktop: click backdrop to exit */}
       <div className="hidden sm:block absolute inset-0" onClick={onClose} />
 
-      {/* Panel (Mobile: Height pinned to visualViewport, Desktop: 390px × 90dvh framed card matching SlipFeed) */}
+      {/* Panel (Mobile: Fullscreen, Desktop: 390px × 90dvh framed card matching SlipFeed) */}
       <div
-        style={{
-          height: viewportHeight ? `${viewportHeight}px` : undefined,
-        }}
         className={[
           'relative w-full h-full overflow-hidden flex flex-col bg-[#FFFFF0] dark:bg-[#202522]',
           'sm:w-[390px] sm:h-[90dvh] sm:max-h-[820px]',
@@ -194,13 +204,15 @@ export default function LiveChatRoomOverlay({
           <TypingIndicator users={typingUsers} />
         </div>
 
-        {/* Composer & Drawers (Sticker & Apple Emoji) */}
+        {/* Composer & Drawers (Sticker & Apple Emoji) with Constant Space Separator */}
         <div
           className="shrink-0 flex flex-col bg-[#FFFFF0] dark:bg-[#202522]"
           style={{
-            paddingBottom: (isStickerOpen || isEmojiOpen || isKeyboardOpen)
+            paddingBottom: (isStickerOpen || isEmojiOpen)
               ? '0px'
-              : 'max(0px, env(safe-area-inset-bottom, 0px))',
+              : keyboardLift > 0
+                ? `${keyboardLift + 8}px`
+                : 'max(8px, env(safe-area-inset-bottom, 8px))',
           }}
         >
           <ChatComposer
@@ -237,10 +249,4 @@ export default function LiveChatRoomOverlay({
       </div>
     </div>
   );
-
-  if (!mounted || typeof document === 'undefined') {
-    return null;
-  }
-
-  return createPortal(overlayElement, document.body);
 }
