@@ -14,10 +14,21 @@ export default function Footer() {
           {/* Brand Col */}
           <div className="space-y-3">
             <Link to="/" className="inline-block group active:scale-95 transition-transform focus:outline-none" aria-label="MshindiRoom">
+              {/* Light mode logo */}
               <img
                 src="/images/logo.png"
                 alt="MshindiRoom"
-                className="h-7 sm:h-7.5 w-auto object-contain shrink-0"
+                className="h-7 sm:h-7.5 w-auto object-contain shrink-0 dark:hidden"
+                width="210"
+                height="28"
+                loading="lazy"
+                decoding="async"
+              />
+              {/* Dark mode logo */}
+              <img
+                src="/images/logo-dark.png"
+                alt="MshindiRoom"
+                className="h-7 sm:h-7.5 w-auto object-contain shrink-0 hidden dark:block"
                 width="210"
                 height="28"
                 loading="lazy"

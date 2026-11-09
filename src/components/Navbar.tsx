@@ -78,10 +78,21 @@ export default function Navbar() {
             className="flex items-center shrink-0 mr-1 sm:mr-2 xl:mr-4 group active:scale-95 transition-transform focus:outline-none z-10"
             aria-label="MshindiRoom Home"
           >
+            {/* Light mode logo */}
             <img
               src="/images/logo.png"
               alt="MshindiRoom"
-              className="h-6 sm:h-6.5 lg:h-7 w-auto max-w-[165px] xs:max-w-[195px] sm:max-w-none object-contain shrink-0"
+              className="h-6 sm:h-6.5 lg:h-7 w-auto max-w-[165px] xs:max-w-[195px] sm:max-w-none object-contain shrink-0 dark:hidden"
+              width="210"
+              height="28"
+              loading="eager"
+              decoding="async"
+            />
+            {/* Dark mode logo */}
+            <img
+              src="/images/logo-dark.png"
+              alt="MshindiRoom"
+              className="h-6 sm:h-6.5 lg:h-7 w-auto max-w-[165px] xs:max-w-[195px] sm:max-w-none object-contain shrink-0 hidden dark:block"
               width="210"
               height="28"
               loading="eager"
