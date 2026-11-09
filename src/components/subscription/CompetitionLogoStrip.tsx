@@ -93,6 +93,18 @@ export default function CompetitionLogoStrip({ className = '' }: { className?: s
           />
         </div>
       </div>
+
+      {/* Row 3: Domestic Kenyan League (KPL centered) */}
+      <div className="flex items-center justify-center w-full">
+        <div className="flex items-center justify-center w-10 sm:w-11.5 h-10 sm:h-11.5">
+          <img
+            src="/images/competitions/kpl.png"
+            alt="Kenyan Premier League"
+            className="max-h-full max-w-full object-contain drop-shadow-sm pointer-events-none"
+            loading="eager"
+          />
+        </div>
+      </div>
     </div>
   );
 }
