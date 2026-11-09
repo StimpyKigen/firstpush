@@ -38,16 +38,19 @@ export default function FreeMatchRoom() {
   const savedScrollRef = useRef(0);
 
   const handleOpenChat = () => {
-    savedScrollRef.current = window.scrollY || document.documentElement.scrollTop || 0;
+    savedScrollRef.current = window.scrollY || window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop || 0;
     setIsChatOpen(true);
-    window.scrollTo({ top: 0, behavior: 'instant' as ScrollBehavior });
+    window.scrollTo(0, 0);
   };
 
   const handleCloseChat = () => {
+    if (typeof document !== 'undefined' && document.activeElement instanceof HTMLElement) {
+      document.activeElement.blur();
+    }
     setIsChatOpen(false);
-    requestAnimationFrame(() => {
-      window.scrollTo({ top: savedScrollRef.current, behavior: 'instant' as ScrollBehavior });
-    });
+    setTimeout(() => {
+      window.scrollTo(0, savedScrollRef.current);
+    }, 150);
   };
 
   const isChatRoomEnabled = useChatRoomStore((s) => (match ? s.isChatRoomEnabled(match.id) : false));
@@ -360,6 +363,7 @@ export default function FreeMatchRoom() {
           </div>
         </div>
       )}
+
       </div>
 
       {/* Live Chat Room Overlay */}
