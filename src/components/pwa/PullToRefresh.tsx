@@ -7,6 +7,7 @@ import { refreshFreeMatches } from '../../lib/freeMatches';
 import { useAuth } from '../../lib/authStore';
 import { useSubscriptionStore } from '../../lib/subscriptionStore';
 import { useWallet } from '../../lib/store';
+import { checkForAppUpdate } from '../../lib/swRegister';
 
 type PullState = 'idle' | 'pulling' | 'ready' | 'refreshing' | 'success' | 'error';
 
@@ -59,7 +60,15 @@ export function PullToRefresh() {
         promises.push(useWallet.getState().syncAuthoritativeTokens(currentUser).catch(() => {}));
       }
 
-      // 2. Broadcast event for any page-specific listeners
+      // 2. Silently check for Service Worker updates and newly published app versions
+      promises.push(checkForAppUpdate('manual').catch(() => {}));
+      if (typeof navigator !== 'undefined' && 'serviceWorker' in navigator) {
+        promises.push(
+          navigator.serviceWorker.getRegistration().then((reg) => reg?.update()).catch(() => {})
+        );
+      }
+
+      // 3. Broadcast event for any page-specific listeners
       window.dispatchEvent(new CustomEvent('mshindi:pull-to-refresh'));
 
       // Ensure a comfortable minimal duration (~650ms) so user perceives the feedback
