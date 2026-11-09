@@ -10,6 +10,7 @@ import ErrorBoundary from './components/ErrorBoundary';
 import OfflineBar from './components/OfflineBar';
 import PWAInstallPrompt from './components/PWAInstallPrompt';
 import PWALoadingScreen from './components/PWALoadingScreen';
+import PullToRefresh from './components/pwa/PullToRefresh';
 import AvaChatSupport from './components/AvaChatSupport';
 import AuthWallModal from './components/AuthWallModal';
 import PremiumPaywall from './components/subscription/PremiumPaywall';
@@ -235,6 +236,7 @@ function App() {
         <ScrollToTop />
         <OfflineBar />
         <PWAInstallPrompt />
+        <PullToRefresh />
         <AvaChatSupport />
         <AuthWallModal />
         <PremiumPaywall />

@@ -1,8 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Wallet, Menu, X, UserCircle2, ShieldCheck, LogOut, Settings, Bell, RefreshCw } from 'lucide-react';
+import { Wallet, Menu, X, UserCircle2, ShieldCheck, LogOut, Settings, Bell } from 'lucide-react';
 import { isAdminUser, type Account } from '../../lib/authStore';
-import { hardRefreshPwa } from '../../lib/swRegister';
 import { isPwaStandalone } from '../PWALoadingScreen';
 import Avatar from '../Avatar';
 import ThemeToggle from '../ThemeToggle';
@@ -18,31 +17,9 @@ interface MobileHeaderControlsProps {
 export function MobileHeaderControls({
   open,
   setOpen,
-  isLoggedIn = false,
 }: MobileHeaderControlsProps) {
-  const [refreshing, setRefreshing] = useState(false);
-  const isPwa = isPwaStandalone();
-
-  const handleHardRefresh = () => {
-    if (refreshing) return;
-    setRefreshing(true);
-    void hardRefreshPwa();
-  };
-
   return (
     <div className="flex lg:hidden items-center gap-1.5 shrink-0">
-      {isPwa && isLoggedIn && (
-        <button
-          type="button"
-          onClick={handleHardRefresh}
-          disabled={refreshing}
-          className="text-[#202522] dark:text-[#FFFFF0] p-1.5 hover:opacity-80 active:scale-95 transition-all touch-manipulation cursor-pointer flex items-center justify-center"
-          aria-label="Refresh App"
-          title="Refresh App"
-        >
-          <RefreshCw size={20} className={refreshing ? 'animate-spin' : ''} />
-        </button>
-      )}
       <button
         className="text-slate-800 dark:text-[#F4F5EF] p-1.5 hover:text-[#EEAA04] active:scale-95 transition-colors touch-manipulation cursor-pointer flex items-center justify-center"
         onClick={() => setOpen(!open)}
