@@ -6,6 +6,7 @@ import { useBetSlipStore, type BuiltSlipLeg } from '../lib/betSlipStore';
 import { generateOddsForFixture, type BuilderFixture } from '../lib/builderFixtures';
 import { useCurrentUser } from '../lib/authStore';
 import { useAuthWallStore } from '../lib/authWallStore';
+import { useSubscription } from '../hooks/useSubscription';
 import { showToast } from '../lib/notificationStore';
 import Modal from './ui/Modal';
 
@@ -35,6 +36,7 @@ export default function QuickBetBuilderModal({
   const navigate = useNavigate();
   const currentUser = useCurrentUser();
   const openAuthWall = useAuthWallStore((s) => s.openAuthWall);
+  const { hasPremiumAccess, openPaywall } = useSubscription();
   const builderLegs = useBetSlipStore((s) => s.builderLegs);
   const toggleBuilderLeg = useBetSlipStore((s) => s.toggleBuilderLeg);
 
@@ -77,6 +79,11 @@ export default function QuickBetBuilderModal({
         title: 'Sign In to Make Selections',
         message: 'Sign up or log in to select market odds and add selections to your Bet Builder slip.',
       });
+      return;
+    }
+
+    if (!hasPremiumAccess) {
+      openPaywall('bet_builder');
       return;
     }
 

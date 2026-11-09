@@ -21,6 +21,7 @@ import { getPunterStats } from '../lib/punterRatings';
 import DepositPanel from './profile/DepositPanel';
 import SupportPanel from './profile/SupportPanel';
 import CloseAccountPanel from './profile/CloseAccountPanel';
+import SubscriptionSection from '../components/subscription/SubscriptionSection';
 import { useSmartBack } from '../components/BackNavButton';
 import { useHistoryPageState } from '../lib/navigationHistory';
 
@@ -444,6 +445,9 @@ export default function Profile() {
                 )}
               </div>
             )}
+
+            {/* ── CARD GROUP: Subscription (Immediately ABOVE Punter Performance) ── */}
+            <SubscriptionSection />
 
             {/* ── CARD GROUP 2: Punter Performance ── */}
             <div className="bg-white rounded-2xl border border-[#E6E6D2] shadow-xs overflow-hidden">

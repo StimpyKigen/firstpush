@@ -10,3 +10,5 @@ coverage/
 .playwright-mcp/
 .cache/
 *.bak
+.data/
+data/token_economy.json

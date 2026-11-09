@@ -154,6 +154,41 @@ service cloud.firestore {
     //   - userUid: string
     //   - migratedAt: string or timestamp
     //
+    // Collection: subscriptions/{userId} (Server-Authoritative MshindiRoom Premium Subscriptions)
+    // Document ID: User UID or phone number
+    // Fields:
+    //   - userId: string - User UID or phone identifier
+    //   - phone: string (optional) - Registered phone number
+    //   - username: string (optional) - Display username
+    //   - status: string ('active' | 'trial' | 'expired' | 'none')
+    //   - plan: string ('weekly' | 'monthly' | 'trial' | null)
+    //   - trialClaimed: bool - Whether 3-day trial was claimed
+    //   - trialStartedAt: string or timestamp (optional)
+    //   - trialExpiresAt: string or timestamp (optional)
+    //   - activatedAt: string or timestamp (optional)
+    //   - expiresAt: string or timestamp (optional)
+    //   - nextPaymentDate: string or timestamp (optional)
+    //   - lastPaymentRef: string (optional) - M-Pesa transaction ref or trial tag
+    //   - amountKsh: number (optional) - Paid amount in KES
+    //   - updatedAt: string or timestamp
+    //
+    // Subcollection: users/{userId}/subscriptionHistory/{historyId} &
+    // Collection: subscriptionHistory/{historyId} (Immutable Subscription Event History)
+    // Document ID: Unique history record ID (e.g. 'sub_QK12345678', 'trial_<uid>_<ts>')
+    // Fields:
+    //   - id: string - History record ID
+    //   - userId: string - Associated user UID / phone
+    //   - phone: string (optional)
+    //   - username: string (optional)
+    //   - plan: string ('weekly' | 'monthly' | 'trial')
+    //   - type: string ('subscription' | 'trial')
+    //   - amountKsh: number - Payment amount (0 for trial)
+    //   - transactionRef: string - M-Pesa transaction code or trial ref
+    //   - startDate: string or timestamp
+    //   - endDate: string or timestamp
+    //   - status: string ('active' | 'expired' | 'completed')
+    //   - createdAt: string or timestamp
+    //
     // ===============================================================
 
     // Helper functions
@@ -465,6 +500,12 @@ service cloud.firestore {
         allow create: if (isOwner(userId) || isAdmin()) && isValidLikedCommentDoc(request.resource.data, commentId);
         allow update: if false;
       }
+
+      // Subscription history subcollection (server-authoritative)
+      match /subscriptionHistory/{historyId} {
+        allow read: if isOwner(userId) || isAdmin();
+        allow create, update, delete: if false;
+      }
     }
 
     // 4B. MSHINDI TOKEN ECONOMY (Strictly Server-Controlled via Firebase Admin SDK)
@@ -491,6 +532,19 @@ service cloud.firestore {
 
     match /tokenMigrations/{migrationId} {
       allow read: if isAdmin() || (isSignedIn() && isOwner(resource.data.userUid));
+      allow create, update, delete: if false;
+    }
+
+    // 4C. MSHINDIROOM PREMIUM SUBSCRIPTIONS (Strictly Server-Authoritative via Firebase Admin SDK)
+    // Users may read their own active subscription record, but all client writes are unconditionally denied.
+    match /subscriptions/{userId} {
+      allow read: if isOwner(userId) || isAdmin();
+      allow create, update, delete: if false;
+    }
+
+    // Top-level subscription history ledger (server-authoritative audit trail)
+    match /subscriptionHistory/{historyId} {
+      allow read: if isSignedIn() && (isOwner(resource.data.userId) || isAdmin());
       allow create, update, delete: if false;
     }
 

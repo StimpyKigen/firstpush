@@ -5,6 +5,7 @@ import { subscribeToFreeMatches, getFreeMatchesSnapshot, refreshFreeMatches } fr
 import { useBetSlipStore } from './betSlipStore';
 import { useCurrentUser } from './authStore';
 import { useAuthWallStore } from './authWallStore';
+import { useSubscriptionStore, checkHasPremiumAccess } from './subscriptionStore';
 import { showToast } from './notificationStore';
 import { moderateText } from './contentModeration';
 import {
@@ -382,6 +383,12 @@ export function useBetBuilder(onPublished?: () => void) {
       return;
     }
 
+    const hasAccess = checkHasPremiumAccess(useSubscriptionStore.getState().subscription);
+    if (!hasAccess) {
+      useSubscriptionStore.getState().openPaywall('bet_builder');
+      return;
+    }
+
     const legId = `${fixture.id}-${market}-${pick}`;
 
     toggleBuilderLeg({
@@ -414,7 +421,17 @@ export function useBetBuilder(onPublished?: () => void) {
   function handlePublish() {
     if (cartLegs.length === 0) return;
     if (!currentUser) {
-      showToast({ type: 'warning', title: 'Sign in required', message: 'Log in to publish your built bet slip.' });
+      useAuthWallStore.getState().openAuthWall({
+        actionType: 'builder',
+        title: 'Sign In to Publish Slip',
+        message: 'Log in or sign up to publish your built bet slip to the community feed.',
+      });
+      return;
+    }
+
+    const hasAccess = checkHasPremiumAccess(useSubscriptionStore.getState().subscription);
+    if (!hasAccess) {
+      useSubscriptionStore.getState().openPaywall('publish_slip');
       return;
     }
 

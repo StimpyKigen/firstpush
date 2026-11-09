@@ -6,6 +6,8 @@ import {
 import { AnimatePresence } from 'motion/react';
 import SeoHead from '../components/SeoHead';
 import { useCurrentUser } from '../lib/authStore';
+import { useAuthWallStore } from '../lib/authWallStore';
+import { useSubscription } from '../hooks/useSubscription';
 import { useBetSlipStore } from '../lib/betSlipStore';
 import { useFollowStore } from '../lib/followStore';
 import { searchPunters } from '../lib/punterDirectory';
@@ -51,6 +53,8 @@ interface BetSlipRoomProps {
 export default function BetSlipRoom({ initialTab, initialFilter }: BetSlipRoomProps = {}) {
   const [searchParams, setSearchParams] = useSearchParams();
   const currentUser = useCurrentUser();
+  const openAuthWall = useAuthWallStore((s) => s.openAuthWall);
+  const { hasPremiumAccess, openPaywall } = useSubscription();
   const posts = useBetSlipStore((s) => s.posts);
   const initFeedSubscription = useBetSlipStore((s) => s.initFeedSubscription);
   const syncUserEngagements = useBetSlipStore((s) => s.syncUserEngagements);
@@ -71,6 +75,48 @@ export default function BetSlipRoom({ initialTab, initialFilter }: BetSlipRoomPr
     if (searchParams.get('tab') === 'punters') return 'punters';
     return 'builder';
   });
+
+  const handleTabBuilder = () => {
+    if (!currentUser) {
+      openAuthWall({
+        actionType: 'builder',
+        title: 'Sign In to Build Bets',
+        message: 'Sign up or log in to generate slips, analyze accumulator odds, and save custom betting strategies.',
+      });
+      return;
+    }
+    if (!hasPremiumAccess) {
+      openPaywall('bet_builder');
+      return;
+    }
+    setActiveTab('builder');
+  };
+
+  const handleTabSlips = () => {
+    if (!currentUser) {
+      openAuthWall({
+        actionType: 'details',
+        title: 'Sign In for Shared Betslips',
+        message: 'Sign up or log in to explore shared betting insights and a growing library of betslips.',
+      });
+      return;
+    }
+    if (!hasPremiumAccess) {
+      openPaywall('betslip_library');
+      return;
+    }
+    if (searchParams.get('view') === 'saved') {
+      setSearchParams(
+        (prev) => {
+          const next = new URLSearchParams(prev);
+          next.delete('view');
+          return next;
+        },
+        { replace: true }
+      );
+    }
+    setActiveTab('slips');
+  };
 
   // Subscribe to real-time community slips feed with auto-cleanup on unmount
   useEffect(() => {
@@ -155,7 +201,7 @@ export default function BetSlipRoom({ initialTab, initialFilter }: BetSlipRoomPr
             type="button"
             role="tab"
             aria-selected={activeTab === 'builder'}
-            onClick={() => setActiveTab('builder')}
+            onClick={handleTabBuilder}
             className={`relative z-10 w-full flex items-center justify-center py-2 sm:py-2.5 px-1 min-[380px]:px-2.5 sm:px-4 rounded-full text-[11px] min-[360px]:text-[12px] min-[400px]:text-[13px] sm:text-sm tracking-tight transition-colors duration-150 cursor-pointer active:scale-[0.98] ${
               activeTab === 'builder'
                 ? 'text-[#00875A] font-bold'
@@ -176,19 +222,7 @@ export default function BetSlipRoom({ initialTab, initialFilter }: BetSlipRoomPr
             type="button"
             role="tab"
             aria-selected={activeTab === 'slips'}
-            onClick={() => {
-              if (searchParams.get('view') === 'saved') {
-                setSearchParams(
-                  (prev) => {
-                    const next = new URLSearchParams(prev);
-                    next.delete('view');
-                    return next;
-                  },
-                  { replace: true }
-                );
-              }
-              setActiveTab('slips');
-            }}
+            onClick={handleTabSlips}
             className={`relative z-10 w-full flex items-center justify-center py-2 sm:py-2.5 px-1 min-[380px]:px-2.5 sm:px-4 rounded-full text-[11px] min-[360px]:text-[12px] min-[400px]:text-[13px] sm:text-sm tracking-tight transition-colors duration-150 cursor-pointer active:scale-[0.98] ${
               activeTab === 'slips'
                 ? 'text-[#00875A] font-bold'

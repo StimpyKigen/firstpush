@@ -12,6 +12,7 @@ import PWAInstallPrompt from './components/PWAInstallPrompt';
 import PWALoadingScreen from './components/PWALoadingScreen';
 import AvaChatSupport from './components/AvaChatSupport';
 import AuthWallModal from './components/AuthWallModal';
+import PremiumPaywall from './components/subscription/PremiumPaywall';
 import { refreshFreeMatches } from './lib/freeMatches';
 import { syncJackpotsFromApi } from './lib/mockData';
 import { startDailyHighlightSync } from './lib/footballApi';
@@ -236,6 +237,7 @@ function App() {
         <PWAInstallPrompt />
         <AvaChatSupport />
         <AuthWallModal />
+        <PremiumPaywall />
         {/*
           Outer frame: fills the full viewport with warm ivory background
         */}

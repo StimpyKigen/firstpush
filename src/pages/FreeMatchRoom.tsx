@@ -10,6 +10,7 @@ import {
 import { GamblerPick, Outcome } from '../lib/types';
 import { useCurrentUser } from '../lib/authStore';
 import { useAuthWallStore } from '../lib/authWallStore';
+import { useSubscription } from '../hooks/useSubscription';
 import { useUserPicks } from '../lib/userPicksStore';
 import OutcomeBar from '../components/OutcomeBar';
 import DiscussionPanel from '../components/DiscussionPanel';
@@ -29,6 +30,7 @@ export default function FreeMatchRoom() {
 
   const currentUser = useCurrentUser();
   const openAuthWall = useAuthWallStore((s) => s.openAuthWall);
+  const { hasPremiumAccess, openPaywall } = useSubscription();
   const username = currentUser?.username || 'Guest Punter';
   const { savePick, getPick, deletePick } = useUserPicks();
 
@@ -38,6 +40,18 @@ export default function FreeMatchRoom() {
   const savedScrollRef = useRef(0);
 
   const handleOpenChat = () => {
+    if (!currentUser) {
+      openAuthWall({
+        actionType: 'discussion',
+        title: 'Sign In for Live Chat',
+        message: 'Sign up or log in to join fellow punters in real-time match discussion.',
+      });
+      return;
+    }
+    if (!hasPremiumAccess) {
+      openPaywall('chat_room');
+      return;
+    }
     savedScrollRef.current = window.scrollY || window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop || 0;
     setIsChatOpen(true);
     window.scrollTo(0, 0);
@@ -91,6 +105,11 @@ export default function FreeMatchRoom() {
         title: 'Sign In to Post Picks & Reasoning',
         message: 'Sign up or log in to submit your prediction and share reasoning with fellow punters.',
       });
+      return;
+    }
+
+    if (!hasPremiumAccess) {
+      openPaywall('post_picks');
       return;
     }
 
@@ -167,6 +186,10 @@ export default function FreeMatchRoom() {
                 });
                 return;
               }
+              if (!hasPremiumAccess) {
+                openPaywall('match_details');
+                return;
+              }
               setRoomTab('details');
             }}
             className={`text-sm sm:text-base transition-colors flex items-center gap-2 cursor-pointer select-none ${
@@ -190,6 +213,10 @@ export default function FreeMatchRoom() {
                   title: 'Sign In to Join Discussion',
                   message: 'Sign up or log in to participate in live match room debates and fan discussions.',
                 });
+                return;
+              }
+              if (!hasPremiumAccess) {
+                openPaywall('fan_discussion');
                 return;
               }
               setRoomTab('discussion');

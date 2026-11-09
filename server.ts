@@ -38,6 +38,7 @@ import {
   verifyAdminRequest,
 } from './src/lib/adminAuthService';
 import { handleTokenEconomyHttpRequest } from './src/lib/serverTokenEconomy';
+import { handleSubscriptionHttpRequest } from './src/lib/serverSubscriptionService';
 import { parseJackpotWebpageText } from './src/lib/jackpotWebParser';
 import {
   initWeeklyFixtureScheduler,
@@ -387,6 +388,22 @@ async function startServer() {
       return res.status(result.statusCode).json(result.payload);
     } catch (err: any) {
       return res.status(500).json({ success: false, error: err?.message || 'Server token economy error.' });
+    }
+  });
+
+  app.all(['/api/subscription', '/api/subscription/*'], async (req: Request, res: Response) => {
+    try {
+      res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
+      const result = await handleSubscriptionHttpRequest({
+        method: req.method,
+        pathname: req.path,
+        headers: req.headers as any,
+        query: req.query as any,
+        body: req.body,
+      });
+      return res.status(result.statusCode).json(result.payload);
+    } catch (err: any) {
+      return res.status(500).json({ success: false, error: err?.message || 'Server subscription error.' });
     }
   });
 

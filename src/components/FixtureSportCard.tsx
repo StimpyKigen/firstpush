@@ -10,6 +10,7 @@ import { formatKickoffDateTime24h } from '../lib/competitionPriority';
 import { getCompetitionBanner } from '../lib/competitionBanners';
 import { useCurrentUser } from '../lib/authStore';
 import { useAuthWallStore } from '../lib/authWallStore';
+import { useSubscription } from '../hooks/useSubscription';
 import { liveEventTracker, CARD_NOTIFICATION_MS, type CardNotification } from '../lib/liveCardEvents';
 
 export interface FixtureSportCardProps {
@@ -123,6 +124,7 @@ export default function FixtureSportCard({
 }: FixtureSportCardProps) {
   const currentUser = useCurrentUser();
   const openAuthWall = useAuthWallStore((s) => s.openAuthWall);
+  const { hasPremiumAccess, openPaywall } = useSubscription();
 
   const handleCardClick = (e: React.MouseEvent) => {
     if (!currentUser) {
@@ -132,7 +134,35 @@ export default function FixtureSportCard({
         title: 'Sign In for Details & Discussions',
         message: 'Sign up or log in to view match intelligence, tactical lineups, pitch tracker, and join live fan discussions.',
       });
+      return;
     }
+
+    if (!hasPremiumAccess) {
+      e.preventDefault();
+      openPaywall('details_and_discussion');
+      return;
+    }
+  };
+
+  const handleBetBuilderClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (!currentUser) {
+      openAuthWall({
+        actionType: 'builder',
+        title: 'Sign In to Build Bets',
+        message: 'Sign up or log in to generate slips, analyze accumulator odds, and save custom betting strategies.',
+      });
+      return;
+    }
+
+    if (!hasPremiumAccess) {
+      openPaywall('bet_builder');
+      return;
+    }
+
+    onOpenBetBuilder(match);
   };
 
   // Competition background banner (e.g. UEFA Champions League)
@@ -635,11 +665,7 @@ export default function FixtureSportCard({
 
           <button
             type="button"
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              onOpenBetBuilder(match);
-            }}
+            onClick={handleBetBuilderClick}
             className="inline-flex items-center gap-1 text-xs font-semibold text-slate-700 hover:text-[#006C54] transition-colors cursor-pointer py-1 px-1.5"
           >
             <Dices size={13} className="text-[#EEAA04]" />
