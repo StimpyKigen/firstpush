@@ -159,12 +159,12 @@ export default function MatchFiltersToolbar({
         iconColor: 'text-[#C48B03]',
         dotColor: 'bg-[#EEAA04]',
         chevronOpen: 'rotate-180 text-[#C48B03]',
-        rowSelected: 'text-[#9A6B00] dark:text-[#FFC72C] font-bold',
-        selectedRowCount: 'text-[#9A6B00]',
-        checkColor: 'text-[#C48B03]',
+        rowSelected: 'bg-[#EEAA04]/10 dark:bg-[#EEAA04]/20 text-[#9A6B00] dark:text-[#FFC72C] font-bold hover:bg-[#EEAA04]/15 dark:hover:bg-[#EEAA04]/25',
+        selectedRowCount: 'text-[#9A6B00] dark:text-[#FFC72C] font-bold',
+        checkColor: 'text-[#C48B03] dark:text-[#FFC72C]',
         subAccordionBorder: 'border-[#EEAA04]/40',
-        subRowSelected: 'text-[#9A6B00] dark:text-[#FFC72C] font-bold',
-        subRowSelectedCount: 'text-[#9A6B00] dark:text-[#FFC72C]',
+        subRowSelected: 'bg-[#EEAA04]/10 dark:bg-[#EEAA04]/20 text-[#9A6B00] dark:text-[#FFC72C] font-bold hover:bg-[#EEAA04]/15 dark:hover:bg-[#EEAA04]/25',
+        subRowSelectedCount: 'text-[#9A6B00] dark:text-[#FFC72C] font-bold',
         subRowCheck: 'text-[#C48B03] dark:text-[#FFC72C]',
         searchBtnActive: 'bg-[#EEAA04]/20 text-[#B88000]',
         searchBtnIdle: 'text-[#C48B03] hover:text-[#9A6B00] hover:bg-[#EEAA04]/15',
@@ -184,13 +184,13 @@ export default function MatchFiltersToolbar({
         iconColor: 'text-[#006C54]',
         dotColor: 'bg-[#006C54]',
         chevronOpen: 'rotate-180 text-[#006C54]',
-        rowSelected: 'text-[#006C54] font-bold',
-        selectedRowCount: 'text-[#006C54]',
-        checkColor: 'text-[#006C54]',
+        rowSelected: 'bg-[#006C54]/10 dark:bg-[#006C54]/20 text-[#006C54] dark:text-emerald-400 font-bold hover:bg-[#006C54]/15 dark:hover:bg-[#006C54]/25',
+        selectedRowCount: 'text-[#006C54] dark:text-emerald-400 font-bold',
+        checkColor: 'text-[#006C54] dark:text-emerald-400',
         subAccordionBorder: 'border-[#006C54]/25',
-        subRowSelected: 'text-[#006C54] font-bold',
-        subRowSelectedCount: 'text-[#006C54]',
-        subRowCheck: 'text-[#006C54]',
+        subRowSelected: 'bg-[#006C54]/10 dark:bg-[#006C54]/20 text-[#006C54] dark:text-emerald-400 font-bold hover:bg-[#006C54]/15 dark:hover:bg-[#006C54]/25',
+        subRowSelectedCount: 'text-[#006C54] dark:text-emerald-400 font-bold',
+        subRowCheck: 'text-[#006C54] dark:text-emerald-400',
         searchBtnActive: 'bg-[#006C54]/15 text-[#006C54]',
         searchBtnIdle: 'text-[#006C54] hover:text-[#005441] hover:bg-[#006C54]/10',
         searchBarBorder:
@@ -347,7 +347,7 @@ export default function MatchFiltersToolbar({
                     className={`w-full px-3 py-2 rounded-xl text-left flex items-center justify-between transition-colors cursor-pointer ${
                       selectedDate === 'completed'
                         ? theme.rowSelected
-                        : 'hover:bg-[#F5F5E4] text-slate-700 font-semibold'
+                        : 'hover:bg-black/[0.04] dark:hover:bg-white/[0.08] text-slate-800 dark:text-[#F4F5EF] hover:text-slate-950 dark:hover:text-white font-semibold'
                     }`}
                   >
                     <span className="flex items-center gap-2">
@@ -361,7 +361,7 @@ export default function MatchFiltersToolbar({
                       >
                         {completedTodayCount}
                       </span>
-                      <ChevronRight size={13} className="text-slate-400 group-hover:text-slate-600 dark:text-slate-500 shrink-0" />
+                      <ChevronRight size={13} className="text-slate-400 group-hover:text-slate-600 dark:text-slate-400 dark:group-hover:text-slate-200 shrink-0" />
                     </div>
                   </button>
                 </div>
@@ -377,7 +377,7 @@ export default function MatchFiltersToolbar({
                     className={`w-full px-3 py-2 rounded-xl text-left flex items-center justify-between transition-colors cursor-pointer ${
                       selectedDate === 'all'
                         ? theme.rowSelected
-                        : 'hover:bg-[#F5F5E4] text-slate-700 font-semibold'
+                        : 'hover:bg-black/[0.04] dark:hover:bg-white/[0.08] text-slate-800 dark:text-[#F4F5EF] hover:text-slate-950 dark:hover:text-white font-semibold'
                     }`}
                   >
                     <span className="flex items-center gap-2">
@@ -391,7 +391,7 @@ export default function MatchFiltersToolbar({
                       >
                         {allDatesCount}
                       </span>
-                      <ChevronRight size={13} className="text-slate-400 group-hover:text-slate-600 dark:text-slate-500 shrink-0" />
+                      <ChevronRight size={13} className="text-slate-400 group-hover:text-slate-600 dark:text-slate-400 dark:group-hover:text-slate-200 shrink-0" />
                     </div>
                   </button>
                 </div>
@@ -410,7 +410,7 @@ export default function MatchFiltersToolbar({
                         className={`w-full px-3 py-2 rounded-xl text-left flex items-center justify-between transition-colors cursor-pointer ${
                           isSelected
                             ? theme.rowSelected
-                            : 'hover:bg-[#F5F5E4] text-slate-700 font-medium'
+                            : 'hover:bg-black/[0.04] dark:hover:bg-white/[0.08] text-slate-800 dark:text-[#F4F5EF] hover:text-slate-950 dark:hover:text-white font-medium'
                         }`}
                       >
                         <span className="truncate pr-2 font-medium">{d.label}</span>
@@ -422,7 +422,7 @@ export default function MatchFiltersToolbar({
                           >
                             {d.count}
                           </span>
-                          <ChevronRight size={13} className="text-slate-400 group-hover:text-slate-600 dark:text-slate-500 shrink-0" />
+                          <ChevronRight size={13} className="text-slate-400 group-hover:text-slate-600 dark:text-slate-400 dark:group-hover:text-slate-200 shrink-0" />
                         </div>
                       </button>
                     );
@@ -481,7 +481,7 @@ export default function MatchFiltersToolbar({
                     className={`w-full px-3 py-2 rounded-lg text-left flex items-center justify-between transition-colors cursor-pointer ${
                       leagueFilter === 'all'
                         ? theme.rowSelected
-                        : 'hover:bg-[#F5F5E4] text-slate-800 font-medium'
+                        : 'hover:bg-black/[0.04] dark:hover:bg-white/[0.08] text-slate-800 dark:text-[#F4F5EF] hover:text-slate-950 dark:hover:text-white font-medium'
                     }`}
                   >
                     <span className="truncate pr-2">All Competitions</span>
@@ -495,7 +495,7 @@ export default function MatchFiltersToolbar({
                       >
                         {directoryData.totalMatches}
                       </span>
-                      <ChevronRight size={13} className="text-slate-400 group-hover:text-slate-600 dark:text-slate-500 shrink-0" />
+                      <ChevronRight size={13} className="text-slate-400 group-hover:text-slate-600 dark:text-slate-400 dark:group-hover:text-slate-200 shrink-0" />
                     </div>
                   </button>
 
@@ -513,7 +513,7 @@ export default function MatchFiltersToolbar({
                           className={`w-full px-3 py-2 rounded-lg flex items-center justify-between transition-colors ${
                             isAnySubSelected
                               ? theme.rowSelected
-                              : 'hover:bg-[#F5F5E4] text-slate-800 font-medium'
+                              : 'hover:bg-black/[0.04] dark:hover:bg-white/[0.08] text-slate-800 dark:text-[#F4F5EF] hover:text-slate-950 dark:hover:text-white font-medium'
                           }`}
                         >
                           <button
@@ -546,7 +546,7 @@ export default function MatchFiltersToolbar({
                                       : [...prev, row.id]
                                   );
                                 }}
-                                className="p-1 text-slate-400 hover:text-slate-700 transition-transform cursor-pointer flex items-center justify-center w-5 h-5"
+                                className="p-1 text-slate-400 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 transition-transform cursor-pointer flex items-center justify-center w-5 h-5"
                                 title={isExpanded ? 'Collapse leagues' : 'Expand leagues'}
                               >
                                 <ChevronDown
@@ -568,7 +568,7 @@ export default function MatchFiltersToolbar({
                             >
                               {row.count}
                             </span>
-                            <ChevronRight size={13} className="text-slate-400 group-hover:text-slate-600 dark:text-slate-500 shrink-0" />
+                            <ChevronRight size={13} className="text-slate-400 group-hover:text-slate-600 dark:text-slate-400 dark:group-hover:text-slate-200 shrink-0" />
                           </div>
                         </div>
 
@@ -588,7 +588,7 @@ export default function MatchFiltersToolbar({
                                   className={`w-full px-2.5 py-1.5 rounded-md text-left flex items-center justify-between text-[11px] transition-colors cursor-pointer ${
                                     isSubSelected
                                       ? theme.subRowSelected
-                                      : 'hover:bg-[#F5F5E4] text-slate-700 font-medium'
+                                      : 'hover:bg-black/[0.04] dark:hover:bg-white/[0.08] text-slate-800 dark:text-[#F4F5EF] hover:text-slate-950 dark:hover:text-white font-medium'
                                   }`}
                                 >
                                   <span className="truncate pr-2">{lg.league}</span>
@@ -602,7 +602,7 @@ export default function MatchFiltersToolbar({
                                     >
                                       {lg.count}
                                     </span>
-                                    <ChevronRight size={12} className="text-slate-400 group-hover:text-slate-600 dark:text-slate-500 shrink-0" />
+                                    <ChevronRight size={12} className="text-slate-400 group-hover:text-slate-600 dark:text-slate-400 dark:group-hover:text-slate-200 shrink-0" />
                                   </div>
                                 </button>
                               );
