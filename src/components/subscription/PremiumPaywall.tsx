@@ -167,15 +167,7 @@ export default function PremiumPaywall({ onCloseOverride }: PremiumPaywallProps)
               /* ── VIEW A: STANDARD SUBSCRIPTION OFFERING ── */
               <>
                 {/* Official Competition Logos Strip */}
-                <CompetitionLogoStrip className="mb-4 sm:mb-5" />
-
-                {/* Branding: Mshindi (White) + Room (Gold) */}
-                <div className="text-center mb-5 sm:mb-6">
-                  <h1 className="text-3xl sm:text-[34px] font-extrabold tracking-tight inline-flex items-center justify-center">
-                    <span className="text-white drop-shadow-sm">Mshindi</span>
-                    <span className="text-[#FFD200] drop-shadow-sm">Room</span>
-                  </h1>
-                </div>
+                <CompetitionLogoStrip className="mb-5 sm:mb-6" />
 
                 {/* 5 Feature Bullet Points with animated BadgeCheck icons that loop when card is active */}
                 <div className="space-y-3 sm:space-y-3.5 mb-6 sm:mb-7 px-1">
