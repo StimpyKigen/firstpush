@@ -227,6 +227,22 @@ export const COMPETITION_BANNERS: Record<string, CompetitionBannerConfig> = {
     dividerColor: 'border-[#BFDBFE]',
     shadow: 'shadow-[0_2px_12px_rgba(0,43,138,0.09)] hover:shadow-[0_4px_18px_rgba(0,43,138,0.16)]',
   },
+  kenya_premier_league: {
+    id: 'kenya_premier_league',
+    name: 'Kenyan Premier League',
+    bannerUrl: '/banners/kenya-premier-league.jpg',
+    overlayOpacity: 0.35,
+    objectPosition: 'object-[center_50%]',
+    gradientOverlay: 'from-transparent via-[#ECFDF5]/20 to-[#FFFFF0]/35',
+    cardBg: 'bg-gradient-to-b from-[#E6F4EA] via-[#FDF2F2] to-[#FFFFF0]',
+    baseTint: 'bg-gradient-to-b from-[#006C54]/10 via-[#DC2626]/4 to-transparent',
+    borderColor: 'border-[#006C54]/60',
+    borderHoverColor: 'hover:border-[#006C54]',
+    oddsBorderColor: 'border-[#006C54]/40 hover:border-[#006C54]',
+    consensusTrackBg: 'bg-[#D1FAE5]',
+    dividerColor: 'border-[#A7F3D0]',
+    shadow: 'shadow-[0_2px_12px_rgba(0,108,84,0.09)] hover:shadow-[0_4px_18px_rgba(0,108,84,0.16)]',
+  },
 };
 
 /**
@@ -260,6 +276,7 @@ const BANNER_COUNTRY_NAMES: Record<string, string[]> = {
   ligue_1: ['france', 'french'],
   bundesliga: ['germany', 'german', 'deutschland'],
   serie_a: ['italy', 'italian', 'italia'],
+  kenya_premier_league: ['kenya', 'kenyan', 'ke'],
 };
 
 /** Exact league titles (normalised) that qualify for a domestic banner when the country matches. */
@@ -311,6 +328,18 @@ const BANNER_LEAGUE_NAMES: Record<string, string[]> = {
   ligue_1: ['ligue 1', 'french ligue 1', 'france ligue 1', 'ligue 1 uber eats', 'league 1'],
   bundesliga: ['bundesliga', 'german bundesliga', '1 bundesliga'],
   serie_a: ['serie a', 'italian serie a', 'serie a tim', 'serie a enilive'],
+  kenya_premier_league: [
+    'kenyan premier league',
+    'kenya premier league',
+    'premier league',
+    'fkf premier league',
+    'fkf pl',
+    'fkf',
+    'kpl',
+    'fkf care premier league',
+    'betking premier league',
+    'kenyan premier league fkf pl',
+  ],
 };
 
 /** Titles that already carry the country adjective, so they are safe without a country field. */
@@ -353,6 +382,14 @@ const BANNER_SELF_QUALIFIED: Record<string, string[]> = {
   ligue_1: ['french ligue 1', 'france ligue 1'],
   bundesliga: ['german bundesliga'],
   serie_a: ['italian serie a'],
+  kenya_premier_league: [
+    'kenyan premier league',
+    'kenya premier league',
+    'fkf premier league',
+    'fkf pl',
+    'kpl',
+    'kenyan premier league fkf pl',
+  ],
 };
 
 /** Canonical competition ids, with the country each one belongs to. */
@@ -377,6 +414,10 @@ const BANNER_BY_ID: Record<string, keyof typeof COMPETITION_BANNERS> = {
   eng_league_cup: 'efl_cup',
   sco_premiership: 'scottish_premiership',
   scottish_premiership: 'scottish_premiership',
+  ken_premier_league: 'kenya_premier_league',
+  kenyan_premier_league: 'kenya_premier_league',
+  kenya_premier_league: 'kenya_premier_league',
+  fkf_premier_league: 'kenya_premier_league',
 };
 
 /** Countries / scopes that mean "no specific domestic country" (continental or unknown). */
@@ -417,22 +458,27 @@ export function getCompetitionBanner(
     .trim();
 
   // 2. Domestic leagues & cups: league title AND country must both match.
+  let matchedGenericLeagueWithoutCountry = false;
   for (const bannerName of Object.keys(BANNER_LEAGUE_NAMES) as Array<keyof typeof BANNER_LEAGUE_NAMES>) {
     const leagueVariants = BANNER_LEAGUE_NAMES[bannerName];
     const isMatch = leagueVariants.includes(compKey) || (Boolean(baseCompKey) && leagueVariants.includes(baseCompKey));
     if (!isMatch) continue;
     if (hasDomesticCountry) {
-      if (BANNER_COUNTRY_NAMES[bannerName].includes(countryKey)) {
+      if (BANNER_COUNTRY_NAMES[bannerName]?.includes(countryKey)) {
         return COMPETITION_BANNERS[bannerName as keyof typeof COMPETITION_BANNERS];
       }
-      return null; // same league name, different country: no banner
+      matchedGenericLeagueWithoutCountry = true;
+      continue; // keep checking if another domestic league with the same name matches this country
     }
     // No country information: only accept titles that already name the country or self-qualify.
     const selfVariants = BANNER_SELF_QUALIFIED[bannerName];
-    if (selfVariants.includes(compKey) || (Boolean(baseCompKey) && selfVariants.includes(baseCompKey))) {
+    if (selfVariants?.includes(compKey) || (Boolean(baseCompKey) && selfVariants?.includes(baseCompKey))) {
       return COMPETITION_BANNERS[bannerName as keyof typeof COMPETITION_BANNERS];
     }
-    return null;
+  }
+
+  if (hasDomesticCountry && matchedGenericLeagueWithoutCountry) {
+    return null; // same league name, but no registered domestic banner for this country
   }
 
   // 3. Continental UEFA competitions never belong to a domestic country.
