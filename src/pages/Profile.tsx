@@ -22,6 +22,7 @@ import DepositPanel from './profile/DepositPanel';
 import SupportPanel from './profile/SupportPanel';
 import CloseAccountPanel from './profile/CloseAccountPanel';
 import SubscriptionSection from '../components/subscription/SubscriptionSection';
+import { Button } from '@/components/ui/button';
 import { useSmartBack } from '../components/BackNavButton';
 import { useHistoryPageState } from '../lib/navigationHistory';
 
@@ -350,13 +351,12 @@ export default function Profile() {
                 </div>
 
                 <div className="flex items-center gap-2 self-start sm:self-center">
-                  <button
+                  <Button
                     onClick={() => setPanel(panel === 'deposit' ? 'none' : 'deposit')}
-                    className="px-3.5 py-1.5 rounded-xl bg-[#006C54] hover:bg-[#005441] text-white text-xs font-bold transition-all shadow-xs active:scale-95 flex items-center gap-1.5 cursor-pointer"
+                    className="px-3.5 py-1.5 h-auto rounded-[5px] bg-[#006C54] hover:bg-[#005441] text-white text-xs font-bold transition-all shadow-xs active:scale-95"
                   >
-                    <ArrowDownLeft size={14} />
                     Deposit
-                  </button>
+                  </Button>
                 </div>
               </div>
 
