@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { X, UserPlus, Copy, Check, MessageCircle, Sparkles, Send, Coins, Users } from 'lucide-react';
+import { X, Copy, Check, Coins } from 'lucide-react';
+import { WhatsApp, XformerlyTwitter, Facebook, Telegram } from './icons/SocialIcons';
 import { useCurrentUser } from '../lib/authStore';
 import { useWallet } from '../lib/store';
 import { showToast } from '../lib/notificationStore';
@@ -13,9 +14,6 @@ interface InviteModalProps {
 export default function InviteModal({ isOpen, onClose }: InviteModalProps) {
   const currentUser = useCurrentUser();
   const mshindiTokens = useWallet((s) => s.mshindiTokens);
-  const totalReferrals = useWallet((s) => s.totalReferrals);
-  const referralProgressRemainder = useWallet((s) => s.referralProgressRemainder);
-  const referralsNeededForNextToken = useWallet((s) => s.referralsNeededForNextToken);
   const [copied, setCopied] = useState(false);
 
   const inviterName = currentUser?.username || 'Punter';
@@ -34,8 +32,16 @@ export default function InviteModal({ isOpen, onClose }: InviteModalProps) {
     window.open(`https://wa.me/?text=${encodeURIComponent(inviteText)}`, '_blank');
   }
 
-  function handleSmsShare() {
-    window.open(`sms:?body=${encodeURIComponent(inviteText)}`, '_blank');
+  function handleTwitterShare() {
+    window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(inviteText)}`, '_blank');
+  }
+
+  function handleFacebookShare() {
+    window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(inviteUrl)}`, '_blank');
+  }
+
+  function handleTelegramShare() {
+    window.open(`https://t.me/share/url?url=${encodeURIComponent(inviteUrl)}&text=${encodeURIComponent(inviteText)}`, '_blank');
   }
 
   return (
@@ -44,16 +50,13 @@ export default function InviteModal({ isOpen, onClose }: InviteModalProps) {
         <button
           onClick={onClose}
           aria-label="Close"
-          className="absolute top-4 right-4 p-2 rounded-full text-cream-dim hover:text-cream bg-panel hover:bg-panel-2 transition-colors"
+          className="absolute top-4 right-4 p-2 rounded-full text-cream-dim hover:text-cream bg-panel hover:bg-panel-2 transition-colors cursor-pointer"
         >
           <X size={18} />
         </button>
 
         <div className="text-center space-y-2 pt-2">
-          <div className="w-12 h-12 rounded-full bg-gold/15 border border-gold/30 text-gold flex items-center justify-center mx-auto">
-            <UserPlus size={24} />
-          </div>
-          <h2 className="font-display font-bold text-xl text-cream">Invite Friends & Earn Tokens</h2>
+          <h2 className="font-display font-bold text-xl text-cream">Invite Friends &amp; Earn Tokens</h2>
           <p className="text-xs text-cream-dim leading-relaxed max-w-xs mx-auto">
             Get rewarded with <span className="text-gold font-bold">Mshindi Tokens</span> every time a punter joins using your referral link!
           </p>
@@ -71,12 +74,8 @@ export default function InviteModal({ isOpen, onClose }: InviteModalProps) {
             </span>
           </div>
           <p className="text-xs text-cream leading-relaxed">
-            Invite <span className="font-bold text-gold">3 friends</span> = Get <span className="font-bold text-gold">1 Mshindi Token (1 MT)</span> (Enough to unlock <span className="underline decoration-gold">1 Premium Room for FREE</span>)!
+            Invite <span className="font-bold text-gold">3 friends</span> = Get <span className="font-bold text-gold">1 Mshindi Token</span>!
           </p>
-          <div className="flex items-center justify-between text-[11px] text-cream-dim pt-1 border-t border-line/60">
-            <span className="flex items-center gap-1"><Users size={12} className="text-emerald-2" /> Qualifying Referrals: <strong className="text-cream">{totalReferrals}</strong> ({referralProgressRemainder}/3 toward next MT)</span>
-            <span className="text-gold font-semibold">3 invites = +1 MT ({referralsNeededForNextToken} more needed)</span>
-          </div>
         </div>
 
         {/* Invite Link Copy Box */}
@@ -86,7 +85,7 @@ export default function InviteModal({ isOpen, onClose }: InviteModalProps) {
             <span className="text-xs tabular-nums text-gold truncate">{inviteUrl}</span>
             <button
               onClick={handleCopy}
-              className="py-1.5 px-3 rounded-lg bg-gold hover:bg-gold-2 text-ink font-bold text-xs flex items-center gap-1 shrink-0 transition-colors"
+              className="py-1.5 px-3 rounded-lg bg-gold hover:bg-gold-2 text-ink font-bold text-xs flex items-center gap-1 shrink-0 transition-colors cursor-pointer"
             >
               {copied ? <Check size={13} /> : <Copy size={13} />}
               {copied ? 'Copied' : 'Copy'}
@@ -94,28 +93,50 @@ export default function InviteModal({ isOpen, onClose }: InviteModalProps) {
           </div>
         </div>
 
-        {/* Quick Share Buttons */}
-        <div className="grid grid-cols-2 gap-3 pt-1">
-          <button
-            onClick={handleWhatsAppShare}
-            className="py-3 px-4 rounded-xl bg-emerald-2/15 border border-emerald-2/40 text-emerald-2 hover:bg-emerald-2/25 font-bold text-xs flex items-center justify-center gap-2 transition-all"
-          >
-            <MessageCircle size={16} />
-            Share via WhatsApp
-          </button>
-          <button
-            onClick={handleSmsShare}
-            className="py-3 px-4 rounded-xl bg-blue-500/15 border border-blue-400/40 text-blue-400 hover:bg-blue-500/25 font-bold text-xs flex items-center justify-center gap-2 transition-all"
-          >
-            <Send size={16} />
-            Share via SMS
-          </button>
+        {/* Social Share Icons */}
+        <div className="space-y-2 pt-1">
+          <p className="text-[11px] font-bold text-cream-dim uppercase tracking-wide text-center">
+            Or Share Directly via
+          </p>
+          <div className="flex items-center justify-center gap-3">
+            <button
+              onClick={handleWhatsAppShare}
+              title="Share on WhatsApp"
+              aria-label="Share on WhatsApp"
+              className="w-11 h-11 rounded-full bg-ink-2 border border-line hover:border-emerald-2/50 flex items-center justify-center transition-all hover:scale-105 active:scale-95 cursor-pointer shadow-xs"
+            >
+              <WhatsApp className="w-5 h-5 drop-shadow-xs" />
+            </button>
+            <button
+              onClick={handleTwitterShare}
+              title="Share on X"
+              aria-label="Share on X"
+              className="w-11 h-11 rounded-full bg-ink-2 border border-line hover:border-white/40 flex items-center justify-center transition-all hover:scale-105 active:scale-95 cursor-pointer shadow-xs"
+            >
+              <XformerlyTwitter className="w-4 h-4 fill-white" />
+            </button>
+            <button
+              onClick={handleFacebookShare}
+              title="Share on Facebook"
+              aria-label="Share on Facebook"
+              className="w-11 h-11 rounded-full bg-ink-2 border border-line hover:border-[#0866ff]/50 flex items-center justify-center transition-all hover:scale-105 active:scale-95 cursor-pointer shadow-xs"
+            >
+              <Facebook className="w-5 h-5" />
+            </button>
+            <button
+              onClick={handleTelegramShare}
+              title="Share on Telegram"
+              aria-label="Share on Telegram"
+              className="w-11 h-11 rounded-full bg-ink-2 border border-line hover:border-[#229ED9]/50 flex items-center justify-center transition-all hover:scale-105 active:scale-95 cursor-pointer shadow-xs"
+            >
+              <Telegram className="w-5 h-5" />
+            </button>
+          </div>
         </div>
 
-        <div className="bg-panel border border-line rounded-xl p-3 text-[11px] text-cream-dim flex items-center gap-2">
-          <Sparkles size={14} className="text-gold shrink-0" />
-          <span>Tokens are credited automatically to your Mshindi Tokens balance as soon as your referral signs up.</span>
-        </div>
+        <p className="text-[11px] text-cream-dim text-center px-2">
+          Tokens are credited automatically to your Mshindi Tokens balance as soon as your referral signs up.
+        </p>
       </div>
     </Modal>
   );
