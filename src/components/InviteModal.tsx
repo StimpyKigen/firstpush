@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { X, Copy, Check, Coins } from 'lucide-react';
-import { WhatsApp, XformerlyTwitter, Facebook, Telegram } from './icons/SocialIcons';
+import { WhatsApp, XformerlyTwitter, Facebook, Telegram, Instagram, TikTok } from './icons/SocialIcons';
 import { useCurrentUser } from '../lib/authStore';
 import { useWallet } from '../lib/store';
 import { showToast } from '../lib/notificationStore';
@@ -44,6 +44,18 @@ export default function InviteModal({ isOpen, onClose }: InviteModalProps) {
     window.open(`https://t.me/share/url?url=${encodeURIComponent(inviteUrl)}&text=${encodeURIComponent(inviteText)}`, '_blank');
   }
 
+  function handleInstagramShare() {
+    navigator.clipboard?.writeText(inviteUrl);
+    showToast({ type: 'success', title: 'Invite link copied!', message: 'Paste it in your Instagram bio, DM, or Story.' });
+    window.open('https://www.instagram.com/', '_blank');
+  }
+
+  function handleTikTokShare() {
+    navigator.clipboard?.writeText(inviteUrl);
+    showToast({ type: 'success', title: 'Invite link copied!', message: 'Paste it in your TikTok bio or video caption.' });
+    window.open('https://www.tiktok.com/', '_blank');
+  }
+
   return (
     <Modal isOpen={isOpen} onClose={onClose} overlayClassName="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in">
       <div className="bg-ink border border-gold/40 rounded-2xl max-w-md w-full p-6 space-y-5 shadow-2xl relative">
@@ -55,11 +67,8 @@ export default function InviteModal({ isOpen, onClose }: InviteModalProps) {
           <X size={18} />
         </button>
 
-        <div className="text-center space-y-2 pt-2">
+        <div className="text-center pt-2">
           <h2 className="font-display font-bold text-xl text-cream">Invite Friends &amp; Earn Tokens</h2>
-          <p className="text-xs text-cream-dim leading-relaxed max-w-xs mx-auto">
-            Get rewarded with <span className="text-gold font-bold">Mshindi Tokens</span> every time a punter joins using your referral link!
-          </p>
         </div>
 
         {/* Token Referral Banner */}
@@ -69,7 +78,7 @@ export default function InviteModal({ isOpen, onClose }: InviteModalProps) {
             <span className="text-xs font-bold text-gold uppercase tracking-wide flex items-center gap-1.5">
               <Coins size={15} /> Referral Bonus
             </span>
-            <span className="text-xs tabular-nums font-bold text-cream bg-panel border border-line px-2.5 py-0.5 rounded-full">
+            <span className="text-xs tabular-nums font-bold text-cream">
               Your Tokens: <span className="text-gold">{mshindiTokens} MT</span>
             </span>
           </div>
@@ -98,38 +107,60 @@ export default function InviteModal({ isOpen, onClose }: InviteModalProps) {
           <p className="text-[11px] font-bold text-cream-dim uppercase tracking-wide text-center">
             Or Share Directly via
           </p>
-          <div className="flex items-center justify-center gap-3">
+          <div className="flex items-center justify-center gap-4 sm:gap-5 flex-wrap">
             <button
+              type="button"
               onClick={handleWhatsAppShare}
               title="Share on WhatsApp"
               aria-label="Share on WhatsApp"
-              className="w-11 h-11 rounded-full bg-ink-2 border border-line hover:border-emerald-2/50 flex items-center justify-center transition-all hover:scale-105 active:scale-95 cursor-pointer shadow-xs"
+              className="p-1 flex items-center justify-center transition-transform hover:scale-115 active:scale-95 cursor-pointer"
             >
-              <WhatsApp className="w-5 h-5 drop-shadow-xs" />
+              <WhatsApp className="w-6 h-6 drop-shadow-xs" />
             </button>
             <button
+              type="button"
               onClick={handleTwitterShare}
               title="Share on X"
               aria-label="Share on X"
-              className="w-11 h-11 rounded-full bg-ink-2 border border-line hover:border-white/40 flex items-center justify-center transition-all hover:scale-105 active:scale-95 cursor-pointer shadow-xs"
+              className="p-1 flex items-center justify-center transition-transform hover:scale-115 active:scale-95 cursor-pointer text-white"
             >
-              <XformerlyTwitter className="w-4 h-4 fill-white" />
+              <XformerlyTwitter className="w-5.5 h-5.5 fill-white" />
             </button>
             <button
+              type="button"
               onClick={handleFacebookShare}
               title="Share on Facebook"
               aria-label="Share on Facebook"
-              className="w-11 h-11 rounded-full bg-ink-2 border border-line hover:border-[#0866ff]/50 flex items-center justify-center transition-all hover:scale-105 active:scale-95 cursor-pointer shadow-xs"
+              className="p-1 flex items-center justify-center transition-transform hover:scale-115 active:scale-95 cursor-pointer"
             >
-              <Facebook className="w-5 h-5" />
+              <Facebook className="w-6 h-6" />
             </button>
             <button
+              type="button"
               onClick={handleTelegramShare}
               title="Share on Telegram"
               aria-label="Share on Telegram"
-              className="w-11 h-11 rounded-full bg-ink-2 border border-line hover:border-[#229ED9]/50 flex items-center justify-center transition-all hover:scale-105 active:scale-95 cursor-pointer shadow-xs"
+              className="p-1 flex items-center justify-center transition-transform hover:scale-115 active:scale-95 cursor-pointer"
             >
-              <Telegram className="w-5 h-5" />
+              <Telegram className="w-6 h-6" />
+            </button>
+            <button
+              type="button"
+              onClick={handleInstagramShare}
+              title="Share on Instagram"
+              aria-label="Share on Instagram"
+              className="p-1 flex items-center justify-center transition-transform hover:scale-115 active:scale-95 cursor-pointer"
+            >
+              <Instagram className="w-6 h-6" />
+            </button>
+            <button
+              type="button"
+              onClick={handleTikTokShare}
+              title="Share on TikTok"
+              aria-label="Share on TikTok"
+              className="p-1 flex items-center justify-center transition-transform hover:scale-115 active:scale-95 cursor-pointer"
+            >
+              <TikTok className="w-6 h-6" />
             </button>
           </div>
         </div>
