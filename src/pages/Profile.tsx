@@ -3,9 +3,9 @@ import { useNavigate, Navigate, Link } from 'react-router-dom';
 import {
   Wallet as WalletIcon, ArrowDownLeft, ArrowUpRight, ShieldAlert, LifeBuoy,
   UserPlus, Share2, Trophy as TrophyIcon, Coins, LogOut,
-  ChevronRight, Phone, Clock, ArrowLeft, Check, Sparkles, UserCheck, Bookmark,
-  Instagram, Facebook
+  ChevronRight, Phone, Clock, ArrowLeft, Check, Sparkles, UserCheck, Bookmark
 } from 'lucide-react';
+import { Instagram, XformerlyTwitter, TikTok, Facebook } from '../components/icons/SocialIcons';
 import SeoHead from '../components/SeoHead';
 import { scrollIntoViewIfNeeded } from '../lib/viewportScroll';
 import { useBackToClose } from '../lib/useBackToClose';
@@ -562,54 +562,50 @@ export default function Profile() {
               {/* Follow Mshindi Social Icons */}
               <div className="flex flex-col items-center gap-2 pt-1">
                 <p className="text-[11px] font-bold uppercase tracking-wide text-slate-400">Follow Mshindi</p>
-                <div className="flex items-center justify-center gap-2.5">
+                <div className="flex items-center justify-center gap-3">
                   {/* Instagram */}
                   <a
                     href="https://www.instagram.com/mshindiroom?igsh=MWhxZ3B0c2UweWswaw%3D%3D&utm_source=qr"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="w-8 h-8 rounded-full bg-white lg:hover:bg-[#006C54] lg:hover:text-white border border-slate-300 text-slate-700 active:scale-95 transition-all flex items-center justify-center shrink-0 shadow-xs"
+                    className="p-1 hover:opacity-80 active:scale-95 transition-all flex items-center justify-center shrink-0 cursor-pointer"
                     title="Instagram"
                     aria-label="Instagram"
                   >
-                    <Instagram size={14} />
+                    <Instagram className="w-5 h-5" />
                   </a>
                   {/* X (Twitter) */}
                   <a
                     href="https://x.com/mshindiroom?s=21"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="w-8 h-8 rounded-full bg-white lg:hover:bg-[#006C54] lg:hover:text-white border border-slate-300 text-slate-700 active:scale-95 transition-all flex items-center justify-center shrink-0 shadow-xs"
+                    className="p-1 hover:opacity-80 active:scale-95 transition-all flex items-center justify-center shrink-0 cursor-pointer"
                     title="X (Twitter)"
                     aria-label="X"
                   >
-                    <svg viewBox="0 0 24 24" className="w-3 h-3 fill-current">
-                      <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
-                    </svg>
+                    <XformerlyTwitter className="w-4.5 h-4.5" />
                   </a>
                   {/* TikTok */}
                   <a
                     href="https://www.tiktok.com/@mshindiroom"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="w-8 h-8 rounded-full bg-white lg:hover:bg-[#006C54] lg:hover:text-white border border-slate-300 text-slate-700 active:scale-95 transition-all flex items-center justify-center shrink-0 shadow-xs"
+                    className="p-1 hover:opacity-80 active:scale-95 transition-all flex items-center justify-center shrink-0 cursor-pointer"
                     title="TikTok"
                     aria-label="TikTok"
                   >
-                    <svg viewBox="0 0 24 24" className="w-3 h-3 fill-current">
-                      <path d="M12.525 2.25c.01 0 .02.001.03 0h3.587c.078 2.053 1.258 3.868 3.08 4.717.848.397 1.777.614 2.778.63v3.66c-1.391-.01-2.735-.39-3.92-1.085v6.524c0 4.414-3.578 7.992-7.992 7.992S2.096 21.121 2.096 16.707c0-4.322 3.433-7.85 7.734-7.987v3.693c-2.26.13-4.047 2.002-4.047 4.294 0 2.379 1.929 4.307 4.307 4.307 2.378 0 4.307-1.928 4.307-4.307V2.25z" />
-                    </svg>
+                    <TikTok className="w-4.5 h-5" />
                   </a>
                   {/* Facebook */}
                   <a
                     href="https://www.facebook.com/share/18zCYvkaYQ/?mibextid=wwXIfr"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="w-8 h-8 rounded-full bg-white lg:hover:bg-[#006C54] lg:hover:text-white border border-slate-300 text-slate-700 active:scale-95 transition-all flex items-center justify-center shrink-0 shadow-xs"
+                    className="p-1 hover:opacity-80 active:scale-95 transition-all flex items-center justify-center shrink-0 cursor-pointer"
                     title="Facebook"
                     aria-label="Facebook"
                   >
-                    <Facebook size={14} />
+                    <Facebook className="w-5 h-5" />
                   </a>
                 </div>
                 <p className="text-[11px] text-slate-400 mt-1 mb-0 pb-0">© 2026 MshindiRoom · 18+</p>

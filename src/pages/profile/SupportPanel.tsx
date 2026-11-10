@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
-import { X, MessageCircle, Mail, Phone as PhoneIcon, ChevronRight } from 'lucide-react';
+import { X, Mail, Phone as PhoneIcon, ChevronRight } from 'lucide-react';
+import { WhatsApp } from '../../components/icons/SocialIcons';
 import { RECEIVER_MPESA_NUMBER } from '../../lib/mpesa';
 
 const faqEntries = [
@@ -23,7 +24,7 @@ export default function SupportPanel({ onClose }: SupportPanelProps) {
 
       <div className="grid sm:grid-cols-3 gap-3 mb-6">
         <a href="https://wa.me/254743304579" target="_blank" rel="noreferrer" className="flex flex-col items-center gap-2 p-4 rounded-xl bg-ink-2 border border-line hover:border-emerald-2/40 transition-colors text-center">
-          <MessageCircle size={20} className="text-emerald-2" />
+          <WhatsApp className="w-5 h-5 drop-shadow-xs" />
           <span className="text-xs font-bold text-cream">WhatsApp Chat</span>
           <span className="text-[11px] text-cream-dim tabular-nums">{RECEIVER_MPESA_NUMBER}</span>
         </a>
