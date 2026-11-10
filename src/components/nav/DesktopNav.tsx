@@ -108,12 +108,14 @@ export default function DesktopNav({
             )}
           </div>
         ) : (
-          <Link
-            to="/auth"
-            className="bg-black hover:bg-[#444950] text-white border border-transparent text-xs xl:text-sm font-bold px-4 xl:px-5 h-9 rounded-full inline-flex items-center gap-1.5 whitespace-nowrap shrink-0 active:scale-95 transition-colors"
-          >
-            <UserCircle2 size={15} /> Get Started
-          </Link>
+          <div className="bg-gradient-to-r from-sky-400 to-indigo-600 rounded-full p-[2px] inline-flex items-center justify-center shrink-0">
+            <Link
+              to="/auth"
+              className="bg-black hover:bg-[#444950] text-white border-none text-xs xl:text-sm font-bold px-4 xl:px-5 h-9 rounded-full inline-flex items-center gap-1.5 whitespace-nowrap shrink-0 active:scale-95 transition-colors"
+            >
+              <UserCircle2 size={15} /> Get Started
+            </Link>
+          </div>
         )}
       </div>
     </>
