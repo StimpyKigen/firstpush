@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Wallet as WalletIcon, CheckCircle2, ArrowUpRight, ArrowDownLeft, Loader2, Copy, Check, KeyRound, AlertCircle, Smartphone, Coins, UserPlus, Sparkles, Gift } from 'lucide-react';
+import { CheckCircle2, ArrowUpRight, ArrowDownLeft, Loader2, Copy, Check, KeyRound, AlertCircle, Smartphone, Coins, UserPlus, Gift } from 'lucide-react';
 import SeoHead from '../components/SeoHead';
 import { useWallet } from '../lib/store';
 import { useCurrentUser } from '../lib/authStore';
@@ -28,9 +28,7 @@ export default function WalletPage() {
   const balance = useWallet((s) => s.balance);
   const mshindiTokens = useWallet((s) => s.mshindiTokens);
   const tokenTransactions = useWallet((s) => s.tokenTransactions);
-  const totalReferrals = useWallet((s) => s.totalReferrals);
   const referralProgressRemainder = useWallet((s) => s.referralProgressRemainder);
-  const referralsNeededForNextToken = useWallet((s) => s.referralsNeededForNextToken);
   const isCodeUsed = useWallet((s) => s.isCodeUsed);
   const verifyMpesaAndSyncServer = useWallet((s) => s.verifyMpesaAndSyncServer);
   const syncAuthoritativeTokens = useWallet((s) => s.syncAuthoritativeTokens);
@@ -104,9 +102,6 @@ export default function WalletPage() {
         <BackNavButton fallbackUrl="/" label="Back" />
       </div>
       <div className="text-center mb-8">
-        <div className="w-14 h-14 mx-auto rounded-full bg-[#006C54] flex items-center justify-center mb-3 text-white shadow-xs">
-          <WalletIcon size={26} />
-        </div>
         <h1 className="font-display font-bold text-3xl sm:text-5xl text-slate-900 tracking-tight uppercase">Your Wallet &amp; Rewards</h1>
         <p className="text-slate-600 mt-2 text-sm">Manage M-Pesa top ups and view your earned Mshindi Tokens.</p>
       </div>
@@ -144,7 +139,7 @@ export default function WalletPage() {
             </span>
           </div>
           <p className="font-display font-bold text-4xl text-[#8A6500]">{mshindiTokens} <span className="text-lg text-slate-400 font-sans">MT</span></p>
-          <p className="text-xs text-slate-500 mt-2">Earned from room cashback &amp; inviting friends.</p>
+          <p className="text-xs text-slate-500 mt-2">Earned from cashback &amp; inviting friends.</p>
         </div>
       </div>
 
@@ -288,35 +283,35 @@ export default function WalletPage() {
                 className="inline-flex items-center gap-1 sm:gap-1.5 bg-[#8A6500] hover:bg-[#6d4f00] text-[#FFFFF0] font-bold text-[11px] sm:text-xs px-2.5 py-1.5 sm:px-3.5 sm:py-2 rounded-full transition-all shadow-xs sm:shadow-md shrink-0 whitespace-nowrap active:scale-95 cursor-pointer"
               >
                 <UserPlus size={13} className="shrink-0" />
-                <span>Invite<span className="hidden sm:inline"> Friends</span> (3 = +1 MT)</span>
+                <span>Invite<span className="hidden sm:inline"> Friends</span></span>
               </button>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="bg-ink/80 border border-line rounded-xl p-4 flex flex-col gap-1.5">
-                <span className="text-gold font-bold text-sm flex items-center gap-1.5">
-                  <Sparkles size={15} /> 1. Purchase Rewards
+                <span className="text-gold font-bold text-sm">
+                  1. Purchase Rewards
                 </span>
                 <p className="text-xs text-cream-dim leading-relaxed">
-                  Earn <strong className="text-gold">1 Mshindi Token (1 MT)</strong> for every verified <strong className="text-gold">KSh 100</strong> purchase or top-up.
+                  Earn <strong className="text-gold">1 Mshindi Token</strong> for every verified <strong className="text-gold">KSh 100</strong> purchase or top-up.
                 </p>
               </div>
 
               <div className="bg-ink/80 border border-line rounded-xl p-4 flex flex-col gap-1.5">
-                <span className="text-emerald-2 font-bold text-sm flex items-center gap-1.5">
-                  <UserPlus size={15} /> 2. Invite Punters
+                <span className="text-gold font-bold text-sm">
+                  2. Invite Punters
                 </span>
                 <p className="text-xs text-cream-dim leading-relaxed">
-                  Get <strong className="text-gold">1 Mshindi Token (1 MT)</strong> for every <strong className="text-gold">3 qualifying friends</strong> who join using your referral link.
+                  Get <strong className="text-gold">1 Mshindi Token</strong> for every <strong className="text-gold">3 qualifying friends</strong> who join using your referral link.
                 </p>
               </div>
 
               <div className="bg-ink/80 border border-line rounded-xl p-4 flex flex-col gap-1.5">
-                <span className="text-gold font-bold text-sm flex items-center gap-1.5">
-                  <Coins size={15} /> 3. Unlock Free Rooms
+                <span className="text-gold font-bold text-sm">
+                  3. Unlock Free Rooms
                 </span>
                 <p className="text-xs text-cream-dim leading-relaxed">
-                  Redeem <strong className="text-gold">1 MT</strong> (3 qualifying invites) to unlock a premium jackpot room for free!
+                  Redeem <strong className="text-gold">1 Mshindi Token</strong> to unlock a premium jackpot room for free!
                 </p>
               </div>
             </div>
@@ -329,7 +324,7 @@ export default function WalletPage() {
                 <Coins size={18} className="text-gold" /> Mshindi Token Activity
               </h2>
               <span className="text-xs text-cream-dim tabular-nums">
-                Qualifying Referrals: <strong className="text-emerald-2">{totalReferrals}</strong> · Progress: <strong className="text-gold">{referralProgressRemainder}/3</strong> ({referralsNeededForNextToken} more for +1 MT)
+                Progress: <strong className="text-gold">{referralProgressRemainder}/3</strong>
               </span>
             </div>
 
