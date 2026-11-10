@@ -288,9 +288,7 @@ export default function Leaderboard() {
           >
             <Flame size={15} className="shrink-0 text-[#006C54] dark:text-emerald-400" />
             <span className="text-xs sm:text-[13px] tracking-tight leading-none truncate">
-              {mainTab === 'rooms'
-                ? (roomViewTab === 'active' ? 'Active Rooms' : 'Archives')
-                : 'Jackpot Rooms'}
+              Jackpot Rooms
             </span>
             <ChevronsUpDown className="ml-1 h-3.5 w-3.5 text-slate-400 dark:text-slate-400 shrink-0" />
           </DropdownMenuTrigger>
@@ -346,17 +344,7 @@ export default function Leaderboard() {
           >
             <Trophy size={15} className="shrink-0 text-[#006C54] dark:text-emerald-400" />
             <span className="text-xs sm:text-[13px] tracking-tight leading-none truncate">
-              {mainTab === 'leaderboard'
-                ? (filterTab === 'all'
-                    ? 'All Standings'
-                    : filterTab === 'my'
-                    ? 'My Rooms'
-                    : filterTab === 'not_started'
-                    ? 'Upcoming'
-                    : filterTab === 'live'
-                    ? 'Live'
-                    : 'Settled')
-                : 'Leaderboard & Ranks'}
+              Leaderboard &amp; Ranks
             </span>
             <ChevronsUpDown className="ml-1 h-3.5 w-3.5 text-slate-400 dark:text-slate-400 shrink-0" />
           </DropdownMenuTrigger>
