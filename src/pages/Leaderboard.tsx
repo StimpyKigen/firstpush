@@ -284,22 +284,17 @@ export default function Leaderboard() {
         {/* Dropdown 1: Jackpot Rooms */}
         <DropdownMenu>
           <DropdownMenuTrigger
-            className={cn(
-              "flex items-center gap-2 h-8 sm:h-8.5 px-3 rounded-lg transition-all cursor-pointer select-none border-0 shadow-2xs outline-none",
-              mainTab === 'rooms'
-                ? "bg-slate-200/90 text-slate-950 font-bold dark:bg-[#252C28] dark:text-white dark:ring-1 dark:ring-emerald-500/40"
-                : "bg-slate-100/90 text-slate-800 hover:text-slate-950 hover:bg-slate-200/70 font-semibold dark:bg-[#1A1F1C] dark:text-[#E2E8F0] dark:hover:text-white dark:hover:bg-[#222824]"
-            )}
+            className="flex items-center gap-2 h-8 sm:h-8.5 px-3 rounded-lg transition-all cursor-pointer select-none bg-white hover:bg-slate-50 text-slate-950 font-bold border border-slate-200/90 shadow-2xs outline-none dark:bg-black dark:hover:bg-[#121614] dark:text-white dark:border-white/10"
           >
-            <Flame size={15} className="shrink-0 text-amber-500 dark:text-amber-400" />
+            <Flame size={15} className="shrink-0 text-[#006C54] dark:text-emerald-400" />
             <span className="text-xs sm:text-[13px] tracking-tight leading-none truncate">
               {mainTab === 'rooms'
                 ? (roomViewTab === 'active' ? 'Active Rooms' : 'Archives')
                 : 'Jackpot Rooms'}
             </span>
-            <ChevronsUpDown className="ml-1 h-3.5 w-3.5 text-slate-600 dark:text-[#94A3B8] shrink-0" />
+            <ChevronsUpDown className="ml-1 h-3.5 w-3.5 text-slate-400 dark:text-slate-400 shrink-0" />
           </DropdownMenuTrigger>
-          <DropdownMenuContent className="w-48 bg-white dark:bg-[#1C221E] border border-slate-200 dark:border-[#343D37] shadow-lg" align="start">
+          <DropdownMenuContent className="w-48 bg-white dark:bg-black border border-slate-200 dark:border-white/10 shadow-lg" align="start">
             <DropdownMenuLabel className="text-xs font-bold text-slate-950 dark:text-white px-2.5 py-1.5">
               Jackpot Rooms
             </DropdownMenuLabel>
@@ -310,13 +305,13 @@ export default function Leaderboard() {
                 setRoomStatus('All');
               }}
               className={cn(
-                "flex items-center gap-2 px-2.5 py-2 cursor-pointer transition-colors rounded-md",
+                "flex items-center gap-2 px-2.5 py-2 cursor-pointer transition-colors rounded-md hover:bg-slate-100 dark:hover:bg-white/10",
                 mainTab === 'rooms' && roomViewTab === 'active'
-                  ? "bg-emerald-500/10 text-emerald-800 dark:text-emerald-400 font-bold"
-                  : "text-slate-900 hover:text-black dark:text-[#F1F5F9] dark:hover:text-white font-semibold"
+                  ? "font-bold text-slate-950 dark:text-white"
+                  : "font-medium text-slate-700 hover:text-slate-950 dark:text-slate-300 dark:hover:text-white"
               )}
             >
-              <Flame size={15} className="shrink-0 text-amber-500 dark:text-amber-400" />
+              <Flame size={15} className="shrink-0 text-[#006C54] dark:text-emerald-400" />
               <span className="text-xs sm:text-[13px] leading-none">Active Rooms</span>
               {mainTab === 'rooms' && roomViewTab === 'active' && (
                 <Check className="ml-auto h-3.5 w-3.5 text-[#006C54] dark:text-emerald-400 shrink-0 font-bold" />
@@ -329,13 +324,13 @@ export default function Leaderboard() {
                 setRoomStatus('All');
               }}
               className={cn(
-                "flex items-center gap-2 px-2.5 py-2 cursor-pointer transition-colors rounded-md",
+                "flex items-center gap-2 px-2.5 py-2 cursor-pointer transition-colors rounded-md hover:bg-slate-100 dark:hover:bg-white/10",
                 mainTab === 'rooms' && roomViewTab === 'archive'
-                  ? "bg-emerald-500/10 text-emerald-800 dark:text-emerald-400 font-bold"
-                  : "text-slate-900 hover:text-black dark:text-[#F1F5F9] dark:hover:text-white font-semibold"
+                  ? "font-bold text-slate-950 dark:text-white"
+                  : "font-medium text-slate-700 hover:text-slate-950 dark:text-slate-300 dark:hover:text-white"
               )}
             >
-              <Archive size={15} className="shrink-0 text-amber-600 dark:text-amber-400" />
+              <Archive size={15} className="shrink-0 text-[#006C54] dark:text-emerald-400" />
               <span className="text-xs sm:text-[13px] leading-none">Archives</span>
               {mainTab === 'rooms' && roomViewTab === 'archive' && (
                 <Check className="ml-auto h-3.5 w-3.5 text-[#006C54] dark:text-emerald-400 shrink-0 font-bold" />
@@ -347,14 +342,9 @@ export default function Leaderboard() {
         {/* Dropdown 2: Leaderboard & Ranks */}
         <DropdownMenu>
           <DropdownMenuTrigger
-            className={cn(
-              "flex items-center gap-2 h-8 sm:h-8.5 px-3 rounded-lg transition-all cursor-pointer select-none border-0 shadow-2xs outline-none",
-              mainTab === 'leaderboard'
-                ? "bg-slate-200/90 text-slate-950 font-bold dark:bg-[#252C28] dark:text-white dark:ring-1 dark:ring-emerald-500/40"
-                : "bg-slate-100/90 text-slate-800 hover:text-slate-950 hover:bg-slate-200/70 font-semibold dark:bg-[#1A1F1C] dark:text-[#E2E8F0] dark:hover:text-white dark:hover:bg-[#222824]"
-            )}
+            className="flex items-center gap-2 h-8 sm:h-8.5 px-3 rounded-lg transition-all cursor-pointer select-none bg-white hover:bg-slate-50 text-slate-950 font-bold border border-slate-200/90 shadow-2xs outline-none dark:bg-black dark:hover:bg-[#121614] dark:text-white dark:border-white/10"
           >
-            <Trophy size={15} className="shrink-0 text-amber-500 dark:text-amber-400" />
+            <Trophy size={15} className="shrink-0 text-[#006C54] dark:text-emerald-400" />
             <span className="text-xs sm:text-[13px] tracking-tight leading-none truncate">
               {mainTab === 'leaderboard'
                 ? (filterTab === 'all'
@@ -368,18 +358,18 @@ export default function Leaderboard() {
                     : 'Settled')
                 : 'Leaderboard & Ranks'}
             </span>
-            <ChevronsUpDown className="ml-1 h-3.5 w-3.5 text-slate-600 dark:text-[#94A3B8] shrink-0" />
+            <ChevronsUpDown className="ml-1 h-3.5 w-3.5 text-slate-400 dark:text-slate-400 shrink-0" />
           </DropdownMenuTrigger>
-          <DropdownMenuContent className="w-52 bg-white dark:bg-[#1C221E] border border-slate-200 dark:border-[#343D37] shadow-lg" align="start">
+          <DropdownMenuContent className="w-52 bg-white dark:bg-black border border-slate-200 dark:border-white/10 shadow-lg" align="start">
             <DropdownMenuLabel className="text-xs font-bold text-slate-950 dark:text-white px-2.5 py-1.5">
               Leaderboard &amp; Ranks
             </DropdownMenuLabel>
             {[
-              { id: 'all', name: 'All Standings', icon: Layers, iconColor: 'text-slate-600 dark:text-slate-300' },
-              { id: 'my', name: 'My Rooms', icon: Target, iconColor: 'text-[#006C54] dark:text-emerald-400' },
-              { id: 'not_started', name: 'Upcoming', icon: Clock, iconColor: 'text-amber-500 dark:text-amber-400' },
-              { id: 'live', name: 'Live', icon: Flame, iconColor: 'text-rose-500 dark:text-rose-400' },
-              { id: 'settled', name: 'Settled', icon: CheckCircle2, iconColor: 'text-emerald-600 dark:text-emerald-400' },
+              { id: 'all', name: 'All Standings', icon: Layers },
+              { id: 'my', name: 'My Rooms', icon: Target },
+              { id: 'not_started', name: 'Upcoming', icon: Clock },
+              { id: 'live', name: 'Live', icon: Flame },
+              { id: 'settled', name: 'Settled', icon: CheckCircle2 },
             ].map((item) => {
               const Icon = item.icon;
               const isSelected = mainTab === 'leaderboard' && filterTab === item.id;
@@ -391,13 +381,13 @@ export default function Leaderboard() {
                     setFilterTab(item.id as 'all' | 'my' | DisplayRoomStatus);
                   }}
                   className={cn(
-                    "flex items-center gap-2 px-2.5 py-2 cursor-pointer transition-colors rounded-md",
+                    "flex items-center gap-2 px-2.5 py-2 cursor-pointer transition-colors rounded-md hover:bg-slate-100 dark:hover:bg-white/10",
                     isSelected
-                      ? "bg-emerald-500/10 text-emerald-800 dark:text-emerald-400 font-bold"
-                      : "text-slate-900 hover:text-black dark:text-[#F1F5F9] dark:hover:text-white font-semibold"
+                      ? "font-bold text-slate-950 dark:text-white"
+                      : "font-medium text-slate-700 hover:text-slate-950 dark:text-slate-300 dark:hover:text-white"
                   )}
                 >
-                  <Icon size={15} className={cn("shrink-0", item.iconColor)} />
+                  <Icon size={15} className="shrink-0 text-[#006C54] dark:text-emerald-400" />
                   <span className="text-xs sm:text-[13px] leading-none">{item.name}</span>
                   {isSelected && (
                     <Check className="ml-auto h-3.5 w-3.5 text-[#006C54] dark:text-emerald-400 shrink-0 font-bold" />
