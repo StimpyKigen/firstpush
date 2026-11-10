@@ -240,7 +240,7 @@ export default function Leaderboard() {
           <p className="text-xs sm:text-sm text-slate-600 dark:text-[#94A3B8] mt-1">
             {mainTab === 'rooms'
               ? (roomViewTab === 'active'
-                  ? 'Showing live and upcoming jackpot rooms. Select any room to vote and pool crowd consensus.'
+                  ? 'Showing live and upcoming jackpot rooms. Select any room to share and pool crowd consensus.'
                   : 'Jackpot Archives: Review completed rooms, final winning slips, and historical crowd accuracy.')
               : 'Independent standings per jackpot room. Select any room to expand its rankings, participant slips & live leg hits.'}
           </p>
@@ -532,95 +532,32 @@ export default function Leaderboard() {
           ========================================================================= */}
       {mainTab === 'leaderboard' && (
         <div className="space-y-6 animate-rise">
-          {/* Filter Tabs & Search Bar */}
-          <div className="bg-white dark:bg-[#202522] border border-slate-200 dark:border-[#414A43] rounded-2xl p-4 space-y-3 shadow-xs">
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
-              {/* Main Status Category Tabs */}
-              <div className="flex items-center gap-1 p-1 bg-slate-100 rounded-full overflow-x-auto scrollbar-none text-xs font-bold uppercase tracking-wide w-full sm:w-auto">
+          {/* Bookie Pill Selection With Logos */}
+          <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1 -mx-4 px-4 sm:mx-0 sm:px-0 flex-nowrap sm:flex-wrap">
+            <span className="text-[11px] font-bold uppercase tracking-wide text-slate-400 flex items-center gap-1 shrink-0 mr-1">
+              <Filter size={11} /> Bookie:
+            </span>
+            {['all', 'SportPesa', 'Betika', 'MozzartBet', 'Odibets', 'SportyBet', 'BetPawa', '1xBet', '22Bet'].map((b) => {
+              const t = b !== 'all' ? getBookieTheme(b) : null;
+              return (
                 <button
-                  onClick={() => setFilterTab('all')}
-                  className={`px-4 py-1.5 rounded-full transition-all flex items-center gap-1.5 whitespace-nowrap active:scale-95 ${
-                    filterTab === 'all'
-                      ? 'bg-[#006C54] text-white shadow-xs'
-                      : 'text-slate-600 hover:text-slate-900'
+                  key={b}
+                  onClick={() => setSelectedBookie(b)}
+                  className={`px-3 sm:px-3.5 py-1.5 rounded-full text-xs font-bold border transition-all shrink-0 whitespace-nowrap active:scale-95 flex items-center gap-1.5 ${
+                    selectedBookie.toLowerCase() === b.toLowerCase()
+                      ? 'bg-[#006C54] border-[#006C54] text-white shadow-xs font-bold'
+                      : 'border-slate-200 text-slate-600 bg-white hover:border-slate-300 hover:bg-slate-50'
                   }`}
                 >
-                  <Layers size={13} /> All ({allJackpots.length})
+                  {t && (
+                    <div className="w-3.5 h-3.5 rounded-full overflow-hidden shrink-0 border border-slate-200 bg-white p-0.2">
+                      <img src={t.logo} alt={b} className="w-full h-full object-contain" />
+                    </div>
+                  )}
+                  <span>{b === 'all' ? 'All' : b}</span>
                 </button>
-
-                <button
-                  onClick={() => setFilterTab('my')}
-                  className={`px-4 py-1.5 rounded-full transition-all flex items-center gap-1.5 whitespace-nowrap active:scale-95 ${
-                    filterTab === 'my'
-                      ? 'bg-[#006C54] text-white shadow-xs'
-                      : 'text-slate-600 hover:text-slate-900'
-                  }`}
-                >
-                  <Target size={13} /> My Rooms ({totalRoomsJoined})
-                </button>
-
-                <button
-                  onClick={() => setFilterTab('not_started')}
-                  className={`px-3.5 py-1.5 rounded-full transition-all flex items-center gap-1.5 whitespace-nowrap ${
-                    filterTab === 'not_started'
-                      ? 'bg-amber-500 text-white shadow-xs'
-                      : 'text-slate-600 hover:text-slate-900'
-                  }`}
-                >
-                  <Clock size={12} /> Upcoming
-                </button>
-
-                <button
-                  onClick={() => setFilterTab('live')}
-                  className={`px-3.5 py-1.5 rounded-full transition-all flex items-center gap-1.5 whitespace-nowrap ${
-                    filterTab === 'live'
-                      ? 'bg-[#006C54] text-white shadow-xs'
-                      : 'text-slate-600 hover:text-slate-900'
-                  }`}
-                >
-                  <Flame size={12} /> Live
-                </button>
-
-                <button
-                  onClick={() => setFilterTab('settled')}
-                  className={`px-3.5 py-1.5 rounded-full transition-all flex items-center gap-1.5 whitespace-nowrap ${
-                    filterTab === 'settled'
-                      ? 'bg-emerald-600 text-white shadow-xs'
-                      : 'text-slate-600 hover:text-slate-900'
-                  }`}
-                >
-                  <CheckCircle2 size={12} /> Settled
-                </button>
-              </div>
-            </div>
-
-            {/* Bookie Pill Selection With Logos */}
-            <div className="flex items-center gap-1.5 overflow-x-auto pt-2 border-t border-slate-100 scrollbar-none">
-              <span className="text-[11px] font-bold uppercase tracking-wide text-slate-400 flex items-center gap-1 shrink-0 mr-1">
-                <Filter size={11} /> Bookie:
-              </span>
-              {['all', 'SportPesa', 'Betika', 'MozzartBet', 'Odibets', 'SportyBet', 'BetPawa', '1xBet', '22Bet'].map((b) => {
-                const t = b !== 'all' ? getBookieTheme(b) : null;
-                return (
-                  <button
-                    key={b}
-                    onClick={() => setSelectedBookie(b)}
-                    className={`px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wide border transition-all shrink-0 flex items-center gap-1.5 ${
-                      selectedBookie.toLowerCase() === b.toLowerCase()
-                        ? 'bg-[#006C54] border-[#006C54] text-white shadow-xs'
-                        : 'bg-white border-slate-200 text-slate-600 hover:border-[#006C54] hover:text-[#006C54]'
-                    }`}
-                  >
-                    {t && (
-                      <div className="w-3 h-3 rounded-full overflow-hidden shrink-0 border border-slate-200 bg-white">
-                        <img src={t.logo} alt={b} className="w-full h-full object-contain" />
-                      </div>
-                    )}
-                    <span>{b === 'all' ? 'All' : b}</span>
-                  </button>
-                );
-              })}
-            </div>
+              );
+            })}
           </div>
 
           {/* Empty State */}
