@@ -3,8 +3,18 @@ import { useSearchParams, Link } from 'react-router-dom';
 import {
   Trophy, Crown, Medal, Flame, Clock, CheckCircle2, Users,
   Filter, Target, ExternalLink,
-  Layers, ChevronUp, ChevronDown, SlidersHorizontal, Archive
+  Layers, ChevronUp, ChevronDown, SlidersHorizontal, Archive,
+  Check, ChevronsUpDown
 } from 'lucide-react';
+import { Avatar as UiAvatar, AvatarFallback as UiAvatarFallback } from '@/components/ui/avatar';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { cn } from '@/lib/utils';
 import SeoHead from '../components/SeoHead';
 import { subscribeToJackpots, getJackpotsSnapshot } from '../lib/mockData';
 import { useUserPicks } from '../lib/userPicksStore';
@@ -221,106 +231,177 @@ export default function Leaderboard() {
       />
 
       {/* =========================================================================
-          TOP SEGMENTED SWITCHER: JACKPOT ROOMS (DOMINANT) vs LEADERBOARD
+          TOP CONTROLS: JACKPOT ROOMS & LEADERBOARDS DROPDOWNS (BORDERLESS & CENTERED ON MOBILE)
           ========================================================================= */}
-      {/* Mobile View: Minimalist Clean Bar (Inspired by Picture 1) */}
-      <div className="block sm:hidden bg-white border border-slate-200 rounded-xl p-2 shadow-xs space-y-2">
-        <div className="grid grid-cols-2 divide-x divide-slate-100 text-center">
-          <button
-            type="button"
-            onClick={() => handleTabChange('rooms')}
-            className={`py-1.5 px-2 text-xs flex items-center justify-center gap-1.5 transition-colors ${
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pb-2 border-0 bg-transparent dark:bg-transparent">
+        <div className="flex items-center justify-center sm:justify-start gap-2.5 sm:gap-3 flex-wrap sm:flex-nowrap w-full sm:w-auto">
+          {/* Dropdown 1: Jackpot Rooms */}
+          <DropdownMenu>
+            <DropdownMenuTrigger className={cn(
+              "flex items-center gap-2.5 py-2 px-3 rounded-xl transition-all cursor-pointer select-none text-start border-0 shadow-2xs outline-none",
               mainTab === 'rooms'
-                ? 'text-[#006C54] font-bold'
-                : 'text-slate-500 font-semibold hover:text-slate-700'
-            }`}
-          >
-            <span>Jackpot Rooms</span>
-            <span className={`text-[11px] tabular-nums font-bold ${
-              mainTab === 'rooms' ? 'text-[#006C54]' : 'text-slate-500 dark:text-[#B5BDB6]'
-            }`}>
-              {activeRooms.length}
-            </span>
-          </button>
+                ? "bg-slate-200/80 dark:bg-[#2A312D] text-slate-900 dark:text-[#F4F5EF] ring-1 ring-[#006C54]/30"
+                : "bg-slate-100 hover:bg-slate-200/70 dark:bg-[#202522] dark:hover:bg-[#2A312D] text-slate-700 dark:text-[#B5BDB6]"
+            )}>
+              <UiAvatar className="rounded-lg h-8 w-8 shrink-0">
+                <UiAvatarFallback className="rounded-lg bg-[#006C54]/10 dark:bg-[#006C54]/25 text-[#006C54] dark:text-emerald-400 font-bold border-0">
+                  <Flame size={16} />
+                </UiAvatarFallback>
+              </UiAvatar>
+              <div className="text-start flex flex-col gap-0.5 leading-none min-w-0">
+                <span className="text-xs sm:text-sm leading-tight font-semibold truncate max-w-[15ch] sm:max-w-[18ch]">
+                  {mainTab === 'rooms'
+                    ? (roomViewTab === 'active' ? 'Active Rooms' : 'Archives')
+                    : 'Jackpot Rooms'}
+                </span>
+                <span className="text-[10px] sm:text-[11px] text-slate-500 dark:text-[#929D95] truncate max-w-[18ch] sm:max-w-[22ch]">
+                  {roomViewTab === 'active'
+                    ? `${activeRooms.length} Live/Upcoming`
+                    : `${archivedRooms.length} Settled`}
+                </span>
+              </div>
+              <ChevronsUpDown className="ml-1.5 sm:ml-2.5 h-4 w-4 text-slate-400 dark:text-[#929D95] shrink-0" />
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="w-56" align="start">
+              <DropdownMenuLabel>Jackpot Rooms</DropdownMenuLabel>
+              <DropdownMenuItem
+                onClick={() => {
+                  handleTabChange('rooms');
+                  setRoomViewTab('active');
+                  setRoomStatus('All');
+                }}
+              >
+                <div className="flex items-center gap-2.5 w-full">
+                  <UiAvatar className="rounded-md h-7 w-7 shrink-0">
+                    <UiAvatarFallback className="rounded-md bg-emerald-500/10 text-[#006C54] dark:text-emerald-400 border-0">
+                      <Flame size={14} />
+                    </UiAvatarFallback>
+                  </UiAvatar>
+                  <div className="flex flex-col min-w-0">
+                    <span className="font-semibold text-xs text-slate-900 dark:text-[#F4F5EF]">Active Rooms</span>
+                    <span className="text-[10px] text-slate-500 dark:text-[#929D95]">
+                      {activeRooms.length} Live &amp; Upcoming
+                    </span>
+                  </div>
+                  {mainTab === 'rooms' && roomViewTab === 'active' && (
+                    <Check className="ml-auto h-4 w-4 text-[#006C54] dark:text-emerald-400 shrink-0" />
+                  )}
+                </div>
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => {
+                  handleTabChange('rooms');
+                  setRoomViewTab('archive');
+                  setRoomStatus('All');
+                }}
+              >
+                <div className="flex items-center gap-2.5 w-full">
+                  <UiAvatar className="rounded-md h-7 w-7 shrink-0">
+                    <UiAvatarFallback className="rounded-md bg-amber-500/10 text-amber-700 dark:text-amber-400 border-0">
+                      <Archive size={14} />
+                    </UiAvatarFallback>
+                  </UiAvatar>
+                  <div className="flex flex-col min-w-0">
+                    <span className="font-semibold text-xs text-slate-900 dark:text-[#F4F5EF]">Archives</span>
+                    <span className="text-[10px] text-slate-500 dark:text-[#929D95]">
+                      {archivedRooms.length} Settled Records
+                    </span>
+                  </div>
+                  {mainTab === 'rooms' && roomViewTab === 'archive' && (
+                    <Check className="ml-auto h-4 w-4 text-[#006C54] dark:text-emerald-400 shrink-0" />
+                  )}
+                </div>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
 
-          <button
-            type="button"
-            onClick={() => handleTabChange('leaderboard')}
-            className={`py-1.5 px-2 text-xs flex items-center justify-center gap-1.5 transition-colors ${
+          {/* Dropdown 2: Leaderboard & Ranks */}
+          <DropdownMenu>
+            <DropdownMenuTrigger className={cn(
+              "flex items-center gap-2.5 py-2 px-3 rounded-xl transition-all cursor-pointer select-none text-start border-0 shadow-2xs outline-none",
               mainTab === 'leaderboard'
-                ? 'text-[#006C54] font-bold'
-                : 'text-slate-500 font-semibold hover:text-slate-700'
-            }`}
-          >
-            <span>Leaderboards &amp; Ranks</span>
-          </button>
+                ? "bg-slate-200/80 dark:bg-[#2A312D] text-slate-900 dark:text-[#F4F5EF] ring-1 ring-[#006C54]/30"
+                : "bg-slate-100 hover:bg-slate-200/70 dark:bg-[#202522] dark:hover:bg-[#2A312D] text-slate-700 dark:text-[#B5BDB6]"
+            )}>
+              <UiAvatar className="rounded-lg h-8 w-8 shrink-0">
+                <UiAvatarFallback className="rounded-lg bg-amber-500/10 dark:bg-amber-500/25 text-[#8A6500] dark:text-amber-400 font-bold border-0">
+                  <Trophy size={16} />
+                </UiAvatarFallback>
+              </UiAvatar>
+              <div className="text-start flex flex-col gap-0.5 leading-none min-w-0">
+                <span className="text-xs sm:text-sm leading-tight font-semibold truncate max-w-[15ch] sm:max-w-[18ch]">
+                  {mainTab === 'leaderboard'
+                    ? (filterTab === 'all'
+                        ? 'All Standings'
+                        : filterTab === 'my'
+                        ? 'My Rooms'
+                        : filterTab === 'not_started'
+                        ? 'Upcoming'
+                        : filterTab === 'live'
+                        ? 'Live'
+                        : 'Settled')
+                    : 'Leaderboards & Ranks'}
+                </span>
+                <span className="text-[10px] sm:text-[11px] text-slate-500 dark:text-[#929D95] truncate max-w-[18ch] sm:max-w-[22ch]">
+                  {mainTab === 'leaderboard' ? 'Standings & Rank' : `${allJackpots.length} Pools`}
+                </span>
+              </div>
+              <ChevronsUpDown className="ml-1.5 sm:ml-2.5 h-4 w-4 text-slate-400 dark:text-[#929D95] shrink-0" />
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="w-56" align="start">
+              <DropdownMenuLabel>Leaderboards &amp; Ranks</DropdownMenuLabel>
+              {[
+                { id: 'all', name: 'All Rooms', desc: `${allJackpots.length} total pools`, icon: Layers },
+                { id: 'my', name: 'My Rooms', desc: `${totalRoomsJoined} joined`, icon: Target },
+                { id: 'not_started', name: 'Upcoming', desc: 'Pre-match pools', icon: Clock },
+                { id: 'live', name: 'Live', desc: 'In-play jackpots', icon: Flame },
+                { id: 'settled', name: 'Settled', desc: 'Final winners & slips', icon: CheckCircle2 },
+              ].map((item) => {
+                const Icon = item.icon;
+                const isSelected = mainTab === 'leaderboard' && filterTab === item.id;
+                return (
+                  <DropdownMenuItem
+                    key={item.id}
+                    onClick={() => {
+                      handleTabChange('leaderboard');
+                      setFilterTab(item.id as 'all' | 'my' | DisplayRoomStatus);
+                    }}
+                  >
+                    <div className="flex items-center gap-2.5 w-full">
+                      <UiAvatar className="rounded-md h-7 w-7 shrink-0">
+                        <UiAvatarFallback className="rounded-md bg-slate-100 dark:bg-[#2A312D] text-slate-700 dark:text-slate-200 border-0">
+                          <Icon size={14} />
+                        </UiAvatarFallback>
+                      </UiAvatar>
+                      <div className="flex flex-col min-w-0">
+                        <span className="font-semibold text-xs text-slate-900 dark:text-[#F4F5EF]">{item.name}</span>
+                        <span className="text-[10px] text-slate-500 dark:text-[#929D95]">{item.desc}</span>
+                      </div>
+                      {isSelected && (
+                        <Check className="ml-auto h-4 w-4 text-[#006C54] dark:text-emerald-400 shrink-0" />
+                      )}
+                    </div>
+                  </DropdownMenuItem>
+                );
+              })}
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
 
-        {/* Compact Mobile Stats Strip */}
-        <div className="border-t border-slate-100 pt-1.5 px-1 flex items-center justify-between text-[11px]">
-          <div className="flex items-center gap-1">
-            <span className="text-slate-400 font-medium">Joined:</span>
-            <strong className="text-slate-800 font-bold">{totalRoomsJoined}</strong>
-          </div>
-          <div className="w-px h-3 bg-slate-200" />
-          <div className="flex items-center gap-1">
-            <span className="text-slate-400 font-medium">Accuracy:</span>
-            <strong className="text-[#006C54] font-bold">{overallAccuracy}%</strong>
-          </div>
-          <div className="w-px h-3 bg-slate-200" />
-          <div className="flex items-center gap-0.5 text-[#8A6500] font-bold">
-            <span>{userStats.stars}★</span>
-          </div>
-        </div>
-      </div>
-
-      {/* Desktop View: Clean Text Tab Switcher & Stats (sm: and up) */}
-      <div className="hidden sm:flex sm:flex-row sm:items-center justify-between gap-4">
-        <div className="inline-flex items-center gap-3 self-start">
-          <button
-            type="button"
-            onClick={() => handleTabChange('rooms')}
-            className={`py-2 px-1 font-display text-sm flex items-center gap-2 transition-all active:scale-95 cursor-pointer ${
-              mainTab === 'rooms'
-                ? 'text-[#006C54] font-bold'
-                : 'text-slate-500 font-bold hover:text-slate-800'
-            }`}
-          >
-            <Flame size={16} className={mainTab === 'rooms' ? 'text-[#006C54]' : 'text-slate-400'} />
-            <span>Jackpot Rooms</span>
-            <span className="text-xs tabular-nums font-bold">
-              {activeRooms.length}
-            </span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => handleTabChange('leaderboard')}
-            className={`py-2 px-1 font-display text-sm flex items-center gap-2 transition-all active:scale-95 cursor-pointer ${
-              mainTab === 'leaderboard'
-                ? 'text-[#006C54] font-bold'
-                : 'text-slate-500 font-bold hover:text-slate-800'
-            }`}
-          >
-            <Trophy size={16} className={mainTab === 'leaderboard' ? 'text-[#006C54]' : 'text-slate-400'} />
-            <span>Leaderboards &amp; Ranks</span>
-          </button>
-        </div>
-
-        {/* User Stats Pill in Header */}
-        <div className="flex items-center gap-3 bg-white border border-[#D4D4C0] px-4 py-2 rounded-full text-xs shrink-0 self-stretch sm:self-auto justify-between shadow-2xs">
+        {/* User Stats Pill in Header (Desktop / Tablet) */}
+        <div className="hidden sm:flex items-center gap-3 bg-white dark:bg-[#202522] border border-[#D4D4C0] dark:border-[#414A43] px-4 py-2 rounded-full text-xs shrink-0 justify-between shadow-2xs">
           <div className="flex items-center gap-1.5">
-            <Target size={14} className="text-[#006C54]" />
-            <span className="text-slate-500 font-bold uppercase text-[11px]">Joined:</span>
-            <strong className="text-slate-900 font-bold">{totalRoomsJoined}</strong>
+            <Target size={14} className="text-[#006C54] dark:text-emerald-400" />
+            <span className="text-slate-500 dark:text-[#929D95] font-bold uppercase text-[11px]">Joined:</span>
+            <strong className="text-slate-900 dark:text-[#F4F5EF] font-bold">{totalRoomsJoined}</strong>
           </div>
-          <div className="w-px h-4 bg-slate-200" />
+          <div className="w-px h-4 bg-slate-200 dark:bg-[#414A43]" />
           <div className="flex items-center gap-1.5">
-            <span className="text-slate-500 font-bold uppercase text-[11px]">Accuracy:</span>
-            <strong className="text-[#006C54] font-bold">{overallAccuracy}%</strong>
+            <span className="text-slate-500 dark:text-[#929D95] font-bold uppercase text-[11px]">Accuracy:</span>
+            <strong className="text-[#006C54] dark:text-emerald-400 font-bold">{overallAccuracy}%</strong>
           </div>
-          <div className="w-px h-4 bg-slate-200" />
-          <div className="flex items-center gap-1 text-[#8A6500] font-bold">
+          <div className="w-px h-4 bg-slate-200 dark:bg-[#414A43]" />
+          <div className="flex items-center gap-1 text-[#8A6500] dark:text-amber-400 font-bold">
             {userStats.stars}★
           </div>
         </div>
@@ -333,10 +414,10 @@ export default function Leaderboard() {
         <div className="space-y-6 animate-rise">
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
             <div>
-              <h1 className="font-display font-bold text-2xl sm:text-3xl lg:text-4xl text-slate-900">
+              <h1 className="font-display font-bold text-2xl sm:text-3xl lg:text-4xl text-slate-900 dark:text-[#F4F5EF]">
                 Jackpot Consensus Rooms
               </h1>
-              <p className="text-xs sm:text-sm text-slate-500 mt-1">
+              <p className="text-xs sm:text-sm text-slate-500 dark:text-[#929D95] mt-1">
                 {roomViewTab === 'active'
                   ? 'Showing live and upcoming jackpot rooms. Select any room to vote and pool crowd consensus.'
                   : 'Jackpot Archives: Review completed rooms, final winning slips, and historical crowd accuracy.'}
@@ -356,46 +437,6 @@ export default function Leaderboard() {
             )}
           </div>
 
-          {/* View Mode Navigation Tabs: Active vs Archive (Text Highlight Without Green Pill) */}
-          <div className="flex items-center justify-between gap-3 bg-white rounded-2xl p-2 shadow-xs">
-            <div className="flex items-center gap-1 min-w-0 flex-wrap">
-              <button
-                onClick={() => {
-                  setRoomViewTab('active');
-                  setRoomStatus('All');
-                }}
-                className={`px-4 py-2 font-display text-xs sm:text-sm flex items-center gap-2 transition-all active:scale-95 cursor-pointer ${
-                  roomViewTab === 'active'
-                    ? 'text-[#006C54] font-bold'
-                    : 'text-slate-500 font-bold hover:text-slate-800'
-                }`}
-              >
-                <Flame size={15} className={roomViewTab === 'active' ? 'text-[#006C54]' : 'text-slate-400'} />
-                <span>Active Rooms</span>
-                <span className="text-xs tabular-nums font-bold">
-                  {activeRooms.length}
-                </span>
-              </button>
-
-              <button
-                onClick={() => {
-                  setRoomViewTab('archive');
-                  setRoomStatus('All');
-                }}
-                className={`px-4 py-2 font-display text-xs sm:text-sm flex items-center gap-2 transition-all active:scale-95 cursor-pointer ${
-                  roomViewTab === 'archive'
-                    ? 'text-[#006C54] font-bold'
-                    : 'text-slate-500 font-bold hover:text-slate-800'
-                }`}
-              >
-                <Archive size={15} className={roomViewTab === 'archive' ? 'text-[#006C54]' : 'text-slate-400'} />
-                <span>Archives</span>
-                <span className="text-xs tabular-nums font-bold">
-                  {archivedRooms.length}
-                </span>
-              </button>
-            </div>
-          </div>
 
           {/* Bookie Filter Pills With Logos */}
           <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1 -mx-4 px-4 sm:mx-0 sm:px-0 flex-nowrap sm:flex-wrap">
@@ -472,10 +513,10 @@ export default function Leaderboard() {
 
           {/* Archive Banner when in Archive mode */}
           {roomViewTab === 'archive' && (
-            <div className="bg-white border border-slate-200 rounded-2xl p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-sm animate-rise">
+            <div className="bg-white dark:bg-[#202522] border border-slate-200 dark:border-[#414A43] rounded-2xl p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-sm animate-rise">
               <div>
-                <h3 className="font-display font-bold text-base text-slate-900">Jackpot Archives &amp; Settlement History</h3>
-                <p className="text-xs text-slate-500 mt-0.5 leading-relaxed">
+                <h3 className="font-display font-bold text-base text-slate-900 dark:text-[#F4F5EF]">Jackpot Archives &amp; Settlement History</h3>
+                <p className="text-xs text-slate-500 dark:text-[#929D95] mt-0.5 leading-relaxed">
                   Settled jackpot rooms are retained for up to 90 days. You can review verified crowd accuracy, winning leg slips, and historical gameweek leaderboards.
                 </p>
               </div>
@@ -484,7 +525,7 @@ export default function Leaderboard() {
                   setRoomViewTab('active');
                   setRoomStatus('All');
                 }}
-                className="px-4 py-2 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-800 text-xs font-bold transition-all shrink-0 cursor-pointer"
+                className="px-4 py-2 rounded-xl bg-slate-50 dark:bg-[#2A312D] hover:bg-slate-100 dark:hover:bg-[#343D37] border border-slate-200 dark:border-[#414A43] text-slate-800 dark:text-[#F4F5EF] text-xs font-bold transition-all shrink-0 cursor-pointer"
               >
                 Back to Active Rooms
               </button>
@@ -493,15 +534,15 @@ export default function Leaderboard() {
 
           {/* Jackpot Grid */}
           {filteredJackpotRooms.length === 0 ? (
-            <div className="text-center py-16 px-4 bg-white border border-slate-200 rounded-2xl max-w-xl mx-auto space-y-4 shadow-xs">
-              <span className="w-12 h-12 rounded-2xl bg-emerald-50 text-[#006C54] flex items-center justify-center mx-auto">
+            <div className="text-center py-16 px-4 bg-white dark:bg-[#202522] border border-slate-200 dark:border-[#414A43] rounded-2xl max-w-xl mx-auto space-y-4 shadow-xs">
+              <span className="w-12 h-12 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 text-[#006C54] dark:text-emerald-400 flex items-center justify-center mx-auto">
                 <SlidersHorizontal size={24} />
               </span>
               <div>
-                <h3 className="font-display font-bold text-lg text-slate-900">
+                <h3 className="font-display font-bold text-lg text-slate-900 dark:text-[#F4F5EF]">
                   {roomViewTab === 'active' ? 'No Active Jackpot Rooms Found' : 'No Archived Rooms Found'}
                 </h3>
-                <p className="text-xs text-slate-500 mt-1 max-w-md mx-auto">
+                <p className="text-xs text-slate-500 dark:text-[#929D95] mt-1 max-w-md mx-auto">
                   {roomViewTab === 'active'
                     ? 'All active jackpot rooms have concluded or are pending publication. You can check past results in the Archives!'
                     : 'No settled jackpot rooms match your search or filter selection.'}
@@ -535,19 +576,19 @@ export default function Leaderboard() {
           ========================================================================= */}
       {mainTab === 'leaderboard' && (
         <div className="space-y-6 animate-rise">
-          <div className="bg-white border border-slate-200 rounded-2xl p-6 sm:p-7 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-5 shadow-xs">
+          <div className="bg-white dark:bg-[#202522] border border-slate-200 dark:border-[#414A43] rounded-2xl p-6 sm:p-7 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-5 shadow-xs">
             <div>
-              <h2 className="font-display font-bold text-2xl sm:text-3xl text-slate-900 tracking-tight">
+              <h2 className="font-display font-bold text-2xl sm:text-3xl text-slate-900 dark:text-[#F4F5EF] tracking-tight">
                 Room Standings &amp; Rankings
               </h2>
-              <p className="text-xs sm:text-sm text-slate-600 mt-1 max-w-xl leading-relaxed">
+              <p className="text-xs sm:text-sm text-slate-600 dark:text-[#929D95] mt-1 max-w-xl leading-relaxed">
                 Independent standings per jackpot room. Select any room to expand its rankings, participant slips &amp; live leg hits.
               </p>
             </div>
           </div>
 
           {/* Filter Tabs & Search Bar */}
-          <div className="bg-white border border-slate-200 rounded-2xl p-4 space-y-3 shadow-xs">
+          <div className="bg-white dark:bg-[#202522] border border-slate-200 dark:border-[#414A43] rounded-2xl p-4 space-y-3 shadow-xs">
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
               {/* Main Status Category Tabs */}
               <div className="flex items-center gap-1 p-1 bg-slate-100 rounded-full overflow-x-auto scrollbar-none text-xs font-bold uppercase tracking-wide w-full sm:w-auto">
