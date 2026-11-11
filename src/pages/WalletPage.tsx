@@ -293,7 +293,7 @@ export default function WalletPage() {
                   1. Purchase Rewards
                 </span>
                 <p className="text-xs text-cream-dim leading-relaxed">
-                  Earn <strong className="text-gold">1 Mshindi Token</strong> for every verified <strong className="text-gold">KSh 100</strong> purchase or top-up.
+                  Earn <strong className="text-gold">1 Mshindi Token</strong> for every verified <strong className="text-gold">KSh 100</strong> top-up.
                 </p>
               </div>
 
@@ -308,10 +308,10 @@ export default function WalletPage() {
 
               <div className="bg-ink/80 border border-line rounded-xl p-4 flex flex-col gap-1.5">
                 <span className="text-gold font-bold text-sm">
-                  3. Unlock Free Rooms
+                  3. Unlock Rooms or Renew Subscription
                 </span>
                 <p className="text-xs text-cream-dim leading-relaxed">
-                  Redeem <strong className="text-gold">1 Mshindi Token</strong> to unlock a premium jackpot room for free!
+                  Redeem <strong className="text-gold">1 Mshindi Token</strong> to unlock a jackpot room or <strong className="text-gold">2 Mshindi Tokens</strong> to renew subscription for a week!
                 </p>
               </div>
             </div>

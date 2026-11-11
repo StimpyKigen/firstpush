@@ -83,7 +83,7 @@ export default function InviteModal({ isOpen, onClose }: InviteModalProps) {
             </span>
           </div>
           <p className="text-xs text-cream leading-relaxed">
-            Invite <span className="font-bold text-gold">3 friends</span> = Get <span className="font-bold text-gold">1 Mshindi Token</span>!
+            Invite <span className="font-bold text-gold">3 friends</span> = Get <span className="font-bold text-gold">1 Mshindi Token</span>
           </p>
         </div>
 
