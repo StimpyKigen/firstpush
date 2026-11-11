@@ -131,9 +131,6 @@ export default function HowItWorks() {
       <div className="bg-white border border-slate-200 rounded-2xl p-6 sm:p-8 mb-12 shadow-xs">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 pb-6 border-b border-slate-100">
           <div>
-            <span className="inline-flex items-center bg-[#006C54] text-[#EEAA04] border border-[#005441] text-xs font-bold uppercase tracking-wide px-3 py-1 rounded-full mb-2 shadow-xs">
-              100% Free Tool
-            </span>
             <h2 className="font-display font-bold text-2xl sm:text-3xl text-slate-900 uppercase tracking-tight">Custom Bet Builder</h2>
             <p className="text-sm text-slate-600 mt-1">Build, calculate, export, and share custom multi-leg sports accumulators instantly.</p>
           </div>
