@@ -78,7 +78,7 @@ export default function DictionaryPanel({
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search phrases or notes..."
-              className="w-full bg-[#FBFBFA] border border-slate-300 focus:border-[#006C54] focus:ring-1 focus:ring-[#006C54] rounded-xl pl-9 pr-8 py-2 text-xs text-slate-900 focus:outline-none transition-all"
+              className="w-full bg-[#FBFBFA] dark:bg-panel-2 border border-slate-300 dark:border-line focus:border-[#006C54] focus:ring-1 focus:ring-[#006C54] rounded-xl pl-9 pr-8 py-2 text-xs text-slate-900 dark:text-cream focus:outline-none transition-all"
             />
             {searchQuery && (
               <button
@@ -96,7 +96,7 @@ export default function DictionaryPanel({
             <select
               value={selectedCategory}
               onChange={(e) => setSelectedCategory(e.target.value)}
-              className="w-full bg-[#FBFBFA] border border-slate-300 focus:border-[#006C54] focus:ring-1 focus:ring-[#006C54] rounded-xl px-3 py-2 text-xs text-slate-900 focus:outline-none transition-all"
+              className="w-full bg-[#FBFBFA] dark:bg-panel-2 border border-slate-300 dark:border-line focus:border-[#006C54] focus:ring-1 focus:ring-[#006C54] rounded-xl px-3 py-2 text-xs text-slate-900 dark:text-cream focus:outline-none transition-all"
             >
               <option value="ALL">All Categories ({totalCount})</option>
               {ALL_CATEGORIES.map((cat) => (
@@ -112,7 +112,7 @@ export default function DictionaryPanel({
             <select
               value={selectedSeverity}
               onChange={(e) => setSelectedSeverity(e.target.value)}
-              className="w-full bg-[#FBFBFA] border border-slate-300 focus:border-[#006C54] focus:ring-1 focus:ring-[#006C54] rounded-xl px-3 py-2 text-xs text-slate-900 focus:outline-none transition-all"
+              className="w-full bg-[#FBFBFA] dark:bg-panel-2 border border-slate-300 dark:border-line focus:border-[#006C54] focus:ring-1 focus:ring-[#006C54] rounded-xl px-3 py-2 text-xs text-slate-900 dark:text-cream focus:outline-none transition-all"
             >
               <option value="ALL">All Severities</option>
               {SEVERITY_LEVELS.map((sev) => (
@@ -128,7 +128,7 @@ export default function DictionaryPanel({
             <select
               value={selectedStatus}
               onChange={(e) => setSelectedStatus(e.target.value as any)}
-              className="w-full bg-[#FBFBFA] border border-slate-300 focus:border-[#006C54] focus:ring-1 focus:ring-[#006C54] rounded-xl px-3 py-2 text-xs text-slate-900 focus:outline-none transition-all"
+              className="w-full bg-[#FBFBFA] dark:bg-panel-2 border border-slate-300 dark:border-line focus:border-[#006C54] focus:ring-1 focus:ring-[#006C54] rounded-xl px-3 py-2 text-xs text-slate-900 dark:text-cream focus:outline-none transition-all"
             >
               <option value="ALL">All Status</option>
               <option value="ENABLED">Enabled</option>
@@ -171,10 +171,10 @@ export default function DictionaryPanel({
       </div>
 
       {/* Dictionary Table */}
-      <div className="bg-white border border-[#E5E5EA] rounded-2xl overflow-hidden shadow-2xs">
+      <div className="bg-white dark:bg-panel border border-[#E5E5EA] dark:border-line rounded-2xl overflow-hidden shadow-2xs">
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs text-slate-800">
-            <thead className="bg-[#FBFBFA] text-slate-500 font-semibold border-b border-[#E5E5EA] text-[11px] uppercase tracking-wide">
+          <table className="w-full text-left text-xs text-slate-800 dark:text-cream">
+            <thead className="bg-[#FBFBFA] dark:bg-panel-2 text-slate-500 dark:text-cream-dim font-semibold border-b border-[#E5E5EA] dark:border-line text-[11px] uppercase tracking-wide">
               <tr>
                 <th className="py-3 px-4">Word / Phrase</th>
                 <th className="py-3 px-4">Category</th>
@@ -185,18 +185,18 @@ export default function DictionaryPanel({
                 <th className="py-3 px-4 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#E5E5EA]">
+            <tbody className="divide-y divide-[#E5E5EA] dark:divide-line">
               {filteredEntries.length === 0 ? (
                 <tr>
                   <td colSpan={7} className="py-12 text-center text-slate-400">
                     <ShieldAlert size={28} className="mx-auto text-slate-300 mb-2" />
-                    <p className="font-semibold text-sm text-slate-700">No moderation entries found</p>
-                    <p className="text-xs text-slate-400 mt-1">Try adjusting your search query or filters.</p>
+                    <p className="font-semibold text-sm text-slate-700 dark:text-cream">No moderation entries found</p>
+                    <p className="text-xs text-slate-400 dark:text-cream-dim mt-1">Try adjusting your search query or filters.</p>
                   </td>
                 </tr>
               ) : (
                 filteredEntries.map((entry) => (
-                  <tr key={entry.id} className="hover:bg-slate-50 transition-colors">
+                  <tr key={entry.id} className="hover:bg-slate-50 dark:hover:bg-panel-2/60 transition-colors">
                     {/* Phrase */}
                     <td className="py-3 px-4 font-semibold tabular-nums text-slate-900">
                       {entry.phrase}

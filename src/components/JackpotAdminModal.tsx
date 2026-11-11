@@ -141,20 +141,20 @@ export default function JackpotAdminModal({ isOpen, onClose }: JackpotAdminModal
       onClose={onClose}
       overlayClassName="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/40 backdrop-blur-md overflow-y-auto"
     >
-      <div className="relative w-full max-w-5xl bg-[#FFFFF0] border border-[#E5E5EA] rounded-3xl shadow-2xl overflow-hidden my-6 animate-rise text-slate-900 flex flex-col max-h-[90vh]">
+      <div className="relative w-full max-w-5xl bg-[#FFFFF0] dark:bg-ink border border-[#E5E5EA] dark:border-line rounded-3xl shadow-2xl overflow-hidden my-6 animate-rise text-slate-900 dark:text-cream flex flex-col max-h-[90vh]">
         {/* APPLE-INSPIRED CONSOLE HEADER & SEGMENTED TABS */}
-        <div className="bg-white border-b border-[#E5E5EA] shrink-0">
+        <div className="bg-white dark:bg-panel border-b border-[#E5E5EA] dark:border-line shrink-0">
           <div className="flex items-center justify-between px-6 pt-5 pb-3 sm:pb-4">
             <div>
               <div className="flex items-center gap-2">
-                <h2 className="font-semibold text-base sm:text-lg text-slate-900 tracking-tight">
+                <h2 className="font-semibold text-base sm:text-lg text-slate-900 dark:text-cream tracking-tight">
                   Mshindi Admin Console
                 </h2>
                 <span className="text-[#006C54] text-[11px] uppercase font-bold">
                   Super Admin
                 </span>
               </div>
-              <p className="text-xs text-slate-500 hidden sm:block mt-0.5">
+              <p className="text-xs text-slate-500 dark:text-cream-dim hidden sm:block mt-0.5">
                 Manage weekly homepage news, live jackpot consensus rooms, and moderation safety
               </p>
             </div>
@@ -162,7 +162,7 @@ export default function JackpotAdminModal({ isOpen, onClose }: JackpotAdminModal
             <button
               onClick={onClose}
               aria-label="Close"
-              className="p-1.5 rounded-full text-slate-400 hover:text-slate-800 hover:bg-slate-100 transition-colors cursor-pointer"
+              className="p-1.5 rounded-full text-slate-400 hover:text-slate-800 dark:hover:text-cream hover:bg-slate-100 dark:hover:bg-panel-2 transition-colors cursor-pointer"
             >
               <X size={18} />
             </button>
@@ -171,14 +171,14 @@ export default function JackpotAdminModal({ isOpen, onClose }: JackpotAdminModal
           {/* APPLE-STYLE SEGMENTED NAVIGATION BAR */}
           {isAdminUnlocked && (
             <div className="px-6 pb-3 overflow-x-auto no-scrollbar">
-              <div className="inline-flex items-center bg-[#F5F5F7] border border-[#E5E5EA] rounded-xl p-1 gap-1 shadow-2xs">
+              <div className="inline-flex items-center bg-[#F5F5F7] dark:bg-panel-2 border border-[#E5E5EA] dark:border-line rounded-xl p-1 gap-1 shadow-2xs">
                 <button
                   type="button"
                   onClick={() => setActiveAdminTab('jackpots')}
                   className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
                     activeAdminTab === 'jackpots'
                       ? 'bg-[#006C54] text-white shadow-xs'
-                      : 'text-slate-600 hover:text-slate-900 hover:bg-white/70'
+                      : 'text-slate-600 dark:text-cream-dim hover:text-slate-900 dark:hover:text-cream hover:bg-white/70 dark:hover:bg-panel'
                   }`}
                 >
                   <Trophy size={14} />
@@ -191,7 +191,7 @@ export default function JackpotAdminModal({ isOpen, onClose }: JackpotAdminModal
                   className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
                     activeAdminTab === 'moderation'
                       ? 'bg-[#006C54] text-white shadow-xs'
-                      : 'text-slate-600 hover:text-slate-900 hover:bg-white/70'
+                      : 'text-slate-600 dark:text-cream-dim hover:text-slate-900 dark:hover:text-cream hover:bg-white/70 dark:hover:bg-panel'
                   }`}
                 >
                   <ShieldAlert size={14} />
@@ -204,7 +204,7 @@ export default function JackpotAdminModal({ isOpen, onClose }: JackpotAdminModal
                   className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
                     activeAdminTab === 'feed'
                       ? 'bg-[#006C54] text-white shadow-xs'
-                      : 'text-slate-600 hover:text-slate-900 hover:bg-white/70'
+                      : 'text-slate-600 dark:text-cream-dim hover:text-slate-900 dark:hover:text-cream hover:bg-white/70 dark:hover:bg-panel'
                   }`}
                 >
                   <Newspaper size={14} />
@@ -217,7 +217,7 @@ export default function JackpotAdminModal({ isOpen, onClose }: JackpotAdminModal
                   className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
                     activeAdminTab === 'fixtures'
                       ? 'bg-[#006C54] text-white shadow-xs'
-                      : 'text-slate-600 hover:text-slate-900 hover:bg-white/70'
+                      : 'text-slate-600 dark:text-cream-dim hover:text-slate-900 dark:hover:text-cream hover:bg-white/70 dark:hover:bg-panel'
                   }`}
                 >
                   <CalendarDays size={14} />
@@ -230,7 +230,7 @@ export default function JackpotAdminModal({ isOpen, onClose }: JackpotAdminModal
                   className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
                     activeAdminTab === 'chatroom'
                       ? 'bg-[#006C54] text-white shadow-xs'
-                      : 'text-slate-600 hover:text-slate-900 hover:bg-white/70'
+                      : 'text-slate-600 dark:text-cream-dim hover:text-slate-900 dark:hover:text-cream hover:bg-white/70 dark:hover:bg-panel'
                   }`}
                 >
                   <MessageSquare size={14} />
@@ -249,8 +249,8 @@ export default function JackpotAdminModal({ isOpen, onClose }: JackpotAdminModal
                 <KeyRound size={36} />
               </div>
               <div>
-                <h3 className="font-semibold text-xl text-slate-900 tracking-tight">Admin Authentication Required</h3>
-                <p className="text-xs text-slate-500 mt-1.5 leading-relaxed">
+                <h3 className="font-semibold text-xl text-slate-900 dark:text-cream tracking-tight">Admin Authentication Required</h3>
+                <p className="text-xs text-slate-500 dark:text-cream-dim mt-1.5 leading-relaxed">
                   Enter your Super-Admin PIN or Security Code to manage jackpot slates, fixture odds, and homepage editorial feeds.
                 </p>
               </div>
@@ -261,7 +261,7 @@ export default function JackpotAdminModal({ isOpen, onClose }: JackpotAdminModal
                   placeholder="Enter Super-Admin PIN"
                   value={adminPinInput}
                   onChange={(e) => setAdminPinInput(e.target.value)}
-                  className="w-full bg-white border border-slate-300 rounded-xl px-4 py-3 text-center text-slate-900 tabular-nums text-base tracking-wide focus:outline-none focus:border-[#006C54] focus:ring-1 focus:ring-[#006C54] transition-all shadow-2xs"
+                  className="w-full bg-white dark:bg-panel-2 border border-slate-300 dark:border-line rounded-xl px-4 py-3 text-center text-slate-900 dark:text-cream tabular-nums text-base tracking-wide focus:outline-none focus:border-[#006C54] focus:ring-1 focus:ring-[#006C54] transition-all shadow-2xs"
                   autoFocus
                 />
                 {pinError && <p className="text-xs text-rose-600 font-medium">{pinError}</p>}

@@ -22,15 +22,15 @@ export default function LiveRoomsResultsManager({
   const [activeStatusMenuMatchId, setActiveStatusMenuMatchId] = useState<string | null>(null);
 
   return (
-    <div className="bg-white border border-[#E5E5EA] rounded-2xl p-5 space-y-4 shadow-2xs">
+    <div className="bg-white dark:bg-panel border border-[#E5E5EA] dark:border-line rounded-2xl p-5 space-y-4 shadow-2xs">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[#E5E5EA]">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[#E5E5EA] dark:border-line">
         <div>
-          <h3 className="font-semibold text-sm sm:text-base text-slate-900 flex items-center gap-2">
+          <h3 className="font-semibold text-sm sm:text-base text-slate-900 dark:text-cream flex items-center gap-2">
             <Radio size={16} className="text-[#006C54] animate-pulse" />
             Live Published Rooms &amp; Match Results ({publishedJackpots.length})
           </h3>
-          <p className="text-xs text-slate-500 mt-0.5">
+          <p className="text-xs text-slate-500 dark:text-cream-dim mt-0.5">
             Update game outcomes leg by leg to drive live leaderboard rank recalculations for users.
           </p>
         </div>
@@ -52,14 +52,14 @@ export default function LiveRoomsResultsManager({
       </div>
 
       {publishedJackpots.length === 0 ? (
-        <div className="p-6 border border-dashed border-slate-300 rounded-xl text-center text-xs text-slate-500">
+        <div className="p-6 border border-dashed border-slate-300 dark:border-line rounded-xl text-center text-xs text-slate-500 dark:text-cream-dim">
           No live jackpot rooms published yet. Use the form below to AI-arrange and publish a room!
         </div>
       ) : (
         <div className="space-y-4">
           {/* Room Selector Dropdown */}
-          <div className="flex flex-col sm:flex-row sm:items-center gap-3 bg-[#FBFBFA] p-3 rounded-xl border border-[#E5E5EA]">
-            <label htmlFor="select-jackpot-room" className="text-xs font-semibold text-slate-700 shrink-0">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-3 bg-[#FBFBFA] dark:bg-panel-2 p-3 rounded-xl border border-[#E5E5EA] dark:border-line">
+            <label htmlFor="select-jackpot-room" className="text-xs font-semibold text-slate-700 dark:text-cream shrink-0">
               Select Room:
             </label>
             <select
@@ -71,7 +71,7 @@ export default function LiveRoomsResultsManager({
                 if (val) setIsExpanded(true);
                 else setIsExpanded(false);
               }}
-              className="flex-1 bg-white border border-slate-300 rounded-xl px-3 py-2 text-xs font-medium text-slate-900 focus:outline-none focus:border-[#006C54] focus:ring-1 focus:ring-[#006C54] transition-all shadow-2xs"
+              className="flex-1 bg-white dark:bg-panel border border-slate-300 dark:border-line rounded-xl px-3 py-2 text-xs font-medium text-slate-900 dark:text-cream focus:outline-none focus:border-[#006C54] focus:ring-1 focus:ring-[#006C54] transition-all shadow-2xs"
             >
               <option value="">-- Choose an active / not-started published room --</option>
               {publishedJackpots.map((jp) => {
@@ -87,18 +87,18 @@ export default function LiveRoomsResultsManager({
 
           {/* Selected Room Leg Result Editor (Collapsed by Default) */}
           {activeResultRoom && (
-            <div className="bg-[#FBFBFA] border border-[#E5E5EA] rounded-2xl p-4 sm:p-5 space-y-4">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#E5E5EA] pb-3">
+            <div className="bg-[#FBFBFA] dark:bg-panel-2 border border-[#E5E5EA] dark:border-line rounded-2xl p-4 sm:p-5 space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#E5E5EA] dark:border-line pb-3">
                 <div>
                   <div className="flex items-center gap-2">
-                    <h4 className="font-semibold text-slate-900 text-sm">
+                    <h4 className="font-semibold text-slate-900 dark:text-cream text-sm">
                       Leg Results &amp; Live Leaderboard Controller
                     </h4>
                     <span className="text-[#006C54] text-[11px] font-bold">
                       {activeResultRoom.name}
                     </span>
                   </div>
-                  <p className="text-xs text-slate-500 mt-0.5">
+                  <p className="text-xs text-slate-500 dark:text-cream-dim mt-0.5">
                     Set game outcomes leg by leg as matches conclude. Standings will recalculate live for all participants.
                   </p>
                 </div>
@@ -107,7 +107,7 @@ export default function LiveRoomsResultsManager({
                   <button
                     type="button"
                     onClick={() => setIsExpanded(!isExpanded)}
-                    className="text-xs font-semibold text-slate-700 bg-white hover:bg-slate-100 border border-slate-200 px-3 py-1.5 rounded-xl transition-all flex items-center gap-1.5 cursor-pointer shadow-2xs"
+                    className="text-xs font-semibold text-slate-700 dark:text-cream bg-white dark:bg-panel hover:bg-slate-100 dark:hover:bg-panel-2 border border-slate-200 dark:border-line px-3 py-1.5 rounded-xl transition-all flex items-center gap-1.5 cursor-pointer shadow-2xs"
                   >
                     <span>{isExpanded ? 'Collapse Legs' : 'Expand Legs & Controller'}</span>
                     {isExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
@@ -134,14 +134,14 @@ export default function LiveRoomsResultsManager({
                     return (
                       <div
                         key={match.id}
-                        className="bg-white border border-[#E5E5EA] rounded-xl p-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 hover:border-slate-300 transition-colors shadow-2xs"
+                        className="bg-white dark:bg-panel border border-[#E5E5EA] dark:border-line rounded-xl p-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 hover:border-slate-300 dark:hover:border-slate-600 transition-colors shadow-2xs"
                       >
                         <div className="min-w-0">
                           <div className="flex items-center gap-2 flex-wrap">
-                            <span className="text-[11px] tabular-nums font-bold text-slate-700">
+                            <span className="text-[11px] tabular-nums font-bold text-slate-700 dark:text-cream-dim">
                               Leg {idx + 1}
                             </span>
-                            <span className="text-xs font-semibold text-slate-900 truncate">
+                            <span className="text-xs font-semibold text-slate-900 dark:text-cream truncate">
                               {match.home} <span className="text-slate-400 font-normal">vs</span> {match.away}
                             </span>
                             {match.nonResultStatus ? (
@@ -153,12 +153,12 @@ export default function LiveRoomsResultsManager({
                                 <CheckCircle2 size={11} /> Outcome: {match.result}
                               </span>
                             ) : (
-                              <span className="text-[11px] text-slate-400 bg-slate-50 px-2 py-0.5 rounded">
+                              <span className="text-[11px] text-slate-400 bg-slate-50 dark:bg-panel-2 px-2 py-0.5 rounded">
                                 Unplayed
                               </span>
                             )}
                           </div>
-                          <p className="text-[11px] text-slate-500 mt-1 truncate">
+                          <p className="text-[11px] text-slate-500 dark:text-cream-dim mt-1 truncate">
                             {match.competition} · {match.kickoff}
                           </p>
                         </div>

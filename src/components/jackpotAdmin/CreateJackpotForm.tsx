@@ -54,14 +54,14 @@ export default function CreateJackpotForm({
   const currentTheme = getBookieTheme(selectedBookie);
 
   return (
-    <div className="bg-white border border-[#E5E5EA] rounded-2xl p-5 space-y-6 shadow-2xs">
+    <div className="bg-white dark:bg-panel border border-[#E5E5EA] dark:border-line rounded-2xl p-5 space-y-6 shadow-2xs">
       {/* Section Heading */}
-      <div className="pb-3 border-b border-[#E5E5EA]">
-        <h3 className="font-semibold text-base text-slate-900 flex items-center gap-2">
+      <div className="pb-3 border-b border-[#E5E5EA] dark:border-line">
+        <h3 className="font-semibold text-base text-slate-900 dark:text-cream flex items-center gap-2">
           <Plus size={18} className="text-[#006C54]" />
           <span>Create & Publish New Jackpot Room</span>
         </h3>
-        <p className="text-xs text-slate-500 mt-0.5">
+        <p className="text-xs text-slate-500 dark:text-cream-dim mt-0.5">
           Configure site, bookie jackpot prize pool, fixtures, or use the automated AI text auto-parser.
         </p>
       </div>
@@ -214,14 +214,14 @@ export default function CreateJackpotForm({
       </div>
 
       {/* Raw Text Box & AI Parser */}
-      <div className="bg-[#FBFBFA] border border-[#E5E5EA] rounded-2xl p-4 sm:p-5 space-y-3">
+      <div className="bg-[#FBFBFA] dark:bg-panel-2 border border-[#E5E5EA] dark:border-line rounded-2xl p-4 sm:p-5 space-y-3">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
-            <h3 className="text-sm font-semibold text-slate-900 flex items-center gap-2">
+            <h3 className="text-sm font-semibold text-slate-900 dark:text-cream flex items-center gap-2">
               <Bot size={16} className="text-[#006C54]" />
               <span>AI Jackpot Webpage Parser</span>
             </h3>
-            <p className="text-xs text-slate-500 mt-0.5">
+            <p className="text-xs text-slate-500 dark:text-cream-dim mt-0.5">
               Paste raw text from {selectedBookie}'s webpage below. AI extracts and structures all {numLegs} matches automatically.
             </p>
           </div>
@@ -251,7 +251,7 @@ export default function CreateJackpotForm({
           value={webpageText}
           onChange={(e) => setWebpageText(e.target.value)}
           placeholder={`Paste ${selectedBookie} jackpot webpage text here (e.g. copy all matches from ${selectedBookie}...)\nExample:\n1. Arsenal vs Coventry City 21/08 22:00\n2. Trabzonspor vs Al Sadd 30/07 20:00...`}
-          className="w-full bg-white border border-slate-300 rounded-xl p-3 text-xs text-slate-900 tabular-nums placeholder:text-slate-400 focus:outline-none focus:border-[#006C54] focus:ring-1 focus:ring-[#006C54] transition-all shadow-2xs"
+          className="w-full bg-white dark:bg-panel border border-slate-300 dark:border-line rounded-xl p-3 text-xs text-slate-900 dark:text-cream tabular-nums placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:border-[#006C54] focus:ring-1 focus:ring-[#006C54] transition-all shadow-2xs"
         />
 
         {aiSuccessMessage && (
@@ -296,9 +296,9 @@ export default function CreateJackpotForm({
             {matches.map((m, idx) => (
               <div
                 key={idx}
-                className="bg-[#FBFBFA] border border-[#E5E5EA] rounded-xl p-2.5 grid grid-cols-12 gap-2 items-center text-xs"
+                className="bg-[#FBFBFA] dark:bg-panel-2 border border-[#E5E5EA] dark:border-line rounded-xl p-2.5 grid grid-cols-12 gap-2 items-center text-xs"
               >
-                <div className="col-span-1 tabular-nums font-bold text-slate-700 text-center">
+                <div className="col-span-1 tabular-nums font-bold text-slate-700 dark:text-cream-dim text-center">
                   #{idx + 1}
                 </div>
                 <div className="col-span-3">
@@ -307,7 +307,7 @@ export default function CreateJackpotForm({
                     value={m.home}
                     onChange={(e) => onUpdateMatch(idx, 'home', e.target.value)}
                     placeholder="Home Team"
-                    className="w-full bg-white border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs text-slate-900 font-medium focus:outline-none focus:border-[#006C54]"
+                    className="w-full bg-white dark:bg-panel border border-slate-300 dark:border-line rounded-lg px-2.5 py-1.5 text-xs text-slate-900 dark:text-cream font-medium focus:outline-none focus:border-[#006C54]"
                   />
                 </div>
                 <div className="col-span-1 text-center font-semibold text-slate-400">
@@ -319,7 +319,7 @@ export default function CreateJackpotForm({
                     value={m.away}
                     onChange={(e) => onUpdateMatch(idx, 'away', e.target.value)}
                     placeholder="Away Team"
-                    className="w-full bg-white border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs text-slate-900 font-medium focus:outline-none focus:border-[#006C54]"
+                    className="w-full bg-white dark:bg-panel border border-slate-300 dark:border-line rounded-lg px-2.5 py-1.5 text-xs text-slate-900 dark:text-cream font-medium focus:outline-none focus:border-[#006C54]"
                   />
                 </div>
                 <div className="col-span-3">

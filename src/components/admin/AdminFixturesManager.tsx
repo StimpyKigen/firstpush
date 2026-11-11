@@ -426,14 +426,14 @@ export default function AdminFixturesManager() {
       </div>
 
       {/* PUBLISHED PDF BATCHES SECTION */}
-      <div className="bg-[#FFFFF0] border border-[#DCDCC8] rounded-2xl p-5 shadow-xs">
+      <div className="bg-[#FFFFF0] dark:bg-panel border border-[#DCDCC8] dark:border-line rounded-2xl p-5 shadow-xs">
         <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
           <div className="flex items-center gap-2.5">
             <div className="w-8 h-8 rounded-xl bg-[#006C54]/10 text-[#006C54] flex items-center justify-center">
               <Folder size={18} />
             </div>
             <div>
-              <h4 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+              <h4 className="text-sm font-bold text-slate-900 dark:text-cream flex items-center gap-2">
                 <span>Published PDF Batches</span>
                 {publishedBatches.length > 0 && (
                   <span className="text-[11px] px-2 py-0.2 rounded-full bg-[#006C54]/10 text-[#006C54] font-bold">
@@ -441,30 +441,30 @@ export default function AdminFixturesManager() {
                   </span>
                 )}
               </h4>
-              <p className="text-xs text-slate-500">
+              <p className="text-xs text-slate-500 dark:text-cream-dim">
                 Each published PDF is catalogued below. You can upload additional fixture PDFs to add more fixtures without duplicates.
               </p>
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <span className="text-xs tabular-nums px-2.5 py-1 rounded-full bg-white border border-[#DCDCC8] text-slate-700 font-bold">
+            <span className="text-xs tabular-nums px-2.5 py-1 rounded-full bg-white dark:bg-panel-2 border border-[#DCDCC8] dark:border-line text-slate-700 dark:text-cream font-bold">
               {currentLiveCount} Total Fixtures on Slate
             </span>
           </div>
         </div>
 
         {publishedBatches.length === 0 ? (
-          <div className="border border-dashed border-slate-300 rounded-xl py-6 px-4 text-center text-xs text-slate-500 bg-white/60">
+          <div className="border border-dashed border-slate-300 dark:border-line rounded-xl py-6 px-4 text-center text-xs text-slate-500 dark:text-cream-dim bg-white/60 dark:bg-panel-2/60">
             <Folder className="mx-auto mb-2 text-slate-400" size={24} />
-            <p className="font-medium text-slate-700">No PDF batches published yet</p>
-            <p className="text-slate-400 mt-0.5">Upload a fixture PDF below to publish matches to the site.</p>
+            <p className="font-medium text-slate-700 dark:text-cream">No PDF batches published yet</p>
+            <p className="text-slate-400 dark:text-cream-dim mt-0.5">Upload a fixture PDF below to publish matches to the site.</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
             {publishedBatches.map((batch) => (
               <div
                 key={batch.id}
-                className="border border-[#DCDCC8] hover:border-[#006C54]/50 bg-white rounded-xl p-3 flex flex-col justify-between shadow-2xs transition-all hover:shadow-xs"
+                className="border border-[#DCDCC8] dark:border-line hover:border-[#006C54]/50 bg-white dark:bg-panel-2 rounded-xl p-3 flex flex-col justify-between shadow-2xs transition-all hover:shadow-xs"
               >
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex items-start gap-2.5 min-w-0">
@@ -472,7 +472,7 @@ export default function AdminFixturesManager() {
                       <FolderCheck size={16} />
                     </div>
                     <div className="min-w-0">
-                      <h5 className="text-xs font-bold text-slate-900 truncate" title={batch.fileName}>
+                      <h5 className="text-xs font-bold text-slate-900 dark:text-cream truncate" title={batch.fileName}>
                         {batch.fileName}
                       </h5>
                       <div className="flex items-center gap-1.5 text-[11px] text-slate-500 mt-0.5 flex-wrap">
