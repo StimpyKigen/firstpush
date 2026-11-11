@@ -1,5 +1,5 @@
 import { motion } from 'motion/react';
-import { ShieldCheck, Scale, AlertTriangle, UserX, Award, FileText, CheckCircle2 } from 'lucide-react';
+import { ShieldCheck, AlertTriangle, UserX, Award, FileText, CheckCircle2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import SeoHead from '../components/SeoHead';
 import BackNavButton from '../components/BackNavButton';
@@ -23,10 +23,6 @@ export default function TermsOfService() {
       >
         {/* Header */}
         <div className="border-b border-line pb-6">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-gold/10 border border-gold/30 text-gold text-xs font-semibold mb-3">
-            <Scale size={14} />
-            <span>Legal Agreement</span>
-          </div>
           <h1 className="text-3xl sm:text-4xl font-display font-bold text-cream tracking-tight">
             Terms of Service
           </h1>
@@ -37,7 +33,7 @@ export default function TermsOfService() {
 
         {/* Essential Notice Box */}
         <div className="bg-[#8A6500]/10 border border-[#8A6500]/25 rounded-2xl p-5 sm:p-6 text-cream text-sm leading-relaxed space-y-2">
-          <div className="flex items-center gap-2 font-display font-bold text-[#8A6500] text-base">
+          <div className="flex items-center gap-2 font-display font-bold text-gold text-base">
             <AlertTriangle size={18} />
             IMPORTANT NOTICE — NOT A BOOKMAKER / BETTING OPERATOR
           </div>
@@ -79,7 +75,7 @@ export default function TermsOfService() {
               <li>Attempt to manipulate prediction statistics, exploit rating system algorithms, or utilize automated scripts/bots.</li>
               <li>Impersonate other punters, verified analysts, or MshindiRoom moderators.</li>
             </ul>
-            <p className="text-xs text-[#8A6500] font-medium pt-1">
+            <p className="text-xs text-gold font-medium pt-1">
               Violations are reviewed by our automated AI moderation filter and community team. Accounts found violating community guidelines are subject to warnings, temporary mutes, or permanent ban.
             </p>
           </section>

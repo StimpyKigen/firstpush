@@ -1,5 +1,5 @@
 import { motion } from 'motion/react';
-import { Shield, Lock, Eye, Database, UserCheck, Bell, Mail, FileText } from 'lucide-react';
+import { Lock, Eye, Database, UserCheck, Bell, Mail, FileText } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import SeoHead from '../components/SeoHead';
 import BackNavButton from '../components/BackNavButton';
@@ -23,10 +23,6 @@ export default function PrivacyPolicy() {
       >
         {/* Header */}
         <div className="border-b border-line pb-6">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-gold/10 border border-gold/30 text-gold text-xs font-semibold mb-3">
-            <Shield size={14} />
-            <span>Legal & Privacy</span>
-          </div>
           <h1 className="text-3xl sm:text-4xl font-display font-bold text-cream tracking-tight">
             Privacy Policy
           </h1>
