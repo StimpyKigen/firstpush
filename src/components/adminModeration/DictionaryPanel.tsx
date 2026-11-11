@@ -49,42 +49,42 @@ export default function DictionaryPanel({
     <div className="space-y-5">
       {/* Overview Stats Bar */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <div className="bg-white border border-[#E5E5EA] p-3.5 rounded-2xl shadow-2xs">
-          <p className="text-[11px] font-semibold text-slate-500 uppercase tracking-wide">Total Entries</p>
-          <p className="font-semibold text-2xl text-slate-900 mt-0.5">{totalCount}</p>
+        <div className="bg-white dark:bg-panel border border-[#E5E5EA] dark:border-line p-3.5 rounded-2xl shadow-2xs">
+          <p className="text-[11px] font-semibold text-slate-500 dark:text-cream-dim uppercase tracking-wider">Total Entries</p>
+          <p className="font-bold text-2xl text-slate-900 dark:text-cream mt-0.5 tabular-nums">{totalCount}</p>
         </div>
-        <div className="bg-white border border-[#E5E5EA] p-3.5 rounded-2xl shadow-2xs">
-          <p className="text-[11px] font-semibold text-[#006C54] uppercase tracking-wide">Active Rules</p>
-          <p className="font-semibold text-2xl text-[#006C54] mt-0.5">{enabledCount}</p>
+        <div className="bg-white dark:bg-panel border border-[#E5E5EA] dark:border-line p-3.5 rounded-2xl shadow-2xs">
+          <p className="text-[11px] font-semibold text-[#006C54] dark:text-[#00A881] uppercase tracking-wider">Active Rules</p>
+          <p className="font-bold text-2xl text-[#006C54] dark:text-[#00A881] mt-0.5 tabular-nums">{enabledCount}</p>
         </div>
-        <div className="bg-white border border-[#E5E5EA] p-3.5 rounded-2xl shadow-2xs">
-          <p className="text-[11px] font-semibold text-rose-600 uppercase tracking-wide">Critical Rules</p>
-          <p className="font-semibold text-2xl text-rose-600 mt-0.5">{criticalCount}</p>
+        <div className="bg-white dark:bg-panel border border-[#E5E5EA] dark:border-line p-3.5 rounded-2xl shadow-2xs">
+          <p className="text-[11px] font-semibold text-rose-600 dark:text-rose-400 uppercase tracking-wider">Critical Rules</p>
+          <p className="font-bold text-2xl text-rose-600 dark:text-rose-400 mt-0.5 tabular-nums">{criticalCount}</p>
         </div>
-        <div className="bg-white border border-[#E5E5EA] p-3.5 rounded-2xl shadow-2xs">
-          <p className="text-[11px] font-semibold text-indigo-600 uppercase tracking-wide">Review Only</p>
-          <p className="font-semibold text-2xl text-indigo-600 mt-0.5">{reviewOnlyCount}</p>
+        <div className="bg-white dark:bg-panel border border-[#E5E5EA] dark:border-line p-3.5 rounded-2xl shadow-2xs">
+          <p className="text-[11px] font-semibold text-indigo-600 dark:text-indigo-400 uppercase tracking-wider">Review Only</p>
+          <p className="font-bold text-2xl text-indigo-600 dark:text-indigo-400 mt-0.5 tabular-nums">{reviewOnlyCount}</p>
         </div>
       </div>
 
       {/* Filter Toolbar */}
-      <div className="bg-white border border-[#E5E5EA] p-4 rounded-2xl space-y-3 shadow-2xs">
+      <div className="bg-white dark:bg-panel border border-[#E5E5EA] dark:border-line p-4 rounded-2xl space-y-3 shadow-2xs">
         <div className="grid grid-cols-1 sm:grid-cols-12 gap-3">
           {/* Search */}
           <div className="sm:col-span-5 relative">
-            <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+            <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-cream-dim" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search phrases or notes..."
-              className="w-full bg-[#FBFBFA] dark:bg-panel-2 border border-slate-300 dark:border-line focus:border-[#006C54] focus:ring-1 focus:ring-[#006C54] rounded-xl pl-9 pr-8 py-2 text-xs text-slate-900 dark:text-cream focus:outline-none transition-all"
+              className="w-full bg-[#FBFBFA] dark:bg-panel-2 border border-slate-300 dark:border-line focus:border-[#006C54] focus:ring-1 focus:ring-[#006C54] rounded-xl pl-9 pr-8 py-2 text-xs text-slate-900 dark:text-cream placeholder-slate-400 dark:placeholder-cream-dim/60 focus:outline-none transition-all"
             />
             {searchQuery && (
               <button
                 onClick={() => setSearchQuery('')}
                 aria-label="Clear search"
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 cursor-pointer"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-cream-dim hover:text-slate-700 dark:hover:text-cream cursor-pointer"
               >
                 <X size={13} />
               </button>
@@ -138,14 +138,14 @@ export default function DictionaryPanel({
         </div>
 
         {/* Category Quick Chips */}
-        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 pt-1">
-          <span className="text-[11px] font-semibold text-slate-500 uppercase mr-1 shrink-0">Quick Filter:</span>
+        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 pt-1 no-scrollbar">
+          <span className="text-[11px] font-semibold text-slate-500 dark:text-cream-dim uppercase tracking-wider mr-1 shrink-0">Quick Filter:</span>
           <button
             onClick={() => setSelectedCategory('ALL')}
             className={`px-2.5 py-1 rounded-full text-[11px] font-semibold whitespace-nowrap transition-colors cursor-pointer ${
               selectedCategory === 'ALL'
                 ? 'bg-[#006C54] text-white shadow-2xs'
-                : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                : 'bg-slate-100 dark:bg-panel-2 text-slate-600 dark:text-cream-dim hover:bg-slate-200 dark:hover:bg-line border border-transparent dark:border-line/40'
             }`}
           >
             All Categories
@@ -160,7 +160,7 @@ export default function DictionaryPanel({
                 className={`px-2.5 py-1 rounded-full text-[11px] font-semibold whitespace-nowrap transition-colors cursor-pointer ${
                   selectedCategory === cat
                     ? 'bg-[#006C54] text-white shadow-2xs'
-                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                    : 'bg-slate-100 dark:bg-panel-2 text-slate-600 dark:text-cream-dim hover:bg-slate-200 dark:hover:bg-line border border-transparent dark:border-line/40'
                 }`}
               >
                 {cat} ({count})
@@ -174,7 +174,7 @@ export default function DictionaryPanel({
       <div className="bg-white dark:bg-panel border border-[#E5E5EA] dark:border-line rounded-2xl overflow-hidden shadow-2xs">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs text-slate-800 dark:text-cream">
-            <thead className="bg-[#FBFBFA] dark:bg-panel-2 text-slate-500 dark:text-cream-dim font-semibold border-b border-[#E5E5EA] dark:border-line text-[11px] uppercase tracking-wide">
+            <thead className="bg-[#FBFBFA] dark:bg-panel-2 text-slate-500 dark:text-cream-dim font-semibold border-b border-[#E5E5EA] dark:border-line text-[11px] uppercase tracking-wider">
               <tr>
                 <th className="py-3 px-4">Word / Phrase</th>
                 <th className="py-3 px-4">Category</th>
@@ -188,37 +188,37 @@ export default function DictionaryPanel({
             <tbody className="divide-y divide-[#E5E5EA] dark:divide-line">
               {filteredEntries.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="py-12 text-center text-slate-400">
-                    <ShieldAlert size={28} className="mx-auto text-slate-300 mb-2" />
+                  <td colSpan={7} className="py-12 text-center text-slate-400 dark:text-cream-dim">
+                    <ShieldAlert size={28} className="mx-auto text-slate-300 dark:text-line mb-2" />
                     <p className="font-semibold text-sm text-slate-700 dark:text-cream">No moderation entries found</p>
                     <p className="text-xs text-slate-400 dark:text-cream-dim mt-1">Try adjusting your search query or filters.</p>
                   </td>
                 </tr>
               ) : (
                 filteredEntries.map((entry) => (
-                  <tr key={entry.id} className="hover:bg-slate-50 dark:hover:bg-panel-2/60 transition-colors">
+                  <tr key={entry.id} className="hover:bg-slate-50 dark:hover:bg-panel-2/50 transition-colors">
                     {/* Phrase */}
-                    <td className="py-3 px-4 font-semibold tabular-nums text-slate-900">
+                    <td className="py-3 px-4 font-semibold tabular-nums text-slate-900 dark:text-cream">
                       {entry.phrase}
                     </td>
 
                     {/* Category */}
                     <td className="py-3 px-4">
-                      <span className="inline-flex items-center gap-1 text-[11px] text-slate-700">
-                        <Tag size={10} className="text-[#006C54]" /> {entry.category}
+                      <span className="inline-flex items-center gap-1 text-[11px] text-slate-700 dark:text-cream-dim">
+                        <Tag size={10} className="text-[#006C54] dark:text-[#00A881]" /> {entry.category}
                       </span>
                     </td>
 
                     {/* Severity */}
                     <td className="py-3 px-4">
-                      <span className={`inline-block px-2 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wide ${getSeverityBadgeClass(entry.severity)}`}>
+                      <span className={`inline-block px-2 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wider ${getSeverityBadgeClass(entry.severity)}`}>
                         {entry.severity}
                       </span>
                     </td>
 
                     {/* Action */}
                     <td className="py-3 px-4">
-                      <span className={`inline-block px-2 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wide ${getActionBadgeClass(entry.action)}`}>
+                      <span className={`inline-block px-2 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wider ${getActionBadgeClass(entry.action)}`}>
                         {entry.action}
                       </span>
                     </td>
@@ -229,17 +229,17 @@ export default function DictionaryPanel({
                         onClick={() => onToggle(entry.id)}
                         className={`inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full transition-all cursor-pointer ${
                           entry.enabled
-                            ? 'bg-[#E8F5EE] text-[#006C54]'
-                            : 'bg-slate-100 text-slate-500'
+                            ? 'bg-[#E8F5EE] dark:bg-emerald-950/40 text-[#006C54] dark:text-emerald-400'
+                            : 'bg-slate-100 dark:bg-panel-2 text-slate-500 dark:text-cream-dim'
                         }`}
                       >
-                        <span className={`w-1.5 h-1.5 rounded-full ${entry.enabled ? 'bg-[#006C54]' : 'bg-slate-400'}`} />
+                        <span className={`w-1.5 h-1.5 rounded-full ${entry.enabled ? 'bg-[#006C54] dark:bg-emerald-400' : 'bg-slate-400'}`} />
                         {entry.enabled ? 'Enabled' : 'Disabled'}
                       </button>
                     </td>
 
                     {/* Notes */}
-                    <td className="py-3 px-4 text-slate-500 max-w-xs truncate text-[11px]">
+                    <td className="py-3 px-4 text-slate-500 dark:text-cream-dim max-w-xs truncate text-[11px]">
                       {entry.notes || ' - '}
                     </td>
 
@@ -247,14 +247,14 @@ export default function DictionaryPanel({
                     <td className="py-3 px-4 text-right space-x-1 whitespace-nowrap">
                       <button
                         onClick={() => onEdit(entry)}
-                        className="p-1.5 rounded-lg text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-colors inline-flex items-center justify-center cursor-pointer"
+                        className="p-1.5 rounded-lg text-slate-500 dark:text-cream-dim hover:text-slate-900 dark:hover:text-cream hover:bg-slate-100 dark:hover:bg-panel-2 transition-colors inline-flex items-center justify-center cursor-pointer"
                         title="Edit entry"
                       >
                         <Edit2 size={13} />
                       </button>
                       <button
                         onClick={() => onDelete(entry)}
-                        className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors inline-flex items-center justify-center cursor-pointer"
+                        className="p-1.5 rounded-lg text-slate-400 dark:text-cream-dim hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-colors inline-flex items-center justify-center cursor-pointer"
                         title="Delete entry"
                       >
                         <Trash2 size={13} />

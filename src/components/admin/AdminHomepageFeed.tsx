@@ -622,15 +622,15 @@ export default function AdminHomepageFeed() {
   const previewCustomEmbedUrl = customEmbedUrl ? normalizeCustomEmbedUrl(customEmbedUrl) : null;
 
   return (
-    <div className="space-y-6 text-slate-900">
+    <div className="space-y-6 text-slate-900 dark:text-cream">
       {/* Homepage Feed Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[#E5E5EA]">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[#E5E5EA] dark:border-line">
         <div>
-          <h3 className="font-semibold text-lg text-slate-900 tracking-tight flex items-center gap-2">
-            <Newspaper size={18} className="text-[#006C54]" />
+          <h3 className="font-semibold text-lg text-slate-900 dark:text-cream tracking-tight flex items-center gap-2">
+            <Newspaper size={18} className="text-[#006C54] dark:text-[#00A881]" />
             Homepage Feed &amp; Editorial Manager
           </h3>
-          <p className="text-xs text-slate-500 mt-1">
+          <p className="text-xs text-slate-500 dark:text-cream-dim mt-1">
             Manage weekly homepage matchday stories, WebP editorial carousels, and match preview video embeds.
           </p>
         </div>
@@ -639,22 +639,22 @@ export default function AdminHomepageFeed() {
       {/* =========================================================================
           SECTION 1: CAROUSEL PHOTO LINK MANAGEMENT (SAVED IN FIRESTORE DATABASE)
           ========================================================================= */}
-      <section className="bg-white border border-slate-200 rounded-2xl p-6 sm:p-7 shadow-xs">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-5 border-b border-slate-100">
+      <section className="bg-white dark:bg-panel border border-slate-200 dark:border-line rounded-2xl p-6 sm:p-7 shadow-xs">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-5 border-b border-slate-100 dark:border-line">
           <div>
-            <h3 className="font-semibold text-lg text-slate-900 tracking-tight flex items-center gap-2">
-              <ImageIcon size={20} className="text-[#006C54]" />
+            <h3 className="font-semibold text-lg text-slate-900 dark:text-cream tracking-tight flex items-center gap-2">
+              <ImageIcon size={20} className="text-[#006C54] dark:text-[#00A881]" />
               Weekly Editorial Photo Carousel
             </h3>
-            <p className="text-xs text-slate-500 mt-1">
+            <p className="text-xs text-slate-500 dark:text-cream-dim mt-1">
               Publish direct photo links saved in the Cloud Firestore database with full headline, caption, credit, and display order management.
             </p>
           </div>
           <div className="flex items-center gap-2">
-            <span className="text-[11px] font-semibold text-[#006C54] flex items-center gap-1.5">
+            <span className="text-[11px] font-semibold text-[#006C54] dark:text-[#00A881] flex items-center gap-1.5">
               <ShieldCheck size={13} /> Cloud Firestore Active
             </span>
-            <span className="text-xs font-medium text-slate-600">
+            <span className="text-xs font-medium text-slate-600 dark:text-cream-dim">
               {feed.carouselItems.filter((i) => i.published).length} Published · {feed.carouselItems.length} Total
             </span>
           </div>
@@ -664,12 +664,12 @@ export default function AdminHomepageFeed() {
         <form onSubmit={handlePublishPhoto} className="mt-6 space-y-5">
           {/* DIRECT PHOTO LINK INPUT (Saved in Firestore Database) */}
           <div>
-            <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wide mb-1.5 flex items-center justify-between">
+            <label className="block text-xs font-semibold text-slate-700 dark:text-cream-dim uppercase tracking-wide mb-1.5 flex items-center justify-between">
               <span className="flex items-center gap-1.5">
-                <LinkIcon size={14} className="text-[#006C54]" />
+                <LinkIcon size={14} className="text-[#006C54] dark:text-[#00A881]" />
                 Direct Photo Link (Saved in Firestore Database)
               </span>
-              <span className="text-[11px] text-slate-400 font-normal">
+              <span className="text-[11px] text-slate-400 dark:text-cream-dim/60 font-normal">
                 Stored in Firestore · Direct image URL (.jpg, .png, .webp, https://...)
               </span>
             </label>
@@ -680,20 +680,20 @@ export default function AdminHomepageFeed() {
                 value={photoUrl}
                 onChange={(e) => handlePhotoUrlChange(e.target.value)}
                 disabled={isUploading}
-                className="w-full bg-[#FFFFF0] border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#006C54] focus:ring-1 focus:ring-[#006C54] transition-all pr-9 disabled:opacity-50"
+                className="w-full bg-[#FFFFF0] dark:bg-panel-2 border border-slate-300 dark:border-line rounded-xl px-3.5 py-2.5 text-xs text-slate-900 dark:text-cream placeholder:text-slate-400 dark:placeholder:text-cream-dim/60 focus:outline-none focus:border-[#006C54] focus:ring-1 focus:ring-[#006C54] transition-all pr-9 disabled:opacity-50"
               />
               {photoUrl ? (
                 <button
                   type="button"
                   onClick={() => setPhotoUrl('')}
-                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-1 cursor-pointer"
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-cream-dim hover:text-slate-600 dark:hover:text-cream p-1 cursor-pointer"
                   title="Clear photo URL"
                 >
                   <X size={14} />
                 </button>
               ) : null}
             </div>
-            <p className="text-[11px] text-slate-400 mt-1">
+            <p className="text-[11px] text-slate-400 dark:text-cream-dim/60 mt-1">
               Photo links are saved directly in the Cloud Firestore database (just like YouTube video embeds) and persist across all deployments.
             </p>
           </div>
@@ -702,7 +702,7 @@ export default function AdminHomepageFeed() {
           <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
             {/* 1. Carousel Heading */}
             <div className="md:col-span-8">
-              <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wide mb-1.5">
+              <label className="block text-xs font-semibold text-slate-700 dark:text-cream-dim uppercase tracking-wide mb-1.5">
                 1. Carousel Headline (Gold Accent)
               </label>
               <input
@@ -711,18 +711,18 @@ export default function AdminHomepageFeed() {
                 value={photoHeading}
                 onChange={(e) => setPhotoHeading(e.target.value)}
                 maxLength={90}
-                className="w-full bg-[#FFFFF0] border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#006C54] focus:ring-1 focus:ring-[#006C54] transition-all"
+                className="w-full bg-[#FFFFF0] dark:bg-panel-2 border border-slate-300 dark:border-line rounded-xl px-3.5 py-2.5 text-xs text-slate-900 dark:text-cream placeholder:text-slate-400 dark:placeholder:text-cream-dim/60 focus:outline-none focus:border-[#006C54] focus:ring-1 focus:ring-[#006C54] transition-all"
               />
-              <span className="text-[11px] text-slate-400 mt-1 block">
+              <span className="text-[11px] text-slate-400 dark:text-cream-dim/60 mt-1 block">
                 Prominent headline rendered next to the photo in bold stadium gold (#D4AF37).
               </span>
             </div>
 
             {/* Display Order Number */}
             <div className="md:col-span-4">
-              <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wide mb-1.5 flex items-center justify-between">
+              <label className="block text-xs font-semibold text-slate-700 dark:text-cream-dim uppercase tracking-wide mb-1.5 flex items-center justify-between">
                 <span>Display Order</span>
-                <span className="text-[11px] text-slate-400 font-normal lowercase">1 = first</span>
+                <span className="text-[11px] text-slate-400 dark:text-cream-dim/60 font-normal lowercase">1 = first</span>
               </label>
               <input
                 type="number"
@@ -730,16 +730,16 @@ export default function AdminHomepageFeed() {
                 max={999}
                 value={photoOrder}
                 onChange={(e) => setPhotoOrder(Number(e.target.value) || 1)}
-                className="w-full bg-[#FFFFF0] border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 font-semibold focus:outline-none focus:border-[#006C54] focus:ring-1 focus:ring-[#006C54] transition-all"
+                className="w-full bg-[#FFFFF0] dark:bg-panel-2 border border-slate-300 dark:border-line rounded-xl px-3.5 py-2.5 text-xs text-slate-900 dark:text-cream font-semibold focus:outline-none focus:border-[#006C54] focus:ring-1 focus:ring-[#006C54] transition-all"
               />
-              <span className="text-[11px] text-slate-400 mt-1 block">
+              <span className="text-[11px] text-slate-400 dark:text-cream-dim/60 mt-1 block">
                 Explicit position in the homepage rotation.
               </span>
             </div>
 
             {/* 2. Carousel Caption Narrative */}
             <div className="md:col-span-12">
-              <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wide mb-1.5">
+              <label className="block text-xs font-semibold text-slate-700 dark:text-cream-dim uppercase tracking-wide mb-1.5">
                 2. Carousel Story Caption
               </label>
               <textarea
@@ -748,19 +748,19 @@ export default function AdminHomepageFeed() {
                 value={photoCaption}
                 onChange={(e) => setPhotoCaption(e.target.value)}
                 maxLength={300}
-                className="w-full bg-[#FFFFF0] border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#006C54] focus:ring-1 focus:ring-[#006C54] transition-all resize-none"
+                className="w-full bg-[#FFFFF0] dark:bg-panel-2 border border-slate-300 dark:border-line rounded-xl px-3.5 py-2.5 text-xs text-slate-900 dark:text-cream placeholder:text-slate-400 dark:placeholder:text-cream-dim/60 focus:outline-none focus:border-[#006C54] focus:ring-1 focus:ring-[#006C54] transition-all resize-none"
               />
-              <div className="flex justify-between items-center text-[11px] text-slate-400 mt-1">
+              <div className="flex justify-between items-center text-[11px] text-slate-400 dark:text-cream-dim/60 mt-1">
                 <span>Refined narrative rendered directly underneath the headline.</span>
-                <span>{photoCaption.length} / 300</span>
+                <span className="tabular-nums">{photoCaption.length} / 300</span>
               </div>
             </div>
 
             {/* 3. Photo & News Source Credit */}
             <div className="md:col-span-8">
-              <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wide mb-1.5 flex items-center justify-between">
+              <label className="block text-xs font-semibold text-slate-700 dark:text-cream-dim uppercase tracking-wide mb-1.5 flex items-center justify-between">
                 <span>3. Photo &amp; News Source Credit (Optional)</span>
-                <span className="text-[11px] text-slate-400 font-normal lowercase">Credit/attributions</span>
+                <span className="text-[11px] text-slate-400 dark:text-cream-dim/60 font-normal lowercase">Credit/attributions</span>
               </label>
               <input
                 type="text"
@@ -768,16 +768,16 @@ export default function AdminHomepageFeed() {
                 value={photoSource}
                 onChange={(e) => setPhotoSource(e.target.value)}
                 maxLength={80}
-                className="w-full bg-[#FFFFF0] border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#006C54] focus:ring-1 focus:ring-[#006C54] transition-all"
+                className="w-full bg-[#FFFFF0] dark:bg-panel-2 border border-slate-300 dark:border-line rounded-xl px-3.5 py-2.5 text-xs text-slate-900 dark:text-cream placeholder:text-slate-400 dark:placeholder:text-cream-dim/60 focus:outline-none focus:border-[#006C54] focus:ring-1 focus:ring-[#006C54] transition-all"
               />
-              <span className="text-[11px] text-slate-400 mt-1 block">
+              <span className="text-[11px] text-slate-400 dark:text-cream-dim/60 mt-1 block">
                 Faded italic credit displayed below the photo on the left above the heading.
               </span>
             </div>
 
             {/* Visibility Toggle */}
             <div className="md:col-span-4 flex flex-col justify-center">
-              <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wide mb-1.5">
+              <label className="block text-xs font-semibold text-slate-700 dark:text-cream-dim uppercase tracking-wide mb-1.5">
                 Visibility
               </label>
               <label className="flex items-center gap-2 cursor-pointer pt-1">
@@ -787,7 +787,7 @@ export default function AdminHomepageFeed() {
                   onChange={(e) => setPhotoPublished(e.target.checked)}
                   className="w-4 h-4 rounded text-[#006C54] focus:ring-[#006C54] cursor-pointer"
                 />
-                <span className="text-xs text-slate-700 font-medium">
+                <span className="text-xs text-slate-700 dark:text-cream font-medium">
                   {photoPublished ? 'Publish immediately to homepage' : 'Save as omitted draft'}
                 </span>
               </label>
@@ -818,9 +818,9 @@ export default function AdminHomepageFeed() {
               <button
                 type="button"
                 onClick={() => setIsVisualPreviewOpen(!isVisualPreviewOpen)}
-                className="bg-slate-100 hover:bg-slate-200 text-slate-800 font-semibold text-xs px-4 py-2.5 rounded-xl transition-colors cursor-pointer flex items-center gap-1.5"
+                className="bg-slate-100 hover:bg-slate-200 dark:bg-panel-2 dark:hover:bg-line text-slate-800 dark:text-cream font-semibold text-xs px-4 py-2.5 rounded-xl transition-colors cursor-pointer flex items-center gap-1.5"
               >
-                <Eye size={14} className="text-[#006C54]" />
+                <Eye size={14} className="text-[#006C54] dark:text-[#00A881]" />
                 <span>{isVisualPreviewOpen ? 'Hide Live Preview' : 'Preview Console Display'}</span>
               </button>
             )}
@@ -876,19 +876,19 @@ export default function AdminHomepageFeed() {
         {/* =========================================================================
             ACTIVE EDITORIAL CAROUSEL FEED CARDS (EDIT, REPLACE, REORDER, DELETE)
             ========================================================================= */}
-        <div className="mt-8 pt-6 border-t border-slate-100">
+        <div className="mt-8 pt-6 border-t border-slate-100 dark:border-line">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
-            <h4 className="text-xs font-semibold text-slate-800 uppercase tracking-wide flex items-center gap-1.5">
-              <Layers size={14} className="text-[#006C54]" />
+            <h4 className="text-xs font-semibold text-slate-800 dark:text-cream uppercase tracking-wide flex items-center gap-1.5">
+              <Layers size={14} className="text-[#006C54] dark:text-[#00A881]" />
               Active Editorial Carousel Stories ({sortedCarouselItems.length})
             </h4>
-            <span className="text-[11px] text-slate-400">
+            <span className="text-[11px] text-slate-400 dark:text-cream-dim/60">
               Arranged by display order. Use arrows to reorder slides.
             </span>
           </div>
 
           {sortedCarouselItems.length === 0 ? (
-            <div className="text-center py-10 bg-slate-50 border border-slate-200 rounded-2xl text-slate-400 text-xs">
+            <div className="text-center py-10 bg-slate-50 dark:bg-panel-2 border border-slate-200 dark:border-line rounded-2xl text-slate-400 dark:text-cream-dim/60 text-xs">
               No carousel photos added yet. Paste a photo link above to publish to the weekly editorial carousel.
             </div>
           ) : (
@@ -898,7 +898,9 @@ export default function AdminHomepageFeed() {
                   <div
                     key={item.id}
                     className={`relative border rounded-2xl overflow-hidden transition-all flex flex-col justify-between ${
-                      item.published ? 'bg-[#FFFFF0] border-slate-200 shadow-xs' : 'bg-slate-50 border-slate-200 opacity-60'
+                      item.published
+                        ? 'bg-[#FFFFF0] dark:bg-panel-2 border-slate-200 dark:border-line shadow-xs'
+                        : 'bg-slate-50 dark:bg-panel border-slate-200 dark:border-line opacity-60'
                     }`}
                   >
                     {/* PHOTO THUMBNAIL (3:4 Ratio) */}
@@ -914,12 +916,12 @@ export default function AdminHomepageFeed() {
 
                       {/* Top Badges: Order & 24h Story Countdown */}
                       <div className="absolute top-2.5 left-2.5 right-2.5 flex items-center justify-between z-20 gap-1.5">
-                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-black/70 backdrop-blur-xs text-white border border-white/20">
+                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-black/70 backdrop-blur-xs text-white border border-white/20 tabular-nums">
                           #{index + 1}
                         </span>
 
                         <span
-                          className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-950/85 text-emerald-300 border border-emerald-400/40 flex items-center gap-1"
+                          className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-950/85 text-emerald-300 border border-emerald-400/40 flex items-center gap-1 tabular-nums"
                           title={`Expires at ${item.expiresAt || '24h after publication'}`}
                         >
                           <Clock size={10} />
@@ -950,7 +952,7 @@ export default function AdminHomepageFeed() {
                     </div>
 
                     {/* CARD CONTROLS & ACTIONS */}
-                    <div className="p-3 bg-white border-t border-slate-100 flex flex-col space-y-2 text-xs">
+                    <div className="p-3 bg-white dark:bg-panel border-t border-slate-100 dark:border-line flex flex-col space-y-2 text-xs">
                       {/* Top Action Row: Reorder & Status */}
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-1">
@@ -958,7 +960,7 @@ export default function AdminHomepageFeed() {
                             type="button"
                             onClick={() => handleMoveUp(index)}
                             disabled={index === 0}
-                            className="p-1 rounded bg-slate-100 hover:bg-slate-200 disabled:opacity-30 text-slate-700 transition-colors cursor-pointer"
+                            className="p-1 rounded bg-slate-100 dark:bg-panel-2 hover:bg-slate-200 dark:hover:bg-line disabled:opacity-30 text-slate-700 dark:text-cream transition-colors cursor-pointer"
                             title="Move Earlier in Carousel"
                           >
                             <ArrowUp size={13} />
@@ -967,7 +969,7 @@ export default function AdminHomepageFeed() {
                             type="button"
                             onClick={() => handleMoveDown(index)}
                             disabled={index === sortedCarouselItems.length - 1}
-                            className="p-1 rounded bg-slate-100 hover:bg-slate-200 disabled:opacity-30 text-slate-700 transition-colors cursor-pointer"
+                            className="p-1 rounded bg-slate-100 dark:bg-panel-2 hover:bg-slate-200 dark:hover:bg-line disabled:opacity-30 text-slate-700 dark:text-cream transition-colors cursor-pointer"
                             title="Move Later in Carousel"
                           >
                             <ArrowDown size={13} />
@@ -977,7 +979,7 @@ export default function AdminHomepageFeed() {
                         <button
                           type="button"
                           onClick={() => handleToggleCarousel(item.id)}
-                          className="px-2 py-0.5 rounded-md text-[11px] font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 transition-colors cursor-pointer flex items-center gap-1"
+                          className="px-2 py-0.5 rounded-md text-[11px] font-semibold bg-slate-100 dark:bg-panel-2 hover:bg-slate-200 dark:hover:bg-line text-slate-700 dark:text-cream transition-colors cursor-pointer flex items-center gap-1"
                         >
                           {item.published ? (
                             <>
@@ -985,32 +987,32 @@ export default function AdminHomepageFeed() {
                             </>
                           ) : (
                             <>
-                              <Check size={11} className="text-[#006C54]" /> Publish
+                              <Check size={11} className="text-[#006C54] dark:text-[#00A881]" /> Publish
                             </>
                           )}
                         </button>
                       </div>
 
                       {/* Bottom Action Row: Edit Story, Replace Photo, Delete */}
-                      <div className="flex items-center justify-between gap-1 pt-1 border-t border-slate-100">
+                      <div className="flex items-center justify-between gap-1 pt-1 border-t border-slate-100 dark:border-line">
                         <div className="flex items-center gap-1">
                           <button
                             type="button"
                             onClick={() => handleOpenEdit(item)}
-                            className="px-2 py-1 rounded-md text-[11px] font-semibold text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer flex items-center gap-1"
+                            className="px-2 py-1 rounded-md text-[11px] font-semibold text-slate-700 dark:text-cream-dim hover:bg-slate-100 dark:hover:bg-panel-2 transition-colors cursor-pointer flex items-center gap-1"
                             title="Edit headline, caption, or order"
                           >
-                            <Edit3 size={12} className="text-[#006C54]" />
+                            <Edit3 size={12} className="text-[#006C54] dark:text-[#00A881]" />
                             <span>Edit</span>
                           </button>
 
                           <button
                             type="button"
                             onClick={() => handleOpenReplace(item)}
-                            className="px-2 py-1 rounded-md text-[11px] font-semibold text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer flex items-center gap-1"
+                            className="px-2 py-1 rounded-md text-[11px] font-semibold text-slate-700 dark:text-cream-dim hover:bg-slate-100 dark:hover:bg-panel-2 transition-colors cursor-pointer flex items-center gap-1"
                             title="Replace photo link in Firestore"
                           >
-                            <RefreshCw size={12} className="text-[#006C54]" />
+                            <RefreshCw size={12} className="text-[#006C54] dark:text-[#00A881]" />
                             <span>Replace Photo</span>
                           </button>
                         </div>
@@ -1018,7 +1020,7 @@ export default function AdminHomepageFeed() {
                         <button
                           type="button"
                           onClick={() => handleDeleteCarousel(item)}
-                          className="p-1.5 rounded-md text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
+                          className="p-1.5 rounded-md text-slate-400 dark:text-cream-dim hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-colors cursor-pointer"
                           title="Delete photo story from Firestore"
                         >
                           <Trash2 size={13} />
@@ -1038,16 +1040,16 @@ export default function AdminHomepageFeed() {
           ========================================================================= */}
       {editingItem && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
-          <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-200 animate-editorial-fade-in space-y-4">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-              <h3 className="font-semibold text-base text-slate-900 flex items-center gap-2">
-                <Edit3 size={18} className="text-[#006C54]" />
+          <div className="bg-white dark:bg-panel rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-200 dark:border-line animate-editorial-fade-in space-y-4 text-slate-900 dark:text-cream">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-line">
+              <h3 className="font-semibold text-base text-slate-900 dark:text-cream flex items-center gap-2">
+                <Edit3 size={18} className="text-[#006C54] dark:text-[#00A881]" />
                 Edit Carousel Story
               </h3>
               <button
                 type="button"
                 onClick={() => setEditingItem(null)}
-                className="text-slate-400 hover:text-slate-600 p-1 cursor-pointer"
+                className="text-slate-400 dark:text-cream-dim hover:text-slate-600 dark:hover:text-cream p-1 cursor-pointer"
               >
                 <X size={18} />
               </button>
@@ -1055,7 +1057,7 @@ export default function AdminHomepageFeed() {
 
             <form onSubmit={handleSaveEdit} className="space-y-4">
               <div>
-                <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wide mb-1">
+                <label className="block text-xs font-semibold text-slate-700 dark:text-cream-dim uppercase tracking-wide mb-1">
                   Headline (Gold Accent)
                 </label>
                 <input
@@ -1063,12 +1065,12 @@ export default function AdminHomepageFeed() {
                   value={editHeading}
                   onChange={(e) => setEditHeading(e.target.value)}
                   maxLength={90}
-                  className="w-full bg-[#FFFFF0] border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none focus:border-[#006C54] focus:ring-1 focus:ring-[#006C54]"
+                  className="w-full bg-[#FFFFF0] dark:bg-panel-2 border border-slate-300 dark:border-line rounded-xl px-3.5 py-2.5 text-xs text-slate-900 dark:text-cream focus:outline-none focus:border-[#006C54] focus:ring-1 focus:ring-[#006C54]"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wide mb-1">
+                <label className="block text-xs font-semibold text-slate-700 dark:text-cream-dim uppercase tracking-wide mb-1">
                   Story Narrative Caption
                 </label>
                 <textarea
@@ -1076,13 +1078,13 @@ export default function AdminHomepageFeed() {
                   value={editCaption}
                   onChange={(e) => setEditCaption(e.target.value)}
                   maxLength={300}
-                  className="w-full bg-[#FFFFF0] border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none focus:border-[#006C54] focus:ring-1 focus:ring-[#006C54] resize-none"
+                  className="w-full bg-[#FFFFF0] dark:bg-panel-2 border border-slate-300 dark:border-line rounded-xl px-3.5 py-2.5 text-xs text-slate-900 dark:text-cream focus:outline-none focus:border-[#006C54] focus:ring-1 focus:ring-[#006C54] resize-none"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wide mb-1">
+                  <label className="block text-xs font-semibold text-slate-700 dark:text-cream-dim uppercase tracking-wide mb-1">
                     Photo Source Credit
                   </label>
                   <input
@@ -1090,12 +1092,12 @@ export default function AdminHomepageFeed() {
                     value={editSource}
                     onChange={(e) => setEditSource(e.target.value)}
                     maxLength={80}
-                    className="w-full bg-[#FFFFF0] border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none focus:border-[#006C54]"
+                    className="w-full bg-[#FFFFF0] dark:bg-panel-2 border border-slate-300 dark:border-line rounded-xl px-3.5 py-2.5 text-xs text-slate-900 dark:text-cream focus:outline-none focus:border-[#006C54]"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wide mb-1">
+                  <label className="block text-xs font-semibold text-slate-700 dark:text-cream-dim uppercase tracking-wide mb-1">
                     Display Order
                   </label>
                   <input
@@ -1103,7 +1105,7 @@ export default function AdminHomepageFeed() {
                     min={1}
                     value={editOrder}
                     onChange={(e) => setEditOrder(Number(e.target.value) || 1)}
-                    className="w-full bg-[#FFFFF0] border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 font-semibold focus:outline-none focus:border-[#006C54]"
+                    className="w-full bg-[#FFFFF0] dark:bg-panel-2 border border-slate-300 dark:border-line rounded-xl px-3.5 py-2.5 text-xs text-slate-900 dark:text-cream font-semibold focus:outline-none focus:border-[#006C54]"
                   />
                 </div>
               </div>
@@ -1116,16 +1118,16 @@ export default function AdminHomepageFeed() {
                     onChange={(e) => setEditPublished(e.target.checked)}
                     className="w-4 h-4 rounded text-[#006C54] focus:ring-[#006C54] cursor-pointer"
                   />
-                  <span className="text-xs text-slate-700 font-medium">Published on homepage</span>
+                  <span className="text-xs text-slate-700 dark:text-cream font-medium">Published on homepage</span>
                 </label>
               </div>
 
-              <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
+              <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100 dark:border-line">
                 <button
                   type="button"
                   onClick={() => setEditingItem(null)}
                   disabled={isSavingEdit}
-                  className="px-4 py-2 text-xs font-semibold rounded-xl text-slate-600 hover:bg-slate-100 cursor-pointer"
+                  className="px-4 py-2 text-xs font-semibold rounded-xl text-slate-600 dark:text-cream-dim hover:bg-slate-100 dark:hover:bg-panel-2 cursor-pointer"
                 >
                   Cancel
                 </button>
@@ -1147,36 +1149,36 @@ export default function AdminHomepageFeed() {
           ========================================================================= */}
       {replacingItem && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
-          <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-200 animate-editorial-fade-in space-y-4">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-              <h3 className="font-semibold text-base text-slate-900 flex items-center gap-2">
-                <RefreshCw size={18} className="text-[#006C54]" />
+          <div className="bg-white dark:bg-panel rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-200 dark:border-line animate-editorial-fade-in space-y-4 text-slate-900 dark:text-cream">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-line">
+              <h3 className="font-semibold text-base text-slate-900 dark:text-cream flex items-center gap-2">
+                <RefreshCw size={18} className="text-[#006C54] dark:text-[#00A881]" />
                 Replace Carousel Photo Link
               </h3>
               <button
                 type="button"
                 onClick={() => setReplacingItem(null)}
-                className="text-slate-400 hover:text-slate-600 p-1 cursor-pointer"
+                className="text-slate-400 dark:text-cream-dim hover:text-slate-600 dark:hover:text-cream p-1 cursor-pointer"
               >
                 <X size={18} />
               </button>
             </div>
 
-            <p className="text-xs text-slate-500">
+            <p className="text-xs text-slate-500 dark:text-cream-dim">
               Paste a new direct photo link below to update this carousel slide in the Cloud Firestore database.
             </p>
 
             {/* Current vs New Image Comparison Preview */}
             <div className="grid grid-cols-2 gap-4 py-2">
               <div className="text-center space-y-1">
-                <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wide block">Current Photo</span>
-                <div className="relative aspect-[3/4] rounded-xl overflow-hidden bg-slate-900 border border-slate-200 shadow-xs">
+                <span className="text-[11px] font-semibold text-slate-500 dark:text-cream-dim uppercase tracking-wide block">Current Photo</span>
+                <div className="relative aspect-[3/4] rounded-xl overflow-hidden bg-slate-900 border border-slate-200 dark:border-line shadow-xs">
                   <img src={replacingItem.imageUrl} alt="Current" referrerPolicy="no-referrer" className="w-full h-full object-cover" />
                 </div>
               </div>
 
               <div className="text-center space-y-1">
-                <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wide block">New Photo Preview</span>
+                <span className="text-[11px] font-semibold text-slate-500 dark:text-cream-dim uppercase tracking-wide block">New Photo Preview</span>
                 {effectiveReplacePreview ? (
                   <div className="relative aspect-[3/4] rounded-xl overflow-hidden bg-slate-900 border border-emerald-400 shadow-md">
                     <img
@@ -1187,10 +1189,10 @@ export default function AdminHomepageFeed() {
                     />
                   </div>
                 ) : (
-                  <div className="relative aspect-[3/4] rounded-xl border-2 border-dashed border-slate-300 bg-slate-50 flex flex-col items-center justify-center p-3 text-center">
-                    <LinkIcon size={24} className="text-[#006C54] mb-1" />
-                    <span className="text-xs font-semibold text-slate-700">Paste Photo Link Below</span>
-                    <span className="text-[10px] text-slate-400 mt-0.5">Live preview appears here</span>
+                  <div className="relative aspect-[3/4] rounded-xl border-2 border-dashed border-slate-300 dark:border-line bg-slate-50 dark:bg-panel-2 flex flex-col items-center justify-center p-3 text-center">
+                    <LinkIcon size={24} className="text-[#006C54] dark:text-[#00A881] mb-1" />
+                    <span className="text-xs font-semibold text-slate-700 dark:text-cream">Paste Photo Link Below</span>
+                    <span className="text-[10px] text-slate-400 dark:text-cream-dim/60 mt-0.5">Live preview appears here</span>
                   </div>
                 )}
               </div>
@@ -1198,12 +1200,12 @@ export default function AdminHomepageFeed() {
 
             {/* REPLACEMENT PHOTO LINK INPUT */}
             <div>
-              <label className="block text-[11px] font-semibold text-slate-700 mb-1 flex items-center justify-between">
+              <label className="block text-[11px] font-semibold text-slate-700 dark:text-cream-dim mb-1 flex items-center justify-between">
                 <span className="flex items-center gap-1">
-                  <LinkIcon size={12} className="text-[#006C54]" />
+                  <LinkIcon size={12} className="text-[#006C54] dark:text-[#00A881]" />
                   New Photo Link (URL):
                 </span>
-                <span className="text-[10px] text-slate-400">Saved in Firestore Database</span>
+                <span className="text-[10px] text-slate-400 dark:text-cream-dim/60">Saved in Firestore Database</span>
               </label>
               <div className="relative">
                 <input
@@ -1221,13 +1223,13 @@ export default function AdminHomepageFeed() {
                     }
                   }}
                   disabled={isReplacing}
-                  className="w-full bg-[#FFFFF0] border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#006C54] transition-all pr-8 disabled:opacity-50"
+                  className="w-full bg-[#FFFFF0] dark:bg-panel-2 border border-slate-300 dark:border-line rounded-xl px-3 py-2 text-xs text-slate-900 dark:text-cream placeholder:text-slate-400 dark:placeholder:text-cream-dim/60 focus:outline-none focus:border-[#006C54] transition-all pr-8 disabled:opacity-50"
                 />
                 {replaceUrl ? (
                   <button
                     type="button"
                     onClick={() => setReplaceUrl('')}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-0.5 cursor-pointer"
+                    className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 dark:text-cream-dim hover:text-slate-600 dark:hover:text-cream p-0.5 cursor-pointer"
                   >
                     <X size={13} />
                   </button>
@@ -1235,12 +1237,12 @@ export default function AdminHomepageFeed() {
               </div>
             </div>
 
-            <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
+            <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100 dark:border-line">
               <button
                 type="button"
                 onClick={() => setReplacingItem(null)}
                 disabled={isReplacing}
-                className="px-4 py-2 text-xs font-semibold rounded-xl text-slate-600 hover:bg-slate-100 cursor-pointer"
+                className="px-4 py-2 text-xs font-semibold rounded-xl text-slate-600 dark:text-cream-dim hover:bg-slate-100 dark:hover:bg-panel-2 cursor-pointer"
               >
                 Cancel
               </button>
@@ -1260,18 +1262,18 @@ export default function AdminHomepageFeed() {
       {/* =========================================================================
           SECTION 2: VIDEOS AND HIGHLIGHTS (PRESERVED)
           ========================================================================= */}
-      <section className="bg-white border border-slate-200 rounded-2xl p-6 sm:p-7 shadow-xs">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-5 border-b border-slate-100">
+      <section className="bg-white dark:bg-panel border border-slate-200 dark:border-line rounded-2xl p-6 sm:p-7 shadow-xs">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-5 border-b border-slate-100 dark:border-line">
           <div>
-            <h3 className="font-semibold text-lg text-slate-900 tracking-tight flex items-center gap-2">
-              <Video size={20} className="text-[#006C54]" />
+            <h3 className="font-semibold text-lg text-slate-900 dark:text-cream tracking-tight flex items-center gap-2">
+              <Video size={20} className="text-[#006C54] dark:text-[#00A881]" />
               Videos and Highlights
             </h3>
-            <p className="text-xs text-slate-500 mt-1">
+            <p className="text-xs text-slate-500 dark:text-cream-dim mt-1">
               Add YouTube match highlights, weekly previews, or tactical breakdowns that appear beneath the carousel separated by a horizontal line.
             </p>
           </div>
-          <span className="text-xs font-medium text-slate-600 self-start sm:self-auto">
+          <span className="text-xs font-medium text-slate-600 dark:text-cream-dim self-start sm:self-auto">
             {feed.videoItems.filter((v) => v.published).length} Published · {feed.videoItems.length} Total
           </span>
         </div>
@@ -1279,7 +1281,7 @@ export default function AdminHomepageFeed() {
         {/* Video Creation Form */}
         <form onSubmit={handlePublishVideo} className="mt-6 space-y-4">
           <div>
-            <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wide mb-2">
+            <label className="block text-xs font-semibold text-slate-700 dark:text-cream-dim uppercase tracking-wide mb-2">
               YouTube Embed or Watch URL
             </label>
             <div className="relative">
@@ -1288,13 +1290,13 @@ export default function AdminHomepageFeed() {
                 placeholder="Paste YouTube link (e.g. https://www.youtube.com/watch?v=... or https://youtu.be/...)"
                 value={videoUrl}
                 onChange={(e) => setVideoUrl(e.target.value)}
-                className="w-full bg-[#FFFFF0] border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#006C54] focus:ring-1 focus:ring-[#006C54] transition-all"
+                className="w-full bg-[#FFFFF0] dark:bg-panel-2 border border-slate-300 dark:border-line rounded-xl px-3.5 py-2.5 text-xs text-slate-900 dark:text-cream placeholder:text-slate-400 dark:placeholder:text-cream-dim/60 focus:outline-none focus:border-[#006C54] focus:ring-1 focus:ring-[#006C54] transition-all"
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wide mb-2">
+            <label className="block text-xs font-semibold text-slate-700 dark:text-cream-dim uppercase tracking-wide mb-2">
               Video Title / Headline
             </label>
             <input
@@ -1302,7 +1304,7 @@ export default function AdminHomepageFeed() {
               placeholder="e.g. Premier League Matchweek Highlights & Tactical Breakdown"
               value={videoTitle}
               onChange={(e) => setVideoTitle(e.target.value)}
-              className="w-full bg-[#FFFFF0] border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#006C54] focus:ring-1 focus:ring-[#006C54] transition-all"
+              className="w-full bg-[#FFFFF0] dark:bg-panel-2 border border-slate-300 dark:border-line rounded-xl px-3.5 py-2.5 text-xs text-slate-900 dark:text-cream placeholder:text-slate-400 dark:placeholder:text-cream-dim/60 focus:outline-none focus:border-[#006C54] focus:ring-1 focus:ring-[#006C54] transition-all"
             />
           </div>
 
@@ -1320,9 +1322,9 @@ export default function AdminHomepageFeed() {
               <button
                 type="button"
                 onClick={() => setIsVideoPreviewOpen(!isVideoPreviewOpen)}
-                className="bg-slate-100 hover:bg-slate-200 text-slate-800 font-semibold text-xs px-4 py-2.5 rounded-xl transition-colors cursor-pointer flex items-center gap-1.5"
+                className="bg-slate-100 hover:bg-slate-200 dark:bg-panel-2 dark:hover:bg-line text-slate-800 dark:text-cream font-semibold text-xs px-4 py-2.5 rounded-xl transition-colors cursor-pointer flex items-center gap-1.5"
               >
-                <Play size={13} className="text-[#006C54]" />
+                <Play size={13} className="text-[#006C54] dark:text-[#00A881]" />
                 <span>{isVideoPreviewOpen ? 'Hide Video Preview' : 'Preview Video Playback'}</span>
               </button>
             )}
@@ -1330,13 +1332,13 @@ export default function AdminHomepageFeed() {
 
           {/* Live Video Preview Box */}
           {isVideoPreviewOpen && previewEmbedUrl && (
-            <div className="mt-4 p-4 bg-[#F5F5F7] border border-slate-200 rounded-2xl">
+            <div className="mt-4 p-4 bg-[#F5F5F7] dark:bg-panel-2 border border-slate-200 dark:border-line rounded-2xl">
               <div className="flex items-center justify-between mb-3">
-                <span className="text-xs font-semibold text-slate-700">Video Player Confirmation Preview</span>
+                <span className="text-xs font-semibold text-slate-700 dark:text-cream">Video Player Confirmation Preview</span>
                 <button
                   type="button"
                   onClick={() => setIsVideoPreviewOpen(false)}
-                  className="text-slate-400 hover:text-slate-600 cursor-pointer"
+                  className="text-slate-400 dark:text-cream-dim hover:text-slate-600 dark:hover:text-cream cursor-pointer"
                 >
                   <X size={14} />
                 </button>
@@ -1356,20 +1358,20 @@ export default function AdminHomepageFeed() {
         </form>
 
         {/* SECTION 2B: NON-YOUTUBE EMBED FORM */}
-        <div className="mt-8 pt-6 border-t border-slate-200">
+        <div className="mt-8 pt-6 border-t border-slate-200 dark:border-line">
           <div className="mb-4">
-            <h4 className="font-semibold text-sm text-slate-900 tracking-tight flex items-center gap-2">
-              <Code2 size={17} className="text-[#006C54]" />
+            <h4 className="font-semibold text-sm text-slate-900 dark:text-cream tracking-tight flex items-center gap-2">
+              <Code2 size={17} className="text-[#006C54] dark:text-[#00A881]" />
               Other Embed URLs &amp; Custom Iframes
             </h4>
-            <p className="text-xs text-slate-500 mt-1">
+            <p className="text-xs text-slate-500 dark:text-cream-dim mt-1">
               Add other non-YouTube embeds (e.g. Vimeo, Dailymotion, Streamable, sports widgets, or raw &lt;iframe&gt; codes) with a custom caption.
             </p>
           </div>
 
           <form onSubmit={handlePublishCustomEmbed} className="space-y-4">
             <div>
-              <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wide mb-2">
+              <label className="block text-xs font-semibold text-slate-700 dark:text-cream-dim uppercase tracking-wide mb-2">
                 Other Embed URL or Iframe Code
               </label>
               <div className="relative">
@@ -1378,13 +1380,13 @@ export default function AdminHomepageFeed() {
                   placeholder="Paste embed link or <iframe> code (e.g. https://player.vimeo.com/video/... or <iframe src='...'>)"
                   value={customEmbedUrl}
                   onChange={(e) => setCustomEmbedUrl(e.target.value)}
-                  className="w-full bg-[#FFFFF0] border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#006C54] focus:ring-1 focus:ring-[#006C54] transition-all tabular-nums"
+                  className="w-full bg-[#FFFFF0] dark:bg-panel-2 border border-slate-300 dark:border-line rounded-xl px-3.5 py-2.5 text-xs text-slate-900 dark:text-cream placeholder:text-slate-400 dark:placeholder:text-cream-dim/60 focus:outline-none focus:border-[#006C54] focus:ring-1 focus:ring-[#006C54] transition-all tabular-nums"
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wide mb-2">
+              <label className="block text-xs font-semibold text-slate-700 dark:text-cream-dim uppercase tracking-wide mb-2">
                 Embed Caption / Headline
               </label>
               <input
@@ -1392,7 +1394,7 @@ export default function AdminHomepageFeed() {
                 placeholder="e.g. Tactical Breakdown & Pitchside Analysis"
                 value={customEmbedCaption}
                 onChange={(e) => setCustomEmbedCaption(e.target.value)}
-                className="w-full bg-[#FFFFF0] border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#006C54] focus:ring-1 focus:ring-[#006C54] transition-all"
+                className="w-full bg-[#FFFFF0] dark:bg-panel-2 border border-slate-300 dark:border-line rounded-xl px-3.5 py-2.5 text-xs text-slate-900 dark:text-cream placeholder:text-slate-400 dark:placeholder:text-cream-dim/60 focus:outline-none focus:border-[#006C54] focus:ring-1 focus:ring-[#006C54] transition-all"
               />
             </div>
 
@@ -1406,129 +1408,131 @@ export default function AdminHomepageFeed() {
                 {isSavingVideo ? 'Saving to Database...' : 'Publish Custom Embed'}
               </button>
 
-              {previewCustomEmbedUrl && (
+            {previewCustomEmbedUrl && (
+              <button
+                type="button"
+                onClick={() => setIsCustomPreviewOpen(!isCustomPreviewOpen)}
+                className="bg-slate-100 hover:bg-slate-200 dark:bg-panel-2 dark:hover:bg-line text-slate-800 dark:text-cream font-semibold text-xs px-4 py-2.5 rounded-xl transition-colors cursor-pointer flex items-center gap-1.5"
+              >
+                <Play size={13} className="text-[#006C54] dark:text-[#00A881]" />
+                <span>{isCustomPreviewOpen ? 'Hide Embed Preview' : 'Preview Embed Playback'}</span>
+              </button>
+            )}
+          </div>
+
+          {/* Live Custom Embed Preview Box */}
+          {isCustomPreviewOpen && previewCustomEmbedUrl && (
+            <div className="mt-4 p-4 bg-[#F5F5F7] dark:bg-panel-2 border border-slate-200 dark:border-line rounded-2xl">
+              <div className="flex items-center justify-between mb-3">
+                <span className="text-xs font-semibold text-slate-700 dark:text-cream">Embed Confirmation Preview</span>
                 <button
                   type="button"
-                  onClick={() => setIsCustomPreviewOpen(!isCustomPreviewOpen)}
-                  className="bg-slate-100 hover:bg-slate-200 text-slate-800 font-semibold text-xs px-4 py-2.5 rounded-xl transition-colors cursor-pointer flex items-center gap-1.5"
+                  onClick={() => setIsCustomPreviewOpen(false)}
+                  className="text-slate-400 dark:text-cream-dim hover:text-slate-600 dark:hover:text-cream cursor-pointer"
                 >
-                  <Play size={13} className="text-[#006C54]" />
-                  <span>{isCustomPreviewOpen ? 'Hide Embed Preview' : 'Preview Embed Playback'}</span>
+                  <X size={14} />
                 </button>
-              )}
-            </div>
-
-            {/* Live Custom Embed Preview Box */}
-            {isCustomPreviewOpen && previewCustomEmbedUrl && (
-              <div className="mt-4 p-4 bg-[#F5F5F7] border border-slate-200 rounded-2xl">
-                <div className="flex items-center justify-between mb-3">
-                  <span className="text-xs font-semibold text-slate-700">Embed Confirmation Preview</span>
-                  <button
-                    type="button"
-                    onClick={() => setIsCustomPreviewOpen(false)}
-                    className="text-slate-400 hover:text-slate-600 cursor-pointer"
-                  >
-                    <X size={14} />
-                  </button>
-                </div>
-
-                <div className="relative w-full max-w-[360px] mx-auto aspect-[16/9] rounded-xl overflow-hidden bg-black shadow-md">
-                  <iframe
-                    src={previewCustomEmbedUrl}
-                    title="Preview Custom Embed"
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                    allowFullScreen
-                    className="w-full h-full border-0"
-                  />
-                </div>
               </div>
-            )}
-          </form>
-        </div>
 
-        {/* Existing Videos & Highlights List */}
-        <div className="mt-8 pt-6 border-t border-slate-100">
-          <h4 className="text-xs font-semibold text-slate-800 uppercase tracking-wide mb-4">
-            Published Highlights &amp; Embeds ({feed.videoItems.length})
-          </h4>
-
-          {feed.videoItems.length === 0 ? (
-            <div className="text-center py-8 text-slate-400 text-xs">
-              No highlights added yet. Enter a YouTube URL or other embed link above to add highlights to the homepage.
+              <div className="relative w-full max-w-[360px] mx-auto aspect-[16/9] rounded-xl overflow-hidden bg-black shadow-md">
+                <iframe
+                  src={previewCustomEmbedUrl}
+                  title="Preview Custom Embed"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                  className="w-full h-full border-0"
+                />
+              </div>
             </div>
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-              {feed.videoItems.map((v) => {
-                const isCustom = v.type === 'custom' || (!v.embedUrl.includes('youtube.com') && !v.embedUrl.includes('youtu.be'));
-                return (
-                  <div
-                    key={v.id}
-                    className={`border rounded-2xl overflow-hidden transition-all flex flex-col justify-between max-w-[360px] mx-auto w-full ${
-                      v.published ? 'bg-[#FFFFF0] border-slate-200' : 'bg-slate-50 border-slate-200 opacity-60'
-                    }`}
-                  >
-                    <div className="relative aspect-[16/9] bg-black overflow-hidden">
-                      <iframe
-                        src={v.embedUrl}
-                        title={v.title}
-                        allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                        allowFullScreen
-                        className="w-full h-full border-0"
-                      />
-                      <div className="absolute top-2 left-2 bg-black/75 backdrop-blur-xs text-white text-[11px] font-medium px-2 py-0.5 rounded-md">
-                        {isCustom ? 'Custom Embed' : 'YouTube'}
-                      </div>
+          )}
+        </form>
+      </div>
+
+      {/* Existing Videos & Highlights List */}
+      <div className="mt-8 pt-6 border-t border-slate-100 dark:border-line">
+        <h4 className="text-xs font-semibold text-slate-800 dark:text-cream uppercase tracking-wide mb-4">
+          Published Highlights &amp; Embeds ({feed.videoItems.length})
+        </h4>
+
+        {feed.videoItems.length === 0 ? (
+          <div className="text-center py-8 text-slate-400 dark:text-cream-dim/60 text-xs">
+            No highlights added yet. Enter a YouTube URL or other embed link above to add highlights to the homepage.
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+            {feed.videoItems.map((v) => {
+              const isCustom = v.type === 'custom' || (!v.embedUrl.includes('youtube.com') && !v.embedUrl.includes('youtu.be'));
+              return (
+                <div
+                  key={v.id}
+                  className={`border rounded-2xl overflow-hidden transition-all flex flex-col justify-between max-w-[360px] mx-auto w-full ${
+                    v.published
+                      ? 'bg-[#FFFFF0] dark:bg-panel-2 border-slate-200 dark:border-line shadow-xs'
+                      : 'bg-slate-50 dark:bg-panel border-slate-200 dark:border-line opacity-60'
+                  }`}
+                >
+                  <div className="relative aspect-[16/9] bg-black overflow-hidden">
+                    <iframe
+                      src={v.embedUrl}
+                      title={v.title}
+                      allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      allowFullScreen
+                      className="w-full h-full border-0"
+                    />
+                    <div className="absolute top-2 left-2 bg-black/75 backdrop-blur-xs text-white text-[11px] font-medium px-2 py-0.5 rounded-md">
+                      {isCustom ? 'Custom Embed' : 'YouTube'}
                     </div>
+                  </div>
 
-                    <div className="p-3.5 space-y-2">
-                      <h5 className="font-semibold text-xs text-slate-900 truncate" title={v.title}>
-                        {v.title}
-                      </h5>
+                  <div className="p-3.5 space-y-2">
+                    <h5 className="font-semibold text-xs text-slate-900 dark:text-cream truncate" title={v.title}>
+                      {v.title}
+                    </h5>
 
-                      <div className="flex items-center justify-between gap-2 pt-2 border-t border-slate-100 text-xs">
-                        <span className="text-[11px] font-semibold">
+                    <div className="flex items-center justify-between gap-2 pt-2 border-t border-slate-100 dark:border-line text-xs">
+                      <span className="text-[11px] font-semibold">
+                        {v.published ? (
+                          <span className="text-[#006C54] dark:text-[#00A881] font-bold">Published</span>
+                        ) : (
+                          <span className="text-slate-400 dark:text-cream-dim/60">Omitted</span>
+                        )}
+                      </span>
+
+                      <div className="flex items-center gap-1.5">
+                        <button
+                          type="button"
+                          onClick={() => toggleVideoItemPublish(v.id)}
+                          className="px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-slate-100 dark:bg-panel hover:bg-slate-200 dark:hover:bg-line text-slate-700 dark:text-cream transition-colors cursor-pointer flex items-center gap-1"
+                        >
                           {v.published ? (
-                            <span className="text-[#006C54] font-bold">Published</span>
+                            <>
+                              <EyeOff size={12} /> Omit
+                            </>
                           ) : (
-                            <span className="text-slate-400">Omitted</span>
+                            <>
+                              <Check size={12} className="text-[#006C54] dark:text-[#00A881]" /> Publish
+                            </>
                           )}
-                        </span>
+                        </button>
 
-                        <div className="flex items-center gap-1.5">
-                          <button
-                            type="button"
-                            onClick={() => toggleVideoItemPublish(v.id)}
-                            className="px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 transition-colors cursor-pointer flex items-center gap-1"
-                          >
-                            {v.published ? (
-                              <>
-                                <EyeOff size={12} /> Omit
-                              </>
-                            ) : (
-                              <>
-                                <Check size={12} /> Publish
-                              </>
-                            )}
-                          </button>
-
-                          <button
-                            type="button"
-                            onClick={() => deleteVideoItem(v.id)}
-                            className="p-1 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
-                            title="Delete highlight"
-                          >
-                            <Trash2 size={14} />
-                          </button>
-                        </div>
+                        <button
+                          type="button"
+                          onClick={() => deleteVideoItem(v.id)}
+                          className="p-1 rounded-lg text-slate-400 dark:text-cream-dim hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-colors cursor-pointer"
+                          title="Delete highlight"
+                        >
+                          <Trash2 size={14} />
+                        </button>
                       </div>
                     </div>
                   </div>
-                );
-              })}
-            </div>
-          )}
-        </div>
-      </section>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+    </section>
     </div>
   );
 }

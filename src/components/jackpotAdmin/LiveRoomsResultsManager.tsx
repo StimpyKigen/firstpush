@@ -43,7 +43,7 @@ export default function LiveRoomsResultsManager({
                 showToast({ title: 'Rooms Cleared', message: 'All published jackpot rooms have been cleared.', type: 'info' });
               }
             }}
-            className="text-xs font-semibold text-rose-600 hover:text-rose-700 flex items-center gap-1.5 bg-rose-50 hover:bg-rose-100 px-3 py-1.5 rounded-xl transition-colors cursor-pointer self-start sm:self-auto"
+            className="text-xs font-semibold text-rose-600 dark:text-rose-400 hover:text-rose-700 dark:hover:text-rose-300 flex items-center gap-1.5 bg-rose-50 dark:bg-rose-950/30 hover:bg-rose-100 dark:hover:bg-rose-900/40 border border-rose-200/60 dark:border-rose-900/40 px-3 py-1.5 rounded-xl transition-colors cursor-pointer self-start sm:self-auto"
           >
             <Trash2 size={13} />
             <span>Clear All Rooms</span>
@@ -71,7 +71,7 @@ export default function LiveRoomsResultsManager({
                 if (val) setIsExpanded(true);
                 else setIsExpanded(false);
               }}
-              className="flex-1 bg-white dark:bg-panel border border-slate-300 dark:border-line rounded-xl px-3 py-2 text-xs font-medium text-slate-900 dark:text-cream focus:outline-none focus:border-[#006C54] focus:ring-1 focus:ring-[#006C54] transition-all shadow-2xs"
+              className="flex-1 h-9 bg-white dark:bg-panel border border-slate-300 dark:border-line rounded-xl px-3 py-1.5 text-xs font-medium text-slate-900 dark:text-cream focus:outline-none focus:border-[#006C54] focus:ring-1 focus:ring-[#006C54] transition-all shadow-2xs"
             >
               <option value="">-- Choose an active / not-started published room --</option>
               {publishedJackpots.map((jp) => {
@@ -174,10 +174,10 @@ export default function LiveRoomsResultsManager({
                                   activeStatusMenuMatchId === match.id ? null : match.id
                                 )
                               }
-                              className={`px-2.5 py-1 text-xs font-semibold rounded-lg border transition-all flex items-center gap-1 cursor-pointer ${
+                              className={`h-7 px-2.5 text-[11px] font-semibold rounded-lg border transition-all flex items-center gap-1 cursor-pointer ${
                                 match.nonResultStatus
-                                  ? 'bg-amber-50 border-amber-300 text-amber-800 shadow-2xs'
-                                  : 'bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100'
+                                  ? 'bg-amber-50 dark:bg-amber-950/40 border-amber-300 dark:border-amber-700 text-amber-800 dark:text-amber-300 shadow-2xs'
+                                  : 'bg-slate-50 dark:bg-panel border-slate-200 dark:border-line text-slate-600 dark:text-cream-dim hover:bg-slate-100 dark:hover:bg-panel-2'
                               }`}
                               title="Set Canceled, Postponed, Abandoned, or TBD"
                             >
@@ -198,7 +198,7 @@ export default function LiveRoomsResultsManager({
                                   className="fixed inset-0 z-30"
                                   onClick={() => setActiveStatusMenuMatchId(null)}
                                 />
-                                <div className="absolute left-0 sm:right-0 sm:left-auto top-full mt-1 w-36 bg-white border border-slate-200 rounded-xl shadow-lg py-1 z-40 animate-fade-in text-xs font-medium text-slate-800">
+                                <div className="absolute left-0 sm:right-0 sm:left-auto top-full mt-1.5 w-40 bg-white dark:bg-panel border border-slate-200 dark:border-line rounded-xl shadow-xl py-1 z-40 animate-fade-in text-xs font-medium text-slate-800 dark:text-cream">
                                   {(['Canceled', 'Postponed', 'Abandoned', 'TBD'] as NonResultStatus[]).map(
                                     (status) => (
                                       <button
@@ -220,15 +220,15 @@ export default function LiveRoomsResultsManager({
                                             type: 'info',
                                           });
                                         }}
-                                        className={`w-full text-left px-3 py-1.5 hover:bg-slate-50 flex items-center justify-between cursor-pointer ${
+                                        className={`w-full text-left px-3 py-1.5 hover:bg-slate-50 dark:hover:bg-panel-2 flex items-center justify-between cursor-pointer ${
                                           match.nonResultStatus === status
-                                            ? 'text-[#006C54] font-bold bg-[#E8F5EE]'
+                                            ? 'text-[#006C54] dark:text-emerald-400 font-bold bg-[#E8F5EE] dark:bg-[#006C54]/20'
                                             : ''
                                         }`}
                                       >
                                         <span>{status}</span>
                                         {match.nonResultStatus === status && (
-                                          <CheckCircle2 size={12} className="text-[#006C54]" />
+                                          <CheckCircle2 size={12} className="text-[#006C54] dark:text-emerald-400" />
                                         )}
                                       </button>
                                     )
@@ -252,7 +252,7 @@ export default function LiveRoomsResultsManager({
                                           type: 'info',
                                         });
                                       }}
-                                      className="w-full text-left px-3 py-1.5 hover:bg-rose-50 text-rose-600 border-t border-slate-100 cursor-pointer flex items-center gap-1.5"
+                                      className="w-full text-left px-3 py-1.5 hover:bg-rose-50 dark:hover:bg-rose-950/40 text-rose-600 dark:text-rose-400 border-t border-slate-100 dark:border-line cursor-pointer flex items-center gap-1.5"
                                     >
                                       <RotateCcw size={11} />
                                       <span>Clear Status</span>
@@ -292,10 +292,10 @@ export default function LiveRoomsResultsManager({
                                     type: 'success',
                                   });
                                 }}
-                                className={`px-2.5 py-1 text-xs font-semibold rounded-lg transition-all cursor-pointer ${
+                                className={`h-7 px-2.5 text-[11px] font-semibold rounded-lg transition-all cursor-pointer ${
                                   isSelected
                                     ? 'bg-[#006C54] text-white shadow-2xs'
-                                    : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                                    : 'bg-slate-100 dark:bg-panel text-slate-700 dark:text-cream-dim hover:bg-slate-200 dark:hover:bg-panel-2 border border-transparent dark:border-line/60'
                                 }`}
                               >
                                 {outcome === '1' ? '1 Home' : outcome === 'X' ? 'X Draw' : '2 Away'}
@@ -321,7 +321,7 @@ export default function LiveRoomsResultsManager({
                                   type: 'info',
                                 });
                               }}
-                              className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer"
+                              className="p-1.5 text-slate-400 dark:text-cream-dim hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-lg transition-colors cursor-pointer"
                               title="Clear Result"
                             >
                               <RotateCcw size={13} />

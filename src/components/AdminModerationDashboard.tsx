@@ -62,15 +62,15 @@ export default function AdminModerationDashboard() {
   return (
     <div className="space-y-6">
       {/* Header Info */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white border border-[#E5E5EA] p-5 sm:p-6 rounded-2xl shadow-2xs">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white dark:bg-panel border border-[#E5E5EA] dark:border-line p-5 sm:p-6 rounded-2xl shadow-2xs">
         <div>
           <div className="flex items-center gap-2">
-            <ShieldAlert size={20} className="text-[#006C54]" />
-            <h2 className="font-semibold text-lg text-slate-900 tracking-tight">
+            <ShieldAlert size={20} className="text-[#006C54] dark:text-[#00A881]" />
+            <h2 className="font-semibold text-lg text-slate-900 dark:text-cream tracking-tight">
               Moderation & Platform Safety
             </h2>
           </div>
-          <p className="text-xs text-slate-500 mt-1 max-w-xl leading-relaxed">
+          <p className="text-xs text-slate-500 dark:text-cream-dim mt-1 max-w-xl leading-relaxed">
             Automated community safety filters. Guards against profanity, inappropriate media, harassment, and spam terms across chat and slips.
           </p>
         </div>
@@ -85,14 +85,14 @@ export default function AdminModerationDashboard() {
           </button>
           <button
             onClick={() => setIsImportModalOpen(true)}
-            className="px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs transition-colors flex items-center gap-1.5 cursor-pointer"
+            className="px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-panel-2 dark:hover:bg-line text-slate-700 dark:text-cream font-semibold text-xs transition-colors flex items-center gap-1.5 cursor-pointer"
           >
             <Upload size={14} />
             <span>Import</span>
           </button>
           <button
             onClick={handleExportJSON}
-            className="px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs transition-colors flex items-center gap-1.5 cursor-pointer"
+            className="px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-panel-2 dark:hover:bg-line text-slate-700 dark:text-cream font-semibold text-xs transition-colors flex items-center gap-1.5 cursor-pointer"
           >
             <Download size={14} />
             <span>Export</span>
@@ -100,7 +100,7 @@ export default function AdminModerationDashboard() {
           <button
             onClick={handleRestoreDefaults}
             title="Restore default dictionary seed"
-            className="p-2 rounded-xl bg-slate-100 hover:bg-rose-50 text-slate-400 hover:text-rose-600 transition-colors cursor-pointer"
+            className="p-2 rounded-xl bg-slate-100 hover:bg-rose-50 dark:bg-panel-2 dark:hover:bg-rose-950/30 text-slate-400 hover:text-rose-600 dark:text-cream-dim dark:hover:text-rose-400 transition-colors cursor-pointer"
           >
             <RotateCcw size={15} />
           </button>
@@ -114,7 +114,7 @@ export default function AdminModerationDashboard() {
           className={`flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
             activeTab === 'dictionary'
               ? 'bg-[#006C54] text-white shadow-xs'
-              : 'bg-white border border-[#E5E5EA] text-slate-600 hover:bg-slate-50'
+              : 'bg-white dark:bg-panel border border-[#E5E5EA] dark:border-line text-slate-600 dark:text-cream-dim hover:bg-slate-50 dark:hover:bg-panel-2'
           }`}
         >
           <ShieldAlert size={14} />
@@ -126,13 +126,13 @@ export default function AdminModerationDashboard() {
           className={`flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all relative cursor-pointer ${
             activeTab === 'reports'
               ? 'bg-[#006C54] text-white shadow-xs'
-              : 'bg-white border border-[#E5E5EA] text-slate-600 hover:bg-slate-50'
+              : 'bg-white dark:bg-panel border border-[#E5E5EA] dark:border-line text-slate-600 dark:text-cream-dim hover:bg-slate-50 dark:hover:bg-panel-2'
           }`}
         >
           <Flag size={14} />
           <span>User Reports</span>
           {reports.filter((r) => r.status === 'Pending').length > 0 && (
-            <span className="text-rose-600 text-[11px] font-bold ml-1">
+            <span className="px-2 py-0.5 rounded-full bg-rose-500/15 text-rose-600 dark:text-rose-400 text-[11px] font-bold ml-1 tabular-nums">
               {reports.filter((r) => r.status === 'Pending').length} Pending
             </span>
           )}
@@ -167,19 +167,19 @@ export default function AdminModerationDashboard() {
 
       {/* Add / Edit Entry Modal */}
       {isEditModalOpen && (
-        <Modal isOpen={true} onClose={() => setIsEditModalOpen(false)} overlayClassName="fixed inset-0 bg-black/40 backdrop-blur-md z-50 flex items-center justify-center p-4">
-          <div className="bg-[#FFFFF0] border border-[#E5E5EA] rounded-3xl w-full max-w-lg overflow-hidden shadow-2xl p-6 sm:p-7 space-y-5 text-slate-900">
-            <div className="flex items-center justify-between border-b border-[#E5E5EA] pb-3">
+        <Modal isOpen={true} onClose={() => setIsEditModalOpen(false)} overlayClassName="fixed inset-0 bg-black/50 backdrop-blur-md z-50 flex items-center justify-center p-4">
+          <div className="bg-[#FFFFF0] dark:bg-panel border border-[#E5E5EA] dark:border-line rounded-3xl w-full max-w-lg overflow-hidden shadow-2xl p-6 sm:p-7 space-y-5 text-slate-900 dark:text-cream">
+            <div className="flex items-center justify-between border-b border-[#E5E5EA] dark:border-line pb-3">
               <div className="flex items-center gap-2">
-                <ShieldAlert className="text-[#006C54]" size={20} />
-                <h3 className="font-semibold text-base text-slate-900">
+                <ShieldAlert className="text-[#006C54] dark:text-[#00A881]" size={20} />
+                <h3 className="font-semibold text-base text-slate-900 dark:text-cream">
                   {editingEntry ? 'Edit Dictionary Phrase' : 'Add Moderation Phrase'}
                 </h3>
               </div>
               <button
                 onClick={() => setIsEditModalOpen(false)}
                 aria-label="Close"
-                className="text-slate-400 hover:text-slate-700 p-1.5 rounded-full hover:bg-slate-100 transition-colors cursor-pointer"
+                className="text-slate-400 dark:text-cream-dim hover:text-slate-700 dark:hover:text-cream p-1.5 rounded-full hover:bg-slate-100 dark:hover:bg-panel-2 transition-colors cursor-pointer"
               >
                 <X size={18} />
               </button>
@@ -188,8 +188,8 @@ export default function AdminModerationDashboard() {
             <form onSubmit={handleSaveEntry} className="space-y-4">
               {/* Phrase input */}
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">
-                  Word or Phrase <span className="text-rose-600">*</span>
+                <label className="block text-xs font-semibold text-slate-700 dark:text-cream-dim mb-1">
+                  Word or Phrase <span className="text-rose-600 dark:text-rose-400">*</span>
                 </label>
                 <input
                   type="text"
@@ -197,9 +197,9 @@ export default function AdminModerationDashboard() {
                   value={phrase}
                   onChange={(e) => setPhrase(e.target.value)}
                   placeholder="e.g. offensive word, scam link..."
-                  className="w-full bg-white border border-slate-300 focus:border-[#006C54] focus:ring-1 focus:ring-[#006C54] rounded-xl px-3.5 py-2.5 text-xs text-slate-900 tabular-nums focus:outline-none transition-all shadow-2xs"
+                  className="w-full bg-white dark:bg-panel-2 border border-slate-300 dark:border-line focus:border-[#006C54] focus:ring-1 focus:ring-[#006C54] rounded-xl px-3.5 py-2.5 text-xs text-slate-900 dark:text-cream tabular-nums focus:outline-none transition-all shadow-2xs"
                 />
-                <p className="text-[11px] text-slate-400 mt-1">
+                <p className="text-[11px] text-slate-400 dark:text-cream-dim/70 mt-1">
                   Evaluated automatically case-insensitively.
                 </p>
               </div>
@@ -207,11 +207,11 @@ export default function AdminModerationDashboard() {
               {/* Category & Severity Grid */}
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">Category</label>
+                  <label className="block text-xs font-semibold text-slate-700 dark:text-cream-dim mb-1">Category</label>
                   <select
                     value={category}
                     onChange={(e) => setCategory(e.target.value as ModerationCategory)}
-                    className="w-full bg-white border border-slate-300 focus:border-[#006C54] focus:ring-1 focus:ring-[#006C54] rounded-xl px-3 py-2 text-xs text-slate-900 focus:outline-none transition-all"
+                    className="w-full bg-white dark:bg-panel-2 border border-slate-300 dark:border-line focus:border-[#006C54] focus:ring-1 focus:ring-[#006C54] rounded-xl px-3 py-2 text-xs text-slate-900 dark:text-cream focus:outline-none transition-all"
                   >
                     {ALL_CATEGORIES.map((cat) => (
                       <option key={cat} value={cat}>
@@ -222,11 +222,11 @@ export default function AdminModerationDashboard() {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">Severity Level</label>
+                  <label className="block text-xs font-semibold text-slate-700 dark:text-cream-dim mb-1">Severity Level</label>
                   <select
                     value={severity}
                     onChange={(e) => setSeverity(e.target.value as ModerationSeverity)}
-                    className="w-full bg-white border border-slate-300 focus:border-[#006C54] focus:ring-1 focus:ring-[#006C54] rounded-xl px-3 py-2 text-xs text-slate-900 focus:outline-none transition-all"
+                    className="w-full bg-white dark:bg-panel-2 border border-slate-300 dark:border-line focus:border-[#006C54] focus:ring-1 focus:ring-[#006C54] rounded-xl px-3 py-2 text-xs text-slate-900 dark:text-cream focus:outline-none transition-all"
                   >
                     {SEVERITY_LEVELS.map((sev) => (
                       <option key={sev} value={sev}>
@@ -240,11 +240,11 @@ export default function AdminModerationDashboard() {
               {/* Action & Enabled Grid */}
               <div className="grid grid-cols-2 gap-3 items-center">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">Action</label>
+                  <label className="block text-xs font-semibold text-slate-700 dark:text-cream-dim mb-1">Action</label>
                   <select
                     value={action}
                     onChange={(e) => setAction(e.target.value as ModerationAction)}
-                    className="w-full bg-white border border-slate-300 focus:border-[#006C54] focus:ring-1 focus:ring-[#006C54] rounded-xl px-3 py-2 text-xs text-slate-900 focus:outline-none transition-all"
+                    className="w-full bg-white dark:bg-panel-2 border border-slate-300 dark:border-line focus:border-[#006C54] focus:ring-1 focus:ring-[#006C54] rounded-xl px-3 py-2 text-xs text-slate-900 dark:text-cream focus:outline-none transition-all"
                   >
                     {ACTIONS.map((act) => (
                       <option key={act} value={act}>
@@ -262,28 +262,28 @@ export default function AdminModerationDashboard() {
                       onChange={(e) => setEnabled(e.target.checked)}
                       className="w-4 h-4 rounded text-[#006C54] focus:ring-[#006C54] cursor-pointer"
                     />
-                    <span className="text-xs font-semibold text-slate-800">Rule Enabled</span>
+                    <span className="text-xs font-semibold text-slate-800 dark:text-cream">Rule Enabled</span>
                   </label>
                 </div>
               </div>
 
               {/* Notes */}
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">Notes / Context (Optional)</label>
+                <label className="block text-xs font-semibold text-slate-700 dark:text-cream-dim mb-1">Notes / Context (Optional)</label>
                 <textarea
                   rows={2}
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
                   placeholder="Additional contextual notes or instructions..."
-                  className="w-full bg-white border border-slate-300 focus:border-[#006C54] focus:ring-1 focus:ring-[#006C54] rounded-xl p-2.5 text-xs text-slate-900 focus:outline-none resize-none transition-all"
+                  className="w-full bg-white dark:bg-panel-2 border border-slate-300 dark:border-line focus:border-[#006C54] focus:ring-1 focus:ring-[#006C54] rounded-xl p-2.5 text-xs text-slate-900 dark:text-cream focus:outline-none resize-none transition-all"
                 />
               </div>
 
-              <div className="flex justify-end gap-2 pt-3 border-t border-[#E5E5EA]">
+              <div className="flex justify-end gap-2 pt-3 border-t border-[#E5E5EA] dark:border-line">
                 <button
                   type="button"
                   onClick={() => setIsEditModalOpen(false)}
-                  className="px-4 py-2 rounded-xl border border-slate-300 text-slate-700 hover:bg-slate-100 text-xs font-semibold transition-colors cursor-pointer"
+                  className="px-4 py-2 rounded-xl border border-slate-300 dark:border-line text-slate-700 dark:text-cream-dim hover:bg-slate-100 dark:hover:bg-panel-2 text-xs font-semibold transition-colors cursor-pointer"
                 >
                   Cancel
                 </button>
@@ -301,59 +301,59 @@ export default function AdminModerationDashboard() {
 
       {/* Import JSON Modal */}
       {isImportModalOpen && (
-        <Modal isOpen={true} onClose={() => setIsImportModalOpen(false)} overlayClassName="fixed inset-0 bg-black/40 backdrop-blur-md z-50 flex items-center justify-center p-4">
-          <div className="bg-[#FFFFF0] border border-[#E5E5EA] rounded-3xl w-full max-w-lg overflow-hidden shadow-2xl p-6 sm:p-7 space-y-4 text-slate-900">
-            <div className="flex items-center justify-between border-b border-[#E5E5EA] pb-3">
+        <Modal isOpen={true} onClose={() => setIsImportModalOpen(false)} overlayClassName="fixed inset-0 bg-black/50 backdrop-blur-md z-50 flex items-center justify-center p-4">
+          <div className="bg-[#FFFFF0] dark:bg-panel border border-[#E5E5EA] dark:border-line rounded-3xl w-full max-w-lg overflow-hidden shadow-2xl p-6 sm:p-7 space-y-4 text-slate-900 dark:text-cream">
+            <div className="flex items-center justify-between border-b border-[#E5E5EA] dark:border-line pb-3">
               <div className="flex items-center gap-2">
-                <Upload className="text-[#006C54]" size={20} />
-                <h3 className="font-semibold text-base text-slate-900">Import Moderation JSON</h3>
+                <Upload className="text-[#006C54] dark:text-[#00A881]" size={20} />
+                <h3 className="font-semibold text-base text-slate-900 dark:text-cream">Import Moderation JSON</h3>
               </div>
               <button
                 onClick={() => setIsImportModalOpen(false)}
                 aria-label="Close"
-                className="text-slate-400 hover:text-slate-700 p-1.5 rounded-full hover:bg-slate-100 transition-colors cursor-pointer"
+                className="text-slate-400 dark:text-cream-dim hover:text-slate-700 dark:hover:text-cream p-1.5 rounded-full hover:bg-slate-100 dark:hover:bg-panel-2 transition-colors cursor-pointer"
               >
                 <X size={18} />
               </button>
             </div>
 
-            <p className="text-xs text-slate-500">
+            <p className="text-xs text-slate-500 dark:text-cream-dim">
               Upload a `.json` file or paste a JSON array containing custom moderation entries.
             </p>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">Choose JSON File</label>
+              <label className="block text-xs font-semibold text-slate-700 dark:text-cream-dim mb-1">Choose JSON File</label>
               <input
                 type="file"
                 accept=".json"
                 onChange={handleFileUpload}
-                className="w-full text-xs text-slate-600 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-slate-200 file:text-slate-800 hover:file:bg-slate-300 cursor-pointer"
+                className="w-full text-xs text-slate-600 dark:text-cream-dim file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-slate-200 dark:file:bg-panel-2 file:text-slate-800 dark:file:text-cream hover:file:bg-slate-300 dark:hover:file:bg-line cursor-pointer"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">Or Paste JSON Content</label>
+              <label className="block text-xs font-semibold text-slate-700 dark:text-cream-dim mb-1">Or Paste JSON Content</label>
               <textarea
                 rows={5}
                 value={importText}
                 onChange={(e) => setImportText(e.target.value)}
                 placeholder='[ { "phrase": "example", "category": "English Profanity", "severity": "High", "action": "Block", "enabled": true } ]'
-                className="w-full bg-white border border-slate-300 focus:border-[#006C54] focus:ring-1 focus:ring-[#006C54] rounded-xl p-3 text-xs text-slate-900 tabular-nums focus:outline-none transition-all shadow-2xs"
+                className="w-full bg-white dark:bg-panel-2 border border-slate-300 dark:border-line focus:border-[#006C54] focus:ring-1 focus:ring-[#006C54] rounded-xl p-3 text-xs text-slate-900 dark:text-cream tabular-nums focus:outline-none transition-all shadow-2xs"
               />
             </div>
 
             {importError && (
-              <div className="p-3 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-700 font-semibold flex items-center gap-2">
+              <div className="p-3 bg-rose-50 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-900/60 rounded-xl text-xs text-rose-700 dark:text-rose-400 font-semibold flex items-center gap-2">
                 <AlertTriangle size={15} />
                 <span>{importError}</span>
               </div>
             )}
 
-            <div className="flex justify-end gap-2 pt-2 border-t border-[#E5E5EA]">
+            <div className="flex justify-end gap-2 pt-2 border-t border-[#E5E5EA] dark:border-line">
               <button
                 type="button"
                 onClick={() => setIsImportModalOpen(false)}
-                className="px-4 py-2 rounded-xl border border-slate-300 text-slate-700 hover:bg-slate-100 text-xs font-semibold transition-colors cursor-pointer"
+                className="px-4 py-2 rounded-xl border border-slate-300 dark:border-line text-slate-700 dark:text-cream-dim hover:bg-slate-100 dark:hover:bg-panel-2 text-xs font-semibold transition-colors cursor-pointer"
               >
                 Cancel
               </button>

@@ -381,31 +381,31 @@ export default function AdminFixturesManager() {
   }
 
   return (
-    <div className="space-y-6 text-slate-900 animate-fade-in max-w-5xl mx-auto">
+    <div className="space-y-6 text-slate-900 dark:text-cream animate-fade-in max-w-5xl mx-auto">
       {/* SECTION HEADER & TELEMETRY BADGE */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[#E5E5EA]">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[#E5E5EA] dark:border-line">
         <div>
           <div className="flex items-center gap-2">
-            <span className="p-1.5 rounded-lg bg-[#E8F5EE] text-[#006C54]">
+            <span className="p-1.5 rounded-lg bg-[#E8F5EE] dark:bg-emerald-950/40 text-[#006C54] dark:text-[#00A881]">
               <FileText size={18} />
             </span>
-            <h3 className="font-semibold text-lg text-slate-900 tracking-tight">
+            <h3 className="font-semibold text-lg text-slate-900 dark:text-cream tracking-tight">
               Fixture Slate &amp; PDF Parser
             </h3>
-            <span className="bg-[#E8F5EE] text-[#006C54] text-[11px] uppercase font-bold px-2.5 py-0.5 rounded-full">
+            <span className="bg-[#E8F5EE] dark:bg-emerald-950/40 text-[#006C54] dark:text-[#00A881] text-[11px] uppercase font-bold px-2.5 py-0.5 rounded-full border border-transparent dark:border-emerald-800/40">
               Automated Categorizer
             </span>
           </div>
-          <p className="text-xs text-slate-500 mt-1 leading-relaxed">
+          <p className="text-xs text-slate-500 dark:text-cream-dim mt-1 leading-relaxed">
             Upload official PDF fixture sheets with odds. Fixtures are parsed and sectored into their rightful leagues (e.g. England Premier League, Championship, etc.) with Match ID ignored.
           </p>
         </div>
 
         <div className="flex items-center gap-3 shrink-0">
-          <div className="bg-white border border-[#E5E5EA] px-3 py-1.5 rounded-xl shadow-2xs text-left">
-            <div className="text-[11px] text-slate-500 uppercase font-semibold">Active Site Slate</div>
-            <div className="text-sm tabular-nums font-bold text-[#006C54] flex items-center gap-1.5">
-              <span className={`w-2 h-2 rounded-full ${currentLiveCount > 0 ? 'bg-[#006C54] animate-pulse' : 'bg-slate-300'}`} />
+          <div className="bg-white dark:bg-panel border border-[#E5E5EA] dark:border-line px-3.5 py-2 rounded-xl shadow-2xs text-left">
+            <div className="text-[11px] text-slate-500 dark:text-cream-dim uppercase font-semibold tracking-wider">Active Site Slate</div>
+            <div className="text-sm tabular-nums font-bold text-[#006C54] dark:text-[#00A881] flex items-center gap-1.5 mt-0.5">
+              <span className={`w-2 h-2 rounded-full ${currentLiveCount > 0 ? 'bg-[#006C54] dark:bg-[#00A881] animate-pulse' : 'bg-slate-300 dark:bg-line'}`} />
               {currentLiveCount} {currentLiveCount === 1 ? 'Fixture' : 'Fixtures'} Live
             </div>
           </div>
@@ -415,7 +415,7 @@ export default function AdminFixturesManager() {
               type="button"
               onClick={handleClearSlate}
               disabled={isClearing}
-              className="px-3 py-2 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 font-semibold text-xs flex items-center gap-1.5 transition-colors cursor-pointer border border-rose-200"
+              className="px-3 py-2 rounded-xl bg-rose-50 dark:bg-rose-950/30 hover:bg-rose-100 dark:hover:bg-rose-950/50 text-rose-700 dark:text-rose-400 font-semibold text-xs flex items-center gap-1.5 transition-colors cursor-pointer border border-rose-200 dark:border-rose-900/60"
               title="Clear all live fixtures from the site"
             >
               <Trash2 size={13} />
@@ -426,17 +426,17 @@ export default function AdminFixturesManager() {
       </div>
 
       {/* PUBLISHED PDF BATCHES SECTION */}
-      <div className="bg-[#FFFFF0] dark:bg-panel border border-[#DCDCC8] dark:border-line rounded-2xl p-5 shadow-xs">
+      <div className="bg-[#FFFFF0] dark:bg-panel border border-[#DCDCC8] dark:border-line rounded-2xl p-5 sm:p-6 shadow-xs">
         <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-xl bg-[#006C54]/10 text-[#006C54] flex items-center justify-center">
+            <div className="w-8 h-8 rounded-xl bg-[#006C54]/10 dark:bg-[#006C54]/25 text-[#006C54] dark:text-[#00A881] flex items-center justify-center">
               <Folder size={18} />
             </div>
             <div>
               <h4 className="text-sm font-bold text-slate-900 dark:text-cream flex items-center gap-2">
                 <span>Published PDF Batches</span>
                 {publishedBatches.length > 0 && (
-                  <span className="text-[11px] px-2 py-0.2 rounded-full bg-[#006C54]/10 text-[#006C54] font-bold">
+                  <span className="text-[11px] px-2 py-0.5 rounded-full bg-[#006C54]/10 dark:bg-[#006C54]/25 text-[#006C54] dark:text-[#00A881] font-bold tabular-nums">
                     {publishedBatches.length} {publishedBatches.length === 1 ? 'PDF' : 'PDFs'} Active
                   </span>
                 )}
@@ -455,28 +455,28 @@ export default function AdminFixturesManager() {
 
         {publishedBatches.length === 0 ? (
           <div className="border border-dashed border-slate-300 dark:border-line rounded-xl py-6 px-4 text-center text-xs text-slate-500 dark:text-cream-dim bg-white/60 dark:bg-panel-2/60">
-            <Folder className="mx-auto mb-2 text-slate-400" size={24} />
+            <Folder className="mx-auto mb-2 text-slate-400 dark:text-cream-dim/60" size={24} />
             <p className="font-medium text-slate-700 dark:text-cream">No PDF batches published yet</p>
-            <p className="text-slate-400 dark:text-cream-dim mt-0.5">Upload a fixture PDF below to publish matches to the site.</p>
+            <p className="text-slate-400 dark:text-cream-dim/70 mt-0.5">Upload a fixture PDF below to publish matches to the site.</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
             {publishedBatches.map((batch) => (
               <div
                 key={batch.id}
-                className="border border-[#DCDCC8] dark:border-line hover:border-[#006C54]/50 bg-white dark:bg-panel-2 rounded-xl p-3 flex flex-col justify-between shadow-2xs transition-all hover:shadow-xs"
+                className="border border-[#DCDCC8] dark:border-line hover:border-[#006C54]/50 dark:hover:border-[#00A881]/50 bg-white dark:bg-panel-2 rounded-xl p-3.5 flex flex-col justify-between shadow-2xs transition-all hover:shadow-xs"
               >
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex items-start gap-2.5 min-w-0">
-                    <div className="w-7 h-7 rounded-lg bg-[#006C54]/10 text-[#006C54] flex items-center justify-center shrink-0 mt-0.5">
+                    <div className="w-7 h-7 rounded-lg bg-[#006C54]/10 dark:bg-[#006C54]/25 text-[#006C54] dark:text-[#00A881] flex items-center justify-center shrink-0 mt-0.5">
                       <FolderCheck size={16} />
                     </div>
                     <div className="min-w-0">
                       <h5 className="text-xs font-bold text-slate-900 dark:text-cream truncate" title={batch.fileName}>
                         {batch.fileName}
                       </h5>
-                      <div className="flex items-center gap-1.5 text-[11px] text-slate-500 mt-0.5 flex-wrap">
-                        <span className="font-bold text-[#006C54]">{batch.fixtureCount} fixtures</span>
+                      <div className="flex items-center gap-1.5 text-[11px] text-slate-500 dark:text-cream-dim mt-0.5 flex-wrap">
+                        <span className="font-bold text-[#006C54] dark:text-[#00A881] tabular-nums">{batch.fixtureCount} fixtures</span>
                         <span>·</span>
                         <span>{batch.sectoredCount} {batch.sectoredCount === 1 ? 'league' : 'leagues'}</span>
                       </div>
@@ -485,15 +485,15 @@ export default function AdminFixturesManager() {
                   <button
                     type="button"
                     onClick={() => handleDeleteBatch(batch.id)}
-                    className="text-slate-400 hover:text-red-600 p-1 rounded-md hover:bg-red-50 transition-colors cursor-pointer shrink-0"
+                    className="text-slate-400 dark:text-cream-dim hover:text-red-600 dark:hover:text-red-400 p-1 rounded-md hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors cursor-pointer shrink-0"
                     title="Remove batch record"
                   >
                     <Trash2 size={13} />
                   </button>
                 </div>
-                <div className="text-[11px] text-slate-400 mt-2.5 pt-2 border-t border-slate-100 flex items-center justify-between">
+                <div className="text-[11px] text-slate-400 dark:text-cream-dim/60 mt-2.5 pt-2 border-t border-slate-100 dark:border-line flex items-center justify-between">
                   <span>Published</span>
-                  <span className="tabular-nums text-slate-600">
+                  <span className="tabular-nums text-slate-600 dark:text-cream-dim">
                     {new Date(batch.publishedAt).toLocaleDateString(undefined, {
                       month: 'short',
                       day: 'numeric',
@@ -509,11 +509,11 @@ export default function AdminFixturesManager() {
       </div>
 
       {/* UPLOAD PDF CARD */}
-      <div className="bg-white border border-[#E5E5EA] rounded-2xl p-6 shadow-2xs space-y-4">
+      <div className="bg-white dark:bg-panel border border-[#E5E5EA] dark:border-line rounded-2xl p-6 shadow-2xs space-y-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <UploadCloud size={18} className="text-[#006C54]" />
-            <h4 className="font-semibold text-sm text-slate-900 tracking-tight">
+            <UploadCloud size={18} className="text-[#006C54] dark:text-[#00A881]" />
+            <h4 className="font-semibold text-sm text-slate-900 dark:text-cream tracking-tight">
               Upload Fixtures Document
             </h4>
           </div>
@@ -522,16 +522,16 @@ export default function AdminFixturesManager() {
             <button
               type="button"
               onClick={handleLoadSample}
-              className="text-xs font-semibold text-[#006C54] hover:underline flex items-center gap-1 cursor-pointer"
+              className="text-xs font-semibold text-[#006C54] dark:text-[#00A881] hover:underline flex items-center gap-1 cursor-pointer"
             >
               <Sparkles size={13} />
               <span>Load Demo Slate</span>
             </button>
-            <span className="text-slate-300">·</span>
+            <span className="text-slate-300 dark:text-line">·</span>
             <button
               type="button"
               onClick={() => setShowRawTextInput((p) => !p)}
-              className="text-xs font-medium text-slate-600 hover:text-slate-900 cursor-pointer"
+              className="text-xs font-medium text-slate-600 dark:text-cream-dim hover:text-slate-900 dark:hover:text-cream cursor-pointer"
             >
               {showRawTextInput ? 'Hide Text Area' : 'Paste Table Directly'}
             </button>
@@ -550,25 +550,25 @@ export default function AdminFixturesManager() {
 
         <label
           htmlFor="admin-fixture-pdf-upload"
-          className="border-2 border-dashed border-[#DCDCC8] hover:border-[#006C54] rounded-2xl p-8 sm:p-10 flex flex-col items-center justify-center text-center gap-3 cursor-pointer transition-colors bg-[#FFFFF0]/50 hover:bg-[#E8F5EE]/20 group"
+          className="border-2 border-dashed border-[#DCDCC8] dark:border-line hover:border-[#006C54] dark:hover:border-[#00A881] rounded-2xl p-8 sm:p-10 flex flex-col items-center justify-center text-center gap-3 cursor-pointer transition-colors bg-[#FFFFF0]/50 dark:bg-panel-2/30 hover:bg-[#E8F5EE]/20 dark:hover:bg-panel-2/60 group"
         >
-          <div className="w-12 h-12 rounded-2xl bg-white border border-[#E5E5EA] flex items-center justify-center text-[#006C54] shadow-2xs group-hover:scale-105 transition-transform">
+          <div className="w-12 h-12 rounded-2xl bg-white dark:bg-panel border border-[#E5E5EA] dark:border-line flex items-center justify-center text-[#006C54] dark:text-[#00A881] shadow-2xs group-hover:scale-105 transition-transform">
             {isProcessing ? (
-              <RefreshCw size={24} className="animate-spin text-[#006C54]" />
+              <RefreshCw size={24} className="animate-spin text-[#006C54] dark:text-[#00A881]" />
             ) : (
               <UploadCloud size={24} />
             )}
           </div>
 
           <div>
-            <div className="text-sm font-semibold text-slate-900">
+            <div className="text-sm font-semibold text-slate-900 dark:text-cream">
               {uploadedFileName ? (
-                <span className="text-[#006C54] font-bold">{uploadedFileName}</span>
+                <span className="text-[#006C54] dark:text-[#00A881] font-bold">{uploadedFileName}</span>
               ) : (
                 'Choose Fixtures PDF or drag and drop'
               )}
             </div>
-            <p className="text-xs text-slate-500 mt-1 max-w-sm">
+            <p className="text-xs text-slate-500 dark:text-cream-dim mt-1 max-w-sm">
               Supports official sportsbook fixture lists containing Match ID, Kickoff Date, Teams, 1X2, Double Chance, Over/Under 2.5, and BTTS odds.
             </p>
           </div>
@@ -580,12 +580,12 @@ export default function AdminFixturesManager() {
 
         {/* Raw Text Fallback Drawer */}
         {showRawTextInput && (
-          <div className="space-y-3 pt-3 border-t border-slate-100">
+          <div className="space-y-3 pt-3 border-t border-slate-100 dark:border-line">
             <div className="flex items-center justify-between">
-              <label className="text-xs font-semibold text-slate-700">
+              <label className="text-xs font-semibold text-slate-700 dark:text-cream-dim">
                 Raw Table / Clipboard Text
               </label>
-              <span className="text-[11px] text-slate-400">
+              <span className="text-[11px] text-slate-400 dark:text-cream-dim/60">
                 Paste tabular lines or section headers (e.g. ENGLAND: Premier League)
               </span>
             </div>
@@ -594,7 +594,7 @@ export default function AdminFixturesManager() {
               value={rawTextInput}
               onChange={(e) => setRawTextInput(e.target.value)}
               placeholder={`ENGLAND: Premier League\n5821 2026-10-24 14:30 Arsenal vs Chelsea 1.95 3.60 3.80 1.25 1.28 1.80 1.75 2.05 1.70 2.10\n\nENGLAND: Championship\n5901 2026-10-24 15:00 Leeds United vs Sunderland 1.80 3.50 4.20 1.20 1.28 1.95 1.90 1.90 1.85 1.95`}
-              className="w-full tabular-nums text-xs p-3 bg-white border border-[#E5E5EA] rounded-xl focus:outline-none focus:border-[#006C54] focus:ring-1 focus:ring-[#006C54]"
+              className="w-full tabular-nums text-xs p-3 bg-white dark:bg-panel-2 border border-[#E5E5EA] dark:border-line text-slate-900 dark:text-cream rounded-xl focus:outline-none focus:border-[#006C54] focus:ring-1 focus:ring-[#006C54]"
             />
             <div className="flex items-center gap-2">
               <button
@@ -628,7 +628,7 @@ export default function AdminFixturesManager() {
                     });
                   }
                 }}
-                className="px-3 py-2 rounded-xl border border-[#E5E5EA] bg-slate-50 hover:bg-slate-100 text-slate-700 text-xs font-semibold transition-colors cursor-pointer"
+                className="px-3 py-2 rounded-xl border border-[#E5E5EA] dark:border-line bg-slate-50 dark:bg-panel-2 hover:bg-slate-100 dark:hover:bg-line text-slate-700 dark:text-cream text-xs font-semibold transition-colors cursor-pointer"
               >
                 Paste from Clipboard
               </button>
@@ -641,15 +641,15 @@ export default function AdminFixturesManager() {
       {parseResult && parseResult.fixtures.length > 0 && (
         <div className="space-y-6">
           {/* SECTORED LEAGUES OVERVIEW */}
-          <div className="bg-white border border-[#E5E5EA] rounded-2xl p-5 shadow-2xs space-y-3">
+          <div className="bg-white dark:bg-panel border border-[#E5E5EA] dark:border-line rounded-2xl p-5 shadow-2xs space-y-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <Trophy size={16} className="text-[#006C54]" />
-                <h4 className="font-semibold text-sm text-slate-900 tracking-tight">
+                <Trophy size={16} className="text-[#006C54] dark:text-[#00A881]" />
+                <h4 className="font-semibold text-sm text-slate-900 dark:text-cream tracking-tight">
                   Detected Sectored Leagues ({Object.keys(parseResult.sectoredLeagues).length})
                 </h4>
               </div>
-              <span className="text-xs font-bold text-[#006C54] bg-[#E8F5EE] px-2.5 py-0.5 rounded-full tabular-nums">
+              <span className="text-xs font-bold text-[#006C54] dark:text-[#00A881] bg-[#E8F5EE] dark:bg-emerald-950/40 px-2.5 py-0.5 rounded-full tabular-nums border border-transparent dark:border-emerald-800/40">
                 {parseResult.fixtures.length} Total Fixtures
               </span>
             </div>
@@ -658,13 +658,13 @@ export default function AdminFixturesManager() {
               {(Object.entries(parseResult.sectoredLeagues) as [string, { country: string; league: string; count: number }][]).map(([key, item]) => (
                 <div
                   key={key}
-                  className="bg-[#FFFFF0] border border-[#E5E5EA] rounded-xl p-3 flex items-center justify-between text-xs"
+                  className="bg-[#FFFFF0] dark:bg-panel-2 border border-[#E5E5EA] dark:border-line rounded-xl p-3 flex items-center justify-between text-xs"
                 >
                   <div className="truncate pr-2">
-                    <div className="font-bold text-slate-900 truncate">{item.league}</div>
-                    <div className="text-[11px] text-slate-500">{item.country}</div>
+                    <div className="font-bold text-slate-900 dark:text-cream truncate">{item.league}</div>
+                    <div className="text-[11px] text-slate-500 dark:text-cream-dim">{item.country}</div>
                   </div>
-                  <span className="tabular-nums font-bold px-2 py-0.5 rounded-md bg-white border border-slate-200 text-[#006C54] shrink-0">
+                  <span className="tabular-nums font-bold px-2 py-0.5 rounded-md bg-white dark:bg-panel border border-slate-200 dark:border-line text-[#006C54] dark:text-[#00A881] shrink-0">
                     {item.count}
                   </span>
                 </div>
@@ -673,32 +673,32 @@ export default function AdminFixturesManager() {
           </div>
 
           {/* PARSED FIXTURES PREVIEW TABLE */}
-          <div className="bg-white border border-[#E5E5EA] rounded-2xl overflow-hidden shadow-2xs">
-            <div className="px-5 py-3.5 border-b border-[#E5E5EA] bg-[#FBFBF0] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="bg-white dark:bg-panel border border-[#E5E5EA] dark:border-line rounded-2xl overflow-hidden shadow-2xs">
+            <div className="px-5 py-3.5 border-b border-[#E5E5EA] dark:border-line bg-[#FBFBF0] dark:bg-panel-2 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div>
                 <div className="flex items-center gap-2">
-                  <h4 className="font-semibold text-xs sm:text-sm text-slate-900 tracking-tight">
+                  <h4 className="font-semibold text-xs sm:text-sm text-slate-900 dark:text-cream tracking-tight">
                     Parsed Slate Verification Table
                   </h4>
                   {parseResult.stats && (
                     <div className="flex items-center gap-1.5 text-[11px]">
-                      <span className="px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-800 font-semibold">
+                      <span className="px-2 py-0.5 rounded-md bg-emerald-100 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300 font-semibold border border-transparent dark:border-emerald-800/40">
                         {parseResult.stats.acceptedCount} Accepted
                       </span>
                       {parseResult.stats.reviewRequiredCount > 0 && (
-                        <span className="px-2 py-0.5 rounded-md bg-amber-100 text-amber-800 font-semibold">
+                        <span className="px-2 py-0.5 rounded-md bg-amber-100 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 font-semibold border border-transparent dark:border-amber-800/40">
                           {parseResult.stats.reviewRequiredCount} Review
                         </span>
                       )}
                       {parseResult.stats.duplicateCount > 0 && (
-                        <span className="px-2 py-0.5 rounded-md bg-slate-100 text-slate-600 font-semibold">
+                        <span className="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-panel text-slate-600 dark:text-cream-dim font-semibold border border-transparent dark:border-line">
                           {parseResult.stats.duplicateCount} Duplicates
                         </span>
                       )}
                     </div>
                   )}
                 </div>
-                <p className="text-[11px] text-slate-500">
+                <p className="text-[11px] text-slate-500 dark:text-cream-dim">
                   Match IDs, kickoffs, teams, and odds matrices are extracted cleanly with multi-page verification.
                 </p>
               </div>
@@ -718,9 +718,9 @@ export default function AdminFixturesManager() {
               </button>
             </div>
 
-            <div className="overflow-x-auto max-h-[380px] overflow-y-auto divide-y divide-slate-100 text-xs no-scrollbar overscroll-contain scroll-isolated">
+            <div className="overflow-x-auto max-h-[380px] overflow-y-auto divide-y divide-slate-100 dark:divide-line text-xs no-scrollbar overscroll-contain scroll-isolated">
               <table className="w-full text-left border-collapse">
-                <thead className="bg-[#F5F5F7] text-slate-600 font-semibold text-[11px] uppercase tracking-wide sticky top-0 z-10">
+                <thead className="bg-[#F5F5F7] dark:bg-panel-2 text-slate-600 dark:text-cream-dim font-semibold text-[11px] uppercase tracking-wider sticky top-0 z-10 border-b border-[#E5E5EA] dark:border-line">
                   <tr>
                     <th className="py-2.5 px-3">#</th>
                     <th className="py-2.5 px-3">ID</th>
@@ -734,58 +734,58 @@ export default function AdminFixturesManager() {
                     <th className="py-2.5 px-3 text-right">Action</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100 font-normal">
+                <tbody className="divide-y divide-slate-100 dark:divide-line font-normal text-slate-800 dark:text-cream">
                   {parseResult.fixtures.map((f, idx) => (
-                    <tr key={idx} className="hover:bg-slate-50/80 transition-colors">
-                      <td className="py-2.5 px-3 tabular-nums text-[11px] text-slate-400">
+                    <tr key={idx} className="hover:bg-slate-50/80 dark:hover:bg-panel-2/50 transition-colors">
+                      <td className="py-2.5 px-3 tabular-nums text-[11px] text-slate-400 dark:text-cream-dim/60">
                         {idx + 1}
                       </td>
-                      <td className="py-2.5 px-3 tabular-nums text-[11px] font-mono text-slate-600 font-bold whitespace-nowrap">
+                      <td className="py-2.5 px-3 tabular-nums text-[11px] font-mono text-slate-600 dark:text-cream-dim font-bold whitespace-nowrap">
                         {f.matchId || '-'}
                       </td>
-                      <td className="py-2.5 px-3 tabular-nums text-[11px] text-slate-700 whitespace-nowrap">
+                      <td className="py-2.5 px-3 tabular-nums text-[11px] text-slate-700 dark:text-cream-dim whitespace-nowrap">
                         {f.kickoffDisplay}
                       </td>
                       <td className="py-2.5 px-3 whitespace-nowrap">
-                        <div className="font-semibold text-slate-900">{f.competition}</div>
-                        <div className="text-[11px] text-slate-500">{f.country}</div>
+                        <div className="font-semibold text-slate-900 dark:text-cream">{f.competition}</div>
+                        <div className="text-[11px] text-slate-500 dark:text-cream-dim">{f.country}</div>
                       </td>
-                      <td className="py-2.5 px-3 whitespace-nowrap font-medium text-slate-900">
+                      <td className="py-2.5 px-3 whitespace-nowrap font-medium text-slate-900 dark:text-cream">
                         <span>{f.homeTeam}</span>
-                        <span className="text-slate-400 mx-1.5 font-normal">vs</span>
+                        <span className="text-slate-400 dark:text-cream-dim/60 mx-1.5 font-normal">vs</span>
                         <span>{f.awayTeam}</span>
                       </td>
                       <td className="py-2.5 px-3 text-center tabular-nums whitespace-nowrap">
                         {f.odds ? (
                           <>
-                            <span className="px-1.5 py-0.5 rounded bg-slate-100 text-slate-800 font-bold mr-1">
+                            <span className="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-panel-2 text-slate-800 dark:text-cream font-bold mr-1 border border-transparent dark:border-line">
                               {f.odds.homeOdds?.toFixed(2)}
                             </span>
-                            <span className="px-1.5 py-0.5 rounded bg-slate-100 text-slate-800 font-bold mr-1">
+                            <span className="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-panel-2 text-slate-800 dark:text-cream font-bold mr-1 border border-transparent dark:border-line">
                               {f.odds.drawOdds?.toFixed(2)}
                             </span>
-                            <span className="px-1.5 py-0.5 rounded bg-slate-100 text-slate-800 font-bold">
+                            <span className="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-panel-2 text-slate-800 dark:text-cream font-bold border border-transparent dark:border-line">
                               {f.odds.awayOdds?.toFixed(2)}
                             </span>
                           </>
                         ) : (
-                          <span className="text-[11px] text-slate-400 italic">No Odds</span>
+                          <span className="text-[11px] text-slate-400 dark:text-cream-dim/60 italic">No Odds</span>
                         )}
                       </td>
-                      <td className="py-2.5 px-3 text-center tabular-nums text-[11px] text-slate-600 whitespace-nowrap">
+                      <td className="py-2.5 px-3 text-center tabular-nums text-[11px] text-slate-600 dark:text-cream-dim whitespace-nowrap">
                         {f.odds ? `${f.odds.doubleChance1X?.toFixed(2) ?? '-'} / ${f.odds.doubleChanceX2?.toFixed(2) ?? '-'}` : '-'}
                       </td>
-                      <td className="py-2.5 px-3 text-center tabular-nums text-[11px] text-slate-600 whitespace-nowrap">
+                      <td className="py-2.5 px-3 text-center tabular-nums text-[11px] text-slate-600 dark:text-cream-dim whitespace-nowrap">
                         {f.odds ? `O: ${f.odds.over25Odds?.toFixed(2) ?? '-'} / U: ${f.odds.under25Odds?.toFixed(2) ?? '-'}` : '-'}
                       </td>
-                      <td className="py-2.5 px-3 text-center tabular-nums text-[11px] text-slate-600 whitespace-nowrap">
+                      <td className="py-2.5 px-3 text-center tabular-nums text-[11px] text-slate-600 dark:text-cream-dim whitespace-nowrap">
                         {f.odds ? `${f.odds.bttsYesOdds?.toFixed(2) ?? '-'} / ${f.odds.bttsNoOdds?.toFixed(2) ?? '-'}` : '-'}
                       </td>
                       <td className="py-2.5 px-3 text-right">
                         <button
                           type="button"
                           onClick={() => handleRemoveFixture(idx)}
-                          className="p-1 rounded-md text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
+                          className="p-1 rounded-md text-slate-400 dark:text-cream-dim hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-colors cursor-pointer"
                           title="Remove match"
                         >
                           <X size={13} />
@@ -797,8 +797,8 @@ export default function AdminFixturesManager() {
               </table>
             </div>
 
-            <div className="p-4 bg-[#FBFBF0] border-t border-[#E5E5EA] flex items-center justify-between flex-wrap gap-3">
-              <span className="text-xs text-slate-500">
+            <div className="p-4 bg-[#FBFBF0] dark:bg-panel-2 border-t border-[#E5E5EA] dark:border-line flex items-center justify-between flex-wrap gap-3">
+              <span className="text-xs text-slate-500 dark:text-cream-dim">
                 Matches are automatically mapped to the existing Country &amp; League Directory.
               </span>
               <button

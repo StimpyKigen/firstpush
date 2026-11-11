@@ -118,25 +118,25 @@ export default function AdminChatRoomManager() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 text-slate-900 dark:text-cream">
       {/* Header Info Banner */}
-      <div className="bg-[#FFFFF0] border border-[#DCDCC8] rounded-2xl p-5 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="bg-[#FFFFF0] dark:bg-panel border border-[#DCDCC8] dark:border-line rounded-2xl p-5 sm:p-6 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2">
-            <MessageSquare size={18} className="text-[#006C54]" />
-            <h3 className="font-display font-bold text-slate-900 text-base uppercase tracking-tight">
+            <MessageSquare size={18} className="text-[#006C54] dark:text-[#00A881]" />
+            <h3 className="font-display font-bold text-slate-900 dark:text-cream text-base uppercase tracking-tight">
               Live Chat Room Manager
             </h3>
           </div>
-          <p className="text-xs text-slate-500 mt-1">
+          <p className="text-xs text-slate-500 dark:text-cream-dim mt-1">
             Assign live chat rooms to specific football matches. Fixtures not assigned here will have live chat hidden.
           </p>
         </div>
 
         <div className="flex items-center gap-3 shrink-0">
-          <div className="px-3.5 py-1.5 rounded-xl bg-[#F5F5E4] border border-[#E6E6D2] text-xs">
-            <span className="text-slate-500 font-medium">Assigned Rooms: </span>
-            <span className="font-bold text-[#006C54] tabular-nums">
+          <div className="px-3.5 py-1.5 rounded-xl bg-[#F5F5E4] dark:bg-panel-2 border border-[#E6E6D2] dark:border-line text-xs">
+            <span className="text-slate-500 dark:text-cream-dim font-medium">Assigned Rooms: </span>
+            <span className="font-bold text-[#006C54] dark:text-[#00A881] tabular-nums">
               {enabledMatchIds.length}
             </span>
           </div>
@@ -147,20 +147,20 @@ export default function AdminChatRoomManager() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         {/* Dropdown Directory */}
         <div className="relative" ref={dropdownRef}>
-          <div className="inline-flex items-center rounded-xl overflow-hidden border border-[#DCDCC8] bg-white shadow-2xs divide-x divide-slate-200">
+          <div className="inline-flex items-center rounded-xl overflow-hidden border border-[#DCDCC8] dark:border-line bg-white dark:bg-panel shadow-2xs divide-x divide-slate-200 dark:divide-line">
             <button
               type="button"
               onClick={() => setIsDropdownOpen((prev) => !prev)}
-              className="h-9 px-3.5 flex items-center gap-2 text-xs font-semibold text-slate-800 hover:bg-slate-50 cursor-pointer select-none max-w-[220px] sm:max-w-[280px]"
+              className="h-9 px-3.5 flex items-center gap-2 text-xs font-semibold text-slate-800 dark:text-cream hover:bg-slate-50 dark:hover:bg-panel-2 cursor-pointer select-none max-w-[220px] sm:max-w-[280px]"
             >
-              <Layers size={13} className="text-[#006C54] shrink-0" />
+              <Layers size={13} className="text-[#006C54] dark:text-[#00A881] shrink-0" />
               <span className="truncate">{selectedDirectoryLabel}</span>
             </button>
             <button
               type="button"
               onClick={() => setIsDropdownOpen((prev) => !prev)}
               aria-label="Toggle competition dropdown"
-              className="h-9 px-2.5 flex items-center justify-center text-slate-500 hover:bg-slate-50 cursor-pointer"
+              className="h-9 px-2.5 flex items-center justify-center text-slate-500 dark:text-cream-dim hover:bg-slate-50 dark:hover:bg-panel-2 cursor-pointer"
             >
               <ChevronDown
                 size={14}
@@ -171,7 +171,7 @@ export default function AdminChatRoomManager() {
 
           {/* Directory Dropdown Menu */}
           {isDropdownOpen && (
-            <div className="absolute left-0 mt-2 w-72 sm:w-80 bg-white border border-slate-200 rounded-2xl shadow-xl z-50 max-h-80 overflow-y-auto no-scrollbar p-1.5 text-xs">
+            <div className="absolute left-0 mt-2 w-72 sm:w-80 bg-white dark:bg-panel border border-slate-200 dark:border-line rounded-2xl shadow-xl z-50 max-h-80 overflow-y-auto no-scrollbar p-1.5 text-xs">
               {/* All Competitions Option */}
               <button
                 type="button"
@@ -182,15 +182,15 @@ export default function AdminChatRoomManager() {
                 }}
                 className={`w-full px-3 py-2 rounded-xl text-left flex items-center justify-between transition-colors cursor-pointer ${
                   selectedLeague === 'all'
-                    ? 'bg-[#006C54] text-white font-bold'
-                    : 'text-slate-800 hover:bg-[#F5F5E4] font-medium'
+                    ? 'bg-[#006C54] text-white font-bold shadow-2xs'
+                    : 'text-slate-800 dark:text-cream hover:bg-[#F5F5E4] dark:hover:bg-panel-2 font-medium'
                 }`}
               >
                 <span>All Competitions</span>
                 <span className="tabular-nums font-semibold">{matches.length}</span>
               </button>
 
-              <div className="my-1 border-t border-slate-100" />
+              <div className="my-1 border-t border-slate-100 dark:border-line" />
 
               {/* Grouped Rows */}
               {directoryData.rows.map((row) => {
@@ -206,8 +206,8 @@ export default function AdminChatRoomManager() {
                     }}
                     className={`w-full px-3 py-2 rounded-xl text-left flex items-center justify-between transition-colors cursor-pointer ${
                       isSelected
-                        ? 'bg-[#006C54] text-white font-bold'
-                        : 'text-slate-800 hover:bg-[#F5F5E4] font-medium'
+                        ? 'bg-[#006C54] text-white font-bold shadow-2xs'
+                        : 'text-slate-800 dark:text-cream hover:bg-[#F5F5E4] dark:hover:bg-panel-2 font-medium'
                     }`}
                   >
                     <span className="truncate pr-2">{row.label}</span>
@@ -221,22 +221,22 @@ export default function AdminChatRoomManager() {
 
         {/* Search Input */}
         <div className="relative flex-1 sm:max-w-xs">
-          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-cream-dim" />
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search teams or competition..."
-            className="w-full pl-9 pr-3 py-2 text-xs bg-white border border-[#DCDCC8] rounded-xl text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#006C54] focus:ring-1 focus:ring-[#006C54] shadow-2xs"
+            className="w-full pl-9 pr-3 py-2 text-xs bg-white dark:bg-panel border border-[#DCDCC8] dark:border-line rounded-xl text-slate-900 dark:text-cream placeholder:text-slate-400 dark:placeholder:text-cream-dim/60 focus:outline-none focus:border-[#006C54] focus:ring-1 focus:ring-[#006C54] shadow-2xs"
           />
         </div>
       </div>
 
       {/* Batch Action Bar */}
       <div className="flex items-center justify-between text-xs py-1 px-1">
-        <span className="text-slate-500 font-medium">
-          Showing <strong className="text-slate-800">{filteredMatches.length}</strong> fixtures (
-          <strong className="text-[#006C54]">{enabledCountInView}</strong> enabled in view)
+        <span className="text-slate-500 dark:text-cream-dim font-medium">
+          Showing <strong className="text-slate-800 dark:text-cream">{filteredMatches.length}</strong> fixtures (
+          <strong className="text-[#006C54] dark:text-[#00A881]">{enabledCountInView}</strong> enabled in view)
         </span>
 
         <div className="flex items-center gap-2">
@@ -244,7 +244,7 @@ export default function AdminChatRoomManager() {
             type="button"
             onClick={handleEnableAllInView}
             disabled={filteredMatches.length === 0}
-            className="px-2.5 py-1 text-[11px] font-bold rounded-lg bg-emerald-50 text-emerald-800 hover:bg-emerald-100 transition-colors disabled:opacity-40 cursor-pointer"
+            className="px-2.5 py-1 text-[11px] font-bold rounded-lg bg-emerald-50 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300 hover:bg-emerald-100 dark:hover:bg-emerald-950/60 border border-transparent dark:border-emerald-800/40 transition-colors disabled:opacity-40 cursor-pointer"
           >
             Enable All in View
           </button>
@@ -252,7 +252,7 @@ export default function AdminChatRoomManager() {
             type="button"
             onClick={handleDisableAllInView}
             disabled={filteredMatches.length === 0}
-            className="px-2.5 py-1 text-[11px] font-bold rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200 transition-colors disabled:opacity-40 cursor-pointer"
+            className="px-2.5 py-1 text-[11px] font-bold rounded-lg bg-slate-100 dark:bg-panel-2 text-slate-700 dark:text-cream hover:bg-slate-200 dark:hover:bg-line border border-transparent dark:border-line transition-colors disabled:opacity-40 cursor-pointer"
           >
             Disable All in View
           </button>
@@ -260,9 +260,9 @@ export default function AdminChatRoomManager() {
       </div>
 
       {/* Fixtures List */}
-      <div className="border border-[#DCDCC8] rounded-2xl bg-white overflow-hidden shadow-2xs divide-y divide-[#E6E6D2]">
+      <div className="border border-[#DCDCC8] dark:border-line rounded-2xl bg-white dark:bg-panel overflow-hidden shadow-2xs divide-y divide-[#E6E6D2] dark:divide-line">
         {filteredMatches.length === 0 ? (
-          <div className="p-12 text-center text-slate-400 text-xs">
+          <div className="p-12 text-center text-slate-400 dark:text-cream-dim text-xs">
             No fixtures found matching the selected criteria.
           </div>
         ) : (
@@ -274,30 +274,30 @@ export default function AdminChatRoomManager() {
             return (
               <div
                 key={match.id}
-                className="p-4 sm:p-4.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-[#FFFFF0]/60 transition-colors"
+                className="p-4 sm:p-4.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-[#FFFFF0]/60 dark:hover:bg-panel-2/50 transition-colors"
               >
                 {/* Match Information */}
                 <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-2 text-[11px] text-slate-500 font-semibold mb-1">
+                  <div className="flex items-center gap-2 text-[11px] text-slate-500 dark:text-cream-dim font-semibold mb-1 flex-wrap">
                     <span className="truncate">{match.competition}</span>
                     <span>·</span>
                     <span className="tabular-nums">
                       {formatKickoffDateTime24h(match.kickoffIso, match.kickoff)}
                     </span>
                     {isLive && (
-                      <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-rose-100 text-rose-700 font-bold text-[10px] animate-pulse">
+                      <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-rose-100 dark:bg-rose-950/40 text-rose-700 dark:text-rose-400 font-bold text-[10px] animate-pulse border border-transparent dark:border-rose-900/40">
                         <Radio size={10} /> LIVE
                       </span>
                     )}
                     {isFinished && (
-                      <span className="px-1.5 py-0.5 rounded-md bg-slate-100 text-slate-600 font-bold text-[10px]">
+                      <span className="px-1.5 py-0.5 rounded-md bg-slate-100 dark:bg-panel-2 text-slate-600 dark:text-cream-dim font-bold text-[10px] border border-transparent dark:border-line">
                         FT
                       </span>
                     )}
                   </div>
 
-                  <h4 className="font-display font-bold text-slate-900 text-sm sm:text-base leading-tight">
-                    {match.home} <span className="text-slate-400 font-normal">v</span> {match.away}
+                  <h4 className="font-display font-bold text-slate-900 dark:text-cream text-sm sm:text-base leading-tight">
+                    {match.home} <span className="text-slate-400 dark:text-cream-dim/60 font-normal">v</span> {match.away}
                   </h4>
                 </div>
 
@@ -309,7 +309,7 @@ export default function AdminChatRoomManager() {
                     className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer shadow-2xs ${
                       isEnabled
                         ? 'bg-[#006C54] text-white hover:bg-[#005441]'
-                        : 'bg-[#F5F5E4] text-slate-600 border border-[#DCDCC8] hover:bg-[#EAEAD6]'
+                        : 'bg-[#F5F5E4] dark:bg-panel-2 text-slate-600 dark:text-cream-dim border border-[#DCDCC8] dark:border-line hover:bg-[#EAEAD6] dark:hover:bg-line'
                     }`}
                   >
                     {isEnabled ? (
@@ -319,7 +319,7 @@ export default function AdminChatRoomManager() {
                       </>
                     ) : (
                       <>
-                        <XCircle size={14} className="text-slate-400" />
+                        <XCircle size={14} className="text-slate-400 dark:text-cream-dim/60" />
                         <span>Chat Room Disabled</span>
                       </>
                     )}

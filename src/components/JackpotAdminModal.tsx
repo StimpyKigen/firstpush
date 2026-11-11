@@ -37,26 +37,26 @@ export default function JackpotAdminModal({ isOpen, onClose }: JackpotAdminModal
         onClose={onClose}
         overlayClassName="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-md animate-fade-in"
       >
-        <div className="bg-[#FFFFF0] border border-[#E5E5EA] rounded-3xl max-w-md w-full p-6 sm:p-8 text-center space-y-5 shadow-2xl text-slate-900">
-          <div className="flex justify-center text-rose-600">
+        <div className="bg-[#FFFFF0] dark:bg-ink border border-[#E5E5EA] dark:border-line rounded-3xl max-w-md w-full p-6 sm:p-8 text-center space-y-5 shadow-2xl text-slate-900 dark:text-cream">
+          <div className="flex justify-center text-rose-500">
             <Lock size={32} />
           </div>
 
           <div>
-            <h3 className="font-semibold text-xl text-slate-900 tracking-tight">Admin Access Restricted</h3>
-            <p className="text-xs text-slate-600 mt-2 leading-relaxed">
-              The Admin Console is strictly restricted to the registered platform super-administrator (<strong className="text-slate-900 tabular-nums font-bold">0743304579</strong>).
+            <h3 className="font-display font-bold text-xl text-slate-900 dark:text-cream tracking-tight">Admin Access Restricted</h3>
+            <p className="text-xs text-slate-600 dark:text-cream-dim mt-2 leading-relaxed">
+              The Admin Console is strictly restricted to the registered platform super-administrator (<strong className="text-slate-900 dark:text-cream tabular-nums font-bold">0743304579</strong>).
             </p>
           </div>
 
-          <div className="bg-white border border-slate-200 rounded-2xl p-4 text-left text-xs tabular-nums space-y-2">
-            <div className="text-slate-500 flex justify-between">
+          <div className="bg-white dark:bg-panel border border-[#E5E5EA] dark:border-line rounded-2xl p-4 text-left text-xs tabular-nums space-y-2.5">
+            <div className="text-slate-500 dark:text-cream-dim flex justify-between items-center">
               <span>Required Admin:</span>
-              <span className="text-[#006C54] font-bold">0743304579</span>
+              <span className="text-[#006C54] dark:text-emerald-400 font-bold">0743304579</span>
             </div>
-            <div className="text-slate-500 flex justify-between">
+            <div className="text-slate-500 dark:text-cream-dim flex justify-between items-center border-t border-[#E5E5EA]/60 dark:border-line/60 pt-2">
               <span>Current Account:</span>
-              <span className="text-rose-600 font-bold">
+              <span className="text-rose-600 dark:text-rose-400 font-semibold">
                 {currentUser ? `User (${currentUser.phone})` : 'Not Logged In'}
               </span>
             </div>
@@ -64,7 +64,7 @@ export default function JackpotAdminModal({ isOpen, onClose }: JackpotAdminModal
 
           <button
             onClick={onClose}
-            className="w-full py-3 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-semibold text-xs transition-colors cursor-pointer shadow-xs"
+            className="w-full h-11 rounded-xl bg-slate-900 dark:bg-panel-2 hover:bg-slate-800 dark:hover:bg-panel text-white dark:text-cream font-semibold text-xs tracking-wide transition-all cursor-pointer shadow-xs active:scale-[0.99]"
           >
             Close Window
           </button>
@@ -142,15 +142,16 @@ export default function JackpotAdminModal({ isOpen, onClose }: JackpotAdminModal
       overlayClassName="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/40 backdrop-blur-md overflow-y-auto"
     >
       <div className="relative w-full max-w-5xl bg-[#FFFFF0] dark:bg-ink border border-[#E5E5EA] dark:border-line rounded-3xl shadow-2xl overflow-hidden my-6 animate-rise text-slate-900 dark:text-cream flex flex-col max-h-[90vh]">
-        {/* APPLE-INSPIRED CONSOLE HEADER & SEGMENTED TABS */}
-        <div className="bg-white dark:bg-panel border-b border-[#E5E5EA] dark:border-line shrink-0">
+        {/* PREMIUM SAAS CONSOLE HEADER */}
+        <div className="bg-white/80 dark:bg-panel/90 backdrop-blur-md border-b border-[#E5E5EA] dark:border-line shrink-0">
           <div className="flex items-center justify-between px-6 pt-5 pb-3 sm:pb-4">
             <div>
-              <div className="flex items-center gap-2">
-                <h2 className="font-semibold text-base sm:text-lg text-slate-900 dark:text-cream tracking-tight">
+              <div className="flex items-center gap-2.5">
+                <h2 className="font-display font-bold text-base sm:text-lg text-slate-900 dark:text-cream tracking-tight">
                   Mshindi Admin Console
                 </h2>
-                <span className="text-[#006C54] text-[11px] uppercase font-bold">
+                <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-[#006C54]/10 dark:bg-[#006C54]/20 border border-[#006C54]/20 text-[#006C54] dark:text-emerald-400 text-[10px] font-bold uppercase tracking-wider">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#006C54] dark:bg-emerald-400 animate-pulse" />
                   Super Admin
                 </span>
               </div>
@@ -162,7 +163,7 @@ export default function JackpotAdminModal({ isOpen, onClose }: JackpotAdminModal
             <button
               onClick={onClose}
               aria-label="Close"
-              className="p-1.5 rounded-full text-slate-400 hover:text-slate-800 dark:hover:text-cream hover:bg-slate-100 dark:hover:bg-panel-2 transition-colors cursor-pointer"
+              className="p-2 rounded-xl text-slate-400 hover:text-slate-800 dark:hover:text-cream hover:bg-slate-100 dark:hover:bg-panel-2 transition-colors cursor-pointer"
             >
               <X size={18} />
             </button>
@@ -171,69 +172,69 @@ export default function JackpotAdminModal({ isOpen, onClose }: JackpotAdminModal
           {/* APPLE-STYLE SEGMENTED NAVIGATION BAR */}
           {isAdminUnlocked && (
             <div className="px-6 pb-3 overflow-x-auto no-scrollbar">
-              <div className="inline-flex items-center bg-[#F5F5F7] dark:bg-panel-2 border border-[#E5E5EA] dark:border-line rounded-xl p-1 gap-1 shadow-2xs">
+              <div className="inline-flex items-center bg-[#F0F0EA] dark:bg-panel-2 border border-[#E5E5EA] dark:border-line rounded-xl p-1 gap-1 shadow-2xs">
                 <button
                   type="button"
                   onClick={() => setActiveAdminTab('jackpots')}
-                  className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
+                  className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer ${
                     activeAdminTab === 'jackpots'
                       ? 'bg-[#006C54] text-white shadow-xs'
-                      : 'text-slate-600 dark:text-cream-dim hover:text-slate-900 dark:hover:text-cream hover:bg-white/70 dark:hover:bg-panel'
+                      : 'text-slate-600 dark:text-cream-dim hover:text-slate-900 dark:hover:text-cream hover:bg-white/60 dark:hover:bg-panel'
                   }`}
                 >
-                  <Trophy size={14} />
+                  <Trophy size={14} className={activeAdminTab === 'jackpots' ? 'text-white' : 'text-[#006C54] dark:text-emerald-400'} />
                   <span>Jackpot Rooms</span>
                 </button>
 
                 <button
                   type="button"
                   onClick={() => setActiveAdminTab('moderation')}
-                  className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
+                  className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer ${
                     activeAdminTab === 'moderation'
                       ? 'bg-[#006C54] text-white shadow-xs'
-                      : 'text-slate-600 dark:text-cream-dim hover:text-slate-900 dark:hover:text-cream hover:bg-white/70 dark:hover:bg-panel'
+                      : 'text-slate-600 dark:text-cream-dim hover:text-slate-900 dark:hover:text-cream hover:bg-white/60 dark:hover:bg-panel'
                   }`}
                 >
-                  <ShieldAlert size={14} />
+                  <ShieldAlert size={14} className={activeAdminTab === 'moderation' ? 'text-white' : 'text-[#006C54] dark:text-emerald-400'} />
                   <span>Moderation</span>
                 </button>
 
                 <button
                   type="button"
                   onClick={() => setActiveAdminTab('feed')}
-                  className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
+                  className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer ${
                     activeAdminTab === 'feed'
                       ? 'bg-[#006C54] text-white shadow-xs'
-                      : 'text-slate-600 dark:text-cream-dim hover:text-slate-900 dark:hover:text-cream hover:bg-white/70 dark:hover:bg-panel'
+                      : 'text-slate-600 dark:text-cream-dim hover:text-slate-900 dark:hover:text-cream hover:bg-white/60 dark:hover:bg-panel'
                   }`}
                 >
-                  <Newspaper size={14} />
+                  <Newspaper size={14} className={activeAdminTab === 'feed' ? 'text-white' : 'text-[#006C54] dark:text-emerald-400'} />
                   <span>Homepage Feed</span>
                 </button>
 
                 <button
                   type="button"
                   onClick={() => setActiveAdminTab('fixtures')}
-                  className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
+                  className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer ${
                     activeAdminTab === 'fixtures'
                       ? 'bg-[#006C54] text-white shadow-xs'
-                      : 'text-slate-600 dark:text-cream-dim hover:text-slate-900 dark:hover:text-cream hover:bg-white/70 dark:hover:bg-panel'
+                      : 'text-slate-600 dark:text-cream-dim hover:text-slate-900 dark:hover:text-cream hover:bg-white/60 dark:hover:bg-panel'
                   }`}
                 >
-                  <CalendarDays size={14} />
+                  <CalendarDays size={14} className={activeAdminTab === 'fixtures' ? 'text-white' : 'text-[#006C54] dark:text-emerald-400'} />
                   <span>Fixtures</span>
                 </button>
 
                 <button
                   type="button"
                   onClick={() => setActiveAdminTab('chatroom')}
-                  className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
+                  className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer ${
                     activeAdminTab === 'chatroom'
                       ? 'bg-[#006C54] text-white shadow-xs'
-                      : 'text-slate-600 dark:text-cream-dim hover:text-slate-900 dark:hover:text-cream hover:bg-white/70 dark:hover:bg-panel'
+                      : 'text-slate-600 dark:text-cream-dim hover:text-slate-900 dark:hover:text-cream hover:bg-white/60 dark:hover:bg-panel'
                   }`}
                 >
-                  <MessageSquare size={14} />
+                  <MessageSquare size={14} className={activeAdminTab === 'chatroom' ? 'text-white' : 'text-[#006C54] dark:text-emerald-400'} />
                   <span>Chat room</span>
                 </button>
               </div>
@@ -244,32 +245,32 @@ export default function JackpotAdminModal({ isOpen, onClose }: JackpotAdminModal
         {/* BODY CONTENT AREA */}
         <div className="flex-1 overflow-y-auto no-scrollbar overscroll-contain scroll-isolated">
           {!isAdminUnlocked ? (
-            <div className="p-8 sm:p-12 max-w-md mx-auto text-center flex flex-col items-center gap-4">
-              <div className="text-[#006C54]">
+            <div className="p-8 sm:p-14 max-w-md mx-auto text-center flex flex-col items-center gap-4">
+              <div className="text-[#006C54] dark:text-emerald-400">
                 <KeyRound size={36} />
               </div>
               <div>
-                <h3 className="font-semibold text-xl text-slate-900 dark:text-cream tracking-tight">Admin Authentication Required</h3>
+                <h3 className="font-display font-bold text-xl text-slate-900 dark:text-cream tracking-tight">Admin Authentication Required</h3>
                 <p className="text-xs text-slate-500 dark:text-cream-dim mt-1.5 leading-relaxed">
                   Enter your Super-Admin PIN or Security Code to manage jackpot slates, fixture odds, and homepage editorial feeds.
                 </p>
               </div>
 
-              <form onSubmit={handleUnlockPin} className="w-full space-y-3 mt-2">
+              <form onSubmit={handleUnlockPin} className="w-full space-y-3.5 mt-2">
                 <input
                   type="password"
                   placeholder="Enter Super-Admin PIN"
                   value={adminPinInput}
                   onChange={(e) => setAdminPinInput(e.target.value)}
-                  className="w-full bg-white dark:bg-panel-2 border border-slate-300 dark:border-line rounded-xl px-4 py-3 text-center text-slate-900 dark:text-cream tabular-nums text-base tracking-wide focus:outline-none focus:border-[#006C54] focus:ring-1 focus:ring-[#006C54] transition-all shadow-2xs"
+                  className="w-full h-11 bg-white dark:bg-panel border border-[#E5E5EA] dark:border-line rounded-xl px-4 text-center text-slate-900 dark:text-cream tabular-nums text-base tracking-widest font-mono font-semibold placeholder:font-sans placeholder:tracking-normal placeholder:text-slate-400 dark:placeholder:text-cream-dim/50 focus:outline-none focus:border-[#006C54] focus:ring-2 focus:ring-[#006C54]/20 transition-all shadow-2xs"
                   autoFocus
                 />
-                {pinError && <p className="text-xs text-rose-600 font-medium">{pinError}</p>}
+                {pinError && <p className="text-xs text-rose-600 dark:text-rose-400 font-semibold">{pinError}</p>}
 
                 <button
                   type="submit"
                   disabled={isVerifying}
-                  className="w-full bg-[#006C54] hover:bg-[#005441] text-white font-semibold py-3 rounded-xl transition-all disabled:opacity-50 cursor-pointer shadow-xs active:scale-95 text-xs uppercase tracking-wide"
+                  className="w-full h-11 bg-[#006C54] hover:bg-[#005441] text-white font-semibold py-3 rounded-xl transition-all disabled:opacity-50 cursor-pointer shadow-xs active:scale-[0.99] text-xs uppercase tracking-wider"
                 >
                   {isVerifying ? 'Verifying Admin Credentials...' : 'Unlock Admin Console'}
                 </button>
