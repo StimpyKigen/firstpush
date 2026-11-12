@@ -109,6 +109,9 @@ export default function TermsOfService() {
             <p>
               While we strive to ensure high data accuracy, MshindiRoom makes no warranties regarding the timeliness, completeness, or guaranteed accuracy of third-party sports feeds or community predictions. Users act upon predictions at their own risk.
             </p>
+            <p>
+              All product names, logos, and brands are property of their respective owners. All company, product and service names used in this website are for identification purposes only.
+            </p>
           </section>
 
           {/* Section 5 */}
