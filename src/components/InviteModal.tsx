@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { X, Copy, Check, Coins } from 'lucide-react';
-import { WhatsApp, XformerlyTwitter, Facebook, Telegram, Instagram, TikTok } from './icons/SocialIcons';
+import { WhatsApp, XformerlyTwitter, Facebook, Telegram } from './icons/SocialIcons';
 import { useCurrentUser } from '../lib/authStore';
 import { useWallet } from '../lib/store';
 import { showToast } from '../lib/notificationStore';
@@ -44,30 +44,18 @@ export default function InviteModal({ isOpen, onClose }: InviteModalProps) {
     window.open(`https://t.me/share/url?url=${encodeURIComponent(inviteUrl)}&text=${encodeURIComponent(inviteText)}`, '_blank');
   }
 
-  function handleInstagramShare() {
-    navigator.clipboard?.writeText(inviteUrl);
-    showToast({ type: 'success', title: 'Invite link copied!', message: 'Paste it in your Instagram bio, DM, or Story.' });
-    window.open('https://www.instagram.com/', '_blank');
-  }
-
-  function handleTikTokShare() {
-    navigator.clipboard?.writeText(inviteUrl);
-    showToast({ type: 'success', title: 'Invite link copied!', message: 'Paste it in your TikTok bio or video caption.' });
-    window.open('https://www.tiktok.com/', '_blank');
-  }
-
   return (
     <Modal isOpen={isOpen} onClose={onClose} overlayClassName="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in">
-      <div className="bg-ink border border-gold/40 rounded-2xl max-w-md w-full p-6 space-y-5 shadow-2xl relative">
+      <div className="bg-ink border border-gold/40 rounded-2xl max-w-md w-full p-5 sm:p-6 space-y-5 shadow-2xl relative">
         <button
           onClick={onClose}
           aria-label="Close"
-          className="absolute top-4 right-4 p-2 rounded-full text-cream-dim hover:text-cream bg-panel hover:bg-panel-2 transition-colors cursor-pointer"
+          className="absolute top-2.5 right-2.5 sm:top-3.5 sm:right-3.5 p-1.5 sm:p-2 rounded-full text-cream-dim hover:text-cream bg-panel hover:bg-panel-2 transition-colors cursor-pointer"
         >
-          <X size={18} />
+          <X size={15} className="sm:w-4 sm:h-4" />
         </button>
 
-        <div className="text-center pt-2">
+        <div className="text-center pt-1 sm:pt-2 px-8 sm:px-10">
           <h2 className="font-display font-bold text-xl text-cream">Invite Friends &amp; Earn Tokens</h2>
         </div>
 
@@ -82,7 +70,7 @@ export default function InviteModal({ isOpen, onClose }: InviteModalProps) {
               Your Tokens: <span className="text-gold">{mshindiTokens} MT</span>
             </span>
           </div>
-          <p className="text-xs text-cream leading-relaxed">
+          <p className="text-xs text-cream leading-relaxed text-center">
             Invite <span className="font-bold text-gold">3 friends</span> = Get <span className="font-bold text-gold">1 Mshindi Token</span>
           </p>
         </div>
@@ -143,24 +131,6 @@ export default function InviteModal({ isOpen, onClose }: InviteModalProps) {
               className="p-1 flex items-center justify-center transition-transform hover:scale-115 active:scale-95 cursor-pointer"
             >
               <Telegram className="w-6 h-6" />
-            </button>
-            <button
-              type="button"
-              onClick={handleInstagramShare}
-              title="Share on Instagram"
-              aria-label="Share on Instagram"
-              className="p-1 flex items-center justify-center transition-transform hover:scale-115 active:scale-95 cursor-pointer"
-            >
-              <Instagram className="w-6 h-6" />
-            </button>
-            <button
-              type="button"
-              onClick={handleTikTokShare}
-              title="Share on TikTok"
-              aria-label="Share on TikTok"
-              className="p-1 flex items-center justify-center transition-transform hover:scale-115 active:scale-95 cursor-pointer"
-            >
-              <TikTok className="w-6 h-6" />
             </button>
           </div>
         </div>

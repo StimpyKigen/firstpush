@@ -39,6 +39,7 @@ export default function SubscriptionSection() {
   } = useSubscription();
 
   const [isHistoryExpanded, setIsHistoryExpanded] = useState(false);
+  const [isCurrentPlanExpanded, setIsCurrentPlanExpanded] = useState(false);
 
   const status = subscription?.status || 'none';
   const plan = subscription?.plan || null;
@@ -86,72 +87,88 @@ export default function SubscriptionSection() {
         <div>{statusBadge}</div>
       </div>
 
-      {/* ── CURRENT SUBSCRIPTION CARD ── */}
-      <div className="bg-slate-50 dark:bg-[#1A1F1C] border border-slate-200/80 dark:border-white/5 rounded-xl p-3.5 sm:p-4 mb-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3">
-          <div>
-            <div className="text-xs text-slate-500 dark:text-slate-400 font-medium">Current Plan</div>
-            <div className="text-base font-extrabold text-slate-900 dark:text-white flex items-center gap-2 mt-0.5">
-              <span>
-                {plan === 'weekly'
-                  ? 'Weekly Plan (Ksh 20)'
-                  : plan === 'monthly'
-                  ? 'Monthly Plan (Ksh 75)'
-                  : status === 'trial'
-                  ? '3-Day Free Trial'
-                  : 'Free Tier'}
-              </span>
+      {/* ── CURRENT SUBSCRIPTION COLLAPSIBLE ── */}
+      <div className="mb-4">
+        <button
+          type="button"
+          onClick={() => setIsCurrentPlanExpanded((prev) => !prev)}
+          className="w-full flex items-center justify-between py-2 text-left group cursor-pointer text-xs font-bold text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-colors"
+        >
+          <span className="flex items-center gap-1.5">
+            <CreditCard size={14} className="text-slate-400" />
+            Current Plan
+          </span>
+          {isCurrentPlanExpanded ? <ChevronUp size={15} /> : <ChevronDown size={15} />}
+        </button>
+
+        {isCurrentPlanExpanded && (
+          <div className="mt-2 bg-slate-50 dark:bg-[#1A1F1C] border border-slate-200/80 dark:border-white/5 rounded-xl p-3.5 sm:p-4 animate-in fade-in duration-150">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3">
+              <div>
+                <div className="text-xs text-slate-500 dark:text-slate-400 font-medium">Current Plan</div>
+                <div className="text-base font-extrabold text-slate-900 dark:text-white flex items-center gap-2 mt-0.5">
+                  <span>
+                    {plan === 'weekly'
+                      ? 'Weekly Plan (Ksh 20)'
+                      : plan === 'monthly'
+                      ? 'Monthly Plan (Ksh 75)'
+                      : status === 'trial'
+                      ? '3-Day Free Trial'
+                      : 'Free Tier'}
+                  </span>
+                </div>
+              </div>
+
+              {/* Action Button */}
+              <div className="shrink-0 flex items-center gap-2">
+                {!hasPremiumAccess && !trialClaimed && (
+                  <Button
+                    type="button"
+                    onClick={() => startTrial()}
+                    disabled={isLoading}
+                    className="px-3.5 py-1.5 h-auto rounded-[5px] bg-[#FFD200] hover:bg-[#FFC000] text-black font-extrabold text-xs shadow-[0_2px_8px_rgba(255,210,0,0.3)]"
+                  >
+                    Start 3-Day Trial
+                  </Button>
+                )}
+
+                <Button
+                  type="button"
+                  onClick={() => openPaywall('profile_section')}
+                  className="px-3.5 py-1.5 h-auto rounded-[5px] bg-[#006C54] hover:bg-[#005441] text-white font-extrabold text-xs shadow-[0_2px_8px_rgba(0,108,84,0.3)]"
+                >
+                  {hasPremiumAccess ? 'Renew' : 'Unlock Features'}
+                </Button>
+              </div>
+            </div>
+
+            {/* Details Grid */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 pt-2 border-t border-slate-200 dark:border-white/5 text-xs">
+              <div>
+                <span className="text-[11px] text-slate-500 dark:text-slate-400 block">Activation Date</span>
+                <span className="font-semibold text-slate-800 dark:text-slate-200 tabular-nums">
+                  {formatDate(subscription?.activatedAt || subscription?.trialStartedAt)}
+                </span>
+              </div>
+
+              <div>
+                <span className="text-[11px] text-slate-500 dark:text-slate-400 block">
+                  {status === 'trial' ? 'Trial Expiry' : 'Renewal / Expiry Date'}
+                </span>
+                <span className="font-semibold text-slate-800 dark:text-slate-200 tabular-nums">
+                  {formatDate(subscription?.expiresAt || subscription?.trialExpiresAt)}
+                </span>
+              </div>
+
+              <div className="col-span-2 sm:col-span-1">
+                <span className="text-[11px] text-slate-500 dark:text-slate-400 block">Last Payment Ref</span>
+                <span className="font-mono text-slate-700 dark:text-slate-300 text-[11px]">
+                  {subscription?.lastPaymentRef || 'None'}
+                </span>
+              </div>
             </div>
           </div>
-
-          {/* Action Button */}
-          <div className="shrink-0 flex items-center gap-2">
-            {!hasPremiumAccess && !trialClaimed && (
-              <Button
-                type="button"
-                onClick={() => startTrial()}
-                disabled={isLoading}
-                className="px-3.5 py-1.5 h-auto rounded-[5px] bg-[#FFD200] hover:bg-[#FFC000] text-black font-extrabold text-xs shadow-[0_2px_8px_rgba(255,210,0,0.3)]"
-              >
-                Start 3-Day Trial
-              </Button>
-            )}
-
-            <Button
-              type="button"
-              onClick={() => openPaywall('profile_section')}
-              className="px-3.5 py-1.5 h-auto rounded-[5px] bg-[#006C54] hover:bg-[#005441] text-white font-extrabold text-xs shadow-[0_2px_8px_rgba(0,108,84,0.3)]"
-            >
-              {hasPremiumAccess ? 'Renew' : 'Unlock Features'}
-            </Button>
-          </div>
-        </div>
-
-        {/* Details Grid */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 pt-2 border-t border-slate-200 dark:border-white/5 text-xs">
-          <div>
-            <span className="text-[11px] text-slate-500 dark:text-slate-400 block">Activation Date</span>
-            <span className="font-semibold text-slate-800 dark:text-slate-200 tabular-nums">
-              {formatDate(subscription?.activatedAt || subscription?.trialStartedAt)}
-            </span>
-          </div>
-
-          <div>
-            <span className="text-[11px] text-slate-500 dark:text-slate-400 block">
-              {status === 'trial' ? 'Trial Expiry' : 'Renewal / Expiry Date'}
-            </span>
-            <span className="font-semibold text-slate-800 dark:text-slate-200 tabular-nums">
-              {formatDate(subscription?.expiresAt || subscription?.trialExpiresAt)}
-            </span>
-          </div>
-
-          <div className="col-span-2 sm:col-span-1">
-            <span className="text-[11px] text-slate-500 dark:text-slate-400 block">Last Payment Ref</span>
-            <span className="font-mono text-slate-700 dark:text-slate-300 text-[11px]">
-              {subscription?.lastPaymentRef || 'None'}
-            </span>
-          </div>
-        </div>
+        )}
       </div>
 
       {/* ── SUBSCRIPTION HISTORY ── */}
@@ -163,7 +180,7 @@ export default function SubscriptionSection() {
         >
           <span className="flex items-center gap-1.5">
             <History size={14} className="text-slate-400" />
-            Subscription History ({history.length})
+            Subscription History
           </span>
           {isHistoryExpanded ? <ChevronUp size={15} /> : <ChevronDown size={15} />}
         </button>

@@ -177,7 +177,7 @@ export default function PremiumPaywall({ onCloseOverride }: PremiumPaywallProps)
                       <BadgeCheck animateOnHover />
                     </div>
                     <p className="text-white font-semibold sm:font-bold text-[13.5px] sm:text-[14.5px] leading-snug">
-                      Enjoy an uninterrupted MshindiRoom experience.
+                      Enjoy an uninterrupted Ad-free MshindiRoom experience.
                     </p>
                   </div>
 

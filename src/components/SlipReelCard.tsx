@@ -352,7 +352,7 @@ export default function SlipReelCard({
                       transition={{ delay: 0.03 + legIdx * 0.03, duration: 0.24, ease: 'easeOut' }}
                       className={`${
                         isDense ? 'px-2.5 py-1 sm:py-1.5' : 'p-2 sm:p-2.5'
-                      } slip-leg-card bg-white/80 dark:bg-[#2A312D] border border-[#E6E6D2] dark:border-[#414A43] rounded-xl flex items-center justify-between gap-2.5 shadow-2xs transition-colors`}
+                      } slip-leg-card bg-white/80 dark:bg-[#2A312D] border border-[#E6E6D2] dark:border-[#414A43] rounded-xl flex items-center justify-between gap-2.5 shadow-2xs cursor-default select-none pointer-events-none`}
                     >
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center justify-between gap-2">

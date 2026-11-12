@@ -1629,10 +1629,16 @@ html.dark .slip-reel-card .slip-leg-card {
   background-color: #2A312D !important;
   border-color: #414A43 !important;
   color: #F4F5EF !important;
+  cursor: default !important;
+  user-select: none !important;
+  pointer-events: none !important;
 }
 
-html.dark .slip-reel-card .slip-leg-card:hover {
-  background-color: #343C36 !important;
+.slip-reel-card .slip-leg-card {
+  cursor: default !important;
+  user-select: none !important;
+  pointer-events: none !important;
+  -webkit-tap-highlight-color: transparent !important;
 }
 
 html.dark .slip-reel-card .slip-follow-btn {
