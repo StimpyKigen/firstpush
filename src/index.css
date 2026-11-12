@@ -1805,3 +1805,12 @@ html.light .slip-follow-btn {
     transition: none !important;
   }
 }
+
+/* ---- Input OTP Invisible Underlying Input ---------------------------- */
+[data-input-otp] {
+  opacity: 0 !important;
+  color: transparent !important;
+  -webkit-text-fill-color: transparent !important;
+  caret-color: transparent !important;
+}
+

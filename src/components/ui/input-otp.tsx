@@ -13,7 +13,10 @@ const InputOTP = React.forwardRef<
       "flex items-center gap-2 has-[:disabled]:opacity-50",
       containerClassName
     )}
-    className={cn("disabled:cursor-not-allowed", className)}
+    className={cn(
+      "disabled:cursor-not-allowed !text-transparent !opacity-0 !caret-transparent selection:bg-transparent selection:text-transparent [-webkit-text-fill-color:transparent]",
+      className
+    )}
     {...props}
   />
 ));
@@ -29,8 +32,8 @@ InputOTPGroup.displayName = "InputOTPGroup";
 
 const InputOTPSlot = React.forwardRef<
   React.ElementRef<"div">,
-  React.ComponentPropsWithoutRef<"div"> & { index: number }
->(({ index, className, ...props }, ref) => {
+  React.ComponentPropsWithoutRef<"div"> & { index: number; mask?: boolean }
+>(({ index, className, mask = true, ...props }, ref) => {
   const inputOTPContext = React.useContext(OTPInputContext);
   const slot = inputOTPContext?.slots?.[index];
   const char = slot?.char ?? null;
@@ -41,14 +44,20 @@ const InputOTPSlot = React.forwardRef<
     <div
       ref={ref}
       className={cn(
-        "relative flex h-11 w-11 items-center justify-center border border-[#DCDCC8] dark:border-line bg-white dark:bg-panel text-base font-bold text-slate-900 dark:text-cream shadow-2xs transition-all",
+        "relative flex h-11 w-11 items-center justify-center border border-[#DCDCC8] dark:border-line bg-white dark:bg-panel text-base font-bold text-slate-900 dark:text-cream shadow-2xs transition-all rounded-md",
         isActive && "z-10 ring-2 ring-[#006C54] dark:ring-emerald-400 border-[#006C54] dark:border-emerald-400",
         className
       )}
       {...props}
     >
-      {char}
-      {hasFakeCaret && (
+      {char ? (
+        mask ? (
+          <span className="w-2.5 h-2.5 rounded-full bg-slate-900 dark:bg-cream inline-block" />
+        ) : (
+          char
+        )
+      ) : null}
+      {hasFakeCaret && !char && (
         <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
           <div className="h-4 w-px animate-pulse bg-[#006C54] dark:bg-emerald-400 duration-1000" />
         </div>

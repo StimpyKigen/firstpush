@@ -261,6 +261,7 @@ export default function JackpotAdminModal({ isOpen, onClose }: JackpotAdminModal
                 <div className="flex justify-center py-1">
                   <InputOTP
                     maxLength={4}
+                    type="password"
                     value={adminPinInput}
                     onChange={(val) => {
                       setAdminPinInput(val);
