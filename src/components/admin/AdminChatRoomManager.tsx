@@ -2,6 +2,7 @@ import React, { useState, useMemo, useSyncExternalStore, useRef, useEffect } fro
 import {
   MessageSquare,
   Search,
+  Check,
   CheckCircle2,
   XCircle,
   ChevronDown,
@@ -53,10 +54,21 @@ export default function AdminChatRoomManager() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Directory data
-  const directoryData = useMemo(() => {
-    return buildSportScoreCountryDirectory(matches);
+  // Only upcoming matches: never show games that have already finished (FT, AET, AP, post)
+  const upcomingMatches = useMemo(() => {
+    return matches.filter((m) => {
+      if (m.status === 'post') return false;
+      const clock = (m.displayClock || m.minute || '').toUpperCase();
+      if (clock === 'FT' || clock === 'AET' || clock === 'AP') return false;
+      if (m.period === 'full_time' || m.period === 'after_penalties' || m.period === 'after_extra_time') return false;
+      return true;
+    });
   }, [matches]);
+
+  // Directory data (only upcoming matches)
+  const directoryData = useMemo(() => {
+    return buildSportScoreCountryDirectory(upcomingMatches);
+  }, [upcomingMatches]);
 
   // Selected Directory label
   const selectedDirectoryLabel = useMemo(() => {
@@ -75,7 +87,7 @@ export default function AdminChatRoomManager() {
   const filteredMatches = useMemo(() => {
     const q = searchQuery.trim().toLowerCase();
 
-    return matches.filter((m) => {
+    return upcomingMatches.filter((m) => {
       // 1. Text search
       if (q) {
         const homeMatch = m.home.toLowerCase().includes(q);
@@ -103,7 +115,7 @@ export default function AdminChatRoomManager() {
 
       return true;
     });
-  }, [matches, searchQuery, selectedLeague, selectedSubLeague, directoryData.rows]);
+  }, [upcomingMatches, searchQuery, selectedLeague, selectedSubLeague, directoryData.rows]);
 
   const enabledCountInView = useMemo(() => {
     return filteredMatches.filter((m) => enabledMatchIds.includes(m.id)).length;
@@ -171,7 +183,7 @@ export default function AdminChatRoomManager() {
 
           {/* Directory Dropdown Menu */}
           {isDropdownOpen && (
-            <div className="absolute left-0 mt-2 w-72 sm:w-80 bg-white dark:bg-panel border border-slate-200 dark:border-line rounded-2xl shadow-xl z-50 max-h-80 overflow-y-auto no-scrollbar p-1.5 text-xs">
+            <div className="absolute left-0 mt-2 w-72 sm:w-80 bg-[#FFFFF0] dark:bg-[#202522] border border-[#DCDCC8] dark:border-[#414A43] rounded-2xl shadow-2xl z-50 max-h-80 overflow-y-auto no-scrollbar p-1.5 text-xs">
               {/* All Competitions Option */}
               <button
                 type="button"
@@ -182,15 +194,28 @@ export default function AdminChatRoomManager() {
                 }}
                 className={`w-full px-3 py-2 rounded-xl text-left flex items-center justify-between transition-colors cursor-pointer ${
                   selectedLeague === 'all'
-                    ? 'bg-[#006C54] text-white font-bold shadow-2xs'
-                    : 'text-slate-800 dark:text-cream hover:bg-[#F5F5E4] dark:hover:bg-panel-2 font-medium'
+                    ? 'text-[#006C54] dark:text-emerald-400 font-bold hover:bg-black/[0.04] dark:hover:bg-white/[0.08]'
+                    : 'text-slate-800 dark:text-[#F4F5EF] hover:bg-black/[0.04] dark:hover:bg-white/[0.08] font-medium'
                 }`}
               >
                 <span>All Competitions</span>
-                <span className="tabular-nums font-semibold">{matches.length}</span>
+                <div className="flex items-center gap-1.5 shrink-0">
+                  <span
+                    className={`tabular-nums font-bold text-[11px] ${
+                      selectedLeague === 'all'
+                        ? 'text-[#006C54] dark:text-emerald-400'
+                        : 'text-slate-500 dark:text-[#B5BDB6]'
+                    }`}
+                  >
+                    {upcomingMatches.length}
+                  </span>
+                  {selectedLeague === 'all' && (
+                    <Check size={14} className="text-[#006C54] dark:text-emerald-400 shrink-0" />
+                  )}
+                </div>
               </button>
 
-              <div className="my-1 border-t border-slate-100 dark:border-line" />
+              <div className="my-1 border-t border-[#DCDCC8]/60 dark:border-[#414A43]/60" />
 
               {/* Grouped Rows */}
               {directoryData.rows.map((row) => {
@@ -206,12 +231,25 @@ export default function AdminChatRoomManager() {
                     }}
                     className={`w-full px-3 py-2 rounded-xl text-left flex items-center justify-between transition-colors cursor-pointer ${
                       isSelected
-                        ? 'bg-[#006C54] text-white font-bold shadow-2xs'
-                        : 'text-slate-800 dark:text-cream hover:bg-[#F5F5E4] dark:hover:bg-panel-2 font-medium'
+                        ? 'text-[#006C54] dark:text-emerald-400 font-bold hover:bg-black/[0.04] dark:hover:bg-white/[0.08]'
+                        : 'text-slate-800 dark:text-[#F4F5EF] hover:bg-black/[0.04] dark:hover:bg-white/[0.08] font-medium'
                     }`}
                   >
                     <span className="truncate pr-2">{row.label}</span>
-                    <span className="tabular-nums font-semibold shrink-0">{row.count}</span>
+                    <div className="flex items-center gap-1.5 shrink-0">
+                      <span
+                        className={`tabular-nums font-bold text-[11px] ${
+                          isSelected
+                            ? 'text-[#006C54] dark:text-emerald-400'
+                            : 'text-slate-500 dark:text-[#B5BDB6]'
+                        }`}
+                      >
+                        {row.count}
+                      </span>
+                      {isSelected && (
+                        <Check size={14} className="text-[#006C54] dark:text-emerald-400 shrink-0" />
+                      )}
+                    </div>
                   </button>
                 );
               })}
@@ -244,7 +282,7 @@ export default function AdminChatRoomManager() {
             type="button"
             onClick={handleEnableAllInView}
             disabled={filteredMatches.length === 0}
-            className="px-2.5 py-1 text-[11px] font-bold rounded-lg bg-emerald-50 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300 hover:bg-emerald-100 dark:hover:bg-emerald-950/60 border border-transparent dark:border-emerald-800/40 transition-colors disabled:opacity-40 cursor-pointer"
+            className="px-3 py-1.5 text-xs font-semibold rounded-lg bg-[#006C54] hover:bg-[#005441] text-white shadow-2xs transition-colors disabled:opacity-40 cursor-pointer"
           >
             Enable All in View
           </button>
@@ -252,7 +290,7 @@ export default function AdminChatRoomManager() {
             type="button"
             onClick={handleDisableAllInView}
             disabled={filteredMatches.length === 0}
-            className="px-2.5 py-1 text-[11px] font-bold rounded-lg bg-slate-100 dark:bg-panel-2 text-slate-700 dark:text-cream hover:bg-slate-200 dark:hover:bg-line border border-transparent dark:border-line transition-colors disabled:opacity-40 cursor-pointer"
+            className="px-3 py-1.5 text-xs font-semibold rounded-lg bg-[#006C54] hover:bg-[#005441] text-white shadow-2xs transition-colors disabled:opacity-40 cursor-pointer"
           >
             Disable All in View
           </button>

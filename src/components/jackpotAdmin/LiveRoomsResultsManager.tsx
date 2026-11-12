@@ -1,9 +1,10 @@
 import { useState } from 'react';
-import { Radio, Trash2, CheckCircle2, RotateCcw, ChevronDown, ChevronUp, AlertTriangle } from 'lucide-react';
+import { Radio, Trash2, Check, CheckCircle2, RotateCcw, ChevronDown, ChevronUp, AlertTriangle } from 'lucide-react';
 import { clearAllJackpots, deleteAdminJackpot, updateJackpotMatchResult } from '../../lib/mockData';
 import { showToast } from '../../lib/notificationStore';
 import type { Jackpot, Outcome, NonResultStatus } from '../../lib/types';
 import { getBookieTheme } from '../../lib/bookies';
+import AdminDropdown from '../admin/AdminDropdown';
 
 interface LiveRoomsResultsManagerProps {
   publishedJackpots: Jackpot[];
@@ -59,30 +60,31 @@ export default function LiveRoomsResultsManager({
         <div className="space-y-4">
           {/* Room Selector Dropdown */}
           <div className="flex flex-col sm:flex-row sm:items-center gap-3 bg-[#FBFBFA] dark:bg-panel-2 p-3 rounded-xl border border-[#E5E5EA] dark:border-line">
-            <label htmlFor="select-jackpot-room" className="text-xs font-semibold text-slate-700 dark:text-cream shrink-0">
+            <label className="text-xs font-semibold text-slate-700 dark:text-cream shrink-0">
               Select Room:
             </label>
-            <select
-              id="select-jackpot-room"
+            <AdminDropdown
               value={selectedResultRoomId || ''}
-              onChange={(e) => {
-                const val = e.target.value;
+              onChange={(val) => {
                 setSelectedResultRoomId(val);
                 if (val) setIsExpanded(true);
                 else setIsExpanded(false);
               }}
-              className="flex-1 h-9 bg-white dark:bg-panel border border-slate-300 dark:border-line rounded-xl px-3 py-1.5 text-xs font-medium text-slate-900 dark:text-cream focus:outline-none focus:border-[#006C54] focus:ring-1 focus:ring-[#006C54] transition-all shadow-2xs"
-            >
-              <option value="">-- Choose an active / not-started published room --</option>
-              {publishedJackpots.map((jp) => {
-                const completedCount = jp.matches.filter((m) => m.result !== undefined || m.nonResultStatus).length;
-                return (
-                  <option key={jp.id} value={jp.id}>
-                    {jp.name} ({jp.bookie}) · {completedCount}/{jp.matches.length} Legs settled · {jp.deadline}
-                  </option>
-                );
-              })}
-            </select>
+              placeholder="-- Choose an active / not-started published room --"
+              options={[
+                { value: '', label: '-- Choose an active / not-started published room --' },
+                ...publishedJackpots.map((jp) => {
+                  const completedCount = jp.matches.filter((m) => m.result !== undefined || m.nonResultStatus).length;
+                  return {
+                    value: jp.id,
+                    label: `${jp.name} (${jp.bookie}) · ${jp.deadline}`,
+                    count: `${completedCount}/${jp.matches.length}`,
+                  };
+                }),
+              ]}
+              className="flex-1"
+              buttonClassName="h-9"
+            />
           </div>
 
           {/* Selected Room Leg Result Editor (Collapsed by Default) */}
@@ -198,7 +200,7 @@ export default function LiveRoomsResultsManager({
                                   className="fixed inset-0 z-30"
                                   onClick={() => setActiveStatusMenuMatchId(null)}
                                 />
-                                <div className="absolute left-0 sm:right-0 sm:left-auto top-full mt-1.5 w-40 bg-white dark:bg-panel border border-slate-200 dark:border-line rounded-xl shadow-xl py-1 z-40 animate-fade-in text-xs font-medium text-slate-800 dark:text-cream">
+                                <div className="absolute left-0 sm:right-0 sm:left-auto top-full mt-1.5 w-44 bg-[#FFFFF0] dark:bg-[#202522] border border-[#DCDCC8] dark:border-[#414A43] rounded-2xl shadow-2xl py-1.5 p-1 z-40 animate-fade-in text-xs font-medium">
                                   {(['Canceled', 'Postponed', 'Abandoned', 'TBD'] as NonResultStatus[]).map(
                                     (status) => (
                                       <button
@@ -220,15 +222,15 @@ export default function LiveRoomsResultsManager({
                                             type: 'info',
                                           });
                                         }}
-                                        className={`w-full text-left px-3 py-1.5 hover:bg-slate-50 dark:hover:bg-panel-2 flex items-center justify-between cursor-pointer ${
+                                        className={`w-full text-left px-3 py-2 rounded-xl flex items-center justify-between cursor-pointer transition-colors ${
                                           match.nonResultStatus === status
-                                            ? 'text-[#006C54] dark:text-emerald-400 font-bold bg-[#E8F5EE] dark:bg-[#006C54]/20'
-                                            : ''
+                                            ? 'text-[#006C54] dark:text-emerald-400 font-bold hover:bg-black/[0.04] dark:hover:bg-white/[0.08]'
+                                            : 'text-slate-800 dark:text-[#F4F5EF] hover:bg-black/[0.04] dark:hover:bg-white/[0.08] font-medium'
                                         }`}
                                       >
                                         <span>{status}</span>
                                         {match.nonResultStatus === status && (
-                                          <CheckCircle2 size={12} className="text-[#006C54] dark:text-emerald-400" />
+                                          <Check size={14} className="text-[#006C54] dark:text-emerald-400 shrink-0" />
                                         )}
                                       </button>
                                     )
@@ -252,9 +254,9 @@ export default function LiveRoomsResultsManager({
                                           type: 'info',
                                         });
                                       }}
-                                      className="w-full text-left px-3 py-1.5 hover:bg-rose-50 dark:hover:bg-rose-950/40 text-rose-600 dark:text-rose-400 border-t border-slate-100 dark:border-line cursor-pointer flex items-center gap-1.5"
+                                      className="w-full text-left px-3 py-2 rounded-xl hover:bg-rose-50 dark:hover:bg-rose-950/40 text-rose-600 dark:text-rose-400 border-t border-[#DCDCC8]/60 dark:border-[#414A43]/60 cursor-pointer flex items-center gap-1.5 font-medium transition-colors mt-1"
                                     >
-                                      <RotateCcw size={11} />
+                                      <RotateCcw size={12} />
                                       <span>Clear Status</span>
                                     </button>
                                   )}

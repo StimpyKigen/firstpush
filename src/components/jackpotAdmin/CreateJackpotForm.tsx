@@ -1,6 +1,7 @@
 import { Plus, Globe, Layers, DollarSign, Calendar, Bot, RefreshCw, Sparkles, Check, AlertCircle, Trash2 } from 'lucide-react';
 import { KENYAN_BETTING_SITES, type MajorKenyanBookie, type ExtractedMatch } from '../../lib/useJackpotAdminForm';
 import { getBookieTheme } from '../../lib/bookies';
+import AdminDropdown from '../admin/AdminDropdown';
 
 interface CreateJackpotFormProps {
   selectedBookie: MajorKenyanBookie;
@@ -96,7 +97,7 @@ export default function CreateJackpotForm({
                     : 'bg-slate-100 dark:bg-panel-2 text-slate-700 dark:text-cream hover:bg-slate-200 dark:hover:bg-panel border border-transparent dark:border-line'
                 }`}
               >
-                <img src={t.logo} alt={site} className="w-4 h-4 object-contain shrink-0 bg-transparent border-none" />
+                <img src={t.logo} alt={site} className="w-4 h-4 object-contain shrink-0 bg-transparent border-none rounded-[22%]" />
                 <span>{site}</span>
               </button>
             );
@@ -118,30 +119,33 @@ export default function CreateJackpotForm({
             <img
               src={currentTheme.logo}
               alt={selectedBookie}
-              className="w-9 h-9 object-contain shrink-0 bg-transparent border-none"
+              className="w-9 h-9 object-contain shrink-0 bg-transparent border-none rounded-[22%]"
             />
-            <select
+            <AdminDropdown
               value={selectedBookie}
-              onChange={(e) => {
-                const b = e.target.value as MajorKenyanBookie;
-                setSelectedBookie(b);
-                if (b === 'SportPesa') setJackpotName('Mega Jackpot Pro');
-                else if (b === 'Betika') setJackpotName('Midweek Jackpot');
-                else if (b === 'MozzartBet') setJackpotName('Super Grand Jackpot');
-                else if (b === 'SportyBet') setJackpotName('Sporty 12 Jackpot');
-                else if (b === 'BetPawa') setJackpotName('pawa6 Mega Jackpot');
-                else if (b === '1xBet') setJackpotName('Toto 15 Jackpot');
-                else if (b === '22Bet') setJackpotName('Football Mania Jackpot');
-                else setJackpotName(`${b} Weekly Jackpot`);
+              onChange={(b) => {
+                const bookie = b as MajorKenyanBookie;
+                setSelectedBookie(bookie);
+                if (bookie === 'SportPesa') setJackpotName('Mega Jackpot Pro');
+                else if (bookie === 'Betika') setJackpotName('Midweek Jackpot');
+                else if (bookie === 'MozzartBet') setJackpotName('Super Grand Jackpot');
+                else if (bookie === 'SportyBet') setJackpotName('Sporty 12 Jackpot');
+                else if (bookie === 'BetPawa') setJackpotName('pawa6 Mega Jackpot');
+                else if (bookie === '1xBet') setJackpotName('Toto 15 Jackpot');
+                else if (bookie === '22Bet') setJackpotName('Football Mania Jackpot');
+                else setJackpotName(`${bookie} Weekly Jackpot`);
               }}
-              className="flex-1 h-9 bg-white dark:bg-panel border border-slate-300 dark:border-line rounded-xl px-3 py-1.5 text-xs font-medium text-slate-900 dark:text-cream focus:outline-none focus:border-[#006C54] focus:ring-1 focus:ring-[#006C54] transition-all shadow-2xs"
-            >
-              {KENYAN_BETTING_SITES.map((site) => (
-                <option key={site} value={site}>
-                  {site}
-                </option>
-              ))}
-            </select>
+              options={KENYAN_BETTING_SITES.map((site) => {
+                const t = getBookieTheme(site);
+                return {
+                  value: site,
+                  label: site,
+                  icon: <img src={t.logo} alt={site} className="w-4 h-4 object-contain shrink-0 bg-transparent rounded-[22%]" />,
+                };
+              })}
+              className="flex-1"
+              buttonClassName="h-9"
+            />
           </div>
         </div>
 
@@ -150,21 +154,19 @@ export default function CreateJackpotForm({
           <label className="block text-xs font-semibold text-slate-700 dark:text-cream mb-1.5 flex items-center gap-1.5">
             <Layers size={13} className="text-[#006C54] dark:text-emerald-400" /> Number of Legs
           </label>
-          <select
+          <AdminDropdown
             value={numLegs}
-            onChange={(e) => {
-              const count = Number(e.target.value);
+            onChange={(val) => {
+              const count = Number(val);
               setNumLegs(count);
               if (matches.length > 0) onGenerateSample(count);
             }}
-            className="w-full h-9 bg-white dark:bg-panel border border-slate-300 dark:border-line rounded-xl px-3 py-1.5 text-xs font-medium text-slate-900 dark:text-cream focus:outline-none focus:border-[#006C54] focus:ring-1 focus:ring-[#006C54] transition-all shadow-2xs"
-          >
-            {[17, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7].map((num) => (
-              <option key={num} value={num}>
-                {num} Legs
-              </option>
-            ))}
-          </select>
+            options={[17, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7].map((num) => ({
+              value: num,
+              label: `${num} Legs`,
+            }))}
+            buttonClassName="h-9"
+          />
         </div>
 
         {/* Prize Pool */}

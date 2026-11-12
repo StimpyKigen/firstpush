@@ -1,5 +1,10 @@
 import React, { useState } from 'react';
 import { X, Trophy, Lock, ShieldAlert, Newspaper, KeyRound, CalendarDays, MessageSquare } from 'lucide-react';
+import {
+  InputOTP,
+  InputOTPGroup,
+  InputOTPSlot,
+} from "@/components/ui/input-otp";
 import AdminModerationDashboard from './AdminModerationDashboard';
 import AdminHomepageFeed from './admin/AdminHomepageFeed';
 import AdminFixturesManager from './admin/AdminFixturesManager';
@@ -252,20 +257,30 @@ export default function JackpotAdminModal({ isOpen, onClose }: JackpotAdminModal
                 </p>
               </div>
 
-              <form onSubmit={handleUnlockPin} className="w-full space-y-3.5 mt-2">
-                <input
-                  type="password"
-                  placeholder="Enter Super-Admin PIN"
-                  value={adminPinInput}
-                  onChange={(e) => setAdminPinInput(e.target.value)}
-                  className="w-full h-11 bg-white dark:bg-panel border border-[#E5E5EA] dark:border-line rounded-xl px-4 text-center text-slate-900 dark:text-cream tabular-nums text-base tracking-widest font-mono font-semibold placeholder:font-sans placeholder:tracking-normal placeholder:text-slate-400 dark:placeholder:text-cream-dim/50 focus:outline-none focus:border-[#006C54] focus:ring-2 focus:ring-[#006C54]/20 transition-all shadow-2xs"
-                  autoFocus
-                />
+              <form onSubmit={handleUnlockPin} className="w-full flex flex-col items-center space-y-4 mt-2">
+                <div className="flex justify-center py-1">
+                  <InputOTP
+                    maxLength={4}
+                    value={adminPinInput}
+                    onChange={(val) => {
+                      setAdminPinInput(val);
+                      if (pinError) setPinError('');
+                    }}
+                    autoFocus
+                  >
+                    <InputOTPGroup className="space-x-2">
+                      <InputOTPSlot index={0} className="rounded-md border-l" />
+                      <InputOTPSlot index={1} className="rounded-md border-l" />
+                      <InputOTPSlot index={2} className="rounded-md border-l" />
+                      <InputOTPSlot index={3} className="rounded-md border-l" />
+                    </InputOTPGroup>
+                  </InputOTP>
+                </div>
                 {pinError && <p className="text-xs text-rose-600 dark:text-rose-400 font-semibold">{pinError}</p>}
 
                 <button
                   type="submit"
-                  disabled={isVerifying}
+                  disabled={isVerifying || adminPinInput.trim().length === 0}
                   className="w-full h-11 bg-[#006C54] hover:bg-[#005441] text-white font-semibold py-3 rounded-xl transition-all disabled:opacity-50 cursor-pointer shadow-xs active:scale-[0.99] text-xs uppercase tracking-wider"
                 >
                   {isVerifying ? 'Verifying Admin Credentials...' : 'Unlock Admin Console'}

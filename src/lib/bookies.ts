@@ -22,7 +22,7 @@ export const BOOKIE_THEMES: Record<string, BookieTheme> = {
     badgeBg: '#E8EEFA',
     badgeText: '#0A3B8C',
     iconBg: '#F0F4FC',
-    logo: '/logos/sportpesa.jpg',
+    logo: '/logos/sportpesa.png',
   },
   Betika: {
     name: 'Betika',
@@ -110,7 +110,7 @@ export const BOOKIE_THEMES: Record<string, BookieTheme> = {
     badgeBg: '#CCFBF1',
     badgeText: '#115E59',
     iconBg: '#F0FDFA',
-    logo: '/logos/22bet.jpg',
+    logo: '/logos/22bet.png',
   },
 };
 
@@ -123,7 +123,7 @@ const DEFAULT_THEME: BookieTheme = {
   badgeBg: '#E8F5E9',
   badgeText: '#006C54',
   iconBg: '#F4F9F6',
-  logo: '/logos/sportpesa.jpg',
+  logo: '/logos/sportpesa.png',
 };
 
 export function getBookieTheme(bookieName?: string): BookieTheme {

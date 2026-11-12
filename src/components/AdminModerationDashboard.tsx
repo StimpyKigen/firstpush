@@ -5,6 +5,7 @@ import { useModerationDictionary, ALL_CATEGORIES, SEVERITY_LEVELS, ACTIONS } fro
 import { useReportsStore } from '../lib/reportsStore';
 import ReportsPanel from './adminModeration/ReportsPanel';
 import DictionaryPanel from './adminModeration/DictionaryPanel';
+import AdminDropdown from './admin/AdminDropdown';
 import Modal from './ui/Modal';
 
 export default function AdminModerationDashboard() {
@@ -201,32 +202,28 @@ export default function AdminModerationDashboard() {
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-semibold text-slate-700 dark:text-cream-dim mb-1">Category</label>
-                  <select
+                  <AdminDropdown
                     value={category}
-                    onChange={(e) => setCategory(e.target.value as ModerationCategory)}
-                    className="w-full bg-white dark:bg-panel-2 border border-slate-300 dark:border-line focus:border-[#006C54] focus:ring-1 focus:ring-[#006C54] rounded-xl px-3 py-2 text-xs text-slate-900 dark:text-cream focus:outline-none transition-all"
-                  >
-                    {ALL_CATEGORIES.map((cat) => (
-                      <option key={cat} value={cat}>
-                        {cat}
-                      </option>
-                    ))}
-                  </select>
+                    onChange={(val) => setCategory(val as ModerationCategory)}
+                    options={ALL_CATEGORIES.map((cat) => ({
+                      value: cat,
+                      label: cat,
+                    }))}
+                    buttonClassName="h-9"
+                  />
                 </div>
 
                 <div>
                   <label className="block text-xs font-semibold text-slate-700 dark:text-cream-dim mb-1">Severity Level</label>
-                  <select
+                  <AdminDropdown
                     value={severity}
-                    onChange={(e) => setSeverity(e.target.value as ModerationSeverity)}
-                    className="w-full bg-white dark:bg-panel-2 border border-slate-300 dark:border-line focus:border-[#006C54] focus:ring-1 focus:ring-[#006C54] rounded-xl px-3 py-2 text-xs text-slate-900 dark:text-cream focus:outline-none transition-all"
-                  >
-                    {SEVERITY_LEVELS.map((sev) => (
-                      <option key={sev} value={sev}>
-                        {sev}
-                      </option>
-                    ))}
-                  </select>
+                    onChange={(val) => setSeverity(val as ModerationSeverity)}
+                    options={SEVERITY_LEVELS.map((sev) => ({
+                      value: sev,
+                      label: sev,
+                    }))}
+                    buttonClassName="h-9"
+                  />
                 </div>
               </div>
 
@@ -234,17 +231,15 @@ export default function AdminModerationDashboard() {
               <div className="grid grid-cols-2 gap-3 items-center">
                 <div>
                   <label className="block text-xs font-semibold text-slate-700 dark:text-cream-dim mb-1">Action</label>
-                  <select
+                  <AdminDropdown
                     value={action}
-                    onChange={(e) => setAction(e.target.value as ModerationAction)}
-                    className="w-full bg-white dark:bg-panel-2 border border-slate-300 dark:border-line focus:border-[#006C54] focus:ring-1 focus:ring-[#006C54] rounded-xl px-3 py-2 text-xs text-slate-900 dark:text-cream focus:outline-none transition-all"
-                  >
-                    {ACTIONS.map((act) => (
-                      <option key={act} value={act}>
-                        {act}
-                      </option>
-                    ))}
-                  </select>
+                    onChange={(val) => setAction(val as ModerationAction)}
+                    options={ACTIONS.map((act) => ({
+                      value: act,
+                      label: act,
+                    }))}
+                    buttonClassName="h-9"
+                  />
                 </div>
 
                 <div className="pt-5">

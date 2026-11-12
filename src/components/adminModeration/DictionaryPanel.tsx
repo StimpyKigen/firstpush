@@ -1,6 +1,7 @@
 import { Search, X, Tag, ShieldAlert, Edit2, Trash2 } from 'lucide-react';
 import type { DictionaryEntry, ModerationSeverity, ModerationAction } from '../../types/moderation';
 import { ALL_CATEGORIES, SEVERITY_LEVELS } from '../../lib/useModerationDictionary';
+import AdminDropdown from '../admin/AdminDropdown';
 
 interface DictionaryPanelProps {
   dictionary: DictionaryEntry[];
@@ -108,47 +109,49 @@ export default function DictionaryPanel({
 
           {/* Category Filter */}
           <div className="sm:col-span-3">
-            <select
+            <AdminDropdown
               value={selectedCategory}
-              onChange={(e) => setSelectedCategory(e.target.value)}
-              className="w-full bg-[#FBFBFA] dark:bg-panel-2 border border-slate-300 dark:border-line focus:border-[#006C54] focus:ring-1 focus:ring-[#006C54] rounded-xl px-3 py-2 text-xs text-slate-900 dark:text-cream focus:outline-none transition-all"
-            >
-              <option value="ALL">All Categories ({totalCount})</option>
-              {ALL_CATEGORIES.map((cat) => (
-                <option key={cat} value={cat}>
-                  {cat} ({dictionary.filter((d) => d.category === cat).length})
-                </option>
-              ))}
-            </select>
+              onChange={setSelectedCategory}
+              options={[
+                { value: 'ALL', label: 'All Categories', count: totalCount },
+                ...ALL_CATEGORIES.map((cat) => ({
+                  value: cat,
+                  label: cat,
+                  count: dictionary.filter((d) => d.category === cat).length,
+                })),
+              ]}
+              buttonClassName="h-9"
+            />
           </div>
 
           {/* Severity Filter */}
           <div className="sm:col-span-2">
-            <select
+            <AdminDropdown
               value={selectedSeverity}
-              onChange={(e) => setSelectedSeverity(e.target.value)}
-              className="w-full bg-[#FBFBFA] dark:bg-panel-2 border border-slate-300 dark:border-line focus:border-[#006C54] focus:ring-1 focus:ring-[#006C54] rounded-xl px-3 py-2 text-xs text-slate-900 dark:text-cream focus:outline-none transition-all"
-            >
-              <option value="ALL">All Severities</option>
-              {SEVERITY_LEVELS.map((sev) => (
-                <option key={sev} value={sev}>
-                  {sev}
-                </option>
-              ))}
-            </select>
+              onChange={setSelectedSeverity}
+              options={[
+                { value: 'ALL', label: 'All Severities' },
+                ...SEVERITY_LEVELS.map((sev) => ({
+                  value: sev,
+                  label: sev,
+                })),
+              ]}
+              buttonClassName="h-9"
+            />
           </div>
 
           {/* Status Filter */}
           <div className="sm:col-span-2">
-            <select
+            <AdminDropdown
               value={selectedStatus}
-              onChange={(e) => setSelectedStatus(e.target.value as any)}
-              className="w-full bg-[#FBFBFA] dark:bg-panel-2 border border-slate-300 dark:border-line focus:border-[#006C54] focus:ring-1 focus:ring-[#006C54] rounded-xl px-3 py-2 text-xs text-slate-900 dark:text-cream focus:outline-none transition-all"
-            >
-              <option value="ALL">All Status</option>
-              <option value="ENABLED">Enabled</option>
-              <option value="DISABLED">Disabled</option>
-            </select>
+              onChange={(val) => setSelectedStatus(val as any)}
+              options={[
+                { value: 'ALL', label: 'All Status' },
+                { value: 'ENABLED', label: 'Enabled' },
+                { value: 'DISABLED', label: 'Disabled' },
+              ]}
+              buttonClassName="h-9"
+            />
           </div>
         </div>
 
@@ -242,10 +245,10 @@ export default function DictionaryPanel({
                     <td className="py-3 px-4">
                       <button
                         onClick={() => onToggle(entry.id)}
-                        className={`inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full transition-all cursor-pointer ${
+                        className={`inline-flex items-center gap-1.5 text-xs font-semibold transition-colors cursor-pointer ${
                           entry.enabled
-                            ? 'bg-[#E8F5EE] dark:bg-emerald-950/40 text-[#006C54] dark:text-emerald-400'
-                            : 'bg-slate-100 dark:bg-panel-2 text-slate-500 dark:text-cream-dim'
+                            ? 'text-[#006C54] dark:text-emerald-400 hover:text-[#005441]'
+                            : 'text-slate-500 dark:text-cream-dim hover:text-slate-700'
                         }`}
                       >
                         <span className={`w-1.5 h-1.5 rounded-full ${entry.enabled ? 'bg-[#006C54] dark:bg-emerald-400' : 'bg-slate-400'}`} />
