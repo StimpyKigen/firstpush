@@ -24,6 +24,21 @@ interface DictionaryPanelProps {
   getActionBadgeClass: (act: ModerationAction) => string;
 }
 
+const SEVERITY_TEXT_COLORS: Record<string, string> = {
+  Critical: 'text-rose-600 dark:text-rose-400',
+  High: 'text-amber-600 dark:text-amber-400',
+  Medium: 'text-yellow-600 dark:text-yellow-400',
+  Low: 'text-blue-600 dark:text-blue-400',
+  'Review Only': 'text-purple-600 dark:text-purple-400',
+};
+
+const ACTION_TEXT_COLORS: Record<string, string> = {
+  Block: 'text-rose-600 dark:text-rose-400',
+  Flag: 'text-amber-600 dark:text-amber-400',
+  Review: 'text-purple-600 dark:text-purple-400',
+  Mask: 'text-cyan-600 dark:text-cyan-400',
+};
+
 export default function DictionaryPanel({
   dictionary,
   filteredEntries,
@@ -204,21 +219,21 @@ export default function DictionaryPanel({
 
                     {/* Category */}
                     <td className="py-3 px-4">
-                      <span className="inline-flex items-center gap-1 text-[11px] text-slate-700 dark:text-cream-dim">
+                      <span className="inline-flex items-center gap-1.5 text-[11px] font-medium text-slate-700 dark:text-cream-dim">
                         <Tag size={10} className="text-[#006C54] dark:text-[#00A881]" /> {entry.category}
                       </span>
                     </td>
 
                     {/* Severity */}
                     <td className="py-3 px-4">
-                      <span className={`inline-block px-2 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wider ${getSeverityBadgeClass(entry.severity)}`}>
+                      <span className={`text-[11px] font-bold uppercase tracking-wider ${SEVERITY_TEXT_COLORS[entry.severity] || 'text-slate-600 dark:text-cream-dim'}`}>
                         {entry.severity}
                       </span>
                     </td>
 
                     {/* Action */}
                     <td className="py-3 px-4">
-                      <span className={`inline-block px-2 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wider ${getActionBadgeClass(entry.action)}`}>
+                      <span className={`text-[11px] font-bold uppercase tracking-wider ${ACTION_TEXT_COLORS[entry.action] || 'text-slate-600 dark:text-cream-dim'}`}>
                         {entry.action}
                       </span>
                     </td>

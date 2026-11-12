@@ -96,7 +96,7 @@ export default function CreateJackpotForm({
                     : 'bg-slate-100 dark:bg-panel-2 text-slate-700 dark:text-cream hover:bg-slate-200 dark:hover:bg-panel border border-transparent dark:border-line'
                 }`}
               >
-                <img src={t.logo} alt={site} className="w-4 h-4 object-contain shrink-0" />
+                <img src={t.logo} alt={site} className="w-4 h-4 object-contain shrink-0 bg-transparent border-none" />
                 <span>{site}</span>
               </button>
             );
@@ -118,7 +118,7 @@ export default function CreateJackpotForm({
             <img
               src={currentTheme.logo}
               alt={selectedBookie}
-              className="w-9 h-9 object-contain shrink-0"
+              className="w-9 h-9 object-contain shrink-0 bg-transparent border-none"
             />
             <select
               value={selectedBookie}

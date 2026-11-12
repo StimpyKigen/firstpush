@@ -386,15 +386,9 @@ export default function AdminFixturesManager() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[#E5E5EA] dark:border-line">
         <div>
           <div className="flex items-center gap-2">
-            <span className="p-1.5 rounded-lg bg-[#E8F5EE] dark:bg-emerald-950/40 text-[#006C54] dark:text-[#00A881]">
-              <FileText size={18} />
-            </span>
             <h3 className="font-semibold text-lg text-slate-900 dark:text-cream tracking-tight">
               Fixture Slate &amp; PDF Parser
             </h3>
-            <span className="bg-[#E8F5EE] dark:bg-emerald-950/40 text-[#006C54] dark:text-[#00A881] text-[11px] uppercase font-bold px-2.5 py-0.5 rounded-full border border-transparent dark:border-emerald-800/40">
-              Automated Categorizer
-            </span>
           </div>
           <p className="text-xs text-slate-500 dark:text-cream-dim mt-1 leading-relaxed">
             Upload official PDF fixture sheets with odds. Fixtures are parsed and sectored into their rightful leagues (e.g. England Premier League, Championship, etc.) with Match ID ignored.
@@ -429,8 +423,8 @@ export default function AdminFixturesManager() {
       <div className="bg-[#FFFFF0] dark:bg-panel border border-[#DCDCC8] dark:border-line rounded-2xl p-5 sm:p-6 shadow-xs">
         <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-xl bg-[#006C54]/10 dark:bg-[#006C54]/25 text-[#006C54] dark:text-[#00A881] flex items-center justify-center">
-              <Folder size={18} />
+            <div className="text-[#006C54] dark:text-[#00A881] flex items-center justify-center shrink-0">
+              <Folder size={20} />
             </div>
             <div>
               <h4 className="text-sm font-bold text-slate-900 dark:text-cream flex items-center gap-2">
@@ -468,8 +462,8 @@ export default function AdminFixturesManager() {
               >
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex items-start gap-2.5 min-w-0">
-                    <div className="w-7 h-7 rounded-lg bg-[#006C54]/10 dark:bg-[#006C54]/25 text-[#006C54] dark:text-[#00A881] flex items-center justify-center shrink-0 mt-0.5">
-                      <FolderCheck size={16} />
+                    <div className="text-[#006C54] dark:text-[#00A881] flex items-center justify-center shrink-0 mt-0.5">
+                      <FolderCheck size={18} />
                     </div>
                     <div className="min-w-0">
                       <h5 className="text-xs font-bold text-slate-900 dark:text-cream truncate" title={batch.fileName}>

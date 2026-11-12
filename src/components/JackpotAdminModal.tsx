@@ -150,10 +150,6 @@ export default function JackpotAdminModal({ isOpen, onClose }: JackpotAdminModal
                 <h2 className="font-display font-bold text-base sm:text-lg text-slate-900 dark:text-cream tracking-tight">
                   Mshindi Admin Console
                 </h2>
-                <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-[#006C54]/10 dark:bg-[#006C54]/20 border border-[#006C54]/20 text-[#006C54] dark:text-emerald-400 text-[10px] font-bold uppercase tracking-wider">
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#006C54] dark:bg-emerald-400 animate-pulse" />
-                  Super Admin
-                </span>
               </div>
               <p className="text-xs text-slate-500 dark:text-cream-dim hidden sm:block mt-0.5">
                 Manage weekly homepage news, live jackpot consensus rooms, and moderation safety

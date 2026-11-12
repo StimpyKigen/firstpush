@@ -43,10 +43,10 @@ export default function LiveRoomsResultsManager({
                 showToast({ title: 'Rooms Cleared', message: 'All published jackpot rooms have been cleared.', type: 'info' });
               }
             }}
-            className="text-xs font-semibold text-rose-600 dark:text-rose-400 hover:text-rose-700 dark:hover:text-rose-300 flex items-center gap-1.5 bg-rose-50 dark:bg-rose-950/30 hover:bg-rose-100 dark:hover:bg-rose-900/40 border border-rose-200/60 dark:border-rose-900/40 px-3 py-1.5 rounded-xl transition-colors cursor-pointer self-start sm:self-auto"
+            className="text-xs font-semibold text-white bg-red-600 hover:bg-red-700 active:bg-red-800 border border-red-700 flex items-center gap-1.5 px-3 py-1.5 rounded-xl shadow-xs transition-colors cursor-pointer self-start sm:self-auto"
           >
-            <Trash2 size={13} />
-            <span>Clear All Rooms</span>
+            <Trash2 size={13} className="text-white" />
+            <span className="text-white">Clear All Rooms</span>
           </button>
         )}
       </div>

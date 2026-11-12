@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ShieldAlert, Plus, Upload, Download, RotateCcw, Flag, X, AlertTriangle } from 'lucide-react';
+import { ShieldAlert, Plus, Upload, Download, Flag, X, AlertTriangle } from 'lucide-react';
 import type { ModerationCategory, ModerationSeverity, ModerationAction } from '../types/moderation';
 import { useModerationDictionary, ALL_CATEGORIES, SEVERITY_LEVELS, ACTIONS } from '../lib/useModerationDictionary';
 import { useReportsStore } from '../lib/reportsStore';
@@ -97,13 +97,6 @@ export default function AdminModerationDashboard() {
             <Download size={14} />
             <span>Export</span>
           </button>
-          <button
-            onClick={handleRestoreDefaults}
-            title="Restore default dictionary seed"
-            className="p-2 rounded-xl bg-slate-100 hover:bg-rose-50 dark:bg-panel-2 dark:hover:bg-rose-950/30 text-slate-400 hover:text-rose-600 dark:text-cream-dim dark:hover:text-rose-400 transition-colors cursor-pointer"
-          >
-            <RotateCcw size={15} />
-          </button>
         </div>
       </div>
 
@@ -132,7 +125,7 @@ export default function AdminModerationDashboard() {
           <Flag size={14} />
           <span>User Reports</span>
           {reports.filter((r) => r.status === 'Pending').length > 0 && (
-            <span className="px-2 py-0.5 rounded-full bg-rose-500/15 text-rose-600 dark:text-rose-400 text-[11px] font-bold ml-1 tabular-nums">
+            <span className="text-rose-600 dark:text-rose-400 text-[11px] font-bold ml-1 tabular-nums">
               {reports.filter((r) => r.status === 'Pending').length} Pending
             </span>
           )}
