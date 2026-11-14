@@ -26,7 +26,7 @@ export const COMPETITION_BANNERS: Record<string, CompetitionBannerConfig> = {
   uefa_champions_league: {
     id: 'uefa_champions_league',
     name: 'UEFA Champions League',
-    bannerUrl: '/banners/uefa-champions-league.jpg',
+    bannerUrl: '/banners/uefa-champions-league.webp',
     overlayOpacity: 0.32,
     gradientOverlay: 'from-transparent via-[#EDF4FE]/20 to-[#FFFFF0]/35',
     cardBg: 'bg-gradient-to-b from-[#E3EFFE] via-[#F0F6FE] to-[#FFFFF0]',
@@ -41,7 +41,7 @@ export const COMPETITION_BANNERS: Record<string, CompetitionBannerConfig> = {
   uefa_europa_league: {
     id: 'uefa_europa_league',
     name: 'UEFA Europa League',
-    bannerUrl: '/banners/uefa-europa-league.jpg',
+    bannerUrl: '/banners/uefa-europa-league.webp',
     overlayOpacity: 0.32,
     gradientOverlay: 'from-transparent via-[#FFF7ED]/20 to-[#FFFFF0]/35',
     cardBg: 'bg-gradient-to-b from-[#FFF2E5] via-[#FFF8F0] to-[#FFFFF0]',
@@ -56,7 +56,7 @@ export const COMPETITION_BANNERS: Record<string, CompetitionBannerConfig> = {
   uefa_conference_league: {
     id: 'uefa_conference_league',
     name: 'UEFA Conference League',
-    bannerUrl: '/banners/uefa-conference-league.jpg',
+    bannerUrl: '/banners/uefa-conference-league.webp',
     overlayOpacity: 0.32,
     gradientOverlay: 'from-transparent via-[#ECFDF5]/20 to-[#FFFFF0]/35',
     cardBg: 'bg-gradient-to-b from-[#E6F4EA] via-[#F2FAF4] to-[#FFFFF0]',
@@ -71,7 +71,7 @@ export const COMPETITION_BANNERS: Record<string, CompetitionBannerConfig> = {
   uefa_nations_league: {
     id: 'uefa_nations_league',
     name: 'UEFA Nations League',
-    bannerUrl: '/banners/uefa-nations-league.jpg',
+    bannerUrl: '/banners/uefa-nations-league.webp',
     overlayOpacity: 0.32,
     objectPosition: 'object-[center_50%]',
     gradientOverlay: 'from-transparent via-[#EEF2FF]/20 to-[#FFFFF0]/35',
@@ -87,7 +87,7 @@ export const COMPETITION_BANNERS: Record<string, CompetitionBannerConfig> = {
   premier_league: {
     id: 'premier_league',
     name: 'English Premier League',
-    bannerUrl: '/banners/premier-league.jpg',
+    bannerUrl: '/banners/premier-league.webp',
     overlayOpacity: 0.32,
     gradientOverlay: 'from-transparent via-[#E0FBF6]/20 to-[#FFFFF0]/35',
     cardBg: 'bg-gradient-to-b from-[#E6FCF5] via-[#F0FDF8] to-[#FFFFF0]',
@@ -102,7 +102,7 @@ export const COMPETITION_BANNERS: Record<string, CompetitionBannerConfig> = {
   la_liga: {
     id: 'la_liga',
     name: 'Spanish La Liga',
-    bannerUrl: '/banners/la-liga.jpg',
+    bannerUrl: '/banners/la-liga.webp',
     overlayOpacity: 0.32,
     objectPosition: 'object-[center_46%]',
     gradientOverlay: 'from-transparent via-[#FFF1F2]/20 to-[#FFFFF0]/35',
@@ -118,7 +118,7 @@ export const COMPETITION_BANNERS: Record<string, CompetitionBannerConfig> = {
   ligue_1: {
     id: 'ligue_1',
     name: 'French Ligue 1',
-    bannerUrl: '/banners/ligue-1.jpg',
+    bannerUrl: '/banners/ligue-1.webp',
     overlayOpacity: 0.32,
     objectPosition: 'object-[center_50%]',
     gradientOverlay: 'from-transparent via-[#F0FDF4]/20 to-[#FFFFF0]/35',
@@ -134,7 +134,7 @@ export const COMPETITION_BANNERS: Record<string, CompetitionBannerConfig> = {
   bundesliga: {
     id: 'bundesliga',
     name: 'German Bundesliga',
-    bannerUrl: '/banners/bundesliga.png',
+    bannerUrl: '/banners/bundesliga.webp',
     overlayOpacity: 0.32,
     objectPosition: 'object-[center_50%]',
     gradientOverlay: 'from-transparent via-[#FFF5F5]/20 to-[#FFFFF0]/35',
@@ -150,7 +150,7 @@ export const COMPETITION_BANNERS: Record<string, CompetitionBannerConfig> = {
   serie_a: {
     id: 'serie_a',
     name: 'Italian Serie A',
-    bannerUrl: '/banners/serie-a.jpg',
+    bannerUrl: '/banners/serie-a.webp',
     overlayOpacity: 0.32,
     objectPosition: 'object-[center_50%]',
     gradientOverlay: 'from-transparent via-[#E0F2FE]/20 to-[#FFFFF0]/35',
@@ -166,7 +166,7 @@ export const COMPETITION_BANNERS: Record<string, CompetitionBannerConfig> = {
   fa_cup: {
     id: 'fa_cup',
     name: 'English FA Cup',
-    bannerUrl: '/banners/fa-cup.jpg',
+    bannerUrl: '/banners/fa-cup.webp',
     overlayOpacity: 0.32,
     objectPosition: 'object-[center_50%]',
     gradientOverlay: 'from-transparent via-[#FFF1F2]/20 to-[#FFFFF0]/35',
@@ -182,7 +182,7 @@ export const COMPETITION_BANNERS: Record<string, CompetitionBannerConfig> = {
   efl_cup: {
     id: 'efl_cup',
     name: 'English EFL Cup',
-    bannerUrl: '/banners/efl-cup.jpg',
+    bannerUrl: '/banners/efl-cup.webp',
     overlayOpacity: 0.32,
     objectPosition: 'object-[center_50%]',
     gradientOverlay: 'from-transparent via-[#ECFDF5]/20 to-[#FFFFF0]/35',
@@ -198,7 +198,7 @@ export const COMPETITION_BANNERS: Record<string, CompetitionBannerConfig> = {
   scottish_premiership: {
     id: 'scottish_premiership',
     name: 'Scottish Premiership',
-    bannerUrl: '/banners/scottish-premiership.jpg',
+    bannerUrl: '/banners/scottish-premiership.webp',
     overlayOpacity: 0.32,
     objectPosition: 'object-[center_50%]',
     gradientOverlay: 'from-transparent via-[#EFF6FF]/20 to-[#FFFFF0]/35',
@@ -214,7 +214,7 @@ export const COMPETITION_BANNERS: Record<string, CompetitionBannerConfig> = {
   english_championship: {
     id: 'english_championship',
     name: 'English Championship',
-    bannerUrl: '/banners/english-championship.jpg',
+    bannerUrl: '/banners/english-championship.webp',
     overlayOpacity: 0.32,
     objectPosition: 'object-[center_50%]',
     gradientOverlay: 'from-transparent via-[#EFF6FF]/20 to-[#FFFFF0]/35',
@@ -230,7 +230,7 @@ export const COMPETITION_BANNERS: Record<string, CompetitionBannerConfig> = {
   kenya_premier_league: {
     id: 'kenya_premier_league',
     name: 'Kenyan Premier League',
-    bannerUrl: '/banners/kenya-premier-league.jpg',
+    bannerUrl: '/banners/kenya-premier-league.webp',
     overlayOpacity: 0.35,
     objectPosition: 'object-[center_50%]',
     gradientOverlay: 'from-transparent via-[#ECFDF5]/20 to-[#FFFFF0]/35',

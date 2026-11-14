@@ -63,9 +63,11 @@ export const Login: React.FC = () => {
         {/* Full Card Mobile Football Pitch Background */}
         <div className="mobile-card-pitch-bg" aria-hidden="true">
           <img
-            src="/images/auth-pitch-bg.jpg"
+            src="/images/auth-pitch-bg.webp"
             alt="Football Pitch Background"
             className="mobile-card-pitch-img"
+            loading="lazy"
+            decoding="async"
           />
           <div className="mobile-card-pitch-overlay" />
         </div>
@@ -92,9 +94,11 @@ export const Login: React.FC = () => {
         <div className="card-bg">
           <div className="card-bg-pitch-wrapper">
             <img
-              src="/images/auth-pitch-bg.jpg"
+              src="/images/auth-pitch-bg.webp"
               alt="Pitch background texture"
               className="card-bg-pitch-image"
+              loading="lazy"
+              decoding="async"
             />
             <div className="card-bg-pitch-overlay" />
           </div>

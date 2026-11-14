@@ -250,7 +250,7 @@ export default function DiscussionPanel({
                 aria-label="Post Pick Analysis"
               >
                 <img
-                  src="/images/send-icon-green.png"
+                  src="/images/send-icon-green.webp"
                   alt="Post Pick"
                   className="w-5 h-5 object-contain"
                   width="20"

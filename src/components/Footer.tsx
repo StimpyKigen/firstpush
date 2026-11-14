@@ -17,7 +17,7 @@ export default function Footer() {
             <Link to="/" className="inline-block group active:scale-95 transition-transform focus:outline-none" aria-label="MshindiRoom">
               {/* Light mode logo */}
               <img
-                src="/images/logo.png"
+                src="/images/logo.webp"
                 alt="MshindiRoom"
                 className="h-7 sm:h-7.5 w-auto object-contain shrink-0 dark:hidden"
                 width="221"
@@ -27,7 +27,7 @@ export default function Footer() {
               />
               {/* Dark mode logo */}
               <img
-                src="/images/logo-dark.png"
+                src="/images/logo-dark.webp"
                 alt="MshindiRoom"
                 className="h-7 sm:h-7.5 w-auto object-contain shrink-0 hidden dark:block"
                 width="221"

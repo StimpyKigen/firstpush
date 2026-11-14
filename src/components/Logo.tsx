@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import appLogo from '../assets/images/app_logo_1785495412555.jpg';
+import appLogo from '../assets/images/app_logo_1785495412555.webp';
 
 interface LogoProps {
   size?: number;

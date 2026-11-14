@@ -13,7 +13,7 @@ export default function CompetitionLogoStrip({ className = '' }: { className?: s
         {/* UEFA Champions League */}
         <div className="flex items-center justify-center w-12 sm:w-13.5 h-12 sm:h-13.5">
           <img
-            src="/images/competitions/ucl.png"
+            src="/images/competitions/ucl.webp"
             alt="UEFA Champions League"
             className="max-h-full max-w-full object-contain drop-shadow-md pointer-events-none"
             loading="eager"
@@ -23,7 +23,7 @@ export default function CompetitionLogoStrip({ className = '' }: { className?: s
         {/* UEFA Europa League */}
         <div className="flex items-center justify-center w-12 sm:w-13.5 h-12 sm:h-13.5">
           <img
-            src="/images/competitions/uel.png"
+            src="/images/competitions/uel.webp"
             alt="UEFA Europa League"
             className="max-h-full max-w-full object-contain drop-shadow-md pointer-events-none"
             loading="eager"
@@ -33,7 +33,7 @@ export default function CompetitionLogoStrip({ className = '' }: { className?: s
         {/* UEFA Conference League */}
         <div className="flex items-center justify-center w-12 sm:w-13.5 h-12 sm:h-13.5">
           <img
-            src="/images/competitions/uecl.png"
+            src="/images/competitions/uecl.webp"
             alt="UEFA Conference League"
             className="max-h-full max-w-full object-contain drop-shadow-md pointer-events-none"
             loading="eager"
@@ -46,7 +46,7 @@ export default function CompetitionLogoStrip({ className = '' }: { className?: s
         {/* Premier League */}
         <div className="flex items-center justify-center w-9 sm:w-10.5 h-9 sm:h-10.5">
           <img
-            src="/images/competitions/premier-league.png"
+            src="/images/competitions/premier-league.webp"
             alt="Premier League"
             className="max-h-full max-w-full object-contain drop-shadow-sm pointer-events-none"
             loading="eager"
@@ -56,7 +56,7 @@ export default function CompetitionLogoStrip({ className = '' }: { className?: s
         {/* LaLiga */}
         <div className="flex items-center justify-center w-9 sm:w-10.5 h-9 sm:h-10.5">
           <img
-            src="/images/competitions/laliga.png"
+            src="/images/competitions/laliga.webp"
             alt="LaLiga"
             className="max-h-full max-w-full object-contain drop-shadow-sm pointer-events-none"
             loading="eager"
@@ -66,7 +66,7 @@ export default function CompetitionLogoStrip({ className = '' }: { className?: s
         {/* Serie A */}
         <div className="flex items-center justify-center w-9 sm:w-10.5 h-9 sm:h-10.5">
           <img
-            src="/images/competitions/serie-a.png"
+            src="/images/competitions/serie-a.webp"
             alt="Serie A"
             className="max-h-full max-w-full object-contain drop-shadow-sm pointer-events-none"
             loading="eager"
@@ -76,7 +76,7 @@ export default function CompetitionLogoStrip({ className = '' }: { className?: s
         {/* Bundesliga */}
         <div className="flex items-center justify-center w-9 sm:w-10.5 h-9 sm:h-10.5">
           <img
-            src="/images/competitions/bundesliga.png"
+            src="/images/competitions/bundesliga.webp"
             alt="Bundesliga"
             className="max-h-full max-w-full object-contain drop-shadow-sm pointer-events-none"
             loading="eager"
@@ -86,7 +86,7 @@ export default function CompetitionLogoStrip({ className = '' }: { className?: s
         {/* Ligue 1 */}
         <div className="flex items-center justify-center w-9 sm:w-10.5 h-9 sm:h-10.5">
           <img
-            src="/images/competitions/ligue-1.png"
+            src="/images/competitions/ligue-1.webp"
             alt="Ligue 1"
             className="max-h-full max-w-full object-contain drop-shadow-sm pointer-events-none"
             loading="eager"
@@ -98,7 +98,7 @@ export default function CompetitionLogoStrip({ className = '' }: { className?: s
       <div className="flex items-center justify-center w-full">
         <div className="flex items-center justify-center w-10 sm:w-11.5 h-10 sm:h-11.5">
           <img
-            src="/images/competitions/kpl.png"
+            src="/images/competitions/kpl.webp"
             alt="Kenyan Premier League"
             className="max-h-full max-w-full object-contain drop-shadow-sm pointer-events-none"
             loading="eager"

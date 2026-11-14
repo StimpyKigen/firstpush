@@ -80,7 +80,7 @@ export default function Navbar() {
           >
             {/* Light mode logo */}
             <img
-              src="/images/logo.png"
+              src="/images/logo.webp"
               alt="MshindiRoom"
               className="h-6 sm:h-6.5 lg:h-7 w-auto max-w-[165px] xs:max-w-[195px] sm:max-w-none object-contain shrink-0 dark:hidden"
               width="221"
@@ -90,7 +90,7 @@ export default function Navbar() {
             />
             {/* Dark mode logo */}
             <img
-              src="/images/logo-dark.png"
+              src="/images/logo-dark.webp"
               alt="MshindiRoom"
               className="h-6 sm:h-6.5 lg:h-7 w-auto max-w-[165px] xs:max-w-[195px] sm:max-w-none object-contain shrink-0 hidden dark:block"
               width="221"

@@ -22,7 +22,7 @@ export const BOOKIE_THEMES: Record<string, BookieTheme> = {
     badgeBg: '#E8EEFA',
     badgeText: '#0A3B8C',
     iconBg: '#F0F4FC',
-    logo: '/logos/sportpesa.png',
+    logo: '/logos/sportpesa.webp',
   },
   Betika: {
     name: 'Betika',
@@ -33,7 +33,7 @@ export const BOOKIE_THEMES: Record<string, BookieTheme> = {
     badgeBg: '#FEF9C3',
     badgeText: '#713F12',
     iconBg: '#FEFCE8',
-    logo: '/logos/betika.jpg',
+    logo: '/logos/betika.webp',
   },
   Odibets: {
     name: 'Odibets',
@@ -44,7 +44,7 @@ export const BOOKIE_THEMES: Record<string, BookieTheme> = {
     badgeBg: '#DCFCE7',
     badgeText: '#166534',
     iconBg: '#F0FDF4',
-    logo: '/logos/odibets.png',
+    logo: '/logos/odibets.webp',
   },
   Mozzart: {
     name: 'MozzartBet',
@@ -55,7 +55,7 @@ export const BOOKIE_THEMES: Record<string, BookieTheme> = {
     badgeBg: '#F3E8FF',
     badgeText: '#581C87',
     iconBg: '#FAF5FF',
-    logo: '/logos/mozzartbet.png',
+    logo: '/logos/mozzartbet.webp',
   },
   MozzartBet: {
     name: 'MozzartBet',
@@ -66,7 +66,7 @@ export const BOOKIE_THEMES: Record<string, BookieTheme> = {
     badgeBg: '#F3E8FF',
     badgeText: '#581C87',
     iconBg: '#FAF5FF',
-    logo: '/logos/mozzartbet.png',
+    logo: '/logos/mozzartbet.webp',
   },
   SportyBet: {
     name: 'SportyBet',
@@ -77,7 +77,7 @@ export const BOOKIE_THEMES: Record<string, BookieTheme> = {
     badgeBg: '#FEE2E2',
     badgeText: '#991B1B',
     iconBg: '#FEF2F2',
-    logo: '/logos/sportybet.png',
+    logo: '/logos/sportybet.webp',
   },
   BetPawa: {
     name: 'BetPawa',
@@ -88,7 +88,7 @@ export const BOOKIE_THEMES: Record<string, BookieTheme> = {
     badgeBg: '#ECFCCB',
     badgeText: '#3F6212',
     iconBg: '#F7FEE7',
-    logo: '/logos/betpawa.png',
+    logo: '/logos/betpawa.webp',
   },
   '1xBet': {
     name: '1xBet',
@@ -99,7 +99,7 @@ export const BOOKIE_THEMES: Record<string, BookieTheme> = {
     badgeBg: '#E0F2FE',
     badgeText: '#075985',
     iconBg: '#F0F9FF',
-    logo: '/logos/1xbet.png',
+    logo: '/logos/1xbet.webp',
   },
   '22Bet': {
     name: '22Bet',
@@ -110,7 +110,7 @@ export const BOOKIE_THEMES: Record<string, BookieTheme> = {
     badgeBg: '#CCFBF1',
     badgeText: '#115E59',
     iconBg: '#F0FDFA',
-    logo: '/logos/22bet.png',
+    logo: '/logos/22bet.webp',
   },
 };
 
@@ -123,7 +123,7 @@ const DEFAULT_THEME: BookieTheme = {
   badgeBg: '#E8F5E9',
   badgeText: '#006C54',
   iconBg: '#F4F9F6',
-  logo: '/logos/sportpesa.png',
+  logo: '/logos/sportpesa.webp',
 };
 
 export function getBookieTheme(bookieName?: string): BookieTheme {

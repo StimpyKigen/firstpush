@@ -15,7 +15,7 @@ interface ChatMessage {
 function AvaLogo({ className = "w-6 h-6" }: { className?: string }) {
   return (
     <img
-      src="/images/chat-icon.png"
+      src="/images/chat-icon.webp"
       alt="Support Chat"
       className={`${className} object-contain`}
       width="32"
@@ -418,7 +418,7 @@ export default function AvaChatSupport() {
               >
                 {/* Light mode: dark charcoal send icon */}
                 <img
-                  src="/images/send-icon.png"
+                  src="/images/send-icon.webp"
                   alt="Send"
                   className={`${isMobilePwa ? 'w-3.5 h-3.5' : 'w-4.5 h-4.5 sm:w-5 sm:h-5'} object-contain dark:hidden`}
                   width="20"
@@ -428,7 +428,7 @@ export default function AvaChatSupport() {
                 />
                 {/* Dark mode: ivory send icon with no background border */}
                 <img
-                  src="/images/send-icon-ivory.png"
+                  src="/images/send-icon-ivory.webp"
                   alt="Send"
                   className={`${isMobilePwa ? 'w-3.5 h-3.5' : 'w-4.5 h-4.5 sm:w-5 sm:h-5'} object-contain hidden dark:block`}
                   width="20"
