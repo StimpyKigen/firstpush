@@ -21,6 +21,7 @@ import { realtimeClient } from './lib/realtimeClient';
 
 import { useAuth, useCurrentUser } from './lib/authStore';
 import { useWallet } from './lib/store';
+import { useSubscriptionStore } from './lib/subscriptionStore';
 import { useAutoScrollIntoView } from './lib/useAutoScrollIntoView';
 
 // Primary Home Route loaded immediately
@@ -204,10 +205,11 @@ function App() {
     void useAuth.getState().hydrateSession();
   }, []);
 
-  // Synchronize authoritative Mshindi Token balance & ledger from the server whenever a user session is active
+  // Synchronize authoritative Mshindi Token balance, ledger, and subscription once per authenticated session
   useEffect(() => {
     if (currentUser?.phone) {
       void useWallet.getState().syncAuthoritativeTokens(currentUser);
+      void useSubscriptionStore.getState().loadSubscription(currentUser.phone);
     }
   }, [currentUser?.phone, currentUser?.username]);
 

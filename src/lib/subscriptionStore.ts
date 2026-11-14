@@ -69,7 +69,7 @@ interface SubscriptionStoreState {
   closePaywall: () => void;
   setSubscription: (sub: UserSubscription | null) => void;
   setHistory: (history: SubscriptionHistoryItem[]) => void;
-  loadSubscription: (userId: string) => Promise<void>;
+  loadSubscription: (userId: string, options?: { force?: boolean }) => Promise<void>;
   startTrial: (userId: string, meta?: { phone?: string; username?: string }) => Promise<{ ok: boolean; error?: string }>;
   verifyPayment: (
     userId: string,
@@ -103,6 +103,14 @@ export function checkHasPremiumAccess(sub: UserSubscription | null | undefined):
 }
 
 let firestoreUnsubscribe: (() => void) | null = null;
+const SUBSCRIPTION_TTL_MS = 60_000;
+const inFlightSubscriptionLoads = new Map<string, Promise<void>>();
+const lastSubscriptionLoadedAt = new Map<string, number>();
+
+export function clearSubscriptionFetchCacheForTests(): void {
+  inFlightSubscriptionLoads.clear();
+  lastSubscriptionLoadedAt.clear();
+}
 
 export const useSubscriptionStore = create<SubscriptionStoreState>()(
   persist(
@@ -136,9 +144,10 @@ export const useSubscriptionStore = create<SubscriptionStoreState>()(
         return checkHasPremiumAccess(get().subscription);
       },
 
-      loadSubscription: async (userId: string) => {
+      loadSubscription: async (userId: string, options?: { force?: boolean }) => {
         if (!userId) return;
         const cleanUserId = userId.trim();
+        if (!cleanUserId) return;
 
         // Attach real-time Firestore listener if user changed
         if (get().activeUserId !== cleanUserId) {
@@ -146,6 +155,7 @@ export const useSubscriptionStore = create<SubscriptionStoreState>()(
             firestoreUnsubscribe();
             firestoreUnsubscribe = null;
           }
+          lastSubscriptionLoadedAt.delete(cleanUserId);
 
           set({
             activeUserId: cleanUserId,
@@ -174,24 +184,54 @@ export const useSubscriptionStore = create<SubscriptionStoreState>()(
           }
         }
 
-        // Authoritative fetch from server
-        try {
-          const res = await fetch(`/api/subscription/status?userId=${encodeURIComponent(cleanUserId)}`, {
-            headers: getSubscriptionAuthHeaders(cleanUserId),
-            credentials: 'include',
-          });
-          const data = await res.json();
-          if (data && data.success) {
-            set({
-              subscription: data.subscription,
-              history: data.history || [],
-              isLoading: false,
-            });
-          }
-        } catch (err) {
-          console.warn('[subscriptionStore] Failed to fetch server status:', err);
-          set({ isLoading: false });
+        // Skip redundant network fetches if fresh within TTL and already populated
+        const lastLoaded = lastSubscriptionLoadedAt.get(cleanUserId) || 0;
+        if (
+          !options?.force &&
+          get().activeUserId === cleanUserId &&
+          get().subscription !== null &&
+          Date.now() - lastLoaded < SUBSCRIPTION_TTL_MS
+        ) {
+          if (get().isLoading) set({ isLoading: false });
+          return;
         }
+
+        const existingInFlight = inFlightSubscriptionLoads.get(cleanUserId);
+        if (existingInFlight) {
+          return existingInFlight;
+        }
+
+        const task = (async () => {
+          try {
+            const signal = typeof AbortSignal !== 'undefined' && 'timeout' in AbortSignal
+              ? AbortSignal.timeout(8000)
+              : undefined;
+            const res = await fetch(`/api/subscription/status?userId=${encodeURIComponent(cleanUserId)}`, {
+              headers: getSubscriptionAuthHeaders(cleanUserId),
+              credentials: 'include',
+              signal,
+            });
+            const data = await res.json();
+            if (data && data.success) {
+              lastSubscriptionLoadedAt.set(cleanUserId, Date.now());
+              set({
+                subscription: data.subscription,
+                history: data.history || [],
+                isLoading: false,
+              });
+            } else {
+              set({ isLoading: false });
+            }
+          } catch (err) {
+            console.warn('[subscriptionStore] Failed to fetch server status:', err);
+            set({ isLoading: false });
+          } finally {
+            inFlightSubscriptionLoads.delete(cleanUserId);
+          }
+        })();
+
+        inFlightSubscriptionLoads.set(cleanUserId, task);
+        return task;
       },
 
       startTrial: async (userId: string, meta) => {
@@ -212,6 +252,7 @@ export const useSubscriptionStore = create<SubscriptionStoreState>()(
           const data = await res.json();
 
           if (data && data.success) {
+            lastSubscriptionLoadedAt.set(cleanUserId, Date.now());
             set({
               subscription: data.subscription,
               history: data.history || get().history,
@@ -253,6 +294,7 @@ export const useSubscriptionStore = create<SubscriptionStoreState>()(
           const data = await res.json();
 
           if (data && data.success) {
+            lastSubscriptionLoadedAt.set(cleanUserId, Date.now());
             set({
               subscription: data.subscription,
               history: data.history || get().history,
@@ -285,6 +327,7 @@ export const useSubscriptionStore = create<SubscriptionStoreState>()(
           const data = await res.json();
 
           if (data && data.success) {
+            lastSubscriptionLoadedAt.set(cleanUserId, Date.now());
             set({
               subscription: data.subscription,
               history: data.history || [],
@@ -306,6 +349,8 @@ export const useSubscriptionStore = create<SubscriptionStoreState>()(
           firestoreUnsubscribe();
           firestoreUnsubscribe = null;
         }
+        inFlightSubscriptionLoads.clear();
+        lastSubscriptionLoadedAt.clear();
         set({
           subscription: null,
           history: [],

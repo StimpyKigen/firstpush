@@ -1,4 +1,3 @@
-import { useEffect } from 'react';
 import { useCurrentUser } from '../lib/authStore';
 import { useAuthWallStore } from '../lib/authWallStore';
 import { useSubscriptionStore, checkHasPremiumAccess } from '../lib/subscriptionStore';
@@ -17,20 +16,14 @@ export function useSubscription() {
 
   const openPaywall = useSubscriptionStore((s) => s.openPaywall);
   const closePaywall = useSubscriptionStore((s) => s.closePaywall);
-  const loadSubscription = useSubscriptionStore((s) => s.loadSubscription);
   const startTrial = useSubscriptionStore((s) => s.startTrial);
   const verifyPayment = useSubscriptionStore((s) => s.verifyPayment);
   const restoreSubscription = useSubscriptionStore((s) => s.restoreSubscription);
 
-  // Automatically load subscription when user logs in
   const userId = currentUser?.phone || null;
 
-  useEffect(() => {
-    if (userId) {
-      void loadSubscription(userId);
-    }
-  }, [userId, loadSubscription]);
-
+  // Authoritative subscription loading is centralized once at the App session boundary.
+  // Component-level consumers simply read store selectors to avoid mount-time request storms.
   const hasPremiumAccess = checkHasPremiumAccess(subscription);
 
   /**

@@ -950,6 +950,15 @@ function setupCloudSync() {
 
 setupCloudSync();
 
+const FEED_REFRESH_DEDUP_MS = 5_000;
+let inFlightFeedRefresh: Promise<HomepageFeedData> | null = null;
+let lastSuccessfulFeedRefreshMs = 0;
+
+export function clearHomepageFeedRefreshCacheForTests(): void {
+  inFlightFeedRefresh = null;
+  lastSuccessfulFeedRefreshMs = 0;
+}
+
 /**
  * Proactively fetches the latest published homepage feed from both Cloud Firestore
  * and the backend persistent database (`/api/homepage-feed`), reconciling with current state.
@@ -957,121 +966,144 @@ setupCloudSync();
  * CRITICAL FAILURE PROTECTION: If both database queries fail temporarily, existing
  * published posts in memory and localStorage are preserved intact and never overwritten.
  */
-export async function refreshHomepageFeed(): Promise<HomepageFeedData> {
-  updateSyncState({ isLoading: true, syncError: null });
-
-  if (simulatedClientDbFailure) {
-    const errMsg = 'Temporary database connection error. Preserving existing published posts.';
-    updateSyncState({ isLoading: false, syncError: errMsg });
-    throw new Error(errMsg);
+export async function refreshHomepageFeed(options?: { force?: boolean }): Promise<HomepageFeedData> {
+  if (!options?.force && lastSuccessfulFeedRefreshMs > 0 && Date.now() - lastSuccessfulFeedRefreshMs < FEED_REFRESH_DEDUP_MS) {
+    return currentFeed;
   }
 
-  let resolvedFeed: HomepageFeedData | null = null;
-  let anySourceSucceeded = false;
-  let serverWasEmptyDefault = false;
-  let lastError: string | null = null;
+  if (inFlightFeedRefresh) {
+    return inFlightFeedRefresh;
+  }
 
-  // 1. Check backend API (/api/homepage-feed) with strict cache: 'no-store'
-  try {
-    if (typeof window !== 'undefined') {
-      const res = await fetch('/api/homepage-feed', {
-        cache: 'no-store',
-        headers: { 'Cache-Control': 'no-cache, no-store, must-revalidate', Pragma: 'no-cache' },
-      });
-      if (res.ok) {
-        const data = await res.json();
-        if (data?.serverTime) {
-          updateServerClockOffset(data.serverTime);
-        }
-        if (data && data.success && data.feed && Array.isArray(data.feed.carouselItems)) {
-          anySourceSucceeded = true;
-          const sanitized = sanitizeHomepageFeed(data.feed);
-          if (data.feed._isDefault) {
-            serverWasEmptyDefault = true;
-          } else if (
-            sanitized.carouselItems.length > 0 ||
-            sanitized.videoItems.length > 0 ||
-            (sanitized.deletedIds && sanitized.deletedIds.length > 0)
-          ) {
-            resolvedFeed = reconciledOrInitial(resolvedFeed, sanitized);
-          }
-        }
-      } else {
-        lastError = `Server returned HTTP ${res.status}`;
-      }
-    } else {
-      // Server/Node environment: read directly from serverHomepageFeed
-      const serverMod = './serverHomepageFeed.js';
-      const { getSavedHomepageFeedAsync } = await import(/* @vite-ignore */ serverMod);
-      const serverFeed = await getSavedHomepageFeedAsync();
-      anySourceSucceeded = true;
-      updateServerClockOffset(new Date().toISOString());
-      if (
-        !serverFeed._isDefault &&
-        (serverFeed.carouselItems.length > 0 ||
-          serverFeed.videoItems.length > 0 ||
-          (serverFeed.deletedIds && serverFeed.deletedIds.length > 0))
-      ) {
-        resolvedFeed = reconciledOrInitial(resolvedFeed, sanitizeHomepageFeed(serverFeed));
-      }
+  inFlightFeedRefresh = (async () => {
+    updateSyncState({ isLoading: true, syncError: null });
+
+    if (simulatedClientDbFailure) {
+      const errMsg = 'Temporary database connection error. Preserving existing published posts.';
+      updateSyncState({ isLoading: false, syncError: errMsg });
+      throw new Error(errMsg);
     }
-  } catch (err: any) {
-    lastError = err?.message || 'Backend API unreachable';
-  }
 
-  // 2. Check Cloud Firestore directly
-  if (clientCloudSyncEnabled && db) {
-    try {
-      const feedRef = doc(db, FIRESTORE_COLLECTION, FIRESTORE_DOC);
-      const snap = await getDoc(feedRef);
-      anySourceSucceeded = true;
-      if (snap.exists()) {
-        const rawData = snap.data() as HomepageFeedData;
-        if (rawData && Array.isArray(rawData.carouselItems) && Array.isArray(rawData.videoItems)) {
-          const sanitized = sanitizeHomepageFeed(rawData);
-          if (
-            sanitized.carouselItems.length > 0 ||
-            sanitized.videoItems.length > 0 ||
-            (sanitized.deletedIds && sanitized.deletedIds.length > 0)
-          ) {
-            resolvedFeed = reconciledOrInitial(resolvedFeed, sanitized);
-          }
-        }
-      }
-    } catch (err: any) {
-      lastError = err?.message || 'Firestore read failed';
-    }
-  }
+    let resolvedFeed: HomepageFeedData | null = null;
+    let anySourceSucceeded = false;
+    let serverWasEmptyDefault = false;
+    let lastError: string | null = null;
 
-  if (!anySourceSucceeded) {
-    const errMsg = lastError || 'Unable to reach homepage feed database';
-    updateSyncState({ isLoading: false, syncError: errMsg });
-    throw new Error(errMsg);
-  }
-
-  if (resolvedFeed) {
-    currentFeed = reconcileClientFeeds(resolvedFeed, currentFeed);
-    if (typeof window !== 'undefined') {
+    const fetchServerTask = async (): Promise<void> => {
       try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(currentFeed));
-      } catch {}
-    }
-  } else if (
-    typeof window !== 'undefined' &&
-    serverWasEmptyDefault &&
-    (currentFeed.carouselItems.length > 0 || currentFeed.videoItems.length > 0)
-  ) {
-    // Server cold-started after a deployment while client holds valid published posts:
-    // Re-hydrate the server immediately so all visitors receive the published posts.
-    persistToCloud(currentFeed).catch(() => {});
-  }
+        if (typeof window !== 'undefined') {
+          const signal = typeof AbortSignal !== 'undefined' && 'timeout' in AbortSignal
+            ? AbortSignal.timeout(8000)
+            : undefined;
+          const res = await fetch('/api/homepage-feed', {
+            cache: 'no-store',
+            headers: { 'Cache-Control': 'no-cache, no-store, must-revalidate', Pragma: 'no-cache' },
+            signal,
+          });
+          if (res.ok) {
+            const data = await res.json();
+            if (data?.serverTime) {
+              updateServerClockOffset(data.serverTime);
+            }
+            if (data && data.success && data.feed && Array.isArray(data.feed.carouselItems)) {
+              anySourceSucceeded = true;
+              const sanitized = sanitizeHomepageFeed(data.feed);
+              if (data.feed._isDefault) {
+                serverWasEmptyDefault = true;
+              } else if (
+                sanitized.carouselItems.length > 0 ||
+                sanitized.videoItems.length > 0 ||
+                (sanitized.deletedIds && sanitized.deletedIds.length > 0)
+              ) {
+                resolvedFeed = reconciledOrInitial(resolvedFeed, sanitized);
+              }
+            }
+          } else {
+            lastError = `Server returned HTTP ${res.status}`;
+          }
+        } else {
+          // Server/Node environment: read directly from serverHomepageFeed
+          const serverMod = './serverHomepageFeed.js';
+          const { getSavedHomepageFeedAsync } = await import(/* @vite-ignore */ serverMod);
+          const serverFeed = await getSavedHomepageFeedAsync();
+          anySourceSucceeded = true;
+          updateServerClockOffset(new Date().toISOString());
+          if (
+            !serverFeed._isDefault &&
+            (serverFeed.carouselItems.length > 0 ||
+              serverFeed.videoItems.length > 0 ||
+              (serverFeed.deletedIds && serverFeed.deletedIds.length > 0))
+          ) {
+            resolvedFeed = reconciledOrInitial(resolvedFeed, sanitizeHomepageFeed(serverFeed));
+          }
+        }
+      } catch (err: any) {
+        lastError = err?.message || 'Backend API unreachable';
+      }
+    };
 
-  updateSyncState({
-    isLoading: false,
-    syncError: null,
-    lastSyncedAt: new Date().toISOString(),
+    const fetchFirestoreTask = async (): Promise<void> => {
+      if (!(clientCloudSyncEnabled && db)) return;
+      try {
+        const feedRef = doc(db, FIRESTORE_COLLECTION, FIRESTORE_DOC);
+        const snap = await getDoc(feedRef);
+        anySourceSucceeded = true;
+        if (snap.exists()) {
+          const rawData = snap.data() as HomepageFeedData;
+          if (rawData && Array.isArray(rawData.carouselItems) && Array.isArray(rawData.videoItems)) {
+            const sanitized = sanitizeHomepageFeed(rawData);
+            if (
+              sanitized.carouselItems.length > 0 ||
+              sanitized.videoItems.length > 0 ||
+              (sanitized.deletedIds && sanitized.deletedIds.length > 0)
+            ) {
+              resolvedFeed = reconciledOrInitial(resolvedFeed, sanitized);
+            }
+          }
+        }
+      } catch (err: any) {
+        lastError = err?.message || 'Firestore read failed';
+      }
+    };
+
+    // Fetch backend API and Cloud Firestore in parallel rather than sequentially
+    await Promise.allSettled([fetchServerTask(), fetchFirestoreTask()]);
+
+    if (!anySourceSucceeded) {
+      const errMsg = lastError || 'Unable to reach homepage feed database';
+      updateSyncState({ isLoading: false, syncError: errMsg });
+      throw new Error(errMsg);
+    }
+
+    if (resolvedFeed) {
+      currentFeed = reconcileClientFeeds(resolvedFeed, currentFeed);
+      if (typeof window !== 'undefined') {
+        try {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(currentFeed));
+        } catch {}
+      }
+    } else if (
+      typeof window !== 'undefined' &&
+      serverWasEmptyDefault &&
+      (currentFeed.carouselItems.length > 0 || currentFeed.videoItems.length > 0)
+    ) {
+      // Server cold-started after a deployment while client holds valid published posts:
+      // Re-hydrate the server immediately so all visitors receive the published posts.
+      persistToCloud(currentFeed).catch(() => {});
+    }
+
+    lastSuccessfulFeedRefreshMs = Date.now();
+    updateSyncState({
+      isLoading: false,
+      syncError: null,
+      lastSyncedAt: new Date().toISOString(),
+    });
+    return currentFeed;
+  })().finally(() => {
+    inFlightFeedRefresh = null;
   });
-  return currentFeed;
+
+  return inFlightFeedRefresh;
 }
 
 function reconciledOrInitial(

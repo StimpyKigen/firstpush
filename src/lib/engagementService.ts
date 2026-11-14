@@ -266,7 +266,8 @@ export async function persistPostSave(
 
 /**
  * Resolve all saved reel relationships into actual, full BetSlipPost documents.
- * - Queries `users/{normPhone}/savedPosts`
+ * - Uses `preloadedSavedIds` when provided to avoid redundant `savedPosts` collection reads
+ * - Otherwise queries `users/{normPhone}/savedPosts` ordered by savedAt desc
  * - Fetches corresponding `posts/{postId}` authoritative documents
  * - Gracefully ignores deleted or missing documents
  * - Sets `savedByMe = true`
@@ -274,7 +275,8 @@ export async function persistPostSave(
  */
 export async function resolveSavedReels(
   rawPhone: string,
-  fallbackPosts: BetSlipPost[] = []
+  fallbackPosts: BetSlipPost[] = [],
+  preloadedSavedIds?: string[] | Set<string>
 ): Promise<BetSlipPost[]> {
   const normPhone = normalizeUserPhone(rawPhone);
   if (!db || !normPhone) {
@@ -282,22 +284,32 @@ export async function resolveSavedReels(
   }
 
   try {
-    // 1. Get saved post references from user subcollection
-    const savedSnap = await getDocs(
-      query(collection(db, 'users', normPhone, 'savedPosts'), orderBy('savedAt', 'desc'))
-    ).catch(async () => {
-      // Fallback without index if orderBy fails
-      return getDocs(collection(db, 'users', normPhone, 'savedPosts'));
-    });
+    let savedRefs: Array<{ postId: string; savedAt: string }> = [];
 
-    if (!savedSnap || savedSnap.empty) {
-      return [];
+    if (preloadedSavedIds !== undefined) {
+      const ids = Array.from(preloadedSavedIds).filter(Boolean);
+      if (ids.length === 0) {
+        return [];
+      }
+      savedRefs = ids.map((postId) => ({ postId, savedAt: '' }));
+    } else {
+      // 1. Get saved post references from user subcollection
+      const savedSnap = await getDocs(
+        query(collection(db, 'users', normPhone, 'savedPosts'), orderBy('savedAt', 'desc'))
+      ).catch(async () => {
+        // Fallback without index if orderBy fails
+        return getDocs(collection(db, 'users', normPhone, 'savedPosts'));
+      });
+
+      if (!savedSnap || savedSnap.empty) {
+        return [];
+      }
+
+      savedRefs = savedSnap.docs.map((d) => ({
+        postId: d.id,
+        savedAt: d.data().savedAt || '',
+      }));
     }
-
-    const savedRefs = savedSnap.docs.map((d) => ({
-      postId: d.id,
-      savedAt: d.data().savedAt || '',
-    }));
 
     // 2. Resolve each saved reference in parallel
     const resolvedPromises = savedRefs.map(async ({ postId, savedAt }): Promise<BetSlipPost | null> => {
@@ -507,5 +519,36 @@ export function subscribeToCommunityPosts(
     console.warn('[EngagementService] Firestore listener initialization notice:', err);
     onUpdate(initialFallbackPosts);
     return () => {};
+  }
+}
+
+/**
+ * Persists a community post comment to `posts/{postId}/comments/{comment.id}`
+ * when Firestore and an authenticated identity are available.
+ */
+export async function persistPostComment(
+  postId: string,
+  comment: { id: string; userId?: string; user: string; text: string; createdAt: string }
+): Promise<boolean> {
+  const normPhone = normalizeUserPhone(comment.userId || '');
+  const cleanUserId = normPhone || (comment.userId || '').trim();
+  if (!db || !postId || !comment.id || !cleanUserId || !comment.text.trim()) {
+    return false;
+  }
+
+  try {
+    await setDoc(doc(db, 'posts', postId, 'comments', comment.id), {
+      userId: cleanUserId,
+      user: String(comment.user || 'Member').slice(0, 100),
+      text: String(comment.text).trim().slice(0, 2000),
+      postId: String(postId).slice(0, 128),
+      likes: 0,
+      createdAt: comment.createdAt,
+      updatedAt: new Date().toISOString(),
+    });
+    return true;
+  } catch (err) {
+    console.warn('[EngagementService] Could not persist post comment to Firestore:', err);
+    return false;
   }
 }

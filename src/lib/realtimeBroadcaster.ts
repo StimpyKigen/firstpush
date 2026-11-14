@@ -12,6 +12,8 @@
  * - Full connection and delivery metrics
  */
 
+import { resolveTrustedCorsOrigin } from './httpSecurity.js';
+
 export type RealtimeEventType =
   | 'connected'
   | 'live_snapshot'
@@ -133,13 +135,18 @@ class RealtimeBroadcaster {
     const clientId = `sse_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
     this.totalConnectionsServed++;
 
+    const trustedOrigin = resolveTrustedCorsOrigin(req?.headers?.origin);
     const headers: Record<string, string> = {
       'Content-Type': 'text/event-stream; charset=utf-8',
       'Cache-Control': 'no-cache, no-store, no-transform, must-revalidate',
       Connection: 'keep-alive',
       'X-Accel-Buffering': 'no',
-      'Access-Control-Allow-Origin': '*',
+      Vary: 'Origin',
     };
+    if (trustedOrigin) {
+      headers['Access-Control-Allow-Origin'] = trustedOrigin;
+      headers['Access-Control-Allow-Credentials'] = 'true';
+    }
 
     if (typeof res.setHeader === 'function') {
       for (const [k, v] of Object.entries(headers)) {

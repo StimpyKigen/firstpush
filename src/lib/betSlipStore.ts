@@ -4,11 +4,13 @@ import { sanitizeExternalHttpUrl, hasDangerousUrlScheme } from './urlSecurity';
 import {
   persistPostLike,
   persistPostSave,
+  persistPostComment,
   fetchUserEngagementMap,
   subscribeToCommunityPosts,
   persistNewPostToFirestore,
   resolveSavedReels,
 } from './engagementService';
+import { useAuth } from './authStore';
 
 export interface BuiltSlipLeg {
   id: string;
@@ -96,9 +98,20 @@ interface BetSlipStoreState {
   incrementShare: (postId: string) => void;
   addComment: (postId: string, user: string, text: string) => void;
   initFeedSubscription: () => () => void;
-  syncUserEngagements: (userPhone: string) => Promise<void>;
-  loadSavedReels: (userPhone: string) => Promise<BetSlipPost[]>;
+  syncUserEngagements: (userPhone: string, options?: { force?: boolean }) => Promise<void>;
+  loadSavedReels: (userPhone: string, options?: { force?: boolean }) => Promise<BetSlipPost[]>;
   isSavedReelsLoading: boolean;
+}
+
+const ENGAGEMENT_SYNC_TTL_MS = 15_000;
+const inFlightEngagementSync = new Map<string, Promise<void>>();
+const inFlightSavedReelsLoad = new Map<string, Promise<BetSlipPost[]>>();
+const lastEngagementSyncAt = new Map<string, number>();
+
+export function clearBetSlipEngagementCacheForTests(): void {
+  inFlightEngagementSync.clear();
+  inFlightSavedReelsLoad.clear();
+  lastEngagementSyncAt.clear();
 }
 
 const INITIAL_POSTS: BetSlipPost[] = [
@@ -429,7 +442,9 @@ export const useBetSlipStore = create<BetSlipStoreState>((set, get) => ({
     // 2. Cloud Firestore Atomic Persistence
     if (userPhone) {
       const res = await persistPostSave(postId, userPhone, nextSaved);
-      if (!res.success) {
+      if (res.success) {
+        lastEngagementSyncAt.delete(userPhone.trim());
+      } else {
         // Rollback optimistic update on failure
         set((state) => {
           const rollbackSavedIds = new Set(state.userSavedIds);
@@ -466,13 +481,18 @@ export const useBetSlipStore = create<BetSlipStoreState>((set, get) => ({
   },
 
   addComment: (postId, user, text) => {
+    const cleanText = text.trim();
+    if (!cleanText) return;
+    const commentId = `c-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`;
+    const createdAtIso = new Date().toISOString();
+
     set((state) => ({
       posts: state.posts.map((p) => {
         if (p.id !== postId) return p;
         const newComment = {
-          id: `c-${Date.now().toString(36)}`,
+          id: commentId,
           user,
-          text,
+          text: cleanText,
           createdAt: 'Just now',
         };
         return {
@@ -481,6 +501,17 @@ export const useBetSlipStore = create<BetSlipStoreState>((set, get) => ({
         };
       }),
     }));
+
+    const activeUserId = useAuth.getState().currentPhone || useAuth.getState().currentUser?.phone;
+    if (activeUserId) {
+      void persistPostComment(postId, {
+        id: commentId,
+        userId: activeUserId,
+        user,
+        text: cleanText,
+        createdAt: createdAtIso,
+      });
+    }
   },
 
   initFeedSubscription: () => {
@@ -503,68 +534,121 @@ export const useBetSlipStore = create<BetSlipStoreState>((set, get) => ({
     );
   },
 
-  syncUserEngagements: async (userPhone) => {
-    if (!userPhone) return;
-    try {
-      const [{ likedPostIds, savedPostIds }, resolvedSavedReels] = await Promise.all([
-        fetchUserEngagementMap(userPhone),
-        resolveSavedReels(userPhone, get().posts),
-      ]);
+  syncUserEngagements: async (userPhone, options?: { force?: boolean }) => {
+    const cleanPhone = userPhone?.trim();
+    if (!cleanPhone) return;
 
-      const currentPosts = get().posts;
-      const postMap = new Map<string, BetSlipPost>();
-      currentPosts.forEach((p) => postMap.set(p.id, p));
-
-      // Merge resolved saved reels into store
-      resolvedSavedReels.forEach((sp) => {
-        postMap.set(sp.id, {
-          ...sp,
-          savedByMe: true,
-          likedByMe: likedPostIds.has(sp.id),
-        });
-      });
-
-      const mergedPosts = Array.from(postMap.values()).map((p) => ({
-        ...p,
-        likedByMe: likedPostIds.has(p.id),
-        savedByMe: savedPostIds.has(p.id),
-      }));
-
-      set({
-        userLikedIds: likedPostIds,
-        userSavedIds: savedPostIds,
-        posts: mergedPosts,
-      });
-    } catch (err) {
-      console.warn('[BetSlipStore] Engagement hydration notice:', err);
+    const lastSynced = lastEngagementSyncAt.get(cleanPhone) || 0;
+    if (!options?.force && lastSynced > 0 && Date.now() - lastSynced < ENGAGEMENT_SYNC_TTL_MS) {
+      return;
     }
+
+    const existing = inFlightEngagementSync.get(cleanPhone);
+    if (existing) {
+      return existing;
+    }
+
+    const task = (async () => {
+      try {
+        const { likedPostIds, savedPostIds } = await fetchUserEngagementMap(cleanPhone);
+        // Reuse already-fetched savedPostIds instead of querying `savedPosts` a second time
+        const resolvedSavedReels = await resolveSavedReels(cleanPhone, get().posts, savedPostIds);
+
+        const currentPosts = get().posts;
+        const postMap = new Map<string, BetSlipPost>();
+        currentPosts.forEach((p) => postMap.set(p.id, p));
+
+        // Merge resolved saved reels into store
+        resolvedSavedReels.forEach((sp) => {
+          postMap.set(sp.id, {
+            ...sp,
+            savedByMe: true,
+            likedByMe: likedPostIds.has(sp.id),
+          });
+        });
+
+        const mergedPosts = Array.from(postMap.values()).map((p) => ({
+          ...p,
+          likedByMe: likedPostIds.has(p.id),
+          savedByMe: savedPostIds.has(p.id),
+        }));
+
+        lastEngagementSyncAt.set(cleanPhone, Date.now());
+        set({
+          userLikedIds: likedPostIds,
+          userSavedIds: savedPostIds,
+          posts: mergedPosts,
+        });
+      } catch (err) {
+        console.warn('[BetSlipStore] Engagement hydration notice:', err);
+      } finally {
+        inFlightEngagementSync.delete(cleanPhone);
+      }
+    })();
+
+    inFlightEngagementSync.set(cleanPhone, task);
+    return task;
   },
 
-  loadSavedReels: async (userPhone) => {
-    if (!userPhone) return [];
-    set({ isSavedReelsLoading: true });
-    try {
-      const resolved = await resolveSavedReels(userPhone, get().posts);
-      set((state) => {
-        const postMap = new Map<string, BetSlipPost>(state.posts.map((p) => [p.id, p]));
-        resolved.forEach((sp) => {
-          postMap.set(sp.id, { ...sp, savedByMe: true });
-        });
+  loadSavedReels: async (userPhone, options?: { force?: boolean }) => {
+    const cleanPhone = userPhone?.trim();
+    if (!cleanPhone) return [];
 
-        const nextSavedIds = new Set(state.userSavedIds);
-        resolved.forEach((sp) => nextSavedIds.add(sp.id));
-
-        return {
-          posts: Array.from(postMap.values()),
-          userSavedIds: nextSavedIds,
-          isSavedReelsLoading: false,
-        };
-      });
-      return resolved;
-    } catch (err) {
-      console.warn('[BetSlipStore] Error loading saved reels:', err);
-      set({ isSavedReelsLoading: false });
-      return [];
+    // Wait for any in-flight engagement sync for this user before deciding whether to hit Firestore again
+    const pendingSync = inFlightEngagementSync.get(cleanPhone);
+    if (pendingSync && !options?.force) {
+      await pendingSync;
     }
+
+    const lastSynced = lastEngagementSyncAt.get(cleanPhone) || 0;
+    const savedIds = get().userSavedIds;
+    if (!options?.force && lastSynced > 0 && Date.now() - lastSynced < ENGAGEMENT_SYNC_TTL_MS) {
+      const currentPosts = get().posts;
+      const allResolvedInStore = Array.from(savedIds).every((id) =>
+        currentPosts.some((p) => p.id === id)
+      );
+      if (allResolvedInStore) {
+        return currentPosts.filter((p) => p.savedByMe || savedIds.has(p.id));
+      }
+    }
+
+    const existingLoad = inFlightSavedReelsLoad.get(cleanPhone);
+    if (existingLoad) {
+      return existingLoad;
+    }
+
+    const loadTask = (async () => {
+      set({ isSavedReelsLoading: true });
+      try {
+        const preloaded = !options?.force && lastSynced > 0 ? savedIds : undefined;
+        const resolved = await resolveSavedReels(cleanPhone, get().posts, preloaded);
+        lastEngagementSyncAt.set(cleanPhone, Date.now());
+        set((state) => {
+          const postMap = new Map<string, BetSlipPost>(state.posts.map((p) => [p.id, p]));
+          resolved.forEach((sp) => {
+            postMap.set(sp.id, { ...sp, savedByMe: true });
+          });
+
+          const nextSavedIds = new Set(state.userSavedIds);
+          resolved.forEach((sp) => nextSavedIds.add(sp.id));
+
+          return {
+            posts: Array.from(postMap.values()),
+            userSavedIds: nextSavedIds,
+            isSavedReelsLoading: false,
+          };
+        });
+        return resolved;
+      } catch (err) {
+        console.warn('[BetSlipStore] Error loading saved reels:', err);
+        set({ isSavedReelsLoading: false });
+        return [];
+      } finally {
+        inFlightSavedReelsLoad.delete(cleanPhone);
+      }
+    })();
+
+    inFlightSavedReelsLoad.set(cleanPhone, loadTask);
+    return loadTask;
   },
 }));

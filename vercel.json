@@ -63,7 +63,16 @@
       ]
     },
     {
-      "source": "/api/sports/(.*)",
+      "source": "/api/sports/:endpoint(live|stream|daily-fixtures|fixtures|status|sync)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-store, no-cache, max-age=0, must-revalidate"
+        }
+      ]
+    },
+    {
+      "source": "/api/sports/stream/(.*)",
       "headers": [
         {
           "key": "Cache-Control",

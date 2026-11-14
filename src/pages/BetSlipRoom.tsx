@@ -126,17 +126,16 @@ export default function BetSlipRoom({ initialTab, initialFilter }: BetSlipRoomPr
     };
   }, [initFeedSubscription]);
 
-  // Sync current user likes & bookmarks from Firestore on login or session load
+  // Sync current user likes, bookmarks & saved reels once per login/session change.
+  // When toggling into saved/slips mode, loadSavedReels uses store deduplication & hydrated IDs.
   useEffect(() => {
-    if (currentUser?.phone) {
-      syncUserEngagements(currentUser.phone);
-    }
+    if (!currentUser?.phone) return;
+    void syncUserEngagements(currentUser.phone);
   }, [currentUser?.phone, syncUserEngagements]);
 
-  // Proactively resolve authoritative saved reels when in saved mode or viewing slips
   useEffect(() => {
     if (currentUser?.phone && (isSavedMode || activeTab === 'slips')) {
-      loadSavedReels(currentUser.phone);
+      void loadSavedReels(currentUser.phone);
     }
   }, [currentUser?.phone, isSavedMode, activeTab, loadSavedReels]);
 

@@ -128,7 +128,7 @@ function persistLiveMatchesToStorage(): void {
   if (typeof window === 'undefined') return;
   try {
     if (liveMatches.length > 0) {
-      localStorage.setItem(FOOTBALL_CACHE_KEY, JSON.stringify(liveMatches));
+      // syncCachedFixturesFromRealtime merges into cachedFixtures and performs the single FOOTBALL_CACHE_KEY write
       syncCachedFixturesFromRealtime(liveMatches);
     }
   } catch {}
