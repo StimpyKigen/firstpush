@@ -4,6 +4,7 @@ import { doc, onSnapshot } from 'firebase/firestore';
 import { db } from '../firebase';
 import { useAuth } from './authStore';
 import { registerSessionLifecycleListener } from './sessionLifecycle';
+import { sanitizeUserMessage, toUserError } from './errors';
 
 function getSubscriptionAuthHeaders(userId: string, includeContentType = false): Record<string, string> {
   const headers: Record<string, string> = {
@@ -262,12 +263,16 @@ export const useSubscriptionStore = create<SubscriptionStoreState>()(
             });
             return { ok: true };
           } else {
-            const err = data?.error || 'Failed to start free trial.';
+            const err = sanitizeUserMessage(data?.error || 'Could not start your free trial right now.', {
+              domain: 'subscription',
+              status: res.status,
+              source: 'subscriptionStore.startTrial',
+            });
             set({ isLoading: false, error: err });
             return { ok: false, error: err };
           }
         } catch (err: any) {
-          const errMsg = err?.message || 'Network error while starting trial.';
+          const errMsg = toUserError(err, { domain: 'subscription', source: 'subscriptionStore.startTrial' }).message;
           set({ isLoading: false, error: errMsg });
           return { ok: false, error: errMsg };
         }
@@ -304,12 +309,17 @@ export const useSubscriptionStore = create<SubscriptionStoreState>()(
             });
             return { ok: true };
           } else {
-            const err = data?.error || 'Payment verification failed.';
+            const err = sanitizeUserMessage(data?.error, {
+              domain: 'payment',
+              status: res.status,
+              fallback: 'payment-failed',
+              source: 'subscriptionStore.verifyPayment',
+            });
             set({ isProcessingPayment: false, error: err });
             return { ok: false, error: err };
           }
         } catch (err: any) {
-          const errMsg = err?.message || 'Network error while verifying payment.';
+          const errMsg = toUserError(err, { domain: 'payment', source: 'subscriptionStore.verifyPayment' }).message;
           set({ isProcessingPayment: false, error: errMsg });
           return { ok: false, error: errMsg };
         }

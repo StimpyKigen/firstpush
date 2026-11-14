@@ -2,6 +2,10 @@ import { RecaptchaVerifier, signInWithPhoneNumber, ConfirmationResult } from 'fi
 import { doc, setDoc, getDoc } from 'firebase/firestore';
 import { auth, db } from '../firebase';
 import { formatE164KenyanPhone } from './phoneUtils.js';
+import { reportError } from './errors/errorReporter';
+
+const SMS_SEND_FALLBACK = "We couldn't send the SMS code right now. Please try again shortly.";
+const SMS_VERIFY_FALLBACK = "We couldn't verify that code. Please check it and try again.";
 
 declare global {
   interface Window {
@@ -84,61 +88,42 @@ export async function sendFirebasePhoneOtp(
 ): Promise<{ ok: boolean; confirmationResult?: ConfirmationResult; formattedPhone: string; error?: string }> {
   const formattedPhone = formatE164Phone(phone);
   if (!auth) {
-    return { ok: false, formattedPhone, error: 'Firebase Auth is not initialized.' };
+    reportError(new Error('Firebase Auth is not initialized.'), { source: 'phoneAuth.send' });
+    return { ok: false, formattedPhone, error: SMS_SEND_FALLBACK };
   }
-
-  // Debug Logging before call
-  console.log('[Firebase Phone Auth Attempt Debug]', {
-    projectId: auth.app.options.projectId,
-    authDomain: auth.app.options.authDomain,
-    currentUser: auth.currentUser ? { uid: auth.currentUser.uid, phoneNumber: auth.currentUser.phoneNumber } : null,
-    targetPhone: formattedPhone,
-    windowOrigin: window.location.origin,
-  });
 
   try {
     const verifier = setupRecaptcha(containerId) || window.recaptchaVerifier;
     if (!verifier) {
-      return { ok: false, formattedPhone, error: 'Failed to initialize reCAPTCHA verifier.' };
+      reportError(new Error('reCAPTCHA verifier unavailable.'), { source: 'phoneAuth.send' });
+      return { ok: false, formattedPhone, error: SMS_SEND_FALLBACK };
     }
     const confirmationResult = await signInWithPhoneNumber(auth, formattedPhone, verifier);
     window.confirmationResult = confirmationResult;
 
-    console.log('[Firebase Phone Auth Success Debug]', {
-      projectId: auth.app.options.projectId,
-      formattedPhone,
-      sessionCreated: !!confirmationResult,
-    });
-
     return { ok: true, confirmationResult, formattedPhone };
   } catch (err: any) {
-    // Task 9 Debug Logging
-    console.error('[Firebase Phone Auth Error Debug]', {
-      projectId: auth?.app?.options?.projectId,
-      authDomain: auth?.app?.options?.authDomain,
-      currentUser: auth?.currentUser ? { uid: auth.currentUser.uid } : null,
-      errorCode: err?.code,
-      errorMessage: err?.message,
-      fullErrorObject: err,
+    // Developer diagnostics (redacted: phone numbers and tokens are scrubbed).
+    reportError(err, {
+      source: 'phoneAuth.send',
+      domain: 'auth',
+      extra: { projectId: auth?.app?.options?.projectId, authDomain: auth?.app?.options?.authDomain },
     });
 
     resetRecaptcha();
-    let msg = err?.message || 'Failed to send SMS code via Firebase.';
     const errCode = String(err?.code || '');
     const errStr = errCode + ' ' + String(err?.message || '') + ' ' + String(err || '');
 
+    // User-facing copy only: no project ids, hostnames, console paths or provider codes.
+    let msg = SMS_SEND_FALLBACK;
     if (errCode === 'auth/invalid-phone-number' || errStr.includes('auth/invalid-phone-number')) {
-      msg = `Invalid phone number format (${formattedPhone}). Please check the number and try again. [${errCode}]`;
-    } else if (errCode === 'auth/operation-not-allowed' || errStr.includes('operation-not-allowed')) {
-      msg = `Phone Sign-In is not enabled in your Firebase Console for project "${auth?.app?.options?.projectId}". Please enable Phone Auth in Firebase Console -> Authentication -> Sign-in method. [${errCode}]`;
+      msg = "That phone number doesn't look right. Please check it and try again.";
     } else if (errCode === 'auth/quota-exceeded' || errStr.includes('quota-exceeded')) {
-      msg = `SMS quota exceeded for today. Please try again later or add test phone numbers in Firebase Console. [${errCode}]`;
+      msg = "We've sent a lot of codes today. Please try again later.";
     } else if (errCode === 'auth/too-many-requests' || errStr.includes('too-many-requests')) {
-      msg = `Too many SMS requests sent. Please wait a moment before trying again. [${errCode}]`;
-    } else if (errCode === 'auth/unauthorized-domain' || errStr.includes('unauthorized-domain')) {
-      msg = `This domain (${window.location.hostname}) is not added to Firebase Authorized Domains. Go to Firebase Console -> Authentication -> Settings -> Authorized Domains and add ${window.location.hostname}. [${errCode}]`;
-    } else {
-      msg = `${err?.message || 'Failed to send SMS.'} (${errCode || 'Unknown Error'})`;
+      msg = 'Too many code requests. Please wait a moment before trying again.';
+    } else if (errCode === 'auth/network-request-failed') {
+      msg = "You're having connection trouble. Check your network and try again.";
     }
 
     return { ok: false, formattedPhone, error: msg };
@@ -150,19 +135,21 @@ export async function verifyFirebaseOtpCode(
   otpCode: string
 ): Promise<{ ok: boolean; userId?: string; error?: string }> {
   if (!confirmationResult) {
-    return { ok: false, error: 'No active Firebase SMS verification session found.' };
+    return { ok: false, error: 'Your verification session has expired. Please request a new code.' };
   }
 
   try {
     const userCredential = await confirmationResult.confirm(otpCode);
     return { ok: true, userId: userCredential.user.uid };
   } catch (err: any) {
-    console.error('Firebase Code Verification Error:', err);
-    let msg = 'Invalid SMS code. Please check your SMS inbox and try again.';
+    reportError(err, { source: 'phoneAuth.verify', domain: 'auth' });
+    let msg = SMS_VERIFY_FALLBACK;
     if (err?.code === 'auth/invalid-verification-code') {
       msg = 'Incorrect 6-digit SMS code. Please re-enter.';
     } else if (err?.code === 'auth/code-expired') {
       msg = 'The SMS verification code has expired. Please request a new code.';
+    } else if (err?.code === 'auth/network-request-failed') {
+      msg = "You're having connection trouble. Check your network and try again.";
     }
     return { ok: false, error: msg };
   }

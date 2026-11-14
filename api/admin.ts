@@ -147,7 +147,8 @@ export default async function handler(req: any, res: any) {
         message: 'Super-admin authenticated successfully.',
       });
     } catch (err: any) {
-      return res.status(500).json({ valid: false, error: err?.message || 'Verification error' });
+      console.error('[api/admin] verify-pin error:', err);
+      return res.status(500).json({ valid: false, error: 'Unable to verify administrator credentials right now.' });
     }
   }
 
@@ -251,7 +252,8 @@ export default async function handler(req: any, res: any) {
       }
       return res.status(405).json({ success: false, error: 'Method not allowed.' });
     } catch (err: any) {
-      return res.status(500).json({ success: false, error: err?.message || 'Failed to process admin fixtures' });
+      console.error('[api/admin] fixtures error:', err);
+      return res.status(500).json({ success: false, error: 'Failed to process admin fixtures' });
     }
   }
 
@@ -275,7 +277,8 @@ export default async function handler(req: any, res: any) {
         batches: getSavedAdminBatches(),
       });
     } catch (err: any) {
-      return res.status(500).json({ success: false, error: err?.message || 'Failed to remove batch' });
+      console.error('[api/admin] delete batch error:', err);
+      return res.status(500).json({ success: false, error: 'Failed to remove batch' });
     }
   }
 

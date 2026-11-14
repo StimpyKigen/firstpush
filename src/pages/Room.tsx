@@ -20,6 +20,7 @@ import { getPunterStats, getStarRating } from '../lib/punterRatings';
 import BackNavButton from '../components/BackNavButton';
 import { RoomDetailSkeleton } from '../components/skeleton';
 import { useHistoryPageState } from '../lib/navigationHistory';
+import ErrorState from '../components/errors/ErrorState';
 
 const CONVICTIONS: Conviction[] = ['Banker', 'Value Pick', 'Long Shot'];
 
@@ -49,7 +50,7 @@ export default function Room() {
     if (activeJackpots.length === 0) {
       return <RoomDetailSkeleton />;
     }
-    return <Navigate to="/leaderboard" replace />;
+    return <ErrorState kind="content-unavailable" variant="page" />;
   }
 
   const bookieTheme = getBookieTheme(jackpot.bookie);

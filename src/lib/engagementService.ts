@@ -153,7 +153,7 @@ export async function persistCommentLike(
     return { success: true };
   } catch (err: any) {
     console.error('[EngagementService] Comment like commit error:', err);
-    return { success: false, error: err?.message || 'Failed to sync comment like to database.' };
+    return { success: false, error: "We couldn't save your like right now. Please try again." };
   }
 }
 
@@ -210,7 +210,7 @@ export async function persistPostLike(
     return { success: true };
   } catch (err: any) {
     console.error('[EngagementService] Like toggle commit error:', err);
-    return { success: false, error: err?.message || 'Database like synchronization failed.' };
+    return { success: false, error: "We couldn't save your like right now. Please try again." };
   }
 }
 
@@ -260,7 +260,7 @@ export async function persistPostSave(
     return { success: true };
   } catch (err: any) {
     console.error('[EngagementService] Save toggle commit error:', err);
-    return { success: false, error: err?.message || 'Database save synchronization failed.' };
+    return { success: false, error: "We couldn't update your saved posts right now. Please try again." };
   }
 }
 
@@ -448,7 +448,7 @@ export async function persistNewPostToFirestore(
     return { success: true };
   } catch (err: any) {
     console.error('[EngagementService] Post publish error:', err);
-    return { success: false, error: err?.message || 'Failed to publish post to cloud feed.' };
+    return { success: false, error: "We couldn't publish your post right now. Please try again." };
   }
 }
 

@@ -6,6 +6,7 @@ import { useAuthWallStore } from '../lib/authWallStore';
 import { RECEIVER_MPESA_NUMBER, RECEIVER_NAME, MPESA_VERIFICATION_STATUS_NOTICE, isValidMpesaCode, normalizeCode } from '../lib/mpesa';
 import type { Jackpot } from '../lib/types';
 import { showToast } from '../lib/notificationStore';
+import InlineError from './errors/InlineError';
 
 type Step = 'intro' | 'sent' | 'verify';
 
@@ -193,6 +194,7 @@ export default function PayGate({ jackpot, onUnlocked }: { jackpot: Jackpot; onU
                 <span>Use Wallet Balance</span>
               </span>
             </button>
+            <InlineError message={error} domain="payment" className="mt-1" />
           </div>
         )}
 
@@ -256,11 +258,7 @@ export default function PayGate({ jackpot, onUnlocked }: { jackpot: Jackpot; onU
               maxLength={12}
               className="bg-ink border border-line rounded-lg px-3 py-2.5 text-sm tabular-nums tracking-wide text-cream placeholder:text-cream-dim/50 focus:outline-none focus:border-gold uppercase"
             />
-            {error && (
-              <p className="flex items-center gap-1.5 text-xs text-danger font-semibold">
-                <AlertCircle size={13} /> {error}
-              </p>
-            )}
+            <InlineError message={error} domain="payment" />
             <button
               onClick={verifyCode}
               disabled={checking || !code.trim()}

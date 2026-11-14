@@ -37,6 +37,7 @@ import {
 import { recordSecurityEvent } from './securityAuditLogger.js';
 import { extractTrustedClientIp } from './rateLimitService.js';
 import { getAdminFirestore, resolveScopedServiceAccountRaw } from './serverFirebaseAdmin.js';
+import { clientSafeServerMessage } from './errors/userError.js';
 
 // ============================================================================
 // OFFICIAL RATES & CONSTANTS
@@ -2540,9 +2541,12 @@ export async function handleTokenEconomyHttpRequest(params: {
       specificTokenIds: body.specificTokenIds,
     });
 
+    const spendStatus = spendRes.statusCode || (spendRes.success ? 200 : 400);
     return {
-      statusCode: spendRes.statusCode || (spendRes.success ? 200 : 400),
-      payload: spendRes,
+      statusCode: spendStatus,
+      payload: spendRes.success
+        ? spendRes
+        : { ...spendRes, error: clientSafeServerMessage(spendRes.error, spendStatus) },
     };
   }
 
@@ -2577,9 +2581,12 @@ export async function handleTokenEconomyHttpRequest(params: {
       idempotencyKey: body.idempotencyKey,
     });
 
+    const unlockStatus = unlockRes.statusCode || (unlockRes.success ? 200 : 400);
     return {
-      statusCode: unlockRes.statusCode || (unlockRes.success ? 200 : 400),
-      payload: unlockRes,
+      statusCode: unlockStatus,
+      payload: unlockRes.success
+        ? unlockRes
+        : { ...unlockRes, error: clientSafeServerMessage(unlockRes.error, unlockStatus) },
     };
   }
 

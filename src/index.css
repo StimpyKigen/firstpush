@@ -1820,3 +1820,17 @@ html.light .slip-follow-btn {
   caret-color: transparent !important;
 }
 
+
+
+/* ==========================================================================
+   Unified error experience (src/components/errors)
+   Subtle entrance only; fully disabled for reduced-motion users.
+   ========================================================================== */
+@keyframes errorStateIn {
+  from { opacity: 0; transform: translateY(6px) scale(0.985); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+.error-state-enter { animation: errorStateIn 0.26s ease-out both; }
+@media (prefers-reduced-motion: reduce) {
+  .error-state-enter { animation: none; }
+}

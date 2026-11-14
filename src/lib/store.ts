@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { useAuth, type Account } from './authStore';
 import { registerSessionLifecycleListener } from './sessionLifecycle';
+import { ERROR_CATALOG, sanitizeUserMessage, toUserError } from './errors';
 
 export const KSH_PER_MSHINDI_TOKEN = 100; // Official Purchase Rate: KSh 100 = 1 MT
 export const QUALIFYING_REFERRALS_PER_TOKEN = 3; // Official Referral Rate: 3 Invites = 1 MT
@@ -309,7 +310,12 @@ export const useWallet = create<WalletState>()(
             }
             return {
               ok: false,
-              error: data?.error || 'Could not redeem Mshindi Tokens on the server.',
+              error: sanitizeUserMessage(data?.error, {
+                domain: 'token',
+                status: res.status,
+                fallback: 'token-failed',
+                source: 'store.spendTokens',
+              }),
             };
           }
           if (data.wallet) {
@@ -319,10 +325,10 @@ export const useWallet = create<WalletState>()(
             ok: true,
             consumedTokenIds: data.consumedTokenIds || [],
           };
-        } catch {
+        } catch (err) {
           return {
             ok: false,
-            error: 'Unable to reach the token verification server. Please check your connection and try again.',
+            error: toUserError(err, { domain: 'token', source: 'store.spendTokens' }).message,
           };
         }
       },
@@ -359,7 +365,12 @@ export const useWallet = create<WalletState>()(
             }
             return {
               ok: false,
-              error: data?.error || 'Could not unlock room with wallet balance.',
+              error: sanitizeUserMessage(data?.error, {
+                domain: 'payment',
+                status: res.status,
+                fallback: 'payment-failed',
+                source: 'store.unlockWithBalance',
+              }),
             };
           }
           if (data.wallet) {
@@ -381,10 +392,10 @@ export const useWallet = create<WalletState>()(
             ok: true,
             tokensAwarded: Number(data.tokensAwarded || 0),
           };
-        } catch {
+        } catch (err) {
           return {
             ok: false,
-            error: 'Unable to reach the server to verify your wallet balance. Please try again.',
+            error: toUserError(err, { domain: 'payment', source: 'store.unlockWithBalance' }).message,
           };
         }
       },
@@ -416,7 +427,12 @@ export const useWallet = create<WalletState>()(
           if (!res.ok || !data?.success) {
             return {
               ok: false,
-              error: data?.error || 'M-Pesa payment code verification failed.',
+              error: sanitizeUserMessage(data?.error, {
+                domain: 'payment',
+                status: res.status,
+                fallback: 'payment-failed',
+                source: 'store.verifyMpesa',
+              }),
             };
           }
           if (data.wallet) {
@@ -442,10 +458,10 @@ export const useWallet = create<WalletState>()(
             tokensAwarded: Number(data.tokensAwarded || 0),
             amountKsh: Number(data.amountKsh ?? amount),
           };
-        } catch {
+        } catch (err) {
           return {
             ok: false,
-            error: 'Unable to reach the M-Pesa verification server. Please check your connection and try again.',
+            error: toUserError(err, { domain: 'payment', source: 'store.verifyMpesa' }).message,
           };
         }
       },
@@ -466,14 +482,25 @@ export const useWallet = create<WalletState>()(
           });
           const data = await res.json();
           if (!res.ok || !data?.success) {
-            return { ok: false, error: data?.error || 'Referral verification failed.' };
+            return {
+              ok: false,
+              error: sanitizeUserMessage(data?.error, {
+                domain: 'token',
+                status: res.status,
+                fallback: 'token-failed',
+                source: 'store.submitReferral',
+              }),
+            };
           }
           return {
             ok: true,
             tokensAwarded: Number(data.tokensAwarded || 0),
           };
-        } catch {
-          return { ok: false, error: 'Failed to contact referral verification server.' };
+        } catch (err) {
+          return {
+            ok: false,
+            error: toUserError(err, { domain: 'token', source: 'store.submitReferral' }).message || ERROR_CATALOG['token-failed'].message,
+          };
         }
       },
 

@@ -21,6 +21,7 @@ import { formatKickoffDateTime24h } from '../lib/competitionPriority';
 import { useHistoryPageState } from '../lib/navigationHistory';
 import { useChatRoomStore, getRoomMockParticipants } from '../lib/chatRoomStore';
 import LiveChatRoomOverlay from '../components/chat/LiveChatRoomOverlay';
+import ErrorState from '../components/errors/ErrorState';
 
 export default function FreeMatchRoom() {
   const { id } = useParams();
@@ -84,7 +85,7 @@ export default function FreeMatchRoom() {
     if (matches.length === 0) {
       return <RoomDetailSkeleton />;
     }
-    return <Navigate to="/free" replace />;
+    return <ErrorState kind="content-unavailable" variant="page" />;
   }
   const consensus = consensusMap[match.id];
 

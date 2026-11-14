@@ -17,6 +17,7 @@ import {
 } from 'firebase/storage';
 import { storage, auth } from '../firebase.js';
 import { isAdminPhone } from './authStore.js';
+import { reportError, toUserError } from './errors/index.js';
 
 export const MAX_WEBP_FILE_SIZE_BYTES = 5 * 1024 * 1024; // 5 MB
 
@@ -134,9 +135,10 @@ export async function validateWebpFile(file: File): Promise<WebpValidationResult
       };
     }
   } catch (err: any) {
+    reportError(err, { source: 'carouselStorageService.validateWebpFile.header', domain: 'upload' });
     return {
       valid: false,
-      error: `Could not verify file binary header: ${err?.message || 'Read error'}`,
+      error: "We couldn't read this image file. Please choose a different file and try again.",
     };
   }
 
@@ -173,9 +175,10 @@ export async function validateWebpFile(file: File): Promise<WebpValidationResult
         name: fileName,
       };
     } catch (err: any) {
+      reportError(err, { source: 'carouselStorageService.validateWebpFile.decode', domain: 'upload' });
       return {
         valid: false,
-        error: err?.message || 'Failed to decode WebP image.',
+        error: "That image appears to be damaged or unreadable. Please try another file.",
       };
     }
   }
@@ -421,7 +424,8 @@ export async function uploadCarouselPhotoWebp(
       };
     }
   } catch (serverErr: any) {
-    throw new Error(`Failed to upload WebP photo: ${serverErr?.message || 'Storage error'}`);
+    const safeMsg = toUserError(serverErr, { source: 'carouselStorageService.uploadCarouselPhoto', domain: 'upload' }).message;
+    throw new Error(safeMsg);
   }
 }
 

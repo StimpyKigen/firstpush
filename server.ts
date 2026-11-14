@@ -329,7 +329,8 @@ async function startServer() {
           firestoreUpdated: result.firestoreUpdated,
         });
       } catch (err: any) {
-        return res.status(500).json({ success: false, error: err?.message || 'Cleanup failed' });
+        console.error('[server] homepage-feed cleanup error:', err);
+        return res.status(500).json({ success: false, error: 'Failed to clean up homepage feed' });
       }
     }
 
@@ -337,7 +338,8 @@ async function startServer() {
       const feed = await getSavedHomepageFeedAsync();
       res.json({ success: true, serverTime: new Date().toISOString(), feed });
     } catch (err: any) {
-      res.status(500).json({ success: false, error: err?.message || 'Failed to get homepage feed' });
+      console.error('[server] homepage-feed read error:', err);
+      res.status(500).json({ success: false, error: 'Failed to load homepage feed' });
     }
   });
 

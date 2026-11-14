@@ -1,6 +1,9 @@
 import { Component, ReactNode, ErrorInfo } from 'react';
-import { AlertTriangle, RefreshCw } from 'lucide-react';
 import { hardRefreshPwa, triggerStaleChunkRecovery } from '../lib/swRegister';
+import ErrorState from './errors/ErrorState';
+import { classifyError } from '../lib/errors/classifyError';
+import { reportError } from '../lib/errors/errorReporter';
+import type { ErrorKind } from '../lib/errors/errorCatalog';
 
 interface Props {
   children: ReactNode;
@@ -23,7 +26,12 @@ export class ErrorBoundary extends Component<Props, State> {
   }
 
   public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    console.error('Uncaught error caught by ErrorBoundary:', error, errorInfo);
+    // Developer diagnostics: full detail, redacted. Never shown to users.
+    reportError(error, {
+      source: 'react.ErrorBoundary',
+      extra: { componentStack: errorInfo?.componentStack },
+    });
+
     const msg = String(error?.message || error || '');
     if (
       msg.includes('_result.default') ||
@@ -47,24 +55,18 @@ export class ErrorBoundary extends Component<Props, State> {
         return this.props.fallback;
       }
 
+      // Only the *kind* is derived from the error; its text is never displayed.
+      const kind: ErrorKind = classifyError(this.state.error);
+
       return (
-        <div className="min-h-[50vh] flex flex-col items-center justify-center p-6 text-center">
-          <div className="w-14 h-14 rounded-2xl bg-rose-500/10 border border-rose-500/20 text-rose-400 flex items-center justify-center mb-4">
-            <AlertTriangle size={28} />
-          </div>
-          <h2 className="font-display font-bold text-xl text-cream mb-2">
-            Something went wrong in the arena
-          </h2>
-          <p className="text-xs text-cream-dim max-w-md mb-6 leading-relaxed">
-            {this.state.error?.message || 'An unexpected rendering error occurred. You can safely reload the view without losing your state.'}
-          </p>
-          <button
-            onClick={this.handleReset}
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gold text-ink font-bold text-xs hover:bg-gold-light transition-all shadow-md active:scale-95"
-          >
-            <RefreshCw size={14} />
-            <span>Reload Arena</span>
-          </button>
+        <div className="min-h-dvh w-full flex items-center justify-center bg-ink">
+          <ErrorState
+            kind={kind === 'validation' ? 'unknown' : kind}
+            variant="page"
+            onRetry={this.handleReset}
+            // Reloading the app shell is idempotent: it cannot repeat a payment or message.
+            allowRetry
+          />
         </div>
       );
     }

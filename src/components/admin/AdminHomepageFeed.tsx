@@ -339,8 +339,8 @@ export default function AdminHomepageFeed() {
       setIsVisualPreviewOpen(false);
     } catch (err: any) {
       showToast({
-        title: 'Publish Failed',
-        message: err?.message || 'Could not save photo story to database.',
+        title: 'Upload Failed',
+        message: err?.message || "We couldn't save your photo story right now. Please try again.",
         type: 'error',
       });
     } finally {
@@ -382,8 +382,8 @@ export default function AdminHomepageFeed() {
       });
     } catch (err: any) {
       showToast({
-        title: 'Update Failed',
-        message: err?.message || 'Failed to update carousel story in database.',
+        title: 'Could Not Save Changes',
+        message: err?.message || "We couldn't save your changes right now. Please try again.",
         type: 'error',
       });
     } finally {

@@ -20,6 +20,7 @@ import {
   type FreeMatch
 } from '../../lib/freeMatches';
 import { showToast } from '../../lib/notificationStore';
+import { sanitizeUserMessage } from '../../lib/errors';
 
 const SAMPLE_DEMO_FIXTURES = `ENGLAND: Premier League
 5821 2026-10-24 14:30 Arsenal vs Chelsea 1.95 3.60 3.80 1.25 1.28 1.80 1.75 2.05 1.70 2.10
@@ -171,8 +172,8 @@ export default function AdminFixturesManager() {
     } catch (err: any) {
       showToast({
         type: 'error',
-        title: 'Parsing Error',
-        message: err?.message || 'Failed to parse file.',
+        title: 'File Not Supported',
+        message: sanitizeUserMessage(err?.message, { domain: 'upload', fallback: 'file-invalid', source: 'AdminFixturesManager.parsePdf' }),
       });
       setShowRawTextInput(true);
     } finally {
@@ -341,8 +342,8 @@ export default function AdminFixturesManager() {
     } catch (err: any) {
       showToast({
         type: 'error',
-        title: 'Publish Failed',
-        message: err?.message || 'Could not publish fixtures.',
+        title: 'Could Not Save Changes',
+        message: sanitizeUserMessage(err?.message, { domain: 'update', fallback: 'update-failed', source: 'AdminFixturesManager.publish' }),
       });
     } finally {
       setIsPublishing(false);

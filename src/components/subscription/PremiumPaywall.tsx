@@ -6,6 +6,7 @@ import CompetitionLogoStrip from './CompetitionLogoStrip';
 import { BadgeCheck } from '@/components/animate-ui/icons/badge-check';
 import { useSubscription } from '../../hooks/useSubscription';
 import { RECEIVER_MPESA_NUMBER, MPESA_VERIFICATION_STATUS_NOTICE, isValidMpesaCode, normalizeCode } from '../../lib/mpesa';
+import { sanitizeUserMessage } from '../../lib/errors';
 
 interface PremiumPaywallProps {
   onCloseOverride?: () => void;
@@ -158,8 +159,11 @@ export default function PremiumPaywall({ onCloseOverride }: PremiumPaywallProps)
 
             {/* Error Banner */}
             {(localError || storeError) && !trialSuccessMsg && (
-              <div className="mb-4 p-3 bg-red-500/20 border border-red-500/40 rounded-xl text-red-200 text-xs font-semibold animate-in zoom-in-95 duration-150">
-                {localError || storeError}
+              <div
+                role="alert"
+                className="mb-4 p-3 bg-red-500/20 border border-red-500/40 rounded-xl text-red-200 text-xs font-semibold animate-in zoom-in-95 duration-150 break-words"
+              >
+                {sanitizeUserMessage(localError || storeError, { domain: 'subscription' })}
               </div>
             )}
 
