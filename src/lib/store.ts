@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { useAuth, type Account } from './authStore';
+import { registerSessionLifecycleListener } from './sessionLifecycle';
 
 export const KSH_PER_MSHINDI_TOKEN = 100; // Official Purchase Rate: KSh 100 = 1 MT
 export const QUALIFYING_REFERRALS_PER_TOKEN = 3; // Official Referral Rate: 3 Invites = 1 MT
@@ -51,7 +52,7 @@ interface WalletState {
   referralProgressRemainder: number;
   referralsNeededForNextToken: number;
   serverMigrated: boolean;
-  userSessionToken: string | null;
+  walletOwnerPhone: string | null;
   tokenSyncLoading: boolean;
 
   isRoomUnlocked: (roomId: string) => boolean;
@@ -102,9 +103,9 @@ interface WalletState {
   refundEscrow: (amount: number, label: string) => void;
 }
 
-function getAuthHeaders(state: WalletState, user?: Account | null): Record<string, string> {
+function getAuthHeaders(user?: Account | null): Record<string, string> {
   const currentUser = user ?? useAuth.getState().getCurrentUser();
-  const token = state.userSessionToken || useAuth.getState().userSessionToken;
+  const token = useAuth.getState().userSessionToken;
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
   };
@@ -116,6 +117,22 @@ function getAuthHeaders(state: WalletState, user?: Account | null): Record<strin
   }
   return headers;
 }
+
+const EMPTY_WALLET_DATA = {
+  unlockedRooms: [] as string[],
+  balance: 0,
+  redeemedCodes: [] as string[],
+  transactions: [] as WalletTx[],
+  mshindiTokens: 0,
+  activeTokenIds: [] as string[],
+  tokenTransactions: [] as TokenTx[],
+  totalReferrals: 0,
+  referralTokensAwardedCount: 0,
+  referralProgressRemainder: 0,
+  referralsNeededForNextToken: QUALIFYING_REFERRALS_PER_TOKEN,
+  serverMigrated: false,
+  walletOwnerPhone: null as string | null,
+};
 
 export const useWallet = create<WalletState>()(
   persist(
@@ -131,9 +148,9 @@ export const useWallet = create<WalletState>()(
       totalReferrals: 0,
       referralTokensAwardedCount: 0,
       referralProgressRemainder: 0,
-      referralsNeededForNextToken: 3,
+      referralsNeededForNextToken: QUALIFYING_REFERRALS_PER_TOKEN,
       serverMigrated: false,
-      userSessionToken: null,
+      walletOwnerPhone: null,
       tokenSyncLoading: false,
       tokenTransactions: [],
 
@@ -142,40 +159,82 @@ export const useWallet = create<WalletState>()(
 
       applyServerWalletSnapshot: (snapshot) => {
         if (!snapshot || typeof snapshot !== 'object') return;
-        set((state) => ({
-          mshindiTokens:
-            typeof snapshot.mshindiTokens === 'number' ? snapshot.mshindiTokens : state.mshindiTokens,
-          activeTokenIds: Array.isArray(snapshot.activeTokenIds)
-            ? snapshot.activeTokenIds
-            : state.activeTokenIds,
-          tokenTransactions: Array.isArray(snapshot.tokenTransactions)
-            ? snapshot.tokenTransactions
-            : state.tokenTransactions,
-          totalReferrals:
-            typeof snapshot.totalReferrals === 'number' ? snapshot.totalReferrals : state.totalReferrals,
-          referralTokensAwardedCount:
-            typeof snapshot.referralTokensAwardedCount === 'number'
-              ? snapshot.referralTokensAwardedCount
-              : state.referralTokensAwardedCount,
-          referralProgressRemainder:
-            typeof snapshot.referralProgressRemainder === 'number'
-              ? snapshot.referralProgressRemainder
-              : state.referralProgressRemainder,
-          referralsNeededForNextToken:
-            typeof snapshot.referralsNeededForNextToken === 'number'
-              ? snapshot.referralsNeededForNextToken
-              : state.referralsNeededForNextToken,
-          balance:
-            typeof snapshot.walletBalanceKsh === 'number' ? snapshot.walletBalanceKsh : state.balance,
-          unlockedRooms: Array.isArray(snapshot.unlockedRooms)
-            ? Array.from(new Set([...state.unlockedRooms, ...snapshot.unlockedRooms]))
-            : state.unlockedRooms,
-          redeemedCodes: Array.isArray(snapshot.redeemedCodes)
-            ? Array.from(new Set([...state.redeemedCodes, ...snapshot.redeemedCodes]))
-            : state.redeemedCodes,
-          serverMigrated: Boolean(snapshot.migrated ?? state.serverMigrated),
-          userSessionToken: snapshot.userSessionToken || state.userSessionToken,
-        }));
+        const currentAuthPhone = useAuth.getState().currentPhone;
+        const rawOwner =
+          typeof snapshot.userUid === 'string' && snapshot.userUid.trim()
+            ? snapshot.userUid.trim()
+            : typeof snapshot.phone === 'string' && snapshot.phone.trim()
+              ? snapshot.phone.trim()
+              : currentAuthPhone || null;
+
+        set((state) => {
+          const switchedOwner =
+            Boolean(state.walletOwnerPhone && rawOwner && state.walletOwnerPhone !== rawOwner);
+          const nextOwner = rawOwner || state.walletOwnerPhone;
+          return {
+            walletOwnerPhone: nextOwner,
+            mshindiTokens:
+              typeof snapshot.mshindiTokens === 'number'
+                ? snapshot.mshindiTokens
+                : switchedOwner
+                  ? 0
+                  : state.mshindiTokens,
+            activeTokenIds: Array.isArray(snapshot.activeTokenIds)
+              ? snapshot.activeTokenIds
+              : switchedOwner
+                ? []
+                : state.activeTokenIds,
+            tokenTransactions: Array.isArray(snapshot.tokenTransactions)
+              ? snapshot.tokenTransactions
+              : switchedOwner
+                ? []
+                : state.tokenTransactions,
+            transactions: Array.isArray(snapshot.transactions)
+              ? snapshot.transactions
+              : switchedOwner
+                ? []
+                : state.transactions,
+            totalReferrals:
+              typeof snapshot.totalReferrals === 'number'
+                ? snapshot.totalReferrals
+                : switchedOwner
+                  ? 0
+                  : state.totalReferrals,
+            referralTokensAwardedCount:
+              typeof snapshot.referralTokensAwardedCount === 'number'
+                ? snapshot.referralTokensAwardedCount
+                : switchedOwner
+                  ? 0
+                  : state.referralTokensAwardedCount,
+            referralProgressRemainder:
+              typeof snapshot.referralProgressRemainder === 'number'
+                ? snapshot.referralProgressRemainder
+                : switchedOwner
+                  ? 0
+                  : state.referralProgressRemainder,
+            referralsNeededForNextToken:
+              typeof snapshot.referralsNeededForNextToken === 'number'
+                ? snapshot.referralsNeededForNextToken
+                : QUALIFYING_REFERRALS_PER_TOKEN,
+            balance:
+              typeof snapshot.walletBalanceKsh === 'number'
+                ? snapshot.walletBalanceKsh
+                : switchedOwner
+                  ? 0
+                  : state.balance,
+            unlockedRooms: Array.isArray(snapshot.unlockedRooms)
+              ? Array.from(new Set(snapshot.unlockedRooms.filter((r: unknown): r is string => typeof r === 'string')))
+              : switchedOwner
+                ? []
+                : state.unlockedRooms,
+            redeemedCodes: Array.isArray(snapshot.redeemedCodes)
+              ? Array.from(new Set(snapshot.redeemedCodes.filter((c: unknown): c is string => typeof c === 'string')))
+              : switchedOwner
+                ? []
+                : state.redeemedCodes,
+            serverMigrated: Boolean(snapshot.migrated ?? true),
+          };
+        });
       },
 
       syncAuthoritativeTokens: async (userArg) => {
@@ -183,13 +242,16 @@ export const useWallet = create<WalletState>()(
         const currentUser = userArg ?? useAuth.getState().getCurrentUser();
         if (!currentUser?.phone) return;
 
-        const state = get();
-        set({ tokenSyncLoading: true });
+        const existingOwner = get().walletOwnerPhone;
+        if (existingOwner && existingOwner !== currentUser.phone) {
+          get().resetWallet();
+        }
+        set({ walletOwnerPhone: currentUser.phone, tokenSyncLoading: true });
 
         try {
           const res = await fetch('/api/tokens/wallet', {
             method: 'POST',
-            headers: getAuthHeaders(state, currentUser),
+            headers: getAuthHeaders(currentUser),
             credentials: 'include',
             body: JSON.stringify({
               action: 'wallet',
@@ -203,7 +265,10 @@ export const useWallet = create<WalletState>()(
           }
           const data = await res.json();
           if (data?.success && data?.wallet) {
-            get().applyServerWalletSnapshot(data.wallet);
+            get().applyServerWalletSnapshot({
+              ...data.wallet,
+              userUid: data.wallet.userUid || currentUser.phone,
+            });
           }
         } catch {
           // Network hiccup: preserve last known server snapshot until online
@@ -226,7 +291,7 @@ export const useWallet = create<WalletState>()(
         try {
           const res = await fetch('/api/tokens/spend', {
             method: 'POST',
-            headers: getAuthHeaders(get(), currentUser),
+            headers: getAuthHeaders(currentUser),
             credentials: 'include',
             body: JSON.stringify({
               action: 'spend',
@@ -276,7 +341,7 @@ export const useWallet = create<WalletState>()(
         try {
           const res = await fetch('/api/tokens/unlock-with-balance', {
             method: 'POST',
-            headers: getAuthHeaders(get(), currentUser),
+            headers: getAuthHeaders(currentUser),
             credentials: 'include',
             body: JSON.stringify({
               action: 'unlock-with-balance',
@@ -334,7 +399,7 @@ export const useWallet = create<WalletState>()(
         try {
           const res = await fetch('/api/mpesa/verify-code', {
             method: 'POST',
-            headers: getAuthHeaders(get(), currentUser),
+            headers: getAuthHeaders(currentUser),
             credentials: 'include',
             body: JSON.stringify({
               code,
@@ -389,7 +454,7 @@ export const useWallet = create<WalletState>()(
         try {
           const res = await fetch('/api/tokens/referral', {
             method: 'POST',
-            headers: getAuthHeaders(get()),
+            headers: getAuthHeaders(),
             credentials: 'include',
             body: JSON.stringify({
               action: 'referral',
@@ -446,25 +511,70 @@ export const useWallet = create<WalletState>()(
 
       resetWallet: () =>
         set({
-          unlockedRooms: [],
-          balance: 0,
-          redeemedCodes: [],
-          transactions: [],
-          mshindiTokens: 0,
-          activeTokenIds: [],
-          tokenTransactions: [],
-          totalReferrals: 0,
-          referralTokensAwardedCount: 0,
-          referralProgressRemainder: 0,
-          referralsNeededForNextToken: QUALIFYING_REFERRALS_PER_TOKEN,
-          serverMigrated: false,
-          userSessionToken: null,
+          ...EMPTY_WALLET_DATA,
+          tokenSyncLoading: false,
         }),
 
       holdEscrow: () => false,
       releasePayout: () => {},
       refundEscrow: () => {},
     }),
-    { name: 'mshindi-wallet' }
+    {
+      name: 'mshindi-wallet',
+      // Never persist bearer/session tokens (`userSessionToken`) or transient sync flags into localStorage
+      partialize: (state) => ({
+        unlockedRooms: state.unlockedRooms,
+        balance: state.balance,
+        redeemedCodes: state.redeemedCodes,
+        transactions: state.transactions,
+        mshindiTokens: state.mshindiTokens,
+        activeTokenIds: state.activeTokenIds,
+        tokenTransactions: state.tokenTransactions,
+        totalReferrals: state.totalReferrals,
+        referralTokensAwardedCount: state.referralTokensAwardedCount,
+        referralProgressRemainder: state.referralProgressRemainder,
+        referralsNeededForNextToken: state.referralsNeededForNextToken,
+        serverMigrated: state.serverMigrated,
+        walletOwnerPhone: state.walletOwnerPhone,
+      }),
+      merge: (persistedState: any, currentState) => {
+        if (!persistedState || typeof persistedState !== 'object') {
+          return currentState;
+        }
+        const activePhone = useAuth.getState().currentPhone;
+        const persistedOwner =
+          typeof persistedState.walletOwnerPhone === 'string' && persistedState.walletOwnerPhone.trim()
+            ? persistedState.walletOwnerPhone.trim()
+            : null;
+        // Reject persisted wallet data if no user is signed in or it belongs to another user
+        if (!activePhone || !persistedOwner || persistedOwner !== activePhone) {
+          return {
+            ...currentState,
+            ...EMPTY_WALLET_DATA,
+          };
+        }
+        const { userSessionToken: _scrubbedToken, tokenSyncLoading: _ignoredLoading, ...safePersisted } =
+          persistedState as Record<string, any>;
+        return {
+          ...currentState,
+          ...safePersisted,
+          walletOwnerPhone: persistedOwner,
+        };
+      },
+    }
   )
 );
+
+registerSessionLifecycleListener((nextUserPhone) => {
+  const wallet = useWallet.getState();
+  if (!nextUserPhone) {
+    wallet.resetWallet();
+    return;
+  }
+  if (
+    !wallet.walletOwnerPhone ||
+    wallet.walletOwnerPhone !== nextUserPhone
+  ) {
+    wallet.resetWallet();
+  }
+});

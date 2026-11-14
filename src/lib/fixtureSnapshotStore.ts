@@ -23,12 +23,16 @@ import {
   findMatchingExistingFixture,
   mergeMarketFixtureRecords,
 } from './fixtureIdentity.js';
+import {
+  getAdminFirestore,
+  resetFirebaseAdminForTests,
+  resolveScopedServiceAccountRaw,
+} from './serverFirebaseAdmin.js';
+
+export { resolveScopedServiceAccountRaw };
 
 const COLLECTION = 'fixtureSnapshots';
 const META_DOC = '_meta';
-
-let cachedDb: any | null | undefined;
-let loggedPreviewIsolationNotice = false;
 
 export interface SaveSnapshotOptions {
   keepFromDate?: string;
@@ -54,73 +58,15 @@ export interface SnapshotSaveStats {
  * supply `FIREBASE_SERVICE_ACCOUNT_PREVIEW` for a separate project, or fall back cleanly
  * to their isolated local disk snapshot cache.
  */
-export function resolveScopedServiceAccountRaw(): string | undefined {
-  const vercelEnv = process.env.VERCEL_ENV?.trim().toLowerCase();
-  if (vercelEnv && vercelEnv !== 'production') {
-    const previewRaw = process.env.FIREBASE_SERVICE_ACCOUNT_PREVIEW?.trim();
-    if (!previewRaw && process.env.FIREBASE_SERVICE_ACCOUNT && !loggedPreviewIsolationNotice) {
-      loggedPreviewIsolationNotice = true;
-      console.info(
-        `[FixtureSnapshot] Isolating VERCEL_ENV="${vercelEnv}" from Production FIREBASE_SERVICE_ACCOUNT (falling back to isolated local cache unless FIREBASE_SERVICE_ACCOUNT_PREVIEW is configured).`
-      );
-    }
-    return previewRaw || undefined;
-  }
-  return process.env.FIREBASE_SERVICE_ACCOUNT?.trim() || undefined;
-}
-
 export function resetSnapshotStoreCacheForTests(): void {
-  cachedDb = undefined;
-  loggedPreviewIsolationNotice = false;
-}
-
-function parseServiceAccount(): Record<string, any> | null {
-  const raw = resolveScopedServiceAccountRaw();
-  if (!raw) return null;
-  try {
-    const text = raw.trim().startsWith('{') ? raw : Buffer.from(raw, 'base64').toString('utf-8');
-    const json = JSON.parse(text);
-    if (typeof json.private_key === 'string') {
-      json.private_key = json.private_key.replace(/\\n/g, '\n');
-    }
-    return json;
-  } catch (err) {
-    console.warn('[FixtureSnapshot] Scoped Firebase service account is not valid JSON/base64:', err);
-    return null;
-  }
+  resetFirebaseAdminForTests();
 }
 
 async function getDb(): Promise<any | null> {
-  if (cachedDb !== undefined) return cachedDb;
-  const creds = parseServiceAccount();
-  if (!creds) {
-    cachedDb = null;
+  if (!resolveScopedServiceAccountRaw()) {
     return null;
   }
-  try {
-    const admin = await import('firebase-admin');
-    const mod: any = (admin as any).default || admin;
-    const vercelEnv = process.env.VERCEL_ENV?.trim().toLowerCase();
-    const isNonProdVercel = Boolean(vercelEnv && vercelEnv !== 'production');
-    let app: any;
-    if (isNonProdVercel) {
-      const previewAppName = 'mshindi-fixture-snapshot-preview';
-      const existingPreviewApp = Array.isArray(mod.apps)
-        ? mod.apps.find((a: any) => a?.name === previewAppName)
-        : null;
-      app = existingPreviewApp || mod.initializeApp({ credential: mod.credential.cert(creds) }, previewAppName);
-    } else {
-      app = mod.apps?.length
-        ? mod.app()
-        : mod.initializeApp({ credential: mod.credential.cert(creds) });
-    }
-    cachedDb = mod.firestore(app);
-    return cachedDb;
-  } catch (err) {
-    console.warn('[FixtureSnapshot] Could not initialise firebase-admin:', err);
-    cachedDb = null;
-    return null;
-  }
+  return getAdminFirestore({ allowAdc: false });
 }
 
 export function isSnapshotStoreConfigured(): boolean {

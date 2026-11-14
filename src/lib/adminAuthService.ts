@@ -6,7 +6,12 @@
  */
 
 import crypto from 'crypto';
-import { persistRevokedTokenNonce, isTokenNonceRevoked } from './tokenRevocationStore.js';
+import {
+  persistRevokedTokenNonce,
+  persistRevokedTokenNonceAsync,
+  isTokenNonceRevoked,
+  checkTokenNonceRevocationAsync,
+} from './tokenRevocationStore.js';
 import { ADMIN_SESSION_COOKIE_NAME, getCookieFromHeaders } from './firebaseIdTokenVerifier.js';
 
 export const ADMIN_PHONE_NORMALIZED = '254743304579';
@@ -66,36 +71,29 @@ export function generateAdminToken(phone: string = ADMIN_PHONE_NORMALIZED): stri
   return `${payload}:${sig}`;
 }
 
-/**
- * Revokes an active admin token nonce persistently.
- */
-export function revokeAdminToken(token?: string | null): boolean {
-  if (!token || typeof token !== 'string') return false;
+function parseAdminTokenParts(token?: string | null): { nonce: string; exp: number } | null {
+  if (!token || typeof token !== 'string') return null;
   const parts = token.trim().split(':');
-  if (parts.length !== 4 || !/^[a-f0-9]{16}$/i.test(parts[2])) return false;
+  if (parts.length !== 4 || !/^[a-f0-9]{16}$/i.test(parts[2])) return null;
   const issuedAt = Number(parts[1]);
-  const exp = Number.isFinite(issuedAt) && issuedAt > 0
-    ? issuedAt + MAX_ADMIN_TOKEN_TTL_MS + 60_000
-    : Date.now() + MAX_ADMIN_TOKEN_TTL_MS;
-  return persistRevokedTokenNonce(parts[2], exp);
+  const exp =
+    Number.isFinite(issuedAt) && issuedAt > 0
+      ? issuedAt + MAX_ADMIN_TOKEN_TTL_MS + 60_000
+      : Date.now() + MAX_ADMIN_TOKEN_TTL_MS;
+  return { nonce: parts[2], exp };
 }
 
-/**
- * Verifies an HMAC-SHA256 signed, non-expired, non-revoked administrator session token.
- */
-export function verifyAdminToken(token?: string | null): boolean {
-  if (!token || typeof token !== 'string') return false;
+function validateAdminTokenSignatureAndTtl(token?: string | null): { valid: boolean; nonce?: string } {
+  if (!token || typeof token !== 'string') return { valid: false };
   const secret = getConfiguredAdminTokenSecret();
-  if (!secret) return false;
+  if (!secret) return { valid: false };
 
   const parts = token.trim().split(':');
-  if (parts.length !== 4) return false;
+  if (parts.length !== 4) return { valid: false };
 
   const [phonePart, issuedAtStr, nonce, signature] = parts;
-  if (normalizeAdminPhone(phonePart) !== ADMIN_PHONE_NORMALIZED) return false;
-  if (!/^[a-f0-9]{16}$/i.test(nonce) || isTokenNonceRevoked(nonce)) {
-    return false;
-  }
+  if (normalizeAdminPhone(phonePart) !== ADMIN_PHONE_NORMALIZED) return { valid: false };
+  if (!/^[a-f0-9]{16}$/i.test(nonce)) return { valid: false };
 
   const issuedAt = Number(issuedAtStr);
   const now = Date.now();
@@ -105,21 +103,63 @@ export function verifyAdminToken(token?: string | null): boolean {
     issuedAt > now + 60_000 ||
     now - issuedAt > MAX_ADMIN_TOKEN_TTL_MS
   ) {
-    return false;
+    return { valid: false };
   }
 
   const payload = `${phonePart}:${issuedAtStr}:${nonce}`;
   const expectedSig = crypto.createHmac('sha256', secret).update(payload).digest('hex');
 
   try {
-    if (!/^[a-f0-9]+$/i.test(signature)) return false;
+    if (!/^[a-f0-9]+$/i.test(signature)) return { valid: false };
     const a = Buffer.from(signature, 'hex');
     const b = Buffer.from(expectedSig, 'hex');
-    if (a.length !== b.length || a.length === 0) return false;
-    return crypto.timingSafeEqual(a, b);
+    if (a.length !== b.length || a.length === 0) return { valid: false };
+    return crypto.timingSafeEqual(a, b) ? { valid: true, nonce } : { valid: false };
   } catch {
-    return false;
+    return { valid: false };
   }
+}
+
+/**
+ * Revokes an active admin token nonce persistently (sync local fallback wrapper).
+ */
+export function revokeAdminToken(token?: string | null): boolean {
+  const parsed = parseAdminTokenParts(token);
+  if (!parsed) return false;
+  return persistRevokedTokenNonce(parsed.nonce, parsed.exp);
+}
+
+/**
+ * Revokes an active admin token nonce persistently across Firestore instances.
+ */
+export async function revokeAdminTokenAsync(token?: string | null): Promise<boolean> {
+  const parsed = parseAdminTokenParts(token);
+  if (!parsed) return false;
+  return persistRevokedTokenNonceAsync(parsed.nonce, parsed.exp);
+}
+
+/**
+ * Verifies an HMAC-SHA256 signed, non-expired, non-revoked administrator session token (sync local wrapper).
+ */
+export function verifyAdminToken(token?: string | null): boolean {
+  const sig = validateAdminTokenSignatureAndTtl(token);
+  if (!sig.valid || !sig.nonce) return false;
+  return !isTokenNonceRevoked(sig.nonce);
+}
+
+/**
+ * Authoritative async admin token verification backed by shared Firestore revocation store.
+ */
+export async function verifyAdminTokenAsync(
+  token?: string | null
+): Promise<{ valid: boolean; storeUnavailable?: boolean }> {
+  const sig = validateAdminTokenSignatureAndTtl(token);
+  if (!sig.valid || !sig.nonce) return { valid: false };
+  const rev = await checkTokenNonceRevocationAsync(sig.nonce);
+  if (rev.revoked) {
+    return { valid: false, storeUnavailable: rev.unavailable };
+  }
+  return { valid: true };
 }
 
 /**
@@ -167,13 +207,10 @@ export function verifyAdminPinCredentials(
   };
 }
 
-/**
- * Validates whether an incoming HTTP request carries valid cryptographic administrator credentials.
- */
-export function verifyAdminRequest(
+function extractAdminRequestCandidates(
   headers?: Record<string, string | string[] | undefined>,
   body?: any
-): { authorized: boolean; reason?: string } {
+) {
   const getHeader = (name: string): string => {
     if (!headers) return '';
     const val = headers[name] ?? headers[name.toLowerCase()];
@@ -181,7 +218,6 @@ export function verifyAdminRequest(
     return typeof val === 'string' ? val : '';
   };
 
-  // 1. Check explicit signed admin token in header, HttpOnly cookie, or body
   const tokenCandidate =
     getHeader('x-admin-token') ||
     (getHeader('authorization').startsWith('Bearer ')
@@ -190,11 +226,6 @@ export function verifyAdminRequest(
     getCookieFromHeaders(headers, ADMIN_SESSION_COOKIE_NAME) ||
     (body && typeof body.adminToken === 'string' ? body.adminToken : '');
 
-  if (tokenCandidate && verifyAdminToken(tokenCandidate)) {
-    return { authorized: true };
-  }
-
-  // 2. Check explicit phone + PIN in headers or body
   const phoneCandidate =
     getHeader('x-admin-phone') ||
     (body && typeof body.adminPhone === 'string' ? body.adminPhone : '') ||
@@ -202,13 +233,20 @@ export function verifyAdminRequest(
   const pinCandidate =
     getHeader('x-admin-pin') || (body && typeof body.adminPin === 'string' ? body.adminPin : '');
 
+  return { tokenCandidate, phoneCandidate, pinCandidate };
+}
+
+function finalizeAdminCredentialFallback(
+  phoneCandidate: string,
+  pinCandidate: string,
+  body?: any
+): { authorized: boolean; reason?: string } {
   if (phoneCandidate && pinCandidate) {
     const check = verifyAdminPinCredentials(phoneCandidate, pinCandidate);
     if (check.valid) return { authorized: true };
     return { authorized: false, reason: check.error };
   }
 
-  // 3. Reject invalid phone/role claims explicitly, and NEVER trust phone-only claims without a valid token or PIN
   if (phoneCandidate && !isAdminIdentifier(phoneCandidate)) {
     return {
       authorized: false,
@@ -227,5 +265,47 @@ export function verifyAdminRequest(
     authorized: false,
     reason: 'Unauthorized: Valid administrator session token or credentials required.',
   };
+}
+
+/**
+ * Validates whether an incoming HTTP request carries valid cryptographic administrator credentials (sync wrapper).
+ */
+export function verifyAdminRequest(
+  headers?: Record<string, string | string[] | undefined>,
+  body?: any
+): { authorized: boolean; reason?: string } {
+  const { tokenCandidate, phoneCandidate, pinCandidate } = extractAdminRequestCandidates(headers, body);
+
+  if (tokenCandidate && verifyAdminToken(tokenCandidate)) {
+    return { authorized: true };
+  }
+
+  return finalizeAdminCredentialFallback(phoneCandidate, pinCandidate, body);
+}
+
+/**
+ * Authoritative async admin request verification with cross-instance Firestore revocation check.
+ */
+export async function verifyAdminRequestAsync(
+  headers?: Record<string, string | string[] | undefined>,
+  body?: any
+): Promise<{ authorized: boolean; reason?: string; storeUnavailable?: boolean }> {
+  const { tokenCandidate, phoneCandidate, pinCandidate } = extractAdminRequestCandidates(headers, body);
+
+  if (tokenCandidate) {
+    const tokCheck = await verifyAdminTokenAsync(tokenCandidate);
+    if (tokCheck.valid) {
+      return { authorized: true };
+    }
+    if (tokCheck.storeUnavailable) {
+      return {
+        authorized: false,
+        storeUnavailable: true,
+        reason: 'Session revocation store unavailable.',
+      };
+    }
+  }
+
+  return finalizeAdminCredentialFallback(phoneCandidate, pinCandidate, body);
 }
 

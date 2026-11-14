@@ -11,7 +11,7 @@ import fs from 'fs';
 import os from 'os';
 import path from 'path';
 import crypto from 'crypto';
-import { resolveScopedServiceAccountRaw } from './fixtureSnapshotStore.js';
+import { getAdminFirestore, resetFirebaseAdminForTests } from './serverFirebaseAdmin.js';
 
 export type SecurityEventCategory =
   | 'AUTH'
@@ -74,62 +74,14 @@ const FALLBACK_LOG_FILE = path.join(CACHE_DIR, 'security_audit_logs.json');
 
 let memoryLogs: SecurityAuditEvent[] | null = null;
 const burstTracker = new Map<string, { timestamps: number[] }>();
-let adminFirestoreInstance: any | null = null;
-let adminFirestoreInitAttempted = false;
-
 export function resetSecurityAuditLogsForTests(): void {
   memoryLogs = [];
   burstTracker.clear();
-  adminFirestoreInstance = null;
-  adminFirestoreInitAttempted = false;
+  resetFirebaseAdminForTests();
 }
 
 async function getAuditFirestore(): Promise<any | null> {
-  if (adminFirestoreInstance) return adminFirestoreInstance;
-  if (adminFirestoreInitAttempted) return null;
-  adminFirestoreInitAttempted = true;
-
-  try {
-    const rawSa = resolveScopedServiceAccountRaw();
-    const isVercelEnv = Boolean(process.env.VERCEL || process.env.VERCEL_ENV);
-    const isCloudEnv = Boolean(
-      !isVercelEnv &&
-        (process.env.K_SERVICE ||
-          process.env.GOOGLE_CLOUD_PROJECT ||
-          process.env.GOOGLE_APPLICATION_CREDENTIALS)
-    );
-    if (!rawSa && !isCloudEnv) {
-      return null;
-    }
-
-    const adminPkg = 'firebase-admin';
-    const firebaseAdminModule = await import(adminPkg);
-    const firebaseAdmin = firebaseAdminModule.default || firebaseAdminModule;
-
-    if (!firebaseAdmin.apps.length) {
-      if (rawSa) {
-        const serviceAccount = JSON.parse(rawSa);
-        firebaseAdmin.initializeApp({
-          credential: firebaseAdmin.credential.cert(serviceAccount),
-        });
-      } else {
-        firebaseAdmin.initializeApp();
-      }
-    }
-
-    const db = firebaseAdmin.firestore();
-    if (typeof db.settings === 'function') {
-      try {
-        db.settings({ ignoreUndefinedProperties: true });
-      } catch {
-        // Ignore if already configured
-      }
-    }
-    adminFirestoreInstance = db;
-    return db;
-  } catch {
-    return null;
-  }
+  return getAdminFirestore();
 }
 
 function sanitizeDetailValue(val: unknown, depth = 0): any {

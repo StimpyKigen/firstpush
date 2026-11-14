@@ -22,16 +22,16 @@ import os from 'os';
 import {
   ADMIN_PHONE_NORMALIZED,
   normalizeAdminPhone,
-  revokeAdminToken,
-  verifyAdminRequest,
+  revokeAdminTokenAsync,
+  verifyAdminRequestAsync,
 } from './adminAuthService.js';
 import {
   authenticateTokenRequestAsync,
   issueUserSessionToken,
   MAX_USER_TOKEN_TTL_MS,
   normalizeCanonicalUid,
-  verifyUserSessionToken,
-  revokeUserSessionToken,
+  verifyUserSessionTokenAsync,
+  revokeUserSessionTokenAsync,
 } from './serverTokenEconomy.js';
 import { extractTrustedClientIp } from './rateLimitService.js';
 import { recordSecurityEvent } from './securityAuditLogger.js';
@@ -43,7 +43,11 @@ import {
   USER_SESSION_COOKIE_NAME,
   verifyFirebaseIdTokenServer,
 } from './firebaseIdTokenVerifier.js';
-import { resolveScopedServiceAccountRaw } from './fixtureSnapshotStore.js';
+import {
+  getAdminFirestore,
+  resetFirebaseAdminForTests,
+  resolveScopedServiceAccountRaw,
+} from './serverFirebaseAdmin.js';
 
 // ============================================================================
 // CONSTANTS & TYPES
@@ -114,7 +118,6 @@ interface RateLimitEntry {
 const phoneFailureMap = new Map<string, RateLimitEntry>();
 const ipFailureMap = new Map<string, RateLimitEntry>();
 let authMutexTail: Promise<void> = Promise.resolve();
-let cachedFirestoreDb: any | null | undefined;
 let memoryAuthDb: AuthDatabaseShape | null = null;
 
 function withAuthMutex<T>(fn: () => Promise<T>): Promise<T> {
@@ -308,7 +311,7 @@ export function resetAuthRateLimitsForTests(): void {
   phoneFailureMap.clear();
   ipFailureMap.clear();
   memoryAuthDb = null;
-  cachedFirestoreDb = undefined;
+  resetFirebaseAdminForTests();
 }
 
 // ============================================================================
@@ -359,44 +362,11 @@ function writeDiskAuthDb(db: AuthDatabaseShape): void {
   }
 }
 
-function parseServiceAccountCredentials(): Record<string, any> | null {
-  const raw = resolveScopedServiceAccountRaw();
-  if (!raw) return null;
-  try {
-    const text = raw.trim().startsWith('{') ? raw : Buffer.from(raw, 'base64').toString('utf-8');
-    const json = JSON.parse(text);
-    if (typeof json.private_key === 'string') {
-      json.private_key = json.private_key.replace(/\\n/g, '\n');
-    }
-    return json;
-  } catch {
-    return null;
-  }
-}
-
 async function getAuthFirestoreDb(): Promise<any | null> {
-  if (cachedFirestoreDb !== undefined) return cachedFirestoreDb;
-  const creds = parseServiceAccountCredentials();
-  if (!creds) {
-    cachedFirestoreDb = null;
+  if (!resolveScopedServiceAccountRaw()) {
     return null;
   }
-  try {
-    const adminMod: any = await import('firebase-admin');
-    const admin = adminMod.default || adminMod;
-    const vercelEnv = process.env.VERCEL_ENV?.trim().toLowerCase();
-    const isNonProdVercel = Boolean(vercelEnv && vercelEnv !== 'production');
-    const appName = isNonProdVercel ? 'mshindi-auth-store-preview' : 'mshindi-auth-store';
-    const existing = Array.isArray(admin.apps)
-      ? admin.apps.find((a: any) => a?.name === appName)
-      : null;
-    const app = existing || admin.initializeApp({ credential: admin.credential.cert(creds) }, appName);
-    cachedFirestoreDb = admin.firestore(app);
-    return cachedFirestoreDb;
-  } catch {
-    cachedFirestoreDb = null;
-    return null;
-  }
+  return getAdminFirestore({ allowAdc: false });
 }
 
 async function loadAllAccountRecords(): Promise<Record<string, ServerAccountRecord>> {
@@ -650,14 +620,16 @@ export async function handleAuthHttpRequest(params: {
 
     // Reserved super-admin phone cannot be registered publicly without proof
     if (normalizeAdminPhone(normPhone) === ADMIN_PHONE_NORMALIZED) {
-      const adminAuth = verifyAdminRequest(headers, body);
+      const adminAuth = await verifyAdminRequestAsync(headers, body);
       if (!verifiedWithSms && !adminAuth.authorized) {
         return {
-          statusCode: 403,
+          statusCode: adminAuth.storeUnavailable ? 503 : 403,
           payload: {
             success: false,
             error:
-              'Reserved platform administrator phone requires verified SMS OTP or server admin authorization.',
+              adminAuth.storeUnavailable
+                ? adminAuth.reason || 'Session revocation store unavailable.'
+                : 'Reserved platform administrator phone requires verified SMS OTP or server admin authorization.',
           },
         };
       }
@@ -933,17 +905,33 @@ export async function handleAuthHttpRequest(params: {
       return { statusCode: 405, payload: { success: false, error: 'Method not allowed.' } };
     }
 
-    const adminCheck = verifyAdminRequest(headers);
+    const adminCheck = await verifyAdminRequestAsync(headers);
     const tokenCandidate = extractUserTokenCandidate(headers);
     let resolvedPhone = '';
     let verifiedUserToken = '';
+    let storeUnavailable = Boolean(adminCheck.storeUnavailable);
 
     if (tokenCandidate) {
-      const tokenCheck = verifyUserSessionToken(tokenCandidate);
-      if (tokenCheck.valid && tokenCheck.userUid) {
+      const tokenCheck = await verifyUserSessionTokenAsync(tokenCandidate);
+      if (tokenCheck.storeUnavailable) {
+        storeUnavailable = true;
+      } else if (tokenCheck.valid && tokenCheck.userUid) {
         resolvedPhone = normalizePhoneDigits(tokenCheck.userUid);
         verifiedUserToken = tokenCandidate;
       }
+    }
+
+    if (storeUnavailable) {
+      return {
+        statusCode: 503,
+        payload: {
+          success: false,
+          authenticated: false,
+          adminAuthenticated: false,
+          user: null,
+          error: 'Session revocation store unavailable.',
+        },
+      };
     }
 
     if (!resolvedPhone) {
@@ -1007,8 +995,8 @@ export async function handleAuthHttpRequest(params: {
     const userToken = extractUserTokenCandidate(headers, body);
     const adminToken = extractAdminTokenCandidate(headers, body);
 
-    const revokedUser = userToken ? revokeUserSessionToken(userToken) : false;
-    const revokedAdmin = adminToken ? revokeAdminToken(adminToken) : false;
+    const revokedUser = userToken ? await revokeUserSessionTokenAsync(userToken) : false;
+    const revokedAdmin = adminToken ? await revokeAdminTokenAsync(adminToken) : false;
 
     return {
       statusCode: 200,
@@ -1085,8 +1073,8 @@ export async function handleAuthHttpRequest(params: {
 
       const userToken = extractUserTokenCandidate(headers, body);
       const adminToken = extractAdminTokenCandidate(headers, body);
-      if (userToken) revokeUserSessionToken(userToken);
-      if (adminToken) revokeAdminToken(adminToken);
+      if (userToken) await revokeUserSessionTokenAsync(userToken);
+      if (adminToken) await revokeAdminTokenAsync(adminToken);
 
       return {
         statusCode: 200,

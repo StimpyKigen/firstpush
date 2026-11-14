@@ -8,7 +8,7 @@
  */
 
 import crypto from 'node:crypto';
-import { resolveScopedServiceAccountRaw } from './fixtureSnapshotStore.js';
+import { getAdminAuth } from './serverFirebaseAdmin.js';
 
 export const FIREBASE_PROJECT_ID = 'mshindiroom-production';
 export const USER_SESSION_COOKIE_NAME = 'mshindi_user_session';
@@ -18,7 +18,6 @@ const GOOGLE_CERT_URL =
   'https://www.googleapis.com/robot/v1/metadata/x509/securetoken@system.gserviceaccount.com';
 
 let cachedGoogleCerts: { certs: Record<string, string>; expiresAtMs: number } | null = null;
-let cachedFirebaseAuthInstance: any | null | undefined;
 
 export function parseCookieHeader(cookieHeader?: string | string[]): Record<string, string> {
   const raw = Array.isArray(cookieHeader) ? cookieHeader.join('; ') : String(cookieHeader || '');
@@ -107,34 +106,6 @@ export interface VerifiedFirebaseIdentity {
   uid?: string;
   phoneNumber?: string;
   error?: string;
-}
-
-async function getFirebaseAdminAuth(): Promise<any | null> {
-  if (cachedFirebaseAuthInstance !== undefined) return cachedFirebaseAuthInstance;
-  try {
-    const rawSa = resolveScopedServiceAccountRaw();
-    if (!rawSa) {
-      cachedFirebaseAuthInstance = null;
-      return null;
-    }
-    const text = rawSa.trim().startsWith('{') ? rawSa : Buffer.from(rawSa, 'base64').toString('utf-8');
-    const creds = JSON.parse(text);
-    if (typeof creds.private_key === 'string') {
-      creds.private_key = creds.private_key.replace(/\\n/g, '\n');
-    }
-
-    const adminPkg = 'firebase-admin';
-    const mod: any = await import(/* @vite-ignore */ adminPkg);
-    const admin = mod.default || mod;
-    const appName = 'mshindi-auth-verifier';
-    const existing = Array.isArray(admin.apps) ? admin.apps.find((a: any) => a?.name === appName) : null;
-    const app = existing || admin.initializeApp({ credential: admin.credential.cert(creds) }, appName);
-    cachedFirebaseAuthInstance = admin.auth(app);
-    return cachedFirebaseAuthInstance;
-  } catch {
-    cachedFirebaseAuthInstance = null;
-    return null;
-  }
 }
 
 async function fetchGoogleSecureTokenCerts(): Promise<Record<string, string> | null> {
@@ -254,7 +225,7 @@ export async function verifyFirebaseIdTokenServer(
     return { valid: false, error: 'Invalid or missing Firebase ID token.' };
   }
 
-  const adminAuth = await getFirebaseAdminAuth();
+  const adminAuth = await getAdminAuth({ allowAdc: false });
   if (adminAuth) {
     try {
       const decoded = await adminAuth.verifyIdToken(idToken.trim(), true);

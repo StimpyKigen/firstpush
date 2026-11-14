@@ -15,8 +15,12 @@ import {
   authenticateTokenRequestAsync,
   processVerifiedPurchasePayment,
 } from './serverTokenEconomy.js';
-import { verifyAdminRequest } from './adminAuthService.js';
-import { resolveScopedServiceAccountRaw } from './fixtureSnapshotStore.js';
+import { verifyAdminRequestAsync } from './adminAuthService.js';
+import {
+  getAdminFirestore,
+  resetFirebaseAdminForTests,
+  resolveScopedServiceAccountRaw,
+} from './serverFirebaseAdmin.js';
 import { recordSecurityEvent } from './securityAuditLogger.js';
 import { extractTrustedClientIp } from './rateLimitService.js';
 
@@ -61,74 +65,14 @@ interface PersistentSubscriptionState {
   usedPaymentCodes: Record<string, { userId: string; usedAt: string; plan: string; amountKsh: number }>;
 }
 
-// Lazy Firebase Admin Firestore instance
-let adminFirestoreInstance: any | null = null;
-let adminFirestoreInitAttempted = false;
-
+// Shared Firebase Admin Firestore accessor
 export function resetSubscriptionFirestoreForTests(): void {
-  adminFirestoreInstance = null;
-  adminFirestoreInitAttempted = false;
+  resetFirebaseAdminForTests();
 }
 
-async function getAdminFirestore(): Promise<any | null> {
-  if (adminFirestoreInstance) return adminFirestoreInstance;
-  if (adminFirestoreInitAttempted) return null;
-  adminFirestoreInitAttempted = true;
-
-  try {
-    const rawSa = resolveScopedServiceAccountRaw();
-    const isVercelEnv = Boolean(process.env.VERCEL || process.env.VERCEL_ENV);
-    const isCloudEnv = Boolean(
-      !isVercelEnv &&
-        (process.env.K_SERVICE ||
-          process.env.GOOGLE_CLOUD_PROJECT ||
-          process.env.GOOGLE_APPLICATION_CREDENTIALS ||
-          process.platform === 'linux')
-    );
-    if (!rawSa && !isCloudEnv) {
-      return null;
-    }
-
-    const adminPkg = 'firebase-admin';
-    const adminModule = await import(/* @vite-ignore */ adminPkg);
-    const admin = (adminModule as any).default || adminModule;
-
-    if (rawSa) {
-      const text = rawSa.trim().startsWith('{') ? rawSa : Buffer.from(rawSa, 'base64').toString('utf-8');
-      const serviceAccount = JSON.parse(text);
-      if (typeof serviceAccount.private_key === 'string') {
-        serviceAccount.private_key = serviceAccount.private_key.replace(/\\n/g, '\n');
-      }
-      const vercelEnv = process.env.VERCEL_ENV?.trim().toLowerCase();
-      const appName = vercelEnv && vercelEnv !== 'production'
-        ? 'mshindi-subscription-store-preview'
-        : 'mshindi-subscription-store';
-      const existing = Array.isArray(admin.apps)
-        ? admin.apps.find((a: any) => a?.name === appName)
-        : null;
-      const app =
-        existing ||
-        admin.initializeApp(
-          {
-            credential: admin.credential.cert(serviceAccount),
-            projectId: serviceAccount.project_id || 'mshindiroom-production',
-          },
-          appName
-        );
-      adminFirestoreInstance = admin.firestore(app);
-      return adminFirestoreInstance;
-    }
-
-    if (!admin.apps || admin.apps.length === 0) {
-      admin.initializeApp({
-        projectId: 'mshindiroom-production',
-      });
-    }
-    adminFirestoreInstance = admin.firestore();
-    return adminFirestoreInstance;
-  } catch {
-    return null;
-  }
+async function getAdminFirestoreSubscriptionDb(): Promise<any | null> {
+  void resolveScopedServiceAccountRaw();
+  return getAdminFirestore();
 }
 
 // Local filesystem fallback storage path
@@ -211,7 +155,7 @@ export async function getUserSubscription(
 
   // Try reading from Firestore if Admin SDK is available
   try {
-    const adminDb = await getAdminFirestore();
+    const adminDb = await getAdminFirestoreSubscriptionDb();
     if (adminDb) {
       const docSnap = await adminDb.collection('subscriptions').doc(cleanUserId).get();
       if (docSnap.exists) {
@@ -493,7 +437,7 @@ async function syncSubscriptionToFirestore(
   historyItem?: SubscriptionHistoryRecord
 ): Promise<boolean> {
   try {
-    const adminDb = await getAdminFirestore();
+    const adminDb = await getAdminFirestoreSubscriptionDb();
     if (!adminDb) return false;
 
     await adminDb.collection('subscriptions').doc(sub.userId).set(sub, { merge: true });
@@ -581,8 +525,18 @@ export async function handleSubscriptionHttpRequest(req: {
   }
 
   // Require authenticated user session (or verified administrator credentials for support actions)
-  const adminAuth = verifyAdminRequest(req.headers || {}, body);
+  const adminAuth = await verifyAdminRequestAsync(req.headers || {}, body);
   const authCheck = await authenticateTokenRequestAsync(req.headers || {}, { ...query, ...body });
+
+  if (!authCheck.authenticated && !adminAuth.authorized && (adminAuth.storeUnavailable || authCheck.statusCode === 503)) {
+    return {
+      statusCode: 503,
+      payload: {
+        success: false,
+        error: adminAuth.reason || authCheck.error || 'Session revocation store unavailable.',
+      },
+    };
+  }
 
   const requestedUserId = (
     body.userId ||

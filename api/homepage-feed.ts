@@ -3,7 +3,7 @@ import {
   saveHomepageFeedAsync,
   cleanupExpiredCarouselPostsAsync,
 } from '../src/lib/serverHomepageFeed.js';
-import { verifyAdminRequest, constantTimeEqualText } from '../src/lib/adminAuthService.js';
+import { verifyAdminRequestAsync, constantTimeEqualText } from '../src/lib/adminAuthService.js';
 import {
   applyCorsPolicy,
   applyStandardSecurityHeaders,
@@ -11,13 +11,17 @@ import {
 } from '../src/lib/httpSecurity.js';
 import { enforceEndpointRateLimit } from '../src/lib/rateLimitService.js';
 
-function isAuthorizedCleanupRequest(req: any, body?: any): boolean {
+async function isAuthorizedCleanupRequest(
+  req: any,
+  body?: any
+): Promise<{ authorized: boolean; storeUnavailable?: boolean }> {
   const cronSecret = (process.env.CRON_SECRET || '').trim();
   const authHeader = String(req?.headers?.authorization || req?.headers?.Authorization || '');
   if (cronSecret && authHeader && constantTimeEqualText(authHeader, `Bearer ${cronSecret}`)) {
-    return true;
+    return { authorized: true };
   }
-  return verifyAdminRequest(req?.headers || {}, body || {}).authorized;
+  const adminCheck = await verifyAdminRequestAsync(req?.headers || {}, body || {});
+  return { authorized: adminCheck.authorized, storeUnavailable: adminCheck.storeUnavailable };
 }
 
 function getActionParam(req: any, body?: any): string {
@@ -75,10 +79,13 @@ export default async function handler(req: any, res: any) {
     if (req.method !== 'GET' && req.method !== 'POST') {
       return res.status(405).json({ success: false, error: 'Method not allowed.' });
     }
-    if (!isAuthorizedCleanupRequest(req, parsedBody)) {
-      return res.status(403).json({
+    const cleanupAuth = await isAuthorizedCleanupRequest(req, parsedBody);
+    if (!cleanupAuth.authorized) {
+      return res.status(cleanupAuth.storeUnavailable ? 503 : 403).json({
         success: false,
-        error: 'Forbidden: Valid CRON_SECRET or administrator credentials required for cleanup.',
+        error: cleanupAuth.storeUnavailable
+          ? 'Session revocation store unavailable.'
+          : 'Forbidden: Valid CRON_SECRET or administrator credentials required for cleanup.',
       });
     }
     try {
@@ -116,9 +123,9 @@ export default async function handler(req: any, res: any) {
   if (req.method === 'POST') {
     try {
       const feed = parsedBody;
-      const authCheck = verifyAdminRequest(req.headers || {}, feed);
+      const authCheck = await verifyAdminRequestAsync(req.headers || {}, feed);
       if (!authCheck.authorized) {
-        return res.status(403).json({
+        return res.status(authCheck.storeUnavailable ? 503 : 403).json({
           success: false,
           error: authCheck.reason || 'Forbidden: Administrator permissions required.',
         });

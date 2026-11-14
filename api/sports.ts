@@ -17,7 +17,7 @@ import {
 } from '../src/lib/sportscoreOddsService.js';
 import { executeWeeklyIngestion, getWeeklySchedulerStatus } from '../src/lib/weeklyFixtureService.js';
 import { isSnapshotStoreConfigured } from '../src/lib/fixtureSnapshotStore.js';
-import { verifyAdminRequest, constantTimeEqualText } from '../src/lib/adminAuthService.js';
+import { verifyAdminRequestAsync, constantTimeEqualText } from '../src/lib/adminAuthService.js';
 import { enforceAuthenticatedChatCooldown } from '../src/lib/serverTokenEconomy.js';
 import {
   applyCorsPolicy,
@@ -302,10 +302,12 @@ export default async function handler(req: any, res: any) {
   // 12. Manual/On-Demand Rolling or Live Sync (/api/sports/sync & /api/sports/sync-live)
   if (subpath === 'sync') {
     const body = parsedPostBody;
-    const adminCheck = verifyAdminRequest(req.headers || {}, body);
     const hasValidCronSecret = verifyCronBearerHeader(req);
+    const adminCheck = hasValidCronSecret
+      ? { authorized: false }
+      : await verifyAdminRequestAsync(req.headers || {}, body);
     if (!adminCheck.authorized && !hasValidCronSecret) {
-      return res.status(403).json({
+      return res.status(adminCheck.storeUnavailable ? 503 : 403).json({
         success: false,
         error: adminCheck.reason || 'Forbidden: Administrator permissions required.',
       });
@@ -320,10 +322,12 @@ export default async function handler(req: any, res: any) {
 
   if (subpath === 'sync-live') {
     const body = parsedPostBody;
-    const adminCheck = verifyAdminRequest(req.headers || {}, body);
     const hasValidCronSecret = verifyCronBearerHeader(req);
+    const adminCheck = hasValidCronSecret
+      ? { authorized: false }
+      : await verifyAdminRequestAsync(req.headers || {}, body);
     if (!adminCheck.authorized && !hasValidCronSecret) {
-      return res.status(403).json({
+      return res.status(adminCheck.storeUnavailable ? 503 : 403).json({
         success: false,
         error: adminCheck.reason || 'Forbidden: Administrator permissions required.',
       });
@@ -349,14 +353,23 @@ export default async function handler(req: any, res: any) {
   // 14. Vercel Cron & Admin Weekly Fixture Ingestion (/api/sports/weekly-sync & /api/cron/weekly-sync)
   if (subpath === 'weekly-sync' || subpath === 'cron-weekly-sync') {
     const body = parsedPostBody;
-    const adminCheck = verifyAdminRequest(req.headers || {}, body);
+    const hasValidCronSecret = verifyCronBearerHeader(req);
+    const adminCheck = hasValidCronSecret
+      ? { authorized: false }
+      : await verifyAdminRequestAsync(req.headers || {}, body);
 
     if (!adminCheck.authorized) {
       const secret = (process.env.CRON_SECRET || '').trim();
+      if (adminCheck.storeUnavailable && !hasValidCronSecret) {
+        return res.status(503).json({
+          success: false,
+          error: adminCheck.reason || 'Session revocation store unavailable.',
+        });
+      }
       if (!secret) {
         return res.status(503).json({ success: false, error: 'CRON_SECRET is not configured.' });
       }
-      if (!verifyCronBearerHeader(req)) {
+      if (!hasValidCronSecret) {
         return res.status(401).json({ success: false, error: 'Unauthorized.' });
       }
       if (!isSnapshotStoreConfigured()) {

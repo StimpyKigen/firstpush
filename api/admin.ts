@@ -1,8 +1,8 @@
 import { savePermanentMediaAsset, MediaValidationError } from '../src/lib/serverHomepageFeed.js';
 import {
   verifyAdminPinCredentials,
-  verifyAdminRequest,
-  revokeAdminToken,
+  verifyAdminRequestAsync,
+  revokeAdminTokenAsync,
   MAX_ADMIN_TOKEN_TTL_MS,
 } from '../src/lib/adminAuthService.js';
 import {
@@ -161,7 +161,7 @@ export default async function handler(req: any, res: any) {
     const bodyTok = typeof body.adminToken === 'string' ? body.adminToken.trim() : '';
     const tok = cookieTok || headerTok || bodyTok;
     if (tok) {
-      revokeAdminToken(tok);
+      await revokeAdminTokenAsync(tok);
     }
     appendSetCookieHeader(res, buildClearCookieHeader(ADMIN_SESSION_COOKIE_NAME, isHttpsRequest(req)));
     return res.status(200).json({ success: true, loggedOut: true });
@@ -173,9 +173,9 @@ export default async function handler(req: any, res: any) {
       return res.status(405).json({ success: false, error: 'Method not allowed.' });
     }
     try {
-      const authCheck = verifyAdminRequest(req.headers || {}, body);
+      const authCheck = await verifyAdminRequestAsync(req.headers || {}, body);
       if (!authCheck.authorized) {
-        return res.status(403).json({
+        return res.status(authCheck.storeUnavailable ? 503 : 403).json({
           success: false,
           error: authCheck.reason || 'Forbidden: Administrator permissions required.',
         });
@@ -219,9 +219,9 @@ export default async function handler(req: any, res: any) {
         return res.status(200).json({ success: true, count: fixtures.length, fixtures, batches });
       }
       if (req.method === 'POST') {
-        const authCheck = verifyAdminRequest(req.headers || {}, body);
+        const authCheck = await verifyAdminRequestAsync(req.headers || {}, body);
         if (!authCheck.authorized) {
-          return res.status(403).json({
+          return res.status(authCheck.storeUnavailable ? 503 : 403).json({
             success: false,
             error: authCheck.reason || 'Forbidden: Administrator permissions required.',
           });
@@ -239,9 +239,9 @@ export default async function handler(req: any, res: any) {
         });
       }
       if (req.method === 'DELETE') {
-        const authCheck = verifyAdminRequest(req.headers || {}, body);
+        const authCheck = await verifyAdminRequestAsync(req.headers || {}, body);
         if (!authCheck.authorized) {
-          return res.status(403).json({
+          return res.status(authCheck.storeUnavailable ? 503 : 403).json({
             success: false,
             error: authCheck.reason || 'Forbidden: Administrator permissions required.',
           });
@@ -260,9 +260,9 @@ export default async function handler(req: any, res: any) {
       return res.status(405).json({ success: false, error: 'Method not allowed.' });
     }
     try {
-      const authCheck = verifyAdminRequest(req.headers || {}, body);
+      const authCheck = await verifyAdminRequestAsync(req.headers || {}, body);
       if (!authCheck.authorized) {
-        return res.status(403).json({
+        return res.status(authCheck.storeUnavailable ? 503 : 403).json({
           success: false,
           error: authCheck.reason || 'Forbidden: Administrator permissions required.',
         });
@@ -285,9 +285,9 @@ export default async function handler(req: any, res: any) {
       return res.status(405).json({ success: false, error: 'Method not allowed.' });
     }
     try {
-      const authCheck = verifyAdminRequest(req.headers || {}, body);
+      const authCheck = await verifyAdminRequestAsync(req.headers || {}, body);
       if (!authCheck.authorized) {
-        return res.status(403).json({
+        return res.status(authCheck.storeUnavailable ? 503 : 403).json({
           success: false,
           error: authCheck.reason || 'Forbidden: Administrator permissions required.',
         });
@@ -318,7 +318,7 @@ export default async function handler(req: any, res: any) {
     if (req.method !== 'GET') {
       return res.status(405).json({ success: false, error: 'Method not allowed.' });
     }
-    const authCheck = verifyAdminRequest(req.headers || {}, body);
+    const authCheck = await verifyAdminRequestAsync(req.headers || {}, body);
     if (!authCheck.authorized) {
       await recordSecurityEvent({
         category: 'ADMIN',
@@ -328,7 +328,7 @@ export default async function handler(req: any, res: any) {
         ip: clientIp,
         route: '/api/admin/security-logs',
       });
-      return res.status(403).json({
+      return res.status(authCheck.storeUnavailable ? 503 : 403).json({
         success: false,
         error: authCheck.reason || 'Forbidden: Administrator permissions required.',
       });

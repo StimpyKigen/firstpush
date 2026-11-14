@@ -19,10 +19,16 @@ import path from 'path';
 import os from 'os';
 import {
   verifyAdminRequest,
+  verifyAdminRequestAsync,
   normalizeAdminPhone,
   ADMIN_PHONE_NORMALIZED,
 } from './adminAuthService.js';
-import { persistRevokedTokenNonce, isTokenNonceRevoked } from './tokenRevocationStore.js';
+import {
+  persistRevokedTokenNonce,
+  persistRevokedTokenNonceAsync,
+  isTokenNonceRevoked,
+  checkTokenNonceRevocationAsync,
+} from './tokenRevocationStore.js';
 import {
   USER_SESSION_COOKIE_NAME,
   getCookieFromHeaders,
@@ -381,31 +387,28 @@ export function issueUserSessionToken(userUid: string, pinHash?: string): string
   return `utok.${Buffer.from(payload, 'utf-8').toString('base64url')}.${sig}`;
 }
 
-/**
- * Revokes a previously issued user session token nonce persistently.
- */
-export function revokeUserSessionToken(token?: string | null): boolean {
-  if (!token || typeof token !== 'string' || !token.startsWith('utok.')) return false;
+function parseUserTokenNonceAndExp(token?: string | null): { nonce: string; exp: number } | null {
+  if (!token || typeof token !== 'string' || !token.startsWith('utok.')) return null;
   const parts = token.trim().split('.');
-  if (parts.length !== 3) return false;
+  if (parts.length !== 3) return null;
   try {
     const payload = Buffer.from(parts[1], 'base64url').toString('utf-8');
     const [, issuedAtStr, nonce] = payload.split(':');
-    if (!nonce || !/^[a-f0-9]{16}$/i.test(nonce)) return false;
+    if (!nonce || !/^[a-f0-9]{16}$/i.test(nonce)) return null;
     const issuedAt = Number(issuedAtStr);
-    const exp = Number.isFinite(issuedAt) && issuedAt > 0
-      ? issuedAt + MAX_USER_TOKEN_TTL_MS + 60_000
-      : Date.now() + MAX_USER_TOKEN_TTL_MS;
-    return persistRevokedTokenNonce(nonce, exp);
+    const exp =
+      Number.isFinite(issuedAt) && issuedAt > 0
+        ? issuedAt + MAX_USER_TOKEN_TTL_MS + 60_000
+        : Date.now() + MAX_USER_TOKEN_TTL_MS;
+    return { nonce, exp };
   } catch {
-    return false;
+    return null;
   }
 }
 
-/**
- * Verifies an HMAC-SHA256 signed, non-expired, non-revoked user session token and returns `userUid`.
- */
-export function verifyUserSessionToken(token?: string | null): { valid: boolean; userUid?: string } {
+function validateUserTokenSignatureAndTtl(
+  token?: string | null
+): { valid: boolean; userUid?: string; nonce?: string } {
   if (!token || typeof token !== 'string' || !token.startsWith('utok.')) {
     return { valid: false };
   }
@@ -428,7 +431,7 @@ export function verifyUserSessionToken(token?: string | null): { valid: boolean;
     const payloadParts = payload.split(':');
     if (payloadParts.length < 4) return { valid: false };
     const [uidPart, issuedAtStr, nonce] = payloadParts;
-    if (!/^[a-f0-9]{16}$/i.test(nonce) || isTokenNonceRevoked(nonce)) {
+    if (!/^[a-f0-9]{16}$/i.test(nonce)) {
       return { valid: false };
     }
     const issuedAt = Number(issuedAtStr);
@@ -442,10 +445,53 @@ export function verifyUserSessionToken(token?: string | null): { valid: boolean;
     ) {
       return { valid: false };
     }
-    return { valid: true, userUid: normalizeCanonicalUid(uidPart) };
+    return { valid: true, userUid: normalizeCanonicalUid(uidPart), nonce };
   } catch {
     return { valid: false };
   }
+}
+
+/**
+ * Revokes a previously issued user session token nonce persistently (sync wrapper).
+ */
+export function revokeUserSessionToken(token?: string | null): boolean {
+  const parsed = parseUserTokenNonceAndExp(token);
+  if (!parsed) return false;
+  return persistRevokedTokenNonce(parsed.nonce, parsed.exp);
+}
+
+/**
+ * Revokes a previously issued user session token nonce persistently across Firestore instances.
+ */
+export async function revokeUserSessionTokenAsync(token?: string | null): Promise<boolean> {
+  const parsed = parseUserTokenNonceAndExp(token);
+  if (!parsed) return false;
+  return persistRevokedTokenNonceAsync(parsed.nonce, parsed.exp);
+}
+
+/**
+ * Verifies an HMAC-SHA256 signed, non-expired, non-revoked user session token (sync wrapper).
+ */
+export function verifyUserSessionToken(token?: string | null): { valid: boolean; userUid?: string } {
+  const sig = validateUserTokenSignatureAndTtl(token);
+  if (!sig.valid || !sig.nonce || !sig.userUid) return { valid: false };
+  if (isTokenNonceRevoked(sig.nonce)) return { valid: false };
+  return { valid: true, userUid: sig.userUid };
+}
+
+/**
+ * Authoritative async verification checking shared Firestore revocation store.
+ */
+export async function verifyUserSessionTokenAsync(
+  token?: string | null
+): Promise<{ valid: boolean; userUid?: string; storeUnavailable?: boolean }> {
+  const sig = validateUserTokenSignatureAndTtl(token);
+  if (!sig.valid || !sig.nonce || !sig.userUid) return { valid: false };
+  const rev = await checkTokenNonceRevocationAsync(sig.nonce);
+  if (rev.revoked) {
+    return { valid: false, storeUnavailable: rev.unavailable };
+  }
+  return { valid: true, userUid: sig.userUid };
 }
 
 /**
@@ -520,9 +566,6 @@ export async function authenticateTokenRequestAsync(
   error?: string;
   statusCode?: number;
 }> {
-  const syncCheck = authenticateTokenRequest(headers, body);
-  if (syncCheck.authenticated) return syncCheck;
-
   const getHeader = (name: string): string => {
     if (!headers) return '';
     const val = headers[name] ?? headers[name.toLowerCase()];
@@ -530,8 +573,50 @@ export async function authenticateTokenRequestAsync(
     return typeof val === 'string' ? val.trim() : '';
   };
 
+  const adminCheck = await verifyAdminRequestAsync(headers, body);
+  if (adminCheck.storeUnavailable) {
+    return {
+      authenticated: false,
+      error: 'Session revocation store unavailable.',
+      statusCode: 503,
+    };
+  }
+
+  const requestedUid = normalizeCanonicalUid(
+    body?.userUid || body?.userId || body?.phone || getHeader('x-user-uid') || getHeader('x-user-phone')
+  );
+
   const authHeader = getHeader('authorization');
   const bearerToken = authHeader.startsWith('Bearer ') ? authHeader.slice(7).trim() : '';
+  const cookieToken = getCookieFromHeaders(headers, USER_SESSION_COOKIE_NAME);
+  const sessionToken =
+    getHeader('x-user-token') ||
+    (bearerToken.startsWith('utok.') ? bearerToken : '') ||
+    (cookieToken.startsWith('utok.') ? cookieToken : '') ||
+    (typeof body?.userToken === 'string' ? body.userToken : '');
+
+  if (sessionToken) {
+    const verified = await verifyUserSessionTokenAsync(sessionToken);
+    if (verified.storeUnavailable) {
+      return {
+        authenticated: false,
+        error: 'Session revocation store unavailable.',
+        statusCode: 503,
+      };
+    }
+    if (!verified.valid || !verified.userUid) {
+      return { authenticated: false, error: 'Invalid or expired user session token.', statusCode: 401 };
+    }
+    if (requestedUid && requestedUid !== verified.userUid && !adminCheck.authorized) {
+      return {
+        authenticated: false,
+        error: `Forbidden: Authenticated user '${verified.userUid}' cannot perform operations on '${requestedUid}'.`,
+        statusCode: 403,
+      };
+    }
+    return { authenticated: true, userUid: verified.userUid, isAdmin: adminCheck.authorized };
+  }
+
   const firebaseTokenCandidate =
     getHeader('x-firebase-id-token') ||
     (!bearerToken.startsWith('utok.') && bearerToken.split('.').length === 3 ? bearerToken : '') ||
@@ -556,10 +641,6 @@ export async function authenticateTokenRequestAsync(
       };
     }
 
-    const adminCheck = verifyAdminRequest(headers, body);
-    const requestedUid = normalizeCanonicalUid(
-      body?.userUid || body?.userId || body?.phone || getHeader('x-user-uid') || getHeader('x-user-phone')
-    );
     if (requestedUid && requestedUid !== resolvedUid && !adminCheck.authorized) {
       return {
         authenticated: false,
@@ -576,7 +657,15 @@ export async function authenticateTokenRequestAsync(
     };
   }
 
-  return syncCheck;
+  if (adminCheck.authorized && requestedUid) {
+    return { authenticated: true, userUid: requestedUid, isAdmin: true };
+  }
+
+  return {
+    authenticated: false,
+    error: 'Authentication required: Missing valid session token or verified credentials.',
+    statusCode: 401,
+  };
 }
 
 const serverChatCooldowns = new Map<string, number>();
@@ -2042,12 +2131,12 @@ export async function executeAdminTokenAdjustment(params: {
   affectedTokenIds?: string[];
   wallet?: FormattedWalletResponse;
 }> {
-  const authCheck = verifyAdminRequest(params.headers, params.body);
+  const authCheck = await verifyAdminRequestAsync(params.headers, params.body);
   if (!authCheck.authorized) {
     return {
       success: false,
       error: authCheck.reason || 'Forbidden: Verified administrator privileges required.',
-      statusCode: 403,
+      statusCode: authCheck.storeUnavailable ? 503 : 403,
     };
   }
 
@@ -2416,7 +2505,7 @@ export async function handleTokenEconomyHttpRequest(params: {
 
   // 5. REFERRAL QUALIFICATION (`/api/tokens/referral` or `action === 'referral'`)
   if (pathname.endsWith('/referral') || action === 'referral') {
-    const adminAuth = verifyAdminRequest(headers, body);
+    const adminAuth = await verifyAdminRequestAsync(headers, body);
     if (!adminAuth.authorized) {
       return {
         statusCode: 503,
@@ -2454,10 +2543,10 @@ export async function handleTokenEconomyHttpRequest(params: {
     action === 'refund'
   ) {
     if (action === 'reversal' || action === 'refund' || pathname.endsWith('/reverse-payment')) {
-      const adminAuth = verifyAdminRequest(headers, body);
+      const adminAuth = await verifyAdminRequestAsync(headers, body);
       if (!adminAuth.authorized) {
         return {
-          statusCode: 403,
+          statusCode: adminAuth.storeUnavailable ? 503 : 403,
           payload: { success: false, error: adminAuth.reason || 'Forbidden: Admin privileges required.' },
         };
       }

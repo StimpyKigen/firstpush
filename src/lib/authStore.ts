@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { notifySessionChanged } from './sessionLifecycle';
 
 export interface Account {
   phone: string; // canonical form: 2547XXXXXXXX / 2541XXXXXXXX
@@ -150,6 +151,7 @@ export const useAuth = create<AuthState>()(
                   : get().userSessionToken,
               sessionHydrated: true,
             });
+            notifySessionChanged(user.phone);
             return user;
           }
           set({
@@ -158,6 +160,7 @@ export const useAuth = create<AuthState>()(
             userSessionToken: null,
             sessionHydrated: true,
           });
+          notifySessionChanged(null);
           return null;
         } catch {
           set({ sessionHydrated: true });
@@ -208,6 +211,7 @@ export const useAuth = create<AuthState>()(
               typeof data.userSessionToken === 'string' ? data.userSessionToken : null,
             sessionHydrated: true,
           });
+          notifySessionChanged(created.phone);
           return { ok: true, user: created };
         } catch {
           return {
@@ -250,6 +254,7 @@ export const useAuth = create<AuthState>()(
               typeof data.userSessionToken === 'string' ? data.userSessionToken : null,
             sessionHydrated: true,
           });
+          notifySessionChanged(loggedInUser.phone);
           return { ok: true, user: loggedInUser };
         } catch {
           return {
@@ -283,6 +288,7 @@ export const useAuth = create<AuthState>()(
                 typeof data.userSessionToken === 'string' ? data.userSessionToken : null,
               sessionHydrated: true,
             });
+            notifySessionChanged(user.phone);
             return { ok: true, registered: true, user, phone: user.phone };
           }
           return {
@@ -314,6 +320,7 @@ export const useAuth = create<AuthState>()(
           userSessionToken: null,
           sessionHydrated: true,
         });
+        notifySessionChanged(null);
 
         try {
           await fetch('/api/auth/logout', {
@@ -372,6 +379,7 @@ export const useAuth = create<AuthState>()(
             userSessionToken: null,
             sessionHydrated: true,
           });
+          notifySessionChanged(null);
           return { ok: true };
         } catch {
           return {

@@ -66,7 +66,7 @@ function getP2pAuthHeaders(includeContentType = false): Record<string, string> {
   if (includeContentType) {
     headers['Content-Type'] = 'application/json';
   }
-  const token = useWallet.getState().userSessionToken || useAuth.getState().userSessionToken;
+  const token = useAuth.getState().userSessionToken;
   if (token) {
     headers['x-user-token'] = token;
   }

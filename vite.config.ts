@@ -1,8 +1,103 @@
 import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
 import path from 'path';
-import fs from 'fs';
+import type { IncomingMessage, ServerResponse } from 'http';
 import { defineConfig } from 'vite';
+import { getDevAllowedHosts } from './src/lib/devAllowedHosts';
+
+const MAX_DEV_API_BODY_BYTES = 16 * 1024 * 1024;
+
+function resolveApiHandlerModule(pathname: string): string | null {
+  const clean = pathname.replace(/\/+$/, '').toLowerCase();
+  if (clean === '/api/admin' || clean.startsWith('/api/admin/')) {
+    return '/api/admin.ts';
+  }
+  if (clean === '/api/homepage-feed') {
+    return '/api/homepage-feed.ts';
+  }
+  if (clean === '/api/sports' || clean.startsWith('/api/sports/') || clean.startsWith('/api/cron/')) {
+    return '/api/sports.ts';
+  }
+  if (clean === '/api/tokens' || clean.startsWith('/api/tokens/') || clean === '/api/mpesa/verify-code') {
+    return '/api/tokens.ts';
+  }
+  if (clean === '/api/auth' || clean.startsWith('/api/auth/')) {
+    return '/api/auth.ts';
+  }
+  if (clean === '/api/subscription' || clean.startsWith('/api/subscription/')) {
+    return '/api/subscription.ts';
+  }
+  if (clean === '/api/moderation' || clean.startsWith('/api/moderation/')) {
+    return '/api/moderation.ts';
+  }
+  return null;
+}
+
+function readRawRequestBody(req: IncomingMessage, maxBytes: number): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const chunks: Buffer[] = [];
+    let totalBytes = 0;
+    let settled = false;
+
+    req.on('data', (chunk: Buffer | string) => {
+      if (settled) return;
+      const buf = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk);
+      totalBytes += buf.length;
+      if (totalBytes > maxBytes) {
+        settled = true;
+        reject(Object.assign(new Error('Request payload exceeds maximum transport limit.'), { statusCode: 413 }));
+        req.destroy();
+        return;
+      }
+      chunks.push(buf);
+    });
+
+    req.on('end', () => {
+      if (settled) return;
+      settled = true;
+      resolve(Buffer.concat(chunks).toString('utf-8'));
+    });
+
+    req.on('error', (err) => {
+      if (settled) return;
+      settled = true;
+      reject(err);
+    });
+  });
+}
+
+function attachVercelResponseShim(res: ServerResponse): any {
+  const wrapped = res as any;
+  if (typeof wrapped.status !== 'function') {
+    wrapped.status = (code: number) => {
+      wrapped.statusCode = code;
+      return wrapped;
+    };
+  }
+  if (typeof wrapped.json !== 'function') {
+    wrapped.json = (payload: any) => {
+      if (!wrapped.headersSent) {
+        wrapped.setHeader('Content-Type', 'application/json; charset=utf-8');
+      }
+      if (!wrapped.writableEnded) {
+        wrapped.end(JSON.stringify(payload));
+      }
+      return wrapped;
+    };
+  }
+  if (typeof wrapped.send !== 'function') {
+    wrapped.send = (payload: any) => {
+      if (typeof payload === 'object' && payload !== null && !Buffer.isBuffer(payload)) {
+        return wrapped.json(payload);
+      }
+      if (!wrapped.writableEnded) {
+        wrapped.end(payload);
+      }
+      return wrapped;
+    };
+  }
+  return wrapped;
+}
 
 export default defineConfig(() => {
   const isHmrDisabled = process.env.DISABLE_HMR === 'true';
@@ -15,446 +110,69 @@ export default defineConfig(() => {
       } as any),
       tailwindcss(),
       {
-        name: 'sports-api-dev-middleware',
+        name: 'authoritative-api-dev-bridge',
         configureServer(server) {
           server.middlewares.use(async (req, res, next) => {
-            if (req.url) {
-              const url = new URL(req.url, 'http://localhost');
-              if (url.pathname.startsWith('/api/')) {
-                try {
-                  const { resolveTrustedCorsOrigin, applyStandardSecurityHeaders } = await server.ssrLoadModule('/src/lib/httpSecurity.ts');
-                  applyStandardSecurityHeaders(req, res, { isApi: true, isDev: true });
-                  res.setHeader('Vary', 'Origin');
-                  const trustedOrigin = resolveTrustedCorsOrigin(req.headers.origin);
-                  if (trustedOrigin) {
-                    res.setHeader('Access-Control-Allow-Origin', trustedOrigin);
-                    res.setHeader('Access-Control-Allow-Credentials', 'true');
-                  }
-                } catch {}
-              }
-              if (url.pathname === '/api/sports/daily-fixtures') {
-                try {
-                  const { getDailyMarketHighlights } = await server.ssrLoadModule('/src/lib/sportsFeedService.ts');
-                  const highlights = await getDailyMarketHighlights();
-                  res.setHeader('Content-Type', 'application/json');
-                  // Trusted CORS headers applied once at middleware entry
-                  res.end(JSON.stringify({ success: true, count: highlights.length, fixtures: highlights }));
-                  return;
-                } catch (err) {
-                  res.statusCode = 500;
-                  res.setHeader('Content-Type', 'application/json');
-                  res.end(JSON.stringify({ success: false, error: String(err) }));
-                  return;
-                }
-              }
-              if (url.pathname === '/api/sports/fixtures') {
-                try {
-                  const { queryMarketFixtures } = await server.ssrLoadModule('/src/lib/sportsFeedService.ts');
-                  const scope = (url.searchParams.get('scope') as any) || 'all';
-                  const league = url.searchParams.get('league') || undefined;
-                  const country = url.searchParams.get('country') || undefined;
-                  const date = url.searchParams.get('date') || undefined;
-                  const fixtures = queryMarketFixtures({ scope, league, country, date });
-                  res.setHeader('Content-Type', 'application/json');
-                  // Trusted CORS headers applied once at middleware entry
-                  res.end(JSON.stringify({ success: true, count: fixtures.length, fixtures }));
-                  return;
-                } catch (err) {
-                  res.statusCode = 500;
-                  res.setHeader('Content-Type', 'application/json');
-                  res.end(JSON.stringify({ success: false, error: String(err) }));
-                  return;
-                }
-              }
-              if (url.pathname === '/api/sports/leagues') {
-                try {
-                  const { discoverAllLeagues } = await server.ssrLoadModule('/src/lib/sportsFeedService.ts');
-                  const leagues = await discoverAllLeagues();
-                  res.setHeader('Content-Type', 'application/json');
-                  // Trusted CORS headers applied once at middleware entry
-                  res.end(JSON.stringify({ success: true, count: leagues.length, leagues }));
-                  return;
-                } catch (err) {
-                  res.statusCode = 500;
-                  res.setHeader('Content-Type', 'application/json');
-                  res.end(JSON.stringify({ success: false, error: String(err) }));
-                  return;
-                }
-              }
-              if (url.pathname === '/api/sports/live') {
-                try {
-                  const {
-                    queryMarketFixtures,
-                    syncLiveScoresOnly,
-                    getSyncDiagnostics,
-                    getLocalDateStringEAT,
-                  } = await server.ssrLoadModule('/src/lib/sportsFeedService.ts');
-                  const diag = getSyncDiagnostics();
-                  const liveAgeMs = diag.lastLiveSyncTime ? Date.now() - new Date(diag.lastLiveSyncTime).getTime() : Infinity;
-                  if (liveAgeMs > 8_000) {
-                    await syncLiveScoresOnly();
-                  }
-                  const liveFixtures = queryMarketFixtures({ scope: 'live' });
-                  const now = new Date();
-                  const todayStr = getLocalDateStringEAT(now);
-                  const yesterdayStr = getLocalDateStringEAT(new Date(now.getTime() - 24 * 3600 * 1000));
-                  const recentlyFinished = [
-                    ...queryMarketFixtures({ scope: 'finished', date: todayStr }),
-                    ...queryMarketFixtures({ scope: 'finished', date: yesterdayStr }),
-                  ];
-                  res.setHeader('Content-Type', 'application/json');
-                  // Trusted CORS headers applied once at middleware entry
-                  res.setHeader('Cache-Control', 'no-cache, no-store, max-age=0, must-revalidate');
-                  res.end(
-                    JSON.stringify({
-                      success: true,
-                      count: liveFixtures.length,
-                      fixtures: liveFixtures,
-                      recentlyFinished,
-                      lastLiveSyncTime: getSyncDiagnostics().lastLiveSyncTime,
-                    })
-                  );
-                  return;
-                } catch (err) {
-                  res.statusCode = 500;
-                  res.setHeader('Content-Type', 'application/json');
-                  res.end(JSON.stringify({ success: false, error: String(err) }));
-                  return;
-                }
-              }
-              if (url.pathname === '/api/sports/sync-live') {
-                try {
-                  const { syncLiveScoresOnly, getSyncDiagnostics } = await server.ssrLoadModule('/src/lib/sportsFeedService.ts');
-                  const result = await syncLiveScoresOnly();
-                  res.setHeader('Content-Type', 'application/json');
-                  // Trusted CORS headers applied once at middleware entry
-                  res.end(JSON.stringify({ success: true, result, diagnostics: getSyncDiagnostics() }));
-                  return;
-                } catch (err) {
-                  res.statusCode = 500;
-                  res.setHeader('Content-Type', 'application/json');
-                  res.end(JSON.stringify({ success: false, error: String(err) }));
-                  return;
-                }
-              }
-              if (url.pathname === '/api/sports/status') {
-                try {
-                  const { getSyncDiagnostics } = await server.ssrLoadModule('/src/lib/sportsFeedService.ts');
-                  const diagnostics = getSyncDiagnostics();
-                  res.setHeader('Content-Type', 'application/json');
-                  // Trusted CORS headers applied once at middleware entry
-                  res.end(JSON.stringify({ success: true, diagnostics }));
-                  return;
-                } catch (err) {
-                  res.statusCode = 500;
-                  res.setHeader('Content-Type', 'application/json');
-                  res.end(JSON.stringify({ success: false, error: String(err) }));
-                  return;
-                }
-              }
-              if (url.pathname === '/api/sports/match-odds') {
-                try {
-                  const matchUrl = url.searchParams.get('url');
-                  if (!matchUrl) {
-                    res.statusCode = 400;
-                    res.setHeader('Content-Type', 'application/json');
-                    res.end(JSON.stringify({ success: false, error: 'Match URL is required.' }));
-                    return;
-                  }
-                  const { fetchBet365OddsForMatch } = await server.ssrLoadModule('/src/lib/sportscoreOddsService.ts');
-                  const odds = await fetchBet365OddsForMatch(matchUrl);
-                  if (!odds) {
-                    res.statusCode = 404;
-                    res.setHeader('Content-Type', 'application/json');
-                    res.end(JSON.stringify({ success: false, error: 'Bet365 odds not available for this match.' }));
-                    return;
-                  }
-                  res.setHeader('Content-Type', 'application/json');
-                  // Trusted CORS headers applied once at middleware entry
-                  res.setHeader('Cache-Control', 'public, max-age=600, s-maxage=1800, stale-while-revalidate=3600');
-                  res.end(JSON.stringify({ success: true, odds }));
-                  return;
-                } catch (err) {
-                  res.statusCode = 500;
-                  res.setHeader('Content-Type', 'application/json');
-                  res.end(JSON.stringify({ success: false, error: String(err) }));
-                  return;
-                }
-              }
-              if (url.pathname === '/api/admin/fixtures') {
-                try {
-                  const { getSavedAdminFixtures, getSavedAdminBatches, ingestAdminFixtures, clearAllFixtures } = await server.ssrLoadModule('/src/lib/sportsFeedService.ts');
-                  res.setHeader('Content-Type', 'application/json');
-                  // Trusted CORS headers applied once at middleware entry
-                  if (req.method === 'GET') {
-                    const fixtures = getSavedAdminFixtures();
-                    const batches = getSavedAdminBatches ? getSavedAdminBatches() : [];
-                    res.end(JSON.stringify({ success: true, count: fixtures.length, fixtures, batches }));
-                    return;
-                  }
-                  if (req.method === 'POST') {
-                    let body = '';
-                    req.on('data', (chunk: any) => { body += chunk; });
-                    req.on('end', () => {
-                      try {
-                        const parsed = JSON.parse(body || '{}');
-                        const fixtures = Array.isArray(parsed.fixtures) ? parsed.fixtures : [];
-                        const fileName = parsed.fileName || 'uploaded-fixtures.pdf';
-                        const sectoredCount = parsed.sectoredCount || 1;
-                        const result = ingestAdminFixtures(fixtures, { fileName, sectoredCount });
-                        res.end(JSON.stringify({
-                          success: true,
-                          count: result.totalCount,
-                          addedCount: result.addedCount,
-                          batches: result.batches,
-                          message: `Successfully processed ${fixtures.length} fixtures (${result.addedCount} new, total ${result.totalCount}).`,
-                        }));
-                      } catch (e) {
-                        res.statusCode = 400;
-                        res.end(JSON.stringify({ success: false, error: 'Invalid JSON payload' }));
-                      }
-                    });
-                    return;
-                  }
-                  if (req.method === 'DELETE') {
-                    clearAllFixtures();
-                    res.end(JSON.stringify({ success: true, message: 'All fixtures cleared from match slate.' }));
-                    return;
-                  }
-                } catch (err) {
-                  res.statusCode = 500;
-                  res.setHeader('Content-Type', 'application/json');
-                  res.end(JSON.stringify({ success: false, error: String(err) }));
-                  return;
-                }
-              }
-              if (url.pathname.startsWith('/api/admin/fixtures/batch/')) {
-                try {
-                  const { deleteAdminBatch, getSavedAdminBatches } = await server.ssrLoadModule('/src/lib/sportsFeedService.ts');
-                  const batchId = url.pathname.replace('/api/admin/fixtures/batch/', '');
-                  res.setHeader('Content-Type', 'application/json');
-                  // Trusted CORS headers applied once at middleware entry
-                  deleteAdminBatch(batchId);
-                  res.end(JSON.stringify({ success: true, message: 'Batch removed successfully.', batches: getSavedAdminBatches() }));
-                  return;
-                } catch (err) {
-                  res.statusCode = 500;
-                  res.setHeader('Content-Type', 'application/json');
-                  res.end(JSON.stringify({ success: false, error: String(err) }));
-                  return;
-                }
-              }
-              if (url.pathname === '/api/homepage-feed') {
-                try {
-                  res.setHeader('Content-Type', 'application/json');
-                  // Trusted CORS headers applied once at middleware entry
-                  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
-                  if (req.method === 'GET') {
-                    const { getSavedHomepageFeedAsync } = await server.ssrLoadModule('/src/lib/serverHomepageFeed.ts');
-                    const feed = await getSavedHomepageFeedAsync();
-                    res.end(JSON.stringify({ success: true, feed }));
-                    return;
-                  }
-                  if (req.method === 'POST') {
-                    let body = '';
-                    req.on('data', (chunk: any) => { body += chunk; });
-                    req.on('end', async () => {
-                      try {
-                        const { saveHomepageFeedAsync } = await server.ssrLoadModule('/src/lib/serverHomepageFeed.ts');
-                        const { verifyAdminRequest } = await server.ssrLoadModule('/src/lib/adminAuthService.ts');
-                        const parsed = JSON.parse(body || '{}');
-                        const authCheck = verifyAdminRequest(req.headers as any, parsed);
-                        if (!authCheck.authorized) {
-                          res.statusCode = 403;
-                          res.end(JSON.stringify({ success: false, error: authCheck.reason || 'Forbidden' }));
-                          return;
-                        }
-                        const saved = await saveHomepageFeedAsync(parsed, {
-                          allowReplaceAll: Boolean(parsed.allowReplaceAll),
-                        });
-                        res.end(JSON.stringify({
-                          success: true,
-                          feed: saved.feed,
-                          firestoreSaved: saved.firestoreSaved,
-                          diskSaved: saved.diskSaved,
-                        }));
-                      } catch (e: any) {
-                        res.statusCode = 400;
-                        res.end(JSON.stringify({ success: false, error: e?.message || 'Invalid JSON payload' }));
-                      }
-                    });
-                    return;
-                  }
-                } catch (err) {
-                  res.statusCode = 500;
-                  res.setHeader('Content-Type', 'application/json');
-                  res.end(JSON.stringify({ success: false, error: String(err) }));
-                  return;
-                }
-              }
-              if (url.pathname === '/api/admin/upload-media') {
-                try {
-                  res.setHeader('Content-Type', 'application/json');
-                  // Trusted CORS headers applied once at middleware entry
-                  if (req.method === 'POST') {
-                    let body = '';
-                    req.on('data', (chunk: any) => { body += chunk; });
-                    req.on('end', async () => {
-                      try {
-                        const { savePermanentMediaAsset } = await server.ssrLoadModule('/src/lib/serverHomepageFeed.ts');
-                        const { verifyAdminRequest } = await server.ssrLoadModule('/src/lib/adminAuthService.ts');
-                        const parsed = JSON.parse(body || '{}');
-                        const authCheck = verifyAdminRequest(req.headers as any, parsed);
-                        if (!authCheck.authorized) {
-                          res.statusCode = 403;
-                          res.end(JSON.stringify({ success: false, error: authCheck.reason || 'Forbidden' }));
-                          return;
-                        }
-                        const { dataUrl, fileName, folder = 'feed' } = parsed;
-                        if (!dataUrl || !fileName) {
-                          res.statusCode = 400;
-                          res.end(JSON.stringify({ success: false, error: 'dataUrl and fileName are required' }));
-                          return;
-                        }
-                        const saved = savePermanentMediaAsset({ dataUrl, fileName, folder });
-                        res.end(JSON.stringify({
-                          success: true,
-                          url: saved.publicUrl,
-                          dataUrl: saved.dataUrl,
-                          mimeType: saved.mimeType,
-                        }));
-                      } catch (e: any) {
-                        res.statusCode = 500;
-                        res.end(JSON.stringify({ success: false, error: e?.message || 'Upload failed' }));
-                      }
-                    });
-                    return;
-                  }
-                } catch (err: any) {
-                  res.statusCode = 500;
-                  res.end(JSON.stringify({ success: false, error: String(err) }));
-                  return;
-                }
-              }
-              if (url.pathname === '/api/admin/verify-pin') {
-                try {
-                  res.setHeader('Content-Type', 'application/json');
-                  // Trusted CORS headers applied once at middleware entry
-                  if (req.method === 'POST') {
-                    let body = '';
-                    req.on('data', (chunk: any) => { body += chunk; });
-                    req.on('end', async () => {
-                      try {
-                        const { verifyAdminPinCredentials } = await server.ssrLoadModule('/src/lib/adminAuthService.ts');
-                        const parsed = JSON.parse(body || '{}');
-                        const result = verifyAdminPinCredentials(parsed.phone, parsed.pin);
-                        if (!result.valid) {
-                          res.statusCode = result.error?.includes('Unauthorized') ? 403 : 401;
-                          res.end(JSON.stringify({ success: false, valid: false, error: result.error }));
-                          return;
-                        }
-                        res.end(JSON.stringify({
-                          success: true,
-                          valid: true,
-                          token: result.adminToken,
-                          adminToken: result.adminToken,
-                        }));
-                      } catch (e: any) {
-                        res.statusCode = 500;
-                        res.end(JSON.stringify({ success: false, valid: false, error: e?.message || 'Verification failed' }));
-                      }
-                    });
-                    return;
-                  }
-                } catch (err: any) {
-                  res.statusCode = 500;
-                  res.end(JSON.stringify({ success: false, error: String(err) }));
-                  return;
-                }
-              }
-              if (url.pathname === '/api/admin/parse-pdf') {
-                try {
-                  const { extractPdfTextServer } = await server.ssrLoadModule('/src/lib/serverPdfParser.ts');
-                  res.setHeader('Content-Type', 'application/json');
-                  // Trusted CORS headers applied once at middleware entry
-                  if (req.method === 'POST') {
-                    let body = '';
-                    req.on('data', (chunk: any) => { body += chunk; });
-                    req.on('end', () => {
-                      try {
-                        const parsed = JSON.parse(body || '{}');
-                        const base64 = parsed.base64 || '';
-                        if (!base64) {
-                          res.statusCode = 400;
-                          res.end(JSON.stringify({ success: false, error: 'base64 data required' }));
-                          return;
-                        }
-                        const buffer = Buffer.from(base64, 'base64');
-                        const text = extractPdfTextServer(buffer);
-                        res.end(JSON.stringify({ success: true, text }));
-                      } catch (e) {
-                        res.statusCode = 400;
-                        res.end(JSON.stringify({ success: false, error: 'Invalid JSON payload' }));
-                      }
-                    });
-                    return;
-                  }
-                } catch (err) {
-                  res.statusCode = 500;
-                  res.setHeader('Content-Type', 'application/json');
-                  res.end(JSON.stringify({ success: false, error: String(err) }));
-                  return;
-                }
-              }
-              if (url.pathname === '/api/sports/stream') {
-                try {
-                  await server.ssrLoadModule('/src/lib/sportsFeedService.ts');
-                  const { realtimeBroadcaster } = await server.ssrLoadModule('/src/lib/realtimeBroadcaster.ts');
-                  realtimeBroadcaster.registerClient(req, res);
-                  return;
-                } catch (err) {
-                  res.statusCode = 500;
-                  res.setHeader('Content-Type', 'application/json');
-                  res.end(JSON.stringify({ success: false, error: String(err) }));
-                  return;
-                }
-              }
-              if (url.pathname === '/api/mpesa/verify-code' || url.pathname === '/api/tokens' || url.pathname.startsWith('/api/tokens/')) {
-                try {
-                  const { handleTokenEconomyHttpRequest } = await server.ssrLoadModule('/src/lib/serverTokenEconomy.ts');
-                  res.setHeader('Content-Type', 'application/json');
-                  // Trusted CORS headers applied once at middleware entry
-                  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
-                  const queryObj = Object.fromEntries(url.searchParams.entries());
-                  let body = '';
-                  req.on('data', (chunk: any) => { body += chunk; });
-                  req.on('end', async () => {
-                    try {
-                      const parsedBody = body ? JSON.parse(body) : {};
-                      const result = await handleTokenEconomyHttpRequest({
-                        method: req.method || 'GET',
-                        pathname: url.pathname,
-                        headers: (req.headers as any) || {},
-                        query: queryObj,
-                        body: parsedBody,
-                      });
-                      res.statusCode = result.statusCode;
-                      res.end(JSON.stringify(result.payload));
-                    } catch (e: any) {
-                      res.statusCode = 500;
-                      res.end(JSON.stringify({ success: false, error: e?.message || 'Token economy error' }));
-                    }
-                  });
-                  return;
-                } catch (err) {
-                  res.statusCode = 500;
-                  res.setHeader('Content-Type', 'application/json');
-                  res.end(JSON.stringify({ success: false, error: String(err) }));
-                  return;
-                }
-              }
+            if (!req.url) {
+              return next();
             }
-            next();
+
+            const url = new URL(req.url, 'http://localhost');
+            if (!url.pathname.startsWith('/api/')) {
+              return next();
+            }
+
+            const adaptedRes = attachVercelResponseShim(res);
+            const modulePath = resolveApiHandlerModule(url.pathname);
+            if (!modulePath) {
+              return adaptedRes.status(404).json({
+                success: false,
+                error: `Unknown API endpoint: ${url.pathname}`,
+              });
+            }
+
+            try {
+              const query: Record<string, string | string[]> = {};
+              url.searchParams.forEach((value, key) => {
+                const existing = query[key];
+                if (existing === undefined) {
+                  query[key] = value;
+                } else if (Array.isArray(existing)) {
+                  existing.push(value);
+                } else {
+                  query[key] = [existing, value];
+                }
+              });
+
+              const adaptedReq = req as any;
+              adaptedReq.query = query;
+
+              const method = String(req.method || 'GET').toUpperCase();
+              if (method !== 'GET' && method !== 'HEAD' && method !== 'OPTIONS' && adaptedReq.body === undefined) {
+                adaptedReq.body = await readRawRequestBody(req, MAX_DEV_API_BODY_BYTES);
+              }
+
+              const handlerModule = await server.ssrLoadModule(modulePath);
+              if (typeof handlerModule?.default !== 'function') {
+                return adaptedRes.status(500).json({
+                  success: false,
+                  error: 'API handler module is unavailable.',
+                });
+              }
+
+              await handlerModule.default(adaptedReq, adaptedRes);
+            } catch (err: any) {
+              if (err?.statusCode === 413) {
+                return adaptedRes.status(413).json({
+                  success: false,
+                  error: err.message || 'Payload Too Large.',
+                });
+              }
+              return adaptedRes.status(500).json({
+                success: false,
+                error: 'Internal Server Error',
+              });
+            }
           });
         },
       },
@@ -479,10 +197,7 @@ export default defineConfig(() => {
     server: {
       hmr: process.env.DISABLE_HMR !== 'true',
       watch: process.env.DISABLE_HMR === 'true' ? null : {},
-      // Allow any tunnel / proxy host (Cloudflare, ngrok, etc.) during local dev.
-      // This does not expose the server to the network on its own — the tunnel
-      // is the only thing forwarding external traffic to localhost:3000.
-      allowedHosts: true as const,
+      allowedHosts: getDevAllowedHosts(),
     },
     build: {
       target: 'esnext',
@@ -492,5 +207,3 @@ export default defineConfig(() => {
     },
   };
 });
-
-

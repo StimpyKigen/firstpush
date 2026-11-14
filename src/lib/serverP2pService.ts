@@ -18,9 +18,9 @@ import {
   getAuthoritativeUserWallet,
   normalizeCanonicalUid,
 } from './serverTokenEconomy.js';
-import { verifyAdminRequest, ADMIN_PHONE_NORMALIZED } from './adminAuthService.js';
+import { verifyAdminRequestAsync, ADMIN_PHONE_NORMALIZED } from './adminAuthService.js';
 import { evaluateServerModeration } from './serverModerationService.js';
-import { resolveScopedServiceAccountRaw } from './fixtureSnapshotStore.js';
+import { getAdminFirestore, resetFirebaseAdminForTests } from './serverFirebaseAdmin.js';
 import { recordSecurityEvent } from './securityAuditLogger.js';
 import { extractTrustedClientIp } from './rateLimitService.js';
 
@@ -79,13 +79,10 @@ const FALLBACK_P2P_FILE = path.join(CACHE_DIR, 'p2p_bets.json');
 
 let memoryBets: ServerP2PBet[] | null = null;
 let p2pLock: Promise<any> = Promise.resolve();
-let adminFirestoreInstance: any | null = null;
-let adminFirestoreInitAttempted = false;
 
 export function resetP2pServerForTests(): void {
   memoryBets = [];
-  adminFirestoreInstance = null;
-  adminFirestoreInitAttempted = false;
+  resetFirebaseAdminForTests();
 }
 
 function withP2pLock<T>(task: () => Promise<T> | T): Promise<T> {
@@ -98,51 +95,7 @@ function withP2pLock<T>(task: () => Promise<T> | T): Promise<T> {
 }
 
 async function getP2pFirestore(): Promise<any | null> {
-  if (adminFirestoreInstance) return adminFirestoreInstance;
-  if (adminFirestoreInitAttempted) return null;
-  adminFirestoreInitAttempted = true;
-
-  try {
-    const rawSa = resolveScopedServiceAccountRaw();
-    const isVercelEnv = Boolean(process.env.VERCEL || process.env.VERCEL_ENV);
-    const isCloudEnv = Boolean(
-      !isVercelEnv &&
-        (process.env.K_SERVICE ||
-          process.env.GOOGLE_CLOUD_PROJECT ||
-          process.env.GOOGLE_APPLICATION_CREDENTIALS)
-    );
-    if (!rawSa && !isCloudEnv) {
-      return null;
-    }
-
-    const adminPkg = 'firebase-admin';
-    const firebaseAdminModule = await import(adminPkg);
-    const firebaseAdmin = firebaseAdminModule.default || firebaseAdminModule;
-
-    if (!firebaseAdmin.apps.length) {
-      if (rawSa) {
-        const serviceAccount = JSON.parse(rawSa);
-        firebaseAdmin.initializeApp({
-          credential: firebaseAdmin.credential.cert(serviceAccount),
-        });
-      } else {
-        firebaseAdmin.initializeApp();
-      }
-    }
-
-    const db = firebaseAdmin.firestore();
-    if (typeof db.settings === 'function') {
-      try {
-        db.settings({ ignoreUndefinedProperties: true });
-      } catch {
-        // Ignore if already configured
-      }
-    }
-    adminFirestoreInstance = db;
-    return db;
-  } catch {
-    return null;
-  }
+  return getAdminFirestore();
 }
 
 function loadLocalBets(): ServerP2PBet[] {
@@ -258,7 +211,7 @@ export async function handleP2pHttpRequest(params: {
     if (method !== 'POST') {
       return { statusCode: 405, payload: { success: false, error: 'Method not allowed.' } };
     }
-    const adminAuth = verifyAdminRequest(headers, body);
+    const adminAuth = await verifyAdminRequestAsync(headers, body);
     if (!adminAuth.authorized) {
       await recordSecurityEvent({
         category: 'P2P_ESCROW',
@@ -268,7 +221,10 @@ export async function handleP2pHttpRequest(params: {
         ip,
         route: pathname,
       });
-      return { statusCode: 403, payload: { success: false, error: adminAuth.reason || 'Forbidden: Admin privileges required.' } };
+      return {
+        statusCode: adminAuth.storeUnavailable ? 503 : 403,
+        payload: { success: false, error: adminAuth.reason || 'Forbidden: Admin privileges required.' },
+      };
     }
 
     const betId = String(body.id || '').trim();

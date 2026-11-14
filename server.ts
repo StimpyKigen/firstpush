@@ -44,11 +44,12 @@ import {
 } from './src/lib/serverHomepageFeed';
 import {
   verifyAdminPinCredentials,
-  verifyAdminRequest,
-  revokeAdminToken,
+  verifyAdminRequestAsync,
+  revokeAdminTokenAsync,
   MAX_ADMIN_TOKEN_TTL_MS,
   constantTimeEqualText,
 } from './src/lib/adminAuthService';
+import { getDevAllowedHosts } from './src/lib/devAllowedHosts';
 import {
   handleTokenEconomyHttpRequest,
   enforceAuthenticatedChatCooldown,
@@ -92,7 +93,7 @@ function verifyCronSecretBearer(authHeader?: string | string[]): boolean {
 
 async function startServer() {
   const app = express();
-  const PORT = 3000;
+  const PORT = Number(process.env.PORT) || 3000;
 
   const isProd = process.env.NODE_ENV === 'production';
 
@@ -197,11 +198,11 @@ async function startServer() {
     }
   });
 
-  app.post('/api/admin/fixtures', (req: Request, res: Response) => {
+  app.post('/api/admin/fixtures', async (req: Request, res: Response) => {
     try {
-      const authCheck = verifyAdminRequest(req.headers as any, req.body);
+      const authCheck = await verifyAdminRequestAsync(req.headers as any, req.body);
       if (!authCheck.authorized) {
-        return res.status(403).json({
+        return res.status(authCheck.storeUnavailable ? 503 : 403).json({
           success: false,
           error: authCheck.reason || 'Forbidden: Administrator permissions required.',
         });
@@ -222,11 +223,11 @@ async function startServer() {
     }
   });
 
-  app.delete('/api/admin/fixtures/batch/:id', (req: Request, res: Response) => {
+  app.delete('/api/admin/fixtures/batch/:id', async (req: Request, res: Response) => {
     try {
-      const authCheck = verifyAdminRequest(req.headers as any, req.body);
+      const authCheck = await verifyAdminRequestAsync(req.headers as any, req.body);
       if (!authCheck.authorized) {
-        return res.status(403).json({
+        return res.status(authCheck.storeUnavailable ? 503 : 403).json({
           success: false,
           error: authCheck.reason || 'Forbidden: Administrator permissions required.',
         });
@@ -238,11 +239,11 @@ async function startServer() {
     }
   });
 
-  app.delete('/api/admin/fixtures', (req: Request, res: Response) => {
+  app.delete('/api/admin/fixtures', async (req: Request, res: Response) => {
     try {
-      const authCheck = verifyAdminRequest(req.headers as any, req.body);
+      const authCheck = await verifyAdminRequestAsync(req.headers as any, req.body);
       if (!authCheck.authorized) {
-        return res.status(403).json({
+        return res.status(authCheck.storeUnavailable ? 503 : 403).json({
           success: false,
           error: authCheck.reason || 'Forbidden: Administrator permissions required.',
         });
@@ -254,11 +255,11 @@ async function startServer() {
     }
   });
 
-  app.post('/api/admin/parse-pdf', (req: Request, res: Response) => {
+  app.post('/api/admin/parse-pdf', async (req: Request, res: Response) => {
     try {
-      const authCheck = verifyAdminRequest(req.headers as any, req.body);
+      const authCheck = await verifyAdminRequestAsync(req.headers as any, req.body);
       if (!authCheck.authorized) {
-        return res.status(403).json({
+        return res.status(authCheck.storeUnavailable ? 503 : 403).json({
           success: false,
           error: authCheck.reason || 'Forbidden: Administrator permissions required.',
         });
@@ -285,7 +286,7 @@ async function startServer() {
   });
 
   app.get('/api/admin/security-logs', async (req: Request, res: Response) => {
-    const authCheck = verifyAdminRequest(req.headers as any, {});
+    const authCheck = await verifyAdminRequestAsync(req.headers as any, {});
     if (!authCheck.authorized) {
       await recordSecurityEvent({
         category: 'ADMIN',
@@ -295,7 +296,7 @@ async function startServer() {
         ip: extractTrustedClientIp(req),
         route: '/api/admin/security-logs',
       });
-      return res.status(403).json({
+      return res.status(authCheck.storeUnavailable ? 503 : 403).json({
         success: false,
         error: authCheck.reason || 'Forbidden: Administrator permissions required.',
       });
@@ -310,13 +311,14 @@ async function startServer() {
   app.get('/api/homepage-feed', async (req: Request, res: Response) => {
     res.setHeader('Cache-Control', 'no-store, no-cache, max-age=0, must-revalidate');
     if (String(req.query.action || '').toLowerCase() === 'cleanup') {
-      const authorized =
-        verifyCronSecretBearer(req.headers.authorization) ||
-        verifyAdminRequest(req.headers as any, {}).authorized;
-      if (!authorized) {
-        return res.status(403).json({
+      const hasCron = verifyCronSecretBearer(req.headers.authorization);
+      const adminCheck = hasCron ? { authorized: true } : await verifyAdminRequestAsync(req.headers as any, {});
+      if (!adminCheck.authorized) {
+        return res.status(adminCheck.storeUnavailable ? 503 : 403).json({
           success: false,
-          error: 'Forbidden: Valid CRON_SECRET or administrator credentials required for cleanup.',
+          error: adminCheck.storeUnavailable
+            ? adminCheck.reason || 'Session revocation store unavailable.'
+            : 'Forbidden: Valid CRON_SECRET or administrator credentials required for cleanup.',
         });
       }
       try {
@@ -349,13 +351,14 @@ async function startServer() {
       const feed = req.body || {};
       const action = String(req.query.action || feed.action || '').toLowerCase();
       if (action === 'cleanup') {
-        const authorized =
-          verifyCronSecretBearer(req.headers.authorization) ||
-          verifyAdminRequest(req.headers as any, feed).authorized;
-        if (!authorized) {
-          return res.status(403).json({
+        const hasCron = verifyCronSecretBearer(req.headers.authorization);
+        const adminCheck = hasCron ? { authorized: true } : await verifyAdminRequestAsync(req.headers as any, feed);
+        if (!adminCheck.authorized) {
+          return res.status(adminCheck.storeUnavailable ? 503 : 403).json({
             success: false,
-            error: 'Forbidden: Valid CRON_SECRET or administrator credentials required for cleanup.',
+            error: adminCheck.storeUnavailable
+              ? adminCheck.reason || 'Session revocation store unavailable.'
+              : 'Forbidden: Valid CRON_SECRET or administrator credentials required for cleanup.',
           });
         }
         const result = await cleanupExpiredCarouselPostsAsync();
@@ -370,9 +373,9 @@ async function startServer() {
         });
       }
 
-      const authCheck = verifyAdminRequest(req.headers as any, feed);
+      const authCheck = await verifyAdminRequestAsync(req.headers as any, feed);
       if (!authCheck.authorized) {
-        return res.status(403).json({
+        return res.status(authCheck.storeUnavailable ? 503 : 403).json({
           success: false,
           error: authCheck.reason || 'Forbidden: Administrator permissions required.',
         });
@@ -398,11 +401,11 @@ async function startServer() {
   });
 
   // Media Upload API (Authoritative Server Storage for Feed & Admin Media)
-  app.post('/api/admin/upload-media', (req: Request, res: Response) => {
+  app.post('/api/admin/upload-media', async (req: Request, res: Response) => {
     try {
-      const authCheck = verifyAdminRequest(req.headers as any, req.body);
+      const authCheck = await verifyAdminRequestAsync(req.headers as any, req.body);
       if (!authCheck.authorized) {
-        return res.status(403).json({
+        return res.status(authCheck.storeUnavailable ? 503 : 403).json({
           success: false,
           error: authCheck.reason || 'Forbidden: Administrator permissions required.',
         });
@@ -512,13 +515,13 @@ async function startServer() {
     }
   });
 
-  app.post('/api/admin/logout', (req: Request, res: Response) => {
+  app.post('/api/admin/logout', async (req: Request, res: Response) => {
     const headerTok = String(req.headers['x-admin-token'] || '').trim();
     const cookieTok = getCookieFromHeaders(req.headers as any, ADMIN_SESSION_COOKIE_NAME);
     const bodyTok = typeof req.body?.adminToken === 'string' ? req.body.adminToken.trim() : '';
     const tok = cookieTok || headerTok || bodyTok;
     if (tok) {
-      revokeAdminToken(tok);
+      await revokeAdminTokenAsync(tok);
     }
     appendSetCookieHeader(res, buildClearCookieHeader(ADMIN_SESSION_COOKIE_NAME, isHttpsRequest(req)));
     return res.json({ success: true, loggedOut: true });
@@ -741,9 +744,10 @@ async function startServer() {
   });
 
   app.post('/api/sports/sync', async (req: Request, res: Response) => {
-    const adminCheck = verifyAdminRequest(req.headers as any, req.body);
-    if (!adminCheck.authorized && !verifyCronSecretBearer(req.headers.authorization)) {
-      return res.status(403).json({
+    const hasCron = verifyCronSecretBearer(req.headers.authorization);
+    const adminCheck = hasCron ? { authorized: true } : await verifyAdminRequestAsync(req.headers as any, req.body);
+    if (!adminCheck.authorized) {
+      return res.status(adminCheck.storeUnavailable ? 503 : 403).json({
         success: false,
         error: adminCheck.reason || 'Forbidden: Administrator permissions required.',
       });
@@ -757,9 +761,10 @@ async function startServer() {
   });
 
   app.post('/api/sports/sync-live', async (req: Request, res: Response) => {
-    const adminCheck = verifyAdminRequest(req.headers as any, req.body);
-    if (!adminCheck.authorized && !verifyCronSecretBearer(req.headers.authorization)) {
-      return res.status(403).json({
+    const hasCron = verifyCronSecretBearer(req.headers.authorization);
+    const adminCheck = hasCron ? { authorized: true } : await verifyAdminRequestAsync(req.headers as any, req.body);
+    if (!adminCheck.authorized) {
+      return res.status(adminCheck.storeUnavailable ? 503 : 403).json({
         success: false,
         error: adminCheck.reason || 'Forbidden: Administrator permissions required.',
       });
@@ -783,13 +788,20 @@ async function startServer() {
   });
 
   app.post('/api/sports/weekly-sync', async (req: Request, res: Response) => {
-    const adminCheck = verifyAdminRequest(req.headers as any, req.body);
+    const hasCron = verifyCronSecretBearer(req.headers.authorization);
+    const adminCheck = hasCron ? { authorized: false } : await verifyAdminRequestAsync(req.headers as any, req.body);
     if (!adminCheck.authorized) {
+      if (adminCheck.storeUnavailable && !hasCron) {
+        return res.status(503).json({
+          success: false,
+          error: adminCheck.reason || 'Session revocation store unavailable.',
+        });
+      }
       const cronSecret = (process.env.CRON_SECRET || '').trim();
       if (!cronSecret) {
         return res.status(503).json({ success: false, error: 'CRON_SECRET is not configured.' });
       }
-      if (!verifyCronSecretBearer(req.headers.authorization)) {
+      if (!hasCron) {
         return res.status(401).json({ success: false, error: 'Unauthorized.' });
       }
     }
@@ -1056,14 +1068,16 @@ Strict Rules for Ava:
   // Gemini AI Jackpot Webpage Parser API (Admin Extension)
   app.post('/api/gemini/parse-jackpot-text', async (req, res) => {
     try {
-      const adminCheck = verifyAdminRequest(req.headers as any, req.body);
       const adminKeyHeader = String(req.headers['x-admin-key'] || '');
       const configuredSecret = (process.env.ADMIN_SECRET || '').trim();
       const hasValidAdminSecret = Boolean(
         configuredSecret && adminKeyHeader && constantTimeEqualText(adminKeyHeader, configuredSecret)
       );
+      const adminCheck = hasValidAdminSecret
+        ? { authorized: true }
+        : await verifyAdminRequestAsync(req.headers as any, req.body);
       if (!adminCheck.authorized && !hasValidAdminSecret) {
-        return res.status(403).json({
+        return res.status(adminCheck.storeUnavailable ? 503 : 403).json({
           success: false,
           error: adminCheck.reason || 'Forbidden: Valid administrator authentication required to access jackpot parser.',
         });
@@ -1262,9 +1276,7 @@ Sitemap: https://mshindi.co.ke/sitemap.xml
     const vite = await createViteServer({
       server: {
         middlewareMode: true,
-        // Allow any tunnel / proxy hostname (Cloudflare, ngrok, etc.)
-        // Must be `true` (boolean) in Vite 6 — the string 'all' is not valid.
-        allowedHosts: true,
+        allowedHosts: getDevAllowedHosts(),
       },
       appType: 'spa',
     });

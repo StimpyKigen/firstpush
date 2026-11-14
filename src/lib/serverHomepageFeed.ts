@@ -1,8 +1,6 @@
 import fs from 'fs';
 import path from 'path';
 import os from 'os';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
-import { db as clientDb } from '../firebase.js';
 import type {
   HomepageFeedData,
   HomepageCarouselItem,
@@ -10,7 +8,11 @@ import type {
 } from './homepageFeedStore.js';
 import { ADMIN_PHONE_NORMALIZED } from './adminAuthService.js';
 import { realtimeBroadcaster } from './realtimeBroadcaster.js';
-import { resolveScopedServiceAccountRaw } from './fixtureSnapshotStore.js';
+import {
+  getAdminFirestore,
+  resetFirebaseAdminForTests,
+  resolveScopedServiceAccountRaw,
+} from './serverFirebaseAdmin.js';
 
 /** Exact 24-hour story TTL in milliseconds (86,400,000 ms). */
 export const CAROUSEL_STORY_TTL_MS = 24 * 60 * 60 * 1000;
@@ -119,74 +121,15 @@ const LEGACY_MOCK_IDS = new Set([
   'video-2',
 ]);
 
-// Lazy Firebase Admin Firestore instance (uses scoped FIREBASE_SERVICE_ACCOUNT or Cloud Run ADC when available)
-let adminFirestoreInstance: any | null = null;
-let adminFirestoreInitAttempted = false;
-
+// Shared Firebase Admin Firestore accessor (uses scoped FIREBASE_SERVICE_ACCOUNT / PREVIEW or Cloud Run ADC)
 export function resetHomepageFeedFirestoreForTests(): void {
-  adminFirestoreInstance = null;
-  adminFirestoreInitAttempted = false;
+  resetFirebaseAdminForTests();
 }
 
-async function getAdminFirestore(): Promise<any | null> {
-  if (adminFirestoreInstance) return adminFirestoreInstance;
-  if (adminFirestoreInitAttempted) return null;
-  adminFirestoreInitAttempted = true;
-
-  try {
-    const rawSa = resolveScopedServiceAccountRaw();
-    const isVercelEnv = Boolean(process.env.VERCEL || process.env.VERCEL_ENV);
-    const isCloudEnv = Boolean(
-      !isVercelEnv &&
-        (process.env.K_SERVICE ||
-          process.env.GOOGLE_CLOUD_PROJECT ||
-          process.env.GOOGLE_APPLICATION_CREDENTIALS ||
-          process.platform === 'linux')
-    );
-    if (!rawSa && !isCloudEnv) {
-      return null;
-    }
-
-    const adminPkg = 'firebase-admin';
-    const adminModule = await import(/* @vite-ignore */ adminPkg);
-    const admin = (adminModule as any).default || adminModule;
-
-    if (rawSa) {
-      const text = rawSa.trim().startsWith('{') ? rawSa : Buffer.from(rawSa, 'base64').toString('utf-8');
-      const serviceAccount = JSON.parse(text);
-      if (typeof serviceAccount.private_key === 'string') {
-        serviceAccount.private_key = serviceAccount.private_key.replace(/\\n/g, '\n');
-      }
-      const vercelEnv = process.env.VERCEL_ENV?.trim().toLowerCase();
-      const appName = vercelEnv && vercelEnv !== 'production'
-        ? 'mshindi-feed-store-preview'
-        : 'mshindi-feed-store';
-      const existing = Array.isArray(admin.apps)
-        ? admin.apps.find((a: any) => a?.name === appName)
-        : null;
-      const app =
-        existing ||
-        admin.initializeApp(
-          {
-            credential: admin.credential.cert(serviceAccount),
-            projectId: serviceAccount.project_id || 'mshindiroom-production',
-          },
-          appName
-        );
-      adminFirestoreInstance = admin.firestore(app);
-      return adminFirestoreInstance;
-    }
-
-    if (!admin.apps || admin.apps.length === 0) {
-      admin.initializeApp({
-        projectId: 'mshindiroom-production',
-      });
-    }
-    adminFirestoreInstance = admin.firestore();
-    return adminFirestoreInstance;
-  } catch {
-    return null;
-  }
+async function getAdminFirestoreFeedDb(): Promise<any | null> {
+  // Explicitly resolve scoped credentials before initializing Admin Firestore
+  void resolveScopedServiceAccountRaw();
+  return getAdminFirestore();
 }
 
 /**
@@ -672,10 +615,10 @@ export async function getSavedHomepageFeedAsync(options?: {
   const localFeed = getSavedHomepageFeed();
   let cloudFeed: HomepageFeedData | null = null;
 
-  // 1. Try Firebase Admin SDK if configured
+  // 1. Query Firebase Admin SDK if configured (no unauthenticated client-SDK fallback on server)
   if (serverCloudSyncEnabled) {
     try {
-      const adminDb = await getAdminFirestore();
+      const adminDb = await getAdminFirestoreFeedDb();
       if (adminDb) {
         const snap = await adminDb.collection(FIRESTORE_COLLECTION).doc(FIRESTORE_DOC).get();
         if (snap.exists) {
@@ -687,22 +630,6 @@ export async function getSavedHomepageFeedAsync(options?: {
       }
     } catch (err) {
       console.warn('[serverHomepageFeed] Admin Firestore read notice:', err);
-    }
-  }
-
-  // 2. Try Firebase Client SDK against mshindiroom-production
-  if (serverCloudSyncEnabled && !cloudFeed && clientDb) {
-    try {
-      const docRef = doc(clientDb, FIRESTORE_COLLECTION, FIRESTORE_DOC);
-      const snap = await getDoc(docRef);
-      if (snap.exists()) {
-        const data = snap.data() as HomepageFeedData;
-        if (data && Array.isArray(data.carouselItems) && Array.isArray(data.videoItems)) {
-          cloudFeed = sanitizeFeed(data);
-        }
-      }
-    } catch (err) {
-      console.warn('[serverHomepageFeed] Client Firestore read notice:', err);
     }
   }
 
@@ -941,7 +868,7 @@ export async function cleanupExpiredCarouselPostsAsync(
     // 3. Synchronize updated aggregate document & delete individual post_{id} docs in Cloud Firestore
     let firestoreUpdated = await mirrorFeedToFirestore(updatedFeed);
     try {
-      const adminDb = await getAdminFirestore();
+      const adminDb = await getAdminFirestoreFeedDb();
       if (adminDb && removedIds.length > 0) {
         const batch = adminDb.batch();
         for (const expiredId of removedIds) {
@@ -984,8 +911,6 @@ export async function cleanupExpiredCarouselPostsAsync(
   return runCleanup();
 }
 
-let serverClientFirestoreWritePermitted = true;
-
 async function mirrorFeedToFirestore(feed: HomepageFeedData): Promise<boolean> {
   if (!serverCloudSyncEnabled) {
     return false;
@@ -999,9 +924,9 @@ async function mirrorFeedToFirestore(feed: HomepageFeedData): Promise<boolean> {
     })
   );
 
-  // 1. Try Firebase Admin SDK first (bypasses security rules when service account or Cloud Run ADC is present)
+  // Persist exclusively via Firebase Admin SDK (no unauthenticated Client SDK writes on server)
   try {
-    const adminDb = await getAdminFirestore();
+    const adminDb = await getAdminFirestoreFeedDb();
     if (adminDb) {
       await adminDb
         .collection(FIRESTORE_COLLECTION)
@@ -1023,22 +948,6 @@ async function mirrorFeedToFirestore(feed: HomepageFeedData): Promise<boolean> {
     }
   } catch (err) {
     console.warn('[serverHomepageFeed] Admin Firestore write notice:', err);
-  }
-
-  // 2. Try Firebase Client SDK
-  if (clientDb && serverClientFirestoreWritePermitted) {
-    try {
-      const feedRef = doc(clientDb, FIRESTORE_COLLECTION, FIRESTORE_DOC);
-      await setDoc(feedRef, cleanPayload, { merge: true });
-      return true;
-    } catch (err: any) {
-      if (
-        err?.code === 'permission-denied' ||
-        String(err?.message || '').includes('PERMISSION_DENIED')
-      ) {
-        serverClientFirestoreWritePermitted = false;
-      }
-    }
   }
 
   return false;

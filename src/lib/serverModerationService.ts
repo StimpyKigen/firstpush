@@ -20,9 +20,9 @@ import crypto from 'crypto';
 import type { DictionaryEntry, ModerationCategory, ModerationSeverity, ModerationAction, ModerationResult } from '../types/moderation.js';
 import { DEFAULT_MODERATION_SEED } from './moderationSeed.js';
 import { evaluateTextWithDictionary, evaluateUsernameWithDictionary } from './moderationEngine.js';
-import { verifyAdminRequest, ADMIN_PHONE_NORMALIZED } from './adminAuthService.js';
+import { verifyAdminRequestAsync, ADMIN_PHONE_NORMALIZED } from './adminAuthService.js';
 import { authenticateTokenRequestAsync } from './serverTokenEconomy.js';
-import { resolveScopedServiceAccountRaw } from './fixtureSnapshotStore.js';
+import { getAdminFirestore, resetFirebaseAdminForTests } from './serverFirebaseAdmin.js';
 import { recordSecurityEvent } from './securityAuditLogger.js';
 import { extractTrustedClientIp } from './rateLimitService.js';
 
@@ -95,64 +95,17 @@ const CACHE_DIR = isServerless
 const FALLBACK_MOD_FILE = path.join(CACHE_DIR, 'moderation_state.json');
 
 let memoryState: PersistedModerationState | null = null;
-let adminFirestoreInstance: any | null = null;
-let adminFirestoreInitAttempted = false;
 
 export function resetModerationServerForTests(): void {
   memoryState = {
     dictionary: DEFAULT_MODERATION_SEED.map((e) => ({ ...e })),
     reports: [],
   };
-  adminFirestoreInstance = null;
-  adminFirestoreInitAttempted = false;
+  resetFirebaseAdminForTests();
 }
 
 async function getModerationFirestore(): Promise<any | null> {
-  if (adminFirestoreInstance) return adminFirestoreInstance;
-  if (adminFirestoreInitAttempted) return null;
-  adminFirestoreInitAttempted = true;
-
-  try {
-    const rawSa = resolveScopedServiceAccountRaw();
-    const isVercelEnv = Boolean(process.env.VERCEL || process.env.VERCEL_ENV);
-    const isCloudEnv = Boolean(
-      !isVercelEnv &&
-        (process.env.K_SERVICE ||
-          process.env.GOOGLE_CLOUD_PROJECT ||
-          process.env.GOOGLE_APPLICATION_CREDENTIALS)
-    );
-    if (!rawSa && !isCloudEnv) {
-      return null;
-    }
-
-    const adminPkg = 'firebase-admin';
-    const firebaseAdminModule = await import(adminPkg);
-    const firebaseAdmin = firebaseAdminModule.default || firebaseAdminModule;
-
-    if (!firebaseAdmin.apps.length) {
-      if (rawSa) {
-        const serviceAccount = JSON.parse(rawSa);
-        firebaseAdmin.initializeApp({
-          credential: firebaseAdmin.credential.cert(serviceAccount),
-        });
-      } else {
-        firebaseAdmin.initializeApp();
-      }
-    }
-
-    const db = firebaseAdmin.firestore();
-    if (typeof db.settings === 'function') {
-      try {
-        db.settings({ ignoreUndefinedProperties: true });
-      } catch {
-        // Ignore if already configured
-      }
-    }
-    adminFirestoreInstance = db;
-    return db;
-  } catch {
-    return null;
-  }
+  return getAdminFirestore();
 }
 
 function loadLocalModerationState(): PersistedModerationState {
@@ -343,7 +296,7 @@ export async function handleModerationHttpRequest(params: {
     const dictionary = await getAuthoritativeDictionary();
 
     if (method === 'GET') {
-      const adminAuth = verifyAdminRequest(headers, body);
+      const adminAuth = await verifyAdminRequestAsync(headers, body);
       const entries = adminAuth.authorized
         ? dictionary
         : dictionary
@@ -367,7 +320,7 @@ export async function handleModerationHttpRequest(params: {
     }
 
     // All mutations strictly require admin auth
-    const adminAuth = verifyAdminRequest(headers, body);
+    const adminAuth = await verifyAdminRequestAsync(headers, body);
     if (!adminAuth.authorized) {
       await recordSecurityEvent({
         category: 'MODERATION',
@@ -379,7 +332,7 @@ export async function handleModerationHttpRequest(params: {
         details: { method, reason: adminAuth.reason },
       });
       return {
-        statusCode: 403,
+        statusCode: adminAuth.storeUnavailable ? 503 : 403,
         payload: { success: false, error: adminAuth.reason || 'Forbidden: Administrator permissions required.' },
       };
     }
@@ -511,7 +464,7 @@ export async function handleModerationHttpRequest(params: {
       if (method !== 'POST' && method !== 'PATCH') {
         return { statusCode: 405, payload: { success: false, error: 'Method not allowed.' } };
       }
-      const adminAuth = verifyAdminRequest(headers, body);
+      const adminAuth = await verifyAdminRequestAsync(headers, body);
       if (!adminAuth.authorized) {
         await recordSecurityEvent({
           category: 'MODERATION',
@@ -522,7 +475,7 @@ export async function handleModerationHttpRequest(params: {
           route: pathname,
         });
         return {
-          statusCode: 403,
+          statusCode: adminAuth.storeUnavailable ? 503 : 403,
           payload: { success: false, error: adminAuth.reason || 'Forbidden: Administrator permissions required.' },
         };
       }
@@ -546,7 +499,7 @@ export async function handleModerationHttpRequest(params: {
 
     // List reports (STRICTLY ADMIN ONLY)
     if (method === 'GET') {
-      const adminAuth = verifyAdminRequest(headers, body);
+      const adminAuth = await verifyAdminRequestAsync(headers, body);
       if (!adminAuth.authorized) {
         await recordSecurityEvent({
           category: 'MODERATION',
@@ -558,7 +511,7 @@ export async function handleModerationHttpRequest(params: {
           details: { reason: adminAuth.reason },
         });
         return {
-          statusCode: 403,
+          statusCode: adminAuth.storeUnavailable ? 503 : 403,
           payload: { success: false, error: adminAuth.reason || 'Forbidden: Administrator permissions required.' },
         };
       }
@@ -581,7 +534,7 @@ export async function handleModerationHttpRequest(params: {
 
     // Delete report (STRICTLY ADMIN ONLY)
     if (method === 'DELETE') {
-      const adminAuth = verifyAdminRequest(headers, body);
+      const adminAuth = await verifyAdminRequestAsync(headers, body);
       if (!adminAuth.authorized) {
         await recordSecurityEvent({
           category: 'MODERATION',
@@ -592,7 +545,7 @@ export async function handleModerationHttpRequest(params: {
           route: pathname,
         });
         return {
-          statusCode: 403,
+          statusCode: adminAuth.storeUnavailable ? 503 : 403,
           payload: { success: false, error: adminAuth.reason || 'Forbidden: Administrator permissions required.' },
         };
       }

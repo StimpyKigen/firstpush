@@ -3,6 +3,7 @@ import { persist } from 'zustand/middleware';
 import { doc, onSnapshot } from 'firebase/firestore';
 import { db } from '../firebase';
 import { useAuth } from './authStore';
+import { registerSessionLifecycleListener } from './sessionLifecycle';
 
 function getSubscriptionAuthHeaders(userId: string, includeContentType = false): Record<string, string> {
   const headers: Record<string, string> = {
@@ -76,6 +77,7 @@ interface SubscriptionStoreState {
   ) => Promise<{ ok: boolean; error?: string }>;
   restoreSubscription: (userId: string) => Promise<boolean>;
   hasPremiumAccess: () => boolean;
+  resetSubscription: () => void;
 }
 
 /**
@@ -145,7 +147,13 @@ export const useSubscriptionStore = create<SubscriptionStoreState>()(
             firestoreUnsubscribe = null;
           }
 
-          set({ activeUserId: cleanUserId, isLoading: true });
+          set({
+            activeUserId: cleanUserId,
+            subscription: null,
+            history: [],
+            error: null,
+            isLoading: true,
+          });
 
           try {
             const subDocRef = doc(db, 'subscriptions', cleanUserId);
@@ -292,13 +300,62 @@ export const useSubscriptionStore = create<SubscriptionStoreState>()(
           return false;
         }
       },
+
+      resetSubscription: () => {
+        if (firestoreUnsubscribe) {
+          firestoreUnsubscribe();
+          firestoreUnsubscribe = null;
+        }
+        set({
+          subscription: null,
+          history: [],
+          activeUserId: null,
+          isLoading: false,
+          isProcessingPayment: false,
+          isPaywallOpen: false,
+          featureContext: null,
+          error: null,
+        });
+      },
     }),
     {
       name: 'mshindi_subscription_store_v1',
       partialize: (state) => ({
+        activeUserId: state.activeUserId,
         subscription: state.subscription,
         history: state.history,
       }),
+      merge: (persistedState: any, currentState) => {
+        if (!persistedState || typeof persistedState !== 'object') {
+          return currentState;
+        }
+        const activePhone = useAuth.getState().currentPhone;
+        const persistedOwner =
+          typeof persistedState.activeUserId === 'string' && persistedState.activeUserId.trim()
+            ? persistedState.activeUserId.trim()
+            : null;
+        if (!activePhone || !persistedOwner || persistedOwner !== activePhone) {
+          return {
+            ...currentState,
+            activeUserId: null,
+            subscription: null,
+            history: [],
+          };
+        }
+        return {
+          ...currentState,
+          activeUserId: persistedOwner,
+          subscription: persistedState.subscription || null,
+          history: Array.isArray(persistedState.history) ? persistedState.history : [],
+        };
+      },
     }
   )
 );
+
+registerSessionLifecycleListener((nextUserPhone) => {
+  const sub = useSubscriptionStore.getState();
+  if (!nextUserPhone || sub.activeUserId !== nextUserPhone) {
+    sub.resetSubscription();
+  }
+});

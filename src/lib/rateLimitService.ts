@@ -13,7 +13,7 @@
 
 import crypto from 'crypto';
 import type { Request, Response, NextFunction } from 'express';
-import { resolveScopedServiceAccountRaw } from './fixtureSnapshotStore.js';
+import { getAdminFirestore, resetFirebaseAdminForTests } from './serverFirebaseAdmin.js';
 import { recordSecurityEvent } from './securityAuditLogger.js';
 
 export interface RateLimitDecision {
@@ -34,13 +34,9 @@ interface MemoryBucket {
 const MAX_MEMORY_BUCKETS = 5000;
 const memoryBuckets = new Map<string, MemoryBucket>();
 
-let adminFirestoreInstance: any | null = null;
-let adminFirestoreInitAttempted = false;
-
 export function resetRateLimiterForTests(): void {
   memoryBuckets.clear();
-  adminFirestoreInstance = null;
-  adminFirestoreInitAttempted = false;
+  resetFirebaseAdminForTests();
 }
 
 function getHeader(
@@ -137,44 +133,7 @@ function hashBucketKey(namespace: string, key: string): string {
 }
 
 async function getRateLimitFirestore(): Promise<any | null> {
-  if (adminFirestoreInstance) return adminFirestoreInstance;
-  if (adminFirestoreInitAttempted) return null;
-  adminFirestoreInitAttempted = true;
-
-  try {
-    const rawSa = resolveScopedServiceAccountRaw();
-    const isVercelEnv = Boolean(process.env.VERCEL || process.env.VERCEL_ENV);
-    const isCloudEnv = Boolean(
-      !isVercelEnv &&
-        (process.env.K_SERVICE ||
-          process.env.GOOGLE_CLOUD_PROJECT ||
-          process.env.GOOGLE_APPLICATION_CREDENTIALS)
-    );
-    if (!rawSa && !isCloudEnv) {
-      return null;
-    }
-
-    const adminPkg = 'firebase-admin';
-    const firebaseAdminModule = await import(adminPkg);
-    const firebaseAdmin = firebaseAdminModule.default || firebaseAdminModule;
-
-    if (!firebaseAdmin.apps.length) {
-      if (rawSa) {
-        const serviceAccount = JSON.parse(rawSa);
-        firebaseAdmin.initializeApp({
-          credential: firebaseAdmin.credential.cert(serviceAccount),
-        });
-      } else {
-        firebaseAdmin.initializeApp();
-      }
-    }
-
-    const db = firebaseAdmin.firestore();
-    adminFirestoreInstance = db;
-    return db;
-  } catch {
-    return null;
-  }
+  return getAdminFirestore();
 }
 
 async function checkUpstashRateLimit(
