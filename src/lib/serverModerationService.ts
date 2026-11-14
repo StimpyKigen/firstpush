@@ -101,6 +101,7 @@ export function resetModerationServerForTests(): void {
     dictionary: DEFAULT_MODERATION_SEED.map((e) => ({ ...e })),
     reports: [],
   };
+  clearModerationDictionaryCacheForTests();
   resetFirebaseAdminForTests();
 }
 
@@ -158,20 +159,52 @@ function persistLocalModerationState(state: PersistedModerationState): void {
   }
 }
 
+const MODERATION_DICTIONARY_CACHE_TTL_MS = 120_000;
+let cachedDictionaryEntries: DictionaryEntry[] | null = null;
+let cachedDictionaryExpiresAt = 0;
+let inFlightDictionaryFetch: Promise<DictionaryEntry[]> | null = null;
+
+export function invalidateModerationDictionaryCache(): void {
+  cachedDictionaryEntries = null;
+  cachedDictionaryExpiresAt = 0;
+}
+
+export function clearModerationDictionaryCacheForTests(): void {
+  invalidateModerationDictionaryCache();
+  inFlightDictionaryFetch = null;
+}
+
 async function getAuthoritativeDictionary(): Promise<DictionaryEntry[]> {
-  const state = loadLocalModerationState();
-  const db = await getModerationFirestore();
-  if (db) {
-    try {
-      const snap = await db.collection('moderationDictionary').limit(MAX_DICTIONARY_ENTRIES).get();
-      if (!snap.empty) {
-        state.dictionary = snap.docs.map((docSnap: any) => docSnap.data() as DictionaryEntry);
-      }
-    } catch {
-      // Fallback to local state
-    }
+  const now = Date.now();
+  if (cachedDictionaryEntries && now < cachedDictionaryExpiresAt) {
+    return cachedDictionaryEntries;
   }
-  return state.dictionary;
+
+  if (inFlightDictionaryFetch) {
+    return inFlightDictionaryFetch;
+  }
+
+  inFlightDictionaryFetch = (async () => {
+    const state = loadLocalModerationState();
+    const db = await getModerationFirestore();
+    if (db) {
+      try {
+        const snap = await db.collection('moderationDictionary').limit(MAX_DICTIONARY_ENTRIES).get();
+        if (!snap.empty) {
+          state.dictionary = snap.docs.map((docSnap: any) => docSnap.data() as DictionaryEntry);
+        }
+      } catch {
+        // Fallback to local state
+      }
+    }
+    cachedDictionaryEntries = state.dictionary;
+    cachedDictionaryExpiresAt = Date.now() + MODERATION_DICTIONARY_CACHE_TTL_MS;
+    return state.dictionary;
+  })().finally(() => {
+    inFlightDictionaryFetch = null;
+  });
+
+  return inFlightDictionaryFetch;
 }
 
 async function persistDictionaryEntryFirestore(entry: DictionaryEntry): Promise<void> {
@@ -357,6 +390,7 @@ export async function handleModerationHttpRequest(params: {
       };
       state.dictionary = [created, ...state.dictionary].slice(0, MAX_DICTIONARY_ENTRIES);
       persistLocalModerationState(state);
+      invalidateModerationDictionaryCache();
       await persistDictionaryEntryFirestore(created);
       await recordSecurityEvent({
         category: 'MODERATION',
@@ -380,6 +414,7 @@ export async function handleModerationHttpRequest(params: {
       target.enabled = !target.enabled;
       target.updatedAt = now;
       persistLocalModerationState(state);
+      invalidateModerationDictionaryCache();
       await persistDictionaryEntryFirestore(target);
       return { statusCode: 200, payload: { success: true, entry: target, entries: state.dictionary } };
     }
@@ -402,6 +437,7 @@ export async function handleModerationHttpRequest(params: {
       };
       state.dictionary[idx] = updated;
       persistLocalModerationState(state);
+      invalidateModerationDictionaryCache();
       await persistDictionaryEntryFirestore(updated);
       return { statusCode: 200, payload: { success: true, entry: updated, entries: state.dictionary } };
     }
@@ -409,6 +445,7 @@ export async function handleModerationHttpRequest(params: {
     if (op === 'restore') {
       state.dictionary = DEFAULT_MODERATION_SEED.map((e) => ({ ...e }));
       persistLocalModerationState(state);
+      invalidateModerationDictionaryCache();
       return { statusCode: 200, payload: { success: true, entries: state.dictionary } };
     }
 
@@ -437,6 +474,7 @@ export async function handleModerationHttpRequest(params: {
       }
       state.dictionary = validEntries;
       persistLocalModerationState(state);
+      invalidateModerationDictionaryCache();
       return { statusCode: 200, payload: { success: true, count: validEntries.length, entries: state.dictionary } };
     }
 
@@ -448,6 +486,7 @@ export async function handleModerationHttpRequest(params: {
         return { statusCode: 404, payload: { success: false, error: 'Dictionary entry not found.' } };
       }
       persistLocalModerationState(state);
+      invalidateModerationDictionaryCache();
       await deleteDictionaryEntryFirestore(targetId);
       return { statusCode: 200, payload: { success: true, entries: state.dictionary } };
     }

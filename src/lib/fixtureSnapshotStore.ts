@@ -101,17 +101,76 @@ function loadLocalDiskSnapshot(): { byDay: Record<string, MarketFixture[]>; upda
   return { byDay: {}, updatedAt: null };
 }
 
-function saveLocalDiskSnapshot(byDay: Record<string, MarketFixture[]>, updatedAt: string): void {
+async function saveLocalDiskSnapshotAsync(byDay: Record<string, MarketFixture[]>, updatedAt: string): Promise<void> {
   try {
     const filePath = getLocalCachePath();
-    const data = {
-      updatedAt,
-      byDay,
-    };
-    fs.writeFileSync(filePath, JSON.stringify(data, null, 2), 'utf-8');
+    const tmpPath = `${filePath}.${process.pid}.tmp`;
+    const payload = JSON.stringify({ updatedAt, byDay });
+    await fs.promises.writeFile(tmpPath, payload, 'utf-8');
+    await fs.promises.rename(tmpPath, filePath);
   } catch (err) {
     console.warn('[FixtureSnapshot] Local cache write notice:', err);
   }
+}
+
+export async function fetchTargetedDayDocs(
+  db: any,
+  col: any,
+  candidateDates: string[],
+  allowCollectionFallback = false
+): Promise<{
+  existingDayMap: Map<string, MarketFixture[]>;
+  metaDates: string[];
+  updatedAt: string | null;
+}> {
+  const existingDayMap = new Map<string, MarketFixture[]>();
+  let metaDates: string[] = [];
+  let updatedAt: string | null = null;
+
+  const metaSnap = await col.doc(META_DOC).get();
+  if (metaSnap.exists) {
+    const metaData = metaSnap.data();
+    updatedAt = metaData?.updatedAt || null;
+    if (Array.isArray(metaData?.dates)) {
+      metaDates = metaData.dates.filter((d: any) => typeof d === 'string' && d !== META_DOC);
+    }
+  }
+
+  const targetIds = Array.from(new Set([...candidateDates, ...metaDates])).filter(
+    (id) => Boolean(id) && id !== META_DOC
+  );
+
+  if (targetIds.length > 0) {
+    const refs = targetIds.map((dayId) => col.doc(dayId));
+    const snaps = typeof db.getAll === 'function'
+      ? await db.getAll(...refs)
+      : await Promise.all(refs.map((ref: any) => ref.get()));
+    for (const snap of snaps) {
+      if (snap && snap.exists && snap.id !== META_DOC) {
+        const list = snap.data()?.fixtures;
+        if (Array.isArray(list)) {
+          existingDayMap.set(snap.id, list);
+        }
+      }
+    }
+    return { existingDayMap, metaDates, updatedAt };
+  }
+
+  if (allowCollectionFallback) {
+    const snap = await col.get();
+    snap.forEach((doc: any) => {
+      const data = doc.data();
+      if (doc.id === META_DOC) {
+        updatedAt = data?.updatedAt || updatedAt;
+        return;
+      }
+      if (Array.isArray(data?.fixtures)) {
+        existingDayMap.set(doc.id, data.fixtures);
+      }
+    });
+  }
+
+  return { existingDayMap, metaDates, updatedAt };
 }
 
 /**
@@ -172,20 +231,13 @@ export async function saveFixtureSnapshotWithStats(
     const col = db.collection(COLLECTION);
     const batch = db.batch();
 
-    // 1. Load all existing day documents to handle cross-day rescheduling seamlessly
-    const existingDayMap = new Map<string, MarketFixture[]>();
+    // 1. Load targeted day documents (_meta.dates + incoming days) instead of scanning entire collection
+    let existingDayMap = new Map<string, MarketFixture[]>();
     try {
-      const snap = await col.get();
-      snap.forEach((doc: any) => {
-        if (doc.id !== META_DOC) {
-          const list = doc.data()?.fixtures;
-          if (Array.isArray(list)) {
-            existingDayMap.set(doc.id, list);
-          }
-        }
-      });
+      const targeted = await fetchTargetedDayDocs(db, col, Array.from(incomingByDay.keys()), true);
+      existingDayMap = targeted.existingDayMap;
     } catch (readErr) {
-      console.warn('[FixtureSnapshot] Error pre-fetching existing day documents:', readErr);
+      console.warn('[FixtureSnapshot] Error pre-fetching targeted day documents:', readErr);
     }
 
     // Index all existing fixtures by day and item for fast cross-day lookups
@@ -386,7 +438,7 @@ export async function saveFixtureSnapshotWithStats(
     }
   }
 
-  saveLocalDiskSnapshot(byDay, nowIso);
+  await saveLocalDiskSnapshotAsync(byDay, nowIso);
 
   let totalPersisted = 0;
   for (const list of Object.values(byDay)) {
@@ -409,22 +461,15 @@ export async function saveFixtureSnapshotWithStats(
 export async function loadFixtureSnapshot(): Promise<{ fixtures: MarketFixture[]; updatedAt: string | null }> {
   const db = await getDb();
 
-  // Firestore path
+  // Firestore path: targeted batch getAll using _meta.dates (fallback to collection scan only if _meta missing)
   if (db) {
     try {
-      const snap = await db.collection(COLLECTION).get();
+      const col = db.collection(COLLECTION);
+      const { existingDayMap, updatedAt } = await fetchTargetedDayDocs(db, col, [], true);
       const fixtures: MarketFixture[] = [];
-      let updatedAt: string | null = null;
-      snap.forEach((doc: any) => {
-        const data = doc.data();
-        if (doc.id === META_DOC) {
-          updatedAt = data.updatedAt || null;
-          return;
-        }
-        if (Array.isArray(data.fixtures)) {
-          fixtures.push(...data.fixtures);
-        }
-      });
+      for (const list of existingDayMap.values()) {
+        fixtures.push(...list);
+      }
       return { fixtures, updatedAt };
     } catch (err) {
       console.warn('[FixtureSnapshot] Failed to load Firestore snapshot:', err);

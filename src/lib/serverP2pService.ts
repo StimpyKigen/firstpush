@@ -119,21 +119,40 @@ function loadLocalBets(): ServerP2PBet[] {
   return memoryBets;
 }
 
-function persistLocalBets(bets: ServerP2PBet[]): void {
-  const serialized = JSON.stringify(bets.slice(0, 2000));
+let p2pDiskFlushInFlight: Promise<void> | null = null;
+let p2pDiskFlushQueued = false;
+
+async function performP2pDiskFlush(serialized: string): Promise<void> {
   for (const [dir, filePath] of [
     [DATA_DIR, PRIMARY_P2P_FILE],
     [CACHE_DIR, FALLBACK_P2P_FILE],
   ] as const) {
     try {
-      if (!fs.existsSync(dir)) {
-        fs.mkdirSync(dir, { recursive: true });
-      }
-      fs.writeFileSync(filePath, serialized, 'utf-8');
+      await fs.promises.mkdir(dir, { recursive: true });
+      const tmpPath = `${filePath}.${process.pid}.${Date.now()}.tmp`;
+      await fs.promises.writeFile(tmpPath, serialized, 'utf-8');
+      await fs.promises.rename(tmpPath, filePath);
       return;
     } catch {
       // Ignore read-only path
     }
+  }
+}
+
+function persistLocalBets(bets: ServerP2PBet[]): void {
+  const snapshot = bets.slice(0, 2000);
+  p2pDiskFlushQueued = true;
+  if (!p2pDiskFlushInFlight) {
+    const run = async () => {
+      while (p2pDiskFlushQueued) {
+        p2pDiskFlushQueued = false;
+        const latest = JSON.stringify((memoryBets || snapshot).slice(0, 2000));
+        await performP2pDiskFlush(latest);
+      }
+    };
+    p2pDiskFlushInFlight = run().finally(() => {
+      p2pDiskFlushInFlight = null;
+    });
   }
 }
 

@@ -363,27 +363,96 @@ async function getAuthFirestoreDb(): Promise<any | null> {
   return getAdminFirestore({ allowAdc: false });
 }
 
-async function loadAllAccountRecords(): Promise<Record<string, ServerAccountRecord>> {
+const DIRECTORY_CACHE_TTL_MS = 60_000;
+let cachedPublicDirectory: PublicPunterEntry[] | null = null;
+let cachedPublicDirectoryExpiresAt = 0;
+
+export function clearServerAuthCacheForTests(): void {
+  cachedPublicDirectory = null;
+  cachedPublicDirectoryExpiresAt = 0;
+}
+
+function invalidatePublicDirectoryCache(): void {
+  cachedPublicDirectory = null;
+  cachedPublicDirectoryExpiresAt = 0;
+}
+
+async function findAccountByUsername(username: string): Promise<ServerAccountRecord | null> {
+  const lower = String(username || '').trim().toLowerCase();
+  if (!lower) return null;
+
   const disk = readDiskAuthDb();
+  const localMatch = Object.values(disk.accounts).find((acc) => acc.usernameLower === lower);
+  if (localMatch) {
+    return localMatch;
+  }
+
   const fsDb = await getAuthFirestoreDb();
-  if (!fsDb) {
-    return disk.accounts;
-  }
-  try {
-    const snapshot = await fsDb.collection(AUTH_COLLECTION).get();
-    const merged: Record<string, ServerAccountRecord> = { ...disk.accounts };
-    snapshot.forEach((doc: any) => {
-      const data = doc.data();
-      if (data && typeof data.phone === 'string' && typeof data.pinScryptHash === 'string') {
-        merged[data.phone] = data as ServerAccountRecord;
+  if (fsDb) {
+    try {
+      const snap = await fsDb
+        .collection(AUTH_COLLECTION)
+        .where('usernameLower', '==', lower)
+        .limit(1)
+        .get();
+      if (!snap.empty) {
+        const data = snap.docs[0].data() as ServerAccountRecord;
+        if (data && typeof data.phone === 'string') {
+          disk.accounts[data.phone] = data;
+          return data;
+        }
       }
-    });
-    writeDiskAuthDb({ accounts: merged });
-    return merged;
-  } catch (err) {
-    console.warn('[ServerAuth] Firestore read fallback to disk:', err);
-    return disk.accounts;
+    } catch {}
   }
+
+  return null;
+}
+
+async function loadPublicPunterDirectory(): Promise<PublicPunterEntry[]> {
+  const now = Date.now();
+  if (cachedPublicDirectory && now < cachedPublicDirectoryExpiresAt) {
+    return cachedPublicDirectory;
+  }
+
+  const map = new Map<string, PublicPunterEntry>();
+  const disk = readDiskAuthDb();
+  for (const acc of Object.values(disk.accounts)) {
+    if (acc?.username) {
+      map.set(acc.username.toLowerCase(), {
+        username: acc.username,
+        avatarId: acc.avatarId || 'default',
+        verifiedWithSms: Boolean(acc.verifiedWithSms),
+      });
+    }
+  }
+
+  const fsDb = await getAuthFirestoreDb();
+  if (fsDb) {
+    try {
+      const col = fsDb.collection(AUTH_COLLECTION);
+      const q = typeof col.select === 'function'
+        ? col.select('username', 'avatarId', 'verifiedWithSms').limit(500)
+        : col.limit(500);
+      const snapshot = await q.get();
+      snapshot.forEach((doc: any) => {
+        const data = doc.data();
+        if (data && typeof data.username === 'string' && data.username.trim()) {
+          map.set(data.username.toLowerCase(), {
+            username: data.username,
+            avatarId: data.avatarId || 'default',
+            verifiedWithSms: Boolean(data.verifiedWithSms),
+          });
+        }
+      });
+    } catch (err) {
+      console.warn('[ServerAuth] Public directory Firestore read fallback to local:', err);
+    }
+  }
+
+  const entries = Array.from(map.values());
+  cachedPublicDirectory = entries;
+  cachedPublicDirectoryExpiresAt = Date.now() + DIRECTORY_CACHE_TTL_MS;
+  return entries;
 }
 
 async function findAccountByPhone(phone: string): Promise<ServerAccountRecord | null> {
@@ -412,6 +481,7 @@ async function saveAccountRecord(record: ServerAccountRecord): Promise<void> {
   const disk = readDiskAuthDb();
   disk.accounts[record.phone] = record;
   writeDiskAuthDb(disk);
+  invalidatePublicDirectoryCache();
 
   const fsDb = await getAuthFirestoreDb();
   if (fsDb) {
@@ -430,6 +500,7 @@ async function deleteAccountRecord(phone: string): Promise<boolean> {
   const existed = Boolean(disk.accounts[norm]);
   delete disk.accounts[norm];
   writeDiskAuthDb(disk);
+  invalidatePublicDirectoryCache();
 
   const fsDb = await getAuthFirestoreDb();
   if (fsDb) {
@@ -630,8 +701,11 @@ export async function handleAuthHttpRequest(params: {
     }
 
     return withAuthMutex(async () => {
-      const accounts = await loadAllAccountRecords();
-      if (accounts[normPhone]) {
+      const [existingByPhone, existingByUsername] = await Promise.all([
+        findAccountByPhone(normPhone),
+        findAccountByUsername(cleanUsername),
+      ]);
+      if (existingByPhone) {
         return {
           statusCode: 409,
           payload: {
@@ -642,10 +716,7 @@ export async function handleAuthHttpRequest(params: {
       }
 
       const usernameLower = cleanUsername.toLowerCase();
-      const duplicateUsername = Object.values(accounts).some(
-        (acc) => acc.usernameLower === usernameLower
-      );
-      if (duplicateUsername) {
+      if (existingByUsername) {
         return {
           statusCode: 409,
           payload: {
@@ -1089,12 +1160,7 @@ export async function handleAuthHttpRequest(params: {
     if (method !== 'GET') {
       return { statusCode: 405, payload: { success: false, error: 'Method not allowed.' } };
     }
-    const accounts = await loadAllAccountRecords();
-    const punters: PublicPunterEntry[] = Object.values(accounts).map((acc) => ({
-      username: acc.username,
-      avatarId: acc.avatarId || 'default',
-      verifiedWithSms: Boolean(acc.verifiedWithSms),
-    }));
+    const punters = await loadPublicPunterDirectory();
     return {
       statusCode: 200,
       payload: {
@@ -1113,15 +1179,13 @@ export async function handleAuthHttpRequest(params: {
     if (!rawUsername) {
       return { statusCode: 400, payload: { success: false, error: 'username query parameter is required.' } };
     }
-    const accounts = await loadAllAccountRecords();
-    const lower = rawUsername.toLowerCase();
-    const taken = Object.values(accounts).some((acc) => acc.usernameLower === lower);
+    const existing = await findAccountByUsername(rawUsername);
     return {
       statusCode: 200,
       payload: {
         success: true,
         username: rawUsername,
-        available: !taken,
+        available: !existing,
       },
     };
   }

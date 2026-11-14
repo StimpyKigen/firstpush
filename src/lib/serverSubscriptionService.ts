@@ -168,6 +168,7 @@ export async function getUserSubscription(
         .collection('subscriptionHistory')
         .where('userId', '==', cleanUserId)
         .orderBy('createdAt', 'desc')
+        .limit(50)
         .get();
 
       if (!histQuery.empty) {

@@ -36,6 +36,7 @@ import {
 } from './firebaseIdTokenVerifier.js';
 import { recordSecurityEvent } from './securityAuditLogger.js';
 import { extractTrustedClientIp } from './rateLimitService.js';
+import { getAdminFirestore, resolveScopedServiceAccountRaw } from './serverFirebaseAdmin.js';
 
 // ============================================================================
 // OFFICIAL RATES & CONSTANTS
@@ -260,24 +261,77 @@ function loadEconomyState(): PersistedTokenEconomyState {
   return memoryState;
 }
 
-function saveEconomyState(): void {
+let diskFlushInFlight: Promise<void> | null = null;
+let diskFlushQueued = false;
+
+async function writeAtomicJsonAsync(dir: string, filePath: string, payload: string): Promise<void> {
+  await fs.promises.mkdir(dir, { recursive: true });
+  const tmpPath = `${filePath}.${process.pid}.${Date.now()}.tmp`;
+  await fs.promises.writeFile(tmpPath, payload, 'utf-8');
+  await fs.promises.rename(tmpPath, filePath);
+}
+
+async function performEconomyDiskFlushAsync(): Promise<void> {
+  do {
+    diskFlushQueued = false;
+    if (!memoryState || !persistenceEnabled) return;
+    const serialized = JSON.stringify(memoryState);
+
+    try {
+      await writeAtomicJsonAsync(CACHE_DIR, FALLBACK_ECONOMY_FILE, serialized);
+    } catch {}
+
+    if (!isServerless) {
+      try {
+        await writeAtomicJsonAsync(DATA_DIR, PRIMARY_ECONOMY_FILE, serialized);
+      } catch {}
+    }
+  } while (diskFlushQueued);
+}
+
+export async function flushEconomyStateToDiskAsync(): Promise<void> {
+  if (diskFlushInFlight) {
+    await diskFlushInFlight;
+  }
+}
+
+function saveEconomyState(syncUid?: string): void {
   if (!memoryState || !persistenceEnabled) return;
-  const serialized = JSON.stringify(memoryState, null, 2);
+  diskFlushQueued = true;
+  if (!diskFlushInFlight) {
+    diskFlushInFlight = performEconomyDiskFlushAsync().finally(() => {
+      diskFlushInFlight = null;
+      if (diskFlushQueued && memoryState && persistenceEnabled) {
+        diskFlushInFlight = performEconomyDiskFlushAsync().finally(() => {
+          diskFlushInFlight = null;
+        });
+      }
+    });
+  }
+  if (syncUid) {
+    void syncUserWalletFirestoreTransaction(syncUid);
+  }
+}
+
+async function syncUserWalletFirestoreTransaction(canonicalUid: string): Promise<void> {
+  if (!canonicalUid || !memoryState || !persistenceEnabled || !resolveScopedServiceAccountRaw()) {
+    return;
+  }
+  const walletRecord = memoryState.wallets[canonicalUid];
+  if (!walletRecord) return;
 
   try {
-    if (!fs.existsSync(CACHE_DIR)) {
-      fs.mkdirSync(CACHE_DIR, { recursive: true });
-    }
-    fs.writeFileSync(FALLBACK_ECONOMY_FILE, serialized, 'utf-8');
-  } catch { }
+    const adminDb = await getAdminFirestore({ allowAdc: false });
+    if (!adminDb || typeof adminDb.runTransaction !== 'function') return;
 
-  if (!isServerless) {
-    try {
-      if (!fs.existsSync(DATA_DIR)) {
-        fs.mkdirSync(DATA_DIR, { recursive: true });
-      }
-      fs.writeFileSync(PRIMARY_ECONOMY_FILE, serialized, 'utf-8');
-    } catch { }
+    const docRef = adminDb.collection('tokenWallets').doc(canonicalUid);
+    const snapshotPayload = JSON.parse(JSON.stringify(walletRecord));
+    await adminDb.runTransaction(async (tx: any) => {
+      await tx.get(docRef);
+      tx.set(docRef, snapshotPayload, { merge: true });
+    });
+  } catch (err) {
+    console.warn('[TokenEconomy] Firestore per-user transaction sync notice:', err);
   }
 }
 
@@ -286,38 +340,64 @@ function saveEconomyState(): void {
  */
 export function resetTokenEconomyForTesting(): void {
   memoryState = createEmptyEconomyState();
+  diskFlushQueued = false;
+  userLockChains.clear();
 }
 
 // ============================================================================
-// CONCURRENCY LOCKING (MUTEX QUEUE)
+// CONCURRENCY LOCKING (PARTITIONED PER-USER / PER-KEY MUTEX QUEUE)
 // ============================================================================
 
-let globalLockChain: Promise<any> = Promise.resolve();
 const userLockChains = new Map<string, Promise<any>>();
 
 /**
- * Serializes operations globally and per-user so concurrent requests can never
- * double-spend the same token unit or bypass idempotency checks.
+ * Acquires isolated mutex locks for one or more keys in deterministic sorted order
+ * so independent users execute concurrently without head-of-line blocking, while
+ * same-user or shared-receipt/referral mutations stay strictly serialized.
+ */
+export function withAtomicLocks<T>(lockKeys: string[], task: () => Promise<T> | T): Promise<T> {
+  const uniqueKeys = Array.from(
+    new Set(lockKeys.map((k) => String(k || '').trim()).filter(Boolean))
+  ).sort();
+
+  if (uniqueKeys.length === 0) {
+    return Promise.resolve().then(() => task());
+  }
+
+  const prevTailPromises = uniqueKeys.map((key) => userLockChains.get(key) || Promise.resolve());
+
+  let resolveGate!: () => void;
+  const currentGate = new Promise<void>((resolve) => {
+    resolveGate = resolve;
+  });
+
+  for (const key of uniqueKeys) {
+    userLockChains.set(key, currentGate);
+  }
+
+  const execution = (async (): Promise<T> => {
+    await Promise.allSettled(prevTailPromises);
+    try {
+      return await task();
+    } finally {
+      for (const key of uniqueKeys) {
+        if (userLockChains.get(key) === currentGate) {
+          userLockChains.delete(key);
+        }
+      }
+      resolveGate();
+    }
+  })();
+
+  return execution;
+}
+
+/**
+ * Serializes operations per lockKey (e.g., canonical user UID) so concurrent requests
+ * for the same account never double-spend, while unrelated accounts run in parallel.
  */
 export function withAtomicLock<T>(lockKey: string, task: () => Promise<T> | T): Promise<T> {
-  const prevGlobal = globalLockChain;
-  const prevUser = userLockChains.get(lockKey) || Promise.resolve();
-
-  const run = async (): Promise<T> => {
-    await Promise.allSettled([prevGlobal, prevUser]);
-    return await task();
-  };
-
-  const currentPromise = run();
-  const settledPromise = currentPromise.then(
-    () => undefined,
-    () => undefined
-  );
-
-  globalLockChain = settledPromise;
-  userLockChains.set(lockKey, settledPromise);
-
-  return currentPromise;
+  return withAtomicLocks([`user:${lockKey}`], task);
 }
 
 // ============================================================================
@@ -1472,7 +1552,7 @@ export async function spendAuthoritativeTokens(params: {
         responseSnapshot: { consumedTokenIds: consumedTokens.map((t) => t.tokenId) },
       };
 
-      saveEconomyState();
+      saveEconomyState(canonicalUid);
 
       return {
         success: true,
@@ -1566,7 +1646,7 @@ export async function processVerifiedPurchasePayment(params: {
 
   const canonicalUid = normalizeCanonicalUid(params.userUid) || 'guest_verified';
 
-  return withAtomicLock(canonicalUid, () => {
+  return withAtomicLocks([`user:${canonicalUid}`, `mpesa:${cleanCode}`], () => {
     const state = loadEconomyState();
     const idempotencyKey = params.idempotencyKey?.trim() || `purchase:mpesa:${cleanCode}`;
 
@@ -1649,7 +1729,7 @@ export async function processVerifiedPurchasePayment(params: {
       responseSnapshot: paymentRecord,
     };
 
-    saveEconomyState();
+    saveEconomyState(canonicalUid);
 
     return {
       success: true,
@@ -1749,7 +1829,7 @@ export async function unlockRoomWithWalletBalanceServer(params: {
       responseSnapshot: { roomId: params.roomId, tokensAwarded },
     };
 
-    saveEconomyState();
+    saveEconomyState(canonicalUid);
 
     return {
       success: true,
@@ -1796,7 +1876,7 @@ export async function reverseOrRefundPurchasePayment(params: {
     return { success: false, error: `Verified payment '${cleanCode}' not found.`, statusCode: 404 };
   }
 
-  return withAtomicLock(payment.userUid, () => {
+  return withAtomicLocks([`user:${payment.userUid}`, `mpesa:${cleanCode}`], () => {
     if (payment.reversed) {
       return {
         success: false,
@@ -1849,7 +1929,7 @@ export async function reverseOrRefundPurchasePayment(params: {
     payment.reversalTransactionId = transaction?.transactionId || null;
     payment.reversalReason = params.reason.trim();
 
-    saveEconomyState();
+    saveEconomyState(payment.userUid);
 
     return {
       success: true,
@@ -1995,7 +2075,7 @@ export async function recordQualifyingReferral(params: {
     };
   }
 
-  return withAtomicLock(resolvedReferrerUid, () => {
+  return withAtomicLocks([`user:${resolvedReferrerUid}`, `referee:${referredUid}`], () => {
     // Ensure the referred user's own wallet/account is registered on the server
     getOrCreateUserWallet(state, referredUid, referredUsername, params.referredPinHash);
 
@@ -2090,7 +2170,7 @@ export async function recordQualifyingReferral(params: {
       responseSnapshot: refRecord,
     };
 
-    saveEconomyState();
+    saveEconomyState(resolvedReferrerUid);
 
     return {
       success: true,
