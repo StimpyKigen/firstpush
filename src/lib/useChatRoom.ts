@@ -346,9 +346,10 @@ export function useChatRoom(roomId: string, isRoomOpen = true, matchStatus: stri
       if (!added) return false;
 
       setCooldownRemaining(30);
-      if (typeof window !== 'undefined' && typeof fetch === 'function') {
+      if (currentUser && typeof window !== 'undefined' && typeof fetch === 'function') {
         fetch('/api/sports/chat-cooldown', {
           method: 'POST',
+          credentials: 'include',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ userId }),
         }).catch(() => {

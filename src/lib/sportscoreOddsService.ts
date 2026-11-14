@@ -221,15 +221,66 @@ const DEFAULT_FETCH_HEADERS = {
 };
 
 /**
+ * Validates a SportScore match/competition slug (`^[a-zA-Z0-9][a-zA-Z0-9_-]{1,127}$`).
+ * Prevents SSRF path injection, query-param smuggling, and upstream URL manipulation.
+ */
+export function isValidSportScoreSlug(slug: unknown): slug is string {
+  return typeof slug === 'string' && /^[a-zA-Z0-9][a-zA-Z0-9_-]{1,127}$/.test(slug.trim());
+}
+
+/**
+ * Sanitizes a match URL or path so server-side fetching can ONLY target
+ * `https://sportscore.com/football/match/<safe-path>`.
+ * Blocks protocol-relative (`//`), userinfo (`@`), backslashes, query/hash injection, and foreign hosts.
+ */
+export function sanitizeSportScoreMatchPath(rawUrl: unknown): string | null {
+  if (typeof rawUrl !== 'string') return null;
+  const trimmed = rawUrl.trim();
+  if (!trimmed || trimmed.length > 240) return null;
+  if (trimmed.includes('\\') || trimmed.includes('@') || trimmed.includes('..') || trimmed.includes('?') || trimmed.includes('#')) {
+    return null;
+  }
+
+  let pathname = '';
+  if (trimmed.startsWith('/')) {
+    // Reject protocol-relative URLs like //evil.com/...
+    if (trimmed.startsWith('//')) return null;
+    pathname = trimmed;
+  } else if (/^https?:\/\//i.test(trimmed)) {
+    try {
+      const parsed = new URL(trimmed);
+      if (parsed.protocol !== 'https:') return null;
+      const host = parsed.hostname.toLowerCase();
+      if (host !== 'sportscore.com' && host !== 'www.sportscore.com') return null;
+      if (parsed.username || parsed.password || parsed.port) return null;
+      pathname = parsed.pathname;
+    } catch {
+      return null;
+    }
+  } else {
+    // Reject scheme tricks (e.g. javascript:, file:, http:foo) when expecting match path
+    if (trimmed.includes(':')) return null;
+    pathname = `/${trimmed}`;
+  }
+
+  if (!/^\/football\/match\/[a-zA-Z0-9_-]+(?:\/[a-zA-Z0-9_-]+)*\/?$/.test(pathname)) {
+    return null;
+  }
+
+  return pathname;
+}
+
+/**
  * Fetches Bet365 odds for a match URL (e.g. "/football/match/newcastle-united-vs-crystal-palace/23xmvkh6zjg9qg8/").
  * Automatically checks memory and localStorage cache before making network calls.
  */
 export async function fetchBet365OddsForMatch(matchUrl: string): Promise<ParsedBet365Odds | null> {
-  if (!matchUrl || !matchUrl.includes('/football/match/')) {
+  const safePath = sanitizeSportScoreMatchPath(matchUrl);
+  if (!safePath) {
     return null;
   }
 
-  const cacheKey = matchUrl.trim();
+  const cacheKey = safePath;
   const cached = oddsCache.get(cacheKey);
   const now = Date.now();
 
@@ -243,7 +294,7 @@ export async function fetchBet365OddsForMatch(matchUrl: string): Promise<ParsedB
 
     if (isClient) {
       // In the browser, route through our backend proxy to prevent CORS blocking
-      const proxyUrl = `/api/sports/match-odds?url=${encodeURIComponent(matchUrl)}`;
+      const proxyUrl = `/api/sports/match-odds?url=${encodeURIComponent(safePath)}`;
       const res = await fetch(proxyUrl, {
         headers: { Accept: 'application/json' },
         signal: typeof AbortSignal !== 'undefined' ? AbortSignal.timeout(8000) : undefined,
@@ -260,10 +311,11 @@ export async function fetchBet365OddsForMatch(matchUrl: string): Promise<ParsedB
       }
       return null;
     } else {
-      // On the server, fetch directly from SportScore
-      const fullUrl = `https://sportscore.com${matchUrl.startsWith('/') ? matchUrl : `/${matchUrl}`}`;
+      // On the server, fetch strictly from allowlisted SportScore origin with redirects disabled
+      const fullUrl = `https://sportscore.com${safePath}`;
       const res = await fetch(fullUrl, {
         headers: DEFAULT_FETCH_HEADERS,
+        redirect: 'error',
         signal: typeof AbortSignal !== 'undefined' ? AbortSignal.timeout(8000) : undefined,
       });
 

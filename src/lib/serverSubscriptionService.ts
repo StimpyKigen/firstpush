@@ -16,6 +16,7 @@ import {
   processVerifiedPurchasePayment,
 } from './serverTokenEconomy.js';
 import { verifyAdminRequest } from './adminAuthService.js';
+import { resolveScopedServiceAccountRaw } from './fixtureSnapshotStore.js';
 
 export type SubscriptionStatus = 'active' | 'trial' | 'expired' | 'none';
 export type SubscriptionPlan = 'weekly' | 'monthly' | 'trial';
@@ -62,18 +63,25 @@ interface PersistentSubscriptionState {
 let adminFirestoreInstance: any | null = null;
 let adminFirestoreInitAttempted = false;
 
+export function resetSubscriptionFirestoreForTests(): void {
+  adminFirestoreInstance = null;
+  adminFirestoreInitAttempted = false;
+}
+
 async function getAdminFirestore(): Promise<any | null> {
   if (adminFirestoreInstance) return adminFirestoreInstance;
   if (adminFirestoreInitAttempted) return null;
   adminFirestoreInitAttempted = true;
 
   try {
-    const rawSa = process.env.FIREBASE_SERVICE_ACCOUNT;
+    const rawSa = resolveScopedServiceAccountRaw();
+    const isVercelEnv = Boolean(process.env.VERCEL || process.env.VERCEL_ENV);
     const isCloudEnv = Boolean(
-      process.env.K_SERVICE ||
-        process.env.GOOGLE_CLOUD_PROJECT ||
-        process.env.GOOGLE_APPLICATION_CREDENTIALS ||
-        (process.platform === 'linux' && !process.env.VERCEL)
+      !isVercelEnv &&
+        (process.env.K_SERVICE ||
+          process.env.GOOGLE_CLOUD_PROJECT ||
+          process.env.GOOGLE_APPLICATION_CREDENTIALS ||
+          process.platform === 'linux')
     );
     if (!rawSa && !isCloudEnv) {
       return null;
@@ -83,18 +91,36 @@ async function getAdminFirestore(): Promise<any | null> {
     const adminModule = await import(/* @vite-ignore */ adminPkg);
     const admin = (adminModule as any).default || adminModule;
 
-    if (!admin.apps || admin.apps.length === 0) {
-      if (rawSa) {
-        const serviceAccount = JSON.parse(rawSa);
-        admin.initializeApp({
-          credential: admin.credential.cert(serviceAccount),
-          projectId: serviceAccount.project_id || 'mshindiroom-production',
-        });
-      } else {
-        admin.initializeApp({
-          projectId: 'mshindiroom-production',
-        });
+    if (rawSa) {
+      const text = rawSa.trim().startsWith('{') ? rawSa : Buffer.from(rawSa, 'base64').toString('utf-8');
+      const serviceAccount = JSON.parse(text);
+      if (typeof serviceAccount.private_key === 'string') {
+        serviceAccount.private_key = serviceAccount.private_key.replace(/\\n/g, '\n');
       }
+      const vercelEnv = process.env.VERCEL_ENV?.trim().toLowerCase();
+      const appName = vercelEnv && vercelEnv !== 'production'
+        ? 'mshindi-subscription-store-preview'
+        : 'mshindi-subscription-store';
+      const existing = Array.isArray(admin.apps)
+        ? admin.apps.find((a: any) => a?.name === appName)
+        : null;
+      const app =
+        existing ||
+        admin.initializeApp(
+          {
+            credential: admin.credential.cert(serviceAccount),
+            projectId: serviceAccount.project_id || 'mshindiroom-production',
+          },
+          appName
+        );
+      adminFirestoreInstance = admin.firestore(app);
+      return adminFirestoreInstance;
+    }
+
+    if (!admin.apps || admin.apps.length === 0) {
+      admin.initializeApp({
+        projectId: 'mshindiroom-production',
+      });
     }
     adminFirestoreInstance = admin.firestore();
     return adminFirestoreInstance;
@@ -603,8 +629,11 @@ export async function handleSubscriptionHttpRequest(req: {
   // 2. POST /api/subscription/trial
   if (method === 'POST' && pathname.endsWith('/trial')) {
     const meta = {
-      phone: body.phone || userId,
-      username: body.username,
+      phone:
+        adminAuth.authorized && typeof body.phone === 'string' && body.phone.trim()
+          ? body.phone.trim().slice(0, 32)
+          : userId,
+      username: typeof body.username === 'string' ? body.username.trim().slice(0, 80) : undefined,
     };
     const result = await activateThreeDayTrial(userId, meta);
     return {

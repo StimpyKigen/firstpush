@@ -1,4 +1,4 @@
-import { savePermanentMediaAsset } from '../src/lib/serverHomepageFeed.js';
+import { savePermanentMediaAsset, MediaValidationError } from '../src/lib/serverHomepageFeed.js';
 import {
   verifyAdminPinCredentials,
   verifyAdminRequest,
@@ -42,11 +42,12 @@ export default async function handler(req: any, res: any) {
   const subpath = resolveAdminSubpath(req);
   const subpathLower = subpath.toLowerCase();
 
-  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, DELETE, OPTIONS');
   res.setHeader(
     'Access-Control-Allow-Headers',
-    'Content-Type, Authorization, x-admin-token, x-admin-phone, x-admin-pin'
+    'Content-Type, Authorization, x-admin-token, x-admin-phone'
   );
 
   if (req.method === 'OPTIONS') {
@@ -146,9 +147,15 @@ export default async function handler(req: any, res: any) {
         mimeType: saved.mimeType,
       });
     } catch (err: any) {
+      if (err instanceof MediaValidationError) {
+        return res.status(400).json({
+          success: false,
+          error: err.message,
+        });
+      }
       return res.status(500).json({
         success: false,
-        error: err?.message || 'Failed to upload media.',
+        error: 'Failed to upload media.',
       });
     }
   }

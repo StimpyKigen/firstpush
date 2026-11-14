@@ -24,7 +24,11 @@ import {
   startLiveTelemetryCoordinator,
 } from './src/lib/sportsFeedService';
 import { realtimeBroadcaster } from './src/lib/realtimeBroadcaster';
-import { fetchBet365OddsForMatch } from './src/lib/sportscoreOddsService';
+import {
+  fetchBet365OddsForMatch,
+  isValidSportScoreSlug,
+  sanitizeSportScoreMatchPath,
+} from './src/lib/sportscoreOddsService';
 import { extractPdfTextServer } from './src/lib/serverPdfParser';
 import {
   getSavedHomepageFeedAsync,
@@ -32,6 +36,7 @@ import {
   cleanupExpiredCarouselPostsAsync,
   savePermanentMediaAsset,
   getPermanentMediaAsset,
+  MediaValidationError,
 } from './src/lib/serverHomepageFeed';
 import {
   verifyAdminPinCredentials,
@@ -40,7 +45,10 @@ import {
   MAX_ADMIN_TOKEN_TTL_MS,
   constantTimeEqualText,
 } from './src/lib/adminAuthService';
-import { handleTokenEconomyHttpRequest } from './src/lib/serverTokenEconomy';
+import {
+  handleTokenEconomyHttpRequest,
+  enforceAuthenticatedChatCooldown,
+} from './src/lib/serverTokenEconomy';
 import { handleSubscriptionHttpRequest } from './src/lib/serverSubscriptionService';
 import { handleAuthHttpRequest } from './src/lib/serverAuthService';
 import {
@@ -145,8 +153,8 @@ async function startServer() {
       const fixtures = getSavedAdminFixtures();
       const batches = getSavedAdminBatches();
       res.json({ success: true, count: fixtures.length, fixtures, batches });
-    } catch (err: any) {
-      res.status(500).json({ success: false, error: err?.message || 'Failed to get admin fixtures' });
+    } catch {
+      res.status(500).json({ success: false, error: 'Failed to get admin fixtures' });
     }
   });
 
@@ -170,8 +178,8 @@ async function startServer() {
         batches: result.batches,
         message: `Successfully processed ${fixtures.length} fixtures (${result.addedCount} new, total ${result.totalCount}).`,
       });
-    } catch (err: any) {
-      res.status(500).json({ success: false, error: err?.message || 'Failed to ingest admin fixtures' });
+    } catch {
+      res.status(500).json({ success: false, error: 'Failed to ingest admin fixtures' });
     }
   });
 
@@ -186,8 +194,8 @@ async function startServer() {
       }
       deleteAdminBatch(req.params.id);
       res.json({ success: true, message: 'Batch removed successfully.', batches: getSavedAdminBatches() });
-    } catch (err: any) {
-      res.status(500).json({ success: false, error: err?.message || 'Failed to remove batch' });
+    } catch {
+      res.status(500).json({ success: false, error: 'Failed to remove batch' });
     }
   });
 
@@ -202,8 +210,8 @@ async function startServer() {
       }
       clearAllFixtures();
       res.json({ success: true, message: 'All fixtures cleared from match slate.' });
-    } catch (err: any) {
-      res.status(500).json({ success: false, error: err?.message || 'Failed to clear fixtures' });
+    } catch {
+      res.status(500).json({ success: false, error: 'Failed to clear fixtures' });
     }
   });
 
@@ -223,8 +231,8 @@ async function startServer() {
       const buffer = Buffer.from(base64, 'base64');
       const text = extractPdfTextServer(buffer);
       res.json({ success: true, text });
-    } catch (err: any) {
-      res.status(500).json({ success: false, error: err?.message || 'Failed to parse PDF on server' });
+    } catch {
+      res.status(500).json({ success: false, error: 'Failed to parse PDF on server' });
     }
   });
 
@@ -314,8 +322,8 @@ async function startServer() {
       } else {
         res.status(400).json({ success: false, error: 'Invalid feed payload' });
       }
-    } catch (err: any) {
-      res.status(500).json({ success: false, error: err?.message || 'Failed to save homepage feed' });
+    } catch {
+      res.status(500).json({ success: false, error: 'Failed to save homepage feed' });
     }
   });
 
@@ -343,8 +351,11 @@ async function startServer() {
         mimeType: saved.mimeType,
       });
     } catch (err: any) {
+      if (err instanceof MediaValidationError) {
+        return res.status(400).json({ success: false, error: err.message });
+      }
       console.error('[UploadMedia] Server error:', err);
-      res.status(500).json({ success: false, error: err?.message || 'Failed to upload media' });
+      res.status(500).json({ success: false, error: 'Failed to upload media' });
     }
   });
 
@@ -354,6 +365,8 @@ async function startServer() {
       const asset = getPermanentMediaAsset(req.params.folder, req.params.fileName);
       if (asset) {
         res.setHeader('Content-Type', asset.mimeType);
+        res.setHeader('X-Content-Type-Options', 'nosniff');
+        res.setHeader('Content-Security-Policy', "default-src 'none'; sandbox");
         res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
         return res.send(asset.buffer);
       }
@@ -441,8 +454,8 @@ async function startServer() {
         }
       }
       return res.status(result.statusCode).json(result.payload);
-    } catch (err: any) {
-      return res.status(500).json({ success: false, error: err?.message || 'Server authentication error.' });
+    } catch {
+      return res.status(500).json({ success: false, error: 'Server authentication error.' });
     }
   });
 
@@ -460,8 +473,8 @@ async function startServer() {
         body: req.body,
       });
       return res.status(result.statusCode).json(result.payload);
-    } catch (err: any) {
-      return res.status(500).json({ success: false, error: err?.message || 'Payment verification error.' });
+    } catch {
+      return res.status(500).json({ success: false, error: 'Payment verification error.' });
     }
   });
 
@@ -476,8 +489,8 @@ async function startServer() {
         body: req.body,
       });
       return res.status(result.statusCode).json(result.payload);
-    } catch (err: any) {
-      return res.status(500).json({ success: false, error: err?.message || 'Server token economy error.' });
+    } catch {
+      return res.status(500).json({ success: false, error: 'Server token economy error.' });
     }
   });
 
@@ -492,8 +505,8 @@ async function startServer() {
         body: req.body,
       });
       return res.status(result.statusCode).json(result.payload);
-    } catch (err: any) {
-      return res.status(500).json({ success: false, error: err?.message || 'Server subscription error.' });
+    } catch {
+      return res.status(500).json({ success: false, error: 'Server subscription error.' });
     }
   });
 
@@ -515,7 +528,7 @@ async function startServer() {
       });
     } catch (err: any) {
       console.error('Jackpot Mirror API Error:', err);
-      res.status(500).json({ error: err?.message || 'Failed to fetch mirrored jackpot data' });
+      res.status(500).json({ error: 'Failed to fetch mirrored jackpot data' });
     }
   });
 
@@ -653,8 +666,8 @@ async function startServer() {
     try {
       const status = getWeeklySchedulerStatus();
       res.json({ success: true, ...status });
-    } catch (err: any) {
-      res.status(500).json({ success: false, error: err?.message || 'Failed to retrieve weekly sync status' });
+    } catch {
+      res.status(500).json({ success: false, error: 'Failed to retrieve weekly sync status' });
     }
   });
 
@@ -675,16 +688,16 @@ async function startServer() {
       const targetDomesticCount = req.body?.targetDomesticCount ? Number(req.body?.targetDomesticCount) : 28;
       const log = await executeWeeklyIngestion({ force, startFromToday, targetDomesticCount });
       res.json({ success: true, log });
-    } catch (err: any) {
-      res.status(500).json({ success: false, error: err?.message || 'Failed to execute weekly ingestion' });
+    } catch {
+      res.status(500).json({ success: false, error: 'Failed to execute weekly ingestion' });
     }
   });
 
   app.get('/api/sports/match-detail', async (req: Request, res: Response) => {
     try {
-      const slug = req.query.slug as string;
-      if (!slug) {
-        return res.status(400).json({ error: 'Match slug is required.' });
+      const slug = String(req.query.slug || '').trim();
+      if (!isValidSportScoreSlug(slug)) {
+        return res.status(400).json({ error: 'Valid match slug is required.' });
       }
 
       const upstreamRes = await fetch(
@@ -694,6 +707,8 @@ async function startServer() {
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
             Accept: 'application/json',
           },
+          redirect: 'error',
+          signal: AbortSignal.timeout(8000),
         }
       );
 
@@ -709,35 +724,35 @@ async function startServer() {
         res.setHeader('Cache-Control', 's-maxage=60, stale-while-revalidate=300');
       }
       return res.json(data);
-    } catch (err: any) {
+    } catch {
       return res.status(500).json({ error: 'Failed to fetch match details.' });
     }
   });
 
   app.get('/api/sports/match-odds', async (req: Request, res: Response) => {
     try {
-      const matchUrl = req.query.url as string;
-      if (!matchUrl) {
-        return res.status(400).json({ success: false, error: 'Match URL is required.' });
+      const safePath = sanitizeSportScoreMatchPath(req.query.url);
+      if (!safePath) {
+        return res.status(400).json({ success: false, error: 'Valid SportScore match URL is required.' });
       }
 
-      const odds = await fetchBet365OddsForMatch(matchUrl);
+      const odds = await fetchBet365OddsForMatch(safePath);
       if (!odds) {
         return res.status(404).json({ success: false, error: 'Bet365 odds not available for this match.' });
       }
 
       res.setHeader('Cache-Control', 'public, max-age=600, s-maxage=1800, stale-while-revalidate=3600');
       return res.json({ success: true, odds });
-    } catch (err: any) {
+    } catch {
       return res.status(500).json({ success: false, error: 'Failed to retrieve match odds.' });
     }
   });
 
   app.get('/api/sports/standings', async (req: Request, res: Response) => {
     try {
-      const slug = req.query.slug as string;
-      if (!slug) {
-        return res.status(400).json({ error: 'Competition slug is required.' });
+      const slug = String(req.query.slug || '').trim();
+      if (!isValidSportScoreSlug(slug)) {
+        return res.status(400).json({ error: 'Valid competition slug is required.' });
       }
 
       const upstreamRes = await fetch(
@@ -747,6 +762,8 @@ async function startServer() {
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
             Accept: 'application/json',
           },
+          redirect: 'error',
+          signal: AbortSignal.timeout(8000),
         }
       );
 
@@ -757,9 +774,22 @@ async function startServer() {
       const data = await upstreamRes.json();
       res.setHeader('Cache-Control', 's-maxage=300, stale-while-revalidate=900');
       return res.json(data);
-    } catch (err: any) {
+    } catch {
       return res.status(500).json({ error: 'Failed to fetch standings.' });
     }
+  });
+
+  app.all('/api/sports/chat-cooldown', async (req: Request, res: Response) => {
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
+    if (req.method === 'OPTIONS') {
+      return res.status(204).end();
+    }
+    const result = await enforceAuthenticatedChatCooldown({
+      headers: req.headers as any,
+      body: req.body,
+      query: req.query as any,
+    });
+    return res.status(result.statusCode).json(result.payload);
   });
 
 
@@ -814,16 +844,22 @@ Strict Rules for Ava:
 - Keep answers concise, clear, and direct (max 2-3 short paragraphs).
 - Always end with a helpful invitation for follow-up questions if needed.`;
 
-      // Construct conversation context if history is supplied
+      // Construct validated conversation context if history is supplied
       let formattedContents: any = message.trim();
-      if (Array.isArray(history) && history.length > 0) {
-        const recentHistory = history.slice(-6).map((item: any) => ({
-          role: item.sender === 'user' ? 'user' : 'model',
-          parts: [{ text: item.text }]
-        }));
+      if (history !== undefined) {
+        if (!Array.isArray(history) || history.length > 30) {
+          return res.status(400).json({ error: 'Invalid chat history format.' });
+        }
+        const recentHistory = history
+          .slice(-6)
+          .filter((item: any) => item && typeof item.text === 'string' && item.text.trim().length > 0)
+          .map((item: any) => ({
+            role: item.sender === 'user' ? 'user' : 'model',
+            parts: [{ text: item.text.trim().slice(0, 1000) }],
+          }));
         recentHistory.push({
           role: 'user',
-          parts: [{ text: message.trim() }]
+          parts: [{ text: message.trim() }],
         });
         formattedContents = recentHistory;
       }
@@ -843,7 +879,7 @@ Strict Rules for Ava:
       });
     } catch (err: any) {
       console.error('Ava Support API Error:', err);
-      res.status(500).json({ error: err?.message || 'Failed to process support message' });
+      res.status(500).json({ error: 'Failed to process support message.' });
     }
   });
 
@@ -857,7 +893,20 @@ Strict Rules for Ava:
         });
       }
 
-      const { prompt, mode } = req.body;
+      const { prompt, mode } = req.body || {};
+      if (prompt !== undefined && typeof prompt !== 'string') {
+        return res.status(400).json({ error: 'Advisor prompt must be a string.' });
+      }
+      const cleanPrompt = typeof prompt === 'string' ? prompt.trim() : '';
+      if (cleanPrompt.length > 1500) {
+        return res.status(400).json({ error: 'Advisor prompt exceeds maximum allowed limit of 1,500 characters.' });
+      }
+      const allowedModes = new Set(['standard', 'trivia', 'prediction']);
+      const cleanMode = mode === undefined ? 'standard' : String(mode).trim().toLowerCase();
+      if (!allowedModes.has(cleanMode)) {
+        return res.status(400).json({ error: 'Invalid advisor mode.' });
+      }
+
       const ai = new GoogleGenAI({
         apiKey,
         httpOptions: {
@@ -868,15 +917,15 @@ Strict Rules for Ava:
       });
 
       let systemInstruction = "You are 'Mshindi AI Advisor', an expert AI sports analyst, trivia creator, and competition guide for Mshindi Projo platform in Kenya / East Africa.";
-      if (mode === 'trivia') {
+      if (cleanMode === 'trivia') {
         systemInstruction += " Generate 3 exciting, multiple-choice trivia questions with 4 options and 1 correct answer index about sports, history, or general knowledge. Format clearly.";
-      } else if (mode === 'prediction') {
+      } else if (cleanMode === 'prediction') {
         systemInstruction += " Provide insightful sports statistics, head-to-head analysis, and probable score predictions with key match highlights.";
       }
 
       const response = await ai.models.generateContent({
         model: 'gemini-3.6-flash',
-        contents: prompt || 'Provide a daily sports highlight tip and trivia fact for Mshindi champions!',
+        contents: cleanPrompt || 'Provide a daily sports highlight tip and trivia fact for Mshindi champions!',
         config: {
           systemInstruction,
           temperature: 0.7,
@@ -889,7 +938,7 @@ Strict Rules for Ava:
       });
     } catch (err: any) {
       console.error('Gemini API Error:', err);
-      res.status(500).json({ error: err?.message || 'Failed to generate AI response' });
+      res.status(500).json({ error: 'Failed to generate AI response.' });
     }
   });
 
@@ -989,7 +1038,7 @@ Return valid JSON with key 'matches' containing exactly ${targetLegs} items.`;
       if (fallbackMatches.length > 0) {
         return res.json({ success: true, legCount: fallbackMatches.length, matches: fallbackMatches });
       }
-      res.status(500).json({ error: err?.message || 'Failed to parse jackpot webpage text' });
+      res.status(500).json({ error: 'Failed to parse jackpot webpage text' });
     }
   });
 

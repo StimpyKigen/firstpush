@@ -10,6 +10,7 @@ import type {
 } from './homepageFeedStore.js';
 import { ADMIN_PHONE_NORMALIZED } from './adminAuthService.js';
 import { realtimeBroadcaster } from './realtimeBroadcaster.js';
+import { resolveScopedServiceAccountRaw } from './fixtureSnapshotStore.js';
 
 /** Exact 24-hour story TTL in milliseconds (86,400,000 ms). */
 export const CAROUSEL_STORY_TTL_MS = 24 * 60 * 60 * 1000;
@@ -118,9 +119,14 @@ const LEGACY_MOCK_IDS = new Set([
   'video-2',
 ]);
 
-// Lazy Firebase Admin Firestore instance (uses FIREBASE_SERVICE_ACCOUNT or Cloud Run ADC when available)
+// Lazy Firebase Admin Firestore instance (uses scoped FIREBASE_SERVICE_ACCOUNT or Cloud Run ADC when available)
 let adminFirestoreInstance: any | null = null;
 let adminFirestoreInitAttempted = false;
+
+export function resetHomepageFeedFirestoreForTests(): void {
+  adminFirestoreInstance = null;
+  adminFirestoreInitAttempted = false;
+}
 
 async function getAdminFirestore(): Promise<any | null> {
   if (adminFirestoreInstance) return adminFirestoreInstance;
@@ -128,12 +134,14 @@ async function getAdminFirestore(): Promise<any | null> {
   adminFirestoreInitAttempted = true;
 
   try {
-    const rawSa = process.env.FIREBASE_SERVICE_ACCOUNT;
+    const rawSa = resolveScopedServiceAccountRaw();
+    const isVercelEnv = Boolean(process.env.VERCEL || process.env.VERCEL_ENV);
     const isCloudEnv = Boolean(
-      process.env.K_SERVICE ||
-        process.env.GOOGLE_CLOUD_PROJECT ||
-        process.env.GOOGLE_APPLICATION_CREDENTIALS ||
-        (process.platform === 'linux' && !process.env.VERCEL)
+      !isVercelEnv &&
+        (process.env.K_SERVICE ||
+          process.env.GOOGLE_CLOUD_PROJECT ||
+          process.env.GOOGLE_APPLICATION_CREDENTIALS ||
+          process.platform === 'linux')
     );
     if (!rawSa && !isCloudEnv) {
       return null;
@@ -143,18 +151,36 @@ async function getAdminFirestore(): Promise<any | null> {
     const adminModule = await import(/* @vite-ignore */ adminPkg);
     const admin = (adminModule as any).default || adminModule;
 
-    if (!admin.apps || admin.apps.length === 0) {
-      if (rawSa) {
-        const serviceAccount = JSON.parse(rawSa);
-        admin.initializeApp({
-          credential: admin.credential.cert(serviceAccount),
-          projectId: serviceAccount.project_id || 'mshindiroom-production',
-        });
-      } else {
-        admin.initializeApp({
-          projectId: 'mshindiroom-production',
-        });
+    if (rawSa) {
+      const text = rawSa.trim().startsWith('{') ? rawSa : Buffer.from(rawSa, 'base64').toString('utf-8');
+      const serviceAccount = JSON.parse(text);
+      if (typeof serviceAccount.private_key === 'string') {
+        serviceAccount.private_key = serviceAccount.private_key.replace(/\\n/g, '\n');
       }
+      const vercelEnv = process.env.VERCEL_ENV?.trim().toLowerCase();
+      const appName = vercelEnv && vercelEnv !== 'production'
+        ? 'mshindi-feed-store-preview'
+        : 'mshindi-feed-store';
+      const existing = Array.isArray(admin.apps)
+        ? admin.apps.find((a: any) => a?.name === appName)
+        : null;
+      const app =
+        existing ||
+        admin.initializeApp(
+          {
+            credential: admin.credential.cert(serviceAccount),
+            projectId: serviceAccount.project_id || 'mshindiroom-production',
+          },
+          appName
+        );
+      adminFirestoreInstance = admin.firestore(app);
+      return adminFirestoreInstance;
+    }
+
+    if (!admin.apps || admin.apps.length === 0) {
+      admin.initializeApp({
+        projectId: 'mshindiroom-production',
+      });
     }
     adminFirestoreInstance = admin.firestore();
     return adminFirestoreInstance;
@@ -1034,6 +1060,65 @@ export interface PermanentMediaEntry {
   createdAt: string;
 }
 
+export const MAX_MEDIA_UPLOAD_BYTES = 5 * 1024 * 1024; // 5 MB
+const ALLOWED_UPLOAD_FOLDERS = new Set(['feed', 'homepage-carousel', 'avatars', 'uploads']);
+const ALLOWED_RASTER_MIMES = new Set(['image/webp', 'image/png', 'image/jpeg', 'image/gif']);
+
+export class MediaValidationError extends Error {
+  statusCode = 400;
+  constructor(message: string) {
+    super(message);
+    this.name = 'MediaValidationError';
+  }
+}
+
+function normalizeAllowedRasterMime(rawMime?: string | null): string | null {
+  const lower = String(rawMime || '').trim().toLowerCase();
+  const normalized = lower === 'image/jpg' ? 'image/jpeg' : lower;
+  return ALLOWED_RASTER_MIMES.has(normalized) ? normalized : null;
+}
+
+function detectRasterMagicMime(buffer: Buffer): string | null {
+  if (!buffer || buffer.length < 4) return null;
+  // PNG: 89 50 4E 47
+  if (buffer[0] === 0x89 && buffer[1] === 0x50 && buffer[2] === 0x4e && buffer[3] === 0x47) {
+    return 'image/png';
+  }
+  // JPEG: FF D8 FF
+  if (buffer[0] === 0xff && buffer[1] === 0xd8 && buffer[2] === 0xff) {
+    return 'image/jpeg';
+  }
+  // GIF: GIF87a or GIF89a
+  if (
+    buffer.length >= 6 &&
+    (buffer.subarray(0, 6).toString('ascii') === 'GIF87a' ||
+      buffer.subarray(0, 6).toString('ascii') === 'GIF89a')
+  ) {
+    return 'image/gif';
+  }
+  // WebP: RIFF....WEBP
+  if (
+    buffer.length >= 12 &&
+    buffer.subarray(0, 4).toString('ascii') === 'RIFF' &&
+    buffer.subarray(8, 12).toString('ascii') === 'WEBP'
+  ) {
+    return 'image/webp';
+  }
+  return null;
+}
+
+function assertSafeMediaSegment(folder: string, fileName: string): { cleanFolder: string; cleanFileName: string } {
+  const rawFolder = String(folder || 'feed').trim();
+  const rawFile = String(fileName || '').trim();
+  if (!ALLOWED_UPLOAD_FOLDERS.has(rawFolder)) {
+    throw new MediaValidationError(`Unsupported upload folder '${rawFolder}'.`);
+  }
+  if (!rawFile || rawFile.includes('..') || rawFile.includes('/') || rawFile.includes('\\') || !/^[a-zA-Z0-9][a-zA-Z0-9._-]{0,99}$/.test(rawFile)) {
+    throw new MediaValidationError('Invalid upload fileName.');
+  }
+  return { cleanFolder: rawFolder, cleanFileName: rawFile };
+}
+
 export function savePermanentMediaAsset(params: {
   dataUrl: string;
   fileName: string;
@@ -1043,27 +1128,67 @@ export function savePermanentMediaAsset(params: {
     throw new Error('Simulated media storage failure');
   }
 
-  const cleanFileName = String(params.fileName).replace(/[^a-zA-Z0-9._-]/g, '_');
-  const cleanFolder = String(params.folder || 'feed').replace(/[^a-zA-Z0-9_-]/g, '_');
+  const { cleanFolder, cleanFileName } = assertSafeMediaSegment(params.folder || 'feed', params.fileName);
+  const rawDataUrl = typeof params.dataUrl === 'string' ? params.dataUrl.trim() : '';
+  if (!rawDataUrl) {
+    throw new MediaValidationError('Media dataUrl is required.');
+  }
+  if (rawDataUrl.length > Math.ceil(MAX_MEDIA_UPLOAD_BYTES * 1.45)) {
+    throw new MediaValidationError('Uploaded media exceeds maximum 5 MB limit.');
+  }
+
+  let declaredMime: string | null = null;
+  let base64Payload = '';
+  if (rawDataUrl.startsWith('data:')) {
+    const matches = rawDataUrl.match(/^data:([^;,\s]+);base64,([A-Za-z0-9+/=\r\n]+)$/);
+    if (!matches) {
+      throw new MediaValidationError('Invalid base64 image dataUrl format.');
+    }
+    declaredMime = normalizeAllowedRasterMime(matches[1]);
+    if (!declaredMime) {
+      throw new MediaValidationError(`Unsupported or unsafe media MIME type '${matches[1]}'. Only PNG, JPEG, GIF, and WebP are permitted.`);
+    }
+    base64Payload = matches[2].replace(/[\r\n\s]/g, '');
+  } else {
+    if (!/^[A-Za-z0-9+/=]+$/.test(rawDataUrl)) {
+      throw new MediaValidationError('Invalid raw base64 media payload.');
+    }
+    base64Payload = rawDataUrl;
+  }
+
+  const buffer = Buffer.from(base64Payload, 'base64');
+  if (buffer.length === 0 || buffer.length > MAX_MEDIA_UPLOAD_BYTES) {
+    throw new MediaValidationError('Uploaded media must be between 1 byte and 5 MB.');
+  }
+
+  const detectedMime = detectRasterMagicMime(buffer);
+  const headText = buffer.subarray(0, Math.min(256, buffer.length)).toString('utf-8').toLowerCase();
+  if (headText.includes('<svg') || headText.includes('<html') || headText.includes('<script') || headText.includes('<?xml')) {
+    throw new MediaValidationError('Executable markup or SVG uploads are strictly forbidden.');
+  }
+  if (!detectedMime) {
+    throw new MediaValidationError('Uploaded file bytes do not match a supported raster image header (PNG, JPEG, GIF, WebP).');
+  }
+
+  const mimeType = detectedMime;
+  const fullDataUrl = `data:${mimeType};base64,${buffer.toString('base64')}`;
   const key = `${cleanFolder}/${cleanFileName}`;
   const publicUrl = `/images/uploads/${cleanFolder}/${cleanFileName}`;
 
-  const matches = params.dataUrl.match(/^data:([A-Za-z-+/]+);base64,(.+)$/);
-  const mimeType = matches && matches[1] ? matches[1] : 'image/webp';
-  const base64Payload = matches && matches[2] ? matches[2] : params.dataUrl;
-  const fullDataUrl = params.dataUrl.startsWith('data:')
-    ? params.dataUrl
-    : `data:${mimeType};base64,${base64Payload}`;
-  const buffer = Buffer.from(base64Payload, 'base64');
-
-  // 1. Write binary file to public/images/uploads/<folder>/<fileName> for fast static serving
+  // 1. Write binary file to public/images/uploads/<folder>/<fileName> with strict path confinement
   try {
-    const targetDir = path.join(process.cwd(), 'public', 'images', 'uploads', cleanFolder);
+    const uploadsRoot = path.resolve(process.cwd(), 'public', 'images', 'uploads');
+    const targetDir = path.resolve(uploadsRoot, cleanFolder);
+    const targetFile = path.resolve(targetDir, cleanFileName);
+    if (!targetDir.startsWith(uploadsRoot + path.sep) || !targetFile.startsWith(targetDir + path.sep)) {
+      throw new MediaValidationError('Invalid upload destination path.');
+    }
     if (!fs.existsSync(targetDir)) {
       fs.mkdirSync(targetDir, { recursive: true });
     }
-    fs.writeFileSync(path.join(targetDir, cleanFileName), buffer);
+    fs.writeFileSync(targetFile, buffer);
   } catch (err) {
+    if (err instanceof MediaValidationError) throw err;
     console.warn('[serverHomepageFeed] Static upload dir write notice:', err);
   }
 
@@ -1093,35 +1218,33 @@ export function getPermanentMediaAsset(
   folder: string,
   fileName: string
 ): { buffer: Buffer; mimeType: string; dataUrl: string } | null {
-  const cleanFileName = String(fileName).replace(/[^a-zA-Z0-9._-]/g, '_');
-  const cleanFolder = String(folder).replace(/[^a-zA-Z0-9_-]/g, '_');
+  let cleanFolder = '';
+  let cleanFileName = '';
+  try {
+    ({ cleanFolder, cleanFileName } = assertSafeMediaSegment(folder, fileName));
+  } catch {
+    return null;
+  }
   const key = `${cleanFolder}/${cleanFileName}`;
 
-  // 1. Check disk file first
+  // 1. Check disk file first with strict root confinement and magic-byte/MIME validation
   try {
-    const diskPath = path.join(
-      process.cwd(),
-      'public',
-      'images',
-      'uploads',
-      cleanFolder,
-      cleanFileName
-    );
+    const uploadsRoot = path.resolve(process.cwd(), 'public', 'images', 'uploads');
+    const targetDir = path.resolve(uploadsRoot, cleanFolder);
+    const diskPath = path.resolve(targetDir, cleanFileName);
+    if (!diskPath.startsWith(targetDir + path.sep)) {
+      return null;
+    }
     if (fs.existsSync(diskPath)) {
       const buffer = fs.readFileSync(diskPath);
-      const ext = path.extname(cleanFileName).toLowerCase();
-      const mimeType =
-        ext === '.webp'
-          ? 'image/webp'
-          : ext === '.png'
-          ? 'image/png'
-          : ext === '.gif'
-          ? 'image/gif'
-          : 'image/jpeg';
+      const magicMime = detectRasterMagicMime(buffer);
+      if (!magicMime) {
+        return null;
+      }
       return {
         buffer,
-        mimeType,
-        dataUrl: `data:${mimeType};base64,${buffer.toString('base64')}`,
+        mimeType: magicMime,
+        dataUrl: `data:${magicMime};base64,${buffer.toString('base64')}`,
       };
     }
   } catch {}
@@ -1132,12 +1255,14 @@ export function getPermanentMediaAsset(
     readJsonFileSafe<Record<string, PermanentMediaEntry>>(FALLBACK_MEDIA_FILE);
   const entry = registry?.[key];
   if (entry && entry.dataUrl) {
-    const matches = entry.dataUrl.match(/^data:([A-Za-z-+/]+);base64,(.+)$/);
-    const mimeType = matches?.[1] || entry.mimeType || 'image/webp';
-    const base64Data = matches?.[2] || entry.dataUrl;
+    const matches = entry.dataUrl.match(/^data:([^;,\s]+);base64,([A-Za-z0-9+/=\r\n]+)$/);
+    const safeMime = normalizeAllowedRasterMime(matches?.[1] || entry.mimeType);
+    if (!safeMime || !matches?.[2]) return null;
+    const buffer = Buffer.from(matches[2], 'base64');
+    if (!detectRasterMagicMime(buffer)) return null;
     return {
-      buffer: Buffer.from(base64Data, 'base64'),
-      mimeType,
+      buffer,
+      mimeType: safeMime,
       dataUrl: entry.dataUrl,
     };
   }

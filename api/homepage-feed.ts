@@ -33,11 +33,11 @@ function getActionParam(req: any, body?: any): string {
 }
 
 export default async function handler(req: any, res: any) {
-  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('X-Content-Type-Options', 'nosniff');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
   res.setHeader(
     'Access-Control-Allow-Headers',
-    'Content-Type, Authorization, x-admin-token, x-admin-phone, x-admin-pin'
+    'Content-Type, Authorization, x-admin-token, x-admin-phone'
   );
   res.setHeader('Cache-Control', 'no-store, no-cache, max-age=0, must-revalidate');
 
@@ -77,10 +77,10 @@ export default async function handler(req: any, res: any) {
         remainingCarouselCount: result.remainingCarouselCount,
         firestoreUpdated: result.firestoreUpdated,
       });
-    } catch (err: any) {
+    } catch {
       return res.status(500).json({
         success: false,
-        error: err?.message || 'Failed to execute expired carousel story cleanup.',
+        error: 'Failed to execute expired carousel story cleanup.',
       });
     }
   }
@@ -90,10 +90,10 @@ export default async function handler(req: any, res: any) {
       const feed = await getSavedHomepageFeedAsync();
       const serverTime = new Date().toISOString();
       return res.status(200).json({ success: true, serverTime, feed });
-    } catch (err: any) {
+    } catch {
       return res.status(500).json({
         success: false,
-        error: err?.message || 'Failed to retrieve homepage feed.',
+        error: 'Failed to retrieve homepage feed.',
       });
     }
   }
@@ -126,10 +126,10 @@ export default async function handler(req: any, res: any) {
         success: false,
         error: 'Invalid feed payload: carouselItems and videoItems arrays required.',
       });
-    } catch (err: any) {
+    } catch {
       return res.status(500).json({
         success: false,
-        error: err?.message || 'Failed to persist homepage feed.',
+        error: 'Failed to persist homepage feed.',
       });
     }
   }

@@ -1274,7 +1274,7 @@ export async function fetchAuthoritativeSportScoreMatchDetail(
       ? extractSportScoreMatchSlug({ matchSlug: slugOrItem, providerId: slugOrItem, id: slugOrItem }) || slugOrItem
       : extractSportScoreMatchSlug(slugOrItem);
 
-  if (!candidateSlug) return null;
+  if (!candidateSlug || !/^[a-zA-Z0-9][a-zA-Z0-9_-]{1,127}$/.test(candidateSlug)) return null;
 
   let rawDmTimeForLog: unknown = undefined;
   try {

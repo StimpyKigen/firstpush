@@ -17,6 +17,7 @@ function resolveAuthPathname(req: any): string {
 }
 
 export default async function handler(req: any, res: any) {
+  res.setHeader('X-Content-Type-Options', 'nosniff');
   res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
 
   if (req.method === 'OPTIONS') {
@@ -52,10 +53,10 @@ export default async function handler(req: any, res: any) {
     }
 
     return res.status(result.statusCode).json(result.payload);
-  } catch (err: any) {
+  } catch {
     return res.status(500).json({
       success: false,
-      error: err?.message || 'Server authentication error.',
+      error: 'Server authentication error.',
     });
   }
 }

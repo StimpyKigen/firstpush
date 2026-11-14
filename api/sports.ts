@@ -10,10 +10,15 @@ import {
   getLocalDateStringEAT,
 } from '../src/lib/sportsFeedService.js';
 import { realtimeBroadcaster } from '../src/lib/realtimeBroadcaster.js';
-import { fetchBet365OddsForMatch } from '../src/lib/sportscoreOddsService.js';
+import {
+  fetchBet365OddsForMatch,
+  isValidSportScoreSlug,
+  sanitizeSportScoreMatchPath,
+} from '../src/lib/sportscoreOddsService.js';
 import { executeWeeklyIngestion, getWeeklySchedulerStatus } from '../src/lib/weeklyFixtureService.js';
 import { isSnapshotStoreConfigured } from '../src/lib/fixtureSnapshotStore.js';
 import { verifyAdminRequest, constantTimeEqualText } from '../src/lib/adminAuthService.js';
+import { enforceAuthenticatedChatCooldown } from '../src/lib/serverTokenEconomy.js';
 
 function verifyCronBearerHeader(req: any): boolean {
   const cronSecret = (process.env.CRON_SECRET || '').trim();
@@ -27,8 +32,9 @@ export const config = {
   maxDuration: 60,
 };
 
-// In-memory server-side rate limit and cooldown tracker (30 seconds per user)
-const serverChatCooldowns = new Map<string, number>();
+// Rate limit cold-start eager sync triggers from anonymous GET requests
+let lastColdStartSyncAt = 0;
+const COLD_START_SYNC_COOLDOWN_MS = 60_000;
 
 function resolveSportsSubpath(req: any): string {
   const endpointParam = req?.query?.endpoint;
@@ -53,11 +59,11 @@ function resolveSportsSubpath(req: any): string {
 export default async function handler(req: any, res: any) {
   const subpath = resolveSportsSubpath(req);
 
-  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('X-Content-Type-Options', 'nosniff');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
   res.setHeader(
     'Access-Control-Allow-Headers',
-    'Content-Type, Authorization, Last-Event-ID, x-admin-token, x-admin-phone, x-admin-pin'
+    'Content-Type, Authorization, Last-Event-ID, x-user-token, x-firebase-id-token, x-admin-token, x-admin-phone'
   );
 
   if (req.method === 'OPTIONS') {
@@ -96,10 +102,14 @@ export default async function handler(req: any, res: any) {
 
       let fixtures = queryMarketFixtures({ scope, league, country, date, limit });
 
-      // If empty on cold start, trigger eager sync once
+      // If empty on cold start, trigger eager sync at most once per cooldown window
       if (fixtures.length === 0 && scope === 'all' && !league && !country && !date) {
-        await executeRollingSyncCycle();
-        fixtures = queryMarketFixtures({ scope, league, country, date, limit });
+        const now = Date.now();
+        if (now - lastColdStartSyncAt >= COLD_START_SYNC_COOLDOWN_MS) {
+          lastColdStartSyncAt = now;
+          await executeRollingSyncCycle();
+          fixtures = queryMarketFixtures({ scope, league, country, date, limit });
+        }
       }
 
       res.setHeader('Cache-Control', 'no-cache, no-store, max-age=0, must-revalidate');
@@ -156,9 +166,9 @@ export default async function handler(req: any, res: any) {
 
   // 7. Authoritative SportScore Match Detail Proxy (/api/sports/match-detail)
   if (subpath === 'match-detail') {
-    const slug = req.query?.slug as string;
-    if (!slug) {
-      return res.status(400).json({ error: 'Match slug is required.' });
+    const slug = String(req.query?.slug || '').trim();
+    if (!isValidSportScoreSlug(slug)) {
+      return res.status(400).json({ error: 'Valid match slug is required.' });
     }
 
     try {
@@ -174,17 +184,16 @@ export default async function handler(req: any, res: any) {
         res.setHeader('Cache-Control', 'public, max-age=5, s-maxage=10, stale-while-revalidate=20');
       }
       return res.status(200).json(detail);
-    } catch (err: any) {
-      console.error('SportScore match detail proxy error:', err);
+    } catch {
       return res.status(500).json({ error: 'Failed to fetch match details from upstream.' });
     }
   }
 
   // 8. SportScore League Standings Proxy (/api/sports/standings)
   if (subpath === 'standings') {
-    const slug = req.query?.slug as string;
-    if (!slug) {
-      return res.status(400).json({ error: 'Competition slug is required.' });
+    const slug = String(req.query?.slug || '').trim();
+    if (!isValidSportScoreSlug(slug)) {
+      return res.status(400).json({ error: 'Valid competition slug is required.' });
     }
 
     try {
@@ -195,6 +204,8 @@ export default async function handler(req: any, res: any) {
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
             Accept: 'application/json',
           },
+          redirect: 'error',
+          signal: AbortSignal.timeout(8000),
         }
       );
 
@@ -205,8 +216,7 @@ export default async function handler(req: any, res: any) {
       const data = await upstreamRes.json();
       res.setHeader('Cache-Control', 's-maxage=300, stale-while-revalidate=900');
       return res.status(200).json(data);
-    } catch (err: any) {
-      console.error('SportScore standings proxy error:', err);
+    } catch {
       return res.status(500).json({ error: 'Failed to fetch standings from upstream.' });
     }
   }
@@ -235,12 +245,12 @@ export default async function handler(req: any, res: any) {
 
   // 11. Bet365 Match Odds Proxy (/api/sports/match-odds)
   if (subpath === 'match-odds') {
-    const matchUrl = req.query?.url as string;
-    if (!matchUrl) {
-      return res.status(400).json({ success: false, error: 'Match URL is required.' });
+    const safePath = sanitizeSportScoreMatchPath(req.query?.url);
+    if (!safePath) {
+      return res.status(400).json({ success: false, error: 'Valid SportScore match URL is required.' });
     }
     try {
-      const odds = await fetchBet365OddsForMatch(matchUrl);
+      const odds = await fetchBet365OddsForMatch(safePath);
       if (!odds) {
         return res.status(404).json({ success: false, error: 'Bet365 odds not available for this match.' });
       }
@@ -253,31 +263,22 @@ export default async function handler(req: any, res: any) {
 
   // 12. Chat Cooldown Enforcement (/api/sports/chat-cooldown)
   if (subpath === 'chat-cooldown') {
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
     if (req.method === 'OPTIONS') {
       return res.status(204).end();
     }
-    const body = typeof req.body === 'string' && req.body ? JSON.parse(req.body) : req.body || {};
-    const userId = body.userId || req.query?.userId;
-    const isSticker = Boolean(body.isSticker || req.query?.isSticker === 'true');
-
-    if (!userId) {
-      return res.status(400).json({ error: 'User ID is required.' });
+    let body: any = {};
+    try {
+      body = typeof req.body === 'string' && req.body ? JSON.parse(req.body) : req.body || {};
+    } catch {
+      return res.status(400).json({ success: false, allowed: false, error: 'Invalid JSON request body.' });
     }
-
-    const now = Date.now();
-    const lastSent = serverChatCooldowns.get(String(userId)) || 0;
-    const elapsed = (now - lastSent) / 1000;
-    if (elapsed < 30) {
-      const remainingSeconds = Math.ceil(30 - elapsed);
-      return res.status(429).json({
-        allowed: false,
-        remainingSeconds,
-        error: `Cooldown active. Please wait ${remainingSeconds}s before sending another message.`,
-      });
-    }
-
-    serverChatCooldowns.set(String(userId), now);
-    return res.status(200).json({ allowed: true, remainingSeconds: 0 });
+    const cooldownRes = await enforceAuthenticatedChatCooldown({
+      headers: req.headers || {},
+      body,
+      query: req.query || {},
+    });
+    return res.status(cooldownRes.statusCode).json(cooldownRes.payload);
   }
 
   // 12. Manual/On-Demand Rolling or Live Sync (/api/sports/sync & /api/sports/sync-live)
@@ -332,8 +333,8 @@ export default async function handler(req: any, res: any) {
     try {
       const status = getWeeklySchedulerStatus();
       return res.status(200).json({ success: true, ...status });
-    } catch (err: any) {
-      return res.status(500).json({ success: false, error: err?.message || 'Failed to retrieve weekly sync status' });
+    } catch {
+      return res.status(500).json({ success: false, error: 'Failed to retrieve weekly sync status.' });
     }
   }
 
@@ -368,7 +369,7 @@ export default async function handler(req: any, res: any) {
       return res.status(200).json({ success: true, log });
     } catch (err: any) {
       console.error('[Cron weekly-sync] failed:', err);
-      return res.status(500).json({ success: false, error: err?.message || 'Weekly sync failed.' });
+      return res.status(500).json({ success: false, error: 'Weekly sync failed.' });
     }
   }
 

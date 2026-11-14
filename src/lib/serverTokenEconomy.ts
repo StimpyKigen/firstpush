@@ -577,6 +577,87 @@ export async function authenticateTokenRequestAsync(
   return syncCheck;
 }
 
+const serverChatCooldowns = new Map<string, number>();
+const MAX_CHAT_COOLDOWN_ENTRIES = 2000;
+const CHAT_COOLDOWN_WINDOW_MS = 30_000;
+
+export function resetChatCooldownsForTests(): void {
+  serverChatCooldowns.clear();
+}
+
+export function getChatCooldownEntryCountForTests(): number {
+  return serverChatCooldowns.size;
+}
+
+/**
+ * Authenticated, memory-bounded chat cooldown enforcement shared across
+ * Express (`/api/sports/chat-cooldown`) and Vercel (`api/sports.ts`).
+ * Prevents cross-user cooldown DoS impersonation and unbounded Map exhaustion.
+ */
+export async function enforceAuthenticatedChatCooldown(params: {
+  headers?: Record<string, string | string[] | undefined>;
+  body?: any;
+  query?: any;
+}): Promise<{ statusCode: number; payload: any }> {
+  const authCheck = await authenticateTokenRequestAsync(params.headers || {}, {
+    ...(params.query || {}),
+    ...(params.body || {}),
+  });
+
+  if (!authCheck.authenticated || !authCheck.userUid) {
+    return {
+      statusCode: authCheck.statusCode || 401,
+      payload: {
+        success: false,
+        allowed: false,
+        error: authCheck.error || 'Authentication required for chat cooldown enforcement.',
+      },
+    };
+  }
+
+  const now = Date.now();
+  const actorKey = `user:${authCheck.userUid}`;
+
+  // Prune expired entries before adding new keys to keep memory strictly bounded
+  if (serverChatCooldowns.size >= MAX_CHAT_COOLDOWN_ENTRIES / 2) {
+    for (const [key, ts] of serverChatCooldowns.entries()) {
+      if (now - ts >= CHAT_COOLDOWN_WINDOW_MS) {
+        serverChatCooldowns.delete(key);
+      }
+    }
+  }
+  while (serverChatCooldowns.size >= MAX_CHAT_COOLDOWN_ENTRIES) {
+    const oldestKey = serverChatCooldowns.keys().next().value;
+    if (oldestKey === undefined) break;
+    serverChatCooldowns.delete(oldestKey);
+  }
+
+  const lastSent = serverChatCooldowns.get(actorKey) || 0;
+  const elapsedMs = now - lastSent;
+  if (elapsedMs < CHAT_COOLDOWN_WINDOW_MS) {
+    const remainingSeconds = Math.max(1, Math.ceil((CHAT_COOLDOWN_WINDOW_MS - elapsedMs) / 1000));
+    return {
+      statusCode: 429,
+      payload: {
+        success: false,
+        allowed: false,
+        remainingSeconds,
+        error: `Cooldown active. Please wait ${remainingSeconds}s before sending another message.`,
+      },
+    };
+  }
+
+  serverChatCooldowns.set(actorKey, now);
+  return {
+    statusCode: 200,
+    payload: {
+      success: true,
+      allowed: true,
+      remainingSeconds: 0,
+    },
+  };
+}
+
 // ============================================================================
 // OFFICIAL AWARD RATE CALCULATORS
 // ============================================================================
@@ -1205,8 +1286,22 @@ export async function spendAuthoritativeTokens(params: {
   }
 
   const quantity = Number(params.quantity);
-  if (!Number.isInteger(quantity) || quantity <= 0) {
-    return { success: false, error: 'Token spend quantity must be a positive integer.', statusCode: 400 };
+  if (!Number.isSafeInteger(quantity) || quantity <= 0 || quantity > 1000) {
+    return { success: false, error: 'Token spend quantity must be a positive integer (1 to 1000).', statusCode: 400 };
+  }
+  if (params.roomId !== undefined && (typeof params.roomId !== 'string' || params.roomId.length > 120)) {
+    return { success: false, error: 'Invalid roomId parameter.', statusCode: 400 };
+  }
+  if (params.idempotencyKey !== undefined && (typeof params.idempotencyKey !== 'string' || params.idempotencyKey.length > 160)) {
+    return { success: false, error: 'Invalid idempotencyKey parameter.', statusCode: 400 };
+  }
+  if (
+    params.specificTokenIds !== undefined &&
+    (!Array.isArray(params.specificTokenIds) ||
+      params.specificTokenIds.length > 1000 ||
+      params.specificTokenIds.some((id) => typeof id !== 'string' || !/^mt_[a-f0-9]{16,64}$/i.test(id)))
+  ) {
+    return { success: false, error: 'Invalid specificTokenIds format.', statusCode: 400 };
   }
 
   return withAtomicLock(canonicalUid, () => {
@@ -1895,8 +1990,8 @@ export async function executeAdminTokenAdjustment(params: {
   }
 
   const quantity = Number(params.quantity);
-  if (!Number.isInteger(quantity) || quantity <= 0) {
-    return { success: false, error: 'Adjustment quantity must be a positive integer.', statusCode: 400 };
+  if (!Number.isSafeInteger(quantity) || quantity <= 0 || quantity > 100000) {
+    return { success: false, error: 'Adjustment quantity must be a positive integer (1 to 100,000).', statusCode: 400 };
   }
 
   const reason = (params.reason || '').trim();

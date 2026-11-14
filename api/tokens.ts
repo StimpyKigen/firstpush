@@ -19,11 +19,11 @@ function resolveTokenEconomyPathname(req: any): string {
 }
 
 export default async function handler(req: any, res: any) {
-  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('X-Content-Type-Options', 'nosniff');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
   res.setHeader(
     'Access-Control-Allow-Headers',
-    'Content-Type, Authorization, x-user-token, x-firebase-id-token, x-user-uid, x-user-phone, x-admin-token, x-admin-phone, x-admin-pin'
+    'Content-Type, Authorization, x-user-token, x-firebase-id-token, x-user-uid, x-user-phone, x-admin-token, x-admin-phone'
   );
   res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
 
@@ -42,10 +42,10 @@ export default async function handler(req: any, res: any) {
       body,
     });
     return res.status(result.statusCode).json(result.payload);
-  } catch (err: any) {
+  } catch {
     return res.status(500).json({
       success: false,
-      error: err?.message || 'Server token economy error.',
+      error: 'Server token economy error.',
     });
   }
 }
