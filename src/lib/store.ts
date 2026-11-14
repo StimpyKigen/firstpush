@@ -81,7 +81,6 @@ interface WalletState {
     referrerIdentifier: string;
     referredPhone: string;
     referredUsername: string;
-    referredPinHash?: string;
   }) => Promise<{ ok: boolean; tokensAwarded?: number; error?: string }>;
 
   // Legacy signatures delegated through server authority (no local balance fabrication allowed)
@@ -105,17 +104,15 @@ interface WalletState {
 
 function getAuthHeaders(state: WalletState, user?: Account | null): Record<string, string> {
   const currentUser = user ?? useAuth.getState().getCurrentUser();
+  const token = state.userSessionToken || useAuth.getState().userSessionToken;
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
   };
-  if (state.userSessionToken) {
-    headers['x-user-token'] = state.userSessionToken;
+  if (token) {
+    headers['x-user-token'] = token;
   }
   if (currentUser?.phone) {
     headers['x-user-uid'] = currentUser.phone;
-  }
-  if (currentUser?.pinHash) {
-    headers['x-user-pin-hash'] = currentUser.pinHash;
   }
   return headers;
 }
@@ -198,27 +195,14 @@ export const useWallet = create<WalletState>()(
         set({ tokenSyncLoading: true });
 
         try {
-          // If this user's existing local balance has not yet been migrated to the server,
-          // run the idempotent server migration once to preserve their legitimate balance.
-          const endpoint = state.serverMigrated ? '/api/tokens/wallet' : '/api/tokens/migrate';
-          const res = await fetch(endpoint, {
+          const res = await fetch('/api/tokens/wallet', {
             method: 'POST',
             headers: getAuthHeaders(state, currentUser),
+            credentials: 'include',
             body: JSON.stringify({
-              action: state.serverMigrated ? 'wallet' : 'migrate',
+              action: 'wallet',
               userUid: currentUser.phone,
               username: currentUser.username,
-              pinHash: currentUser.pinHash,
-              ...(state.serverMigrated
-                ? {}
-                : {
-                    legacyBalance: state.mshindiTokens,
-                    legacyTokenTransactions: state.tokenTransactions,
-                    legacyWalletBalanceKsh: state.balance,
-                    legacyUnlockedRooms: state.unlockedRooms,
-                    legacyRedeemedCodes: state.redeemedCodes,
-                    legacyTotalReferrals: state.totalReferrals,
-                  }),
             }),
           });
           if (!res.ok) {
@@ -251,10 +235,10 @@ export const useWallet = create<WalletState>()(
           const res = await fetch('/api/tokens/spend', {
             method: 'POST',
             headers: getAuthHeaders(get(), currentUser),
+            credentials: 'include',
             body: JSON.stringify({
               action: 'spend',
               userUid: currentUser.phone,
-              pinHash: currentUser.pinHash,
               quantity: tokenCost,
               roomId,
               roomName,
@@ -301,10 +285,10 @@ export const useWallet = create<WalletState>()(
           const res = await fetch('/api/tokens/unlock-with-balance', {
             method: 'POST',
             headers: getAuthHeaders(get(), currentUser),
+            credentials: 'include',
             body: JSON.stringify({
               action: 'unlock-with-balance',
               userUid: currentUser.phone,
-              pinHash: currentUser.pinHash,
               roomId,
               roomName,
               costKsh: cost,
@@ -359,6 +343,7 @@ export const useWallet = create<WalletState>()(
           const res = await fetch('/api/mpesa/verify-code', {
             method: 'POST',
             headers: getAuthHeaders(get(), currentUser),
+            credentials: 'include',
             body: JSON.stringify({
               code,
               amount,
@@ -408,17 +393,17 @@ export const useWallet = create<WalletState>()(
         }
       },
 
-      submitServerReferral: async ({ referrerIdentifier, referredPhone, referredUsername, referredPinHash }) => {
+      submitServerReferral: async ({ referrerIdentifier, referredPhone, referredUsername }) => {
         try {
           const res = await fetch('/api/tokens/referral', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: getAuthHeaders(get()),
+            credentials: 'include',
             body: JSON.stringify({
               action: 'referral',
               referrerIdentifier,
               referredUid: referredPhone,
               referredUsername,
-              referredPinHash,
               isVerifiedRegistration: true,
             }),
           });

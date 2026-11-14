@@ -6,11 +6,11 @@
  */
 
 import crypto from 'crypto';
+import { persistRevokedTokenNonce, isTokenNonceRevoked } from './tokenRevocationStore.js';
+import { ADMIN_SESSION_COOKIE_NAME, getCookieFromHeaders } from './firebaseIdTokenVerifier.js';
 
 export const ADMIN_PHONE_NORMALIZED = '254743304579';
 export const MAX_ADMIN_TOKEN_TTL_MS = 60 * 60 * 1000; // 1 hour
-
-const revokedAdminTokenNonces = new Set<string>();
 
 function getConfiguredAdminPin(): string {
   return (process.env.ADMIN_PIN || '').trim();
@@ -67,14 +67,17 @@ export function generateAdminToken(phone: string = ADMIN_PHONE_NORMALIZED): stri
 }
 
 /**
- * Revokes an active admin token nonce in this server runtime.
+ * Revokes an active admin token nonce persistently.
  */
 export function revokeAdminToken(token?: string | null): boolean {
   if (!token || typeof token !== 'string') return false;
   const parts = token.trim().split(':');
   if (parts.length !== 4 || !/^[a-f0-9]{16}$/i.test(parts[2])) return false;
-  revokedAdminTokenNonces.add(parts[2].toLowerCase());
-  return true;
+  const issuedAt = Number(parts[1]);
+  const exp = Number.isFinite(issuedAt) && issuedAt > 0
+    ? issuedAt + MAX_ADMIN_TOKEN_TTL_MS + 60_000
+    : Date.now() + MAX_ADMIN_TOKEN_TTL_MS;
+  return persistRevokedTokenNonce(parts[2], exp);
 }
 
 /**
@@ -90,7 +93,7 @@ export function verifyAdminToken(token?: string | null): boolean {
 
   const [phonePart, issuedAtStr, nonce, signature] = parts;
   if (normalizeAdminPhone(phonePart) !== ADMIN_PHONE_NORMALIZED) return false;
-  if (!/^[a-f0-9]{16}$/i.test(nonce) || revokedAdminTokenNonces.has(nonce.toLowerCase())) {
+  if (!/^[a-f0-9]{16}$/i.test(nonce) || isTokenNonceRevoked(nonce)) {
     return false;
   }
 
@@ -178,12 +181,13 @@ export function verifyAdminRequest(
     return typeof val === 'string' ? val : '';
   };
 
-  // 1. Check explicit signed admin token in header or body
+  // 1. Check explicit signed admin token in header, HttpOnly cookie, or body
   const tokenCandidate =
     getHeader('x-admin-token') ||
     (getHeader('authorization').startsWith('Bearer ')
       ? getHeader('authorization').slice(7).trim()
       : '') ||
+    getCookieFromHeaders(headers, ADMIN_SESSION_COOKIE_NAME) ||
     (body && typeof body.adminToken === 'string' ? body.adminToken : '');
 
   if (tokenCandidate && verifyAdminToken(tokenCandidate)) {

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Smartphone, Lock, AlertCircle, CheckCircle2, ArrowRight, Eye, EyeOff, Check } from 'lucide-react';
 import { useAuth, isValidPhone, normalizePhone } from '../lib/authStore';
-import { saveUserProfileToFirestore } from '../lib/firebasePhoneAuth';
+import { getCurrentFirebaseIdToken } from '../lib/firebasePhoneAuth';
 import { executeCentralizedBack } from '../lib/navigationHistory';
 
 interface LoginFormProps {
@@ -13,7 +13,6 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSwitchToRegister: _onSwi
   const navigate = useNavigate();
   const location = useLocation();
   const logIn = useAuth((s) => s.logIn);
-  const isPhoneRegistered = useAuth((s) => s.isPhoneRegistered);
 
   const [phone, setPhone] = useState('');
   const [pin, setPin] = useState('');
@@ -23,7 +22,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSwitchToRegister: _onSwi
   const [success, setSuccess] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setSuccess('');
@@ -44,21 +43,16 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSwitchToRegister: _onSwi
     }
 
     setIsLoading(true);
-    const res = logIn(phone, pin);
+    const firebaseIdToken = await getCurrentFirebaseIdToken();
+    const res = await logIn(phone, pin, firebaseIdToken);
     setIsLoading(false);
 
     if (!res.ok) {
-      // If no account exists yet, let them know or offer switch
-      if (!isPhoneRegistered(phone)) {
-        setError('No account found for this number. Switch to Sign Up.');
-      } else {
-        setError(res.error || 'Incorrect PIN. Please try again.');
-      }
+      setError(res.error || 'Invalid phone number or PIN.');
       return;
     }
 
     setSuccess('Signed in successfully! Redirecting...');
-    saveUserProfileToFirestore(phone, 'Punter');
     setTimeout(() => {
       executeCentralizedBack(navigate, location, '/');
     }, 800);

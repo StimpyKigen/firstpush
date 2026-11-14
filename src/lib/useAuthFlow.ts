@@ -3,7 +3,11 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth, isValidPhone, isValidUsername } from './authStore';
 import { useWallet } from './store';
 import { getRandomGlyphAvatar } from './avatarCatalog';
-import { sendFirebasePhoneOtp, verifyFirebaseOtpCode, saveUserProfileToFirestore } from './firebasePhoneAuth';
+import {
+  sendFirebasePhoneOtp,
+  verifyFirebaseOtpCode,
+  getCurrentFirebaseIdToken,
+} from './firebasePhoneAuth';
 import { validateUsername } from './contentModeration';
 import type { ConfirmationResult } from 'firebase/auth';
 
@@ -105,14 +109,6 @@ export function useAuthFlow() {
       setError('Enter a valid phone number (e.g. 0743 304 579 or +254 743 304 579).');
       return;
     }
-    if (mode === 'signup' && isPhoneRegistered(phone)) {
-      setError('This phone number already has an account. Switch to Log In.');
-      return;
-    }
-    if (mode === 'login' && !isPhoneRegistered(phone)) {
-      setError('No account found for that number. Switch to Sign Up.');
-      return;
-    }
 
     setSendingOtp(true);
     const res = await sendFirebasePhoneOtp(phone, 'recaptcha-container');
@@ -152,29 +148,24 @@ export function useAuthFlow() {
     }
   }
 
-  function bypassOtpForTesting() {
-    setPhoneVerified(true);
-    setStep(2);
-  }
-
-  function handleLogin() {
+  async function handleLogin() {
     setError('');
     if (pin.length !== 4) {
       setError('Enter your 4-digit PIN.');
       return;
     }
-    const res = logIn(phone, pin);
+    const firebaseIdToken = await getCurrentFirebaseIdToken();
+    const res = await logIn(phone, pin, firebaseIdToken);
     if (!res.ok) {
       setError(res.error ?? 'Login failed.');
       return;
     }
     setSuccess('Logged in! Redirecting…');
-    saveUserProfileToFirestore(phone, username || 'Punter');
-    void useWallet.getState().syncAuthoritativeTokens(useAuth.getState().getCurrentUser());
+    void useWallet.getState().syncAuthoritativeTokens(res.user ?? useAuth.getState().getCurrentUser());
     setTimeout(() => navigate('/'), 900);
   }
 
-  function goToAvatarStep() {
+  async function goToAvatarStep() {
     setError('');
     if (pin.length !== 4) {
       setError('Choose a 4-digit PIN.');
@@ -193,23 +184,24 @@ export function useAuthFlow() {
       setError(modResult.reason ?? 'Username contains forbidden profanity or offensive language.');
       return;
     }
-    if (isUsernameTaken(username)) {
+    const available = await useAuth.getState().checkUsernameAvailability(username);
+    if (!available) {
       setError('That username is already taken.');
       return;
     }
     // Avatars are automatically assigned from DiceBear Glyphs; complete sign up directly
-    handleSignup();
+    await handleSignup();
   }
 
-  function handleSignup() {
+  async function handleSignup() {
     setError('');
-    const res = signUp(phone, pin, username, avatarId);
+    const firebaseIdToken = phoneVerified ? await getCurrentFirebaseIdToken() : null;
+    const res = await signUp(phone, pin, username, avatarId, firebaseIdToken);
     if (!res.ok) {
       setError(res.error ?? 'Sign up failed.');
       return;
     }
-    saveUserProfileToFirestore(phone, username, avatarId);
-    const createdAccount = useAuth.getState().getCurrentUser();
+    const createdAccount = res.user ?? useAuth.getState().getCurrentUser();
     void useWallet.getState().syncAuthoritativeTokens(createdAccount);
 
     // Record server-verified referral toward inviter's 3-invitation = 1 MT milestone
@@ -219,7 +211,6 @@ export function useAuthFlow() {
         referrerIdentifier: refCode,
         referredPhone: createdAccount?.phone || phone,
         referredUsername: username,
-        referredPinHash: createdAccount?.pinHash,
       });
       localStorage.removeItem('mshindi_ref_code');
     }
@@ -259,7 +250,6 @@ export function useAuthFlow() {
     isPhoneRegistered,
     startPhoneVerification,
     handleVerifyOtpCode,
-    bypassOtpForTesting,
     handleLogin,
     goToAvatarStep,
     handleSignup,

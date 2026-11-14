@@ -21,8 +21,13 @@ import {
   verifyAdminRequest,
   normalizeAdminPhone,
   ADMIN_PHONE_NORMALIZED,
-  constantTimeEqualText,
 } from './adminAuthService.js';
+import { persistRevokedTokenNonce, isTokenNonceRevoked } from './tokenRevocationStore.js';
+import {
+  USER_SESSION_COOKIE_NAME,
+  getCookieFromHeaders,
+  verifyFirebaseIdTokenServer,
+} from './firebaseIdTokenVerifier.js';
 
 // ============================================================================
 // OFFICIAL RATES & CONSTANTS
@@ -33,8 +38,6 @@ export const QUALIFYING_REFERRALS_PER_TOKEN = 3; // 3 qualifying invitations = 1
 export const DEFAULT_ROOM_UNLOCK_TOKEN_COST = 1; // 1 Mshindi Token unlocks a standard KSh 10 room
 export const AUTHORITATIVE_ROOM_UNLOCK_COST_KSH = 10; // Server-enforced KSh cost for standard room unlocks
 export const MAX_USER_TOKEN_TTL_MS = 60 * 60 * 1000; // 1 hour
-
-const revokedUserTokenNonces = new Set<string>();
 
 function getConfiguredUserSessionSecret(): string {
   return (
@@ -377,7 +380,7 @@ export function issueUserSessionToken(userUid: string, pinHash?: string): string
 }
 
 /**
- * Revokes a previously issued user session token nonce in this server runtime.
+ * Revokes a previously issued user session token nonce persistently.
  */
 export function revokeUserSessionToken(token?: string | null): boolean {
   if (!token || typeof token !== 'string' || !token.startsWith('utok.')) return false;
@@ -385,10 +388,13 @@ export function revokeUserSessionToken(token?: string | null): boolean {
   if (parts.length !== 3) return false;
   try {
     const payload = Buffer.from(parts[1], 'base64url').toString('utf-8');
-    const [, , nonce] = payload.split(':');
+    const [, issuedAtStr, nonce] = payload.split(':');
     if (!nonce || !/^[a-f0-9]{16}$/i.test(nonce)) return false;
-    revokedUserTokenNonces.add(nonce.toLowerCase());
-    return true;
+    const issuedAt = Number(issuedAtStr);
+    const exp = Number.isFinite(issuedAt) && issuedAt > 0
+      ? issuedAt + MAX_USER_TOKEN_TTL_MS + 60_000
+      : Date.now() + MAX_USER_TOKEN_TTL_MS;
+    return persistRevokedTokenNonce(nonce, exp);
   } catch {
     return false;
   }
@@ -420,7 +426,7 @@ export function verifyUserSessionToken(token?: string | null): { valid: boolean;
     const payloadParts = payload.split(':');
     if (payloadParts.length < 4) return { valid: false };
     const [uidPart, issuedAtStr, nonce] = payloadParts;
-    if (!/^[a-f0-9]{16}$/i.test(nonce) || revokedUserTokenNonces.has(nonce.toLowerCase())) {
+    if (!/^[a-f0-9]{16}$/i.test(nonce) || isTokenNonceRevoked(nonce)) {
       return { valid: false };
     }
     const issuedAt = Number(issuedAtStr);
@@ -441,8 +447,8 @@ export function verifyUserSessionToken(token?: string | null): { valid: boolean;
 }
 
 /**
- * Authenticates an incoming user request via signed `x-user-token` or registered `(userUid, pinHash)` credentials.
- * Strictly prevents any user from acting on behalf of another `userUid`.
+ * Authenticates an incoming request via signed `x-user-token`, HttpOnly `mshindi_user_session` cookie,
+ * or verified admin credentials. Client-computed PIN hashes (`x-user-pin-hash`) are strictly rejected.
  */
 export function authenticateTokenRequest(
   headers?: Record<string, string | string[] | undefined>,
@@ -461,12 +467,14 @@ export function authenticateTokenRequest(
     body?.userUid || body?.userId || body?.phone || getHeader('x-user-uid') || getHeader('x-user-phone')
   );
 
-  // 2. Check signed user session token (`x-user-token` or `Authorization: Bearer utok...`)
+  // 2. Check signed user session token (`x-user-token`, `Authorization: Bearer utok...`, or HttpOnly session cookie)
   const authHeader = getHeader('authorization');
   const bearerToken = authHeader.startsWith('Bearer ') ? authHeader.slice(7).trim() : '';
+  const cookieToken = getCookieFromHeaders(headers, USER_SESSION_COOKIE_NAME);
   const sessionToken =
     getHeader('x-user-token') ||
     (bearerToken.startsWith('utok.') ? bearerToken : '') ||
+    (cookieToken.startsWith('utok.') ? cookieToken : '') ||
     (typeof body?.userToken === 'string' ? body.userToken : '');
 
   if (sessionToken) {
@@ -484,24 +492,6 @@ export function authenticateTokenRequest(
     return { authenticated: true, userUid: verified.userUid, isAdmin: adminCheck.authorized };
   }
 
-  // 3. Check `x-user-uid` + `x-user-pin-hash` STRICTLY against an already-registered wallet with stored pinHash
-  const pinHash = getHeader('x-user-pin-hash') || (typeof body?.pinHash === 'string' ? body.pinHash.trim() : '');
-  if (requestedUid && pinHash && /^[a-f0-9]{64}$/i.test(pinHash)) {
-    const state = loadEconomyState();
-    const existingWallet = state.wallets[requestedUid];
-    if (!existingWallet || !existingWallet.pinHash) {
-      return {
-        authenticated: false,
-        error: 'Authentication rejected: wallet has no registered server PIN hash.',
-        statusCode: 401,
-      };
-    }
-    if (!constantTimeEqualText(existingWallet.pinHash.toLowerCase(), pinHash.toLowerCase())) {
-      return { authenticated: false, error: 'Invalid user PIN credentials.', statusCode: 401 };
-    }
-    return { authenticated: true, userUid: requestedUid, isAdmin: adminCheck.authorized };
-  }
-
   if (adminCheck.authorized && requestedUid) {
     return { authenticated: true, userUid: requestedUid, isAdmin: true };
   }
@@ -511,6 +501,80 @@ export function authenticateTokenRequest(
     error: 'Authentication required: Missing valid session token or verified credentials.',
     statusCode: 401,
   };
+}
+
+/**
+ * Async request authenticator that additionally verifies Firebase Auth ID tokens (`x-firebase-id-token`
+ * or `Authorization: Bearer <jwt>`).
+ */
+export async function authenticateTokenRequestAsync(
+  headers?: Record<string, string | string[] | undefined>,
+  body?: any
+): Promise<{
+  authenticated: boolean;
+  userUid?: string;
+  firebaseUid?: string;
+  isAdmin?: boolean;
+  error?: string;
+  statusCode?: number;
+}> {
+  const syncCheck = authenticateTokenRequest(headers, body);
+  if (syncCheck.authenticated) return syncCheck;
+
+  const getHeader = (name: string): string => {
+    if (!headers) return '';
+    const val = headers[name] ?? headers[name.toLowerCase()];
+    if (Array.isArray(val)) return val[0] || '';
+    return typeof val === 'string' ? val.trim() : '';
+  };
+
+  const authHeader = getHeader('authorization');
+  const bearerToken = authHeader.startsWith('Bearer ') ? authHeader.slice(7).trim() : '';
+  const firebaseTokenCandidate =
+    getHeader('x-firebase-id-token') ||
+    (!bearerToken.startsWith('utok.') && bearerToken.split('.').length === 3 ? bearerToken : '') ||
+    (typeof body?.firebaseIdToken === 'string' ? body.firebaseIdToken.trim() : '');
+
+  if (firebaseTokenCandidate) {
+    const verifiedFb = await verifyFirebaseIdTokenServer(firebaseTokenCandidate);
+    if (!verifiedFb.valid) {
+      return {
+        authenticated: false,
+        error: verifiedFb.error || 'Invalid or expired Firebase ID token.',
+        statusCode: 401,
+      };
+    }
+    const phoneUid = normalizeCanonicalUid(verifiedFb.phoneNumber);
+    const resolvedUid = phoneUid || verifiedFb.uid;
+    if (!resolvedUid) {
+      return {
+        authenticated: false,
+        error: 'Verified Firebase token lacks phone number or subject identity.',
+        statusCode: 401,
+      };
+    }
+
+    const adminCheck = verifyAdminRequest(headers, body);
+    const requestedUid = normalizeCanonicalUid(
+      body?.userUid || body?.userId || body?.phone || getHeader('x-user-uid') || getHeader('x-user-phone')
+    );
+    if (requestedUid && requestedUid !== resolvedUid && !adminCheck.authorized) {
+      return {
+        authenticated: false,
+        error: `Forbidden: Authenticated Firebase identity '${resolvedUid}' cannot access '${requestedUid}'.`,
+        statusCode: 403,
+      };
+    }
+
+    return {
+      authenticated: true,
+      userUid: resolvedUid,
+      firebaseUid: verifiedFb.uid,
+      isAdmin: adminCheck.authorized,
+    };
+  }
+
+  return syncCheck;
 }
 
 // ============================================================================
@@ -2060,7 +2124,7 @@ export async function handleTokenEconomyHttpRequest(params: {
     action === 'wallet' ||
     action === 'migrate'
   ) {
-    const authCheck = authenticateTokenRequest(headers, { ...query, ...body });
+    const authCheck = await authenticateTokenRequestAsync(headers, { ...query, ...body });
     if (!authCheck.authenticated || !authCheck.userUid) {
       return {
         statusCode: authCheck.statusCode || 401,
@@ -2105,7 +2169,7 @@ export async function handleTokenEconomyHttpRequest(params: {
 
   // 3. SPEND / ROOM REDEMPTION (`/api/tokens/spend` or `action === 'spend'`)
   if (pathname.endsWith('/spend') || action === 'spend') {
-    const authCheck = authenticateTokenRequest(headers, body);
+    const authCheck = await authenticateTokenRequestAsync(headers, body);
     if (!authCheck.authenticated || !authCheck.userUid) {
       return {
         statusCode: authCheck.statusCode || 401,
@@ -2131,7 +2195,7 @@ export async function handleTokenEconomyHttpRequest(params: {
 
   // 4. UNLOCK ROOM WITH WALLET BALANCE (`/api/tokens/unlock-with-balance` or `action === 'unlock-with-balance'`)
   if (pathname.endsWith('/unlock-with-balance') || action === 'unlock-with-balance') {
-    const authCheck = authenticateTokenRequest(headers, body);
+    const authCheck = await authenticateTokenRequestAsync(headers, body);
     if (!authCheck.authenticated || !authCheck.userUid) {
       return {
         statusCode: authCheck.statusCode || 401,

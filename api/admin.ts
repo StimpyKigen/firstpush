@@ -1,5 +1,18 @@
 import { savePermanentMediaAsset } from '../src/lib/serverHomepageFeed.js';
-import { verifyAdminPinCredentials, verifyAdminRequest } from '../src/lib/adminAuthService.js';
+import {
+  verifyAdminPinCredentials,
+  verifyAdminRequest,
+  revokeAdminToken,
+  MAX_ADMIN_TOKEN_TTL_MS,
+} from '../src/lib/adminAuthService.js';
+import {
+  ADMIN_SESSION_COOKIE_NAME,
+  appendSetCookieHeader,
+  buildClearCookieHeader,
+  buildSessionCookieHeader,
+  getCookieFromHeaders,
+  isHttpsRequest,
+} from '../src/lib/firebaseIdTokenVerifier.js';
 import {
   getSavedAdminFixtures,
   getSavedAdminBatches,
@@ -66,6 +79,15 @@ export default async function handler(req: any, res: any) {
           error: result.error,
         });
       }
+      if (result.adminToken) {
+        const adminCookie = buildSessionCookieHeader(
+          ADMIN_SESSION_COOKIE_NAME,
+          result.adminToken,
+          Math.max(60, Math.floor(MAX_ADMIN_TOKEN_TTL_MS / 1000)),
+          isHttpsRequest(req)
+        );
+        appendSetCookieHeader(res, adminCookie);
+      }
       return res.status(200).json({
         success: true,
         valid: true,
@@ -76,6 +98,22 @@ export default async function handler(req: any, res: any) {
     } catch (err: any) {
       return res.status(500).json({ valid: false, error: err?.message || 'Verification error' });
     }
+  }
+
+  // 1b. Super-Admin Logout (/api/admin/logout)
+  if (subpathLower === 'logout') {
+    if (req.method !== 'POST') {
+      return res.status(405).json({ success: false, error: 'Method not allowed.' });
+    }
+    const headerTok = String(req.headers?.['x-admin-token'] || '').trim();
+    const cookieTok = getCookieFromHeaders(req.headers || {}, ADMIN_SESSION_COOKIE_NAME);
+    const bodyTok = typeof body.adminToken === 'string' ? body.adminToken.trim() : '';
+    const tok = cookieTok || headerTok || bodyTok;
+    if (tok) {
+      revokeAdminToken(tok);
+    }
+    appendSetCookieHeader(res, buildClearCookieHeader(ADMIN_SESSION_COOKIE_NAME, isHttpsRequest(req)));
+    return res.status(200).json({ success: true, loggedOut: true });
   }
 
   // 2. Authoritative Media Asset Upload (/api/admin/upload-media)

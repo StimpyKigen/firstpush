@@ -106,6 +106,15 @@
           "value": "no-store, no-cache, max-age=0, must-revalidate"
         }
       ]
+    },
+    {
+      "source": "/api/auth(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-store, no-cache, max-age=0, must-revalidate"
+        }
+      ]
     }
   ],
   "rewrites": [
@@ -132,6 +141,10 @@
     {
       "source": "/api/admin/:endpoint*",
       "destination": "/api/admin?endpoint=:endpoint*"
+    },
+    {
+      "source": "/api/auth/:endpoint*",
+      "destination": "/api/auth?endpoint=:endpoint*"
     },
     {
       "source": "/((?!api/|assets/|sw\\.js|version\\.json|manifest\\.json|icons/|banners/).*)",

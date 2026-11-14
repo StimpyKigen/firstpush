@@ -23,7 +23,7 @@ export default async function handler(req: any, res: any) {
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
   res.setHeader(
     'Access-Control-Allow-Headers',
-    'Content-Type, Authorization, x-user-token, x-user-uid, x-user-phone, x-user-pin-hash, x-admin-token, x-admin-phone, x-admin-pin'
+    'Content-Type, Authorization, x-user-token, x-firebase-id-token, x-user-uid, x-user-phone, x-admin-token, x-admin-phone, x-admin-pin'
   );
   res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
 

@@ -26,24 +26,23 @@ const PUBLIC_SEED_PUNTERS = [
 ];
 
 export function getAllPunters(): PunterProfile[] {
-  const authAccounts = useAuth.getState().accounts;
+  const currentUser = useAuth.getState().getCurrentUser();
   const puntersMap = new Map<string, PunterProfile>();
 
-  // 1. Add auth accounts
-  authAccounts.forEach((acc) => {
-    const key = acc.username.toLowerCase();
-    const stats = getPunterStats(acc.username);
+  // 1. Add currently authenticated user's profile (no bulk phone/account cache on client)
+  if (currentUser?.username) {
+    const key = currentUser.username.toLowerCase();
+    const stats = getPunterStats(currentUser.username);
     puntersMap.set(key, {
-      username: acc.username,
-      phone: acc.phone,
-      avatarId: acc.avatarId,
+      username: currentUser.username,
+      avatarId: currentUser.avatarId,
       stars: stats.stars,
       accuracyPct: stats.accuracyPct,
       closestWins: stats.closestWins,
       gamesTracked: stats.gamesTracked,
       isRegisteredAccount: true,
     });
-  });
+  }
 
   // 2. Add public seed punters
   PUBLIC_SEED_PUNTERS.forEach((uname) => {

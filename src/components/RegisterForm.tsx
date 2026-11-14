@@ -4,7 +4,7 @@ import { Smartphone, Lock, User, AlertCircle, CheckCircle2, ArrowRight, Eye, Eye
 import { useAuth, isValidPhone, isValidUsername, isValidPin } from '../lib/authStore';
 import { useWallet } from '../lib/store';
 import { getRandomGlyphAvatar } from '../lib/avatarCatalog';
-import { saveUserProfileToFirestore } from '../lib/firebasePhoneAuth';
+import { getCurrentFirebaseIdToken } from '../lib/firebasePhoneAuth';
 import { validateUsername } from '../lib/contentModeration';
 import { executeCentralizedBack } from '../lib/navigationHistory';
 
@@ -16,8 +16,6 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onSwitchToLogin: _on
   const navigate = useNavigate();
   const location = useLocation();
   const signUp = useAuth((s) => s.signUp);
-  const isPhoneRegistered = useAuth((s) => s.isPhoneRegistered);
-  const isUsernameTaken = useAuth((s) => s.isUsernameTaken);
 
   const [phone, setPhone] = useState('');
   const [username, setUsername] = useState('');
@@ -38,18 +36,13 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onSwitchToLogin: _on
     }
   }, []);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setSuccess('');
 
     if (!isValidPhone(phone)) {
       setError('Enter a valid phone number (e.g. 0743 304 579).');
-      return;
-    }
-
-    if (isPhoneRegistered(phone)) {
-      setError('This phone is already registered. Please login.');
       return;
     }
 
@@ -65,11 +58,6 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onSwitchToLogin: _on
       return;
     }
 
-    if (isUsernameTaken(cleanUsername)) {
-      setError('That username is already taken. Try another.');
-      return;
-    }
-
     if (!isValidPin(pin)) {
       setError('PIN must be exactly 4 digits.');
       return;
@@ -81,8 +69,16 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onSwitchToLogin: _on
     }
 
     setIsLoading(true);
+    const available = await useAuth.getState().checkUsernameAvailability(cleanUsername);
+    if (!available) {
+      setIsLoading(false);
+      setError('That username is already taken. Try another.');
+      return;
+    }
+
     const assignedAvatar = getRandomGlyphAvatar().id;
-    const res = signUp(phone, pin, cleanUsername, assignedAvatar);
+    const firebaseIdToken = await getCurrentFirebaseIdToken();
+    const res = await signUp(phone, pin, cleanUsername, assignedAvatar, firebaseIdToken);
     setIsLoading(false);
 
     if (!res.ok) {
@@ -90,8 +86,7 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onSwitchToLogin: _on
       return;
     }
 
-    saveUserProfileToFirestore(phone, cleanUsername, assignedAvatar);
-    const createdAccount = useAuth.getState().getCurrentUser();
+    const createdAccount = res.user ?? useAuth.getState().getCurrentUser();
     void useWallet.getState().syncAuthoritativeTokens(createdAccount);
 
     // Record server-verified referral toward inviter's 3-invitation = 1 MT milestone
@@ -100,7 +95,6 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onSwitchToLogin: _on
         referrerIdentifier: referredBy,
         referredPhone: createdAccount?.phone || phone,
         referredUsername: cleanUsername,
-        referredPinHash: createdAccount?.pinHash,
       });
       localStorage.removeItem('mshindi_ref_code');
     }

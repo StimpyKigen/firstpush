@@ -158,7 +158,7 @@ export default function Profile() {
     setTimeout(() => { setDepositDone(false); setPanel('none'); }, 1800);
   }
 
-  function submitCloseAccount() {
+  async function submitCloseAccount() {
     setCloseError('');
     if (closeConfirmText.trim().toUpperCase() !== 'CLOSE') {
       setCloseError('Type CLOSE in the confirmation box to proceed.');
@@ -169,20 +169,18 @@ export default function Profile() {
       return;
     }
     setCloseProcessing(true);
-    setTimeout(() => {
-      const res = closeAccount(closePin);
-      setCloseProcessing(false);
-      if (!res.ok) {
-        setCloseError(res.error ?? 'Could not close account.');
-        return;
-      }
-      resetWallet();
-      navigate('/');
-    }, 1200);
+    const res = await closeAccount(closePin);
+    setCloseProcessing(false);
+    if (!res.ok) {
+      setCloseError(res.error ?? 'Could not close account.');
+      return;
+    }
+    resetWallet();
+    navigate('/');
   }
 
-  function handleLogout() {
-    logOut();
+  async function handleLogout() {
+    await logOut();
     navigate('/');
   }
 

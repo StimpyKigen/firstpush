@@ -12,7 +12,7 @@ import fs from 'fs';
 import path from 'path';
 import { isValidMpesaCode, normalizeCode } from './mpesa.js';
 import {
-  authenticateTokenRequest,
+  authenticateTokenRequestAsync,
   processVerifiedPurchasePayment,
 } from './serverTokenEconomy.js';
 import { verifyAdminRequest } from './adminAuthService.js';
@@ -530,7 +530,7 @@ export async function handleSubscriptionHttpRequest(req: {
 
   // 3. Quarantine self-submitted M-Pesa payment activation until Safaricom Daraja API integration (Phase 3B)
   if (method === 'POST' && pathname.endsWith('/verify-payment')) {
-    const authCheck = authenticateTokenRequest(req.headers || {}, { ...query, ...body });
+    const authCheck = await authenticateTokenRequestAsync(req.headers || {}, { ...query, ...body });
     if (!authCheck.authenticated || !authCheck.userUid) {
       return {
         statusCode: authCheck.statusCode || 401,
@@ -554,7 +554,7 @@ export async function handleSubscriptionHttpRequest(req: {
 
   // Require authenticated user session (or verified administrator credentials for support actions)
   const adminAuth = verifyAdminRequest(req.headers || {}, body);
-  const authCheck = authenticateTokenRequest(req.headers || {}, { ...query, ...body });
+  const authCheck = await authenticateTokenRequestAsync(req.headers || {}, { ...query, ...body });
 
   const requestedUserId = (
     body.userId ||

@@ -2,6 +2,21 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { doc, onSnapshot } from 'firebase/firestore';
 import { db } from '../firebase';
+import { useAuth } from './authStore';
+
+function getSubscriptionAuthHeaders(userId: string, includeContentType = false): Record<string, string> {
+  const headers: Record<string, string> = {
+    'x-user-uid': userId,
+  };
+  if (includeContentType) {
+    headers['Content-Type'] = 'application/json';
+  }
+  const token = useAuth.getState().userSessionToken;
+  if (token) {
+    headers['x-user-token'] = token;
+  }
+  return headers;
+}
 
 export type SubscriptionStatus = 'active' | 'trial' | 'expired' | 'none';
 export type SubscriptionPlan = 'weekly' | 'monthly' | 'trial';
@@ -154,9 +169,8 @@ export const useSubscriptionStore = create<SubscriptionStoreState>()(
         // Authoritative fetch from server
         try {
           const res = await fetch(`/api/subscription/status?userId=${encodeURIComponent(cleanUserId)}`, {
-            headers: {
-              'x-user-uid': cleanUserId,
-            },
+            headers: getSubscriptionAuthHeaders(cleanUserId),
+            credentials: 'include',
           });
           const data = await res.json();
           if (data && data.success) {
@@ -179,10 +193,8 @@ export const useSubscriptionStore = create<SubscriptionStoreState>()(
         try {
           const res = await fetch('/api/subscription/trial', {
             method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'x-user-uid': cleanUserId,
-            },
+            headers: getSubscriptionAuthHeaders(cleanUserId, true),
+            credentials: 'include',
             body: JSON.stringify({
               userId: cleanUserId,
               phone: meta?.phone,
@@ -219,10 +231,8 @@ export const useSubscriptionStore = create<SubscriptionStoreState>()(
         try {
           const res = await fetch('/api/subscription/verify-payment', {
             method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'x-user-uid': cleanUserId,
-            },
+            headers: getSubscriptionAuthHeaders(cleanUserId, true),
+            credentials: 'include',
             body: JSON.stringify({
               userId: cleanUserId,
               plan: params.plan,
@@ -261,7 +271,8 @@ export const useSubscriptionStore = create<SubscriptionStoreState>()(
 
         try {
           const res = await fetch(`/api/subscription/restore?userId=${encodeURIComponent(cleanUserId)}`, {
-            headers: { 'x-user-uid': cleanUserId },
+            headers: getSubscriptionAuthHeaders(cleanUserId),
+            credentials: 'include',
           });
           const data = await res.json();
 

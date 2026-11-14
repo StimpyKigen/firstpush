@@ -60,8 +60,8 @@ export default function Navbar() {
     }
   }, [open, hideMobileMenu]);
 
-  function handleLogout() {
-    logOut();
+  async function handleLogout() {
+    await logOut();
     setProfileOpen(false);
     navigate('/');
   }

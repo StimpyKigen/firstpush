@@ -19,7 +19,7 @@ import { syncJackpotsFromApi } from './lib/mockData';
 import { startDailyHighlightSync } from './lib/footballApi';
 import { realtimeClient } from './lib/realtimeClient';
 
-import { useCurrentUser } from './lib/authStore';
+import { useAuth, useCurrentUser } from './lib/authStore';
 import { useWallet } from './lib/store';
 import { useAutoScrollIntoView } from './lib/useAutoScrollIntoView';
 
@@ -198,9 +198,10 @@ function App() {
   useAutoScrollIntoView();
   const currentUser = useCurrentUser();
 
-  // Ensure light theme is strictly enforced across all client sessions
+  // Ensure light theme is strictly enforced across all client sessions & hydrate authoritative server session
   useEffect(() => {
     initTheme();
+    void useAuth.getState().hydrateSession();
   }, []);
 
   // Synchronize authoritative Mshindi Token balance & ledger from the server whenever a user session is active

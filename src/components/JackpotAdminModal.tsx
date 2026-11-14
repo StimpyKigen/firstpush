@@ -88,6 +88,7 @@ export default function JackpotAdminModal({ isOpen, onClose }: JackpotAdminModal
       const res = await fetch('/api/admin/verify-pin', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({ phone: currentUser?.phone || '254743304579', pin: cleanPin }),
       });
       const data = await res.json();

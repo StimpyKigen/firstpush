@@ -36,10 +36,21 @@ import {
 import {
   verifyAdminPinCredentials,
   verifyAdminRequest,
+  revokeAdminToken,
+  MAX_ADMIN_TOKEN_TTL_MS,
   constantTimeEqualText,
 } from './src/lib/adminAuthService';
 import { handleTokenEconomyHttpRequest } from './src/lib/serverTokenEconomy';
 import { handleSubscriptionHttpRequest } from './src/lib/serverSubscriptionService';
+import { handleAuthHttpRequest } from './src/lib/serverAuthService';
+import {
+  ADMIN_SESSION_COOKIE_NAME,
+  appendSetCookieHeader,
+  buildClearCookieHeader,
+  buildSessionCookieHeader,
+  getCookieFromHeaders,
+  isHttpsRequest,
+} from './src/lib/firebaseIdTokenVerifier';
 import { parseJackpotWebpageText } from './src/lib/jackpotWebParser';
 import {
   initWeeklyFixtureScheduler,
@@ -371,6 +382,16 @@ async function startServer() {
         });
       }
 
+      if (result.adminToken) {
+        const adminCookie = buildSessionCookieHeader(
+          ADMIN_SESSION_COOKIE_NAME,
+          result.adminToken,
+          Math.max(60, Math.floor(MAX_ADMIN_TOKEN_TTL_MS / 1000)),
+          isHttpsRequest(req)
+        );
+        appendSetCookieHeader(res, adminCookie);
+      }
+
       return res.json({
         success: true,
         valid: true,
@@ -380,6 +401,48 @@ async function startServer() {
       });
     } catch (err) {
       return res.status(500).json({ success: false, valid: false, error: 'Admin authentication error.' });
+    }
+  });
+
+  app.post('/api/admin/logout', (req: Request, res: Response) => {
+    const headerTok = String(req.headers['x-admin-token'] || '').trim();
+    const cookieTok = getCookieFromHeaders(req.headers as any, ADMIN_SESSION_COOKIE_NAME);
+    const bodyTok = typeof req.body?.adminToken === 'string' ? req.body.adminToken.trim() : '';
+    const tok = cookieTok || headerTok || bodyTok;
+    if (tok) {
+      revokeAdminToken(tok);
+    }
+    appendSetCookieHeader(res, buildClearCookieHeader(ADMIN_SESSION_COOKIE_NAME, isHttpsRequest(req)));
+    return res.json({ success: true, loggedOut: true });
+  });
+
+  /**
+   * Authoritative Server-Side User Authentication & Session Endpoints (/api/auth/*)
+   */
+  app.all(['/api/auth', '/api/auth/*'], async (req: Request, res: Response) => {
+    try {
+      res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
+      const result = await handleAuthHttpRequest({
+        method: req.method,
+        pathname: req.path,
+        headers: req.headers as any,
+        query: req.query as any,
+        body: req.body,
+        secureCookie: isHttpsRequest(req),
+      });
+      if (result.setCookies && result.setCookies.length > 0) {
+        for (const cookie of result.setCookies) {
+          appendSetCookieHeader(res, cookie);
+        }
+      }
+      if (result.headers) {
+        for (const [k, v] of Object.entries(result.headers)) {
+          res.setHeader(k, v);
+        }
+      }
+      return res.status(result.statusCode).json(result.payload);
+    } catch (err: any) {
+      return res.status(500).json({ success: false, error: err?.message || 'Server authentication error.' });
     }
   });
 

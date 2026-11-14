@@ -175,12 +175,26 @@ export async function verifyFirebaseOtpCode(
   }
 }
 
+export async function getCurrentFirebaseIdToken(): Promise<string | null> {
+  if (!auth?.currentUser) return null;
+  try {
+    return await auth.currentUser.getIdToken();
+  } catch {
+    return null;
+  }
+}
+
 export async function saveUserProfileToFirestore(phone: string, username: string, avatarId?: string) {
   if (!db) return;
+  // Require an authenticated Firebase user before writing user profile metadata;
+  // SMS verification status (`verifiedWithSms`) is strictly server-verified via ID token.
+  const currentFbUser = auth?.currentUser;
+  if (!currentFbUser) return;
+
   try {
     const normPhone = phone.replace(/\D/g, '');
     const e164Phone = formatE164Phone(normPhone);
-    const uid = auth?.currentUser?.uid || null;
+    const uid = currentFbUser.uid;
 
     const payload = {
       phone: normPhone,
@@ -188,18 +202,11 @@ export async function saveUserProfileToFirestore(phone: string, username: string
       username,
       avatarId: avatarId || 'default',
       uid,
-      verifiedWithSms: true,
-      verifiedAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
 
-    // Save profile under normalized phone number
-    await setDoc(doc(db, 'users', normPhone), payload, { merge: true });
-
-    // Also save under UID if signed in via Firebase Auth
-    if (uid) {
-      await setDoc(doc(db, 'users', uid), payload, { merge: true });
-    }
+    // Save non-privileged profile metadata under UID
+    await setDoc(doc(db, 'users', uid), payload, { merge: true });
   } catch (e) {
     console.warn('Firestore user profile sync warning:', e);
   }
