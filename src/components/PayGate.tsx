@@ -3,7 +3,7 @@ import { Copy, Check, Loader2, KeyRound, Smartphone, AlertCircle, Wallet } from 
 import { useWallet } from '../lib/store';
 import { useCurrentUser } from '../lib/authStore';
 import { useAuthWallStore } from '../lib/authWallStore';
-import { RECEIVER_MPESA_NUMBER, RECEIVER_NAME, isValidMpesaCode, normalizeCode } from '../lib/mpesa';
+import { RECEIVER_MPESA_NUMBER, RECEIVER_NAME, MPESA_VERIFICATION_STATUS_NOTICE, isValidMpesaCode, normalizeCode } from '../lib/mpesa';
 import type { Jackpot } from '../lib/types';
 import { showToast } from '../lib/notificationStore';
 
@@ -245,6 +245,9 @@ export default function PayGate({ jackpot, onUnlocked }: { jackpot: Jackpot; onU
             <p className="text-xs text-cream-dim leading-relaxed">
               Paste the M-Pesa confirmation code from your SMS receipt (e.g. <span className="tabular-nums text-cream">QFT7K9L2M1</span>).
               We match it against the payment received on {RECEIVER_MPESA_NUMBER} and unlock instantly.
+            </p>
+            <p className="text-[11px] text-amber-300 bg-amber-950/40 border border-amber-500/30 rounded-lg px-3 py-2 leading-relaxed">
+              {MPESA_VERIFICATION_STATUS_NOTICE}
             </p>
             <input
               value={code}

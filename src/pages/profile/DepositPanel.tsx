@@ -1,5 +1,5 @@
 import { ArrowDownLeft, X, Smartphone, KeyRound, AlertCircle, CheckCircle2, Check, Copy, Loader2 } from 'lucide-react';
-import { RECEIVER_MPESA_NUMBER, RECEIVER_NAME } from '../../lib/mpesa';
+import { RECEIVER_MPESA_NUMBER, RECEIVER_NAME, MPESA_VERIFICATION_STATUS_NOTICE } from '../../lib/mpesa';
 
 const depositPresets = [50, 100, 250, 500, 1000];
 
@@ -102,6 +102,9 @@ export default function DepositPanel({
         <div className="flex flex-col gap-3 animate-rise">
           <p className="text-xs font-semibold text-cream-dim uppercase tracking-wide flex items-center gap-1.5">
             <KeyRound size={13} /> Step 2: Confirm your payment
+          </p>
+          <p className="text-[11px] text-amber-300 bg-amber-950/40 border border-amber-500/30 rounded-lg px-3 py-2 leading-relaxed">
+            {MPESA_VERIFICATION_STATUS_NOTICE}
           </p>
           <input
             value={code}

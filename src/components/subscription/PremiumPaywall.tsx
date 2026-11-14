@@ -5,7 +5,7 @@ import {
 import CompetitionLogoStrip from './CompetitionLogoStrip';
 import { BadgeCheck } from '@/components/animate-ui/icons/badge-check';
 import { useSubscription } from '../../hooks/useSubscription';
-import { RECEIVER_MPESA_NUMBER, isValidMpesaCode, normalizeCode } from '../../lib/mpesa';
+import { RECEIVER_MPESA_NUMBER, MPESA_VERIFICATION_STATUS_NOTICE, isValidMpesaCode, normalizeCode } from '../../lib/mpesa';
 
 interface PremiumPaywallProps {
   onCloseOverride?: () => void;
@@ -309,6 +309,9 @@ export default function PremiumPaywall({ onCloseOverride }: PremiumPaywallProps)
                   />
                   <p className="text-[10px] text-slate-400">
                     Found in your official Safaricom confirmation SMS.
+                  </p>
+                  <p className="text-[10px] text-amber-200/90 bg-amber-500/10 border border-amber-400/20 rounded-lg px-2.5 py-1.5 leading-relaxed">
+                    {MPESA_VERIFICATION_STATUS_NOTICE}
                   </p>
                 </div>
 

@@ -9,6 +9,8 @@
 export const RECEIVER_MPESA_NUMBER = '+254 743 304 579';
 export const RECEIVER_MPESA_NUMBER_RAW = '254743304579';
 export const RECEIVER_NAME = 'MshindiRoom Ltd';
+export const MPESA_VERIFICATION_STATUS_NOTICE =
+  'Automated M-Pesa confirmation verification is temporarily paused pending Safaricom Daraja API activation. Contact MshindiRoom support for manual confirmation assistance.';
 
 // M-Pesa confirmation codes are 10-character alphanumeric strings, e.g. "QFT7K9L2M1".
 const CODE_PATTERN = /^[A-Z0-9]{8,12}$/;

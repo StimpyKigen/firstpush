@@ -2071,19 +2071,6 @@ export async function getDailyMarketHighlights(force = false): Promise<MarketFix
 }
 
 /**
- * Backward-compatible single league fixture query
- */
-export async function getMarketFixtures(leagueCode: string = 'premier'): Promise<MarketFixture[]> {
-  const existing = queryMarketFixtures({ league: leagueCode, scope: 'all' });
-  if (existing.length > 0) {
-    return existing;
-  }
-  const fetched = await fetchLeagueFixtures(leagueCode);
-  ingestFixtures(fetched);
-  return fetched;
-}
-
-/**
  * Fetch and transform completed results for a league
  */
 export async function getMarketResults(leagueCode: string = 'premier', season?: string): Promise<MarketResult[]> {
@@ -2180,10 +2167,6 @@ export function getSyncDiagnostics(): SyncDiagnostics {
     },
     sseMetrics,
   };
-}
-
-export function startContinuousSportsScheduler(_intervalMinutes = 5, _liveIntervalSeconds = 20): void {
-  // Automated background crawler and scheduler disabled per user mandate
 }
 
 let liveTelemetryInterval: NodeJS.Timeout | null = null;

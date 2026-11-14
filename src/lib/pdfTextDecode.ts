@@ -147,3 +147,78 @@ export function decodePdfHexBody(hex: string): string {
   }
   return normalizeExtractedText(result).trim();
 }
+
+export interface PdfTextItem {
+  x: number;
+  y: number;
+  text: string;
+}
+
+export const decodePdfLiteralString = decodePdfLiteralBody;
+export const decodePdfHexString = decodePdfHexBody;
+
+/**
+ * Reconstructs logical lines/rows from a PDF BT...ET content stream using (x, y) coordinates.
+ * Multi-column rows (>=4 cells) are tab-delimited to preserve tabular fixture structure.
+ */
+export function parseCoordinateTextStream(content: string): string {
+  const btRegex = /BT([\s\S]*?)ET/g;
+  let btMatch: RegExpExecArray | null;
+  const items: PdfTextItem[] = [];
+
+  while ((btMatch = btRegex.exec(content)) !== null) {
+    const block = btMatch[1];
+    const tdMatch = /(?:([\d.-]+)\s+([\d.-]+)\s+Td|[\d.-]+\s+[\d.-]+\s+[\d.-]+\s+[\d.-]+\s+([\d.-]+)\s+([\d.-]+)\s+Tm)/.exec(block);
+    const x = tdMatch ? parseFloat(tdMatch[1] ?? tdMatch[3] ?? '0') : 0;
+    const y = tdMatch ? parseFloat(tdMatch[2] ?? tdMatch[4] ?? '0') : 0;
+
+    const tjMatch = new RegExp(PDF_LITERAL_STRING_SOURCE + '\\s*(?:Tj|\'|")').exec(block);
+    if (tjMatch) {
+      const decoded = decodePdfLiteralBody(tjMatch[1]);
+      if (decoded) {
+        items.push({ x, y, text: decoded });
+      }
+      continue;
+    }
+
+    const hexMatch = /<([0-9a-fA-F\s]+)>\s*(?:Tj|'|")/.exec(block);
+    if (hexMatch) {
+      const decoded = decodePdfHexBody(hexMatch[1]);
+      if (decoded) {
+        items.push({ x, y, text: decoded });
+      }
+    }
+  }
+
+  if (items.length === 0) return '';
+
+  items.sort((a, b) => b.y - a.y || a.x - b.x);
+
+  const rows: { y: number; items: PdfTextItem[] }[] = [];
+  for (const item of items) {
+    const existingRow = rows.find((r) => Math.abs(r.y - item.y) <= 2.5);
+    if (existingRow) {
+      existingRow.items.push(item);
+    } else {
+      rows.push({ y: item.y, items: [item] });
+    }
+  }
+
+  const lines: string[] = [];
+  for (const row of rows) {
+    row.items.sort((a, b) => a.x - b.x);
+    const isMultiColumn = row.items.length >= 4;
+    const rowText = row.items.map((it) => it.text).join(isMultiColumn ? '\t' : ' ');
+    if (rowText.trim()) {
+      lines.push(rowText.trim());
+    }
+  }
+
+  return lines.join('\n');
+}
+
+export function isBinaryGarbage(text: string): boolean {
+  if (!text || text.length === 0) return true;
+  const nonAsciiCount = (text.match(/[^\x20-\x7E\t\r\n]/g) || []).length;
+  return nonAsciiCount / text.length > 0.3;
+}

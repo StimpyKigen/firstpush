@@ -3,26 +3,12 @@ import { CheckCircle2, ArrowUpRight, ArrowDownLeft, Loader2, Copy, Check, KeyRou
 import SeoHead from '../components/SeoHead';
 import { useWallet } from '../lib/store';
 import { useCurrentUser } from '../lib/authStore';
-import { RECEIVER_MPESA_NUMBER, RECEIVER_NAME, isValidMpesaCode, normalizeCode } from '../lib/mpesa';
+import { RECEIVER_MPESA_NUMBER, RECEIVER_NAME, MPESA_VERIFICATION_STATUS_NOTICE, isValidMpesaCode, normalizeCode } from '../lib/mpesa';
 import InviteModal from '../components/InviteModal';
 import BackNavButton from '../components/BackNavButton';
 import { useHistoryPageState } from '../lib/navigationHistory';
 
 const presets = [50, 100, 250, 500, 1000];
-
-interface Tx {
-  id: number;
-  type: 'topup' | 'spend';
-  label: string;
-  amount: number;
-  time: string;
-}
-
-const seedTx: Tx[] = [
-  { id: 1, type: 'spend', label: 'Unlocked SportPesa Mega Jackpot GW42', amount: -10, time: '2h ago' },
-  { id: 2, type: 'topup', label: 'M-Pesa Top Up', amount: 100, time: '1d ago' },
-  { id: 3, type: 'spend', label: 'Unlocked Betika Grand Jackpot GW9', amount: -10, time: '3d ago' },
-];
 
 export default function WalletPage() {
   const balance = useWallet((s) => s.balance);
@@ -46,7 +32,6 @@ export default function WalletPage() {
   const [checking, setChecking] = useState(false);
   const [error, setError] = useState('');
   const [copied, setCopied] = useState(false);
-  const [txs, setTxs] = useState<Tx[]>(seedTx);
   const [done, setDone] = useState(false);
   const [lastTokensAwarded, setLastTokensAwarded] = useState(0);
   const [stage, setStage] = useHistoryPageState<'send' | 'verify'>('wallet_stage', 'send');
@@ -84,7 +69,6 @@ export default function WalletPage() {
     }
 
     setLastTokensAwarded(res.tokensAwarded || 0);
-    setTxs((t) => [{ id: Date.now(), type: 'topup', label: 'M-Pesa Top Up', amount, time: 'just now' }, ...t]);
     setDone(true);
     setCode('');
     setStage('send');
@@ -230,6 +214,9 @@ export default function WalletPage() {
                 </p>
                 <p className="text-xs text-slate-600 leading-relaxed">
                   Paste the M-Pesa confirmation code from your SMS receipt to instantly credit your wallet.
+                </p>
+                <p className="text-[11px] text-amber-800 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 leading-relaxed">
+                  {MPESA_VERIFICATION_STATUS_NOTICE}
                 </p>
                 <input
                   value={code}
