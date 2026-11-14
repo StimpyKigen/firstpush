@@ -57,7 +57,7 @@ export default function ReportModal({
     onClose();
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!description.trim()) {
@@ -79,30 +79,35 @@ export default function ReportModal({
     }
 
     setSubmitting(true);
+    const res = await addReport({
+      postId,
+      reportedUser,
+      postContent: postContent || '',
+      reporterUsername: currentUser?.username || 'Anonymous',
+      reasonCategory: category,
+      description: description.trim(),
+    });
+    setSubmitting(false);
+
+    if (!res.ok) {
+      showToast({
+        type: 'error',
+        title: 'Report Failed',
+        message: res.error || 'Unable to submit report right now.',
+      });
+      return;
+    }
+
+    setSubmitted(true);
+    showToast({
+      type: 'success',
+      title: 'Report Submitted',
+      message: 'Thank you for helping keep MshindiRoom safe. Our moderation team will review this post.',
+    });
 
     setTimeout(() => {
-      addReport({
-        postId,
-        reportedUser,
-        postContent: postContent || '',
-        reporterUsername: currentUser?.username || 'Anonymous',
-        reasonCategory: category,
-        description: description.trim(),
-      });
-
-      setSubmitting(false);
-      setSubmitted(true);
-
-      showToast({
-        type: 'success',
-        title: 'Report Submitted',
-        message: 'Thank you for helping keep MshindiRoom safe. Our moderation team will review this post.',
-      });
-
-      setTimeout(() => {
-        handleModalClose();
-      }, 1500);
-    }, 400);
+      handleModalClose();
+    }, 1500);
   };
 
   return (

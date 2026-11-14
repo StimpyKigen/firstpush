@@ -218,6 +218,10 @@
       "destination": "/api/auth?endpoint=:endpoint*"
     },
     {
+      "source": "/api/moderation/:endpoint*",
+      "destination": "/api/moderation?endpoint=:endpoint*"
+    },
+    {
       "source": "/((?!api/|assets/|sw\\.js|version\\.json|manifest\\.json|theme-init\\.js|icons/|banners/).*)",
       "destination": "/index.html"
     }

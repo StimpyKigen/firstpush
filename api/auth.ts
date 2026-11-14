@@ -5,6 +5,7 @@ import {
   applyStandardSecurityHeaders,
   parseSafeJsonBody,
 } from '../src/lib/httpSecurity.js';
+import { enforceEndpointRateLimit } from '../src/lib/rateLimitService.js';
 
 function resolveAuthPathname(req: any): string {
   const endpointParam = req?.query?.endpoint;
@@ -33,13 +34,23 @@ export default async function handler(req: any, res: any) {
     return;
   }
 
+  const pathname = resolveAuthPathname(req);
+  const rateOk = await enforceEndpointRateLimit(req, res, {
+    namespace: pathname.endsWith('/login') || pathname.endsWith('/register') ? 'auth_write' : 'auth_api',
+    windowMs: 60_000,
+    maxRequests: 60,
+    routeLabel: pathname,
+  });
+  if (!rateOk) {
+    return;
+  }
+
   const parsed = parseSafeJsonBody(req, { maxBytes: 1 * 1024 * 1024 });
   if (!parsed.ok) {
     return res.status(parsed.statusCode).json({ success: false, error: parsed.error });
   }
 
   try {
-    const pathname = resolveAuthPathname(req);
     const result = await handleAuthHttpRequest({
       method: req.method || 'GET',
       pathname,

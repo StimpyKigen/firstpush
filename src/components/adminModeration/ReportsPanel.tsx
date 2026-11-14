@@ -1,14 +1,26 @@
+import { useEffect } from 'react';
 import { Flag, CheckCircle2, Check, Trash2 } from 'lucide-react';
 import { useReportsStore } from '../../lib/reportsStore';
 import { showToast } from '../../lib/notificationStore';
 
 export default function ReportsPanel() {
   const reports = useReportsStore((s) => s.reports);
+  const loadReports = useReportsStore((s) => s.loadReports);
+  const error = useReportsStore((s) => s.error);
   const updateReportStatus = useReportsStore((s) => s.updateReportStatus);
   const deleteReport = useReportsStore((s) => s.deleteReport);
 
+  useEffect(() => {
+    void loadReports();
+  }, [loadReports]);
+
   return (
     <div className="space-y-4">
+      {error && (
+        <div className="bg-rose-50 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-800/40 rounded-xl px-4 py-3 text-xs text-rose-700 dark:text-rose-300">
+          {error}
+        </div>
+      )}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 bg-white dark:bg-panel border border-[#E5E5EA] dark:border-line p-4.5 rounded-2xl shadow-2xs">
         <div>
           <h3 className="font-semibold text-base text-slate-900 dark:text-cream flex items-center gap-2">

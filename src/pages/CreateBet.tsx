@@ -47,12 +47,11 @@ export default function CreateBet() {
     setTimeout(() => setCopied(false), 1800);
   }
 
-  function handleCreate() {
+  async function handleCreate() {
     setError('');
     if (!title.trim()) { setError('Describe what you\'re betting on.'); return; }
     if (!creatorSidePick.trim() || !opponentSidePick.trim()) { setError('Fill in both sides of the bet.'); return; }
     if (creatorStake <= 0 || opponentStake <= 0) { setError('Both stakes must be greater than zero.'); return; }
-    if (creatorStake > balance) { setError(`Insufficient balance. You have Ksh ${balance} available.`); return; }
 
     const modResult = moderateText(`${title} ${description} ${creatorSidePick} ${opponentSidePick} ${settleBy}`);
     if (!modResult.isAllowed) {
@@ -60,7 +59,7 @@ export default function CreateBet() {
       return;
     }
 
-    const res = createBet({
+    const res = await createBet({
       creatorUsername: currentUser!.username,
       title: title.trim(),
       description: description.trim(),

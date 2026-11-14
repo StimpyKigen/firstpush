@@ -33,6 +33,8 @@ import {
   verifyUserSessionToken,
   revokeUserSessionToken,
 } from './serverTokenEconomy.js';
+import { extractTrustedClientIp } from './rateLimitService.js';
+import { recordSecurityEvent } from './securityAuditLogger.js';
 import {
   ADMIN_SESSION_COOKIE_NAME,
   buildClearCookieHeader,
@@ -227,13 +229,7 @@ function getHeaderValue(
 }
 
 function resolveClientIp(headers?: Record<string, string | string[] | undefined>): string {
-  const forwarded = getHeaderValue(headers, 'x-forwarded-for');
-  if (forwarded) {
-    const first = forwarded.split(',')[0]?.trim();
-    if (first) return first;
-  }
-  const realIp = getHeaderValue(headers, 'x-real-ip').trim();
-  return realIp || 'unknown';
+  return extractTrustedClientIp(headers);
 }
 
 function checkRateLimitMap(
@@ -759,6 +755,16 @@ export async function handleAuthHttpRequest(params: {
 
     const rateCheck = checkPinBruteForce(normPhone, clientIp);
     if (rateCheck.blocked) {
+      await recordSecurityEvent({
+        category: 'AUTH',
+        severity: 'high',
+        action: 'user_login_brute_force_lockout',
+        outcome: 'blocked',
+        actorId: normPhone,
+        ip: clientIp,
+        route: pathname,
+        details: { retryAfterSeconds: rateCheck.retryAfterSeconds },
+      });
       return {
         statusCode: 429,
         headers: { 'Retry-After': String(rateCheck.retryAfterSeconds) },
@@ -775,6 +781,15 @@ export async function handleAuthHttpRequest(params: {
 
     if (!account || !pinMatches) {
       recordPinFailure(normPhone, clientIp);
+      await recordSecurityEvent({
+        category: 'AUTH',
+        severity: 'warning',
+        action: 'user_login_failed',
+        outcome: 'failure',
+        actorId: normPhone,
+        ip: clientIp,
+        route: pathname,
+      });
       return {
         statusCode: 401,
         payload: {

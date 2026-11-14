@@ -12,3 +12,6 @@ coverage/
 *.bak
 .data/
 data/token_economy.json
+data/moderation_state.json
+data/p2p_bets.json
+data/security_audit_logs.json

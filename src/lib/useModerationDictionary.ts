@@ -1,4 +1,4 @@
-import { useState, useSyncExternalStore, type FormEvent, type ChangeEvent } from 'react';
+import { useState, useEffect, useSyncExternalStore, type FormEvent, type ChangeEvent } from 'react';
 import type {
   DictionaryEntry,
   ModerationCategory,
@@ -7,6 +7,7 @@ import type {
 } from '../types/moderation';
 import {
   getDictionary,
+  hydrateModerationDictionary,
   subscribeModerationStore,
   addDictionaryEntry,
   updateDictionaryEntry,
@@ -58,6 +59,10 @@ export function useModerationDictionary() {
     getDictionary,
     getDictionary
   );
+
+  useEffect(() => {
+    void hydrateModerationDictionary();
+  }, []);
 
   // Filters
   const [searchQuery, setSearchQuery] = useState('');
@@ -138,7 +143,7 @@ export function useModerationDictionary() {
     setIsEditModalOpen(true);
   }
 
-  function handleSaveEntry(e: FormEvent) {
+  async function handleSaveEntry(e: FormEvent) {
     e.preventDefault();
     if (!phrase.trim()) {
       showToast({ type: 'error', title: 'Input required', message: 'Please enter a word or phrase.' });
@@ -146,7 +151,7 @@ export function useModerationDictionary() {
     }
 
     if (editingEntry) {
-      updateDictionaryEntry(editingEntry.id, {
+      const res = await updateDictionaryEntry(editingEntry.id, {
         phrase,
         category,
         severity,
@@ -154,9 +159,13 @@ export function useModerationDictionary() {
         enabled,
         notes,
       });
+      if (!res.ok) {
+        showToast({ type: 'error', title: 'Update Failed', message: res.error || 'Could not update phrase.' });
+        return;
+      }
       showToast({ type: 'success', title: 'Dictionary Updated', message: `Updated phrase "${phrase.trim()}" in Moderation Dictionary.` });
     } else {
-      addDictionaryEntry({
+      const res = await addDictionaryEntry({
         phrase,
         category,
         severity,
@@ -164,27 +173,43 @@ export function useModerationDictionary() {
         enabled,
         notes,
       });
+      if (!res.ok) {
+        showToast({ type: 'error', title: 'Add Failed', message: res.error || 'Could not add phrase.' });
+        return;
+      }
       showToast({ type: 'success', title: 'Phrase Added', message: `Added "${phrase.trim()}" to Moderation Dictionary.` });
     }
 
     setIsEditModalOpen(false);
   }
 
-  function handleDelete(entry: DictionaryEntry) {
+  async function handleDelete(entry: DictionaryEntry) {
     if (confirm(`Are you sure you want to delete "${entry.phrase}" from the moderation dictionary?`)) {
-      deleteDictionaryEntry(entry.id);
+      const res = await deleteDictionaryEntry(entry.id);
+      if (!res.ok) {
+        showToast({ type: 'error', title: 'Delete Failed', message: res.error || 'Could not delete entry.' });
+        return;
+      }
       showToast({ type: 'info', title: 'Entry Deleted', message: `Deleted "${entry.phrase}"` });
     }
   }
 
-  function handleToggle(id: string) {
-    const newStatus = toggleDictionaryEntry(id);
-    showToast({ type: 'info', title: 'Rule Status Changed', message: `Entry ${newStatus ? 'enabled' : 'disabled'}` });
+  async function handleToggle(id: string) {
+    const res = await toggleDictionaryEntry(id);
+    if (!res.ok) {
+      showToast({ type: 'error', title: 'Toggle Failed', message: res.error || 'Could not update rule status.' });
+      return;
+    }
+    showToast({ type: 'info', title: 'Rule Status Changed', message: `Entry ${res.enabled ? 'enabled' : 'disabled'}` });
   }
 
-  function handleRestoreDefaults() {
+  async function handleRestoreDefaults() {
     if (confirm('Restore moderation dictionary to default seed dataset? Any custom additions will be reset.')) {
-      restoreDefaultDictionary();
+      const res = await restoreDefaultDictionary();
+      if (!res.ok) {
+        showToast({ type: 'error', title: 'Restore Failed', message: res.error || 'Could not restore defaults.' });
+        return;
+      }
       showToast({ type: 'success', title: 'Defaults Restored', message: 'Moderation dictionary restored to defaults.' });
     }
   }
@@ -203,14 +228,14 @@ export function useModerationDictionary() {
     showToast({ type: 'success', title: 'JSON Exported', message: 'Moderation dictionary exported as JSON file.' });
   }
 
-  function handleProcessImport() {
+  async function handleProcessImport() {
     setImportError('');
     if (!importText.trim()) {
       setImportError('Please paste JSON data or choose a JSON file.');
       return;
     }
 
-    const res = importDictionaryJSON(importText);
+    const res = await importDictionaryJSON(importText);
     if (!res.success) {
       setImportError(res.error || 'Failed to import JSON data.');
       return;

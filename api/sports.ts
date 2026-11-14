@@ -24,6 +24,7 @@ import {
   applyStandardSecurityHeaders,
   parseSafeJsonBody,
 } from '../src/lib/httpSecurity.js';
+import { enforceEndpointRateLimit } from '../src/lib/rateLimitService.js';
 
 function verifyCronBearerHeader(req: any): boolean {
   const cronSecret = (process.env.CRON_SECRET || '').trim();
@@ -72,6 +73,19 @@ export default async function handler(req: any, res: any) {
   });
   if (cors.preflightHandled) {
     return;
+  }
+
+  if (subpath !== 'stream') {
+    const isProxySubpath = subpath === 'bet365-odds' || subpath === 'sportscore-match';
+    const rateOk = await enforceEndpointRateLimit(req, res, {
+      namespace: isProxySubpath ? 'sports_proxy' : 'sports_api',
+      windowMs: 60_000,
+      maxRequests: isProxySubpath ? 40 : 120,
+      routeLabel: `/api/sports/${subpath || ''}`,
+    });
+    if (!rateOk) {
+      return;
+    }
   }
 
   let parsedPostBody: Record<string, any> = {};

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { ShieldAlert, Plus, Upload, Download, Flag, X, AlertTriangle } from 'lucide-react';
 import type { ModerationCategory, ModerationSeverity, ModerationAction } from '../types/moderation';
 import { useModerationDictionary, ALL_CATEGORIES, SEVERITY_LEVELS, ACTIONS } from '../lib/useModerationDictionary';
@@ -11,6 +11,11 @@ import Modal from './ui/Modal';
 export default function AdminModerationDashboard() {
   const [activeTab, setActiveTab] = useState<'dictionary' | 'reports'>('dictionary');
   const reports = useReportsStore((s) => s.reports);
+  const loadReports = useReportsStore((s) => s.loadReports);
+
+  useEffect(() => {
+    void loadReports();
+  }, [loadReports]);
 
   const {
     dictionary,

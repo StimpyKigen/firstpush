@@ -73,54 +73,21 @@ import {
   applyCorsPolicy,
   applyStandardSecurityHeaders,
 } from './src/lib/httpSecurity';
+import {
+  createExpressRateLimiter,
+  extractTrustedClientIp,
+} from './src/lib/rateLimitService';
+import {
+  recordSecurityEvent,
+  querySecurityEvents,
+} from './src/lib/securityAuditLogger';
+import { handleModerationHttpRequest } from './src/lib/serverModerationService';
 
 function verifyCronSecretBearer(authHeader?: string | string[]): boolean {
   const cronSecret = (process.env.CRON_SECRET || '').trim();
   if (!cronSecret) return false;
   const headerStr = Array.isArray(authHeader) ? authHeader[0] || '' : String(authHeader || '');
   return constantTimeEqualText(headerStr, `Bearer ${cronSecret}`);
-}
-
-// Lightweight in-memory rate limiter for high concurrency protection
-interface RateLimitBucket {
-  count: number;
-  resetTime: number;
-}
-
-function createRateLimiter(windowMs: number, maxRequests: number) {
-  const hits = new Map<string, RateLimitBucket>();
-
-  // Cleanup expired buckets every 5 minutes to prevent memory leaks
-  setInterval(() => {
-    const now = Date.now();
-    for (const [ip, bucket] of hits.entries()) {
-      if (now > bucket.resetTime) {
-        hits.delete(ip);
-      }
-    }
-  }, 300_000);
-
-  return (req: Request, res: Response, next: NextFunction) => {
-    const ip = req.ip || (req.headers['x-forwarded-for'] as string)?.split(',')[0]?.trim() || req.socket.remoteAddress || 'unknown';
-    const now = Date.now();
-    let bucket = hits.get(ip);
-
-    if (!bucket || now > bucket.resetTime) {
-      bucket = { count: 1, resetTime: now + windowMs };
-      hits.set(ip, bucket);
-      return next();
-    }
-
-    bucket.count += 1;
-    if (bucket.count > maxRequests) {
-      return res.status(429).json({
-        error: 'Too many requests. Please wait a moment before trying again.',
-        retryAfterMs: bucket.resetTime - now,
-      });
-    }
-
-    next();
-  };
 }
 
 async function startServer() {
@@ -187,12 +154,32 @@ async function startServer() {
     return next(err);
   });
 
-  // Rate Limiting Rules
-  const generalApiLimiter = createRateLimiter(60_000, 120); // 120 reqs / min
-  const geminiAiLimiter = createRateLimiter(60_000, 20);    // 20 AI reqs / min
+  // Distributed Rate Limiting Rules (MSH-029)
+  const generalApiLimiter = createExpressRateLimiter({
+    namespace: 'express_general_api',
+    windowMs: 60_000,
+    maxRequests: 120,
+  });
+  const geminiAiLimiter = createExpressRateLimiter({
+    namespace: 'express_gemini_ai',
+    windowMs: 60_000,
+    maxRequests: 20,
+  });
+  const adminAuthLimiter = createExpressRateLimiter({
+    namespace: 'admin_verify_pin',
+    windowMs: 60_000,
+    maxRequests: 20,
+  });
+  const moderationReportLimiter = createExpressRateLimiter({
+    namespace: 'moderation_report_submit',
+    windowMs: 15 * 60_000,
+    maxRequests: 12,
+  });
 
   app.use('/api/', generalApiLimiter);
   app.use('/api/gemini/', geminiAiLimiter);
+  app.use('/api/admin/verify-pin', adminAuthLimiter);
+  app.post('/api/moderation/reports', moderationReportLimiter);
 
   // Health check API
   app.get('/api/health', (req, res) => {
@@ -281,10 +268,42 @@ async function startServer() {
       res.json({ success: true, text });
     } catch (err: any) {
       if (err instanceof PdfParseSecurityError) {
+        void recordSecurityEvent({
+          category: 'PDF_SECURITY',
+          severity: 'critical',
+          action: 'pdf_bomb_or_malformed_blocked',
+          outcome: 'blocked',
+          actorId: 'ADMIN:254743304579',
+          ip: extractTrustedClientIp(req),
+          route: '/api/admin/parse-pdf',
+          details: { message: err.message, statusCode: err.statusCode },
+        });
         return res.status(err.statusCode).json({ success: false, error: err.message });
       }
       res.status(500).json({ success: false, error: 'Failed to parse PDF on server' });
     }
+  });
+
+  app.get('/api/admin/security-logs', async (req: Request, res: Response) => {
+    const authCheck = verifyAdminRequest(req.headers as any, {});
+    if (!authCheck.authorized) {
+      await recordSecurityEvent({
+        category: 'ADMIN',
+        severity: 'high',
+        action: 'unauthorized_security_logs_read',
+        outcome: 'blocked',
+        ip: extractTrustedClientIp(req),
+        route: '/api/admin/security-logs',
+      });
+      return res.status(403).json({
+        success: false,
+        error: authCheck.reason || 'Forbidden: Administrator permissions required.',
+      });
+    }
+    const limit = Number(req.query?.limit || 50);
+    const onlyAlerts = String(req.query?.alerts || '') === 'true';
+    const data = await querySecurityEvents({ limit, onlyAlerts });
+    return res.json({ success: true, ...data });
   });
 
   // Homepage Editorial Feed APIs (Carousels & Video/Custom Embeds + 24h Story Cleanup)
@@ -434,9 +453,10 @@ async function startServer() {
    * Super-Admin PIN Verification Endpoint
    * Securely validates administrator PIN on backend and issues signed admin token
    */
-  app.post('/api/admin/verify-pin', (req: Request, res: Response) => {
+  app.post('/api/admin/verify-pin', async (req: Request, res: Response) => {
     try {
       const { phone, pin } = req.body || {};
+      const clientIp = extractTrustedClientIp(req);
       const result = verifyAdminPinCredentials(phone, pin);
       if (!result.valid) {
         const status = result.misconfigured
@@ -444,12 +464,31 @@ async function startServer() {
           : result.error?.includes('Unauthorized')
             ? 403
             : 401;
+        await recordSecurityEvent({
+          category: 'ADMIN',
+          severity: status === 403 ? 'high' : 'warning',
+          action: 'admin_verify_pin_failed',
+          outcome: 'failure',
+          actorId: typeof phone === 'string' ? phone.slice(0, 32) : null,
+          ip: clientIp,
+          route: '/api/admin/verify-pin',
+          details: { status },
+        });
         return res.status(status).json({
           success: false,
           valid: false,
           error: result.error,
         });
       }
+      await recordSecurityEvent({
+        category: 'ADMIN',
+        severity: 'info',
+        action: 'admin_verify_pin_succeeded',
+        outcome: 'allowed',
+        actorId: 'ADMIN:254743304579',
+        ip: clientIp,
+        route: '/api/admin/verify-pin',
+      });
 
       if (result.adminToken) {
         const adminCookie = buildSessionCookieHeader(
@@ -563,6 +602,22 @@ async function startServer() {
       return res.status(result.statusCode).json(result.payload);
     } catch {
       return res.status(500).json({ success: false, error: 'Server subscription error.' });
+    }
+  });
+
+  app.all(['/api/moderation', '/api/moderation/*'], async (req: Request, res: Response) => {
+    try {
+      res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
+      const result = await handleModerationHttpRequest({
+        method: req.method,
+        pathname: req.path,
+        headers: req.headers as any,
+        query: req.query as any,
+        body: req.body,
+      });
+      return res.status(result.statusCode).json(result.payload);
+    } catch {
+      return res.status(500).json({ success: false, error: 'Server moderation error.' });
     }
   });
 

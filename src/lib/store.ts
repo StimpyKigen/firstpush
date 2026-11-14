@@ -121,29 +121,21 @@ export const useWallet = create<WalletState>()(
   persist(
     (set, get) => ({
       unlockedRooms: [],
-      balance: 250,
+      balance: 0,
       redeemedCodes: [],
-      transactions: [
-        { id: 'seed-1', type: 'spend', label: 'Unlocked SportPesa Mega Jackpot GW42', amount: -10, time: '2h ago' },
-        { id: 'seed-2', type: 'topup', label: 'M-Pesa Top Up', amount: 100, time: '1d ago' },
-        { id: 'seed-3', type: 'spend', label: 'Unlocked Betika Grand Jackpot GW9', amount: -10, time: '3d ago' },
-      ],
+      transactions: [],
 
-      // Authoritative Mshindi Tokens state (synced from server)
-      mshindiTokens: 24,
+      // Authoritative Mshindi Tokens state (synced exclusively from server)
+      mshindiTokens: 0,
       activeTokenIds: [],
-      totalReferrals: 1,
+      totalReferrals: 0,
       referralTokensAwardedCount: 0,
-      referralProgressRemainder: 1,
-      referralsNeededForNextToken: 2,
+      referralProgressRemainder: 0,
+      referralsNeededForNextToken: 3,
       serverMigrated: false,
       userSessionToken: null,
       tokenSyncLoading: false,
-      tokenTransactions: [
-        { id: 'token-seed-1', type: 'earn_referral', label: 'Referral Bonus: Invited @KipPunter', amount: 4, time: '1d ago' },
-        { id: 'token-seed-2', type: 'earn_spend', label: 'Room Unlock Cashback (100 Ksh spent)', amount: 4, time: '2d ago' },
-        { id: 'token-seed-3', type: 'earn_referral', label: 'Welcome Bonus Tokens', amount: 16, time: '3d ago' },
-      ],
+      tokenTransactions: [],
 
       isRoomUnlocked: (roomId) => get().unlockedRooms.includes(roomId),
       isCodeUsed: (code) => get().redeemedCodes.includes(code),
@@ -469,36 +461,9 @@ export const useWallet = create<WalletState>()(
           userSessionToken: null,
         }),
 
-      holdEscrow: (amount, label) => {
-        const { balance } = get();
-        if (amount <= 0 || amount > balance) return false;
-        set((state) => ({
-          balance: state.balance - amount,
-          transactions: [
-            { id: `tx-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`, type: 'escrow', label, amount: -amount, time: 'just now' },
-            ...state.transactions,
-          ],
-        }));
-        return true;
-      },
-
-      releasePayout: (amount, label) =>
-        set((state) => ({
-          balance: state.balance + amount,
-          transactions: [
-            { id: `tx-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`, type: 'payout', label, amount, time: 'just now' },
-            ...state.transactions,
-          ],
-        })),
-
-      refundEscrow: (amount, label) =>
-        set((state) => ({
-          balance: state.balance + amount,
-          transactions: [
-            { id: `tx-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`, type: 'refund', label, amount, time: 'just now' },
-            ...state.transactions,
-          ],
-        })),
+      holdEscrow: () => false,
+      releasePayout: () => {},
+      refundEscrow: () => {},
     }),
     { name: 'mshindi-wallet' }
   )

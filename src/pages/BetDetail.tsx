@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useParams, Navigate, Link } from 'react-router-dom';
 import {
   ArrowLeft, Swords, ShieldCheck, Copy, Check, Users, Clock, AlertTriangle,
@@ -22,9 +22,16 @@ export default function BetDetail() {
   const { id } = useParams();
   const currentUser = useCurrentUser();
   const bets = usePvP((s) => s.bets);
+  const loadBets = usePvP((s) => s.loadBets);
   const cancelBet = usePvP((s) => s.cancelBet);
   const proposeWinner = usePvP((s) => s.proposeWinner);
   const [copied, setCopied] = useState(false);
+
+  useEffect(() => {
+    if (currentUser && bets.length === 0) {
+      void loadBets();
+    }
+  }, [currentUser, bets.length, loadBets]);
 
   const betFound = bets.find((b) => b.id === id);
 
@@ -36,8 +43,13 @@ export default function BetDetail() {
   const StatusIcon = meta.icon;
 
   const mySide: Side | null =
-    bet.creatorUsername === currentUser.username ? 'creator' :
-    bet.opponentUsername === currentUser.username ? 'opponent' : null;
+    bet.mySide !== undefined
+      ? bet.mySide
+      : bet.creatorUsername === currentUser.username
+        ? 'creator'
+        : bet.opponentUsername === currentUser.username
+          ? 'opponent'
+          : null;
 
   const myProposal = mySide === 'creator' ? bet.proposedWinnerByCreator : mySide === 'opponent' ? bet.proposedWinnerByOpponent : null;
   const theirProposal = mySide === 'creator' ? bet.proposedWinnerByOpponent : mySide === 'opponent' ? bet.proposedWinnerByCreator : null;

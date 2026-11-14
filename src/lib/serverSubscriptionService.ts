@@ -17,6 +17,8 @@ import {
 } from './serverTokenEconomy.js';
 import { verifyAdminRequest } from './adminAuthService.js';
 import { resolveScopedServiceAccountRaw } from './fixtureSnapshotStore.js';
+import { recordSecurityEvent } from './securityAuditLogger.js';
+import { extractTrustedClientIp } from './rateLimitService.js';
 
 export type SubscriptionStatus = 'active' | 'trial' | 'expired' | 'none';
 export type SubscriptionPlan = 'weekly' | 'monthly' | 'trial';
@@ -593,6 +595,17 @@ export async function handleSubscriptionHttpRequest(req: {
     .trim();
 
   if (!authCheck.authenticated && !adminAuth.authorized) {
+    if (authCheck.statusCode === 403 || requestedUserId) {
+      await recordSecurityEvent({
+        category: authCheck.statusCode === 403 ? 'IDOR' : 'SUBSCRIPTION',
+        severity: authCheck.statusCode === 403 ? 'high' : 'warning',
+        action: 'unauthorized_subscription_access',
+        outcome: 'blocked',
+        actorId: requestedUserId || null,
+        ip: extractTrustedClientIp(req.headers),
+        route: pathname,
+      });
+    }
     return {
       statusCode: authCheck.statusCode || 401,
       payload: {

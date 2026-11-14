@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link, Navigate } from 'react-router-dom';
 import {
   Swords, Plus, Search, ShieldCheck, Users, Scale, Coins, ArrowRight,
@@ -20,11 +20,18 @@ const statusMeta: Record<BetStatus, { label: string; color: string; icon: typeof
 export default function P2PBets() {
   const currentUser = useCurrentUser();
   const bets = usePvP((s) => s.bets);
+  const loadBets = usePvP((s) => s.loadBets);
   const joinBet = usePvP((s) => s.joinBet);
   const [joinCode, setJoinCode] = useState('');
   const [joinError, setJoinError] = useState('');
   const [joinSuccess, setJoinSuccess] = useState('');
   const [filter, setFilter] = useState<'all' | 'mine'>('all');
+
+  useEffect(() => {
+    if (currentUser) {
+      void loadBets();
+    }
+  }, [currentUser, loadBets]);
 
   const myBets = useMemo(
     () => bets.filter((b) => b.creatorUsername === currentUser?.username || b.opponentUsername === currentUser?.username),
@@ -35,11 +42,11 @@ export default function P2PBets() {
 
   const visibleBets = filter === 'mine' ? myBets : bets;
 
-  function handleJoin() {
+  async function handleJoin() {
     setJoinError('');
     setJoinSuccess('');
     if (!joinCode.trim()) { setJoinError('Enter an invite code.'); return; }
-    const res = joinBet(joinCode.trim(), currentUser!.username);
+    const res = await joinBet(joinCode.trim(), currentUser!.username);
     if (!res.ok) { setJoinError(res.error ?? 'Could not join bet.'); return; }
     setJoinSuccess('Joined! Scroll down to find your bet.');
     setJoinCode('');
@@ -105,7 +112,7 @@ export default function P2PBets() {
               value={joinCode}
               onChange={(e) => { setJoinCode(e.target.value.toUpperCase()); setJoinError(''); setJoinSuccess(''); }}
               placeholder="e.g. 7K2QXM"
-              maxLength={6}
+              maxLength={12}
               className="flex-1 min-w-0 bg-ink border border-line rounded-lg px-3 py-2.5 text-sm tabular-nums tracking-wide text-cream placeholder:text-cream-dim/50 focus:outline-none focus:border-emerald-2 uppercase"
             />
             <button

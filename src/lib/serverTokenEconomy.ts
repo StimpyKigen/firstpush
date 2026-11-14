@@ -28,6 +28,8 @@ import {
   getCookieFromHeaders,
   verifyFirebaseIdTokenServer,
 } from './firebaseIdTokenVerifier.js';
+import { recordSecurityEvent } from './securityAuditLogger.js';
+import { extractTrustedClientIp } from './rateLimitService.js';
 
 // ============================================================================
 // OFFICIAL RATES & CONSTANTS
@@ -1770,6 +1772,71 @@ export async function reverseOrRefundPurchasePayment(params: {
 }
 
 /**
+ * 5b. INTERNAL SERVER-SIDE P2P ESCROW BALANCE MUTATION
+ *
+ * Atomically debits or credits a verified user's server-held KSh wallet balance
+ * using idempotency keys and mutex locks. Never directly exposed to untrusted clients.
+ */
+export async function adjustAuthoritativeKshBalanceForP2p(params: {
+  userUid: string;
+  username?: string;
+  deltaKsh: number;
+  idempotencyKey: string;
+}): Promise<{
+  success: boolean;
+  statusCode?: number;
+  error?: string;
+  wallet?: FormattedWalletResponse;
+}> {
+  const canonicalUid = normalizeCanonicalUid(params.userUid);
+  if (!canonicalUid) {
+    return { success: false, statusCode: 400, error: 'Invalid userUid.' };
+  }
+  const delta = Math.trunc(Number(params.deltaKsh));
+  if (!Number.isFinite(delta) || delta === 0 || delta !== Number(params.deltaKsh)) {
+    return { success: false, statusCode: 400, error: 'Invalid P2P KSh amount.' };
+  }
+  const idempKey = String(params.idempotencyKey || '').trim();
+  if (!idempKey) {
+    return { success: false, statusCode: 400, error: 'Idempotency key is required for P2P escrow mutation.' };
+  }
+
+  return withAtomicLock(canonicalUid, () => {
+    const state = loadEconomyState();
+    const wallet = getOrCreateUserWallet(state, canonicalUid, params.username);
+
+    if (state.idempotencyMap[idempKey]) {
+      return {
+        success: true,
+        wallet: buildFormattedWalletResponse(state, wallet),
+      };
+    }
+
+    if (delta < 0 && wallet.walletBalanceKsh < Math.abs(delta)) {
+      return {
+        success: false,
+        statusCode: 400,
+        error: `Insufficient balance. Need KSh ${Math.abs(delta)}, have KSh ${wallet.walletBalanceKsh}.`,
+      };
+    }
+
+    wallet.walletBalanceKsh += delta;
+    wallet.updatedAt = new Date().toISOString();
+    state.idempotencyMap[idempKey] = {
+      transactionId: `p2p_${idempKey}`,
+      createdAt: wallet.updatedAt,
+      responseSnapshot: { userUid: canonicalUid, deltaKsh: delta },
+    };
+
+    saveEconomyState();
+    return {
+      success: true,
+      wallet: buildFormattedWalletResponse(state, wallet),
+    };
+  });
+}
+
+/**
  * 7. SERVER-VERIFIED REFERRAL QUALIFICATION & REMAINDER-PRESERVING REWARDS
  *
  * Official Rate: 3 qualifying successful invitations = 1 Mshindi Token.
@@ -2179,6 +2246,14 @@ export async function handleTokenEconomyHttpRequest(params: {
     pathname.endsWith('/reactivate-token') ||
     pathname.endsWith('/edit-ledger')
   ) {
+    void recordSecurityEvent({
+      category: 'TOKEN_ECONOMY',
+      severity: 'critical',
+      action: `blocked_client_mutation:${action || pathname}`,
+      outcome: 'blocked',
+      ip: extractTrustedClientIp(headers),
+      route: pathname,
+    });
     const rejected = rejectUnauthorizedClientTokenMutation(action || pathname);
     return { statusCode: rejected.statusCode, payload: rejected };
   }
@@ -2189,8 +2264,22 @@ export async function handleTokenEconomyHttpRequest(params: {
     typeof body.forgedTokens !== 'undefined' ||
     typeof body.manufactureTokenIds !== 'undefined'
   ) {
+    void recordSecurityEvent({
+      category: 'TOKEN_ECONOMY',
+      severity: 'critical',
+      action: 'forged_balance_or_token_override',
+      outcome: 'blocked',
+      ip: extractTrustedClientIp(headers),
+      route: pathname,
+    });
     const rejected = rejectUnauthorizedClientTokenMutation('client_submitted_balance_or_token_override');
     return { statusCode: rejected.statusCode, payload: rejected };
+  }
+
+  // 0. SERVER-AUTHORITATIVE P2P ESCROW ROUTES (`/api/tokens/p2p/*`)
+  if (pathname === '/api/tokens/p2p' || pathname.startsWith('/api/tokens/p2p/')) {
+    const { handleP2pHttpRequest } = await import('./serverP2pService.js');
+    return handleP2pHttpRequest({ method, pathname, headers, query, body });
   }
 
   // 1. M-PESA VERIFY CODE / PURCHASE ENDPOINT (`/api/mpesa/verify-code` or `action === 'purchase'`)

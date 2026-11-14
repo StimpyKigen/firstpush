@@ -9,6 +9,7 @@ import {
   applyStandardSecurityHeaders,
   parseSafeJsonBody,
 } from '../src/lib/httpSecurity.js';
+import { enforceEndpointRateLimit } from '../src/lib/rateLimitService.js';
 
 function isAuthorizedCleanupRequest(req: any, body?: any): boolean {
   const cronSecret = (process.env.CRON_SECRET || '').trim();
@@ -46,6 +47,16 @@ export default async function handler(req: any, res: any) {
     allowHeaders: 'Content-Type, Authorization, x-admin-token',
   });
   if (cors.preflightHandled) {
+    return;
+  }
+
+  const rateOk = await enforceEndpointRateLimit(req, res, {
+    namespace: 'homepage_feed_api',
+    windowMs: 60_000,
+    maxRequests: 120,
+    routeLabel: '/api/homepage-feed',
+  });
+  if (!rateOk) {
     return;
   }
 

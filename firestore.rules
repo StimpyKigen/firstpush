@@ -14,6 +14,22 @@ service cloud.firestore {
     // Document ID: EAT match date 'YYYY-MM-DD' or '_meta'
     // Access: Denied to all clients (Admin SDK only; server fixture cache)
     //
+    // Collection: reports/{reportId} (Strictly Server-Only)
+    // Document ID: Server-generated moderation report ID
+    // Access: Denied to all clients (Admin SDK only via /api/moderation/reports; enforces rate limiting, reporter privacy, and admin-only triage)
+    //
+    // Collection: p2pBets/{betId} (Strictly Server-Only)
+    // Document ID: Server-generated P2P wager ID
+    // Access: Denied to all clients (Admin SDK only via /api/tokens/p2p/*; protects escrow stakes and mutual settlement)
+    //
+    // Collection: rateLimits/{bucketId} (Strictly Server-Only)
+    // Document ID: Hashed rate-limit bucket key
+    // Access: Denied to all clients (Admin SDK only via rateLimitService.ts)
+    //
+    // Collection: securityAuditLogs/{eventId} (Strictly Server-Only)
+    // Document ID: Server-generated security audit event ID
+    // Access: Denied to all clients (Admin SDK only via securityAuditLogger.ts and /api/admin/security-logs)
+    //
     // Collection: users/{userId}
     // Document ID: Firebase Auth UID or canonical phone
     // Fields (client-writable subset):
@@ -537,6 +553,23 @@ service cloud.firestore {
     }
 
     match /fixtureSnapshots/{snapshotId} {
+      allow read, write: if false;
+    }
+
+    // Phase 7 security & server-authoritative collections (Admin SDK only)
+    match /reports/{reportId} {
+      allow read, write: if false;
+    }
+
+    match /p2pBets/{betId} {
+      allow read, write: if false;
+    }
+
+    match /rateLimits/{bucketId} {
+      allow read, write: if false;
+    }
+
+    match /securityAuditLogs/{eventId} {
       allow read, write: if false;
     }
 

@@ -30,6 +30,14 @@ import {
   applyStandardSecurityHeaders,
   parseSafeJsonBody,
 } from '../src/lib/httpSecurity.js';
+import {
+  enforceEndpointRateLimit,
+  extractTrustedClientIp,
+} from '../src/lib/rateLimitService.js';
+import {
+  recordSecurityEvent,
+  querySecurityEvents,
+} from '../src/lib/securityAuditLogger.js';
 
 function resolveAdminSubpath(req: any): string {
   const endpointParam = req?.query?.endpoint;
@@ -62,6 +70,18 @@ export default async function handler(req: any, res: any) {
     return;
   }
 
+  const rateOk = await enforceEndpointRateLimit(req, res, {
+    namespace: subpathLower === 'verify-pin' ? 'admin_verify_pin' : 'admin_api',
+    windowMs: 60_000,
+    maxRequests: subpathLower === 'verify-pin' ? 20 : 120,
+    routeLabel: `/api/admin/${subpathLower}`,
+  });
+  if (!rateOk) {
+    return;
+  }
+
+  const clientIp = extractTrustedClientIp(req);
+
   const maxBodyBytes =
     subpathLower === 'parse-pdf' || subpathLower === 'upload-media'
       ? 15 * 1024 * 1024
@@ -85,12 +105,31 @@ export default async function handler(req: any, res: any) {
           : result.error?.includes('Unauthorized')
             ? 403
             : 401;
+        await recordSecurityEvent({
+          category: 'ADMIN',
+          severity: status === 403 ? 'high' : 'warning',
+          action: 'admin_verify_pin_failed',
+          outcome: 'failure',
+          actorId: typeof body.phone === 'string' ? body.phone.slice(0, 32) : null,
+          ip: clientIp,
+          route: '/api/admin/verify-pin',
+          details: { status },
+        });
         return res.status(status).json({
           success: false,
           valid: false,
           error: result.error,
         });
       }
+      await recordSecurityEvent({
+        category: 'ADMIN',
+        severity: 'info',
+        action: 'admin_verify_pin_succeeded',
+        outcome: 'allowed',
+        actorId: 'ADMIN:254743304579',
+        ip: clientIp,
+        route: '/api/admin/verify-pin',
+      });
       if (result.adminToken) {
         const adminCookie = buildSessionCookieHeader(
           ADMIN_SESSION_COOKIE_NAME,
@@ -258,10 +297,46 @@ export default async function handler(req: any, res: any) {
       return res.status(200).json({ success: true, text });
     } catch (err: any) {
       if (err instanceof PdfParseSecurityError) {
+        await recordSecurityEvent({
+          category: 'PDF_SECURITY',
+          severity: 'critical',
+          action: 'pdf_bomb_or_malformed_blocked',
+          outcome: 'blocked',
+          actorId: 'ADMIN:254743304579',
+          ip: clientIp,
+          route: '/api/admin/parse-pdf',
+          details: { message: err.message, statusCode: err.statusCode },
+        });
         return res.status(err.statusCode).json({ success: false, error: err.message });
       }
       return res.status(500).json({ success: false, error: 'Failed to parse PDF on server' });
     }
+  }
+
+  // 5. Security Audit Logs Viewer (/api/admin/security-logs)
+  if (subpathLower === 'security-logs') {
+    if (req.method !== 'GET') {
+      return res.status(405).json({ success: false, error: 'Method not allowed.' });
+    }
+    const authCheck = verifyAdminRequest(req.headers || {}, body);
+    if (!authCheck.authorized) {
+      await recordSecurityEvent({
+        category: 'ADMIN',
+        severity: 'high',
+        action: 'unauthorized_security_logs_read',
+        outcome: 'blocked',
+        ip: clientIp,
+        route: '/api/admin/security-logs',
+      });
+      return res.status(403).json({
+        success: false,
+        error: authCheck.reason || 'Forbidden: Administrator permissions required.',
+      });
+    }
+    const limit = Number(req?.query?.limit || 50);
+    const onlyAlerts = String(req?.query?.alerts || '') === 'true';
+    const data = await querySecurityEvents({ limit, onlyAlerts });
+    return res.status(200).json({ success: true, ...data });
   }
 
   return res.status(404).json({ success: false, error: `Unknown admin endpoint: ${subpath || '/'}` });
