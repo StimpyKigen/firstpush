@@ -1,92 +1,89 @@
 # Deployment Specification
 
-## 1. Production Architecture Overview
+## 1. Dual Runtime Architecture (Vercel Serverless & Express Server)
 
-Mshindi Projo is packaged as a single production Cloud Run container running Node.js on **Port 3000**.
-
-```
-[ Incoming User Traffic ]
-          │
-          ▼
-   [ Cloud Run Container ]
-          │
-          ├── NGINX Reverse Proxy (Port 3000)
-          │
-          └── Node.js Production Server (dist/server.cjs)
-                │
-                ├── Express API Endpoints (/api/*)
-                └── Static Single Page App (dist/index.html & dist/assets/*)
-```
+MshindiRoom runs on either:
+1. **Vercel Serverless (Primary Web Hosting)**:
+   - Static SPA assets served from `dist/` (`vite build`).
+   - Consolidated Vercel Functions under `api/*.ts`:
+     - `api/admin.ts`
+     - `api/ai.ts`
+     - `api/homepage-feed.ts`
+     - `api/moderation.ts`
+     - `api/sports.ts`
+     - `api/subscription.ts`
+     - `api/tokens.ts`
+   - Routed via rewrites in [`vercel.json`](../vercel.json).
+   - Note: `vercel.json` currently sets `"git": { "deploymentEnabled": false }` so deployments are triggered manually/explicitly rather than firing on every git push.
+2. **Express / Node.js Container (`dist/server.cjs`)**:
+   - Single-process Express backend + Vite-built static SPA bundled via `esbuild`.
+   - Delegates directly to the same authoritative service modules and consolidated HTTP controllers (`src/lib/*Controller.ts`) used by Vercel Serverless.
 
 ---
 
-## 2. Build Pipeline
+## 2. Build & Clean Pipeline
 
-The production build pipeline is defined in `package.json`:
+Defined in [`package.json`](../package.json):
 
 ```json
 {
   "scripts": {
-    "build": "vite build && esbuild server.ts --bundle --platform=node --format=cjs --packages=external --sourcemap --outfile=dist/server.cjs",
-    "start": "node dist/server.cjs"
+    "dev": "tsx server.ts",
+    "build": "tsx scripts/generate-build-version.ts && vite build && tsx scripts/generate-build-version.ts && esbuild server.ts --bundle --platform=node --format=cjs --packages=external --sourcemap --outfile=dist/server.cjs",
+    "start": "node dist/server.cjs",
+    "clean": "node -e \"const fs=require('fs');fs.rmSync('dist',{recursive:true,force:true});fs.rmSync('server.js',{force:true})\"",
+    "lint": "tsc --noEmit"
   }
 }
 ```
 
-### Build Steps:
-1. **Frontend Compilation**: `vite build` compiles React TypeScript components, Tailwind CSS styling, and static assets into `dist/`.
-2. **Backend Bundling**: `esbuild server.ts` bundles the Express server, Gemini SDK integration, and Jackpot Mirror scraper into a CommonJS production script `dist/server.cjs`.
+### Build Steps
+1. **Pre-build Version Stamp**: `tsx scripts/generate-build-version.ts` stamps `public/version.json` and `public/sw.js` `BUILD_VERSION`.
+2. **Frontend Compilation**: `vite build` bundles the React 19 SPA into split vendor/data/route chunks under `dist/`.
+3. **Post-build Manifest Sync**: syncs `dist/version.json` and `dist/sw.js`.
+4. **Node Server Bundling**: `esbuild server.ts` emits `dist/server.cjs`.
 
 ---
 
-## 3. Deployment Steps (GCP Cloud Run)
+## 3. Firebase Deployment Prerequisites (Run on Schema / Rules Changes)
 
-### Option A: Direct Deployment via AI Studio Build
-In Google AI Studio Build environment, clicking **Deploy** automates the build and containerization flow:
-1. Provisions Cloud Run container.
-2. Injects runtime secrets (`GEMINI_API_KEY`, `APP_URL`).
-3. Binds ingress traffic to Port 3000.
+Whenever `firestore.rules`, `storage.rules`, or `firestore.indexes.json` change, deploy them explicitly to Firebase before enabling dependent queries/rules in production:
 
-### Option B: Manual Docker Deployment
+```bash
+firebase deploy --only firestore:rules
+firebase deploy --only firestore:indexes
+firebase deploy --only storage
+```
 
-1. **Dockerfile**:
-   ```dockerfile
-   FROM node:20-alpine
-   WORKDIR /app
-   COPY package*.json ./
-   RUN npm ci --only=production
-   COPY . .
-   RUN npm run build
-   EXPOSE 3000
-   ENV NODE_ENV=production
-   CMD ["npm", "start"]
-   ```
-
-2. **Build Docker Image**:
-   ```bash
-   docker build -t gcr.io/YOUR_PROJECT_ID/mshindi-projo:latest .
-   ```
-
-3. **Deploy to Cloud Run**:
-   ```bash
-   gcloud run deploy mshindi-projo \
-     --image gcr.io/YOUR_PROJECT_ID/mshindi-projo:latest \
-     --platform managed \
-     --region europe-west3 \
-     --port 3000 \
-     --set-env-vars NODE_ENV=production \
-     --set-secrets GEMINI_API_KEY=GEMINI_API_KEY:latest
-   ```
+Required composite indexes (defined in `firestore.indexes.json`):
+- `subscriptionHistory`: `userId` (`ASCENDING`), `createdAt` (`DESCENDING`).
 
 ---
 
-## 4. Environment Variables Checklist
+## 4. Vercel Cron Jobs
 
-Ensure these variables are present in the target container environment:
+Configured in `vercel.json` and authenticated exclusively via `Authorization: Bearer <CRON_SECRET>` (`x-vercel-cron` alone is rejected):
+- `0 21 * * 0` -> `/api/sports/weekly-sync`
+- `0 2 * * *` -> `/api/homepage-feed?action=cleanup`
 
-| Variable | Scope | Description | Required |
+---
+
+## 5. Production Environment Variables Checklist
+
+See [`.env.example`](../.env.example) for the complete template:
+
+| Variable | Scope | Purpose | Required in Prod |
 | :--- | :--- | :--- | :--- |
-| `GEMINI_API_KEY` | Server | Google Gemini API key for AI features | Yes |
-| `APP_URL` | Server | Public host URL for CORS and self-links | Yes |
-| `NODE_ENV` | Server | Must be set to `production` | Yes |
-| `PORT` | Container | Hardcoded to `3000` | Yes |
+| `ADMIN_PIN` | Server | Admin PIN verification (fail-closed) | Yes |
+| `ADMIN_TOKEN_SECRET` | Server | HMAC-SHA256 admin session secret | Yes |
+| `USER_TOKEN_SECRET` | Server | HMAC-SHA256 user session secret | Yes |
+| `CRON_SECRET` | Server | Bearer token authorizing Vercel Cron endpoints | Yes |
+| `FIREBASE_SERVICE_ACCOUNT` | Server | Production Firebase Admin SDK JSON/Base64 credential | Yes |
+| `FIREBASE_SERVICE_ACCOUNT_PREVIEW` | Preview | Isolated Firebase Admin credential for `VERCEL_ENV=preview` | Recommended |
+| `ALLOWED_ORIGINS` | Server | Comma-separated origin allowlist (`httpSecurity.ts`) | Yes |
+| `UPSTASH_REDIS_REST_URL` | Server | Upstash Redis REST URL for atomic rate limiting | Recommended |
+| `UPSTASH_REDIS_REST_TOKEN` | Server | Upstash Redis REST auth token | Recommended |
+| `GEMINI_API_KEY` | Server | Google Gemini API key | Yes |
+| `GEMINI_MODEL` | Server | Optional model override (`gemini-2.5-flash`) | No |
+| `API_BASE_URL` | Server | Canonical server base URL (optional) | No |
+| `VITE_FIREBASE_*` | Client Build | Firebase Web SDK config baked into Vite build | Yes |

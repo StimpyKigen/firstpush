@@ -9,7 +9,7 @@ import { useTheme } from "@/src/lib/themeStore";
 
 // The customized Switch component with icon and thumb customization
 export const Switch = React.forwardRef<
-  React.ElementRef<typeof SwitchPrimitive.Root>,
+  React.ComponentRef<typeof SwitchPrimitive.Root>,
   React.ComponentPropsWithoutRef<typeof SwitchPrimitive.Root> & {
     icon?: React.ReactNode;
     thumbClassName?: string;
