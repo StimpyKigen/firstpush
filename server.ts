@@ -69,6 +69,10 @@ import {
   getWeeklySchedulerStatus,
   executeWeeklyIngestion,
 } from './src/lib/weeklyFixtureService';
+import {
+  applyCorsPolicy,
+  applyStandardSecurityHeaders,
+} from './src/lib/httpSecurity';
 
 function verifyCronSecretBearer(authHeader?: string | string[]): boolean {
   const cronSecret = (process.env.CRON_SECRET || '').trim();
@@ -123,21 +127,65 @@ async function startServer() {
   const app = express();
   const PORT = 3000;
 
+  const isProd = process.env.NODE_ENV === 'production';
+
   // Trust first proxy hop (e.g. Cloudflare, Cloud Run, nginx)
   app.set('trust proxy', 1);
+  app.disable('x-powered-by');
 
-  // Security Headers Middleware
+  // Defense-in-depth Security Headers Middleware (CSP, HSTS, Frame Protection, Referrer/Permissions Policy)
   app.use((req, res, next) => {
-    res.setHeader('X-Content-Type-Options', 'nosniff');
-    res.setHeader('X-Frame-Options', 'SAMEORIGIN');
-    res.setHeader('X-XSS-Protection', '1; mode=block');
-    res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
-    res.setHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
+    const isApi = req.path.startsWith('/api/');
+    applyStandardSecurityHeaders(req, res, { isApi, isDev: !isProd });
     next();
   });
 
-  // Json body parser with support for base64 PDF uploads
-  app.use(express.json({ limit: '10mb' }));
+  // Trusted-Origin CORS & Preflight Middleware on /api/*
+  app.use('/api', (req, res, next) => {
+    const cors = applyCorsPolicy(req, res, {
+      methods: 'GET, POST, DELETE, OPTIONS',
+      allowHeaders:
+        'Content-Type, Authorization, Last-Event-ID, x-user-token, x-firebase-id-token, x-admin-token',
+    });
+    if (cors.preflightHandled) {
+      return;
+    }
+    next();
+  });
+
+  // Large JSON body parser strictly scoped to PDF & permanent media upload routes
+  const largeUploadJsonParser = express.json({ limit: '15mb' });
+  const defaultJsonParser = express.json({ limit: '1mb' });
+  app.use('/api/admin/parse-pdf', largeUploadJsonParser);
+  app.use('/api/admin/upload-media', largeUploadJsonParser);
+  app.use('/api/homepage-feed/upload-media', largeUploadJsonParser);
+  app.use((req, res, next) => {
+    if (
+      req.path === '/api/admin/parse-pdf' ||
+      req.path === '/api/admin/upload-media' ||
+      req.path === '/api/homepage-feed/upload-media'
+    ) {
+      return next();
+    }
+    return defaultJsonParser(req, res, next);
+  });
+
+  // Controlled JSON syntax & payload-size error handler (prevents 500/HTML stack traces)
+  app.use((err: any, _req: Request, res: Response, next: NextFunction) => {
+    if (err && (err.type === 'entity.too.large' || err.status === 413)) {
+      return res.status(413).json({
+        success: false,
+        error: 'Request payload exceeds maximum allowed size.',
+      });
+    }
+    if (err && (err instanceof SyntaxError || err.type === 'entity.parse.failed' || err.status === 400)) {
+      return res.status(400).json({
+        success: false,
+        error: 'Invalid JSON request body.',
+      });
+    }
+    return next(err);
+  });
 
   // Rate Limiting Rules
   const generalApiLimiter = createRateLimiter(60_000, 120); // 120 reqs / min
@@ -1196,7 +1244,8 @@ Sitemap: https://mshindi.co.ke/sitemap.xml
         req.path.startsWith('/assets/') ||
         req.path === '/sw.js' ||
         req.path === '/version.json' ||
-        req.path === '/manifest.json'
+        req.path === '/manifest.json' ||
+        req.path === '/theme-init.js'
       ) {
         return res.status(404).end();
       }

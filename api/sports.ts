@@ -19,6 +19,11 @@ import { executeWeeklyIngestion, getWeeklySchedulerStatus } from '../src/lib/wee
 import { isSnapshotStoreConfigured } from '../src/lib/fixtureSnapshotStore.js';
 import { verifyAdminRequest, constantTimeEqualText } from '../src/lib/adminAuthService.js';
 import { enforceAuthenticatedChatCooldown } from '../src/lib/serverTokenEconomy.js';
+import {
+  applyCorsPolicy,
+  applyStandardSecurityHeaders,
+  parseSafeJsonBody,
+} from '../src/lib/httpSecurity.js';
 
 function verifyCronBearerHeader(req: any): boolean {
   const cronSecret = (process.env.CRON_SECRET || '').trim();
@@ -59,15 +64,23 @@ function resolveSportsSubpath(req: any): string {
 export default async function handler(req: any, res: any) {
   const subpath = resolveSportsSubpath(req);
 
-  res.setHeader('X-Content-Type-Options', 'nosniff');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-  res.setHeader(
-    'Access-Control-Allow-Headers',
-    'Content-Type, Authorization, Last-Event-ID, x-user-token, x-firebase-id-token, x-admin-token, x-admin-phone'
-  );
+  applyStandardSecurityHeaders(req, res, { isApi: true });
 
-  if (req.method === 'OPTIONS') {
-    return res.status(200).end();
+  const cors = applyCorsPolicy(req, res, {
+    methods: 'GET, POST, OPTIONS',
+    allowHeaders: 'Content-Type, Authorization, Last-Event-ID, x-user-token, x-firebase-id-token, x-admin-token',
+  });
+  if (cors.preflightHandled) {
+    return;
+  }
+
+  let parsedPostBody: Record<string, any> = {};
+  if (String(req.method || 'GET').toUpperCase() === 'POST') {
+    const parsed = parseSafeJsonBody(req, { maxBytes: 1 * 1024 * 1024 });
+    if (!parsed.ok) {
+      return res.status(parsed.statusCode).json({ success: false, error: parsed.error });
+    }
+    parsedPostBody = parsed.body;
   }
 
   // 1. Real-Time SSE Stream (/api/sports/stream)
@@ -264,18 +277,9 @@ export default async function handler(req: any, res: any) {
   // 12. Chat Cooldown Enforcement (/api/sports/chat-cooldown)
   if (subpath === 'chat-cooldown') {
     res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
-    if (req.method === 'OPTIONS') {
-      return res.status(204).end();
-    }
-    let body: any = {};
-    try {
-      body = typeof req.body === 'string' && req.body ? JSON.parse(req.body) : req.body || {};
-    } catch {
-      return res.status(400).json({ success: false, allowed: false, error: 'Invalid JSON request body.' });
-    }
     const cooldownRes = await enforceAuthenticatedChatCooldown({
       headers: req.headers || {},
-      body,
+      body: parsedPostBody,
       query: req.query || {},
     });
     return res.status(cooldownRes.statusCode).json(cooldownRes.payload);
@@ -283,12 +287,7 @@ export default async function handler(req: any, res: any) {
 
   // 12. Manual/On-Demand Rolling or Live Sync (/api/sports/sync & /api/sports/sync-live)
   if (subpath === 'sync') {
-    let body: any = {};
-    try {
-      body = typeof req.body === 'string' && req.body ? JSON.parse(req.body) : req.body || {};
-    } catch {
-      return res.status(400).json({ success: false, error: 'Invalid JSON request body.' });
-    }
+    const body = parsedPostBody;
     const adminCheck = verifyAdminRequest(req.headers || {}, body);
     const hasValidCronSecret = verifyCronBearerHeader(req);
     if (!adminCheck.authorized && !hasValidCronSecret) {
@@ -306,12 +305,7 @@ export default async function handler(req: any, res: any) {
   }
 
   if (subpath === 'sync-live') {
-    let body: any = {};
-    try {
-      body = typeof req.body === 'string' && req.body ? JSON.parse(req.body) : req.body || {};
-    } catch {
-      return res.status(400).json({ success: false, error: 'Invalid JSON request body.' });
-    }
+    const body = parsedPostBody;
     const adminCheck = verifyAdminRequest(req.headers || {}, body);
     const hasValidCronSecret = verifyCronBearerHeader(req);
     if (!adminCheck.authorized && !hasValidCronSecret) {
@@ -340,12 +334,7 @@ export default async function handler(req: any, res: any) {
 
   // 14. Vercel Cron & Admin Weekly Fixture Ingestion (/api/sports/weekly-sync & /api/cron/weekly-sync)
   if (subpath === 'weekly-sync' || subpath === 'cron-weekly-sync') {
-    let body: any = {};
-    try {
-      body = typeof req.body === 'string' && req.body ? JSON.parse(req.body) : req.body || {};
-    } catch {
-      return res.status(400).json({ success: false, error: 'Invalid JSON request body.' });
-    }
+    const body = parsedPostBody;
     const adminCheck = verifyAdminRequest(req.headers || {}, body);
 
     if (!adminCheck.authorized) {

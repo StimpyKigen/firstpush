@@ -20,12 +20,24 @@ export default defineConfig(() => {
           server.middlewares.use(async (req, res, next) => {
             if (req.url) {
               const url = new URL(req.url, 'http://localhost');
+              if (url.pathname.startsWith('/api/')) {
+                try {
+                  const { resolveTrustedCorsOrigin, applyStandardSecurityHeaders } = await server.ssrLoadModule('/src/lib/httpSecurity.ts');
+                  applyStandardSecurityHeaders(req, res, { isApi: true, isDev: true });
+                  res.setHeader('Vary', 'Origin');
+                  const trustedOrigin = resolveTrustedCorsOrigin(req.headers.origin);
+                  if (trustedOrigin) {
+                    res.setHeader('Access-Control-Allow-Origin', trustedOrigin);
+                    res.setHeader('Access-Control-Allow-Credentials', 'true');
+                  }
+                } catch {}
+              }
               if (url.pathname === '/api/sports/daily-fixtures') {
                 try {
                   const { getDailyMarketHighlights } = await server.ssrLoadModule('/src/lib/sportsFeedService.ts');
                   const highlights = await getDailyMarketHighlights();
                   res.setHeader('Content-Type', 'application/json');
-                  res.setHeader('Access-Control-Allow-Origin', '*');
+                  // Trusted CORS headers applied once at middleware entry
                   res.end(JSON.stringify({ success: true, count: highlights.length, fixtures: highlights }));
                   return;
                 } catch (err) {
@@ -44,7 +56,7 @@ export default defineConfig(() => {
                   const date = url.searchParams.get('date') || undefined;
                   const fixtures = queryMarketFixtures({ scope, league, country, date });
                   res.setHeader('Content-Type', 'application/json');
-                  res.setHeader('Access-Control-Allow-Origin', '*');
+                  // Trusted CORS headers applied once at middleware entry
                   res.end(JSON.stringify({ success: true, count: fixtures.length, fixtures }));
                   return;
                 } catch (err) {
@@ -59,7 +71,7 @@ export default defineConfig(() => {
                   const { discoverAllLeagues } = await server.ssrLoadModule('/src/lib/sportsFeedService.ts');
                   const leagues = await discoverAllLeagues();
                   res.setHeader('Content-Type', 'application/json');
-                  res.setHeader('Access-Control-Allow-Origin', '*');
+                  // Trusted CORS headers applied once at middleware entry
                   res.end(JSON.stringify({ success: true, count: leagues.length, leagues }));
                   return;
                 } catch (err) {
@@ -91,7 +103,7 @@ export default defineConfig(() => {
                     ...queryMarketFixtures({ scope: 'finished', date: yesterdayStr }),
                   ];
                   res.setHeader('Content-Type', 'application/json');
-                  res.setHeader('Access-Control-Allow-Origin', '*');
+                  // Trusted CORS headers applied once at middleware entry
                   res.setHeader('Cache-Control', 'no-cache, no-store, max-age=0, must-revalidate');
                   res.end(
                     JSON.stringify({
@@ -115,7 +127,7 @@ export default defineConfig(() => {
                   const { syncLiveScoresOnly, getSyncDiagnostics } = await server.ssrLoadModule('/src/lib/sportsFeedService.ts');
                   const result = await syncLiveScoresOnly();
                   res.setHeader('Content-Type', 'application/json');
-                  res.setHeader('Access-Control-Allow-Origin', '*');
+                  // Trusted CORS headers applied once at middleware entry
                   res.end(JSON.stringify({ success: true, result, diagnostics: getSyncDiagnostics() }));
                   return;
                 } catch (err) {
@@ -130,7 +142,7 @@ export default defineConfig(() => {
                   const { getSyncDiagnostics } = await server.ssrLoadModule('/src/lib/sportsFeedService.ts');
                   const diagnostics = getSyncDiagnostics();
                   res.setHeader('Content-Type', 'application/json');
-                  res.setHeader('Access-Control-Allow-Origin', '*');
+                  // Trusted CORS headers applied once at middleware entry
                   res.end(JSON.stringify({ success: true, diagnostics }));
                   return;
                 } catch (err) {
@@ -158,7 +170,7 @@ export default defineConfig(() => {
                     return;
                   }
                   res.setHeader('Content-Type', 'application/json');
-                  res.setHeader('Access-Control-Allow-Origin', '*');
+                  // Trusted CORS headers applied once at middleware entry
                   res.setHeader('Cache-Control', 'public, max-age=600, s-maxage=1800, stale-while-revalidate=3600');
                   res.end(JSON.stringify({ success: true, odds }));
                   return;
@@ -173,7 +185,7 @@ export default defineConfig(() => {
                 try {
                   const { getSavedAdminFixtures, getSavedAdminBatches, ingestAdminFixtures, clearAllFixtures } = await server.ssrLoadModule('/src/lib/sportsFeedService.ts');
                   res.setHeader('Content-Type', 'application/json');
-                  res.setHeader('Access-Control-Allow-Origin', '*');
+                  // Trusted CORS headers applied once at middleware entry
                   if (req.method === 'GET') {
                     const fixtures = getSavedAdminFixtures();
                     const batches = getSavedAdminBatches ? getSavedAdminBatches() : [];
@@ -221,7 +233,7 @@ export default defineConfig(() => {
                   const { deleteAdminBatch, getSavedAdminBatches } = await server.ssrLoadModule('/src/lib/sportsFeedService.ts');
                   const batchId = url.pathname.replace('/api/admin/fixtures/batch/', '');
                   res.setHeader('Content-Type', 'application/json');
-                  res.setHeader('Access-Control-Allow-Origin', '*');
+                  // Trusted CORS headers applied once at middleware entry
                   deleteAdminBatch(batchId);
                   res.end(JSON.stringify({ success: true, message: 'Batch removed successfully.', batches: getSavedAdminBatches() }));
                   return;
@@ -235,7 +247,7 @@ export default defineConfig(() => {
               if (url.pathname === '/api/homepage-feed') {
                 try {
                   res.setHeader('Content-Type', 'application/json');
-                  res.setHeader('Access-Control-Allow-Origin', '*');
+                  // Trusted CORS headers applied once at middleware entry
                   res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
                   if (req.method === 'GET') {
                     const { getSavedHomepageFeedAsync } = await server.ssrLoadModule('/src/lib/serverHomepageFeed.ts');
@@ -283,7 +295,7 @@ export default defineConfig(() => {
               if (url.pathname === '/api/admin/upload-media') {
                 try {
                   res.setHeader('Content-Type', 'application/json');
-                  res.setHeader('Access-Control-Allow-Origin', '*');
+                  // Trusted CORS headers applied once at middleware entry
                   if (req.method === 'POST') {
                     let body = '';
                     req.on('data', (chunk: any) => { body += chunk; });
@@ -327,7 +339,7 @@ export default defineConfig(() => {
               if (url.pathname === '/api/admin/verify-pin') {
                 try {
                   res.setHeader('Content-Type', 'application/json');
-                  res.setHeader('Access-Control-Allow-Origin', '*');
+                  // Trusted CORS headers applied once at middleware entry
                   if (req.method === 'POST') {
                     let body = '';
                     req.on('data', (chunk: any) => { body += chunk; });
@@ -364,7 +376,7 @@ export default defineConfig(() => {
                 try {
                   const { extractPdfTextServer } = await server.ssrLoadModule('/src/lib/serverPdfParser.ts');
                   res.setHeader('Content-Type', 'application/json');
-                  res.setHeader('Access-Control-Allow-Origin', '*');
+                  // Trusted CORS headers applied once at middleware entry
                   if (req.method === 'POST') {
                     let body = '';
                     req.on('data', (chunk: any) => { body += chunk; });
@@ -411,7 +423,7 @@ export default defineConfig(() => {
                 try {
                   const { handleTokenEconomyHttpRequest } = await server.ssrLoadModule('/src/lib/serverTokenEconomy.ts');
                   res.setHeader('Content-Type', 'application/json');
-                  res.setHeader('Access-Control-Allow-Origin', '*');
+                  // Trusted CORS headers applied once at middleware entry
                   res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
                   const queryObj = Object.fromEntries(url.searchParams.entries());
                   let body = '';

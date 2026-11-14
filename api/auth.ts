@@ -1,5 +1,10 @@
 import { handleAuthHttpRequest } from '../src/lib/serverAuthService.js';
 import { appendSetCookieHeader, isHttpsRequest } from '../src/lib/firebaseIdTokenVerifier.js';
+import {
+  applyCorsPolicy,
+  applyStandardSecurityHeaders,
+  parseSafeJsonBody,
+} from '../src/lib/httpSecurity.js';
 
 function resolveAuthPathname(req: any): string {
   const endpointParam = req?.query?.endpoint;
@@ -17,27 +22,30 @@ function resolveAuthPathname(req: any): string {
 }
 
 export default async function handler(req: any, res: any) {
-  res.setHeader('X-Content-Type-Options', 'nosniff');
+  applyStandardSecurityHeaders(req, res, { isApi: true });
   res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
 
-  if (req.method === 'OPTIONS') {
-    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-    res.setHeader(
-      'Access-Control-Allow-Headers',
-      'Content-Type, Authorization, x-user-token, x-firebase-id-token, x-admin-token'
-    );
-    return res.status(200).end();
+  const cors = applyCorsPolicy(req, res, {
+    methods: 'GET, POST, OPTIONS',
+    allowHeaders: 'Content-Type, Authorization, x-user-token, x-firebase-id-token, x-admin-token',
+  });
+  if (cors.preflightHandled) {
+    return;
+  }
+
+  const parsed = parseSafeJsonBody(req, { maxBytes: 1 * 1024 * 1024 });
+  if (!parsed.ok) {
+    return res.status(parsed.statusCode).json({ success: false, error: parsed.error });
   }
 
   try {
-    const body = typeof req.body === 'string' && req.body ? JSON.parse(req.body) : req.body || {};
     const pathname = resolveAuthPathname(req);
     const result = await handleAuthHttpRequest({
       method: req.method || 'GET',
       pathname,
       headers: req.headers || {},
       query: req.query || {},
-      body,
+      body: parsed.body,
       secureCookie: isHttpsRequest(req),
     });
 

@@ -25,6 +25,11 @@ import {
   decodePdfBase64Payload,
   PdfParseSecurityError,
 } from '../src/lib/serverPdfParser.js';
+import {
+  applyCorsPolicy,
+  applyStandardSecurityHeaders,
+  parseSafeJsonBody,
+} from '../src/lib/httpSecurity.js';
 
 function resolveAdminSubpath(req: any): string {
   const endpointParam = req?.query?.endpoint;
@@ -46,24 +51,26 @@ export default async function handler(req: any, res: any) {
   const subpath = resolveAdminSubpath(req);
   const subpathLower = subpath.toLowerCase();
 
-  res.setHeader('X-Content-Type-Options', 'nosniff');
+  applyStandardSecurityHeaders(req, res, { isApi: true });
   res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, DELETE, OPTIONS');
-  res.setHeader(
-    'Access-Control-Allow-Headers',
-    'Content-Type, Authorization, x-admin-token, x-admin-phone'
-  );
 
-  if (req.method === 'OPTIONS') {
-    return res.status(200).end();
+  const cors = applyCorsPolicy(req, res, {
+    methods: 'GET, POST, DELETE, OPTIONS',
+    allowHeaders: 'Content-Type, Authorization, x-admin-token',
+  });
+  if (cors.preflightHandled) {
+    return;
   }
 
-  let body: any = {};
-  try {
-    body = typeof req.body === 'string' && req.body ? JSON.parse(req.body) : req.body || {};
-  } catch {
-    return res.status(400).json({ success: false, error: 'Invalid JSON request body.' });
+  const maxBodyBytes =
+    subpathLower === 'parse-pdf' || subpathLower === 'upload-media'
+      ? 15 * 1024 * 1024
+      : 2 * 1024 * 1024;
+  const parsed = parseSafeJsonBody(req, { maxBytes: maxBodyBytes });
+  if (!parsed.ok) {
+    return res.status(parsed.statusCode).json({ success: false, error: parsed.error });
   }
+  const body = parsed.body;
 
   // 1. Super-Admin PIN Verification (/api/admin/verify-pin)
   if (subpathLower === 'verify-pin') {

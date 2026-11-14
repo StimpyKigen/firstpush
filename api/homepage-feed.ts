@@ -4,6 +4,11 @@ import {
   cleanupExpiredCarouselPostsAsync,
 } from '../src/lib/serverHomepageFeed.js';
 import { verifyAdminRequest, constantTimeEqualText } from '../src/lib/adminAuthService.js';
+import {
+  applyCorsPolicy,
+  applyStandardSecurityHeaders,
+  parseSafeJsonBody,
+} from '../src/lib/httpSecurity.js';
 
 function isAuthorizedCleanupRequest(req: any, body?: any): boolean {
   const cronSecret = (process.env.CRON_SECRET || '').trim();
@@ -33,25 +38,24 @@ function getActionParam(req: any, body?: any): string {
 }
 
 export default async function handler(req: any, res: any) {
-  res.setHeader('X-Content-Type-Options', 'nosniff');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-  res.setHeader(
-    'Access-Control-Allow-Headers',
-    'Content-Type, Authorization, x-admin-token, x-admin-phone'
-  );
+  applyStandardSecurityHeaders(req, res, { isApi: true });
   res.setHeader('Cache-Control', 'no-store, no-cache, max-age=0, must-revalidate');
 
-  if (req.method === 'OPTIONS') {
-    return res.status(200).end();
+  const cors = applyCorsPolicy(req, res, {
+    methods: 'GET, POST, OPTIONS',
+    allowHeaders: 'Content-Type, Authorization, x-admin-token',
+  });
+  if (cors.preflightHandled) {
+    return;
   }
 
   let parsedBody: any = {};
   if (req.method === 'POST') {
-    try {
-      parsedBody = typeof req.body === 'string' && req.body ? JSON.parse(req.body) : req.body || {};
-    } catch {
-      return res.status(400).json({ success: false, error: 'Invalid JSON request body.' });
+    const parsed = parseSafeJsonBody(req, { maxBytes: 10 * 1024 * 1024 });
+    if (!parsed.ok) {
+      return res.status(parsed.statusCode).json({ success: false, error: parsed.error });
     }
+    parsedBody = parsed.body;
   }
   const action = getActionParam(req, parsedBody);
 
