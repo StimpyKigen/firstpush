@@ -6,94 +6,145 @@ service cloud.firestore {
     // Assumed Data Models
     // ===============================================================
     //
+    // Collection: authAccounts/{phoneId} (Strictly Server-Only)
+    // Document ID: Canonical 12-digit phone (e.g., '254743304579')
+    // Access: Denied to all clients (Admin SDK only; stores scrypt PIN hashes)
+    //
+    // Collection: fixtureSnapshots/{snapshotId} (Strictly Server-Only)
+    // Document ID: EAT match date 'YYYY-MM-DD' or '_meta'
+    // Access: Denied to all clients (Admin SDK only; server fixture cache)
+    //
+    // Collection: users/{userId}
+    // Document ID: Firebase Auth UID or canonical phone
+    // Fields (client-writable subset):
+    //   - uid: string (optional, <= 128, matches request.auth.uid) [Immutable once set]
+    //   - phone: string (optional, <= 32)
+    //   - e164Phone: string (optional, <= 32)
+    //   - username: string (optional, <= 100)
+    //   - avatarId: string (optional, <= 64)
+    //   - createdAt: string or timestamp (optional) [Immutable on update]
+    //   - updatedAt: string or timestamp (optional)
+    // Protected Fields (strictly server-controlled; forbidden on client create/update):
+    //   - Token fields: mshindiTokens, tokenBalance, activeTokenIds, tokenTransactions,
+    //                   qualifyingReferrals, referralTokensAwardedCount
+    //   - Privilege/financial fields: role, isAdmin, admin, verifiedWithSms, verifiedAt,
+    //                                 subscription, balance, walletBalanceKsh
+    //
     // Collection: posts/{postId}
     // Document ID: Alphanumeric post ID (e.g., 'post-1', 'post-builder-1')
     // Fields:
-    //   - postedByPhone: string (required, max 64) - Author phone or Auth UID [Immutable on update]
-    //   - postedBy: string (optional, max 100) - Author display name / username
+    //   - id: string (optional, <= 128)
+    //   - postedByPhone: string (required, <= 64) - Author phone or Auth UID [Immutable on update]
+    //   - postedBy: string (optional, <= 100) - Author display name / username
     //   - postedByAvatarSeed: number (optional) - Avatar seed index
-    //   - note: string (optional, max 2000) - Bet slip commentary / notes
-    //   - url: string (optional, max 1000) - Bet slip link or booking code
-    //   - bookmaker: string (optional, max 100) - Bookmaker name
+    //   - note: string (optional, <= 2000) - Bet slip commentary / notes
+    //   - url: string (optional, <= 1000) - Bet slip link or booking code
+    //   - bookmaker: string (optional, <= 100) - Bookmaker name
     //   - isCode: bool (optional) - True if booking code, false if link
-    //   - tags: list of strings (optional, max 20 items, max 50 chars each)
-    //   - likes: int (optional, >= 0) - Atomic like counter
-    //   - saves: int (optional, >= 0) - Atomic save/bookmark counter
-    //   - shares: int (optional, >= 0) - Atomic share counter
+    //   - tags: list of strings (optional, <= 20 items)
+    //   - likes: int (optional, >= 0; 0 on non-admin create; immutable on author update) - Atomic like counter
+    //   - saves: int (optional, >= 0; 0 on non-admin create; immutable on author update) - Atomic save counter
+    //   - shares: int (optional, >= 0; 0 on non-admin create; immutable on author update) - Atomic share counter
     //   - builtSlip: map (optional) - Built bet slip accumulator payload
     //   - parsed: map (optional) - Parsed slip data
-    //   - parseError: string (optional, max 500) - Error string if parse failed
+    //   - parseError: string (optional, <= 500) - Error string if parse failed
     //   - createdAt: string or timestamp (optional) [Immutable on update]
     //   - updatedAt: string or timestamp (optional)
     //
     // Subcollection: posts/{postId}/likes/{userId}
     // Document ID: Authenticated user's Phone number or UID
     // Fields:
-    //   - userId: string (required, max 64) - Must match auth user and document ID
-    //   - username: string (optional, max 100) - Display name
-    //   - postId: string (optional, max 128) - Parent post ID
+    //   - userId: string (required, <= 64) - Must match auth user and document ID
+    //   - username: string (optional, <= 100) - Display name
+    //   - postId: string (optional, <= 128) - Parent post ID
     //   - createdAt: string or timestamp (optional) - Timestamp when like was recorded
     //
     // Subcollection: posts/{postId}/comments/{commentId}
     // Document ID: Unique comment ID
     // Fields:
-    //   - user / username: string (optional, max 100)
-    //   - userId / postedByPhone: string (optional, max 64)
-    //   - text / comment: string (optional, max 2000)
-    //   - likes: int (optional, >= 0) - Atomic comment like counter
-    //   - createdAt: string or timestamp (optional)
+    //   - userId / postedByPhone / authorPhone: string (at least one required, <= 64) [Immutable on update]
+    //   - user / username: string (optional, <= 100)
+    //   - text / comment: string (optional, <= 2000)
+    //   - postId / parentId: string (optional, <= 128)
+    //   - likes: int (optional, >= 0; 0 on non-admin create; immutable on author update)
+    //   - createdAt: string or timestamp (optional) [Immutable on update]
     //   - updatedAt: string or timestamp (optional)
     //
     // Subcollection: posts/{postId}/comments/{commentId}/likes/{userId}
     // Document ID: Authenticated user's Phone number or UID
     // Fields:
-    //   - userId: string (required, max 64) - Must match auth user and document ID
-    //   - username: string (optional, max 100) - Display name
-    //   - commentId: string (optional, max 128)
+    //   - userId: string (required, <= 64) - Must match auth user and document ID
+    //   - username: string (optional, <= 100) - Display name
+    //   - commentId: string (optional, <= 128)
     //   - createdAt: string or timestamp (optional)
     //
     // Subcollection: users/{userId}/savedPosts/{postId}
     // Document ID: Post ID of the saved bet slip
     // Fields:
-    //   - postId: string (optional, max 128) - Reference to saved post
-    //   - contentType: string (optional, max 32) - e.g., 'reel'
+    //   - postId: string (optional, <= 128) - Reference to saved post
+    //   - contentType: string (optional, <= 32) - e.g., 'reel'
     //   - savedAt: string or timestamp (optional) - Bookmark timestamp
     //   - createdAt: string or timestamp (optional)
     //
     // Subcollection: users/{userId}/likedPosts/{postId}
     // Document ID: Post ID of the liked bet slip
     // Fields:
-    //   - postId: string (optional, max 128) - Reference to liked post
+    //   - postId: string (optional, <= 128) - Reference to liked post
     //   - likedAt: string or timestamp (optional) - Like timestamp
     //   - createdAt: string or timestamp (optional)
     //
     // Subcollection: users/{userId}/likedComments/{commentId}
     // Document ID: Comment ID of the liked comment
     // Fields:
-    //   - commentId: string (optional, max 128) - Reference to liked comment
+    //   - commentId: string (optional, <= 128) - Reference to liked comment
     //   - likedAt: string or timestamp (optional) - Like timestamp
     //   - createdAt: string or timestamp (optional)
     //
     // Collection: comments/{commentId}
     // Document ID: Unique comment ID
     // Fields:
-    //   - likes: int (optional, >= 0) - Atomic comment like counter
+    //   - userId / postedByPhone / authorPhone: string (at least one required, <= 64) [Immutable on update]
+    //   - user / username: string (optional, <= 100)
+    //   - text / comment: string (optional, <= 2000)
+    //   - postId / parentId: string (optional, <= 128)
+    //   - likes: int (optional, >= 0; 0 on non-admin create; immutable on author update)
+    //   - createdAt: string or timestamp (optional) [Immutable on update]
     //   - updatedAt: string or timestamp (optional)
     //
     // Subcollection: comments/{commentId}/likes/{userId}
     // Document ID: Authenticated user's Phone number or UID
     // Fields:
-    //   - userId: string (required, max 64)
-    //   - commentId: string (optional, max 128)
-    //   - username: string (optional, max 100)
+    //   - userId: string (required, <= 64)
+    //   - commentId: string (optional, <= 128)
+    //   - username: string (optional, <= 100)
     //   - createdAt: string or timestamp (optional)
+    //
+    // Collection: picks/{pickId}
+    // Document ID: Unique pick ID
+    // Fields:
+    //   - userId: string (required, <= 64) - Author UID or phone [Immutable on update]
+    //   - username: string (optional, <= 100)
+    //   - pick: string (optional, <= 32)
+    //   - reasoning: string (optional, <= 2000)
+    //   - conviction: string (optional, <= 32)
+    //   - text / comment: string (optional, <= 2000)
+    //   - timeAgo: string (optional, <= 64)
+    //   - matchId: string (optional, <= 128)
+    //   - colorSeed: number (optional)
+    //   - likes: int (optional, >= 0; 0 on non-admin create; immutable on author update)
+    //   - createdAt: string, int, or timestamp (optional) [Immutable on update]
+    //   - updatedAt / updatedAtTimestamp: string, int, or timestamp (optional)
     //
     // Subcollection: picks/{pickId}/likes/{userId}
     // Document ID: Authenticated user's Phone number or UID
     // Fields:
-    //   - userId: string (required, max 64)
-    //   - username: string (optional, max 100)
+    //   - userId: string (required, <= 64)
+    //   - username: string (optional, <= 100)
+    //   - commentId: string (optional, <= 128)
     //   - createdAt: string or timestamp (optional)
+    //
+    // Collection: playerRatings/{userId} & playerRatings/{userId}/history/{historyId}
+    // Access: Public read; writes strictly server/admin only
     //
     // Collection: siteContent/{docId}
     // Document ID: Document ID (e.g., 'homepageFeed', 'post_123', 'media_456')
@@ -108,86 +159,13 @@ service cloud.firestore {
     //     - authorRole: string
     //
     // Collection: tokenWallets/{userId} (Server-Authoritative Mshindi Token Economy)
-    // Document ID: User UID or normalized phone ID
-    // Fields:
-    //   - userUid: string - Owner UID
-    //   - tokenBalance: int (>= 0) - Authoritative active token count
-    //   - activeTokenIds: list of strings - Active token unit IDs
-    //   - lifetimeEarned: int (>= 0)
-    //   - lifetimeSpent: int (>= 0)
-    //   - qualifyingReferrals: int (>= 0)
-    //   - referralTokensAwardedCount: int (>= 0)
-    //   - updatedAt: string or timestamp
-    //
     // Collection: tokenUnits/{tokenId} (Server-Authoritative Token Units)
-    // Document ID: Unique token unit ID (UUID / deterministic server ID)
-    // Fields:
-    //   - tokenId: string
-    //   - ownerUid: string - Current owner UID
-    //   - status: string ('active' | 'consumed' | 'revoked')
-    //   - source: string ('signup_bonus' | 'referral_milestone' | 'admin_grant' | 'migration')
-    //   - createdAt: string or timestamp
-    //   - consumedAt: string or timestamp (optional)
-    //
     // Collection: tokenTransactions/{transactionId} (Immutable Append-Only Server Ledger)
-    // Document ID: Unique transaction ID
-    // Fields:
-    //   - transactionId: string
-    //   - userUid: string - Associated user UID
-    //   - type: string ('credit' | 'debit')
-    //   - amount: int
-    //   - reason: string
-    //   - tokenIds: list of strings
-    //   - createdAt: string or timestamp
-    //
     // Collection: tokenReferrals/{referralId} (Server-Authoritative Referral Tracking)
-    // Document ID: Deterministic referral ID
-    // Fields:
-    //   - referrerUid: string
-    //   - referredUid: string
-    //   - qualified: bool
-    //   - createdAt: string or timestamp
-    //
     // Collection: tokenMigrations/{migrationId} (Server-Authoritative Legacy Token Migration Audit)
-    // Document ID: User UID or migration record ID
-    // Fields:
-    //   - userUid: string
-    //   - migratedAt: string or timestamp
-    //
     // Collection: subscriptions/{userId} (Server-Authoritative MshindiRoom Premium Subscriptions)
-    // Document ID: User UID or phone number
-    // Fields:
-    //   - userId: string - User UID or phone identifier
-    //   - phone: string (optional) - Registered phone number
-    //   - username: string (optional) - Display username
-    //   - status: string ('active' | 'trial' | 'expired' | 'none')
-    //   - plan: string ('weekly' | 'monthly' | 'trial' | null)
-    //   - trialClaimed: bool - Whether 3-day trial was claimed
-    //   - trialStartedAt: string or timestamp (optional)
-    //   - trialExpiresAt: string or timestamp (optional)
-    //   - activatedAt: string or timestamp (optional)
-    //   - expiresAt: string or timestamp (optional)
-    //   - nextPaymentDate: string or timestamp (optional)
-    //   - lastPaymentRef: string (optional) - M-Pesa transaction ref or trial tag
-    //   - amountKsh: number (optional) - Paid amount in KES
-    //   - updatedAt: string or timestamp
-    //
     // Subcollection: users/{userId}/subscriptionHistory/{historyId} &
     // Collection: subscriptionHistory/{historyId} (Immutable Subscription Event History)
-    // Document ID: Unique history record ID (e.g. 'sub_QK12345678', 'trial_<uid>_<ts>')
-    // Fields:
-    //   - id: string - History record ID
-    //   - userId: string - Associated user UID / phone
-    //   - phone: string (optional)
-    //   - username: string (optional)
-    //   - plan: string ('weekly' | 'monthly' | 'trial')
-    //   - type: string ('subscription' | 'trial')
-    //   - amountKsh: number - Payment amount (0 for trial)
-    //   - transactionRef: string - M-Pesa transaction code or trial ref
-    //   - startDate: string or timestamp
-    //   - endDate: string or timestamp
-    //   - status: string ('active' | 'expired' | 'completed')
-    //   - createdAt: string or timestamp
     //
     // ===============================================================
 
@@ -196,27 +174,45 @@ service cloud.firestore {
       return request.auth != null;
     }
 
+    function hasAuthPhone() {
+      return isSignedIn() &&
+        ('phone_number' in request.auth.token) &&
+        request.auth.token.phone_number is string;
+    }
+
     // Platform Super-Administrator: 0743304579 (normalized formats: +254743304579, 254743304579, 0743304579)
     function isAdmin() {
       return isSignedIn() && (
-        request.auth.token.phone_number == '+254743304579' ||
-        request.auth.token.phone_number == '254743304579' ||
-        request.auth.token.phone_number == '0743304579' ||
-        request.auth.token.admin == true
+        (hasAuthPhone() && (
+          request.auth.token.phone_number == '+254743304579' ||
+          request.auth.token.phone_number == '254743304579' ||
+          request.auth.token.phone_number == '0743304579'
+        )) ||
+        (('admin' in request.auth.token) && request.auth.token.admin == true)
       );
     }
 
+    // Canonical identity ownership matcher across Firebase UID, E.164 (+254...),
+    // canonical 12-digit (254...), 9-digit (7.../1...), and 10-digit local (07.../01...).
     function isOwner(userId) {
-      return isSignedIn() && (
+      return isSignedIn() && userId is string && (
         request.auth.uid == userId ||
-        request.auth.token.phone_number == userId ||
-        request.auth.token.phone_number == ('+254' + userId) ||
-        request.auth.token.phone_number == ('254' + userId)
+        (hasAuthPhone() && (
+          request.auth.token.phone_number == userId ||
+          request.auth.token.phone_number == ('+' + userId) ||
+          request.auth.token.phone_number == ('+254' + userId) ||
+          request.auth.token.phone_number == ('254' + userId) ||
+          (userId.size() == 10 && userId[0] == '0' && request.auth.token.phone_number == ('+254' + userId[1:10]))
+        ))
       );
     }
 
     function isValidId(id) {
       return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function areImmutableFieldsUnchanged(fields) {
+      return !request.resource.data.diff(resource.data).affectedKeys().hasAny(fields);
     }
 
     // Protected token/currency fields on users/{userId} (strictly server-controlled)
@@ -248,32 +244,150 @@ service cloud.firestore {
         : hasNoProtectedTokenFieldsOnUpdate();
     }
 
-    // Post Author verification
-    function isPostAuthor(phoneOrUid) {
-      return isSignedIn() && (
-        phoneOrUid == request.auth.token.phone_number ||
-        phoneOrUid == request.auth.uid ||
-        isOwner(phoneOrUid)
+    // Protected privilege, verification, and financial fields on users/{userId}
+    function hasNoProtectedUserFieldsOnCreate() {
+      return hasNoProtectedTokenFieldsOnCreate() &&
+        !request.resource.data.keys().hasAny([
+          'role',
+          'isAdmin',
+          'admin',
+          'verifiedWithSms',
+          'verifiedAt',
+          'subscription',
+          'balance',
+          'walletBalanceKsh'
+        ]);
+    }
+
+    function hasNoProtectedUserFieldsOnUpdate() {
+      return hasNoProtectedTokenFieldsOnUpdate() &&
+        !request.resource.data.diff(resource.data).affectedKeys().hasAny([
+          'role',
+          'isAdmin',
+          'admin',
+          'verifiedWithSms',
+          'verifiedAt',
+          'subscription',
+          'balance',
+          'walletBalanceKsh'
+        ]);
+    }
+
+    function hasNoProtectedUserFields() {
+      return hasNoProtectedTokenFields() && (
+        resource == null
+          ? hasNoProtectedUserFieldsOnCreate()
+          : hasNoProtectedUserFieldsOnUpdate()
       );
     }
 
-    // Comment Author verification
+    // Ensure uid on users/{userId} matches caller on create and cannot be altered once set
+    function isValidUserUidOnWrite() {
+      return resource == null
+        ? (!('uid' in request.resource.data) || request.resource.data.uid == request.auth.uid)
+        : (!('uid' in resource.data)
+            ? (!('uid' in request.resource.data) || request.resource.data.uid == request.auth.uid)
+            : (('uid' in request.resource.data) && request.resource.data.uid == resource.data.uid));
+    }
+
+    // User profile client-write schema validator
+    function isValidUserProfile(data) {
+      return (resource == null
+          ? data.keys().hasOnly(['phone', 'e164Phone', 'username', 'avatarId', 'uid', 'createdAt', 'updatedAt'])
+          : (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['phone', 'e164Phone', 'username', 'avatarId', 'uid', 'updatedAt']) &&
+             (!('createdAt' in resource.data) || (('createdAt' in data) && data.createdAt == resource.data.createdAt)))) &&
+        (!('username' in data) || (data.username is string && data.username.size() <= 100)) &&
+        (!('phone' in data) || (data.phone is string && data.phone.size() <= 32)) &&
+        (!('e164Phone' in data) || (data.e164Phone is string && data.e164Phone.size() <= 32)) &&
+        (!('avatarId' in data) || (data.avatarId is string && data.avatarId.size() <= 64)) &&
+        (!('uid' in data) || (data.uid is string && data.uid.size() <= 128)) &&
+        (!('createdAt' in data) || data.createdAt is string || data.createdAt is timestamp) &&
+        (!('updatedAt' in data) || data.updatedAt is string || data.updatedAt is timestamp);
+    }
+
+    // Post Author verification (delegates cleanly to canonical isOwner)
+    function isPostAuthor(phoneOrUid) {
+      return isOwner(phoneOrUid);
+    }
+
+    // Comment Author verification: checks explicit identity fields only (never display username)
     function isCommentAuthor(docData) {
       return isSignedIn() && (
-        (('userId' in docData) && (isOwner(docData.userId) || docData.userId == request.auth.uid || docData.userId == request.auth.token.phone_number)) ||
-        (('postedByPhone' in docData) && (isOwner(docData.postedByPhone) || docData.postedByPhone == request.auth.token.phone_number)) ||
-        (('authorPhone' in docData) && (isOwner(docData.authorPhone) || docData.authorPhone == request.auth.token.phone_number)) ||
-        (('user' in docData) && isOwner(docData.user)) ||
-        (('username' in docData) && isOwner(docData.username))
+        (('userId' in docData) && isOwner(docData.userId)) ||
+        (('postedByPhone' in docData) && isOwner(docData.postedByPhone)) ||
+        (('authorPhone' in docData) && isOwner(docData.authorPhone))
       );
     }
 
-    // Post creation domain validator
+    // Ensure every identity field present on a newly created comment belongs to the caller
+    function hasConsistentCommentIdentity(docData) {
+      return (!('userId' in docData) || isOwner(docData.userId)) &&
+        (!('postedByPhone' in docData) || isOwner(docData.postedByPhone)) &&
+        (!('authorPhone' in docData) || isOwner(docData.authorPhone));
+    }
+
+    // Comment domain validator (used on both create and update)
+    function isValidCommentDoc(data) {
+      return (!('userId' in data) || (data.userId is string && data.userId.size() > 0 && data.userId.size() <= 64)) &&
+        (!('postedByPhone' in data) || (data.postedByPhone is string && data.postedByPhone.size() > 0 && data.postedByPhone.size() <= 64)) &&
+        (!('authorPhone' in data) || (data.authorPhone is string && data.authorPhone.size() > 0 && data.authorPhone.size() <= 64)) &&
+        (!('user' in data) || (data.user is string && data.user.size() <= 100)) &&
+        (!('username' in data) || (data.username is string && data.username.size() <= 100)) &&
+        (!('text' in data) || (data.text is string && data.text.size() <= 2000)) &&
+        (!('comment' in data) || (data.comment is string && data.comment.size() <= 2000)) &&
+        (!('postId' in data) || (data.postId is string && data.postId.size() <= 128)) &&
+        (!('parentId' in data) || (data.parentId is string && data.parentId.size() <= 128)) &&
+        (!('likes' in data) || (data.likes is int && data.likes >= 0)) &&
+        (!('createdAt' in data) || data.createdAt is string || data.createdAt is timestamp) &&
+        (!('updatedAt' in data) || data.updatedAt is string || data.updatedAt is timestamp);
+    }
+
+    function isCounterFieldUnchanged(field) {
+      return (!(field in request.resource.data) && !(field in resource.data)) ||
+        ((field in resource.data) && (field in request.resource.data) && request.resource.data[field] == resource.data[field]);
+    }
+
+    function isValidCommentAuthorUpdate() {
+      return areImmutableFieldsUnchanged(['userId', 'postedByPhone', 'authorPhone', 'createdAt']) &&
+        isCounterFieldUnchanged('likes') &&
+        isValidCommentDoc(request.resource.data);
+    }
+
+    // Pick domain validator (used on both create and update)
+    function isValidPickDoc(data) {
+      return ('userId' in data) &&
+        data.userId is string &&
+        data.userId.size() > 0 &&
+        data.userId.size() <= 64 &&
+        (!('username' in data) || (data.username is string && data.username.size() <= 100)) &&
+        (!('pick' in data) || (data.pick is string && data.pick.size() <= 32)) &&
+        (!('reasoning' in data) || (data.reasoning is string && data.reasoning.size() <= 2000)) &&
+        (!('conviction' in data) || (data.conviction is string && data.conviction.size() <= 32)) &&
+        (!('text' in data) || (data.text is string && data.text.size() <= 2000)) &&
+        (!('comment' in data) || (data.comment is string && data.comment.size() <= 2000)) &&
+        (!('timeAgo' in data) || (data.timeAgo is string && data.timeAgo.size() <= 64)) &&
+        (!('matchId' in data) || (data.matchId is string && data.matchId.size() <= 128)) &&
+        (!('colorSeed' in data) || data.colorSeed is number) &&
+        (!('likes' in data) || (data.likes is int && data.likes >= 0)) &&
+        (!('createdAt' in data) || data.createdAt is string || data.createdAt is int || data.createdAt is timestamp) &&
+        (!('updatedAt' in data) || data.updatedAt is string || data.updatedAt is int || data.updatedAt is timestamp) &&
+        (!('updatedAtTimestamp' in data) || data.updatedAtTimestamp is int || data.updatedAtTimestamp is timestamp);
+    }
+
+    function isValidPickAuthorUpdate() {
+      return request.resource.data.userId == resource.data.userId &&
+        (!('createdAt' in resource.data) || (('createdAt' in request.resource.data) && request.resource.data.createdAt == resource.data.createdAt)) &&
+        isCounterFieldUnchanged('likes') &&
+        isValidPickDoc(request.resource.data);
+    }
+
+    // Post creation/schema domain validator
     function isValidPostCreate(data) {
       return ('postedByPhone' in data) &&
         data.postedByPhone is string &&
         data.postedByPhone.size() > 0 &&
         data.postedByPhone.size() <= 64 &&
+        (!('id' in data) || (data.id is string && data.id.size() <= 128)) &&
         (!('postedBy' in data) || (data.postedBy is string && data.postedBy.size() <= 100)) &&
         (!('postedByAvatarSeed' in data) || data.postedByAvatarSeed is number) &&
         (!('note' in data) || (data.note is string && data.note.size() <= 2000)) &&
@@ -286,13 +400,20 @@ service cloud.firestore {
         (!('shares' in data) || (data.shares is int && data.shares >= 0)) &&
         (!('builtSlip' in data) || data.builtSlip is map) &&
         (!('parsed' in data) || data.parsed is map) &&
-        (!('parseError' in data) || (data.parseError is string && data.parseError.size() <= 500));
+        (!('parseError' in data) || (data.parseError is string && data.parseError.size() <= 500)) &&
+        (!('createdAt' in data) || data.createdAt is string || data.createdAt is timestamp) &&
+        (!('updatedAt' in data) || data.updatedAt is string || data.updatedAt is timestamp);
     }
 
-    // Post author update domain validator: prevents author reassignment and verifies schema
+    // Post author update domain validator: prevents author reassignment, counter inflation, and verifies schema
     function isValidPostAuthorUpdate() {
       return request.resource.data.postedByPhone == resource.data.postedByPhone &&
-        (!('createdAt' in resource.data) || !('createdAt' in request.resource.data) || request.resource.data.createdAt == resource.data.createdAt) &&
+        (!('createdAt' in resource.data) || (('createdAt' in request.resource.data) && request.resource.data.createdAt == resource.data.createdAt)) &&
+        (isAdmin() || (
+          isCounterFieldUnchanged('likes') &&
+          isCounterFieldUnchanged('saves') &&
+          isCounterFieldUnchanged('shares')
+        )) &&
         isValidPostCreate(request.resource.data);
     }
 
@@ -346,7 +467,7 @@ service cloud.firestore {
         ));
     }
 
-    // Comment atomic counter update domain validator:
+    // Comment/Pick atomic counter update domain validator:
     // Allows ONLY 'likes' and 'updatedAt' to be updated atomically.
     function isValidCommentCounterUpdate() {
       return request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likes', 'updatedAt']) &&
@@ -369,7 +490,8 @@ service cloud.firestore {
 
     // Like document schema validator
     function isValidLikeDoc(data, userId) {
-      return ('userId' in data) &&
+      return data.keys().hasOnly(['userId', 'postId', 'commentId', 'username', 'createdAt']) &&
+        ('userId' in data) &&
         data.userId == userId &&
         data.userId is string &&
         data.userId.size() <= 64 &&
@@ -381,7 +503,8 @@ service cloud.firestore {
 
     // Saved post document schema validator
     function isValidSavedPostDoc(data) {
-      return (!('postId' in data) || (data.postId is string && data.postId.size() <= 128)) &&
+      return data.keys().hasOnly(['postId', 'contentType', 'savedAt', 'createdAt']) &&
+        (!('postId' in data) || (data.postId is string && data.postId.size() <= 128)) &&
         (!('contentType' in data) || (data.contentType is string && data.contentType.size() <= 32)) &&
         (!('savedAt' in data) || data.savedAt is string || data.savedAt is timestamp) &&
         (!('createdAt' in data) || data.createdAt is string || data.createdAt is timestamp);
@@ -389,20 +512,31 @@ service cloud.firestore {
 
     // Liked post lookup document validator
     function isValidLikedPostDoc(data, postId) {
-      return (!('postId' in data) || (data.postId is string && data.postId == postId && data.postId.size() <= 128)) &&
+      return data.keys().hasOnly(['postId', 'likedAt', 'createdAt']) &&
+        (!('postId' in data) || (data.postId is string && data.postId == postId && data.postId.size() <= 128)) &&
         (!('likedAt' in data) || data.likedAt is string || data.likedAt is timestamp) &&
         (!('createdAt' in data) || data.createdAt is string || data.createdAt is timestamp);
     }
 
     // Liked comment lookup document validator
     function isValidLikedCommentDoc(data, commentId) {
-      return (!('commentId' in data) || (data.commentId is string && data.commentId == commentId && data.commentId.size() <= 128)) &&
+      return data.keys().hasOnly(['commentId', 'likedAt', 'createdAt']) &&
+        (!('commentId' in data) || (data.commentId is string && data.commentId == commentId && data.commentId.size() <= 128)) &&
         (!('likedAt' in data) || data.likedAt is string || data.likedAt is timestamp) &&
         (!('createdAt' in data) || data.createdAt is string || data.createdAt is timestamp);
     }
 
     // Default deny catch-all
     match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // 0. STRICTLY SERVER-ONLY COLLECTIONS (Admin SDK only; unconditional client deny)
+    match /authAccounts/{phoneId} {
+      allow read, write: if false;
+    }
+
+    match /fixtureSnapshots/{snapshotId} {
       allow read, write: if false;
     }
 
@@ -449,12 +583,22 @@ service cloud.firestore {
       allow create, update, delete: if isAdmin();
     }
 
-    // USERS COLLECTION: user owns their profile, admin has full administrative oversight
-    // Non-admin client writes cannot set or mutate authoritative Mshindi token/currency fields
+    // USERS COLLECTION: strictly private to owner or admin (prevents PII exposure)
+    // Non-admin client writes cannot set or mutate authoritative token, privilege, or financial fields
     match /users/{userId} {
-      allow read: if isSignedIn();
-      allow create: if isAdmin() || (isOwner(userId) && hasNoProtectedTokenFields());
-      allow update: if isAdmin() || (isOwner(userId) && hasNoProtectedTokenFields());
+      allow read: if isOwner(userId) || isAdmin();
+      allow create: if isAdmin() || (
+        isOwner(userId) &&
+        hasNoProtectedUserFields() &&
+        isValidUserUidOnWrite() &&
+        isValidUserProfile(request.resource.data)
+      );
+      allow update: if isAdmin() || (
+        isOwner(userId) &&
+        hasNoProtectedUserFields() &&
+        isValidUserUidOnWrite() &&
+        isValidUserProfile(request.resource.data)
+      );
       allow delete: if isAdmin();
 
       // Saved posts private bookmarks subcollection
@@ -525,32 +669,32 @@ service cloud.firestore {
       allow create, update, delete: if false;
     }
 
-    // PLAYER RATINGS: public read, write restricted to profile owner or admin
+    // PLAYER RATINGS: public read; all writes strictly restricted to server/admin
     match /playerRatings/{userId} {
       allow read: if true;
-      allow create, update: if isOwner(userId) || isAdmin();
-      allow delete: if isAdmin();
+      allow create, update, delete: if isAdmin();
 
       // History subcollection
       match /history/{historyId} {
         allow read: if true;
-        allow create: if isOwner(userId) || isAdmin();
-        allow update, delete: if isAdmin();
+        allow create, update, delete: if isAdmin();
       }
     }
 
-    // PICKS COLLECTION: public read, author or admin can create/update/delete
+    // PICKS COLLECTION: public read, validated author or admin can create/update/delete;
+    // any signed-in user may atomically increment/decrement likes via isValidCommentCounterUpdate()
     match /picks/{pickId} {
       allow read: if true;
-      allow create: if isSignedIn() && (
-        request.resource.data.userId == request.auth.uid ||
-        request.resource.data.userId == request.auth.token.phone_number ||
+      allow create: if isSignedIn() && isValidPickDoc(request.resource.data) && (
+        (isOwner(request.resource.data.userId) && (!('likes' in request.resource.data) || request.resource.data.likes == 0)) ||
         isAdmin()
       );
-      allow update, delete: if (isSignedIn() && (
-        resource.data.userId == request.auth.uid ||
-        resource.data.userId == request.auth.token.phone_number
-      )) || (isSignedIn() && isValidCommentCounterUpdate()) || isAdmin();
+      allow update: if (
+        (isSignedIn() && ('userId' in resource.data) && isOwner(resource.data.userId) && isValidPickAuthorUpdate()) ||
+        (isSignedIn() && isValidCommentCounterUpdate()) ||
+        isAdmin()
+      );
+      allow delete: if isAdmin() || (isSignedIn() && ('userId' in resource.data) && isOwner(resource.data.userId));
 
       // Pick likes subcollection
       match /likes/{userId} {
@@ -566,16 +710,17 @@ service cloud.firestore {
       // Public read so visitors and punters can view shared community slips
       allow read: if true;
 
-      // Author or admin can create post with validated ownership and schema
-      allow create: if isSignedIn() && (
-        request.resource.data.postedByPhone == request.auth.token.phone_number ||
-        request.resource.data.postedByPhone == request.auth.uid ||
-        isOwner(request.resource.data.postedByPhone) ||
+      // Author or admin can create post with validated ownership, schema, and zeroed initial counters
+      allow create: if isSignedIn() && isValidPostCreate(request.resource.data) && (
+        (isPostAuthor(request.resource.data.postedByPhone) &&
+         (!('likes' in request.resource.data) || request.resource.data.likes == 0) &&
+         (!('saves' in request.resource.data) || request.resource.data.saves == 0) &&
+         (!('shares' in request.resource.data) || request.resource.data.shares == 0)) ||
         isAdmin()
-      ) && isValidPostCreate(request.resource.data);
+      );
 
       // Updates:
-      // 1) Author or admin can update post content (author cannot reassign ownership)
+      // 1) Author or admin can update post content (author cannot reassign ownership or inflate counters)
       // 2) Any authenticated user can atomically like, unlike, save, or share without modifying post content
       allow update: if (
         ((isAdmin() || (isSignedIn() && ('postedByPhone' in resource.data) && isPostAuthor(resource.data.postedByPhone))) && isValidPostAuthorUpdate()) ||
@@ -586,11 +731,7 @@ service cloud.firestore {
       allow delete: if isAdmin() || (
         isSignedIn() &&
         ('postedByPhone' in resource.data) &&
-        (
-          resource.data.postedByPhone == request.auth.token.phone_number ||
-          resource.data.postedByPhone == request.auth.uid ||
-          isOwner(resource.data.postedByPhone)
-        )
+        isPostAuthor(resource.data.postedByPhone)
       );
 
       // Likes subcollection: deterministic document keyed by user ID (phone or UID)
@@ -604,11 +745,17 @@ service cloud.firestore {
       // Comments subcollection
       match /comments/{commentId} {
         allow read: if true;
-        allow create: if isSignedIn();
-        allow update: if (isSignedIn() && isCommentAuthor(resource.data)) ||
-                         (isSignedIn() && isValidCommentCounterUpdate()) ||
-                         isAdmin();
-        allow delete: if (isSignedIn() && isCommentAuthor(resource.data)) || isAdmin();
+        allow create: if isAdmin() || (
+          isSignedIn() &&
+          isValidCommentDoc(request.resource.data) &&
+          isCommentAuthor(request.resource.data) &&
+          hasConsistentCommentIdentity(request.resource.data) &&
+          (!('likes' in request.resource.data) || request.resource.data.likes == 0)
+        );
+        allow update: if isAdmin() ||
+                         (isSignedIn() && isCommentAuthor(resource.data) && isValidCommentAuthorUpdate()) ||
+                         (isSignedIn() && isValidCommentCounterUpdate());
+        allow delete: if isAdmin() || (isSignedIn() && isCommentAuthor(resource.data));
 
         // Nested comment likes subcollection
         match /likes/{userId} {
@@ -623,11 +770,17 @@ service cloud.firestore {
     // TOP-LEVEL COMMENTS COLLECTION (discussion forum, standalone comments)
     match /comments/{commentId} {
       allow read: if true;
-      allow create: if isSignedIn();
-      allow update: if (isSignedIn() && isValidCommentCounterUpdate()) ||
-                       (isSignedIn() && isCommentAuthor(resource.data)) ||
-                       isAdmin();
-      allow delete: if (isSignedIn() && isCommentAuthor(resource.data)) || isAdmin();
+      allow create: if isAdmin() || (
+        isSignedIn() &&
+        isValidCommentDoc(request.resource.data) &&
+        isCommentAuthor(request.resource.data) &&
+        hasConsistentCommentIdentity(request.resource.data) &&
+        (!('likes' in request.resource.data) || request.resource.data.likes == 0)
+      );
+      allow update: if isAdmin() ||
+                       (isSignedIn() && isValidCommentCounterUpdate()) ||
+                       (isSignedIn() && isCommentAuthor(resource.data) && isValidCommentAuthorUpdate());
+      allow delete: if isAdmin() || (isSignedIn() && isCommentAuthor(resource.data));
 
       // Top-level comment likes subcollection
       match /likes/{userId} {

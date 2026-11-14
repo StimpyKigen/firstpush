@@ -372,6 +372,7 @@ export async function uploadCarouselPhotoWebp(
       const res = await fetch('/api/admin/upload-media', {
         method: 'POST',
         headers,
+        credentials: 'include',
         body: JSON.stringify({
           dataUrl: base64Data,
           fileName: cleanFileName,

@@ -134,6 +134,7 @@ export async function uploadFeedImage(
         'Content-Type': 'application/json',
         ...(adminToken ? { 'x-admin-token': adminToken } : {}),
       },
+      credentials: 'include',
       body: JSON.stringify({
         dataUrl,
         fileName,

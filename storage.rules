@@ -37,36 +37,44 @@ service firebase.storage {
 
     // 2. Legacy Homepage Editorial Feed Media (carousel photos, hero graphics, news posters)
     // Public read so all visitors and PWA users can view photos; upload and delete strictly restricted to admin 0743304579
+    // Restricted to raster image formats (excludes SVG to prevent stored script execution)
     match /feed/{fileName} {
       allow read: if true;
       allow create, update: if isAdmin()
         && request.resource.size < 10 * 1024 * 1024
-        && request.resource.contentType.matches('image/.*');
+        && request.resource.contentType in ['image/jpeg', 'image/png', 'image/webp']
+        && fileName.matches('^[a-zA-Z0-9_\\-\\.]+\\.(jpg|jpeg|png|webp)$');
       allow delete: if isAdmin();
     }
 
-    // 3. Fixtures & Match Slates (PDF documents and fixture slates)
+    // 3. Fixtures & Match Slates (PDF documents and JSON fixture slates)
     // Public read; upload and delete restricted to admin 0743304579
     match /fixtures/{fileName} {
       allow read: if true;
       allow create, update: if isAdmin()
-        && request.resource.size < 15 * 1024 * 1024;
+        && request.resource.size < 15 * 1024 * 1024
+        && request.resource.contentType in ['application/pdf', 'application/json']
+        && fileName.matches('^[a-zA-Z0-9_\\-\\.]+\\.(pdf|json)$');
       allow delete: if isAdmin();
     }
 
-    // 4. Custom Platform Avatars (SVG/PNG vector badges)
+    // 4. Custom Platform Avatars (SVG/PNG/WebP badges)
     match /avatars/{fileName} {
       allow read: if true;
       allow create, update: if isAdmin()
-        && request.resource.size < 5 * 1024 * 1024;
+        && request.resource.size < 5 * 1024 * 1024
+        && request.resource.contentType in ['image/png', 'image/jpeg', 'image/webp', 'image/svg+xml']
+        && fileName.matches('^[a-zA-Z0-9_\\-\\.]+\\.(svg|png|jpg|jpeg|webp)$');
       allow delete: if isAdmin();
     }
 
-    // 5. Moderating Dictionary Backups & JSON Exports
+    // 5. Moderating Dictionary Backups & JSON Exports (admin-only read and write)
     match /moderation/{fileName} {
       allow read: if isAdmin();
       allow create, update: if isAdmin()
-        && request.resource.size < 5 * 1024 * 1024;
+        && request.resource.size < 5 * 1024 * 1024
+        && request.resource.contentType in ['application/json', 'text/plain']
+        && fileName.matches('^[a-zA-Z0-9_\\-\\.]+\\.(json|txt)$');
       allow delete: if isAdmin();
     }
   }
