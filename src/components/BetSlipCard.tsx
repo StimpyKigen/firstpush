@@ -11,6 +11,7 @@ import { useBetSlipStore, type BetSlipPost } from '../lib/betSlipStore';
 import { useCurrentUser } from '../lib/authStore';
 import { showToast } from '../lib/notificationStore';
 import Modal from './ui/Modal';
+import { sanitizeExternalHttpUrl } from '../lib/urlSecurity';
 
 interface BetSlipCardProps {
   key?: any;
@@ -80,8 +81,12 @@ export default function BetSlipCard({ post, index, onOpenProfile }: BetSlipCardP
   const isAuthor = currentUser?.username.toLowerCase() === post.postedBy.toLowerCase();
   const hasBuiltSlip = Boolean(post.builtSlip && post.builtSlip.legs && post.builtSlip.legs.length > 0);
 
-  const isUrl = !post.isCode && (post.url.startsWith('http://') || post.url.startsWith('https://') || post.url.includes('.'));
-  const targetUrl = post.parsed?.sourceUrl || (isUrl ? (post.url.startsWith('http') ? post.url : `https://${post.url}`) : '#');
+  const safeTargetUrl = sanitizeExternalHttpUrl(
+    post.parsed?.sourceUrl || (!post.isCode ? post.url : null),
+    { bareDomainToHttps: true }
+  );
+  const isUrl = !post.isCode && Boolean(safeTargetUrl);
+  const targetUrl = safeTargetUrl || '';
   const bookmakerName = post.bookmaker || post.parsed?.bookmaker || 'Sportsbook';
 
   function handleCopyUrlOrCode() {
@@ -111,13 +116,24 @@ export default function BetSlipCard({ post, index, onOpenProfile }: BetSlipCardP
   }
 
   function handleSaveBookieDetails() {
-    if (!attachCode.trim() && !attachLink.trim()) {
+    const rawCode = attachCode.trim();
+    const rawLink = attachLink.trim();
+    if (!rawCode && !rawLink) {
       showToast({ type: 'warning', title: 'Empty inputs', message: 'Enter a booking code or official slip URL.' });
       return;
     }
+    let validatedLink = '';
+    if (rawLink) {
+      const normalizedLink = sanitizeExternalHttpUrl(rawLink, { bareDomainToHttps: true });
+      if (!normalizedLink) {
+        showToast({ type: 'warning', title: 'Invalid link', message: 'Slip link must be a valid http:// or https:// URL.' });
+        return;
+      }
+      validatedLink = normalizedLink;
+    }
     updateBookieDetails(post.id, {
-      bookieCode: attachCode.trim(),
-      bookieLink: attachLink.trim(),
+      bookieCode: rawCode,
+      bookieLink: validatedLink,
       bookmaker: attachBookmaker,
     });
     setShowAttachModal(false);
@@ -302,7 +318,7 @@ export default function BetSlipCard({ post, index, onOpenProfile }: BetSlipCardP
                     <a
                       href={targetUrl}
                       target="_blank"
-                      rel="noreferrer"
+                      rel="noopener noreferrer"
                       onClick={(e) => e.stopPropagation()}
                       className="text-xs font-bold text-cream-dim hover:text-gold bg-panel border border-line px-2.5 py-1 rounded-lg transition-colors flex items-center gap-1"
                     >

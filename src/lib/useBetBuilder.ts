@@ -8,6 +8,7 @@ import { useAuthWallStore } from './authWallStore';
 import { useSubscriptionStore, checkHasPremiumAccess } from './subscriptionStore';
 import { showToast } from './notificationStore';
 import { moderateText } from './contentModeration';
+import { sanitizeExternalHttpUrl } from './urlSecurity';
 import {
   SPORTSCORE_COUNTRY_DIRECTORY_CONFIG,
   buildSportScoreCountryDirectory,
@@ -441,7 +442,16 @@ export function useBetBuilder(onPublished?: () => void) {
     }
 
     const finalCode = bookieCode.trim();
-    const finalLink = bookieLink.trim();
+    const rawLink = bookieLink.trim();
+    let finalLink = '';
+    if (rawLink) {
+      const sanitizedLink = sanitizeExternalHttpUrl(rawLink, { bareDomainToHttps: true });
+      if (!sanitizedLink) {
+        showToast({ type: 'warning', title: 'Invalid link', message: 'Bookmaker link must be a valid http:// or https:// URL.' });
+        return;
+      }
+      finalLink = sanitizedLink;
+    }
     const primaryUrl = finalLink || finalCode || `built-slip-${Date.now()}`;
 
     addPost({

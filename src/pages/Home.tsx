@@ -42,6 +42,7 @@ import QuickBetBuilderModal, { type MatchForBuilder } from '../components/QuickB
 import { useBetSlipStore } from '../lib/betSlipStore';
 import { showToast } from '../lib/notificationStore';
 import { useHistoryPageState } from '../lib/navigationHistory';
+import { sanitizeExternalHttpUrl } from '../lib/urlSecurity';
 
 /** Authoritative 10-second automatic transition interval per slide (10,000 ms). */
 export const CAROUSEL_AUTO_ADVANCE_MS = 10_000;
@@ -61,6 +62,17 @@ function extractYouTubeId(url?: string): string | null {
   if (!url) return null;
   const match = url.match(/(?:embed\/|v=|youtu\.be\/|\/shorts\/)([a-zA-Z0-9_-]{11})/);
   return match ? match[1] : null;
+}
+
+function resolveVideoPlayerSrc(video: HomepageVideoItem, videoId: string | null): string | null {
+  if (videoId) {
+    return `https://www.youtube.com/embed/${videoId}?autoplay=1&playsinline=1&enablejsapi=1&rel=0&modestbranding=1`;
+  }
+  const safeEmbedUrl = sanitizeExternalHttpUrl(video.embedUrl);
+  if (!safeEmbedUrl) return null;
+  return safeEmbedUrl.includes('?')
+    ? `${safeEmbedUrl}&autoplay=1&playsinline=1`
+    : `${safeEmbedUrl}?autoplay=1&playsinline=1`;
 }
 
 export default function Home() {
@@ -1243,6 +1255,7 @@ export default function Home() {
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-5 w-full">
                 {publishedVideos.map((video) => {
                   const videoId = extractYouTubeId(video.embedUrl) || extractYouTubeId(video.youtubeUrl);
+                  const safeIframeSrc = resolveVideoPlayerSrc(video, videoId);
                   const isPlaying = activeVideoId === video.id;
                   const isLiked = likedVideoIds.has(video.id);
 
@@ -1254,19 +1267,14 @@ export default function Home() {
                     >
                       {/* Responsive 16:9 Video Player / Thumbnail Area */}
                       <div className="relative w-full aspect-[16/9] bg-black overflow-hidden group select-none">
-                        {isPlaying && (videoId || video.embedUrl) ? (
+                        {isPlaying && safeIframeSrc ? (
                           /* Native Video Iframe (Autoplay immediately without secondary YouTube button) */
                           <iframe
-                            src={
-                              videoId
-                                ? `https://www.youtube.com/embed/${videoId}?autoplay=1&playsinline=1&enablejsapi=1&rel=0&modestbranding=1`
-                                : video.embedUrl?.includes('?')
-                                ? `${video.embedUrl}&autoplay=1&playsinline=1`
-                                : `${video.embedUrl}?autoplay=1&playsinline=1`
-                            }
+                            src={safeIframeSrc}
                             title={video.title}
                             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                             allowFullScreen
+                            referrerPolicy="no-referrer"
                             className="w-full h-full border-0"
                           />
                         ) : (
@@ -1354,6 +1362,7 @@ export default function Home() {
               >
                 {publishedVideos.map((video) => {
                   const videoId = extractYouTubeId(video.embedUrl) || extractYouTubeId(video.youtubeUrl);
+                  const safeIframeSrc = resolveVideoPlayerSrc(video, videoId);
                   const isPlaying = activeVideoId === video.id;
                   const isLiked = likedVideoIds.has(video.id);
 
@@ -1365,18 +1374,13 @@ export default function Home() {
                     >
                       {/* Responsive 16:9 Video Player / Thumbnail Area */}
                       <div className="relative w-full aspect-[16/9] bg-black overflow-hidden group select-none">
-                        {isPlaying && (videoId || video.embedUrl) ? (
+                        {isPlaying && safeIframeSrc ? (
                           <iframe
-                            src={
-                              videoId
-                                ? `https://www.youtube.com/embed/${videoId}?autoplay=1&playsinline=1&enablejsapi=1&rel=0&modestbranding=1`
-                                : video.embedUrl?.includes('?')
-                                ? `${video.embedUrl}&autoplay=1&playsinline=1`
-                                : `${video.embedUrl}?autoplay=1&playsinline=1`
-                            }
+                            src={safeIframeSrc}
                             title={video.title}
                             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                             allowFullScreen
+                            referrerPolicy="no-referrer"
                             className="w-full h-full border-0"
                           />
                         ) : (

@@ -20,7 +20,11 @@ import {
   clearAllFixtures,
   deleteAdminBatch,
 } from '../src/lib/sportsFeedService.js';
-import { extractPdfTextServer } from '../src/lib/serverPdfParser.js';
+import {
+  extractPdfTextServer,
+  decodePdfBase64Payload,
+  PdfParseSecurityError,
+} from '../src/lib/serverPdfParser.js';
 
 function resolveAdminSubpath(req: any): string {
   const endpointParam = req?.query?.endpoint;
@@ -242,15 +246,14 @@ export default async function handler(req: any, res: any) {
           error: authCheck.reason || 'Forbidden: Administrator permissions required.',
         });
       }
-      const base64 = body.base64;
-      if (!base64) {
-        return res.status(400).json({ success: false, error: 'base64 PDF data is required.' });
-      }
-      const buffer = Buffer.from(base64, 'base64');
+      const buffer = decodePdfBase64Payload(body.base64);
       const text = extractPdfTextServer(buffer);
       return res.status(200).json({ success: true, text });
     } catch (err: any) {
-      return res.status(500).json({ success: false, error: err?.message || 'Failed to parse PDF on server' });
+      if (err instanceof PdfParseSecurityError) {
+        return res.status(err.statusCode).json({ success: false, error: err.message });
+      }
+      return res.status(500).json({ success: false, error: 'Failed to parse PDF on server' });
     }
   }
 

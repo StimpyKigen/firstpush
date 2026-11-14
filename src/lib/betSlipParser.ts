@@ -1,3 +1,11 @@
+import {
+  sanitizeExternalHttpUrl,
+  isPrivateOrReservedHost,
+  isSafeSportsbookHost,
+  stripSensitiveQueryParams,
+  hasDangerousUrlScheme,
+} from './urlSecurity';
+
 export interface ParsedSlipSelection {
   fixture: string;
   pick: string;
@@ -166,72 +174,96 @@ export function extractCleanUrl(input: string): {
   isUrlMatch: boolean;
 } {
   const trimmed = input.trim();
-  if (!trimmed) {
+  if (!trimmed || hasDangerousUrlScheme(trimmed)) {
     return { cleanUrl: '', extractedPrefix: '', isUrlMatch: false };
   }
 
   // 1. Check for standard https:// or http:// anywhere in the text
   const httpMatch = trimmed.match(/(https?:\/\/[^\s]+)/i);
   if (httpMatch && httpMatch.index !== undefined) {
-    const cleanUrl = httpMatch[0];
+    const safeUrl = sanitizeExternalHttpUrl(httpMatch[0]);
+    if (!safeUrl) {
+      return { cleanUrl: '', extractedPrefix: '', isUrlMatch: false };
+    }
     const prefix = trimmed.substring(0, httpMatch.index).replace(/[:,-]+$/, '').trim();
-    return { cleanUrl, extractedPrefix: prefix, isUrlMatch: true };
+    return { cleanUrl: safeUrl, extractedPrefix: prefix, isUrlMatch: true };
   }
 
   // 2. Check for www. domain patterns anywhere in the text
   const wwwMatch = trimmed.match(/(www\.[^\s]+)/i);
   if (wwwMatch && wwwMatch.index !== undefined) {
-    const cleanUrl = `https://${wwwMatch[0]}`;
+    const safeUrl = sanitizeExternalHttpUrl(`https://${wwwMatch[0]}`);
+    if (!safeUrl) {
+      return { cleanUrl: '', extractedPrefix: '', isUrlMatch: false };
+    }
     const prefix = trimmed.substring(0, wwwMatch.index).replace(/[:,-]+$/, '').trim();
-    return { cleanUrl, extractedPrefix: prefix, isUrlMatch: true };
+    return { cleanUrl: safeUrl, extractedPrefix: prefix, isUrlMatch: true };
   }
 
   // 3. Check for common domain patterns like betika.com/..., sportpesa.com/..., 22bet.com/...
   const domainMatch = trimmed.match(/((?:[a-zA-Z0-9-]+\.)+(?:com|co\.ke|net|org|bet|app|site|io)\/[^\s]*)/i);
   if (domainMatch && domainMatch.index !== undefined) {
-    const cleanUrl = `https://${domainMatch[0]}`;
+    const safeUrl = sanitizeExternalHttpUrl(`https://${domainMatch[0]}`);
+    if (!safeUrl) {
+      return { cleanUrl: '', extractedPrefix: '', isUrlMatch: false };
+    }
     const prefix = trimmed.substring(0, domainMatch.index).replace(/[:,-]+$/, '').trim();
-    return { cleanUrl, extractedPrefix: prefix, isUrlMatch: true };
+    return { cleanUrl: safeUrl, extractedPrefix: prefix, isUrlMatch: true };
   }
 
   return { cleanUrl: trimmed, extractedPrefix: '', isUrlMatch: false };
 }
 
-function normalizeUrl(rawUrl: string) {
-  const { cleanUrl, isUrlMatch } = extractCleanUrl(rawUrl);
-  if (!cleanUrl) throw new Error('Please paste a public slip link.');
-  if (isUrlMatch && !/^https?:\/\//i.test(cleanUrl)) {
-    return `https://${cleanUrl}`;
+const MAX_EXTERNAL_SLIP_BYTES = 1 * 1024 * 1024; // 1 MB
+const EXTERNAL_FETCH_TIMEOUT_MS = 8000;
+
+export function validateAndNormalizeBetSlipUrl(rawUrl: string): string {
+  const { cleanUrl } = extractCleanUrl(rawUrl);
+  if (!cleanUrl) {
+    throw new Error('Please paste a valid public http:// or https:// sportsbook link.');
   }
-  return cleanUrl;
+  const safeUrl = sanitizeExternalHttpUrl(cleanUrl, { bareDomainToHttps: true });
+  if (!safeUrl) {
+    throw new Error('Unsupported or unsafe URL scheme. Only standard http:// or https:// links are allowed.');
+  }
+  const parsed = new URL(safeUrl);
+  if (isPrivateOrReservedHost(parsed.hostname)) {
+    throw new Error('Private, local, or reserved network destinations are blocked.');
+  }
+  if (!isSafeSportsbookHost(parsed.hostname)) {
+    throw new Error('Unsupported sportsbook domain for external slip inspection.');
+  }
+  return stripSensitiveQueryParams(safeUrl);
 }
 
-function toProxyUrl(url: string) {
-  const cleaned = url.trim();
-  if (cleaned.startsWith('https://')) {
-    return `https://r.jina.ai/http://https://${cleaned.replace(/^https:\/\//i, '')}`;
-  }
-  if (cleaned.startsWith('http://')) {
-    return `https://r.jina.ai/http://${cleaned.replace(/^http:\/\//i, '')}`;
-  }
-  return `https://r.jina.ai/http://${cleaned}`;
+function toProxyUrl(validatedUrl: string) {
+  return `https://r.jina.ai/${validatedUrl}`;
 }
 
 export async function fetchBetSlip(url: string): Promise<ParsedSlip> {
-  const normalized = normalizeUrl(url);
+  const normalized = validateAndNormalizeBetSlipUrl(url);
   const proxyUrl = toProxyUrl(normalized);
 
   const response = await fetch(proxyUrl, {
     headers: {
       Accept: 'text/html,application/xhtml+xml,text/plain',
     },
+    signal: AbortSignal.timeout(EXTERNAL_FETCH_TIMEOUT_MS),
   });
 
   if (!response.ok) {
     throw new Error('The link could not be reached. Try a public Betika slip URL or a page that is not behind a login wall.');
   }
 
+  const contentLength = Number(response.headers.get('content-length') || '0');
+  if (contentLength > MAX_EXTERNAL_SLIP_BYTES) {
+    throw new Error('External slip response exceeded maximum allowed size.');
+  }
+
   const html = await response.text();
+  if (new TextEncoder().encode(html).length > MAX_EXTERNAL_SLIP_BYTES) {
+    throw new Error('External slip response exceeded maximum allowed size.');
+  }
   const visibleText = collectVisibleLines(html).join('\n');
   const title = extractTitle(html, 'Bet slip preview');
   const bookmaker = extractBookmaker(normalized, visibleText);

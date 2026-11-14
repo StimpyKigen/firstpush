@@ -29,7 +29,11 @@ import {
   isValidSportScoreSlug,
   sanitizeSportScoreMatchPath,
 } from './src/lib/sportscoreOddsService';
-import { extractPdfTextServer } from './src/lib/serverPdfParser';
+import {
+  extractPdfTextServer,
+  decodePdfBase64Payload,
+  PdfParseSecurityError,
+} from './src/lib/serverPdfParser';
 import {
   getSavedHomepageFeedAsync,
   saveHomepageFeedAsync,
@@ -224,14 +228,13 @@ async function startServer() {
           error: authCheck.reason || 'Forbidden: Administrator permissions required.',
         });
       }
-      const base64 = req.body?.base64;
-      if (!base64) {
-        return res.status(400).json({ success: false, error: 'base64 PDF data is required.' });
-      }
-      const buffer = Buffer.from(base64, 'base64');
+      const buffer = decodePdfBase64Payload(req.body?.base64);
       const text = extractPdfTextServer(buffer);
       res.json({ success: true, text });
-    } catch {
+    } catch (err: any) {
+      if (err instanceof PdfParseSecurityError) {
+        return res.status(err.statusCode).json({ success: false, error: err.message });
+      }
       res.status(500).json({ success: false, error: 'Failed to parse PDF on server' });
     }
   });
@@ -360,7 +363,7 @@ async function startServer() {
   });
 
   // Dynamic Permanent Media Serving Route (survives container restarts via data/homepage_media.json)
-  app.get('/images/uploads/:folder/:fileName', (req: Request, res: Response, next: NextFunction) => {
+  app.get('/images/uploads/:folder/:fileName', (req: Request, res: Response) => {
     try {
       const asset = getPermanentMediaAsset(req.params.folder, req.params.fileName);
       if (asset) {
@@ -371,7 +374,12 @@ async function startServer() {
         return res.send(asset.buffer);
       }
     } catch {}
-    next();
+    return res.status(404).json({ success: false, error: 'Media asset not found.' });
+  });
+
+  // Never allow /images/uploads/* to fall through to express.static or SPA index.html
+  app.use('/images/uploads', (_req: Request, res: Response) => {
+    return res.status(404).json({ success: false, error: 'Media asset not found.' });
   });
 
   /**

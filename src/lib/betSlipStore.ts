@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import type { ParsedSlip } from './betSlipParser';
+import { sanitizeExternalHttpUrl, hasDangerousUrlScheme } from './urlSecurity';
 import {
   persistPostLike,
   persistPostSave,
@@ -252,17 +253,29 @@ export const useBetSlipStore = create<BetSlipStoreState>((set, get) => ({
 
   addPost: ({ postedBy, postedByPhone, postedByAvatarSeed, url, bookmaker, isCode, note, tags, builtSlip }) => {
     const id = `post-${Date.now().toString(36)}`;
+    const safeUrl = isCode
+      ? (hasDangerousUrlScheme(url) ? '' : url.trim())
+      : (sanitizeExternalHttpUrl(url, { bareDomainToHttps: true }) || '');
+    const safeBuiltSlip = builtSlip
+      ? {
+          ...builtSlip,
+          bookieLink: builtSlip.bookieLink
+            ? sanitizeExternalHttpUrl(builtSlip.bookieLink, { bareDomainToHttps: true }) || undefined
+            : undefined,
+        }
+      : null;
+
     const newPost: BetSlipPost = {
       id,
       postedBy,
       postedByPhone,
       postedByAvatarSeed,
-      url,
+      url: safeUrl,
       bookmaker,
-      isCode,
+      isCode: isCode || !safeUrl,
       note,
       tags,
-      builtSlip,
+      builtSlip: safeBuiltSlip,
       likes: 0,
       shares: 0,
       saves: 0,
@@ -280,20 +293,25 @@ export const useBetSlipStore = create<BetSlipStoreState>((set, get) => ({
   },
 
   updateBookieDetails: (postId, { bookieCode, bookieLink, bookmaker }) => {
+    const sanitizedLink = bookieLink
+      ? sanitizeExternalHttpUrl(bookieLink, { bareDomainToHttps: true }) || undefined
+      : undefined;
+    const safeCode = bookieCode && !hasDangerousUrlScheme(bookieCode) ? bookieCode.trim() : undefined;
+
     set((state) => ({
       posts: state.posts.map((p) => {
         if (p.id !== postId) return p;
         const updatedBuilt = p.builtSlip
           ? {
               ...p.builtSlip,
-              bookieCode: bookieCode || p.builtSlip.bookieCode,
-              bookieLink: bookieLink || p.builtSlip.bookieLink,
+              bookieCode: safeCode || p.builtSlip.bookieCode,
+              bookieLink: sanitizedLink || p.builtSlip.bookieLink,
               bookmaker: bookmaker || p.builtSlip.bookmaker,
             }
           : null;
         
-        const newUrl = bookieLink || bookieCode || p.url;
-        const isCode = !bookieLink && Boolean(bookieCode);
+        const newUrl = sanitizedLink || safeCode || p.url;
+        const isCode = !sanitizedLink && Boolean(safeCode);
 
         return {
           ...p,

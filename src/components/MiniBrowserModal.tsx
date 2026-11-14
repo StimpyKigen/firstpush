@@ -4,6 +4,7 @@ import {
 } from 'lucide-react';
 import { motion } from 'motion/react';
 import Modal from './ui/Modal';
+import { sanitizeExternalHttpUrl } from '../lib/urlSecurity';
 
 interface MiniBrowserModalProps {
   url: string;
@@ -20,6 +21,7 @@ export default function MiniBrowserModal({
   const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState(false);
   const [key, setKey] = useState(0);
+  const safeUrl = sanitizeExternalHttpUrl(url);
 
   function handleReload() {
     setLoading(true);
@@ -27,7 +29,8 @@ export default function MiniBrowserModal({
   }
 
   function handleCopy() {
-    navigator.clipboard.writeText(url);
+    if (!safeUrl) return;
+    navigator.clipboard.writeText(safeUrl);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   }
@@ -65,36 +68,42 @@ export default function MiniBrowserModal({
           <div className="flex-1 flex items-center gap-1.5 bg-ink border border-line/80 rounded-lg px-2.5 py-1 text-xs min-w-0">
             <Lock size={11} className="text-emerald-2 shrink-0" />
             <span className="flex-1 text-cream-dim truncate tabular-nums text-[11px] select-all">
-              {url}
+              {safeUrl || 'Blocked unsafe URL'}
             </span>
-            <button
-              onClick={handleCopy}
-              className="p-1 text-cream-dim hover:text-gold transition-colors shrink-0"
-              title="Copy link"
-            >
-              {copied ? <Check size={12} className="text-emerald-2" /> : <Copy size={12} />}
-            </button>
-            <button
-              onClick={handleReload}
-              className="p-1 text-cream-dim hover:text-cream transition-colors shrink-0"
-              title="Reload page"
-            >
-              <RefreshCw size={12} className={loading ? 'animate-spin text-gold' : ''} />
-            </button>
+            {safeUrl && (
+              <>
+                <button
+                  onClick={handleCopy}
+                  className="p-1 text-cream-dim hover:text-gold transition-colors shrink-0"
+                  title="Copy link"
+                >
+                  {copied ? <Check size={12} className="text-emerald-2" /> : <Copy size={12} />}
+                </button>
+                <button
+                  onClick={handleReload}
+                  className="p-1 text-cream-dim hover:text-cream transition-colors shrink-0"
+                  title="Reload page"
+                >
+                  <RefreshCw size={12} className={loading ? 'animate-spin text-gold' : ''} />
+                </button>
+              </>
+            )}
           </div>
 
           {/* Action buttons */}
           <div className="flex items-center gap-1 shrink-0">
-            <a
-              href={url}
-              target="_blank"
-              rel="noreferrer"
-              className="inline-flex items-center gap-1 bg-gold/10 hover:bg-gold/20 border border-gold/30 text-gold text-[11px] font-bold px-2 py-1 rounded-lg transition-colors"
-              title="Open full site in tab"
-            >
-              <ExternalLink size={11} />
-              <span className="hidden sm:inline">Open Tab</span>
-            </a>
+            {safeUrl && (
+              <a
+                href={safeUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 bg-gold/10 hover:bg-gold/20 border border-gold/30 text-gold text-[11px] font-bold px-2 py-1 rounded-lg transition-colors"
+                title="Open full site in tab"
+              >
+                <ExternalLink size={11} />
+                <span className="hidden sm:inline">Open Tab</span>
+              </a>
+            )}
             <button
               onClick={onClose}
               className="p-1 rounded-lg text-cream-dim hover:text-cream hover:bg-panel transition-colors"
@@ -107,34 +116,47 @@ export default function MiniBrowserModal({
 
         {/* Main Viewport */}
         <div className="relative flex-1 bg-ink w-full h-full overflow-hidden">
-          {/* Loading Overlay */}
-          {loading && (
-            <div className="absolute inset-0 bg-ink/90 backdrop-blur-xs flex flex-col items-center justify-center gap-2 z-20">
-              <RefreshCw size={22} className="animate-spin text-gold" />
-              <p className="text-xs text-cream font-medium">Loading {bookmaker}...</p>
+          {!safeUrl ? (
+            <div className="absolute inset-0 bg-ink flex flex-col items-center justify-center gap-2 p-6 text-center">
+              <AlertCircle size={28} className="text-red-400" />
+              <p className="text-sm font-bold text-cream">Blocked Unsafe Link</p>
+              <p className="text-xs text-cream-dim max-w-sm">
+                Only standard HTTP or HTTPS sportsbook links can be opened or previewed.
+              </p>
             </div>
+          ) : (
+            <>
+              {/* Loading Overlay */}
+              {loading && (
+                <div className="absolute inset-0 bg-ink/90 backdrop-blur-xs flex flex-col items-center justify-center gap-2 z-20">
+                  <RefreshCw size={22} className="animate-spin text-gold" />
+                  <p className="text-xs text-cream font-medium">Loading {bookmaker}...</p>
+                </div>
+              )}
+
+              {/* Iframe Viewport (strictly isolated without allow-same-origin) */}
+              <iframe
+                key={key}
+                src={safeUrl}
+                title={`${bookmaker} Preview`}
+                className="w-full h-full border-0 bg-white"
+                onLoad={() => setLoading(false)}
+                sandbox="allow-scripts allow-forms allow-popups"
+                referrerPolicy="no-referrer"
+              />
+
+              {/* Ultra-compact bottom floating bar */}
+              <div className="absolute bottom-2 left-1/2 -translate-x-1/2 z-30 bg-[#161a23]/90 backdrop-blur-sm border border-line rounded-full px-3 py-1 flex items-center gap-2 shadow-lg max-w-[95%]">
+                <AlertCircle size={12} className="text-gold shrink-0" />
+                <span className="text-[11px] text-cream-dim truncate">
+                  <span className="hidden sm:inline">If page is restricted by site, </span>
+                  <a href={safeUrl} target="_blank" rel="noopener noreferrer" className="text-gold font-bold hover:underline">
+                    Open in Browser <ExternalLink size={10} className="inline ml-0.5" />
+                  </a>
+                </span>
+              </div>
+            </>
           )}
-
-          {/* Iframe Viewport */}
-          <iframe
-            key={key}
-            src={url}
-            title={`${bookmaker} Preview`}
-            className="w-full h-full border-0 bg-white"
-            onLoad={() => setLoading(false)}
-            sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
-          />
-
-          {/* Ultra-compact bottom floating bar */}
-          <div className="absolute bottom-2 left-1/2 -translate-x-1/2 z-30 bg-[#161a23]/90 backdrop-blur-sm border border-line rounded-full px-3 py-1 flex items-center gap-2 shadow-lg max-w-[95%]">
-            <AlertCircle size={12} className="text-gold shrink-0" />
-            <span className="text-[11px] text-cream-dim truncate">
-              <span className="hidden sm:inline">If page is restricted by site, </span>
-              <a href={url} target="_blank" rel="noreferrer" className="text-gold font-bold hover:underline">
-                Open in Browser <ExternalLink size={10} className="inline ml-0.5" />
-              </a>
-            </span>
-          </div>
         </div>
       </motion.div>
     </Modal>

@@ -13,6 +13,7 @@ import { db } from '../firebase.js';
 import { useAuth, isAdminPhone } from './authStore.js';
 import { deleteCarouselPhotoStorage } from './carouselStorageService.js';
 import { realtimeClient } from './realtimeClient.js';
+import { sanitizeExternalHttpUrl } from './urlSecurity.js';
 
 /** Exact 24-hour story lifecycle duration in milliseconds (86,400,000 ms). */
 export const CAROUSEL_STORY_TTL_MS = 24 * 60 * 60 * 1000;
@@ -207,12 +208,8 @@ export function normalizeCustomEmbedUrl(input: string): string | null {
     const srcMatch = trimmed.match(/src=["']([^"']+)["']/i);
     if (srcMatch && srcMatch[1]) {
       const extracted = srcMatch[1].trim();
-      if (extracted.startsWith('https://') || extracted.startsWith('http://')) {
-        return extracted;
-      }
-      if (extracted.startsWith('//')) {
-        return `https:${extracted}`;
-      }
+      const normalized = extracted.startsWith('//') ? `https:${extracted}` : extracted;
+      return sanitizeExternalHttpUrl(normalized);
     }
     return null;
   }
@@ -221,17 +218,8 @@ export function normalizeCustomEmbedUrl(input: string): string | null {
   const ytEmbed = toYouTubeEmbedUrl(trimmed);
   if (ytEmbed) return ytEmbed;
 
-  // 3. Check if it's a valid http/https URL
-  try {
-    const parsed = new URL(trimmed);
-    if (parsed.protocol === 'https:' || parsed.protocol === 'http:') {
-      return parsed.toString();
-    }
-  } catch {
-    return null;
-  }
-
-  return null;
+  // 3. Check if it's a valid http/https URL (rejects javascript:, data:, credentials, control chars)
+  return sanitizeExternalHttpUrl(trimmed);
 }
 
 const DEFAULT_FEED: HomepageFeedData = {

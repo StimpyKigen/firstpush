@@ -12,6 +12,7 @@ import { getEarliestKickoff } from '../lib/kickoffParser';
 import { showToast } from '../lib/notificationStore';
 import { useFollowStore } from '../lib/followStore';
 import { useCurrentUser } from '../lib/authStore';
+import { sanitizeExternalHttpUrl } from '../lib/urlSecurity';
 
 interface SlipReelCardProps {
   post: BetSlipPost;
@@ -285,17 +286,20 @@ export default function SlipReelCard({
                   <span>{slip.bookieCode}</span>
                 </button>
               )}
-              {slip.bookieLink && (
-                <a
-                  href={slip.bookieLink}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-white dark:bg-[#2A312D] border border-slate-300 dark:border-[#414A43] text-slate-800 dark:text-[#F4F5EF] text-[11px] font-bold hover:bg-slate-50 dark:hover:bg-[#343C36] active:scale-95 transition-all"
-                >
-                  <ExternalLink size={10} className="text-[#006C54]" />
-                  <span>Open</span>
-                </a>
-              )}
+              {(() => {
+                const safeBookieLink = sanitizeExternalHttpUrl(slip.bookieLink, { bareDomainToHttps: true });
+                return safeBookieLink ? (
+                  <a
+                    href={safeBookieLink}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-white dark:bg-[#2A312D] border border-slate-300 dark:border-[#414A43] text-slate-800 dark:text-[#F4F5EF] text-[11px] font-bold hover:bg-slate-50 dark:hover:bg-[#343C36] active:scale-95 transition-all"
+                  >
+                    <ExternalLink size={10} className="text-[#006C54]" />
+                    <span>Open</span>
+                  </a>
+                ) : null;
+              })()}
             </div>
           )}
         </div>

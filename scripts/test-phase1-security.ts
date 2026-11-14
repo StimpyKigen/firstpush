@@ -394,7 +394,7 @@ async function main() {
         url: '/api/admin/parse-pdf',
         query: { endpoint: 'parse-pdf' },
         headers: { 'x-admin-token': validAdminToken },
-        body: { base64: Buffer.from('Sample PDF text', 'utf-8').toString('base64') },
+        body: { base64: Buffer.from('%PDF-1.4\n%%EOF', 'utf-8').toString('base64') },
       });
       assert.equal(parseValid.statusCode, 200);
       assert.equal(parseValid.body?.success, true);

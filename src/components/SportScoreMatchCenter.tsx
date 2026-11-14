@@ -12,6 +12,7 @@ import {
   type SportScoreStandings
 } from '../lib/sportscoreService';
 import { useHistoryPageState } from '../lib/navigationHistory';
+import { sanitizeSportScoreTrackerId } from '../lib/urlSecurity';
 
 interface SportScoreMatchCenterProps {
   match: FreeMatch;
@@ -408,28 +409,32 @@ export default function SportScoreMatchCenter({ match }: SportScoreMatchCenterPr
         )}
 
         {/* 2D PITCH TRACKER TAB */}
-        {activeTab === 'tracker' && (
-          <div>
-            {detail?.tracker?.id ? (
-              <div className="rounded-xl overflow-hidden border border-[#E6E6D2] bg-slate-950 aspect-video w-full">
-                <iframe
-                  src={`https://sportscore.com/api/widget/tracker/?sport=football&id=${detail.tracker.id}`}
-                  title="Live Match Tracker"
-                  className="w-full h-full border-0"
-                  allow="autoplay"
-                />
-              </div>
-            ) : (
-              <div className="bg-white p-6 rounded-xl border border-[#E6E6D2] text-center space-y-2">
-                <Radio size={28} className="mx-auto text-red-500 animate-pulse" />
-                <h4 className="font-bold text-slate-800 text-sm">Live 2D Pitch Visualizer</h4>
-                <p className="text-xs text-slate-500 leading-relaxed max-w-md mx-auto">
-                  Interactive 2D pitch coordinates, momentum, and ball attacks activate automatically once the match is in-play.
-                </p>
-              </div>
-            )}
-          </div>
-        )}
+        {activeTab === 'tracker' && (() => {
+          const safeTrackerId = sanitizeSportScoreTrackerId(detail?.tracker?.id);
+          return (
+            <div>
+              {safeTrackerId ? (
+                <div className="rounded-xl overflow-hidden border border-[#E6E6D2] bg-slate-950 aspect-video w-full">
+                  <iframe
+                    src={`https://sportscore.com/api/widget/tracker/?sport=football&id=${safeTrackerId}`}
+                    title="Live Match Tracker"
+                    className="w-full h-full border-0"
+                    allow="autoplay"
+                    referrerPolicy="no-referrer"
+                  />
+                </div>
+              ) : (
+                <div className="bg-white p-6 rounded-xl border border-[#E6E6D2] text-center space-y-2">
+                  <Radio size={28} className="mx-auto text-red-500 animate-pulse" />
+                  <h4 className="font-bold text-slate-800 text-sm">Live 2D Pitch Visualizer</h4>
+                  <p className="text-xs text-slate-500 leading-relaxed max-w-md mx-auto">
+                    Interactive 2D pitch coordinates, momentum, and ball attacks activate automatically once the match is in-play.
+                  </p>
+                </div>
+              )}
+            </div>
+          );
+        })()}
       </div>
     </div>
   );

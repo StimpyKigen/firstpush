@@ -91,19 +91,39 @@ interface TextItem {
  * Handles UTF-16BE literals and groups text operators by (x, y) coordinates.
  * Inserts explicit page breaks between pages.
  */
+const MAX_CLIENT_PDF_INPUT_BYTES = 10 * 1024 * 1024;
+const MAX_CLIENT_PDF_STREAMS = 500;
+const MAX_CLIENT_DECOMPRESSED_STREAM_BYTES = 2 * 1024 * 1024;
+const MAX_CLIENT_TOTAL_DECOMPRESSED_BYTES = 10 * 1024 * 1024;
+
 export async function extractPdfPagesFromBuffer(arrayBuffer: ArrayBuffer): Promise<ExtractedPdfPageItem[]> {
+  if (!arrayBuffer || arrayBuffer.byteLength === 0 || arrayBuffer.byteLength > MAX_CLIENT_PDF_INPUT_BYTES) {
+    throw new Error('PDF file is empty or exceeds maximum allowed 10 MB size limit.');
+  }
+
   const bytes = new Uint8Array(arrayBuffer);
   const textDecoder = new TextDecoder('latin1');
-  const pdfString = textDecoder.decode(bytes);
+  const headerProbe = textDecoder.decode(bytes.subarray(0, Math.min(bytes.length, 1024)));
+  if (!headerProbe.includes('%PDF-')) {
+    throw new Error('Invalid PDF file: missing %PDF- header.');
+  }
 
+  const pdfString = textDecoder.decode(bytes);
   const pages: ExtractedPdfPageItem[] = [];
 
   let pos = 0;
   let pageIndex = 1;
+  let streamCount = 0;
+  let totalDecompressedBytes = 0;
   while ((pos = pdfString.indexOf('stream', pos)) !== -1) {
     if (pos > 0 && !/[\r\n>]/.test(pdfString[pos - 1])) {
       pos += 6;
       continue;
+    }
+
+    streamCount += 1;
+    if (streamCount > MAX_CLIENT_PDF_STREAMS) {
+      throw new Error('PDF exceeds maximum allowed stream count.');
     }
 
     const dictStart = pdfString.lastIndexOf('<<', pos);
@@ -134,10 +154,18 @@ export async function extractPdfPagesFromBuffer(arrayBuffer: ArrayBuffer): Promi
       if (dict.includes('/FlateDecode') || (rawStreamBytes.length > 2 && rawStreamBytes[0] === 0x78)) {
         decompressedBytes = await decompressPdfStream(rawStreamBytes);
       } else {
+        if (rawStreamBytes.length > MAX_CLIENT_DECOMPRESSED_STREAM_BYTES) {
+          throw new Error('Uncompressed PDF stream exceeds maximum allowed size limit.');
+        }
         decompressedBytes = rawStreamBytes;
       }
 
       if (decompressedBytes) {
+        totalDecompressedBytes += decompressedBytes.length;
+        if (totalDecompressedBytes > MAX_CLIENT_TOTAL_DECOMPRESSED_BYTES) {
+          throw new Error('PDF exceeds cumulative decompression byte budget.');
+        }
+
         const content = textDecoder.decode(decompressedBytes);
         if (content.includes('BT') && content.includes('ET')) {
           const pageText = parseCoordinateTextStream(content);
@@ -167,53 +195,58 @@ export async function extractTextFromPdfBuffer(arrayBuffer: ArrayBuffer): Promis
   return pages.map((p) => p.text).join('\n--- PAGE BREAK ---\n');
 }
 
+async function readDecompressedStream(
+  format: 'deflate' | 'deflate-raw',
+  bytes: Uint8Array,
+  maxBytes: number
+): Promise<Uint8Array> {
+  const ds = new DecompressionStream(format);
+  const writer = ds.writable.getWriter();
+  writer.write(new Uint8Array(bytes)).catch(() => {});
+  writer.close().catch(() => {});
+  const reader = ds.readable.getReader();
+  const chunks: Uint8Array[] = [];
+  let totalLen = 0;
+
+  while (true) {
+    const { value, done } = await reader.read();
+    if (done) break;
+    if (value) {
+      totalLen += value.length;
+      if (totalLen > maxBytes) {
+        await reader.cancel().catch(() => {});
+        const limitErr = new Error('PDF stream exceeds maximum decompressed size limit.');
+        limitErr.name = 'PdfBombError';
+        throw limitErr;
+      }
+      chunks.push(value);
+    }
+  }
+
+  const merged = new Uint8Array(totalLen);
+  let off = 0;
+  for (const c of chunks) {
+    merged.set(c, off);
+    off += c.length;
+  }
+  return merged;
+}
+
 async function decompressPdfStream(bytes: Uint8Array): Promise<Uint8Array | null> {
   try {
-    const ds = new DecompressionStream('deflate');
-    const writer = ds.writable.getWriter();
-    writer.write(bytes);
-    writer.close();
-    const reader = ds.readable.getReader();
-    const chunks: Uint8Array[] = [];
-    while (true) {
-      const { value, done } = await reader.read();
-      if (done) break;
-      if (value) chunks.push(value);
+    return await readDecompressedStream('deflate', bytes, MAX_CLIENT_DECOMPRESSED_STREAM_BYTES);
+  } catch (err: any) {
+    if (err?.name === 'PdfBombError') {
+      throw err;
     }
-    const totalLen = chunks.reduce((a, b) => a + b.length, 0);
-    const merged = new Uint8Array(totalLen);
-    let off = 0;
-    for (const c of chunks) {
-      merged.set(c, off);
-      off += c.length;
-    }
-    return merged;
-  } catch {
     try {
-      let rawBytes = bytes;
-      if (bytes.length > 6 && bytes[0] === 0x78) {
-        rawBytes = bytes.subarray(2, bytes.length - 4);
+      const rawBytes =
+        bytes.length > 6 && bytes[0] === 0x78 ? bytes.subarray(2, bytes.length - 4) : bytes;
+      return await readDecompressedStream('deflate-raw', rawBytes, MAX_CLIENT_DECOMPRESSED_STREAM_BYTES);
+    } catch (rawErr: any) {
+      if (rawErr?.name === 'PdfBombError') {
+        throw rawErr;
       }
-      const ds = new DecompressionStream('deflate-raw');
-      const writer = ds.writable.getWriter();
-      writer.write(rawBytes);
-      writer.close();
-      const reader = ds.readable.getReader();
-      const chunks: Uint8Array[] = [];
-      while (true) {
-        const { value, done } = await reader.read();
-        if (done) break;
-        if (value) chunks.push(value);
-      }
-      const totalLen = chunks.reduce((a, b) => a + b.length, 0);
-      const merged = new Uint8Array(totalLen);
-      let off = 0;
-      for (const c of chunks) {
-        merged.set(c, off);
-        off += c.length;
-      }
-      return merged;
-    } catch {
       return null;
     }
   }
