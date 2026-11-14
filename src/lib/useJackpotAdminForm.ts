@@ -126,11 +126,15 @@ export function useJackpotAdminForm() {
       // 2. If local parser found fewer legs than needed, query server endpoint
       if (extracted.length < numLegs) {
         try {
+          let adminToken = '';
+          try {
+            adminToken = localStorage.getItem('mshindi_admin_token_v1') || '';
+          } catch {}
           const res = await fetch('/api/gemini/parse-jackpot-text', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
-              'x-admin-key': 'mshindi_admin_audit_key_2026',
+              ...(adminToken ? { 'x-admin-token': adminToken } : {}),
             },
             body: JSON.stringify({
               rawText: webpageText,

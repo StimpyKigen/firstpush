@@ -13,7 +13,14 @@ import { realtimeBroadcaster } from '../src/lib/realtimeBroadcaster.js';
 import { fetchBet365OddsForMatch } from '../src/lib/sportscoreOddsService.js';
 import { executeWeeklyIngestion, getWeeklySchedulerStatus } from '../src/lib/weeklyFixtureService.js';
 import { isSnapshotStoreConfigured } from '../src/lib/fixtureSnapshotStore.js';
-import { verifyAdminRequest } from '../src/lib/adminAuthService.js';
+import { verifyAdminRequest, constantTimeEqualText } from '../src/lib/adminAuthService.js';
+
+function verifyCronBearerHeader(req: any): boolean {
+  const cronSecret = (process.env.CRON_SECRET || '').trim();
+  if (!cronSecret) return false;
+  const authHeader = String(req?.headers?.authorization || req?.headers?.Authorization || '');
+  return Boolean(authHeader && constantTimeEqualText(authHeader, `Bearer ${cronSecret}`));
+}
 
 export const config = {
   // Support SSE streaming and weekly fixture ingestion within Vercel Node runtime
@@ -275,10 +282,14 @@ export default async function handler(req: any, res: any) {
 
   // 12. Manual/On-Demand Rolling or Live Sync (/api/sports/sync & /api/sports/sync-live)
   if (subpath === 'sync') {
-    const body = typeof req.body === 'string' && req.body ? JSON.parse(req.body) : req.body || {};
+    let body: any = {};
+    try {
+      body = typeof req.body === 'string' && req.body ? JSON.parse(req.body) : req.body || {};
+    } catch {
+      return res.status(400).json({ success: false, error: 'Invalid JSON request body.' });
+    }
     const adminCheck = verifyAdminRequest(req.headers || {}, body);
-    const hasValidCronSecret =
-      Boolean(process.env.CRON_SECRET) && req.headers?.authorization === `Bearer ${process.env.CRON_SECRET}`;
+    const hasValidCronSecret = verifyCronBearerHeader(req);
     if (!adminCheck.authorized && !hasValidCronSecret) {
       return res.status(403).json({
         success: false,
@@ -294,10 +305,14 @@ export default async function handler(req: any, res: any) {
   }
 
   if (subpath === 'sync-live') {
-    const body = typeof req.body === 'string' && req.body ? JSON.parse(req.body) : req.body || {};
+    let body: any = {};
+    try {
+      body = typeof req.body === 'string' && req.body ? JSON.parse(req.body) : req.body || {};
+    } catch {
+      return res.status(400).json({ success: false, error: 'Invalid JSON request body.' });
+    }
     const adminCheck = verifyAdminRequest(req.headers || {}, body);
-    const hasValidCronSecret =
-      Boolean(process.env.CRON_SECRET) && req.headers?.authorization === `Bearer ${process.env.CRON_SECRET}`;
+    const hasValidCronSecret = verifyCronBearerHeader(req);
     if (!adminCheck.authorized && !hasValidCronSecret) {
       return res.status(403).json({
         success: false,
@@ -324,15 +339,20 @@ export default async function handler(req: any, res: any) {
 
   // 14. Vercel Cron & Admin Weekly Fixture Ingestion (/api/sports/weekly-sync & /api/cron/weekly-sync)
   if (subpath === 'weekly-sync' || subpath === 'cron-weekly-sync') {
-    const body = typeof req.body === 'string' && req.body ? JSON.parse(req.body) : req.body || {};
+    let body: any = {};
+    try {
+      body = typeof req.body === 'string' && req.body ? JSON.parse(req.body) : req.body || {};
+    } catch {
+      return res.status(400).json({ success: false, error: 'Invalid JSON request body.' });
+    }
     const adminCheck = verifyAdminRequest(req.headers || {}, body);
 
     if (!adminCheck.authorized) {
-      const secret = process.env.CRON_SECRET;
+      const secret = (process.env.CRON_SECRET || '').trim();
       if (!secret) {
         return res.status(503).json({ success: false, error: 'CRON_SECRET is not configured.' });
       }
-      if (req.headers?.authorization !== `Bearer ${secret}`) {
+      if (!verifyCronBearerHeader(req)) {
         return res.status(401).json({ success: false, error: 'Unauthorized.' });
       }
       if (!isSnapshotStoreConfigured()) {

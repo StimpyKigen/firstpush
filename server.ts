@@ -36,6 +36,7 @@ import {
 import {
   verifyAdminPinCredentials,
   verifyAdminRequest,
+  constantTimeEqualText,
 } from './src/lib/adminAuthService';
 import { handleTokenEconomyHttpRequest } from './src/lib/serverTokenEconomy';
 import { handleSubscriptionHttpRequest } from './src/lib/serverSubscriptionService';
@@ -46,13 +47,11 @@ import {
   executeWeeklyIngestion,
 } from './src/lib/weeklyFixtureService';
 
-const ADMIN_TOKEN_SECRET =
-  process.env.ADMIN_SECRET ||
-  process.env.GEMINI_API_KEY ||
-  crypto.randomBytes(32).toString('hex');
-
-function signAdminPayload(data: string): string {
-  return crypto.createHmac('sha256', ADMIN_TOKEN_SECRET).update(data).digest('hex');
+function verifyCronSecretBearer(authHeader?: string | string[]): boolean {
+  const cronSecret = (process.env.CRON_SECRET || '').trim();
+  if (!cronSecret) return false;
+  const headerStr = Array.isArray(authHeader) ? authHeader[0] || '' : String(authHeader || '');
+  return constantTimeEqualText(headerStr, `Bearer ${cronSecret}`);
 }
 
 // Lightweight in-memory rate limiter for high concurrency protection
@@ -142,6 +141,13 @@ async function startServer() {
 
   app.post('/api/admin/fixtures', (req: Request, res: Response) => {
     try {
+      const authCheck = verifyAdminRequest(req.headers as any, req.body);
+      if (!authCheck.authorized) {
+        return res.status(403).json({
+          success: false,
+          error: authCheck.reason || 'Forbidden: Administrator permissions required.',
+        });
+      }
       const fixtures = Array.isArray(req.body?.fixtures) ? req.body.fixtures : [];
       const fileName = req.body?.fileName || 'uploaded-fixtures.pdf';
       const sectoredCount = req.body?.sectoredCount || 1;
@@ -160,6 +166,13 @@ async function startServer() {
 
   app.delete('/api/admin/fixtures/batch/:id', (req: Request, res: Response) => {
     try {
+      const authCheck = verifyAdminRequest(req.headers as any, req.body);
+      if (!authCheck.authorized) {
+        return res.status(403).json({
+          success: false,
+          error: authCheck.reason || 'Forbidden: Administrator permissions required.',
+        });
+      }
       deleteAdminBatch(req.params.id);
       res.json({ success: true, message: 'Batch removed successfully.', batches: getSavedAdminBatches() });
     } catch (err: any) {
@@ -169,6 +182,13 @@ async function startServer() {
 
   app.delete('/api/admin/fixtures', (req: Request, res: Response) => {
     try {
+      const authCheck = verifyAdminRequest(req.headers as any, req.body);
+      if (!authCheck.authorized) {
+        return res.status(403).json({
+          success: false,
+          error: authCheck.reason || 'Forbidden: Administrator permissions required.',
+        });
+      }
       clearAllFixtures();
       res.json({ success: true, message: 'All fixtures cleared from match slate.' });
     } catch (err: any) {
@@ -178,6 +198,13 @@ async function startServer() {
 
   app.post('/api/admin/parse-pdf', (req: Request, res: Response) => {
     try {
+      const authCheck = verifyAdminRequest(req.headers as any, req.body);
+      if (!authCheck.authorized) {
+        return res.status(403).json({
+          success: false,
+          error: authCheck.reason || 'Forbidden: Administrator permissions required.',
+        });
+      }
       const base64 = req.body?.base64;
       if (!base64) {
         return res.status(400).json({ success: false, error: 'base64 PDF data is required.' });
@@ -194,10 +221,8 @@ async function startServer() {
   app.get('/api/homepage-feed', async (req: Request, res: Response) => {
     res.setHeader('Cache-Control', 'no-store, no-cache, max-age=0, must-revalidate');
     if (String(req.query.action || '').toLowerCase() === 'cleanup') {
-      const cronSecret = process.env.CRON_SECRET;
-      const authHeader = String(req.headers.authorization || '');
       const authorized =
-        (cronSecret && authHeader === `Bearer ${cronSecret}`) ||
+        verifyCronSecretBearer(req.headers.authorization) ||
         verifyAdminRequest(req.headers as any, {}).authorized;
       if (!authorized) {
         return res.status(403).json({
@@ -235,10 +260,8 @@ async function startServer() {
       const feed = req.body || {};
       const action = String(req.query.action || feed.action || '').toLowerCase();
       if (action === 'cleanup') {
-        const cronSecret = process.env.CRON_SECRET;
-        const authHeader = String(req.headers.authorization || '');
         const authorized =
-          (cronSecret && authHeader === `Bearer ${cronSecret}`) ||
+          verifyCronSecretBearer(req.headers.authorization) ||
           verifyAdminRequest(req.headers as any, feed).authorized;
         if (!authorized) {
           return res.status(403).json({
@@ -336,7 +359,11 @@ async function startServer() {
       const { phone, pin } = req.body || {};
       const result = verifyAdminPinCredentials(phone, pin);
       if (!result.valid) {
-        const status = result.error?.includes('Unauthorized') ? 403 : 401;
+        const status = result.misconfigured
+          ? 503
+          : result.error?.includes('Unauthorized')
+            ? 403
+            : 401;
         return res.status(status).json({
           success: false,
           valid: false,
@@ -527,6 +554,13 @@ async function startServer() {
   });
 
   app.post('/api/sports/sync', async (req: Request, res: Response) => {
+    const adminCheck = verifyAdminRequest(req.headers as any, req.body);
+    if (!adminCheck.authorized && !verifyCronSecretBearer(req.headers.authorization)) {
+      return res.status(403).json({
+        success: false,
+        error: adminCheck.reason || 'Forbidden: Administrator permissions required.',
+      });
+    }
     try {
       const result = await executeRollingSyncCycle();
       res.json({ success: true, result, diagnostics: getSyncDiagnostics() });
@@ -536,6 +570,13 @@ async function startServer() {
   });
 
   app.post('/api/sports/sync-live', async (req: Request, res: Response) => {
+    const adminCheck = verifyAdminRequest(req.headers as any, req.body);
+    if (!adminCheck.authorized && !verifyCronSecretBearer(req.headers.authorization)) {
+      return res.status(403).json({
+        success: false,
+        error: adminCheck.reason || 'Forbidden: Administrator permissions required.',
+      });
+    }
     try {
       const result = await syncLiveScoresOnly();
       res.json({ success: true, result, diagnostics: getSyncDiagnostics() });
@@ -555,6 +596,16 @@ async function startServer() {
   });
 
   app.post('/api/sports/weekly-sync', async (req: Request, res: Response) => {
+    const adminCheck = verifyAdminRequest(req.headers as any, req.body);
+    if (!adminCheck.authorized) {
+      const cronSecret = (process.env.CRON_SECRET || '').trim();
+      if (!cronSecret) {
+        return res.status(503).json({ success: false, error: 'CRON_SECRET is not configured.' });
+      }
+      if (!verifyCronSecretBearer(req.headers.authorization)) {
+        return res.status(401).json({ success: false, error: 'Unauthorized.' });
+      }
+    }
     try {
       const force = Boolean(req.body?.force);
       const startFromToday = req.body?.startFromToday !== undefined ? Boolean(req.body?.startFromToday) : true;
@@ -782,11 +833,17 @@ Strict Rules for Ava:
   // Gemini AI Jackpot Webpage Parser API (Admin Extension)
   app.post('/api/gemini/parse-jackpot-text', async (req, res) => {
     try {
-      const adminToken = req.headers['x-admin-token'] as string;
-      const adminKey = (req.headers['x-admin-key'] || req.query.adminKey) as string;
-      const expectedKey = process.env.ADMIN_SECRET || 'mshindi_admin_audit_key_2026';
-      if (adminKey !== expectedKey && (!adminToken || adminToken.length < 20)) {
-        return res.status(401).json({ error: 'Unauthorized: Admin authentication required to access jackpot parser.' });
+      const adminCheck = verifyAdminRequest(req.headers as any, req.body);
+      const adminKeyHeader = String(req.headers['x-admin-key'] || '');
+      const configuredSecret = (process.env.ADMIN_SECRET || '').trim();
+      const hasValidAdminSecret = Boolean(
+        configuredSecret && adminKeyHeader && constantTimeEqualText(adminKeyHeader, configuredSecret)
+      );
+      if (!adminCheck.authorized && !hasValidAdminSecret) {
+        return res.status(403).json({
+          success: false,
+          error: adminCheck.reason || 'Forbidden: Valid administrator authentication required to access jackpot parser.',
+        });
       }
 
       const { rawText, bookie, legCount } = req.body;

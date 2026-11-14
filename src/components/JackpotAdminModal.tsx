@@ -11,7 +11,7 @@ import AdminFixturesManager from './admin/AdminFixturesManager';
 import AdminChatRoomManager from './admin/AdminChatRoomManager';
 import LiveRoomsResultsManager from './jackpotAdmin/LiveRoomsResultsManager';
 import CreateJackpotForm from './jackpotAdmin/CreateJackpotForm';
-import { isAdminUser, useCurrentUser, hashPin } from '../lib/authStore';
+import { isAdminUser, useCurrentUser } from '../lib/authStore';
 import { useJackpotAdminForm } from '../lib/useJackpotAdminForm';
 import { showToast } from '../lib/notificationStore';
 import Modal from './ui/Modal';
@@ -91,52 +91,26 @@ export default function JackpotAdminModal({ isOpen, onClose }: JackpotAdminModal
         body: JSON.stringify({ phone: currentUser?.phone || '254743304579', pin: cleanPin }),
       });
       const data = await res.json();
-      const isOk = res.ok && (data.success || data.valid);
+      const verifiedToken = data?.adminToken || data?.token;
+      const isOk = res.ok && (data.success || data.valid) && Boolean(verifiedToken);
       if (!isOk) {
-        // Also allow if the verified admin entered their own registered account PIN or default 7433
-        const matchesAccountPin =
-          currentUser &&
-          isAuthorized &&
-          (cleanPin === '7433' ||
-            (currentUser.pinHash && hashPin(currentUser.phone, cleanPin) === currentUser.pinHash));
-        if (matchesAccountPin) {
-          setIsAdminUnlocked(true);
-          setAdminPinInput('');
-          setIsVerifying(false);
-          showToast({ title: 'Admin Unlocked', message: 'Super-admin credentials verified successfully.', type: 'success' });
-          return;
-        }
-        setPinError(data.error || 'Invalid administrator credentials.');
+        try {
+          localStorage.removeItem('mshindi_admin_token_v1');
+        } catch {}
+        setPinError(data?.error || 'Invalid administrator credentials.');
         setIsVerifying(false);
         return;
       }
-      if (data.adminToken || data.token) {
-        try {
-          localStorage.setItem('mshindi_admin_token_v1', data.adminToken || data.token);
-        } catch {}
-      }
+      try {
+        localStorage.setItem('mshindi_admin_token_v1', verifiedToken);
+      } catch {}
       setIsAdminUnlocked(true);
       setAdminPinInput('');
       setIsVerifying(false);
       showToast({ title: 'Admin Unlocked', message: 'Super-admin credentials verified successfully.', type: 'success' });
     } catch {
-      // Fallback: strict check against super admin PIN or verified admin account PIN
-      const matchesFallback =
-        cleanPin === '7433' ||
-        (currentUser &&
-          isAuthorized &&
-          currentUser.pinHash &&
-          hashPin(currentUser.phone, cleanPin) === currentUser.pinHash);
-      if (matchesFallback) {
-        setIsAdminUnlocked(true);
-        setPinError('');
-        setAdminPinInput('');
-        setIsVerifying(false);
-        showToast({ title: 'Admin Unlocked', message: 'Admin mode verified and unlocked.', type: 'success' });
-      } else {
-        setPinError('Invalid administrator credentials.');
-        setIsVerifying(false);
-      }
+      setPinError('Unable to reach server for administrator PIN verification.');
+      setIsVerifying(false);
     }
   }
 

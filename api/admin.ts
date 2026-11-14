@@ -40,7 +40,12 @@ export default async function handler(req: any, res: any) {
     return res.status(200).end();
   }
 
-  const body = typeof req.body === 'string' && req.body ? JSON.parse(req.body) : req.body || {};
+  let body: any = {};
+  try {
+    body = typeof req.body === 'string' && req.body ? JSON.parse(req.body) : req.body || {};
+  } catch {
+    return res.status(400).json({ success: false, error: 'Invalid JSON request body.' });
+  }
 
   // 1. Super-Admin PIN Verification (/api/admin/verify-pin)
   if (subpathLower === 'verify-pin') {
@@ -50,7 +55,11 @@ export default async function handler(req: any, res: any) {
     try {
       const result = verifyAdminPinCredentials(body.phone, body.pin);
       if (!result.valid) {
-        const status = result.error?.includes('Unauthorized') ? 403 : 401;
+        const status = result.misconfigured
+          ? 503
+          : result.error?.includes('Unauthorized')
+            ? 403
+            : 401;
         return res.status(status).json({
           success: false,
           valid: false,
@@ -181,6 +190,13 @@ export default async function handler(req: any, res: any) {
       return res.status(405).json({ success: false, error: 'Method not allowed.' });
     }
     try {
+      const authCheck = verifyAdminRequest(req.headers || {}, body);
+      if (!authCheck.authorized) {
+        return res.status(403).json({
+          success: false,
+          error: authCheck.reason || 'Forbidden: Administrator permissions required.',
+        });
+      }
       const base64 = body.base64;
       if (!base64) {
         return res.status(400).json({ success: false, error: 'base64 PDF data is required.' });

@@ -112,9 +112,13 @@ export default function AdminFixturesManager() {
             binary += String.fromCharCode(bytes[i]);
           }
           const base64 = btoa(binary);
+          const adminToken = typeof window !== 'undefined' ? window.localStorage.getItem('mshindi_admin_token_v1') || '' : '';
           const resp = await fetch('/api/admin/parse-pdf', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: {
+              'Content-Type': 'application/json',
+              ...(adminToken ? { 'x-admin-token': adminToken } : {}),
+            },
             body: JSON.stringify({ base64 }),
           });
           if (resp.ok) {
@@ -260,9 +264,13 @@ export default function AdminFixturesManager() {
       let serverAddedCount: number | undefined;
 
       try {
+        const adminToken = typeof window !== 'undefined' ? window.localStorage.getItem('mshindi_admin_token_v1') || '' : '';
         const res = await fetch('/api/admin/fixtures', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Content-Type': 'application/json',
+            ...(adminToken ? { 'x-admin-token': adminToken } : {}),
+          },
           body: JSON.stringify({
             fixtures: parseResult.marketFixtures,
             fileName,
@@ -344,7 +352,11 @@ export default function AdminFixturesManager() {
   // Delete a single published batch record
   async function handleDeleteBatch(batchId: string) {
     try {
-      await fetch(`/api/admin/fixtures/batch/${batchId}`, { method: 'DELETE' });
+      const adminToken = typeof window !== 'undefined' ? window.localStorage.getItem('mshindi_admin_token_v1') || '' : '';
+      await fetch(`/api/admin/fixtures/batch/${batchId}`, {
+        method: 'DELETE',
+        headers: adminToken ? { 'x-admin-token': adminToken } : {},
+      });
     } catch {}
     const updated = deletePdfFixtureBatch(batchId);
     setPublishedBatches(updated);
@@ -359,7 +371,11 @@ export default function AdminFixturesManager() {
 
     setIsClearing(true);
     try {
-      await fetch('/api/admin/fixtures', { method: 'DELETE' });
+      const adminToken = typeof window !== 'undefined' ? window.localStorage.getItem('mshindi_admin_token_v1') || '' : '';
+      await fetch('/api/admin/fixtures', {
+        method: 'DELETE',
+        headers: adminToken ? { 'x-admin-token': adminToken } : {},
+      });
       clearAllFreeMatches();
       setCurrentLiveCount(0);
       setPublishedBatches([]);

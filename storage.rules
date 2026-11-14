@@ -28,11 +28,10 @@ service firebase.storage {
     // - Deletion strictly restricted to verified admin (distinguished from upload so request.resource is not checked)
     match /homepage-carousel/{photoId}/{fileName} {
       allow read: if true;
-      allow create, update: if (
-        request.resource.size <= 5 * 1024 * 1024
+      allow create, update: if isAdmin()
+        && request.resource.size <= 5 * 1024 * 1024
         && request.resource.contentType == 'image/webp'
-        && fileName.matches('^[a-zA-Z0-9_\\-\\.]+\\.webp$')
-      ) || isAdmin();
+        && fileName.matches('^[a-zA-Z0-9_\\-\\.]+\\.webp$');
       allow delete: if isAdmin();
     }
 

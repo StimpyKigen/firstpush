@@ -10,7 +10,7 @@
  * 6. Automatic purging of all outdated `mshindiroom-*` Cache Storage entries on activation.
  */
 
-const BUILD_VERSION = '2.4.0-20261107105918-a1197bb';
+const BUILD_VERSION = '2.4.0-20261113235916-7b7e8de';
 const STATIC_CACHE = `mshindiroom-static-${BUILD_VERSION}`;
 const IMAGE_CACHE = `mshindiroom-images-${BUILD_VERSION}`;
 // Persistent version-keyed carousel binary cache managed by carouselImageCache.ts across deployments

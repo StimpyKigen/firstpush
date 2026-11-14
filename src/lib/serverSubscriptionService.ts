@@ -11,7 +11,11 @@
 import fs from 'fs';
 import path from 'path';
 import { isValidMpesaCode, normalizeCode } from './mpesa.js';
-import { processVerifiedPurchasePayment } from './serverTokenEconomy.js';
+import {
+  authenticateTokenRequest,
+  processVerifiedPurchasePayment,
+} from './serverTokenEconomy.js';
+import { verifyAdminRequest } from './adminAuthService.js';
 
 export type SubscriptionStatus = 'active' | 'trial' | 'expired' | 'none';
 export type SubscriptionPlan = 'weekly' | 'monthly' | 'trial';
@@ -520,23 +524,66 @@ export async function handleSubscriptionHttpRequest(req: {
   body: any;
 }): Promise<{ statusCode: number; payload: any }> {
   const method = (req.method || 'GET').toUpperCase();
-  const pathname = req.pathname || '';
+  const pathname = (req.pathname || '').replace(/\/+$/, '');
   const body = req.body || {};
   const query = req.query || {};
 
-  // Extract user ID from headers, body, or query
-  const userId = (
-    req.headers['x-user-uid'] ||
-    req.headers['x-user-phone'] ||
+  // 3. Quarantine self-submitted M-Pesa payment activation until Safaricom Daraja API integration (Phase 3B)
+  if (method === 'POST' && pathname.endsWith('/verify-payment')) {
+    const authCheck = authenticateTokenRequest(req.headers || {}, { ...query, ...body });
+    if (!authCheck.authenticated || !authCheck.userUid) {
+      return {
+        statusCode: authCheck.statusCode || 401,
+        payload: {
+          success: false,
+          error: authCheck.error || 'Authentication required for subscription verification.',
+        },
+      };
+    }
+
+    return {
+      statusCode: 503,
+      payload: {
+        success: false,
+        quarantined: true,
+        error:
+          'Self-submitted M-Pesa subscription verification is temporarily disabled pending Safaricom Daraja API integration. No subscription was activated.',
+      },
+    };
+  }
+
+  // Require authenticated user session (or verified administrator credentials for support actions)
+  const adminAuth = verifyAdminRequest(req.headers || {}, body);
+  const authCheck = authenticateTokenRequest(req.headers || {}, { ...query, ...body });
+
+  const requestedUserId = (
     body.userId ||
     query.userId ||
+    req.headers?.['x-user-uid'] ||
+    req.headers?.['x-user-phone'] ||
     ''
-  ).toString().trim();
+  )
+    .toString()
+    .trim();
+
+  if (!authCheck.authenticated && !adminAuth.authorized) {
+    return {
+      statusCode: authCheck.statusCode || 401,
+      payload: {
+        success: false,
+        error: authCheck.error || 'Authentication required. Missing valid session token.',
+      },
+    };
+  }
+
+  const userId = adminAuth.authorized && requestedUserId
+    ? requestedUserId
+    : authCheck.userUid || '';
 
   if (!userId) {
     return {
       statusCode: 401,
-      payload: { success: false, error: 'Authentication required. Missing user identifier.' },
+      payload: { success: false, error: 'Authentication required. Missing verified user identity.' },
     };
   }
 
@@ -556,35 +603,10 @@ export async function handleSubscriptionHttpRequest(req: {
   // 2. POST /api/subscription/trial
   if (method === 'POST' && pathname.endsWith('/trial')) {
     const meta = {
-      phone: body.phone || req.headers['x-user-phone'],
+      phone: body.phone || userId,
       username: body.username,
     };
     const result = await activateThreeDayTrial(userId, meta);
-    return {
-      statusCode: result.ok ? 200 : 400,
-      payload: {
-        success: result.ok,
-        error: result.error,
-        subscription: result.subscription,
-        history: result.history,
-      },
-    };
-  }
-
-  // 3. POST /api/subscription/verify-payment
-  if (method === 'POST' && pathname.endsWith('/verify-payment')) {
-    const plan = body.plan === 'monthly' ? 'monthly' : 'weekly';
-    const mpesaCode = body.mpesaCode || body.code || '';
-    const amountKsh = Number(body.amountKsh || body.amount || (plan === 'weekly' ? 20 : 75));
-
-    const result = await verifyAndGrantSubscription(userId, {
-      plan,
-      mpesaCode,
-      amountKsh,
-      phone: body.phone || req.headers['x-user-phone'],
-      username: body.username,
-    });
-
     return {
       statusCode: result.ok ? 200 : 400,
       payload: {

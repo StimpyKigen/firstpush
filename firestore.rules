@@ -407,33 +407,10 @@ service cloud.firestore {
     }
 
     // 1. SITE CONTENT & EDITORIAL FEED (homepage carousel, highlights, editorial news)
-    // Public read so all visitors see latest news; updates permitted for admin, homepage aggregate feed, and individual homepage posts/media; delete strictly restricted to admin 0743304579
+    // Public read so all visitors see latest news; create, update, and delete strictly restricted to isAdmin()
     match /siteContent/{docId} {
       allow read: if true;
-      allow create, update: if isAdmin() ||
-        (
-          (docId == 'homepageFeed' || (request.resource.data.carouselItems is list && request.resource.data.videoItems is list)) &&
-          request.resource.data.carouselItems is list &&
-          request.resource.data.videoItems is list &&
-          (
-            isAdmin() ||
-            request.resource.data.authorId in ['0743304579', '254743304579', '+254743304579'] ||
-            !('authorId' in request.resource.data) ||
-            request.resource.data.authorId == resource.data.authorId
-          )
-        ) ||
-        (
-          (docId.matches('^post_.*') || docId.matches('^media_.*')) &&
-          (
-            isAdmin() ||
-            (
-              request.resource.data.id is string &&
-              request.resource.data.authorId in ['0743304579', '254743304579', '+254743304579'] &&
-              request.resource.data.authorRole == 'admin'
-            )
-          )
-        );
-      allow delete: if isAdmin();
+      allow create, update, delete: if isAdmin();
     }
 
     match /feed/{feedId} {

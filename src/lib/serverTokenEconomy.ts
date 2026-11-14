@@ -17,7 +17,12 @@ import crypto from 'crypto';
 import fs from 'fs';
 import path from 'path';
 import os from 'os';
-import { verifyAdminRequest, normalizeAdminPhone, ADMIN_PHONE_NORMALIZED } from './adminAuthService.js';
+import {
+  verifyAdminRequest,
+  normalizeAdminPhone,
+  ADMIN_PHONE_NORMALIZED,
+  constantTimeEqualText,
+} from './adminAuthService.js';
 
 // ============================================================================
 // OFFICIAL RATES & CONSTANTS
@@ -26,11 +31,19 @@ import { verifyAdminRequest, normalizeAdminPhone, ADMIN_PHONE_NORMALIZED } from 
 export const KSH_PER_MSHINDI_TOKEN = 100; // KSh 100 = 1 Mshindi Token
 export const QUALIFYING_REFERRALS_PER_TOKEN = 3; // 3 qualifying invitations = 1 Mshindi Token
 export const DEFAULT_ROOM_UNLOCK_TOKEN_COST = 1; // 1 Mshindi Token unlocks a standard KSh 10 room
+export const AUTHORITATIVE_ROOM_UNLOCK_COST_KSH = 10; // Server-enforced KSh cost for standard room unlocks
+export const MAX_USER_TOKEN_TTL_MS = 60 * 60 * 1000; // 1 hour
 
-const USER_SESSION_SECRET =
-  process.env.USER_TOKEN_SECRET ||
-  process.env.ADMIN_TOKEN_SECRET ||
-  'mshindi-token-economy-hmac-secret-2026';
+const revokedUserTokenNonces = new Set<string>();
+
+function getConfiguredUserSessionSecret(): string {
+  return (
+    process.env.USER_TOKEN_SECRET ||
+    process.env.USER_SESSION_SECRET ||
+    process.env.ADMIN_TOKEN_SECRET ||
+    ''
+  ).trim();
+}
 
 // ============================================================================
 // DATA MODELS & INTERFACES
@@ -345,40 +358,80 @@ function generateUniqueTransactionId(state: PersistedTokenEconomyState): string 
 }
 
 /**
- * Issues an HMAC-SHA256 signed user session token bound to `userUid`.
+ * Issues an HMAC-SHA256 signed, expiring user session token bound to `userUid`.
  */
 export function issueUserSessionToken(userUid: string, pinHash?: string): string {
   const canonicalUid = normalizeCanonicalUid(userUid);
   if (!canonicalUid) {
     throw new Error('Cannot issue session token for empty userUid.');
   }
+  const secret = getConfiguredUserSessionSecret();
+  if (!secret) {
+    throw new Error('User session signing secret is not configured.');
+  }
   const issuedAt = Date.now();
-  const payload = `${canonicalUid}:${issuedAt}:${pinHash ? pinHash.slice(0, 16) : 'verified'}`;
-  const sig = crypto.createHmac('sha256', USER_SESSION_SECRET).update(payload).digest('hex');
+  const nonce = crypto.randomBytes(8).toString('hex');
+  const payload = `${canonicalUid}:${issuedAt}:${nonce}:${pinHash ? pinHash.slice(0, 16) : 'verified'}`;
+  const sig = crypto.createHmac('sha256', secret).update(payload).digest('hex');
   return `utok.${Buffer.from(payload, 'utf-8').toString('base64url')}.${sig}`;
 }
 
 /**
- * Verifies an HMAC-SHA256 signed user session token and returns the authenticated `userUid`.
+ * Revokes a previously issued user session token nonce in this server runtime.
+ */
+export function revokeUserSessionToken(token?: string | null): boolean {
+  if (!token || typeof token !== 'string' || !token.startsWith('utok.')) return false;
+  const parts = token.trim().split('.');
+  if (parts.length !== 3) return false;
+  try {
+    const payload = Buffer.from(parts[1], 'base64url').toString('utf-8');
+    const [, , nonce] = payload.split(':');
+    if (!nonce || !/^[a-f0-9]{16}$/i.test(nonce)) return false;
+    revokedUserTokenNonces.add(nonce.toLowerCase());
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Verifies an HMAC-SHA256 signed, non-expired, non-revoked user session token and returns `userUid`.
  */
 export function verifyUserSessionToken(token?: string | null): { valid: boolean; userUid?: string } {
   if (!token || typeof token !== 'string' || !token.startsWith('utok.')) {
+    return { valid: false };
+  }
+  const secret = getConfiguredUserSessionSecret();
+  if (!secret) {
     return { valid: false };
   }
   const parts = token.trim().split('.');
   if (parts.length !== 3) return { valid: false };
 
   try {
+    if (!/^[a-f0-9]+$/i.test(parts[2])) return { valid: false };
     const payload = Buffer.from(parts[1], 'base64url').toString('utf-8');
-    const expectedSig = crypto.createHmac('sha256', USER_SESSION_SECRET).update(payload).digest('hex');
+    const expectedSig = crypto.createHmac('sha256', secret).update(payload).digest('hex');
     const a = Buffer.from(parts[2], 'hex');
     const b = Buffer.from(expectedSig, 'hex');
-    if (a.length !== b.length || !crypto.timingSafeEqual(a, b)) {
+    if (a.length !== b.length || a.length === 0 || !crypto.timingSafeEqual(a, b)) {
       return { valid: false };
     }
-    const [uidPart, issuedAtStr] = payload.split(':');
+    const payloadParts = payload.split(':');
+    if (payloadParts.length < 4) return { valid: false };
+    const [uidPart, issuedAtStr, nonce] = payloadParts;
+    if (!/^[a-f0-9]{16}$/i.test(nonce) || revokedUserTokenNonces.has(nonce.toLowerCase())) {
+      return { valid: false };
+    }
     const issuedAt = Number(issuedAtStr);
-    if (!uidPart || !Number.isFinite(issuedAt) || issuedAt <= 0) {
+    const now = Date.now();
+    if (
+      !uidPart ||
+      !Number.isFinite(issuedAt) ||
+      issuedAt <= 0 ||
+      issuedAt > now + 60_000 ||
+      now - issuedAt > MAX_USER_TOKEN_TTL_MS
+    ) {
       return { valid: false };
     }
     return { valid: true, userUid: normalizeCanonicalUid(uidPart) };
@@ -419,7 +472,7 @@ export function authenticateTokenRequest(
   if (sessionToken) {
     const verified = verifyUserSessionToken(sessionToken);
     if (!verified.valid || !verified.userUid) {
-      return { authenticated: false, error: 'Invalid or tampered user session token.', statusCode: 401 };
+      return { authenticated: false, error: 'Invalid or expired user session token.', statusCode: 401 };
     }
     if (requestedUid && requestedUid !== verified.userUid && !adminCheck.authorized) {
       return {
@@ -431,12 +484,19 @@ export function authenticateTokenRequest(
     return { authenticated: true, userUid: verified.userUid, isAdmin: adminCheck.authorized };
   }
 
-  // 3. Check `x-user-uid` + `x-user-pin-hash` against registered wallet/account
+  // 3. Check `x-user-uid` + `x-user-pin-hash` STRICTLY against an already-registered wallet with stored pinHash
   const pinHash = getHeader('x-user-pin-hash') || (typeof body?.pinHash === 'string' ? body.pinHash.trim() : '');
   if (requestedUid && pinHash && /^[a-f0-9]{64}$/i.test(pinHash)) {
     const state = loadEconomyState();
     const existingWallet = state.wallets[requestedUid];
-    if (existingWallet && existingWallet.pinHash && existingWallet.pinHash !== pinHash) {
+    if (!existingWallet || !existingWallet.pinHash) {
+      return {
+        authenticated: false,
+        error: 'Authentication rejected: wallet has no registered server PIN hash.',
+        statusCode: 401,
+      };
+    }
+    if (!constantTimeEqualText(existingWallet.pinHash.toLowerCase(), pinHash.toLowerCase())) {
       return { authenticated: false, error: 'Invalid user PIN credentials.', statusCode: 401 };
     }
     return { authenticated: true, userUid: requestedUid, isAdmin: adminCheck.authorized };
@@ -873,7 +933,9 @@ export function buildFormattedWalletResponse(
       defaultRoomUnlockTokenCost: DEFAULT_ROOM_UNLOCK_TOKEN_COST,
     },
     migrated: wallet.migrated,
-    ...(includeSessionToken ? { userSessionToken: issueUserSessionToken(wallet.userUid, wallet.pinHash) } : {}),
+    ...(includeSessionToken && getConfiguredUserSessionSecret()
+      ? { userSessionToken: issueUserSessionToken(wallet.userUid, wallet.pinHash) }
+      : {}),
   };
 }
 
@@ -1978,36 +2040,19 @@ export async function handleTokenEconomyHttpRequest(params: {
       return { statusCode: 405, payload: { success: false, error: 'Method not allowed' } };
     }
 
-    const userUid = normalizeCanonicalUid(
-      body.userUid || body.uid || body.userId || body.phone || (headers['x-user-uid'] as string)
-    );
-    const result = await processVerifiedPurchasePayment({
-      userUid: userUid || 'guest_verified',
-      username: body.username,
-      code: body.code,
-      amountKsh: Number(body.amount ?? body.amountKsh ?? 10),
-      purpose: body.purpose || body.roomId || 'wallet-topup',
-      roomId: body.roomId,
-      roomName: body.roomName,
-      paymentConfirmed: body.paymentConfirmed !== false,
-      idempotencyKey: body.idempotencyKey,
-    });
-
+    // Fail closed until genuine Safaricom Daraja payment gateway verification is active (Phase 3B)
     return {
-      statusCode: result.statusCode || (result.success ? 200 : 400),
+      statusCode: 503,
       payload: {
-        ...result,
-        amount: result.amountKsh,
-        message: result.success
-          ? result.tokensAwarded && result.tokensAwarded > 0
-            ? `Payment verified. Awarded +${result.tokensAwarded} Mshindi Token${result.tokensAwarded === 1 ? '' : 's'}!`
-            : 'Payment verified successfully.'
-          : result.error,
+        success: false,
+        quarantined: true,
+        error:
+          'Automated M-Pesa receipt verification is temporarily disabled pending Safaricom Daraja API integration. No balance or tokens were credited.',
       },
     };
   }
 
-  // 2. WALLET SYNC & SAFE MIGRATION (`/api/tokens/wallet` or `/api/tokens/migrate` or GET `/api/tokens`)
+  // 2. WALLET SYNC & QUARANTINED MIGRATION (`/api/tokens/wallet` or `/api/tokens/migrate` or GET `/api/tokens`)
   if (
     method === 'GET' ||
     pathname.endsWith('/wallet') ||
@@ -2015,56 +2060,38 @@ export async function handleTokenEconomyHttpRequest(params: {
     action === 'wallet' ||
     action === 'migrate'
   ) {
-    const userUid = normalizeCanonicalUid(
-      body.userUid ||
-      body.uid ||
-      body.userId ||
-      body.phone ||
-      query.userUid ||
-      query.uid ||
-      query.userId ||
-      query.phone ||
-      (headers['x-user-uid'] as string)
-    );
-    if (!userUid) {
+    const authCheck = authenticateTokenRequest(headers, { ...query, ...body });
+    if (!authCheck.authenticated || !authCheck.userUid) {
       return {
-        statusCode: 400,
-        payload: { success: false, error: 'userUid (or phone) is required to retrieve wallet state.' },
+        statusCode: authCheck.statusCode || 401,
+        payload: {
+          success: false,
+          error: authCheck.error || 'Authentication required to access wallet state.',
+        },
       };
     }
 
-    // If the user has existing unmigrated balance data, run idempotent migration first
-    if (
-      action === 'migrate' ||
-      pathname.endsWith('/migrate') ||
-      typeof body.legacyBalance === 'number'
-    ) {
-      const migResult = await migrateUserTokenBalance({
-        userUid,
-        username: body.username || query.username,
-        pinHash: body.pinHash || (headers['x-user-pin-hash'] as string),
-        legacyBalance: body.legacyBalance,
-        legacyTokenTransactions: body.legacyTokenTransactions,
-        legacyWalletBalanceKsh: body.legacyWalletBalanceKsh,
-        legacyUnlockedRooms: body.legacyUnlockedRooms,
-        legacyRedeemedCodes: body.legacyRedeemedCodes,
-        legacyTotalReferrals: body.legacyTotalReferrals,
-      });
+    // Reject client-supplied legacy balance/token/room/referral minting
+    const hasLegacyBalances =
+      (typeof body.legacyBalance === 'number' && body.legacyBalance > 0) ||
+      (typeof body.legacyWalletBalanceKsh === 'number' && body.legacyWalletBalanceKsh > 0) ||
+      (typeof body.legacyTotalReferrals === 'number' && body.legacyTotalReferrals > 0) ||
+      (Array.isArray(body.legacyUnlockedRooms) && body.legacyUnlockedRooms.length > 0);
+
+    if (action === 'migrate' || pathname.endsWith('/migrate') || hasLegacyBalances) {
       return {
-        statusCode: 200,
+        statusCode: 403,
         payload: {
-          success: true,
-          alreadyMigrated: migResult.alreadyMigrated,
-          migrationRecord: migResult.migrationRecord,
-          wallet: migResult.wallet,
+          success: false,
+          quarantined: true,
+          error: 'Client-supplied legacy balance migration has been disabled for security.',
         },
       };
     }
 
     const wallet = await getAuthoritativeUserWallet({
-      userUid,
+      userUid: authCheck.userUid,
       username: body.username || query.username,
-      pinHash: body.pinHash || (headers['x-user-pin-hash'] as string),
     });
 
     return {
@@ -2112,11 +2139,24 @@ export async function handleTokenEconomyHttpRequest(params: {
       };
     }
 
+    if (
+      (typeof body.costKsh !== 'undefined' || typeof body.cost !== 'undefined') &&
+      Number(body.costKsh ?? body.cost) !== AUTHORITATIVE_ROOM_UNLOCK_COST_KSH
+    ) {
+      return {
+        statusCode: 400,
+        payload: {
+          success: false,
+          error: `Invalid room unlock price: server enforces authoritative cost of KSh ${AUTHORITATIVE_ROOM_UNLOCK_COST_KSH}.`,
+        },
+      };
+    }
+
     const unlockRes = await unlockRoomWithWalletBalanceServer({
       userUid: authCheck.userUid,
       roomId: String(body.roomId || ''),
       roomName: body.roomName,
-      costKsh: Number(body.costKsh ?? body.cost ?? 10),
+      costKsh: AUTHORITATIVE_ROOM_UNLOCK_COST_KSH,
       idempotencyKey: body.idempotencyKey,
     });
 
@@ -2128,6 +2168,19 @@ export async function handleTokenEconomyHttpRequest(params: {
 
   // 5. REFERRAL QUALIFICATION (`/api/tokens/referral` or `action === 'referral'`)
   if (pathname.endsWith('/referral') || action === 'referral') {
+    const adminAuth = verifyAdminRequest(headers, body);
+    if (!adminAuth.authorized) {
+      return {
+        statusCode: 503,
+        payload: {
+          success: false,
+          quarantined: true,
+          error:
+            'Public referral reward submission is temporarily disabled pending server-verified phone authentication.',
+        },
+      };
+    }
+
     const refRes = await recordQualifyingReferral({
       referrerIdentifier: String(body.referrerIdentifier || body.referrerName || body.refCode || ''),
       referredUid: String(body.referredUid || body.newUserPhone || body.phone || ''),

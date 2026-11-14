@@ -124,9 +124,16 @@ export async function uploadFeedImage(
   try {
     onProgress?.('Saving to authoritative server media storage...');
     const dataUrl = await blobToDataUrl(compressedBlob);
+    let adminToken = '';
+    try {
+      adminToken = typeof window !== 'undefined' ? window.localStorage.getItem('mshindi_admin_token_v1') || '' : '';
+    } catch {}
     const res = await fetch('/api/admin/upload-media', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        ...(adminToken ? { 'x-admin-token': adminToken } : {}),
+      },
       body: JSON.stringify({
         dataUrl,
         fileName,

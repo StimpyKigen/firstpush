@@ -3,15 +3,12 @@ import {
   saveHomepageFeedAsync,
   cleanupExpiredCarouselPostsAsync,
 } from '../src/lib/serverHomepageFeed.js';
-import { verifyAdminRequest } from '../src/lib/adminAuthService.js';
+import { verifyAdminRequest, constantTimeEqualText } from '../src/lib/adminAuthService.js';
 
 function isAuthorizedCleanupRequest(req: any, body?: any): boolean {
-  const cronSecret = process.env.CRON_SECRET;
+  const cronSecret = (process.env.CRON_SECRET || '').trim();
   const authHeader = String(req?.headers?.authorization || req?.headers?.Authorization || '');
-  if (cronSecret && authHeader === `Bearer ${cronSecret}`) {
-    return true;
-  }
-  if (!cronSecret && req?.headers?.['x-vercel-cron']) {
+  if (cronSecret && authHeader && constantTimeEqualText(authHeader, `Bearer ${cronSecret}`)) {
     return true;
   }
   return verifyAdminRequest(req?.headers || {}, body || {}).authorized;
@@ -48,12 +45,14 @@ export default async function handler(req: any, res: any) {
     return res.status(200).end();
   }
 
-  const parsedBody =
-    req.method === 'POST'
-      ? typeof req.body === 'string' && req.body
-        ? JSON.parse(req.body)
-        : req.body || {}
-      : {};
+  let parsedBody: any = {};
+  if (req.method === 'POST') {
+    try {
+      parsedBody = typeof req.body === 'string' && req.body ? JSON.parse(req.body) : req.body || {};
+    } catch {
+      return res.status(400).json({ success: false, error: 'Invalid JSON request body.' });
+    }
+  }
   const action = getActionParam(req, parsedBody);
 
   // Scheduled / Admin Idempotent 24-Hour Expired Carousel Story Cleanup
