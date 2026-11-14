@@ -1,4 +1,4 @@
-import { savePermanentMediaAsset, MediaValidationError } from '../src/lib/serverHomepageFeed.js';
+import { savePermanentMediaAssetAsync, MediaValidationError } from '../src/lib/serverHomepageFeed.js';
 import {
   verifyAdminPinCredentials,
   verifyAdminRequestAsync,
@@ -189,7 +189,7 @@ export default async function handler(req: any, res: any) {
         });
       }
 
-      const saved = savePermanentMediaAsset({ dataUrl, fileName, folder });
+      const saved = await savePermanentMediaAssetAsync({ dataUrl, fileName, folder });
       return res.status(200).json({
         success: true,
         url: saved.publicUrl,

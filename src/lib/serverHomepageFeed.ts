@@ -1123,6 +1123,52 @@ export function savePermanentMediaAsset(params: {
   return entry;
 }
 
+const FIRESTORE_MEDIA_COLLECTION = 'homepageMedia';
+
+export async function savePermanentMediaAssetAsync(params: {
+  dataUrl: string;
+  fileName: string;
+  folder?: string;
+}): Promise<PermanentMediaEntry> {
+  const entry = savePermanentMediaAsset(params);
+  if (entry.dataUrl.length <= 900_000) {
+    try {
+      const db = await getAdminFirestore();
+      if (db) {
+        const docId = `${entry.folder}__${entry.fileName}`;
+        await db.collection(FIRESTORE_MEDIA_COLLECTION).doc(docId).set({
+          key: entry.key,
+          folder: entry.folder,
+          fileName: entry.fileName,
+          mimeType: entry.mimeType,
+          dataUrl: entry.dataUrl,
+          publicUrl: entry.publicUrl,
+          createdAt: entry.createdAt,
+        });
+      }
+    } catch (err) {
+      console.warn('[serverHomepageFeed] Firestore media mirror skipped:', err);
+    }
+  }
+  return entry;
+}
+
+function decodeValidMediaEntryDataUrl(
+  dataUrl: string,
+  fallbackMime?: string
+): { buffer: Buffer; mimeType: string; dataUrl: string } | null {
+  const matches = dataUrl.match(/^data:([^;,\s]+);base64,([A-Za-z0-9+/=\r\n]+)$/);
+  const safeMime = normalizeAllowedRasterMime(matches?.[1] || fallbackMime);
+  if (!safeMime || !matches?.[2]) return null;
+  const buffer = Buffer.from(matches[2], 'base64');
+  if (!detectRasterMagicMime(buffer)) return null;
+  return {
+    buffer,
+    mimeType: safeMime,
+    dataUrl,
+  };
+}
+
 export function getPermanentMediaAsset(
   folder: string,
   fileName: string
@@ -1164,16 +1210,43 @@ export function getPermanentMediaAsset(
     readJsonFileSafe<Record<string, PermanentMediaEntry>>(FALLBACK_MEDIA_FILE);
   const entry = registry?.[key];
   if (entry && entry.dataUrl) {
-    const matches = entry.dataUrl.match(/^data:([^;,\s]+);base64,([A-Za-z0-9+/=\r\n]+)$/);
-    const safeMime = normalizeAllowedRasterMime(matches?.[1] || entry.mimeType);
-    if (!safeMime || !matches?.[2]) return null;
-    const buffer = Buffer.from(matches[2], 'base64');
-    if (!detectRasterMagicMime(buffer)) return null;
-    return {
-      buffer,
-      mimeType: safeMime,
-      dataUrl: entry.dataUrl,
-    };
+    return decodeValidMediaEntryDataUrl(entry.dataUrl, entry.mimeType);
+  }
+
+  return null;
+}
+
+export async function getPermanentMediaAssetAsync(
+  folder: string,
+  fileName: string
+): Promise<{ buffer: Buffer; mimeType: string; dataUrl: string } | null> {
+  const localAsset = getPermanentMediaAsset(folder, fileName);
+  if (localAsset) {
+    return localAsset;
+  }
+
+  let cleanFolder = '';
+  let cleanFileName = '';
+  try {
+    ({ cleanFolder, cleanFileName } = assertSafeMediaSegment(folder, fileName));
+  } catch {
+    return null;
+  }
+
+  try {
+    const db = await getAdminFirestore();
+    if (db) {
+      const docId = `${cleanFolder}__${cleanFileName}`;
+      const snap = await db.collection(FIRESTORE_MEDIA_COLLECTION).doc(docId).get();
+      if (snap.exists) {
+        const data = snap.data() as Partial<PermanentMediaEntry> | undefined;
+        if (data?.dataUrl) {
+          return decodeValidMediaEntryDataUrl(data.dataUrl, data.mimeType);
+        }
+      }
+    }
+  } catch (err) {
+    console.warn('[serverHomepageFeed] Firestore media lookup error:', err);
   }
 
   return null;

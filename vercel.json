@@ -222,7 +222,39 @@
       "destination": "/api/moderation?endpoint=:endpoint*"
     },
     {
-      "source": "/((?!api/|assets/|sw\\.js|version\\.json|manifest\\.json|theme-init\\.js|icons/|banners/).*)",
+      "source": "/api/gemini/:endpoint*",
+      "destination": "/api/ai?endpoint=:endpoint*"
+    },
+    {
+      "source": "/api/jackpots/mirror",
+      "destination": "/api/ai?endpoint=jackpots-mirror"
+    },
+    {
+      "source": "/api/health",
+      "destination": "/api/ai?endpoint=health"
+    },
+    {
+      "source": "/api/homepage-feed",
+      "destination": "/api/homepage-feed"
+    },
+    {
+      "source": "/api/ai",
+      "destination": "/api/ai"
+    },
+    {
+      "source": "/images/uploads/:folder/:fileName",
+      "destination": "/api/homepage-feed?action=media&folder=:folder&fileName=:fileName"
+    },
+    {
+      "source": "/images/uploads/:unmatched*",
+      "destination": "/api/homepage-feed?action=media"
+    },
+    {
+      "source": "/api/((?!ai$|sports(?:/|$)|cron(?:/|$)|mpesa/verify-code$|tokens(?:/|$)|subscription(?:/|$)|admin(?:/|$)|auth(?:/|$)|moderation(?:/|$)|gemini(?:/|$)|jackpots/mirror$|health$|homepage-feed$).*)",
+      "destination": "/api/ai?endpoint=not-found"
+    },
+    {
+      "source": "/((?!api/|assets/|sw\\.js|version\\.json|manifest\\.json|theme-init\\.js|icons/|banners/|images/uploads/).*)",
       "destination": "/index.html"
     }
   ]

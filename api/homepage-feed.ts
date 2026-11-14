@@ -2,6 +2,7 @@ import {
   getSavedHomepageFeedAsync,
   saveHomepageFeedAsync,
   cleanupExpiredCarouselPostsAsync,
+  getPermanentMediaAssetAsync,
 } from '../src/lib/serverHomepageFeed.js';
 import { verifyAdminRequestAsync, constantTimeEqualText } from '../src/lib/adminAuthService.js';
 import {
@@ -73,6 +74,30 @@ export default async function handler(req: any, res: any) {
     parsedBody = parsed.body;
   }
   const action = getActionParam(req, parsedBody);
+
+  // Permanent Media Asset Serving (/images/uploads/:folder/:fileName -> ?action=media)
+  const rawPath = String(req?.url || '').split('?')[0];
+  const uploadMatch = rawPath.match(/^\/images\/uploads\/([^/]+)\/([^/]+)$/);
+  if (action === 'media' || uploadMatch) {
+    if (req.method !== 'GET' && req.method !== 'HEAD') {
+      return res.status(405).json({ success: false, error: 'Method not allowed.' });
+    }
+    const folder = String(req?.query?.folder || uploadMatch?.[1] || '').trim();
+    const fileName = String(req?.query?.fileName || uploadMatch?.[2] || '').trim();
+    try {
+      const asset = await getPermanentMediaAssetAsync(folder, fileName);
+      if (asset) {
+        res.setHeader('Content-Type', asset.mimeType);
+        res.setHeader('X-Content-Type-Options', 'nosniff');
+        res.setHeader('Content-Security-Policy', "default-src 'none'; sandbox");
+        res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+        return typeof res.send === 'function'
+          ? res.status(200).send(asset.buffer)
+          : res.status(200).end(asset.buffer);
+      }
+    } catch {}
+    return res.status(404).json({ success: false, error: 'Media asset not found.' });
+  }
 
   // Scheduled / Admin Idempotent 24-Hour Expired Carousel Story Cleanup
   if (action === 'cleanup') {

@@ -12,7 +12,7 @@ function resolveApiHandlerModule(pathname: string): string | null {
   if (clean === '/api/admin' || clean.startsWith('/api/admin/')) {
     return '/api/admin.ts';
   }
-  if (clean === '/api/homepage-feed') {
+  if (clean === '/api/homepage-feed' || clean.startsWith('/images/uploads/')) {
     return '/api/homepage-feed.ts';
   }
   if (clean === '/api/sports' || clean.startsWith('/api/sports/') || clean.startsWith('/api/cron/')) {
@@ -29,6 +29,14 @@ function resolveApiHandlerModule(pathname: string): string | null {
   }
   if (clean === '/api/moderation' || clean.startsWith('/api/moderation/')) {
     return '/api/moderation.ts';
+  }
+  if (
+    clean === '/api/health' ||
+    clean === '/api/jackpots/mirror' ||
+    clean === '/api/ai' ||
+    clean.startsWith('/api/gemini/')
+  ) {
+    return '/api/ai.ts';
   }
   return null;
 }
@@ -118,7 +126,8 @@ export default defineConfig(() => {
             }
 
             const url = new URL(req.url, 'http://localhost');
-            if (!url.pathname.startsWith('/api/')) {
+            const isUploadRoute = url.pathname.startsWith('/images/uploads/');
+            if (!url.pathname.startsWith('/api/') && !isUploadRoute) {
               return next();
             }
 
@@ -127,7 +136,7 @@ export default defineConfig(() => {
             if (!modulePath) {
               return adaptedRes.status(404).json({
                 success: false,
-                error: `Unknown API endpoint: ${url.pathname}`,
+                error: isUploadRoute ? 'Media asset not found.' : `Unknown API endpoint: ${url.pathname}`,
               });
             }
 
