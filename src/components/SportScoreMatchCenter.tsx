@@ -45,21 +45,35 @@ export default function SportScoreMatchCenter({ match }: SportScoreMatchCenterPr
     void loadDetail();
 
     // If match is live or awaiting FT confirmation, periodically sync with SportScore every 10 seconds
+    // while the tab is visible (skip hidden-tab background polling).
     let intervalId: NodeJS.Timeout | null = null;
     const isLiveMatch =
       match.status === 'in' ||
       match.status === 'awaiting_confirmation' ||
       detail?.status === 'live' ||
       detail?.status === 'in';
+    const handleVisibilityChange = () => {
+      if (mounted && isLiveMatch && typeof document !== 'undefined' && !document.hidden) {
+        void loadDetail();
+      }
+    };
     if (isLiveMatch) {
       intervalId = setInterval(() => {
-        if (mounted) void loadDetail();
+        if (mounted && (typeof document === 'undefined' || !document.hidden)) {
+          void loadDetail();
+        }
       }, 10_000);
+      if (typeof document !== 'undefined') {
+        document.addEventListener('visibilitychange', handleVisibilityChange);
+      }
     }
 
     return () => {
       mounted = false;
       if (intervalId) clearInterval(intervalId);
+      if (typeof document !== 'undefined') {
+        document.removeEventListener('visibilitychange', handleVisibilityChange);
+      }
     };
   }, [match.home, match.away, match.matchUrl, match.id, match.status]);
 

@@ -219,8 +219,7 @@ function App() {
     realtimeClient.start();
 
     const syncAll = async () => {
-      await refreshFreeMatches();
-      await syncJackpotsFromApi();
+      await Promise.allSettled([refreshFreeMatches(), syncJackpotsFromApi()]);
     };
     void syncAll();
     startDailyHighlightSync(() => {

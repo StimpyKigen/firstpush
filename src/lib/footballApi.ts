@@ -458,9 +458,14 @@ function mapRawApiFixtureToHighlight(m: any, syncTimeLabel: string): HighlightFi
 export async function reconcileLiveFixturesFromBackend(): Promise<HighlightFixture[]> {
   try {
     const baseUrl = typeof window !== 'undefined' ? '' : (process.env.API_BASE_URL || 'http://localhost:3000');
+    const signal =
+      typeof AbortSignal !== 'undefined' && 'timeout' in AbortSignal
+        ? AbortSignal.timeout(8000)
+        : undefined;
     const res = await fetch(`${baseUrl}/api/sports/live`, {
       headers: { Accept: 'application/json' },
       cache: 'no-store',
+      signal,
     });
     if (!res.ok) return cachedFixtures;
     const data = await res.json();

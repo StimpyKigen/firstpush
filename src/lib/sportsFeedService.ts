@@ -527,34 +527,47 @@ function loadDiskCache(): void {
   }
 }
 
+let diskCacheFlushInFlight: Promise<void> | null = null;
+let diskCacheFlushQueued = false;
+
+async function atomicWriteJsonAsync(targetDir: string, fileName: string, payload: string): Promise<void> {
+  const filePath = path.join(targetDir, fileName);
+  const tmpPath = `${filePath}.${process.pid}.${Date.now()}.tmp`;
+  await fs.promises.writeFile(tmpPath, payload, 'utf-8');
+  await fs.promises.rename(tmpPath, filePath);
+}
+
 /**
- * Save current state to persistent disk cache
+ * Save current state to persistent disk cache using coalesced non-blocking async writes
  */
 function saveDiskCache(): void {
-  try {
-    const isVercel = Boolean(process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME);
-    const targetDir = isVercel ? path.join(os.tmpdir(), '.mshindi-cache') : CACHE_DIR;
+  diskCacheFlushQueued = true;
+  if (diskCacheFlushInFlight) return;
 
-    if (!fs.existsSync(targetDir)) {
+  diskCacheFlushInFlight = (async () => {
+    while (diskCacheFlushQueued) {
+      diskCacheFlushQueued = false;
       try {
-        fs.mkdirSync(targetDir, { recursive: true });
-      } catch {
-        return;
-      }
-    }
+        const isVercel = Boolean(process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME);
+        const targetDir = isVercel ? path.join(os.tmpdir(), '.mshindi-cache') : CACHE_DIR;
+        await fs.promises.mkdir(targetDir, { recursive: true });
 
-    if (discoveredLeagues.length > 0) {
-      try {
-        fs.writeFileSync(path.join(targetDir, 'sports_leagues.json'), JSON.stringify(discoveredLeagues, null, 2), 'utf-8');
+        if (discoveredLeagues.length > 0) {
+          try {
+            await atomicWriteJsonAsync(targetDir, 'sports_leagues.json', JSON.stringify(discoveredLeagues));
+          } catch {}
+        }
+
+        const flat = Array.from(fixturesStore.values());
+        try {
+          await atomicWriteJsonAsync(targetDir, 'sports_fixtures.json', JSON.stringify(flat));
+          await atomicWriteJsonAsync(targetDir, 'sports_batches.json', JSON.stringify(adminPdfBatches));
+        } catch {}
       } catch {}
     }
-
-    const flat = Array.from(fixturesStore.values());
-    try {
-      fs.writeFileSync(path.join(targetDir, 'sports_fixtures.json'), JSON.stringify(flat, null, 2), 'utf-8');
-      fs.writeFileSync(path.join(targetDir, 'sports_batches.json'), JSON.stringify(adminPdfBatches, null, 2), 'utf-8');
-    } catch {}
-  } catch {}
+  })().finally(() => {
+    diskCacheFlushInFlight = null;
+  });
 }
 
 export function makeMarketFixtureDedupeKey(f: { matchId?: string; providerId?: string; id?: string; matchUrl?: string; home: string; away: string; kickoffIso?: string; kickoff?: string }): string {
@@ -811,7 +824,7 @@ export async function fetchLeagueFixtures(leagueCode: string): Promise<MarketFix
 export function ingestFixtures(
   fixtures: MarketFixture[],
   isAuthoritative = false,
-  options?: { updateFullSyncTimestamp?: boolean }
+  options?: { updateFullSyncTimestamp?: boolean; skipDiskSave?: boolean }
 ): number {
   let updatedCount = 0;
   const nowIso = new Date().toISOString();
@@ -987,7 +1000,9 @@ export function ingestFixtures(
     if (options?.updateFullSyncTimestamp) {
       lastSyncTimestamp = nowIso;
     }
-    saveDiskCache();
+    if (!options?.skipDiskSave) {
+      saveDiskCache();
+    }
   }
   return updatedCount;
 }
@@ -1564,27 +1579,44 @@ export async function syncSportScoreCatalog(dates?: string[]): Promise<number> {
   const targetDates = dates && dates.length > 0 ? dates : getWeeklyTargetDatesEAT();
   let totalIngested = 0;
 
-  // Fetch targeted priority competitions for each target date (capped concurrency to avoid 503s)
+  // Fetch targeted priority competitions & daily feed across target dates with bounded concurrency
   const prioritySlugs = getPriorityProviderSlugs();
-  const CONCURRENCY_LIMIT = 4;
+  const SLUG_CONCURRENCY = 4;
+  const DATE_CONCURRENCY = 2;
 
-  for (const d of targetDates) {
-    for (let i = 0; i < prioritySlugs.length; i += CONCURRENCY_LIMIT) {
-      const batch = prioritySlugs.slice(i, i + CONCURRENCY_LIMIT);
-      const results = await Promise.allSettled(
-        batch.map((slug) => fetchSportScoreFixturesByCompetition(slug, d))
-      );
-      for (const res of results) {
-        if (res.status === 'fulfilled' && res.value.length > 0) {
-          totalIngested += ingestFixtures(res.value, false, { updateFullSyncTimestamp: true });
+  for (let di = 0; di < targetDates.length; di += DATE_CONCURRENCY) {
+    const dateChunk = targetDates.slice(di, di + DATE_CONCURRENCY);
+    await Promise.all(
+      dateChunk.map(async (d) => {
+        const dailyPromise = fetchSportScoreFixturesByDate(d);
+        for (let i = 0; i < prioritySlugs.length; i += SLUG_CONCURRENCY) {
+          const batch = prioritySlugs.slice(i, i + SLUG_CONCURRENCY);
+          const results = await Promise.allSettled(
+            batch.map((slug) => fetchSportScoreFixturesByCompetition(slug, d))
+          );
+          for (const res of results) {
+            if (res.status === 'fulfilled' && res.value.length > 0) {
+              totalIngested += ingestFixtures(res.value, false, {
+                updateFullSyncTimestamp: true,
+                skipDiskSave: true,
+              });
+            }
+          }
         }
-      }
-    }
 
-    const fixtures = await fetchSportScoreFixturesByDate(d);
-    if (fixtures.length > 0) {
-      totalIngested += ingestFixtures(fixtures, false, { updateFullSyncTimestamp: true });
-    }
+        const fixtures = await dailyPromise;
+        if (fixtures.length > 0) {
+          totalIngested += ingestFixtures(fixtures, false, {
+            updateFullSyncTimestamp: true,
+            skipDiskSave: true,
+          });
+        }
+      })
+    );
+  }
+
+  if (totalIngested > 0) {
+    saveDiskCache();
   }
 
   lastSyncTimestamp = new Date().toISOString();

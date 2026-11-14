@@ -225,7 +225,13 @@ export async function fetchMatchDetailBySlug(slug: string, bypassCache = false):
   }
 
   try {
-    const res = await fetch(`/api/sports/match-detail?slug=${encodeURIComponent(cleanSlug)}`);
+    const signal =
+      typeof AbortSignal !== 'undefined' && 'timeout' in AbortSignal
+        ? AbortSignal.timeout(8000)
+        : undefined;
+    const res = await fetch(`/api/sports/match-detail?slug=${encodeURIComponent(cleanSlug)}`, {
+      signal,
+    });
     if (!res.ok) return null;
     const rawData = await res.json();
     const detail = normalizeRawSportScoreDetail(rawData);
@@ -254,18 +260,18 @@ export async function fetchMatchDetail(
     }
   }
 
-  // 2. Try standard home-vs-away slug
+  // 2. Race standard home-vs-away slug and away-vs-home fallback concurrently
   const primarySlug = buildMatchSlug(homeTeam, awayTeam);
-  const primaryRes = await fetchMatchDetailBySlug(primarySlug);
-  if (primaryRes) return primaryRes;
-
-  // 3. Fallback: SportScore URL slugs occasionally order teams as away-vs-home
   const reverseSlug = buildMatchSlug(awayTeam, homeTeam);
-  if (reverseSlug !== primarySlug) {
-    return fetchMatchDetailBySlug(reverseSlug);
+  if (reverseSlug === primarySlug) {
+    return fetchMatchDetailBySlug(primarySlug);
   }
 
-  return null;
+  const [primaryRes, reverseRes] = await Promise.all([
+    fetchMatchDetailBySlug(primarySlug),
+    fetchMatchDetailBySlug(reverseSlug),
+  ]);
+  return primaryRes || reverseRes || null;
 }
 
 const COMPETITION_SLUG_MAP: Record<string, string> = {
@@ -309,7 +315,11 @@ export async function fetchStandingsByCompetition(competitionName: string): Prom
   }
 
   try {
-    const res = await fetch(`/api/sports/standings?slug=${encodeURIComponent(slug)}`);
+    const signal =
+      typeof AbortSignal !== 'undefined' && 'timeout' in AbortSignal
+        ? AbortSignal.timeout(8000)
+        : undefined;
+    const res = await fetch(`/api/sports/standings?slug=${encodeURIComponent(slug)}`, { signal });
     if (!res.ok) return null;
     const raw = await res.json();
     const data = raw?.standings || raw?.tables ? raw : raw?.data || raw;

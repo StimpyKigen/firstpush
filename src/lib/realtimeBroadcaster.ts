@@ -254,7 +254,8 @@ class RealtimeBroadcaster {
     };
 
     this.clients.set(clientId, client);
-    this.lastSignatureByKey.clear();
+    // Preserve per-fixture event deduplication signatures across existing viewers:
+    // new clients receive initial live_snapshot + missed replay directly without forcing redundant broadcasts.
 
     // Trigger onClientConnectHook asynchronously so the newly connected client gets fresh upstream updates
     if (this.onClientConnectHook) {

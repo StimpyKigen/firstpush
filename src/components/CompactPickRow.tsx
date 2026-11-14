@@ -7,6 +7,7 @@ import PlayerProfileModal from './PlayerProfileModal';
 import ReportModal from './ReportModal';
 import { getStarRating } from '../lib/punterRatings';
 import { useCurrentUser } from '../lib/authStore';
+import { useSharedNow } from '../lib/useSharedClock';
 import { useCommentEngagementStore } from '../lib/commentEngagementStore';
 import { showToast } from '../lib/notificationStore';
 import { usePickEdits } from '../lib/pickEditStore';
@@ -46,15 +47,10 @@ export default function CompactPickRow({ pick, isTopPick, onEdit, onDelete, kick
   const [showReportModal, setShowReportModal] = useState(false);
   const [editPick, setEditPick] = useState<Outcome>(pick.pick);
   const [editReason, setEditReason] = useState(pick.reasoning);
-  const [now, setNow] = useState(Date.now());
+  const now = useSharedNow(5000);
   const [showMenu, setShowMenu] = useState(false);
   const [copiedShare, setCopiedShare] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const timer = setInterval(() => setNow(Date.now()), 5000);
-    return () => clearInterval(timer);
-  }, []);
 
   // Close menu on outside click
   useEffect(() => {

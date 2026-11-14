@@ -115,7 +115,11 @@ async function fetchGoogleSecureTokenCerts(): Promise<Record<string, string> | n
   }
 
   try {
-    const res = await fetch(GOOGLE_CERT_URL);
+    const signal =
+      typeof AbortSignal !== 'undefined' && 'timeout' in AbortSignal
+        ? AbortSignal.timeout(8000)
+        : undefined;
+    const res = await fetch(GOOGLE_CERT_URL, { signal });
     if (!res.ok) return null;
     const certs = (await res.json()) as Record<string, string>;
     const cc = res.headers.get('cache-control') || '';

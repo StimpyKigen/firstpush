@@ -147,6 +147,10 @@ Strict Rules for Ava:
       config: {
         systemInstruction,
         temperature: 0.6,
+        abortSignal:
+          typeof AbortSignal !== 'undefined' && 'timeout' in AbortSignal
+            ? AbortSignal.timeout(15000)
+            : undefined,
       },
     });
 
@@ -226,6 +230,10 @@ export async function handleGeminiAdvisorRequest(body: Record<string, any>): Pro
       config: {
         systemInstruction,
         temperature: 0.7,
+        abortSignal:
+          typeof AbortSignal !== 'undefined' && 'timeout' in AbortSignal
+            ? AbortSignal.timeout(15000)
+            : undefined,
       },
     });
 
@@ -312,6 +320,10 @@ Return valid JSON with key 'matches' containing exactly ${targetLegs} items.`;
             systemInstruction,
             temperature: 0.1,
             responseMimeType: 'application/json',
+            abortSignal:
+              typeof AbortSignal !== 'undefined' && 'timeout' in AbortSignal
+                ? AbortSignal.timeout(15000)
+                : undefined,
           },
         });
 

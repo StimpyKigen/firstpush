@@ -387,60 +387,111 @@ export async function executeWeeklyIngestion(options?: {
   const allEligibleFixtures: MarketFixture[] = [];
   const seenMatchKeys = new Set<string>();
 
+  interface DateBatchResult {
+    utcDate: string;
+    ok: boolean;
+    retrievedCount: number;
+    curated: MarketFixture[];
+    errorMsg?: string;
+  }
+
   try {
-    for (const utcDate of datesRequested) {
-      console.log(`[WeeklyIngestion] Processing SportScore fixtures for UTC date: ${utcDate}...`);
-      try {
-        // 1. Dedicated fetch for high-volume continental cups (Europa, Conference, UCL)
-        const continentalMatches = await fetchCompetitionsBatch(HIGH_VOLUME_CONTINENTAL_SLUGS, utcDate, 3);
+    const DATE_CONCURRENCY = 2;
+    const dateResults: DateBatchResult[] = [];
 
-        // 2. Dedicated fetch for Big 5 major European domestic leagues
-        const majorDomesticMatches = await fetchCompetitionsBatch(MAJOR_DOMESTIC_SLUGS, utcDate, 5);
+    for (let i = 0; i < datesRequested.length; i += DATE_CONCURRENCY) {
+      const dateChunk = datesRequested.slice(i, i + DATE_CONCURRENCY);
+      const chunkOutcomes = await Promise.all(
+        dateChunk.map(async (utcDate): Promise<DateBatchResult> => {
+          console.log(`[WeeklyIngestion] Processing SportScore fixtures for UTC date: ${utcDate}...`);
+          try {
+            // Run the 4 independent tier/daily fetches concurrently per date
+            const [continentalRes, majorRes, secondaryRes, dailyRes] = await Promise.allSettled([
+              fetchCompetitionsBatch(HIGH_VOLUME_CONTINENTAL_SLUGS, utcDate, 3),
+              fetchCompetitionsBatch(MAJOR_DOMESTIC_SLUGS, utcDate, 5),
+              fetchCompetitionsBatch(SECONDARY_PRIORITY_SLUGS, utcDate, 6),
+              fetchSportScoreFixturesByDate(utcDate),
+            ]);
 
-        // 3. Dedicated fetch for secondary priority leagues
-        const secondaryMatches = await fetchCompetitionsBatch(SECONDARY_PRIORITY_SLUGS, utcDate, 6);
+            const continentalMatches = continentalRes.status === 'fulfilled' ? continentalRes.value : [];
+            const majorDomesticMatches = majorRes.status === 'fulfilled' ? majorRes.value : [];
+            const secondaryMatches = secondaryRes.status === 'fulfilled' ? secondaryRes.value : [];
+            const dailyBroadMatches = dailyRes.status === 'fulfilled' ? dailyRes.value : [];
 
-        // 4. Broad daily feed for remaining eligible top flights and domestic cups
-        const dailyBroadMatches = await fetchSportScoreFixturesByDate(utcDate);
+            if (
+              continentalRes.status === 'rejected' &&
+              majorRes.status === 'rejected' &&
+              secondaryRes.status === 'rejected' &&
+              dailyRes.status === 'rejected'
+            ) {
+              throw continentalRes.reason || new Error(`All SportScore tiers failed for ${utcDate}`);
+            }
 
-        // 5. Curate day's fixtures: ~27-28 domestic matches across kickoff time slots,
-        // and add high-volume continental matches directly on top without duplication
-        const curatedDayMatches = curateDailyFixtures(
-          continentalMatches,
-          majorDomesticMatches,
-          secondaryMatches,
-          dailyBroadMatches,
-          targetDomesticCount
-        );
+            const curatedDayMatches = curateDailyFixtures(
+              continentalMatches,
+              majorDomesticMatches,
+              secondaryMatches,
+              dailyBroadMatches,
+              targetDomesticCount
+            );
 
-        datesSucceeded.push(utcDate);
-        log.totalFixturesRetrieved += (continentalMatches.length + majorDomesticMatches.length + secondaryMatches.length + dailyBroadMatches.length);
-
-        for (const f of curatedDayMatches) {
-          const isoTime = f.kickoffIso || nowIso;
-          const matchTimeMs = new Date(isoTime).getTime();
-
-          // Interval check against intended weekly window
-          if (Number.isNaN(matchTimeMs) || matchTimeMs < windowInfo.startMs || matchTimeMs >= windowInfo.endMs) {
-            continue;
+            return {
+              utcDate,
+              ok: true,
+              retrievedCount:
+                continentalMatches.length +
+                majorDomesticMatches.length +
+                secondaryMatches.length +
+                dailyBroadMatches.length,
+              curated: curatedDayMatches,
+            };
+          } catch (dateErr: any) {
+            console.warn(`[WeeklyIngestion] Error on date ${utcDate}:`, dateErr);
+            return {
+              utcDate,
+              ok: false,
+              retrievedCount: 0,
+              curated: [],
+              errorMsg: `Date ${utcDate} error: ${dateErr?.message || dateErr}`,
+            };
           }
+        })
+      );
 
-          const dedupeKey = f.id || buildCanonicalFixtureDedupeKey(f);
-          if (seenMatchKeys.has(dedupeKey)) {
-            log.duplicatesPrevented++;
-            continue;
-          }
-          seenMatchKeys.add(dedupeKey);
-          allEligibleFixtures.push(f);
-        }
-      } catch (dateErr: any) {
-        datesFailed.push(utcDate);
-        errorLogs.push(`Date ${utcDate} error: ${dateErr?.message || dateErr}`);
-        console.warn(`[WeeklyIngestion] Error on date ${utcDate}:`, dateErr);
+      dateResults.push(...chunkOutcomes);
+      if (i + DATE_CONCURRENCY < datesRequested.length) {
+        await delay(100);
+      }
+    }
+
+    // Apply deterministic chronological deduplication in exact datesRequested order
+    for (const outcome of dateResults) {
+      if (!outcome.ok) {
+        datesFailed.push(outcome.utcDate);
+        if (outcome.errorMsg) errorLogs.push(outcome.errorMsg);
+        continue;
       }
 
-      // Respectful spacing between date batches
-      await delay(250);
+      datesSucceeded.push(outcome.utcDate);
+      log.totalFixturesRetrieved += outcome.retrievedCount;
+
+      for (const f of outcome.curated) {
+        const isoTime = f.kickoffIso || nowIso;
+        const matchTimeMs = new Date(isoTime).getTime();
+
+        // Interval check against intended weekly window
+        if (Number.isNaN(matchTimeMs) || matchTimeMs < windowInfo.startMs || matchTimeMs >= windowInfo.endMs) {
+          continue;
+        }
+
+        const dedupeKey = f.id || buildCanonicalFixtureDedupeKey(f);
+        if (seenMatchKeys.has(dedupeKey)) {
+          log.duplicatesPrevented++;
+          continue;
+        }
+        seenMatchKeys.add(dedupeKey);
+        allEligibleFixtures.push(f);
+      }
     }
 
     log.eligibleFixturesCount = allEligibleFixtures.length;

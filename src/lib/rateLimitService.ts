@@ -148,30 +148,39 @@ async function checkUpstashRateLimit(
 
   try {
     const redisKey = `mshindi:rl:${bucketKey}`;
-    const res = await fetch(`${url}/pipeline`, {
+    // Single-RTT atomic INCR + cold-bucket PEXPIRE via Lua script (avoids sequential pipeline + PEXPIRE)
+    const luaScript = [
+      'local c = redis.call("INCR", KEYS[1])',
+      'local ttl = redis.call("PTTL", KEYS[1])',
+      'if ttl < 0 then',
+      '  redis.call("PEXPIRE", KEYS[1], tonumber(ARGV[1]))',
+      '  ttl = tonumber(ARGV[1])',
+      'end',
+      'return {c, ttl}',
+    ].join('\n');
+
+    const signal =
+      typeof AbortSignal !== 'undefined' && 'timeout' in AbortSignal
+        ? AbortSignal.timeout(4000)
+        : undefined;
+
+    const res = await fetch(`${url}/eval`, {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${token}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify([
-        ['INCR', redisKey],
-        ['PTTL', redisKey],
-      ]),
+      body: JSON.stringify([luaScript, '1', redisKey, String(windowMs)]),
+      signal,
     });
 
     if (!res.ok) return null;
     const data = await res.json();
-    const count = Number(data?.[0]?.result ?? 1);
-    let pttl = Number(data?.[1]?.result ?? -1);
-
-    if (pttl < 0) {
-      await fetch(`${url}/pexpire/${encodeURIComponent(redisKey)}/${windowMs}`, {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      pttl = windowMs;
-    }
+    const rawTuple = Array.isArray(data?.result) ? data.result : Array.isArray(data) ? data : null;
+    if (!rawTuple || rawTuple.length < 2) return null;
+    const count = Number(rawTuple[0] ?? 1);
+    const rawTtl = Number(rawTuple[1] ?? windowMs);
+    const pttl = rawTtl > 0 ? rawTtl : windowMs;
 
     const resetAt = nowMs + Math.max(1000, pttl);
     const allowed = count <= maxRequests;
