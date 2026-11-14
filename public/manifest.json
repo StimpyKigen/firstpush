@@ -7,7 +7,7 @@
   "display": "standalone",
   "orientation": "portrait",
   "background_color": "#11492D",
-  "theme_color": "#11492D",
+  "theme_color": "#FFFFF0",
   "categories": ["sports", "entertainment", "social"],
   "icons": [
     {
@@ -39,28 +39,28 @@
       "name": "Jackpot Rooms",
       "short_name": "Jackpots",
       "description": "View live consensus jackpot rooms",
-      "url": "/?room=jackpots",
+      "url": "/leaderboard",
       "icons": [{ "src": "/pwa-192.png", "sizes": "192x192" }]
     },
     {
       "name": "Wallet & M-Pesa",
       "short_name": "Wallet",
       "description": "Manage funds & M-Pesa deposits",
-      "url": "/?room=wallet",
+      "url": "/wallet",
       "icons": [{ "src": "/pwa-192.png", "sizes": "192x192" }]
     },
     {
       "name": "P2P Bet Slips",
       "short_name": "BetSlips",
       "description": "Share & challenge punter slip consensus",
-      "url": "/?room=slips",
+      "url": "/slips",
       "icons": [{ "src": "/pwa-192.png", "sizes": "192x192" }]
     },
     {
       "name": "My Profile",
       "short_name": "Profile",
       "description": "View stats & account preferences",
-      "url": "/?room=profile",
+      "url": "/profile",
       "icons": [{ "src": "/pwa-192.png", "sizes": "192x192" }]
     }
   ]

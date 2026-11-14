@@ -1,6 +1,6 @@
 import { Link, useLocation } from 'react-router-dom';
-import { useState, useEffect } from 'react';
-import JackpotAdminModal from './JackpotAdminModal';
+import { useState, useEffect, lazy, Suspense } from 'react';
+const JackpotAdminModal = lazy(() => import('./JackpotAdminModal'));
 import DesktopNav from './nav/DesktopNav';
 import { MobileHeaderControls, MobileMenuPanel } from './nav/MobileHeader';
 import MobileBottomNav from './nav/MobileBottomNav';
@@ -151,10 +151,14 @@ export default function Navbar() {
         backdrop-blur-md, and backdrop-filter creates a CSS containing block for `position: fixed`
         descendants. Nested here, they'd anchor to the header's box instead of the viewport.
       */}
-      <JackpotAdminModal
-        isOpen={adminModalOpen}
-        onClose={() => setAdminModalOpen(false)}
-      />
+      {adminModalOpen && (
+        <Suspense fallback={null}>
+          <JackpotAdminModal
+            isOpen={adminModalOpen}
+            onClose={() => setAdminModalOpen(false)}
+          />
+        </Suspense>
+      )}
 
       <MobileBottomNav
         pathname={location.pathname}

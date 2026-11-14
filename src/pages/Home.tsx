@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useSyncExternalStore, useRef, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useSyncExternalStore, useRef, useMemo, useCallback, lazy, Suspense } from 'react';
 import { Link } from 'react-router-dom';
 import { Play, Clock, MessageSquare, Heart } from 'lucide-react';
 import SeoHead from '../components/SeoHead';
@@ -38,7 +38,8 @@ import {
   pruneCarouselImageCache,
 } from '../lib/carouselImageCache';
 import FixtureSportCard from '../components/FixtureSportCard';
-import QuickBetBuilderModal, { type MatchForBuilder } from '../components/QuickBetBuilderModal';
+import type { MatchForBuilder } from '../components/QuickBetBuilderModal';
+const QuickBetBuilderModal = lazy(() => import('../components/QuickBetBuilderModal'));
 import { useBetSlipStore } from '../lib/betSlipStore';
 import { showToast } from '../lib/notificationStore';
 import { useHistoryPageState } from '../lib/navigationHistory';
@@ -1464,11 +1465,13 @@ export default function Home() {
 
       {/* Quick Bet Builder Modal */}
       {selectedMatchForBuilder && (
-        <QuickBetBuilderModal
-          match={selectedMatchForBuilder}
-          isOpen={Boolean(selectedMatchForBuilder)}
-          onClose={() => setSelectedMatchForBuilder(null)}
-        />
+        <Suspense fallback={null}>
+          <QuickBetBuilderModal
+            match={selectedMatchForBuilder}
+            isOpen={Boolean(selectedMatchForBuilder)}
+            onClose={() => setSelectedMatchForBuilder(null)}
+          />
+        </Suspense>
       )}
     </div>
   );

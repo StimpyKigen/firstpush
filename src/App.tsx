@@ -8,18 +8,15 @@ import Footer from './components/Footer';
 import ScrollToTop from './components/ScrollToTop';
 import ErrorBoundary from './components/ErrorBoundary';
 import OfflineBar from './components/OfflineBar';
-import PWAInstallPrompt from './components/PWAInstallPrompt';
 import PWALoadingScreen from './components/PWALoadingScreen';
 import PullToRefresh from './components/pwa/PullToRefresh';
-import AvaChatSupport from './components/AvaChatSupport';
-import AuthWallModal from './components/AuthWallModal';
-import PremiumPaywall from './components/subscription/PremiumPaywall';
 import { refreshFreeMatches } from './lib/freeMatches';
 import { syncJackpotsFromApi } from './lib/mockData';
 import { startDailyHighlightSync } from './lib/footballApi';
 import { realtimeClient } from './lib/realtimeClient';
 
 import { useAuth, useCurrentUser } from './lib/authStore';
+import { useAuthWallStore } from './lib/authWallStore';
 import { useWallet } from './lib/store';
 import { useSubscriptionStore } from './lib/subscriptionStore';
 import { useAutoScrollIntoView } from './lib/useAutoScrollIntoView';
@@ -66,6 +63,17 @@ const BetSlipRoom = lazyWithRetry(() => import('./pages/BetSlipRoom'));
 const PrivacyPolicy = lazyWithRetry(() => import('./pages/PrivacyPolicy'));
 const TermsOfService = lazyWithRetry(() => import('./pages/TermsOfService'));
 const NotFound = lazyWithRetry(() => import('./pages/NotFound'));
+const PWAInstallPrompt = lazyWithRetry(() => import('./components/PWAInstallPrompt'));
+const AvaChatSupport = lazyWithRetry(() => import('./components/AvaChatSupport'));
+const AuthWallModal = lazyWithRetry(() => import('./components/AuthWallModal'));
+const PremiumPaywall = lazyWithRetry(() => import('./components/subscription/PremiumPaywall'));
+
+const ROOM_SHORTCUT_MAP: Record<string, string> = {
+  jackpots: '/leaderboard',
+  wallet: '/wallet',
+  slips: '/slips',
+  profile: '/profile',
+};
 
 import {
   PageSkeleton,
@@ -120,6 +128,11 @@ function RouteLoadingFallback({ pathname }: { pathname: string }) {
 
 function AnimatedRoutes() {
   const location = useLocation();
+  const roomParam = new URLSearchParams(location.search).get('room') || '';
+  const shortcutTarget = location.pathname === '/' ? ROOM_SHORTCUT_MAP[roomParam] : undefined;
+  if (shortcutTarget) {
+    return <Navigate to={shortcutTarget} replace />;
+  }
 
   return (
     <Suspense fallback={<RouteLoadingFallback pathname={location.pathname} />}>
@@ -198,6 +211,8 @@ function ConditionalFooter() {
 function App() {
   useAutoScrollIntoView();
   const currentUser = useCurrentUser();
+  const isAuthWallOpen = useAuthWallStore((s) => s.isOpen);
+  const isPaywallOpen = useSubscriptionStore((s) => s.isPaywallOpen);
 
   // Ensure light theme is strictly enforced across all client sessions & hydrate authoritative server session
   useEffect(() => {
@@ -237,11 +252,23 @@ function App() {
       <BrowserRouter>
         <ScrollToTop />
         <OfflineBar />
-        <PWAInstallPrompt />
+        <Suspense fallback={null}>
+          <PWAInstallPrompt />
+        </Suspense>
         <PullToRefresh />
-        <AvaChatSupport />
-        <AuthWallModal />
-        <PremiumPaywall />
+        <Suspense fallback={null}>
+          <AvaChatSupport />
+        </Suspense>
+        {isAuthWallOpen && (
+          <Suspense fallback={null}>
+            <AuthWallModal />
+          </Suspense>
+        )}
+        {isPaywallOpen && (
+          <Suspense fallback={null}>
+            <PremiumPaywall />
+          </Suspense>
+        )}
         {/*
           Outer frame: fills the full viewport with warm ivory background
         */}

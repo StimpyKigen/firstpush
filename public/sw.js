@@ -10,7 +10,7 @@
  * 6. Automatic purging of all outdated `mshindiroom-*` Cache Storage entries on activation.
  */
 
-const BUILD_VERSION = '2.4.0-20261114120407-c040613';
+const BUILD_VERSION = '2.4.0-20261114122727-8eae007';
 const STATIC_CACHE = `mshindiroom-static-${BUILD_VERSION}`;
 const IMAGE_CACHE = `mshindiroom-images-${BUILD_VERSION}`;
 // Persistent version-keyed carousel binary cache managed by carouselImageCache.ts across deployments
@@ -19,8 +19,9 @@ const VALID_CACHES = new Set([STATIC_CACHE, IMAGE_CACHE, CAROUSEL_MEDIA_CACHE]);
 
 const SHELL_PRECACHE_ASSETS = [
   '/manifest.json',
-  '/icons/icon-192x192.png',
-  '/icons/icon-512x512.png',
+  '/pwa-192.png',
+  '/pwa-512.png',
+  '/pwa-maskable.png',
 ];
 
 const NEVER_INTERCEPT_PATTERNS = [
@@ -43,8 +44,8 @@ function shouldBypassRequest(request, url) {
   const acceptHeader = request.headers.get('accept') || '';
   if (acceptHeader.includes('text/event-stream')) return true;
 
-  // Never intercept cross-origin requests except fonts
-  if (url.origin !== self.location.origin && !url.hostname.includes('fonts.g')) {
+  // Never intercept cross-origin requests (all fonts & assets are self-hosted)
+  if (url.origin !== self.location.origin) {
     return true;
   }
 

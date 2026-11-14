@@ -213,6 +213,51 @@ export default defineConfig(() => {
       minify: 'esbuild' as const,
       cssMinify: true,
       sourcemap: false,
+      rollupOptions: {
+        output: {
+          manualChunks(id) {
+            const normalized = id.replace(/\\/g, '/');
+            if (normalized.includes('/node_modules/')) {
+              if (
+                normalized.includes('/@firebase/firestore') ||
+                normalized.includes('/firebase/firestore')
+              ) {
+                return 'vendor-firebase-firestore';
+              }
+              if (normalized.includes('/firebase/') || normalized.includes('/@firebase/')) {
+                return 'vendor-firebase';
+              }
+              if (normalized.includes('/motion/') || normalized.includes('/framer-motion/')) {
+                return 'vendor-motion';
+              }
+              if (normalized.includes('/lucide-react/')) {
+                return 'vendor-icons';
+              }
+              if (
+                normalized.includes('/react-dom/') ||
+                normalized.includes('/react-router') ||
+                normalized.includes('/scheduler/') ||
+                /\/node_modules\/react\//.test(normalized)
+              ) {
+                return 'vendor-react';
+              }
+              if (normalized.includes('/@radix-ui/') || normalized.includes('/zustand/')) {
+                return 'vendor-ui';
+              }
+            }
+            if (normalized.includes('/src/lib/dicebearGlyphsData')) {
+              return 'data-avatars';
+            }
+            if (
+              normalized.includes('/src/lib/canonicalCompetitions') ||
+              normalized.includes('/src/lib/competitionRegistry')
+            ) {
+              return 'data-competitions';
+            }
+            return undefined;
+          },
+        },
+      },
     },
   };
 });

@@ -1,4 +1,4 @@
-import { useState, useMemo, useSyncExternalStore, useRef, useEffect } from 'react';
+import { useState, useMemo, useSyncExternalStore, useRef, useEffect, lazy, Suspense } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import {
   Trophy, Crown, Medal, Flame, Clock, CheckCircle2, Users,
@@ -23,7 +23,7 @@ import Avatar from '../components/Avatar';
 import StarRating from '../components/StarRating';
 import PlayerProfileModal from '../components/PlayerProfileModal';
 import JackpotCard from '../components/JackpotCard';
-import JackpotAdminModal from '../components/JackpotAdminModal';
+const JackpotAdminModal = lazy(() => import('../components/JackpotAdminModal'));
 import { getPunterStats } from '../lib/punterRatings';
 import { getRoomStatusInfo, type DisplayRoomStatus } from '../lib/roomStatus';
 import { computeRoomPerformanceAndLeaderboard } from '../lib/leaderboardEngine';
@@ -224,10 +224,14 @@ export default function Leaderboard() {
         onClose={() => setSelectedUserForModal(null)}
       />
 
-      <JackpotAdminModal
-        isOpen={isAdminModalOpen}
-        onClose={() => setIsAdminModalOpen(false)}
-      />
+      {isAdminModalOpen && (
+        <Suspense fallback={null}>
+          <JackpotAdminModal
+            isOpen={isAdminModalOpen}
+            onClose={() => setIsAdminModalOpen(false)}
+          />
+        </Suspense>
+      )}
 
       {/* =========================================================================
           PAGE HEADER: HEADING & SUBHEADING
