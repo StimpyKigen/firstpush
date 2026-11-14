@@ -38,6 +38,7 @@ import {
   extractSportScoreProviderId,
   extractSportScoreMatchSlug,
   areFixturesIdentical,
+  buildCanonicalFixtureDedupeKey,
 } from './fixtureIdentity.js';
 import { realtimeBroadcaster, type BroadcasterMetrics } from './realtimeBroadcaster.js';
 
@@ -556,31 +557,8 @@ function saveDiskCache(): void {
   } catch {}
 }
 
-export function makeMarketFixtureDedupeKey(f: { matchId?: string; home: string; away: string; kickoffIso?: string; kickoff?: string }): string {
-  if (f.matchId) {
-    return `mid_${f.matchId}`;
-  }
-  const h = (f.home || '').toLowerCase().replace(/[^a-z0-9]/g, '');
-  const a = (f.away || '').toLowerCase().replace(/[^a-z0-9]/g, '');
-
-  let dateKey = '';
-  if (f.kickoffIso) {
-    const isoM = f.kickoffIso.match(/^\d{4}-(\d{2})-(\d{2})/);
-    if (isoM) {
-      dateKey = `${isoM[2]}_${isoM[1]}`;
-    }
-  }
-  if (!dateKey && f.kickoff) {
-    const dmM = f.kickoff.match(/^(\d{1,2})[/-](\d{1,2})/);
-    if (dmM) {
-      dateKey = `${dmM[1].padStart(2, '0')}_${dmM[2].padStart(2, '0')}`;
-    }
-  }
-  if (!dateKey) {
-    dateKey = (f.kickoffIso || f.kickoff || '').replace(/[^0-9]/g, '').slice(0, 8);
-  }
-
-  return `${h}___${a}___${dateKey}`;
+export function makeMarketFixtureDedupeKey(f: { matchId?: string; providerId?: string; id?: string; matchUrl?: string; home: string; away: string; kickoffIso?: string; kickoff?: string }): string {
+  return buildCanonicalFixtureDedupeKey(f);
 }
 
 /**

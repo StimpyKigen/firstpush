@@ -29,14 +29,11 @@ import {
 } from 'firebase/firestore';
 import { db } from '../firebase';
 import type { BetSlipPost } from './betSlipStore';
+import { normalizeKenyanPhone } from './phoneUtils.js';
 
 // Canonical phone helper: e.g. "0743304579" -> "254743304579"
 export function normalizeUserPhone(phone: string): string {
-  const digits = phone.replace(/\D/g, '');
-  if (digits.startsWith('254') && digits.length === 12) return digits;
-  if (digits.startsWith('0') && digits.length === 10) return `254${digits.slice(1)}`;
-  if ((digits.startsWith('7') || digits.startsWith('1')) && digits.length === 9) return `254${digits}`;
-  return digits;
+  return normalizeKenyanPhone(phone);
 }
 
 export interface UserEngagementMap {

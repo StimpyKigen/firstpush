@@ -10,7 +10,7 @@ import { useAuthWallStore } from '../lib/authWallStore';
 import { useSubscription } from '../hooks/useSubscription';
 import { useBetSlipStore } from '../lib/betSlipStore';
 import { useFollowStore } from '../lib/followStore';
-import { searchPunters } from '../lib/punterDirectory';
+import { searchPunters, fetchAuthoritativePunters } from '../lib/punterDirectory';
 import BetBuilder from '../components/BetBuilder';
 import SlipReelFeed from '../components/SlipReelFeed';
 import Avatar from '../components/Avatar';
@@ -153,7 +153,17 @@ export default function BetSlipRoom({ initialTab, initialFilter }: BetSlipRoomPr
   const followUser = useFollowStore((s) => s.followUser);
   const unfollowUser = useFollowStore((s) => s.unfollowUser);
   const getFollowersCount = useFollowStore((s) => s.getFollowersCount);
+  const [directoryHydratedCount, setDirectoryHydratedCount] = useState(0);
 
+  useEffect(() => {
+    let active = true;
+    fetchAuthoritativePunters().then((list) => {
+      if (active) setDirectoryHydratedCount(list.length);
+    }).catch(() => {});
+    return () => { active = false; };
+  }, []);
+
+  void directoryHydratedCount;
   const matchingPunters = searchPunters(punterSearchQuery);
 
   function handleFollowToggle(targetUser: string) {

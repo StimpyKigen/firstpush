@@ -17,11 +17,14 @@ export interface UserPickRecord {
 
 interface UserPicksState {
   userPicks: Record<string, UserPickRecord>; // key: `${roomId}:${matchId}`
+  editCountsByPickId: Record<string, number>; // key: pickId (max 2)
   likedPicks: Record<string, boolean>; // key: pickId
   extraLikes: Record<string, number>; // key: pickId
   savePick: (roomId: string, matchId: string, pick: Outcome, reasoning: string, conviction?: Conviction) => { ok: boolean; error?: string };
   deletePick: (roomId: string, matchId: string) => void;
   getPick: (roomId: string, matchId: string) => UserPickRecord | undefined;
+  canEditPick: (pickId: string) => boolean;
+  incrementPickEdit: (pickId: string) => void;
   toggleLikePick: (pickId: string) => void;
   getExtraLikes: (pickId: string) => number;
   isPickLiked: (pickId: string) => boolean;
@@ -31,6 +34,7 @@ export const useUserPicks = create<UserPicksState>()(
   persist(
     (set, get) => ({
       userPicks: {},
+      editCountsByPickId: {},
       likedPicks: {},
       extraLikes: {},
 
@@ -106,6 +110,14 @@ export const useUserPicks = create<UserPicksState>()(
         }));
       },
 
+      canEditPick: (pickId) => (get().editCountsByPickId[pickId] || 0) < 2,
+      incrementPickEdit: (pickId) =>
+        set((state) => ({
+          editCountsByPickId: {
+            ...state.editCountsByPickId,
+            [pickId]: (state.editCountsByPickId[pickId] || 0) + 1,
+          },
+        })),
       getExtraLikes: (pickId) => get().extraLikes[pickId] || 0,
       isPickLiked: (pickId) => !!get().likedPicks[pickId],
     }),

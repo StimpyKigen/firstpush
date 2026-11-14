@@ -542,7 +542,14 @@ export async function fetchDailyHighlightFixtures(force = false): Promise<Highli
 
         if (mapped.length > 0) {
           const unenriched = mapped
-            .filter((f) => isHighlightsEligible(f) && f.status === 'pre' && f.matchUrl && f.bookmaker !== 'Bet365')
+            .filter(
+              (f) =>
+                isHighlightsEligible(f) &&
+                f.status === 'pre' &&
+                f.matchUrl &&
+                f.bookmaker !== 'Bet365' &&
+                (!((f as any).oddsUnavailableUntil > Date.now()))
+            )
             .slice(0, 15);
           if (unenriched.length > 0) {
             try {

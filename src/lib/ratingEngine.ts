@@ -328,29 +328,68 @@ export function updatePlayerProfileAfterSettlement(
 // ======================= DEFAULT / MOCK FACTORY =======================
 
 /**
- * Creates an initial or deterministic default profile for any user username
+ * Creates an initial profile for any user username.
+ * Real registered users start cleanly at rookie baseline (0 accuracy, 0 games, 1.0 star, 0 RP)
+ * so fabricated stats are never displayed; pass `{ showcase: true }` only for curated showcase handles.
  */
-export function createInitialPlayerProfile(username: string, seed: number = 1): PlayerRatingProfile {
-  const hash = Math.abs(username.split('').reduce((acc, char) => (acc << 5) - acc + char.charCodeAt(0), 0));
-  
-  // Seed realistic baseline scores based on username hash
+export function createInitialPlayerProfile(
+  username: string,
+  seed: number = 1,
+  options?: { showcase?: boolean }
+): PlayerRatingProfile {
+  const cleanUsername = String(username || '').trim();
+  const hash = Math.abs(cleanUsername.split('').reduce((acc, char) => (acc << 5) - acc + char.charCodeAt(0), 0));
+  const userId = `user_${cleanUsername.toLowerCase().replace(/[^a-z0-9]/g, '')}`;
+
+  if (!options?.showcase) {
+    const rookieMeta = calculateStarsFromRp(0);
+    return {
+      userId,
+      username: cleanUsername,
+      avatarSeed: seed,
+      rp: 0,
+      mmr: 1000,
+      stars: rookieMeta.stars,
+      tierName: rookieMeta.tierName,
+      totalJackpotsPlayed: 0,
+      jackpotsWon: 0,
+      top3Finishes: 0,
+      perfectSlips: 0,
+      totalCorrectPicks: 0,
+      totalPicksSubmitted: 0,
+      accuracyPct: 0,
+      currentStreak: 0,
+      longestStreak: 0,
+      averageCorrectPicks: 0,
+      consistencyRating: 0,
+      skillIndex: 0,
+      bestFinishRank: 0,
+      last10Accuracy: 0,
+      last25Accuracy: 0,
+      last50Accuracy: 0,
+      lastActiveTimestamp: Date.now(),
+      totalDecayApplied: 0,
+    };
+  }
+
+  // Deterministic showcase baseline for explicitly marked community demo/seed accounts
   const totalJackpotsPlayed = 12 + (hash % 40);
   const accuracyPct = 52 + (hash % 32); // 52% - 84%
   const rp = 60 + (hash % 480);         // 60 - 540 RP
   const mmr = 1200 + (hash % 900);      // 1200 - 2100 MMR
-  
+
   const starMeta = calculateStarsFromRp(rp);
-  
+
   const jackpotsWon = (hash % 3 === 0) ? 1 + (hash % 3) : 0;
   const top3Finishes = jackpotsWon + (hash % 4);
   const perfectSlips = jackpotsWon > 0 ? (hash % 2) : 0;
-  
+
   const totalPicksSubmitted = totalJackpotsPlayed * 17;
   const totalCorrectPicks = Math.round(totalPicksSubmitted * (accuracyPct / 100));
-  
+
   return {
-    userId: `user_${username.toLowerCase().replace(/[^a-z0-9]/g, '')}`,
-    username,
+    userId,
+    username: cleanUsername,
     avatarSeed: seed,
     rp,
     mmr,

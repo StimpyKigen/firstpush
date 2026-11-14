@@ -13,8 +13,9 @@ import {
   checkTokenNonceRevocationAsync,
 } from './tokenRevocationStore.js';
 import { ADMIN_SESSION_COOKIE_NAME, getCookieFromHeaders } from './firebaseIdTokenVerifier.js';
+import { ADMIN_PHONE, normalizeKenyanPhone } from './phoneUtils.js';
 
-export const ADMIN_PHONE_NORMALIZED = '254743304579';
+export const ADMIN_PHONE_NORMALIZED = ADMIN_PHONE;
 export const MAX_ADMIN_TOKEN_TTL_MS = 60 * 60 * 1000; // 1 hour
 
 function getConfiguredAdminPin(): string {
@@ -36,15 +37,7 @@ export function constantTimeEqualText(a: string, b: string): boolean {
 }
 
 export function normalizeAdminPhone(phone?: string | null): string {
-  if (!phone) return '';
-  const digits = String(phone).replace(/\D/g, '');
-  if (digits.startsWith('0') && digits.length === 10) {
-    return '254' + digits.slice(1);
-  }
-  if (digits.length === 9 && (digits.startsWith('7') || digits.startsWith('1'))) {
-    return '254' + digits;
-  }
-  return digits;
+  return normalizeKenyanPhone(phone);
 }
 
 export function isAdminIdentifier(phoneOrId?: string | null): boolean {

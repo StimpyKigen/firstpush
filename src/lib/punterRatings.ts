@@ -34,25 +34,54 @@ jackpots.forEach((jp) => {
   });
 });
 
+const SHOWCASE_SEED_HANDLES = new Set([
+  'mshindipro', 'juma_master', 'kip_punter', 'otieno_tips', 'nairobi_king',
+  'mwangipicks', 'kamau_betting', 'achieng_bets', 'wanjiku_picks',
+  'nairobinostradamus', 'bankeronly254', 'slipdoctorke', 'formguidefred',
+  'mtaaanalyst', 'chezakamawewe', 'hustlerodds', 'kipchogepredictor',
+  'kiprotichpicks', 'oddsmasterke', 'mjengomoneyman', 'betkingkisumu',
+  'bundamathematician', 'punterwaeastlando', 'jackpotjuma', 'coachotieno_tips',
+  'mamambogamillions', 'riskitforbiskit', 'tenbobtycoon', 'doublechancedan',
+  'goalrushgathoni', 'ligisokalegend', 'ketepakelvin', 'zaostatszone',
+  'punditpatuma', 'overunderoscar', 'homeadvantagehilda',
+]);
+
+export function clearPunterRatingsCacheForTests(): void {
+  profileCache.clear();
+}
+
 export function getPlayerProfile(username: string): PlayerRatingProfile {
-  const cached = profileCache.get(username);
+  const clean = String(username || '').trim();
+  const cached = profileCache.get(clean);
   if (cached) return cached;
 
-  const initial = createInitialPlayerProfile(username);
-  
-  // If user exists in settled jackpot registry, merge real stats
-  const real = registry.get(username);
+  const real = registry.get(clean);
+  const isShowcase = Boolean(real || SHOWCASE_SEED_HANDLES.has(clean.toLowerCase()));
+  const initial = createInitialPlayerProfile(clean, 1, { showcase: isShowcase });
+
+  // If user exists in settled jackpot registry, merge settled stats AND recompute RP/stars consistently
   if (real) {
     initial.totalJackpotsPlayed = Math.max(initial.totalJackpotsPlayed, real.entries);
-    initial.top3Finishes = Math.max(initial.top3Finishes, real.closestWins);
+    initial.top3Finishes = real.closestWins;
     if (real.totalMatches > 0) {
       initial.accuracyPct = Math.round((real.totalCorrect / real.totalMatches) * 100);
       initial.totalCorrectPicks = real.totalCorrect;
       initial.totalPicksSubmitted = real.totalMatches;
+      initial.averageCorrectPicks = Number(((real.totalCorrect / real.entries) || 0).toFixed(1));
     }
+    const recomputedRp = Math.max(
+      0,
+      Math.round(initial.accuracyPct * 4 + initial.top3Finishes * 75 + real.entries * 8)
+    );
+    const starMeta = calculateStarsFromRp(recomputedRp);
+    initial.rp = recomputedRp;
+    initial.stars = starMeta.stars;
+    initial.tierName = starMeta.tierName;
+    initial.mmr = 1000 + recomputedRp;
+    initial.skillIndex = Math.min(99, Math.round(initial.accuracyPct * 0.8 + starMeta.stars * 4));
   }
 
-  profileCache.set(username, initial);
+  profileCache.set(clean, initial);
   return initial;
 }
 

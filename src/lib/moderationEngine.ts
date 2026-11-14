@@ -7,6 +7,7 @@
  */
 
 import type { ModerationResult, DictionaryEntry } from '../types/moderation.js';
+import { getUsernameValidationError } from './usernameUtils.js';
 
 const WORD_TO_DIGIT: Record<string, string> = {
   zero: '0', sifuri: '0', sifri: '0', oh: '0', nil: '0',
@@ -131,14 +132,9 @@ function containsMisleadingOrSelfPromo(text: string): { flagged: boolean; phrase
 }
 
 export function evaluateUsernameWithDictionary(username: string, dictionary: DictionaryEntry[]): ModerationResult {
-  if (!username || username.trim().length < 3) {
-    return { isAllowed: false, reason: 'Username must be at least 3 characters long.' };
-  }
-  if (username.trim().length > 16) {
-    return { isAllowed: false, reason: 'Username cannot exceed 16 characters.' };
-  }
-  if (!/^[a-zA-Z0-9_]+$/.test(username.trim())) {
-    return { isAllowed: false, reason: 'Username can only contain letters, numbers, and underscores.' };
+  const formatError = getUsernameValidationError(username);
+  if (formatError) {
+    return { isAllowed: false, reason: formatError };
   }
 
   const cleanUser = username.trim().toLowerCase();

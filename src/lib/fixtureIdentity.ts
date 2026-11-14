@@ -599,3 +599,46 @@ export function mergeMarketFixtureRecords(
 
   return { merged, hasChanged, rejectedStaleTransition: !isTransitionPermitted };
 }
+
+/**
+ * Builds an authoritative East Africa Time (EAT, UTC+3) deduplication key for a fixture.
+ * Prevents post-21:00 UTC matches from splitting across midnight date boundaries.
+ */
+export function buildCanonicalFixtureDedupeKey(item: {
+  id?: string;
+  providerId?: string;
+  matchId?: string;
+  matchUrl?: string;
+  home: string;
+  away: string;
+  kickoffIso?: string;
+  kickoff?: string;
+}): string {
+  const ssId = item.matchId || extractSportScoreProviderId(item);
+  if (ssId) {
+    return `mid_${ssId}`;
+  }
+  const h = normalizeTeamName(item.home || '');
+  const a = normalizeTeamName(item.away || '');
+
+  let dateKey = '';
+  const eatDay = formatEatDay(item.kickoffIso || item.kickoff);
+  if (eatDay) {
+    // formatEatDay returns YYYY-MM-DD -> DD_MM
+    const parts = eatDay.split('-');
+    if (parts.length === 3) {
+      dateKey = `${parts[2]}_${parts[1]}`;
+    }
+  }
+  if (!dateKey && item.kickoff) {
+    const dmM = item.kickoff.match(/^(\d{1,2})[/-](\d{1,2})/);
+    if (dmM) {
+      dateKey = `${dmM[1].padStart(2, '0')}_${dmM[2].padStart(2, '0')}`;
+    }
+  }
+  if (!dateKey) {
+    dateKey = (item.kickoffIso || item.kickoff || '').replace(/[^0-9]/g, '').slice(0, 8);
+  }
+
+  return `${h}___${a}___${dateKey}`;
+}

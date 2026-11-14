@@ -1,6 +1,7 @@
 import { RecaptchaVerifier, signInWithPhoneNumber, ConfirmationResult } from 'firebase/auth';
 import { doc, setDoc, getDoc } from 'firebase/firestore';
 import { auth, db } from '../firebase';
+import { formatE164KenyanPhone } from './phoneUtils.js';
 
 declare global {
   interface Window {
@@ -33,15 +34,7 @@ export function resetRecaptcha(): void {
 }
 
 export function formatE164Phone(phone: string): string {
-  const trimmed = phone.trim();
-  if (trimmed.startsWith('+')) {
-    return '+' + trimmed.slice(1).replace(/\D/g, '');
-  }
-  const cleaned = phone.replace(/\D/g, '');
-  if (cleaned.startsWith('254')) return `+${cleaned}`;
-  if (cleaned.startsWith('0') && cleaned.length === 10) return `+254${cleaned.slice(1)}`;
-  if ((cleaned.startsWith('7') || cleaned.startsWith('1')) && cleaned.length === 9) return `+254${cleaned}`;
-  return `+${cleaned}`;
+  return formatE164KenyanPhone(phone);
 }
 
 let recaptchaVerifier: RecaptchaVerifier | null = null;

@@ -27,6 +27,7 @@ import {
 import { isCompetitionEligible } from './competitionRegistry.js';
 import { enrichFixturesWithBet365Odds } from './sportscoreOddsService.js';
 import { isSnapshotStoreConfigured, saveFixtureSnapshot } from './fixtureSnapshotStore.js';
+import { buildCanonicalFixtureDedupeKey } from './fixtureIdentity.js';
 
 export interface WeeklyEatWindow {
   eatStartIso: string;
@@ -424,7 +425,7 @@ export async function executeWeeklyIngestion(options?: {
             continue;
           }
 
-          const dedupeKey = f.id || `${f.home.toLowerCase()}__${f.away.toLowerCase()}__${(f.kickoffIso || '').slice(0, 10)}`;
+          const dedupeKey = f.id || buildCanonicalFixtureDedupeKey(f);
           if (seenMatchKeys.has(dedupeKey)) {
             log.duplicatesPrevented++;
             continue;
@@ -443,6 +444,16 @@ export async function executeWeeklyIngestion(options?: {
     }
 
     log.eligibleFixturesCount = allEligibleFixtures.length;
+
+    // Enrich top fixtures with real Bet365 odds BEFORE ingestFixtures so fixturesStore
+    // and the Firestore snapshot retain authentic odds without being discarded by shallow cloning.
+    if (allEligibleFixtures.length > 0) {
+      try {
+        await enrichFixturesWithBet365Odds(allEligibleFixtures, 30, 8);
+      } catch (oddsErr) {
+        console.warn('[WeeklyIngestion] Bet365 odds enrichment notice:', oddsErr);
+      }
+    }
 
     // Snapshot existing fixtures before ingestion to compute inserted vs updated counts
     const existingSnap = queryMarketFixtures({ scope: 'all' });
@@ -464,15 +475,6 @@ export async function executeWeeklyIngestion(options?: {
 
     log.newFixturesInserted = newCount;
     log.existingFixturesUpdated = updatedCount;
-
-    // Enrich top fixtures with real Bet365 odds
-    if (allEligibleFixtures.length > 0) {
-      try {
-        await enrichFixturesWithBet365Odds(allEligibleFixtures, 30, 8);
-      } catch (oddsErr) {
-        console.warn('[WeeklyIngestion] Bet365 odds enrichment notice:', oddsErr);
-      }
-    }
 
     log.durationMs = Date.now() - startTime;
     // Persist to the shared Firestore snapshot so every serverless instance serves the same fixtures

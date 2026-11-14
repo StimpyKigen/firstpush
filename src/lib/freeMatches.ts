@@ -19,6 +19,7 @@ import {
   findMatchingExistingFixture,
   extractSportScoreProviderId,
   extractSportScoreMatchSlug,
+  buildCanonicalFixtureDedupeKey,
 } from './fixtureIdentity.js';
 import { realtimeClient } from './realtimeClient.js';
 
@@ -623,31 +624,7 @@ export function makeFreeMatchDedupeKey(m: {
   kickoffIso?: string;
   kickoff?: string;
 }): string {
-  const ssId = extractSportScoreProviderId(m);
-  if (ssId) {
-    return `mid_${ssId}`;
-  }
-  const h = (m.home || '').toLowerCase().replace(/[^a-z0-9]/g, '');
-  const a = (m.away || '').toLowerCase().replace(/[^a-z0-9]/g, '');
-
-  let dateKey = '';
-  if (m.kickoffIso) {
-    const isoM = m.kickoffIso.match(/^\d{4}-(\d{2})-(\d{2})/);
-    if (isoM) {
-      dateKey = `${isoM[2]}_${isoM[1]}`;
-    }
-  }
-  if (!dateKey && m.kickoff) {
-    const dmM = m.kickoff.match(/^(\d{1,2})[/-](\d{1,2})/);
-    if (dmM) {
-      dateKey = `${dmM[1].padStart(2, '0')}_${dmM[2].padStart(2, '0')}`;
-    }
-  }
-  if (!dateKey) {
-    dateKey = (m.kickoffIso || m.kickoff || '').replace(/[^0-9]/g, '').slice(0, 8);
-  }
-
-  return `${h}___${a}___${dateKey}`;
+  return buildCanonicalFixtureDedupeKey(m);
 }
 
 function mergeFreeMatchPair(existing: FreeMatch, incoming: FreeMatch): FreeMatch {

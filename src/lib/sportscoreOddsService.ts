@@ -38,9 +38,16 @@ export interface ParsedBet365Odds {
   fetchedAt: number;
 }
 
-// In-Memory Cache (URL/ID -> { data, expiresAt })
-const oddsCache = new Map<string, { data: ParsedBet365Odds; expiresAt: number }>();
-const CACHE_TTL_MS = 60 * 60 * 1000; // 1 hour for pre-match odds
+// In-Memory Cache (URL/ID -> { data, expiresAt }, including null negative entries)
+const oddsCache = new Map<string, { data: ParsedBet365Odds | null; expiresAt: number }>();
+const inFlightOddsRequests = new Map<string, Promise<ParsedBet365Odds | null>>();
+const CACHE_TTL_MS = 60 * 60 * 1000; // 1 hour for valid pre-match odds
+export const NEGATIVE_CACHE_TTL_MS = 15 * 60 * 1000; // 15 minutes negative cache for 404/unavailable odds
+
+export function clearBet365OddsCacheForTests(): void {
+  oddsCache.clear();
+  inFlightOddsRequests.clear();
+}
 
 // Client-side localStorage hydration
 function hydrateClientCache(): void {
@@ -64,7 +71,7 @@ function hydrateClientCache(): void {
 function persistClientCache(): void {
   if (typeof localStorage === 'undefined') return;
   try {
-    const obj: Record<string, { data: ParsedBet365Odds; expiresAt: number }> = {};
+    const obj: Record<string, { data: ParsedBet365Odds | null; expiresAt: number }> = {};
     const now = Date.now();
     for (const [key, val] of oddsCache.entries()) {
       if (val.expiresAt > now) {
@@ -288,55 +295,76 @@ export async function fetchBet365OddsForMatch(matchUrl: string): Promise<ParsedB
     return cached.data;
   }
 
-  try {
-    const isClient = typeof window !== 'undefined';
-    let html = '';
-
-    if (isClient) {
-      // In the browser, route through our backend proxy to prevent CORS blocking
-      const proxyUrl = `/api/sports/match-odds?url=${encodeURIComponent(safePath)}`;
-      const res = await fetch(proxyUrl, {
-        headers: { Accept: 'application/json' },
-        signal: typeof AbortSignal !== 'undefined' ? AbortSignal.timeout(8000) : undefined,
-      });
-
-      if (res.ok) {
-        const json = await res.json();
-        if (json && json.success && json.odds) {
-          const odds: ParsedBet365Odds = json.odds;
-          oddsCache.set(cacheKey, { data: odds, expiresAt: now + CACHE_TTL_MS });
-          persistClientCache();
-          return odds;
-        }
-      }
-      return null;
-    } else {
-      // On the server, fetch strictly from allowlisted SportScore origin with redirects disabled
-      const fullUrl = `https://sportscore.com${safePath}`;
-      const res = await fetch(fullUrl, {
-        headers: DEFAULT_FETCH_HEADERS,
-        redirect: 'error',
-        signal: typeof AbortSignal !== 'undefined' ? AbortSignal.timeout(8000) : undefined,
-      });
-
-      if (!res.ok) {
-        return null;
-      }
-      html = await res.text();
-    }
-
-    const odds = parseSportScoreBet365Odds(html);
-    if (odds) {
-      oddsCache.set(cacheKey, { data: odds, expiresAt: now + CACHE_TTL_MS });
-      persistClientCache();
-      return odds;
-    }
-
-    return null;
-  } catch (err) {
-    // Network or timeout notice: fail gracefully
-    return null;
+  const pending = inFlightOddsRequests.get(cacheKey);
+  if (pending) {
+    return pending;
   }
+
+  const requestPromise = (async (): Promise<ParsedBet365Odds | null> => {
+    try {
+      const isClient = typeof window !== 'undefined';
+      let html = '';
+
+      if (isClient) {
+        // In the browser, route through our backend proxy to prevent CORS blocking
+        const proxyUrl = `/api/sports/match-odds?url=${encodeURIComponent(safePath)}`;
+        const res = await fetch(proxyUrl, {
+          headers: { Accept: 'application/json' },
+          signal: typeof AbortSignal !== 'undefined' ? AbortSignal.timeout(8000) : undefined,
+        });
+
+        if (res.ok) {
+          const json = await res.json();
+          if (json && json.success && json.odds) {
+            const odds: ParsedBet365Odds = json.odds;
+            oddsCache.set(cacheKey, { data: odds, expiresAt: Date.now() + CACHE_TTL_MS });
+            persistClientCache();
+            return odds;
+          }
+        }
+        if (res.status === 404 || res.ok) {
+          oddsCache.set(cacheKey, { data: null, expiresAt: Date.now() + NEGATIVE_CACHE_TTL_MS });
+          persistClientCache();
+        }
+        return null;
+      } else {
+        // On the server, fetch strictly from allowlisted SportScore origin with redirects disabled
+        const fullUrl = `https://sportscore.com${safePath}`;
+        const res = await fetch(fullUrl, {
+          headers: DEFAULT_FETCH_HEADERS,
+          redirect: 'error',
+          signal: typeof AbortSignal !== 'undefined' ? AbortSignal.timeout(8000) : undefined,
+        });
+
+        if (!res.ok) {
+          if (res.status === 404) {
+            oddsCache.set(cacheKey, { data: null, expiresAt: Date.now() + NEGATIVE_CACHE_TTL_MS });
+          }
+          return null;
+        }
+        html = await res.text();
+      }
+
+      const odds = parseSportScoreBet365Odds(html);
+      if (odds) {
+        oddsCache.set(cacheKey, { data: odds, expiresAt: Date.now() + CACHE_TTL_MS });
+        persistClientCache();
+        return odds;
+      }
+
+      oddsCache.set(cacheKey, { data: null, expiresAt: Date.now() + NEGATIVE_CACHE_TTL_MS });
+      persistClientCache();
+      return null;
+    } catch {
+      // Network or timeout notice: fail gracefully without polluting negative cache
+      return null;
+    } finally {
+      inFlightOddsRequests.delete(cacheKey);
+    }
+  })();
+
+  inFlightOddsRequests.set(cacheKey, requestPromise);
+  return requestPromise;
 }
 
 /**
@@ -392,6 +420,9 @@ export async function enrichFixturesWithBet365Odds<T extends {
           item.over15Pct = odds.over15Pct;
           item.over35Pct = odds.over35Pct;
           item.bttsYesPct = odds.bttsYesPct;
+          delete (item as any).oddsUnavailableUntil;
+        } else {
+          (item as any).oddsUnavailableUntil = Date.now() + NEGATIVE_CACHE_TTL_MS;
         }
       })
     );

@@ -11,6 +11,7 @@ export interface PunterProfile {
   closestWins: number;
   gamesTracked: number;
   isRegisteredAccount?: boolean;
+  isShowcase?: boolean;
 }
 
 const PUBLIC_SEED_PUNTERS = [
@@ -24,6 +25,16 @@ const PUBLIC_SEED_PUNTERS = [
   'Achieng_Bets',
   'Wanjiku_Picks',
 ];
+
+let authoritativeDirectoryCache: Array<{ username: string; avatarId?: string; verifiedWithSms?: boolean }> = [];
+let directoryFetchPromise: Promise<PunterProfile[]> | null = null;
+let directoryFetchedAt = 0;
+
+export function clearDirectoryCacheForTests(): void {
+  authoritativeDirectoryCache = [];
+  directoryFetchPromise = null;
+  directoryFetchedAt = 0;
+}
 
 export function getAllPunters(): PunterProfile[] {
   const currentUser = useAuth.getState().getCurrentUser();
@@ -41,10 +52,31 @@ export function getAllPunters(): PunterProfile[] {
       closestWins: stats.closestWins,
       gamesTracked: stats.gamesTracked,
       isRegisteredAccount: true,
+      isShowcase: false,
     });
   }
 
-  // 2. Add public seed punters
+  // 2. Add registered accounts hydrated from authoritative /api/auth/directory
+  authoritativeDirectoryCache.forEach((acc) => {
+    const cleanName = String(acc.username || '').trim();
+    if (!cleanName) return;
+    const key = cleanName.toLowerCase();
+    if (!puntersMap.has(key)) {
+      const stats = getPunterStats(cleanName);
+      puntersMap.set(key, {
+        username: cleanName,
+        avatarId: acc.avatarId,
+        stars: stats.stars,
+        accuracyPct: stats.accuracyPct,
+        closestWins: stats.closestWins,
+        gamesTracked: stats.gamesTracked,
+        isRegisteredAccount: true,
+        isShowcase: false,
+      });
+    }
+  });
+
+  // 3. Add explicitly marked showcase community punters
   PUBLIC_SEED_PUNTERS.forEach((uname) => {
     const key = uname.toLowerCase();
     if (!puntersMap.has(key)) {
@@ -55,11 +87,12 @@ export function getAllPunters(): PunterProfile[] {
         accuracyPct: stats.accuracyPct,
         closestWins: stats.closestWins,
         gamesTracked: stats.gamesTracked,
+        isShowcase: true,
       });
     }
   });
 
-  // 3. Add leaderboard punters from jackpots
+  // 4. Add leaderboard showcase punters from jackpots
   jackpots.forEach((jp) => {
     jp.leaderboard?.forEach((entry) => {
       const key = entry.username.toLowerCase();
@@ -71,12 +104,40 @@ export function getAllPunters(): PunterProfile[] {
           accuracyPct: stats.accuracyPct,
           closestWins: stats.closestWins,
           gamesTracked: stats.gamesTracked,
+          isShowcase: true,
         });
       }
     });
   });
 
   return Array.from(puntersMap.values());
+}
+
+export async function fetchAuthoritativePunters(query: string = ''): Promise<PunterProfile[]> {
+  const now = Date.now();
+  if (now - directoryFetchedAt > 60_000 && !directoryFetchPromise) {
+    directoryFetchPromise = (async () => {
+      try {
+        const res = await fetch('/api/auth/directory', { credentials: 'include' });
+        if (res.ok) {
+          const data = await res.json();
+          if (data?.success && Array.isArray(data.punters)) {
+            authoritativeDirectoryCache = data.punters;
+            directoryFetchedAt = Date.now();
+          }
+        }
+      } catch {
+        // Non-blocking fallback to current cache
+      } finally {
+        directoryFetchPromise = null;
+      }
+      return searchPunters(query);
+    })();
+  }
+  if (directoryFetchPromise) {
+    await directoryFetchPromise;
+  }
+  return searchPunters(query);
 }
 
 export function searchPunters(query: string): PunterProfile[] {

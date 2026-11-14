@@ -48,6 +48,11 @@ import {
   resetFirebaseAdminForTests,
   resolveScopedServiceAccountRaw,
 } from './serverFirebaseAdmin.js';
+import {
+  isValidKenyanPhone as sharedIsValidKenyanPhone,
+  normalizeKenyanPhone,
+} from './phoneUtils.js';
+import { isValidUsernameFormat as sharedIsValidUsernameFormat } from './usernameUtils.js';
 
 // ============================================================================
 // CONSTANTS & TYPES
@@ -144,23 +149,13 @@ export function isUserSessionSecretConfigured(): boolean {
 }
 
 export function normalizePhoneDigits(raw?: string | null): string {
-  const digits = String(raw || '').replace(/\D/g, '');
-  if (!digits) return '';
-  if (digits.startsWith('0') && digits.length === 10) {
-    return `254${digits.slice(1)}`;
-  }
-  if ((digits.startsWith('7') || digits.startsWith('1')) && digits.length === 9) {
-    return `254${digits}`;
-  }
-  if (digits.startsWith('254') && digits.length === 12) {
-    return digits;
-  }
-  return normalizeCanonicalUid(digits);
+  const digits = normalizeKenyanPhone(raw);
+  if (digits) return digits;
+  return raw ? normalizeCanonicalUid(String(raw)) : '';
 }
 
 export function isValidKenyanPhone(phone: string): boolean {
-  const norm = normalizePhoneDigits(phone);
-  return /^254(7\d{8}|1\d{8})$/.test(norm);
+  return sharedIsValidKenyanPhone(phone);
 }
 
 export function isValidPinFormat(pin: string): boolean {
@@ -168,8 +163,7 @@ export function isValidPinFormat(pin: string): boolean {
 }
 
 export function isValidUsernameFormat(username: string): boolean {
-  const clean = String(username || '').trim();
-  return clean.length >= 2 && clean.length <= 24 && !/[<>]/.test(clean);
+  return sharedIsValidUsernameFormat(username);
 }
 
 // ============================================================================

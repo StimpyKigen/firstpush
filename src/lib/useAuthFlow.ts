@@ -9,6 +9,7 @@ import {
   getCurrentFirebaseIdToken,
 } from './firebasePhoneAuth';
 import { validateUsername } from './contentModeration';
+import { sanitizeUsernameInput } from './usernameUtils';
 import type { ConfirmationResult } from 'firebase/auth';
 
 export type AuthMode = 'signup' | 'login';
@@ -19,7 +20,7 @@ export function useAuthFlow() {
   const navigate = useNavigate();
   const signUp = useAuth((s) => s.signUp);
   const logIn = useAuth((s) => s.logIn);
-  const isUsernameTaken = useAuth((s) => s.isUsernameTaken);
+  const checkUsernameAvailability = useAuth((s) => s.checkUsernameAvailability);
   const isPhoneRegistered = useAuth((s) => s.isPhoneRegistered);
 
   const [mode, setMode] = useState<AuthMode>('signup');
@@ -53,10 +54,37 @@ export function useAuthFlow() {
     }
   }, []);
 
+  const [usernameTaken, setUsernameTaken] = useState(false);
+
   const phoneValid = phone.length === 0 ? null : isValidPhone(phone);
   const usernameValid = username.length === 0 ? null : isValidUsername(username);
-  const usernameTaken = Boolean(username.length > 0 && usernameValid && isUsernameTaken(username));
   const phoneTaken = Boolean(mode === 'signup' && phone.length > 0 && phoneValid && isPhoneRegistered(phone));
+
+  useEffect(() => {
+    if (mode !== 'signup' || !usernameValid || !username.trim()) {
+      setUsernameTaken(false);
+      return;
+    }
+
+    let cancelled = false;
+    const timer = setTimeout(async () => {
+      try {
+        const available = await checkUsernameAvailability(username);
+        if (!cancelled) {
+          setUsernameTaken(!available);
+        }
+      } catch {
+        if (!cancelled) {
+          setUsernameTaken(false);
+        }
+      }
+    }, 350);
+
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
+  }, [mode, username, usernameValid, checkUsernameAvailability]);
 
   function setPhone(v: string) {
     setPhoneRaw(v);
@@ -74,7 +102,7 @@ export function useAuthFlow() {
   }
 
   function setUsername(v: string) {
-    setUsernameRaw(v.replace(/[^A-Za-z0-9]/g, ''));
+    setUsernameRaw(sanitizeUsernameInput(v));
     setError('');
   }
 

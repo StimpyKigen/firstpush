@@ -1,49 +1,19 @@
-import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { useUserPicks } from './userPicksStore';
 
-interface PickEditState {
-  // Map of pickId -> edit count (max 2)
-  editCounts: Record<string, number>;
-  // Map of pickId -> set of usernames who liked
-  likesMap: Record<string, string[]>;
+/**
+ * Compatibility facade backed by the authoritative `useUserPicks` store
+ * so pick edit limits share one single source of truth without duplicate persistence.
+ */
+interface PickEditFacadeState {
   canEdit: (pickId: string) => boolean;
   incrementEdit: (pickId: string) => void;
-  toggleLike: (pickId: string, username: string) => void;
 }
 
-export const usePickEdits = create<PickEditState>()(
-  persist(
-    (set, get) => ({
-      editCounts: {},
-      likesMap: {},
-      canEdit: (pickId: string) => {
-        const count = get().editCounts[pickId] || 0;
-        return count < 2;
-      },
-      incrementEdit: (pickId: string) => {
-        set((state) => ({
-          editCounts: {
-            ...state.editCounts,
-            [pickId]: (state.editCounts[pickId] || 0) + 1,
-          },
-        }));
-      },
-      toggleLike: (pickId: string, username: string) => {
-        set((state) => {
-          const currentLikes = state.likesMap[pickId] || [];
-          const hasLiked = currentLikes.includes(username);
-          const updatedLikes = hasLiked
-            ? currentLikes.filter((u) => u !== username)
-            : [...currentLikes, username];
-          return {
-            likesMap: {
-              ...state.likesMap,
-              [pickId]: updatedLikes,
-            },
-          };
-        });
-      },
-    }),
-    { name: 'mshindi-pick-edits' }
-  )
-);
+export function usePickEdits<T>(selector: (state: PickEditFacadeState) => T): T {
+  return useUserPicks((s) =>
+    selector({
+      canEdit: s.canEditPick,
+      incrementEdit: s.incrementPickEdit,
+    })
+  );
+}

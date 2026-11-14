@@ -1,6 +1,13 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { notifySessionChanged } from './sessionLifecycle';
+import {
+  ADMIN_PHONE as CANONICAL_ADMIN_PHONE,
+  isAdminKenyanPhone,
+  isValidKenyanPhone,
+  normalizeKenyanPhone,
+} from './phoneUtils.js';
+import { isValidUsernameFormat } from './usernameUtils.js';
 
 export interface Account {
   phone: string; // canonical form: 2547XXXXXXXX / 2541XXXXXXXX
@@ -51,22 +58,11 @@ interface AuthState {
 
 // Normalize any phone input down to a canonical digits-only key
 export function normalizePhone(raw: string): string {
-  const trimmed = raw.trim();
-  if (trimmed.startsWith('+')) {
-    return trimmed.replace(/\D/g, '');
-  }
-  let digits = raw.replace(/\D/g, '');
-  if (digits.startsWith('0') && digits.length === 10) {
-    digits = '254' + digits.slice(1);
-  } else if ((digits.startsWith('7') || digits.startsWith('1')) && digits.length === 9) {
-    digits = '254' + digits;
-  }
-  return digits;
+  return normalizeKenyanPhone(raw);
 }
 
 export function isValidPhone(raw: string): boolean {
-  const norm = normalizePhone(raw);
-  return /^254(7\d{8}|1\d{8})$/.test(norm) || (norm.length >= 9 && norm.length <= 15);
+  return isValidKenyanPhone(raw);
 }
 
 export function isValidPin(pin: string): boolean {
@@ -74,11 +70,10 @@ export function isValidPin(pin: string): boolean {
 }
 
 // Canonical admin phone number: 0743304579 -> 254743304579
-export const ADMIN_PHONE = '254743304579';
+export const ADMIN_PHONE = CANONICAL_ADMIN_PHONE;
 
 export function isAdminPhone(phone: string | null | undefined): boolean {
-  if (!phone) return false;
-  return normalizePhone(phone) === ADMIN_PHONE;
+  return isAdminKenyanPhone(phone);
 }
 
 export function isAdminUser(account: Account | null | undefined): boolean {
@@ -87,7 +82,7 @@ export function isAdminUser(account: Account | null | undefined): boolean {
 }
 
 export function isValidUsername(username: string): boolean {
-  return /^[A-Za-z0-9]{3,16}$/.test(username);
+  return isValidUsernameFormat(username);
 }
 
 function buildAuthFetchHeaders(sessionToken: string | null): Record<string, string> {
